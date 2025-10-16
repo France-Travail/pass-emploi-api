@@ -1,6 +1,8 @@
-import { getDatabase } from '../../../utils/database-for-testing'
+import {
+  DatabaseForTesting,
+  getDatabase
+} from '../../../utils/database-for-testing'
 import { GetFeaturesQueryGetter } from '../../../../src/application/queries/query-getters/get-features.query.getter.db'
-import { AsSql } from '../../../../src/infrastructure/sequelize/types'
 import {
   FeatureFlipSqlModel,
   FeatureFlipTag
@@ -12,39 +14,39 @@ import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/mod
 import { expect } from '../../../utils'
 
 describe('GetFeaturesQueryGetter', () => {
+  let databaseForTesting: DatabaseForTesting
   let getFeaturesQueryGetter: GetFeaturesQueryGetter
 
   before(async () => {
-    await getDatabase().cleanPG()
-  })
+    databaseForTesting = getDatabase()
+    await databaseForTesting.cleanPG()
+    getFeaturesQueryGetter = new GetFeaturesQueryGetter(
+      databaseForTesting.sequelize
+    )
 
-  beforeEach(async () => {
-    await getDatabase().cleanPG()
-    getFeaturesQueryGetter = new GetFeaturesQueryGetter()
+    const conseillerDto1 = unConseillerDto({ id: 'c1', email: 'c1@email.com' })
+    const conseillerDto2 = unConseillerDto({ id: 'c2', email: 'c2@email.com' })
 
-    const conseillerDto = unConseillerDto({ id: 'id-conseiller' })
     const jeuneDtoJ1 = unJeuneDto({
       id: 'j1',
-      idConseiller: 'id-conseiller'
+      idConseiller: 'c1'
     })
     const jeuneDtoJ2 = unJeuneDto({
       id: 'j2',
-      idConseiller: 'id-conseiller'
+      idConseiller: 'c2'
     })
-    await ConseillerSqlModel.creer(conseillerDto)
+    await ConseillerSqlModel.bulkCreate([conseillerDto1, conseillerDto2])
     await JeuneSqlModel.bulkCreate([jeuneDtoJ1, jeuneDtoJ2])
 
-    const j1Migration: AsSql<FeatureFlipSqlModel> = {
-      id: 0,
+    const j1Migration = {
       featureTag: FeatureFlipTag.MIGRATION,
-      idJeune: 'j1'
+      emailConseiller: 'c1@email.com'
     }
-    const j2demarchesIA: AsSql<FeatureFlipSqlModel> = {
-      id: 1,
+    const j2DemarchesIA = {
       featureTag: FeatureFlipTag.DEMARCHES_IA,
-      idJeune: 'j2'
+      emailConseiller: 'c2@email.com'
     }
-    await FeatureFlipSqlModel.bulkCreate([j1Migration, j2demarchesIA])
+    await FeatureFlipSqlModel.bulkCreate([j1Migration, j2DemarchesIA])
   })
 
   describe('handle', () => {
@@ -61,8 +63,8 @@ describe('GetFeaturesQueryGetter', () => {
     it("renvoie false si l'id jeune existe mais pour une autre feature", async () => {
       // When
       const featureExiste = await getFeaturesQueryGetter.handle({
-        idJeune: 'j2',
-        featureTag: FeatureFlipTag.MIGRATION
+        idJeune: 'j1',
+        featureTag: FeatureFlipTag.DEMARCHES_IA
       })
 
       // Then

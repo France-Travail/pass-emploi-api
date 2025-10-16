@@ -249,7 +249,7 @@ export class SupportController {
   )
   @ApiOperation({
     summary:
-      'Modifie les fonctionnalités accessibles pour un groupe de jeunes selon les conseillers qui les accompagnent',
+      'Enregistre la liste des conseillers (via leur email) qui accèdent à une fonctionnalité (les jeunes associés seront calculés automatiquement à la volée)',
     description: 'Autorisé pour le support'
   })
   @Post('feature-flip')

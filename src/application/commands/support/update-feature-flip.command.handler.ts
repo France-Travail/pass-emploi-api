@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import { Result, emptySuccess } from '../../../building-blocks/types/result'
+import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 
-import { QueryTypes, Sequelize } from 'sequelize'
+import { Sequelize } from 'sequelize'
 import {
   FeatureFlipSqlModel,
   FeatureFlipTag
@@ -41,7 +41,7 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
     return
   }
 
-  async handle(command: UpdateFeatureFlipCommand): Promise<Result<void>> {
+  async handle(command: UpdateFeatureFlipCommand): Promise<Result> {
     if (command.supprimerExistants) {
       await FeatureFlipSqlModel.destroy({
         where: { featureTag: command.tagFeature }
@@ -49,22 +49,9 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
     }
 
     if (command.emailsConseillersAjout?.length) {
-      const jeunesToAdd: Array<{ id: string }> = await this.sequelize.query(
-        `
-        SELECT j.id
-        FROM jeune j
-        JOIN conseiller c ON j.id_conseiller = c.id
-        WHERE c.email IN (:emailsConseillersAjout)
-      `,
-        {
-          replacements: {
-            emailsConseillersAjout: command.emailsConseillersAjout
-          },
-          type: QueryTypes.SELECT
-        }
-      )
-      const featureFlipsToCreate = jeunesToAdd.map(jeune => ({
-        idJeune: jeune.id,
+      const uniqueEmails = Array.from(new Set(command.emailsConseillersAjout))
+      const featureFlipsToCreate = uniqueEmails.map(email => ({
+        emailConseiller: email,
         featureTag: command.tagFeature
       }))
       await FeatureFlipSqlModel.bulkCreate(featureFlipsToCreate, {
@@ -73,23 +60,9 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
     }
 
     if (command.emailsConseillersSuppression?.length) {
-      const jeunesToRemove: Array<{ id: string }> = await this.sequelize.query(
-        `
-        SELECT j.id
-        FROM jeune j
-        JOIN conseiller c ON j.id_conseiller = c.id
-        WHERE c.email IN (:emailsConseillersSuppression)
-      `,
-        {
-          replacements: {
-            emailsConseillersSuppression: command.emailsConseillersSuppression
-          },
-          type: QueryTypes.SELECT
-        }
-      )
       await FeatureFlipSqlModel.destroy({
         where: {
-          idJeune: jeunesToRemove.map(j => j.id),
+          emailConseiller: command.emailsConseillersSuppression,
           featureTag: command.tagFeature
         }
       })

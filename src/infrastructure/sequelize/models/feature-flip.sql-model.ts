@@ -2,12 +2,10 @@ import {
   AutoIncrement,
   Column,
   DataType,
-  ForeignKey,
   Model,
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
-import { JeuneSqlModel } from './jeune.sql-model'
 
 export enum FeatureFlipTag {
   DEMARCHES_IA = 'DEMARCHES_IA',
@@ -26,9 +24,8 @@ export class FeatureFlipSqlModel extends Model {
   })
   id: number
 
-  @ForeignKey(() => JeuneSqlModel)
-  @Column({ field: 'id_jeune', type: DataType.STRING })
-  idJeune: string
+  @Column({ field: 'email_conseiller', type: DataType.STRING })
+  emailConseiller: string
 
   @Column({ field: 'feature_tag', type: DataType.STRING })
   featureTag: FeatureFlipTag
