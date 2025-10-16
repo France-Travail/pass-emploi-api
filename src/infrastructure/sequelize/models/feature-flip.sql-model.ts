@@ -13,7 +13,15 @@ export enum FeatureFlipTag {
 }
 @Table({
   timestamps: false,
-  tableName: 'feature_flip'
+  tableName: 'feature_flip',
+  indexes: [
+    {
+      name: 'feature_flip_feature_tag_email_conseiller_unique',
+      type: 'UNIQUE',
+      concurrently: true,
+      fields: ['feature_tag', { name: 'lastName', collate: 'email_conseiller' }]
+    }
+  ]
 })
 export class FeatureFlipSqlModel extends Model {
   @PrimaryKey

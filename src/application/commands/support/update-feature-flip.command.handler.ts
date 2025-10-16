@@ -11,6 +11,7 @@ import {
 } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
+import { AsSql } from '../../../infrastructure/sequelize/types'
 
 export interface UpdateFeatureFlipCommand extends Command {
   emailsConseillersAjout?: string[]
@@ -49,8 +50,12 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
     }
 
     if (command.emailsConseillersAjout?.length) {
-      const uniqueEmails = Array.from(new Set(command.emailsConseillersAjout))
-      const featureFlipsToCreate = uniqueEmails.map(email => ({
+      const uniqueEmails: string[] = Array.from(
+        new Set(command.emailsConseillersAjout)
+      )
+      const featureFlipsToCreate: Array<
+        Omit<AsSql<FeatureFlipSqlModel>, 'id'>
+      > = uniqueEmails.map(email => ({
         emailConseiller: email,
         featureTag: command.tagFeature
       }))
