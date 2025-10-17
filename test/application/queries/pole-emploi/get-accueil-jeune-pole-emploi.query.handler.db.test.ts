@@ -282,14 +282,14 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             .resolves(true)
           configService.get
             .withArgs('features.dateDeMigration' as unknown as SinonMatcher)
-            .returns('2024-09-01T00:00:00.000Z')
+            .returns('2024-09-01')
 
           // When
           result = await handler.handle(query)
 
           // Then
           expect(isSuccess(result) && result.data.dateDeMigration).to.equal(
-            '2024-09-01T00:00:00.000Z'
+            '2024-09-01T00:00:00.000+02:00'
           )
         })
         it('ne renvoie pas de date de migration quand le jeune ne fait pas partie de la feature MIGRATION', async () => {

@@ -28,6 +28,7 @@ import { DemarcheQueryModel } from '../query-models/actions.query-model'
 import { AccueilJeunePoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
 import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
+import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
@@ -214,15 +215,20 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   private async recupererLaDateDeMigration(
     idJeune: string
   ): Promise<string | undefined> {
-    let dateDeMigration: string | undefined
     const faitPartieDeLaMigration = await this.getFeaturesQueryGetter.handle({
       idJeune: idJeune,
       featureTag: FeatureFlipTag.MIGRATION
     })
     if (faitPartieDeLaMigration) {
-      dateDeMigration = this.configService.get('features.dateDeMigration')
+      const dateDeMigration = this.configService.get('features.dateDeMigration')
+      return dateDeMigration
+        ? DateTime.fromISO(dateDeMigration)
+            .setZone(TIME_ZONE_EUROPE_PARIS)
+            .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+            .toISO()
+        : undefined
     }
-    return dateDeMigration
+    return undefined
   }
 }
 
