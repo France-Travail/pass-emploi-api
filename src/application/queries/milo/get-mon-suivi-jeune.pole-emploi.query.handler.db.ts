@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { GetDemarchesQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
@@ -11,7 +11,10 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { beneficiaireEstFTConnect } from '../../../domain/core'
-import { FeatureFlip } from '../../../domain/feature-flip'
+import {
+  FeatureFlip,
+  FeatureFlipRepositoryToken
+} from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 
@@ -30,6 +33,7 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
     private readonly getDemarchesQueryGetter: GetDemarchesQueryGetter,
+    @Inject(FeatureFlipRepositoryToken)
     private readonly featureFlipRepository: FeatureFlip.Repository
   ) {
     super('GetMonSuiviPoleEmploiQueryHandler')

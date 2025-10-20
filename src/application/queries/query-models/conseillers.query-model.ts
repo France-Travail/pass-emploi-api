@@ -66,7 +66,8 @@ export class DetailConseillerQueryModel {
   @ApiProperty({ required: false })
   dateVisionnageActus?: string
 
-  
+  @ApiPropertyOptional({ type: Date })
+  dateDeMigration?: string
 }
 
 class JeuneDuConseillerQueryModel {

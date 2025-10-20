@@ -248,7 +248,7 @@ import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
 import { Demarche, DemarcheRepositoryToken } from './domain/demarche'
 import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
-import { FeatureFlipRepositoryToken } from './domain/feature-flip'
+import { FeatureFlip, FeatureFlipRepositoryToken } from './domain/feature-flip'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import {
   Jeune,
@@ -472,6 +472,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     Suggestion.Factory,
     SuggestionPoleEmploiService,
     Notification.Service,
+    FeatureFlip.Service,
     RendezVous.AnimationCollective.Service,
     WorkerService,
     TaskService,

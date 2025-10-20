@@ -1,7 +1,4 @@
-import { ConfigService } from '@nestjs/config'
-import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
-import { createSandbox, SinonMatcher, SinonSandbox } from 'sinon'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -40,11 +37,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let getRendezVousJeunePoleEmploiQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getRecherchesSauvegardeesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let getFavorisQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
-  let featureFlipRepository: StubbedType<FeatureFlip.Repository>
+  let featureFlipService: StubbedClass<FeatureFlip.Service>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
   let dateService: StubbedClass<DateService>
-  let configService: StubbedClass<ConfigService>
   const idpToken = 'id-token'
 
   beforeEach(() => {
@@ -54,8 +50,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       GetRecherchesSauvegardeesQueryGetter
     )
     getFavorisQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
-    const sandbox: SinonSandbox = createSandbox()
-    featureFlipRepository = stubInterface(sandbox)
+    featureFlipService = stubClass(FeatureFlip.Service)
     getRendezVousJeunePoleEmploiQueryGetter = stubClass(
       GetRendezVousJeunePoleEmploiQueryGetter
     )
@@ -64,7 +59,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     oidcClient.exchangeTokenJeune.resolves(idpToken)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     dateService = stubClass(DateService)
-    configService = stubClass(ConfigService)
 
     handler = new GetAccueilJeunePoleEmploiQueryHandler(
       jeuneAuthorizer,
@@ -74,9 +68,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       getRecherchesSauvegardeesQueryGetter,
       getFavorisQueryGetter,
       getCampagneQueryGetter,
-      featureFlipRepository,
-      dateService,
-      configService
+      featureFlipService,
+      dateService
     )
   })
 
@@ -273,14 +266,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             campagneQueryModel
           )
         })
-        it('renvoie la date de migration quand le jeune fait partie de la feature MIGRATION et que la config contient une date', async () => {
+        it('renvoie la date de migration quand elle existe', async () => {
           // Given
-          featureFlipRepository.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
-            .resolves(true)
-          configService.get
-            .withArgs('features.dateDeMigration' as unknown as SinonMatcher)
-            .returns('2024-09-01')
+          featureFlipService.recupererDateDeMigrationBeneficiaire
+            .withArgs(query.idJeune)
+            .resolves('2024-09-01T00:00:00.000+02:00')
 
           // When
           result = await handler.handle(query)
@@ -290,28 +280,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             '2024-09-01T00:00:00.000+02:00'
           )
         })
-        it('ne renvoie pas de date de migration quand le jeune ne fait pas partie de la feature MIGRATION', async () => {
+        it('ne renvoie pas de date de migration quand elle est inexistente', async () => {
           // Given
-          featureFlipRepository.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
-            .resolves(false)
-
-          // When
-          result = await handler.handle(query)
-
-          // Then
-          expect(
-            isSuccess(result) && result.data.dateDeMigration
-          ).to.be.undefined()
-        })
-        it('ne renvoie pas de date de migration quand le jeune fait partie de la feature MIGRATION mais que la config ne contient pas de date', async () => {
-          // Given
-          featureFlipRepository.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
-            .resolves(true)
-          configService.get
-            .withArgs('features.dateDeMigration' as unknown as SinonMatcher)
-            .returns(undefined)
+          featureFlipService.recupererDateDeMigrationBeneficiaire
+            .withArgs(query.idJeune)
+            .resolves(undefined)
 
           // When
           result = await handler.handle(query)

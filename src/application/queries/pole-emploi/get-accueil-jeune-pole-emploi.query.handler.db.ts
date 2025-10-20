@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -10,7 +9,6 @@ import {
   Result,
   success
 } from '../../../building-blocks/types/result'
-import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
 import { Authentification } from '../../../domain/authentification'
 import {
   beneficiaireEstFTConnect,
@@ -49,9 +47,8 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
-    private featureFlipRepository: FeatureFlip.Repository,
-    private dateService: DateService,
-    private configService: ConfigService
+    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly dateService: DateService
   ) {
     super('GetAccueilJeunePoleEmploiQueryHandler')
   }
@@ -167,7 +164,10 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
           )[0]
         : undefined
 
-    const dateDeMigration = await this.recupererLaDateDeMigration(query.idJeune)
+    const dateDeMigration =
+      await this.featureFlipService.recupererDateDeMigrationBeneficiaire(
+        query.idJeune
+      )
 
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(
@@ -209,27 +209,6 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
 
   async monitor(): Promise<void> {
     return
-  }
-
-  private async recupererLaDateDeMigration(
-    idJeune: string
-  ): Promise<string | undefined> {
-    const faitPartieDeLaMigration =
-      await this.featureFlipRepository.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.MIGRATION,
-        idJeune
-      )
-
-    if (faitPartieDeLaMigration) {
-      const dateDeMigration = this.configService.get('features.dateDeMigration')
-      return dateDeMigration
-        ? DateTime.fromISO(dateDeMigration)
-            .setZone(TIME_ZONE_EUROPE_PARIS)
-            .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-            .toISO()
-        : undefined
-    }
-    return undefined
   }
 }
 
