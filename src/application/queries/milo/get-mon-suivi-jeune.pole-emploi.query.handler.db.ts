@@ -11,10 +11,9 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { beneficiaireEstFTConnect } from '../../../domain/core'
+import { FeatureFlip } from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
-import { FeatureFlipTag } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
-import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
 
 export interface GetMonSuiviPoleEmploiQuery extends Query {
   idJeune: string
@@ -31,7 +30,7 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
     private readonly getDemarchesQueryGetter: GetDemarchesQueryGetter,
-    private readonly getFeaturesQueryGetter: GetFeaturesQueryGetter
+    private readonly featureFlipRepository: FeatureFlip.Repository
   ) {
     super('GetMonSuiviPoleEmploiQueryHandler')
   }
@@ -60,10 +59,11 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
 
     if (isFailure(rdvs) && isFailure(demarches)) return rdvs
 
-    const eligibleDemarchesIA = await this.getFeaturesQueryGetter.handle({
-      idJeune: query.idJeune,
-      featureTag: FeatureFlipTag.DEMARCHES_IA
-    })
+    const eligibleDemarchesIA =
+      await this.featureFlipRepository.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        query.idJeune
+      )
 
     return success({
       queryModel: {

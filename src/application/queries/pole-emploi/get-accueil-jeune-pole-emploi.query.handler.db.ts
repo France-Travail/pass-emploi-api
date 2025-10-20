@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
-import { FeatureFlipTag } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { Cached, Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import {
@@ -11,6 +10,7 @@ import {
   Result,
   success
 } from '../../../building-blocks/types/result'
+import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
 import { Authentification } from '../../../domain/authentification'
 import {
   beneficiaireEstFTConnect,
@@ -18,6 +18,7 @@ import {
   peutVoirLesCampagnes
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
+import { FeatureFlip } from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -27,8 +28,6 @@ import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-e
 import { DemarcheQueryModel } from '../query-models/actions.query-model'
 import { AccueilJeunePoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
-import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
-import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
@@ -50,7 +49,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
-    private getFeaturesQueryGetter: GetFeaturesQueryGetter,
+    private featureFlipRepository: FeatureFlip.Repository,
     private dateService: DateService,
     private configService: ConfigService
   ) {
@@ -215,10 +214,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   private async recupererLaDateDeMigration(
     idJeune: string
   ): Promise<string | undefined> {
-    const faitPartieDeLaMigration = await this.getFeaturesQueryGetter.handle({
-      idJeune: idJeune,
-      featureTag: FeatureFlipTag.MIGRATION
-    })
+    const faitPartieDeLaMigration =
+      await this.featureFlipRepository.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.MIGRATION,
+        idJeune
+      )
+
     if (faitPartieDeLaMigration) {
       const dateDeMigration = this.configService.get('features.dateDeMigration')
       return dateDeMigration

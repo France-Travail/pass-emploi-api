@@ -1,4 +1,7 @@
+import { ConfigService } from '@nestjs/config'
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
+import { createSandbox, SinonMatcher, SinonSandbox } from 'sinon'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -22,16 +25,13 @@ import {
 } from '../../../../src/building-blocks/types/result'
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
+import { FeatureFlip } from '../../../../src/domain/feature-flip'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import { ConfigService } from '@nestjs/config'
-import { FeatureFlipTag } from '../../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
-import { GetFeaturesQueryGetter } from '../../../../src/application/queries/query-getters/get-features.query.getter.db'
 import Structure = Core.Structure
-import { SinonMatcher } from 'sinon'
 
 describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let handler: GetAccueilJeunePoleEmploiQueryHandler
@@ -40,7 +40,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let getRendezVousJeunePoleEmploiQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getRecherchesSauvegardeesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let getFavorisQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
-  let getFeaturesQueryGetter: StubbedClass<GetFeaturesQueryGetter>
+  let featureFlipRepository: StubbedType<FeatureFlip.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
   let dateService: StubbedClass<DateService>
@@ -54,7 +54,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       GetRecherchesSauvegardeesQueryGetter
     )
     getFavorisQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
-    getFeaturesQueryGetter = stubClass(GetFeaturesQueryGetter)
+    const sandbox: SinonSandbox = createSandbox()
+    featureFlipRepository = stubInterface(sandbox)
     getRendezVousJeunePoleEmploiQueryGetter = stubClass(
       GetRendezVousJeunePoleEmploiQueryGetter
     )
@@ -73,7 +74,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       getRecherchesSauvegardeesQueryGetter,
       getFavorisQueryGetter,
       getCampagneQueryGetter,
-      getFeaturesQueryGetter,
+      featureFlipRepository,
       dateService,
       configService
     )
@@ -274,11 +275,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie la date de migration quand le jeune fait partie de la feature MIGRATION et que la config contient une date', async () => {
           // Given
-          getFeaturesQueryGetter.handle
-            .withArgs({
-              idJeune: query.idJeune,
-              featureTag: FeatureFlipTag.MIGRATION
-            })
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
             .resolves(true)
           configService.get
             .withArgs('features.dateDeMigration' as unknown as SinonMatcher)
@@ -294,11 +292,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('ne renvoie pas de date de migration quand le jeune ne fait pas partie de la feature MIGRATION', async () => {
           // Given
-          getFeaturesQueryGetter.handle
-            .withArgs({
-              idJeune: query.idJeune,
-              featureTag: FeatureFlipTag.MIGRATION
-            })
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
             .resolves(false)
 
           // When
@@ -311,11 +306,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('ne renvoie pas de date de migration quand le jeune fait partie de la feature MIGRATION mais que la config ne contient pas de date', async () => {
           // Given
-          getFeaturesQueryGetter.handle
-            .withArgs({
-              idJeune: query.idJeune,
-              featureTag: FeatureFlipTag.MIGRATION
-            })
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.MIGRATION, query.idJeune)
             .resolves(true)
           configService.get
             .withArgs('features.dateDeMigration' as unknown as SinonMatcher)

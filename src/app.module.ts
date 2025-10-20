@@ -85,6 +85,7 @@ import { QualifierActionCommandHandler } from './application/commands/milo/quali
 import { QualifierActionsMiloCommandHandler } from './application/commands/milo/qualifier-actions-milo.command.handler'
 import { UpdateSessionMiloCommandHandler } from './application/commands/milo/update-session-milo.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
+import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
 import { CreateDemarcheCommandHandler } from './application/commands/pole-emploi/create-demarche.command.handler'
 import { CreerJeunePoleEmploiCommandHandler } from './application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
@@ -118,6 +119,7 @@ import { EnrichirEvenementsJobHandler } from './application/jobs/analytics/2-enr
 import { ChargerLesVuesJobHandler } from './application/jobs/analytics/3-charger-les-vues.job'
 import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/creer-tables-ae-annuelles'
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
+import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
@@ -131,6 +133,7 @@ import { NettoyerLesJobsJobHandler } from './application/jobs/nettoyer-les-jobs.
 import { NettoyerPiecesJointesJobHandler } from './application/jobs/nettoyer-pieces-jointes.job.handler'
 import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-0-heures-declarees.job.handler.db'
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
+import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
 import { NotifierRappelActionJobHandler } from './application/jobs/notifier-rappel-action.job.handler'
@@ -245,6 +248,7 @@ import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
 import { Demarche, DemarcheRepositoryToken } from './domain/demarche'
 import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
+import { FeatureFlipRepositoryToken } from './domain/feature-flip'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import {
   Jeune,
@@ -324,6 +328,7 @@ import { ConseillerSqlRepository } from './infrastructure/repositories/conseille
 import { ListeDeDiffusionSqlRepository } from './infrastructure/repositories/conseiller/liste-de-diffusion-sql.repository.db'
 import { DemarcheHttpRepository } from './infrastructure/repositories/demarche-http.repository'
 import { EvenementSqlRepository } from './infrastructure/repositories/evenement-sql.repository.db'
+import { FeatureFlipSqlRepository } from './infrastructure/repositories/feature-flip.repository.db'
 import { FichierSqlS3Repository } from './infrastructure/repositories/fichier-sql-s3.repository.db'
 import { JeuneConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-configuration-application-sql.repository.db'
 import { JeunePoleEmploiSqlRepository } from './infrastructure/repositories/jeune/jeune-pole-emploi-sql.repository.db'
@@ -382,10 +387,6 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
-import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
-import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
-import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
-import { GetFeaturesQueryGetter } from './application/queries/query-getters/get-features.query.getter.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -502,6 +503,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: ConseillerMiloRepositoryToken,
       useClass: ConseillerMiloSqlRepository
+    },
+    {
+      provide: FeatureFlipRepositoryToken,
+      useClass: FeatureFlipSqlRepository
     },
     {
       provide: SessionMiloRepositoryToken,
@@ -820,7 +825,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetComptageJeuneQueryHandler,
     GetComptageJeunesByConseillerQueryHandler,
     GetComptageJeuneQueryGetter,
-    GetFeaturesQueryGetter,
     EnvoyerEmailActivationCommandHandler,
     AjouterJeuneListeDeDiffusionCommandHandler,
     GenerateDemarchesIACommandHandler,
