@@ -18,7 +18,7 @@ describe('ConfigController', () => {
         .get('/config')
         .set('Authorization', 'Bearer ceci-est-un-jwt')
         .expect(HttpStatus.OK)
-        .expect({ conseillersCVM: ['ok'] })
+        .expect({ test: ['ok'] })
     })
   })
 })

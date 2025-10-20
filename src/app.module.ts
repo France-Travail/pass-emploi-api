@@ -85,6 +85,7 @@ import { QualifierActionCommandHandler } from './application/commands/milo/quali
 import { QualifierActionsMiloCommandHandler } from './application/commands/milo/qualifier-actions-milo.command.handler'
 import { UpdateSessionMiloCommandHandler } from './application/commands/milo/update-session-milo.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
+import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
 import { CreateDemarcheCommandHandler } from './application/commands/pole-emploi/create-demarche.command.handler'
 import { CreerJeunePoleEmploiCommandHandler } from './application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
@@ -93,7 +94,6 @@ import { UpdateStatutDemarcheCommandHandler } from './application/commands/pole-
 import { RafraichirSuggestionsCommandHandler } from './application/commands/rafraichir-suggestions.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from './application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
-import { SendNotificationsNouveauxMessagesExternesCommandHandler } from './application/commands/send-notifications-nouveaux-messages-externes.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
@@ -118,6 +118,7 @@ import { EnrichirEvenementsJobHandler } from './application/jobs/analytics/2-enr
 import { ChargerLesVuesJobHandler } from './application/jobs/analytics/3-charger-les-vues.job'
 import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/creer-tables-ae-annuelles'
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
+import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
@@ -131,6 +132,7 @@ import { NettoyerLesJobsJobHandler } from './application/jobs/nettoyer-les-jobs.
 import { NettoyerPiecesJointesJobHandler } from './application/jobs/nettoyer-pieces-jointes.job.handler'
 import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-0-heures-declarees.job.handler.db'
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
+import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
 import { NotifierRappelActionJobHandler } from './application/jobs/notifier-rappel-action.job.handler'
@@ -210,6 +212,7 @@ import { FindAllOffresImmersionQueryGetter } from './application/queries/query-g
 import { FindAllOffresServicesCiviqueQueryGetter } from './application/queries/query-getters/find-all-offres-services-civique.query.getter'
 import { GetCampagneQueryGetter } from './application/queries/query-getters/get-campagne.query.getter.db'
 import { GetComptageJeuneQueryGetter } from './application/queries/query-getters/get-comptage-jeune.query.getter'
+import { GetFeaturesQueryGetter } from './application/queries/query-getters/get-features.query.getter.db'
 import { GetDemarchesQueryGetter } from './application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from './application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { GetAnimationsCollectivesJeuneQueryHandler } from './application/queries/rendez-vous/get-animations-collectives-jeune.query.handler.db'
@@ -382,10 +385,6 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
-import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
-import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
-import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
-import { GetFeaturesQueryGetter } from './application/queries/query-getters/get-features.query.getter.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -691,7 +690,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetRendezVousJeuneQueryHandler,
     GetRendezVousJeunePoleEmploiQueryHandler,
     SendNotificationsNouveauxMessagesCommandHandler,
-    SendNotificationsNouveauxMessagesExternesCommandHandler,
     DeleteActionCommandHandler,
     CreateRechercheCommandHandler,
     GetRecherchesQueryHandler,
