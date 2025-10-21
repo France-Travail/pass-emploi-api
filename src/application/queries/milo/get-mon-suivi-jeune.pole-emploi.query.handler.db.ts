@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { GetDemarchesQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
@@ -11,10 +11,12 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { beneficiaireEstFTConnect } from '../../../domain/core'
+import {
+  FeatureFlip,
+  FeatureFlipRepositoryToken
+} from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
-import { FeatureFlipTag } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
-import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
 
 export interface GetMonSuiviPoleEmploiQuery extends Query {
   idJeune: string
@@ -31,7 +33,8 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
     private readonly getDemarchesQueryGetter: GetDemarchesQueryGetter,
-    private readonly getFeaturesQueryGetter: GetFeaturesQueryGetter
+    @Inject(FeatureFlipRepositoryToken)
+    private readonly featureFlipRepository: FeatureFlip.Repository
   ) {
     super('GetMonSuiviPoleEmploiQueryHandler')
   }
@@ -60,10 +63,11 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
 
     if (isFailure(rdvs) && isFailure(demarches)) return rdvs
 
-    const eligibleDemarchesIA = await this.getFeaturesQueryGetter.handle({
-      idJeune: query.idJeune,
-      featureTag: FeatureFlipTag.DEMARCHES_IA
-    })
+    const eligibleDemarchesIA =
+      await this.featureFlipRepository.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        query.idJeune
+      )
 
     return success({
       queryModel: {

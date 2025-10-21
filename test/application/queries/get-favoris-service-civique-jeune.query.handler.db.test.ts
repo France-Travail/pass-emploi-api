@@ -58,7 +58,8 @@ describe('GetFavorisServiceCiviqueJeuneQueryHandler', () => {
         dateDeDebut: '2021-01-01',
         titre: 'titre',
         ville: 'ville',
-        dateCandidature: now.toJSDate()
+        dateCandidature: now.toJSDate(),
+        dateCreation: now.toJSDate()
       })
 
       const conseillerDto = unConseillerDto()

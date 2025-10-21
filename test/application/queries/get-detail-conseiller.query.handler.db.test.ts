@@ -21,6 +21,7 @@ import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { testConfig } from '../../utils/module-for-testing'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 
 const token = 'un-token'
 
@@ -28,16 +29,19 @@ describe('GetDetailConseillerQueryHandler', () => {
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let conseillerMiloService: StubbedClass<Conseiller.Milo.Service>
   let getDetailConseillerQueryHandler: GetDetailConseillerQueryHandler
+  let featureFlipService: StubbedClass<FeatureFlip.Service>
   let sandbox: SinonSandbox
 
   before(() => {
     sandbox = createSandbox()
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     conseillerMiloService = stubClass(Conseiller.Milo.Service)
+    featureFlipService = stubClass(FeatureFlip.Service)
 
     getDetailConseillerQueryHandler = new GetDetailConseillerQueryHandler(
       conseillerAuthorizer,
       conseillerMiloService,
+      featureFlipService,
       testConfig()
     )
   })
@@ -54,7 +58,8 @@ describe('GetDetailConseillerQueryHandler', () => {
     describe('Conseiller non Milo', () => {
       const structure = Core.Structure.POLE_EMPLOI
 
-      it("retourne le conseiller quand il existe avec l'agence", async () => {
+      it("retourne le conseiller quand il existe avec l'agence + dateDeMigration", async () => {
+        // Given
         const idConseiller = '1'
         const agenceSql = uneAgenceDto()
         await AgenceSqlModel.create(agenceSql)
@@ -67,12 +72,19 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
 
+        const dateDeMigration = '2024-09-01T00:00:00.000+02:00'
+        featureFlipService.recupererDateDeMigrationConseiller
+          .withArgs(idConseiller)
+          .resolves(dateDeMigration)
+
+        // When
         const actual = await getDetailConseillerQueryHandler.handle({
           idConseiller,
           structure,
           accessToken: token
         })
 
+        // Then
         expect(actual).to.deep.equal(
           success(
             detailConseillerQueryModel({
@@ -83,7 +95,8 @@ describe('GetDetailConseillerQueryHandler', () => {
               agence: { id: agenceSql.id, nom: agenceSql.nomAgence },
               notificationsSonores: false,
               dateSignatureCGU: undefined,
-              dateVisionnageActus: undefined
+              dateVisionnageActus: undefined,
+              dateDeMigration
             })
           )
         )
@@ -100,6 +113,9 @@ describe('GetDetailConseillerQueryHandler', () => {
         await JeuneSqlModel.creer(
           unJeuneDto({ idConseillerInitial: idConseiller })
         )
+        featureFlipService.recupererDateDeMigrationConseiller
+          .withArgs(idConseiller)
+          .resolves(undefined)
 
         const actual = await getDetailConseillerQueryHandler.handle({
           idConseiller,
@@ -153,6 +169,9 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
         conseillerMiloService.recupererEtMettreAJourStructure.resolves()
+        featureFlipService.recupererDateDeMigrationConseiller
+          .withArgs(idConseiller)
+          .resolves(undefined)
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({

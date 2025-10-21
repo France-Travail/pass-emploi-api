@@ -5,19 +5,17 @@ import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 
 import { Sequelize } from 'sequelize'
-import {
-  FeatureFlipSqlModel,
-  FeatureFlipTag
-} from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
+import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 import { AsSql } from '../../../infrastructure/sequelize/types'
+import { FeatureFlip } from '../../../domain/feature-flip'
 
 export interface UpdateFeatureFlipCommand extends Command {
   emailsConseillersAjout?: string[]
   emailsConseillersSuppression?: string[]
   supprimerExistants?: boolean
-  tagFeature: FeatureFlipTag
+  tagFeature: FeatureFlip.Tag
 }
 
 @Injectable()

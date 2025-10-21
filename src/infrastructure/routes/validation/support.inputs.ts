@@ -16,8 +16,8 @@ import {
   ValidateIf
 } from 'class-validator'
 import { Core } from '../../../domain/core'
+import { FeatureFlip } from '../../../domain/feature-flip'
 import { Notification } from '../../../domain/notification/notification'
-import { FeatureFlipTag } from '../../sequelize/models/feature-flip.sql-model'
 
 export class TeleverserCsvPayload {
   @ApiProperty({ type: 'string', format: 'binary' })
@@ -70,13 +70,13 @@ export class SuperviseursPayload {
 
 export class UpdateFeatureFlipPayload {
   @ApiProperty({
-    enum: FeatureFlipTag,
-    description: Object.values(FeatureFlipTag).join(', ')
+    enum: FeatureFlip.Tag,
+    description: Object.values(FeatureFlip.Tag).join(', ')
   })
   @IsString()
   @IsNotEmpty()
-  @IsEnum(FeatureFlipTag)
-  tagFeature: FeatureFlipTag
+  @IsEnum(FeatureFlip.Tag)
+  tagFeature: FeatureFlip.Tag
 
   @ApiProperty()
   @IsOptional()
