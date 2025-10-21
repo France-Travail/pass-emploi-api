@@ -387,6 +387,7 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
+import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -840,6 +841,7 @@ export function buildJobHandlerProviders(): Provider[] {
 }
 
 export const JobHandlerProviders = [
+  CloreSessionsJobHandler,
   NettoyerLesJobsJobHandler,
   FakeJobHandler,
   NotifierRappelRendezVousJobHandler,
