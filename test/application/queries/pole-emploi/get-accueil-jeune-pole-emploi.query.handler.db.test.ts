@@ -1,4 +1,6 @@
+import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import { SinonMatcher } from 'sinon'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -10,6 +12,7 @@ import {
 } from '../../../../src/application/queries/pole-emploi/get-accueil-jeune-pole-emploi.query.handler.db'
 import { GetFavorisAccueilQueryGetter } from '../../../../src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../../../../src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
+import { GetFeaturesQueryGetter } from '../../../../src/application/queries/query-getters/get-features.query.getter.db'
 import { GetDemarchesQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { AccueilJeunePoleEmploiQueryModel } from '../../../../src/application/queries/query-models/jeunes.pole-emploi.query-model'
@@ -23,15 +26,12 @@ import {
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
+import { FeatureFlipTag } from '../../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import { ConfigService } from '@nestjs/config'
-import { FeatureFlipTag } from '../../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
-import { GetFeaturesQueryGetter } from '../../../../src/application/queries/query-getters/get-features.query.getter.db'
 import Structure = Core.Structure
-import { SinonMatcher } from 'sinon'
 
 describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let handler: GetAccueilJeunePoleEmploiQueryHandler
@@ -328,6 +328,42 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
           expect(
             isSuccess(result) && result.data.dateDeMigration
           ).to.be.undefined()
+        })
+
+        it('renvoie la feature eligibleDemarchesIA quand la feature est activée', async () => {
+          // Given
+          getFeaturesQueryGetter.handle
+            .withArgs({
+              idJeune: query.idJeune,
+              featureTag: FeatureFlipTag.DEMARCHES_IA
+            })
+            .resolves(true)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.true()
+        })
+
+        it('ne renvoie pas de feature eligibleDemarchesIA quand la feature est désactivée', async () => {
+          // Given
+          getFeaturesQueryGetter.handle
+            .withArgs({
+              idJeune: query.idJeune,
+              featureTag: FeatureFlipTag.DEMARCHES_IA
+            })
+            .resolves(false)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.false()
         })
       })
     })

@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
-import { FeatureFlipTag } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { Cached, Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import {
@@ -18,16 +17,17 @@ import {
   peutVoirLesCampagnes
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
+import { FeatureFlipTag } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from '../query-getters/get-campagne.query.getter.db'
+import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
 import { GetDemarchesQueryGetter } from '../query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { DemarcheQueryModel } from '../query-models/actions.query-model'
 import { AccueilJeunePoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
-import { GetFeaturesQueryGetter } from '../query-getters/get-features.query.getter.db'
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
@@ -169,12 +169,18 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
 
     const dateDeMigration = await this.recupererLaDateDeMigration(query.idJeune)
 
+    const eligibleDemarchesIA = await this.getFeaturesQueryGetter.handle({
+      idJeune: query.idJeune,
+      featureTag: FeatureFlipTag.DEMARCHES_IA
+    })
+
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(
         demarches.dateDuCache,
         rendezVous.dateDuCache
       )?.toISO(),
       dateDeMigration,
+      eligibleDemarchesIA,
       cetteSemaine: {
         nombreRendezVous: nombreDeRendezVous,
         nombreActionsDemarchesEnRetard: nombreDeDemarchesEnRetard,
