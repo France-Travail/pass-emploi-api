@@ -94,7 +94,6 @@ import { UpdateStatutDemarcheCommandHandler } from './application/commands/pole-
 import { RafraichirSuggestionsCommandHandler } from './application/commands/rafraichir-suggestions.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from './application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
-import { SendNotificationsNouveauxMessagesExternesCommandHandler } from './application/commands/send-notifications-nouveaux-messages-externes.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
@@ -213,6 +212,7 @@ import { FindAllOffresImmersionQueryGetter } from './application/queries/query-g
 import { FindAllOffresServicesCiviqueQueryGetter } from './application/queries/query-getters/find-all-offres-services-civique.query.getter'
 import { GetCampagneQueryGetter } from './application/queries/query-getters/get-campagne.query.getter.db'
 import { GetComptageJeuneQueryGetter } from './application/queries/query-getters/get-comptage-jeune.query.getter'
+import { GetFeaturesQueryGetter } from './application/queries/query-getters/get-features.query.getter.db'
 import { GetDemarchesQueryGetter } from './application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from './application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { GetAnimationsCollectivesJeuneQueryHandler } from './application/queries/rendez-vous/get-animations-collectives-jeune.query.handler.db'
@@ -698,7 +698,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetRendezVousJeuneQueryHandler,
     GetRendezVousJeunePoleEmploiQueryHandler,
     SendNotificationsNouveauxMessagesCommandHandler,
-    SendNotificationsNouveauxMessagesExternesCommandHandler,
     DeleteActionCommandHandler,
     CreateRechercheCommandHandler,
     GetRecherchesQueryHandler,
