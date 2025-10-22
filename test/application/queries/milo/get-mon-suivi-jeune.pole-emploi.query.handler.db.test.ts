@@ -20,16 +20,14 @@ import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
+import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
 import Structure = Core.Structure
-import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { SinonSandbox } from 'sinon'
 
 describe('GetMonSuiviPoleEmploiQueryHandler', () => {
   let getRendezVousJeuneQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getDemarchesQueryGetter: StubbedClass<GetDemarchesQueryGetter>
-  let featureFlipRepository: StubbedType<FeatureFlip.Repository>
+  let featureFlipService: StubbedClass<FeatureFlip.Service>
   let handler: GetMonSuiviPoleEmploiQueryHandler
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
 
@@ -45,15 +43,14 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       GetRendezVousJeunePoleEmploiQueryGetter
     )
     getDemarchesQueryGetter = stubClass(GetDemarchesQueryGetter)
-    const sandbox: SinonSandbox = createSandbox()
-    featureFlipRepository = stubInterface(sandbox)
+    featureFlipService = stubClass(FeatureFlip.Service)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 
     handler = new GetMonSuiviPoleEmploiQueryHandler(
       jeuneAuthorizer,
       getRendezVousJeuneQueryGetter,
       getDemarchesQueryGetter,
-      featureFlipRepository
+      featureFlipService
     )
   })
 
@@ -76,7 +73,7 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
           queryModel: [demarche]
         })
       )
-      featureFlipRepository.featureActivePourBeneficiaire
+      featureFlipService.featureActivePourBeneficiaire
         .withArgs(FeatureFlip.Tag.DEMARCHES_IA, 'id-jeune')
         .resolves(false)
 
@@ -122,7 +119,7 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       await JeuneSqlModel.create(
         unJeuneDto({ id: 'id-jeune', idConseiller: undefined })
       )
-      featureFlipRepository.featureActivePourBeneficiaire
+      featureFlipService.featureActivePourBeneficiaire
         .withArgs(FeatureFlip.Tag.DEMARCHES_IA, 'id-jeune')
         .resolves(true)
       getDemarchesQueryGetter.handle.resolves(
