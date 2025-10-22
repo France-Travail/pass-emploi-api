@@ -13,10 +13,12 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
   )
   await connexion.query(`
     WITH utilisateurs_demarches_ia AS (
-      SELECT DISTINCT id_jeune
-      FROM feature_flip
-      WHERE feature_tag = 'DEMARCHES_IA'
-    ),
+      SELECT DISTINCT j.id AS id_jeune
+      FROM feature_flip ff
+      JOIN conseiller c ON c.email = ff.email_conseiller
+      JOIN jeune j ON (j.id_conseiller = c.id OR j.id_conseiller_initial = c.id)
+      WHERE ff.feature_tag = 'DEMARCHES_IA'
+    )
     analytics_utilisateurs_demarches_ia AS (
       SELECT a.*
       FROM ${analyticsTableName} a

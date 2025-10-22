@@ -6,11 +6,8 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
+import { FeatureFlip } from '../../../domain/feature-flip'
 
-export enum FeatureFlipTag {
-  DEMARCHES_IA = 'DEMARCHES_IA',
-  MIGRATION = 'MIGRATION'
-}
 @Table({
   timestamps: false,
   tableName: 'feature_flip',
@@ -36,5 +33,5 @@ export class FeatureFlipSqlModel extends Model {
   emailConseiller: string
 
   @Column({ field: 'feature_tag', type: DataType.STRING })
-  featureTag: FeatureFlipTag
+  featureTag: FeatureFlip.Tag
 }

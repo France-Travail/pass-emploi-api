@@ -248,6 +248,7 @@ import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
 import { Demarche, DemarcheRepositoryToken } from './domain/demarche'
 import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
+import { FeatureFlip, FeatureFlipRepositoryToken } from './domain/feature-flip'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import {
   Jeune,
@@ -327,6 +328,7 @@ import { ConseillerSqlRepository } from './infrastructure/repositories/conseille
 import { ListeDeDiffusionSqlRepository } from './infrastructure/repositories/conseiller/liste-de-diffusion-sql.repository.db'
 import { DemarcheHttpRepository } from './infrastructure/repositories/demarche-http.repository'
 import { EvenementSqlRepository } from './infrastructure/repositories/evenement-sql.repository.db'
+import { FeatureFlipSqlRepository } from './infrastructure/repositories/feature-flip.repository.db'
 import { FichierSqlS3Repository } from './infrastructure/repositories/fichier-sql-s3.repository.db'
 import { JeuneConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-configuration-application-sql.repository.db'
 import { JeunePoleEmploiSqlRepository } from './infrastructure/repositories/jeune/jeune-pole-emploi-sql.repository.db'
@@ -385,6 +387,7 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
+import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -470,6 +473,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     Suggestion.Factory,
     SuggestionPoleEmploiService,
     Notification.Service,
+    FeatureFlip.Service,
     RendezVous.AnimationCollective.Service,
     WorkerService,
     TaskService,
@@ -501,6 +505,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: ConseillerMiloRepositoryToken,
       useClass: ConseillerMiloSqlRepository
+    },
+    {
+      provide: FeatureFlipRepositoryToken,
+      useClass: FeatureFlipSqlRepository
     },
     {
       provide: SessionMiloRepositoryToken,
@@ -818,7 +826,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetComptageJeuneQueryHandler,
     GetComptageJeunesByConseillerQueryHandler,
     GetComptageJeuneQueryGetter,
-    GetFeaturesQueryGetter,
     EnvoyerEmailActivationCommandHandler,
     AjouterJeuneListeDeDiffusionCommandHandler,
     GenerateDemarchesIACommandHandler,
@@ -833,6 +840,7 @@ export function buildJobHandlerProviders(): Provider[] {
 }
 
 export const JobHandlerProviders = [
+  CloreSessionsJobHandler,
   NettoyerLesJobsJobHandler,
   FakeJobHandler,
   NotifierRappelRendezVousJobHandler,

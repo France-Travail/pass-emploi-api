@@ -1,5 +1,9 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
+import {
+  NotifierBeneficiairesCommand,
+  NotifierBeneficiairesCommandHandler
+} from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
 import {
   CreerSuperviseursCommand,
@@ -10,6 +14,7 @@ import {
   DeleteSuperviseursCommandHandler
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
+import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
@@ -25,15 +30,10 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
-import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler'
-import { FeatureFlipTag } from '../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
-import { Notification } from '../../../src/domain/notification/notification'
-import {
-  NotifierBeneficiairesCommand,
-  NotifierBeneficiairesCommandHandler
-} from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -454,11 +454,11 @@ describe('SupportController', () => {
       it('renvoie 204', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlipTag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
           emailsConseillersAjout: ['test']
         }
         const command = {
-          tagFeature: FeatureFlipTag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
           emailsConseillersAjout: ['test'],
           supprimerExistants: undefined
         }
@@ -475,12 +475,12 @@ describe('SupportController', () => {
       it('renvoie 204 avec supprimerExistants à false', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlipTag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
           emailsConseillersAjout: ['test'],
           supprimerExistants: false
         }
         const command = {
-          tagFeature: FeatureFlipTag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
           emailsConseillersAjout: ['test'],
           supprimerExistants: false
         }
@@ -497,7 +497,7 @@ describe('SupportController', () => {
       it('renvoie 400 qd supprimerExistants est autre que true', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlipTag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
           emailsConseillersAjout: ['test'],
           supprimerExistants: 'true'
         }
