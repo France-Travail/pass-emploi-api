@@ -66,5 +66,15 @@ export namespace FeatureFlip {
 
       return faitPartieDeLaMigration ? this.dateDeMigration : undefined
     }
+
+    async featureActivePourBeneficiaire(
+      tag: Tag,
+      idBeneficiaire: string
+    ): Promise<boolean> {
+      return this.featureFlipRepository.featureActivePourBeneficiaire(
+        tag,
+        idBeneficiaire
+      )
+    }
   }
 }

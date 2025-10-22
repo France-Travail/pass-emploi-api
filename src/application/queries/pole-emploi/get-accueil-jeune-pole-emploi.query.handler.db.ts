@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -16,10 +16,7 @@ import {
   peutVoirLesCampagnes
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
-import {
-  FeatureFlip,
-  FeatureFlipRepositoryToken
-} from '../../../domain/feature-flip'
+import { FeatureFlip } from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -51,9 +48,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
     private readonly featureFlipService: FeatureFlip.Service,
-    private readonly dateService: DateService,
-    @Inject(FeatureFlipRepositoryToken)
-    private readonly featureFlipRepository: FeatureFlip.Repository
+    private readonly dateService: DateService
   ) {
     super('GetAccueilJeunePoleEmploiQueryHandler')
   }
@@ -175,7 +170,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
       )
 
     const eligibleDemarchesIA =
-      await this.featureFlipRepository.featureActivePourBeneficiaire(
+      await this.featureFlipService.featureActivePourBeneficiaire(
         FeatureFlip.Tag.DEMARCHES_IA,
         query.idJeune
       )
