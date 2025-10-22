@@ -11,7 +11,7 @@ export class ConfigController {
   @Get('')
   @Public()
   @Header('Cache-Control', 'max-age=1200')
-  async getConseillersCVM(): Promise<unknown> {
+  async getRemoteConfig(): Promise<unknown> {
     return this.configService.get('remoteConfig')
   }
 }
