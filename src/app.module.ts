@@ -94,7 +94,6 @@ import { UpdateStatutDemarcheCommandHandler } from './application/commands/pole-
 import { RafraichirSuggestionsCommandHandler } from './application/commands/rafraichir-suggestions.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from './application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
-import { SendNotificationsNouveauxMessagesExternesCommandHandler } from './application/commands/send-notifications-nouveaux-messages-externes.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
@@ -700,7 +699,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetRendezVousJeuneQueryHandler,
     GetRendezVousJeunePoleEmploiQueryHandler,
     SendNotificationsNouveauxMessagesCommandHandler,
-    SendNotificationsNouveauxMessagesExternesCommandHandler,
     DeleteActionCommandHandler,
     CreateRechercheCommandHandler,
     GetRecherchesQueryHandler,
