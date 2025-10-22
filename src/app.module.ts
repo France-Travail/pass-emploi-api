@@ -120,6 +120,7 @@ import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/c
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
 import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
+import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
 import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
@@ -212,7 +213,6 @@ import { FindAllOffresImmersionQueryGetter } from './application/queries/query-g
 import { FindAllOffresServicesCiviqueQueryGetter } from './application/queries/query-getters/find-all-offres-services-civique.query.getter'
 import { GetCampagneQueryGetter } from './application/queries/query-getters/get-campagne.query.getter.db'
 import { GetComptageJeuneQueryGetter } from './application/queries/query-getters/get-comptage-jeune.query.getter'
-import { GetFeaturesQueryGetter } from './application/queries/query-getters/get-features.query.getter.db'
 import { GetDemarchesQueryGetter } from './application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from './application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { GetAnimationsCollectivesJeuneQueryHandler } from './application/queries/rendez-vous/get-animations-collectives-jeune.query.handler.db'
@@ -387,7 +387,6 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
-import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [

@@ -1,4 +1,6 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
+import { createSandbox } from 'sinon'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -38,12 +40,14 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let getRecherchesSauvegardeesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let getFavorisQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
   let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let featureFlipRepository: StubbedType<FeatureFlip.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
   let dateService: StubbedClass<DateService>
   const idpToken = 'id-token'
 
   beforeEach(() => {
+    const sandbox = createSandbox()
     getCampagneQueryGetter = stubClass(GetCampagneQueryGetter)
     getDemarchesQueryGetter = stubClass(GetDemarchesQueryGetter)
     getRecherchesSauvegardeesQueryGetter = stubClass(
@@ -51,6 +55,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     )
     getFavorisQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
     featureFlipService = stubClass(FeatureFlip.Service)
+    featureFlipRepository = stubInterface<FeatureFlip.Repository>(sandbox)
     getRendezVousJeunePoleEmploiQueryGetter = stubClass(
       GetRendezVousJeunePoleEmploiQueryGetter
     )
@@ -69,7 +74,8 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       getFavorisQueryGetter,
       getCampagneQueryGetter,
       featureFlipService,
-      dateService
+      dateService,
+      featureFlipRepository
     )
   })
 
@@ -198,6 +204,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
               idJeune: query.idJeune
             })
             .resolves(campagneQueryModel)
+
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(true)
         })
         it('retourne le prochain rendez-vous', async () => {
           // When
@@ -294,6 +304,34 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             isSuccess(result) && result.data.dateDeMigration
           ).to.be.undefined()
         })
+        it('renvoie eligibleDemarchesIA quand la feature est active', async () => {
+          // Given
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(true)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.true()
+        })
+        it('renvoie eligibleDemarchesIA false quand la feature est inactive', async () => {
+          // Given
+          featureFlipRepository.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(false)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.false()
+        })
       })
     })
 
@@ -332,6 +370,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             idJeune: query.idJeune
           })
           .resolves(campagneQueryModel)
+
+        featureFlipRepository.featureActivePourBeneficiaire
+          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+          .resolves(false)
 
         // When
         result = await handler.handle(query)

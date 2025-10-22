@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
@@ -16,7 +16,10 @@ import {
   peutVoirLesCampagnes
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
-import { FeatureFlip } from '../../../domain/feature-flip'
+import {
+  FeatureFlip,
+  FeatureFlipRepositoryToken
+} from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -48,7 +51,9 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
     private readonly featureFlipService: FeatureFlip.Service,
-    private readonly dateService: DateService
+    private readonly dateService: DateService,
+    @Inject(FeatureFlipRepositoryToken)
+    private readonly featureFlipRepository: FeatureFlip.Repository
   ) {
     super('GetAccueilJeunePoleEmploiQueryHandler')
   }
@@ -169,6 +174,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
         query.idJeune
       )
 
+    const eligibleDemarchesIA =
+      await this.featureFlipRepository.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        query.idJeune
+      )
+
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(
         demarches.dateDuCache,
@@ -185,7 +196,8 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
       prochainRendezVous,
       mesAlertes: alertesQueryModels,
       mesFavoris: favorisQueryModels,
-      campagne: campagneQueryModel
+      campagne: campagneQueryModel,
+      eligibleDemarchesIA
     }
 
     if (donneesManquantes.length)
