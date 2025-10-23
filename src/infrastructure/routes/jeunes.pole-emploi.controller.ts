@@ -3,7 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { DateTime } from 'luxon'
 import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
-import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/milo/get-mon-suivi-jeune.pole-emploi.query.handler.db'
+import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
 import { GetMonSuiviQueryParams } from 'src/infrastructure/routes/validation/jeunes.pole-emploi.inputs'
 import {

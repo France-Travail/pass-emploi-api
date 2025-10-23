@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from '../../../../src/application/authorizers/jeune-authorizer'
-import { GetMonSuiviPoleEmploiQueryHandler } from '../../../../src/application/queries/milo/get-mon-suivi-jeune.pole-emploi.query.handler.db'
+import { GetMonSuiviPoleEmploiQueryHandler } from '../../../../src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { GetDemarchesQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
 import { MonSuiviPoleEmploiQueryModel } from '../../../../src/application/queries/query-models/jeunes.pole-emploi.query-model'
