@@ -1,5 +1,5 @@
 import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
-import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/milo/get-mon-suivi-jeune.pole-emploi.query.handler.db'
+import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { StubbedClass, enleverLesUndefined } from '../../utils'
 import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import { HttpStatus, INestApplication } from '@nestjs/common'
