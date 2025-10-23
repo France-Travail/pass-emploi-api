@@ -169,6 +169,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
         query.idJeune
       )
 
+    const eligibleDemarchesIA =
+      await this.featureFlipService.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        query.idJeune
+      )
+
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(
         demarches.dateDuCache,
@@ -185,7 +191,8 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
       prochainRendezVous,
       mesAlertes: alertesQueryModels,
       mesFavoris: favorisQueryModels,
-      campagne: campagneQueryModel
+      campagne: campagneQueryModel,
+      eligibleDemarchesIA
     }
 
     if (donneesManquantes.length)

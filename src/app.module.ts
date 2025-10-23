@@ -121,6 +121,7 @@ import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/c
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
 import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
+import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
 import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
@@ -387,7 +388,6 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
-import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
