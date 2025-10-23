@@ -198,6 +198,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
               idJeune: query.idJeune
             })
             .resolves(campagneQueryModel)
+
+          featureFlipService.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(true)
         })
         it('retourne le prochain rendez-vous', async () => {
           // When
@@ -294,6 +298,34 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             isSuccess(result) && result.data.dateDeMigration
           ).to.be.undefined()
         })
+        it('renvoie eligibleDemarchesIA quand la feature est active', async () => {
+          // Given
+          featureFlipService.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(true)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.true()
+        })
+        it('renvoie eligibleDemarchesIA false quand la feature est inactive', async () => {
+          // Given
+          featureFlipService.featureActivePourBeneficiaire
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+            .resolves(false)
+
+          // When
+          result = await handler.handle(query)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.eligibleDemarchesIA
+          ).to.be.false()
+        })
       })
     })
 
@@ -332,6 +364,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             idJeune: query.idJeune
           })
           .resolves(campagneQueryModel)
+
+        featureFlipService.featureActivePourBeneficiaire
+          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+          .resolves(false)
 
         // When
         result = await handler.handle(query)

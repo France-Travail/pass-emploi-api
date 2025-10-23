@@ -1,12 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { DemarcheQueryModel } from 'src/application/queries/query-models/actions.query-model'
+import { CampagneQueryModel } from './campagne.query-model'
+import { FavorisQueryModel } from './favoris.query-model'
+import { RechercheQueryModel } from './recherches.query-model'
 import {
   RendezVousJeuneDetailQueryModel,
   RendezVousJeuneQueryModel
 } from './rendez-vous.query-model'
-import { RechercheQueryModel } from './recherches.query-model'
-import { FavorisQueryModel } from './favoris.query-model'
-import { CampagneQueryModel } from './campagne.query-model'
 
 class ResumeSemaineJeune {
   @ApiProperty()
@@ -55,6 +55,9 @@ export class AccueilJeunePoleEmploiQueryModel {
 
   @ApiPropertyOptional()
   campagne?: CampagneQueryModel
+
+  @ApiPropertyOptional()
+  eligibleDemarchesIA?: boolean
 }
 
 export class CVPoleEmploiQueryModel {
