@@ -9,8 +9,10 @@ import {
   emptySuccess,
   failure,
   isFailure,
+  isSuccess,
   Result,
-  success
+  success,
+  type Success
 } from '../../building-blocks/types/result'
 import {
   Authentification,
@@ -24,6 +26,8 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
+import { FeatureFlip } from '../../domain/feature-flip'
+import Tag = FeatureFlip.Tag
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -50,7 +54,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private authentificationFactory: Authentification.Factory,
     private dateService: DateService,
     @Inject(MailServiceToken)
-    private mailBrevoService: MailBrevoService
+    private mailBrevoService: MailBrevoService,
+    private readonly featureFlipService: FeatureFlip.Service
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -63,21 +68,34 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       email: command.email?.toLocaleLowerCase()
     }
 
+    let result: Result<UtilisateurQueryModel>
+
     switch (commandSanitized.type) {
       case Authentification.Type.CONSEILLER:
-        return this.recupererConseiller(commandSanitized)
+        result = await this.recupererConseiller(commandSanitized)
+        break
       case Authentification.Type.JEUNE:
       case 'BENEFICIAIRE':
-        return this.recupererBeneficiaire(commandSanitized)
+        result = await this.recupererBeneficiaire(commandSanitized)
+        break
       case Authentification.Type.SUPPORT:
-        return failure(
+        result = failure(
           new NonTraitableError(
             'Utilisateur',
             commandSanitized.idUtilisateurAuth,
             NonTraitableReason.TYPE_UTILISATEUR_NON_TRAITABLE
           )
         )
+        break
     }
+
+    if (isSuccess(result)) {
+      return this.gererMigrationParcoursEmploi(
+        result,
+        commandSanitized.idUtilisateurAuth
+      )
+    }
+    return result
   }
 
   async authorize(): Promise<Result> {
@@ -379,6 +397,45 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       commandSanitized
     )
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
+  }
+
+  private async gererMigrationParcoursEmploi(
+    result: Success<UtilisateurQueryModel>,
+    idUtilisateurAuth: string
+  ): Promise<Result<UtilisateurQueryModel>> {
+    const idUtilisateur = result.data.id
+
+    let featureActive: boolean
+
+    switch (result.data.type) {
+      case Authentification.Type.CONSEILLER:
+        featureActive =
+          await this.featureFlipService.featureActivePourConseiller(
+            Tag.MIGRATION,
+            idUtilisateur
+          )
+        break
+      case Authentification.Type.JEUNE:
+        featureActive =
+          await this.featureFlipService.featureActivePourBeneficiaire(
+            Tag.MIGRATION,
+            idUtilisateur
+          )
+        break
+      default:
+        return result
+    }
+
+    if (featureActive) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+        )
+      )
+    }
+    return result
   }
 }
 
