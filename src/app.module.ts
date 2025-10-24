@@ -388,6 +388,7 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
+import { JwtModule } from '@nestjs/jwt'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -400,6 +401,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     HttpModule.register({
       timeout: 6000
     }),
+    JwtModule,
     TerminusModule
   ],
   controllers: [

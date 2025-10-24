@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import {
-  createRemoteJWKSet,
-  errors,
-  JWTPayload,
-  jwtVerify,
-  JWTVerifyGetKey
-} from 'jose'
+import { JsonWebTokenError, JwtService as NestJwtService } from '@nestjs/jwt'
+import * as JwksClient from 'jwks-rsa'
 import { Issuer } from 'openid-client'
 
 export interface IJwtService {
@@ -15,15 +10,18 @@ export interface IJwtService {
 
 @Injectable()
 export class JwtService implements IJwtService {
-  private cacheJWKS: JWTVerifyGetKey | undefined
+  private cacheJWKS: string | undefined
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private readonly nestJwtService: NestJwtService
+  ) {}
 
   async verifyTokenAndGetJwt(token: string): Promise<JWTPayload> {
     try {
       return await this.verifyTokenAndGetJwtWithoutRetry(token)
     } catch (error) {
-      if (error instanceof errors.JWKSNoMatchingKey) {
+      if (error instanceof JsonWebTokenError) {
         this.cacheJWKS = undefined
         return this.verifyTokenAndGetJwtWithoutRetry(token)
       }
@@ -35,19 +33,47 @@ export class JwtService implements IJwtService {
     token: string
   ): Promise<JWTPayload> {
     const JWKS = await this.getJWKS()
-    const { payload } = await jwtVerify(token, JWKS)
-    return payload
+
+    return this.nestJwtService.verifyAsync(token, {
+      algorithms: ['RS256'],
+      // On peut rajouter une vérification d'audience pour renforcer la sécurité
+      // audience: 'https://api.pass-emploi.beta.gouv.fr',
+      publicKey: JWKS,
+      issuer: this.configService.get('oidc.issuerUrl')!
+    })
   }
 
-  private async getJWKS(): Promise<JWTVerifyGetKey> {
+  private async getJWKS(): Promise<string> {
+    // Cette variable n'est plus nécessaire étant donné que JwksClient porte la logique de cache
     if (!this.cacheJWKS) {
       const issuer = await Issuer.discover(
         this.configService.get('oidc.issuerUrl')!
       )
-      this.cacheJWKS = createRemoteJWKSet(
-        new URL(new URL(issuer.metadata.jwks_uri!))
-      )
+
+      const jwksClient = JwksClient({
+        jwksUri: issuer.metadata.jwks_uri!,
+        cache: true,
+        cacheMaxEntries: 2,
+        cacheMaxAge: 600000, // 10m
+        timeout: 3000 // 3s
+      })
+
+      const key = await jwksClient.getSigningKey()
+
+      this.cacheJWKS = key.getPublicKey()
     }
     return this.cacheJWKS
   }
+}
+
+interface JWTPayload {
+  iss?: string
+  sub?: string
+  aud?: string | string[]
+  jti?: string
+  nbf?: number
+  exp?: number
+  iat?: number
+
+  [p: string]: unknown
 }

@@ -1595,6 +1595,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/jwt@npm:^11.0.1":
+  version: 11.0.1
+  resolution: "@nestjs/jwt@npm:11.0.1"
+  dependencies:
+    "@types/jsonwebtoken": "npm:9.0.10"
+    jsonwebtoken: "npm:9.0.2"
+  peerDependencies:
+    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+  checksum: 10/5a0908b9a8e04d164fc93efc587fdfb132fc30f3df1684b219d70d131b847868ebdf65993c4ead0e46797f1d26c2edbc520663523aebdb9185ff00f9363a1871
+  languageName: node
+  linkType: hard
+
 "@nestjs/mapped-types@npm:2.1.0":
   version: 2.1.0
   resolution: "@nestjs/mapped-types@npm:2.1.0"
@@ -3048,6 +3060,16 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10/1a3c3e06236e4c4aab89499c428d585527ce50c24fe8259e8b3926d3df4cfbbbcf306cfc73ddfb66cbafc973116efd15967020b0f738f63e09e64c7d260519e7
+  languageName: node
+  linkType: hard
+
+"@types/jsonwebtoken@npm:9.0.10":
+  version: 9.0.10
+  resolution: "@types/jsonwebtoken@npm:9.0.10"
+  dependencies:
+    "@types/ms": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 10/d7960d995ad815511c7f4e7f09d91522dfe16e7e800cdd6226c8b1b624c534e0f3b8f8f3beb60e3189865269f028002f1a490189beca5afd02bc96ef1d68f21f
   languageName: node
   linkType: hard
 
@@ -8224,7 +8246,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.0":
+"jsonwebtoken@npm:9.0.2, jsonwebtoken@npm:^9.0.0":
   version: 9.0.2
   resolution: "jsonwebtoken@npm:9.0.2"
   dependencies:
@@ -8271,7 +8293,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jwks-rsa@npm:^3.1.0":
+"jwks-rsa@npm:^3.1.0, jwks-rsa@npm:^3.2.0":
   version: 3.2.0
   resolution: "jwks-rsa@npm:3.2.0"
   dependencies:
@@ -9289,6 +9311,7 @@ __metadata:
     "@nestjs/common": "npm:11.1.2"
     "@nestjs/config": "npm:2.3.4"
     "@nestjs/core": "npm:11.1.2"
+    "@nestjs/jwt": "npm:^11.0.1"
     "@nestjs/platform-express": "npm:11.1.2"
     "@nestjs/schematics": "npm:^10.2.3"
     "@nestjs/swagger": "npm:11.2.0"
@@ -9344,6 +9367,7 @@ __metadata:
     ics: "npm:3.8.1"
     joi: "npm:17.13.3"
     jose: "npm:5.10.0"
+    jwks-rsa: "npm:^3.2.0"
     lint-staged: "npm:^16.0.0"
     lodash.isequal: "npm:4.5.0"
     luxon: "npm:3.6.1"
