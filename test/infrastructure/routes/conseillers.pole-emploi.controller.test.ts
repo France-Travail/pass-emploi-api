@@ -1,134 +1,72 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
-import { failure, success } from 'src/building-blocks/types/result'
+import { success } from 'src/building-blocks/types/result'
 import * as request from 'supertest'
 import { StubbedClass, expect } from 'test/utils'
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
-import { SendNotificationsNouveauxMessagesExternesCommandHandler } from '../../../src/application/commands/send-notifications-nouveaux-messages-externes.command.handler'
+import { CreerJeunePoleEmploiCommandHandler } from '../../../src/application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
+import { CreateJeunePoleEmploiPayload } from '../../../src/infrastructure/routes/validation/conseillers.inputs'
 import {
-  DroitsInsuffisants,
-  NonTrouveError
-} from '../../../src/building-blocks/types/domain-error'
-import { EnvoyerNotificationsExternePayload } from '../../../src/infrastructure/routes/validation/conseiller-pole-emploi.inputs'
+  unHeaderAuthorization,
+  unUtilisateurDecode
+} from '../../fixtures/authentification.fixture'
+import { unJeune } from '../../fixtures/jeune.fixture'
 
 describe('ConseillersPoleEmploiController', () => {
-  let notifierNouveauxMessagesExternes: StubbedClass<SendNotificationsNouveauxMessagesExternesCommandHandler>
+  let creerJeunePoleEmploiCommandHandler: StubbedClass<CreerJeunePoleEmploiCommandHandler>
   let app: INestApplication
   before(async () => {
     app = await getApplicationWithStubbedDependencies()
 
-    notifierNouveauxMessagesExternes = app.get(
-      SendNotificationsNouveauxMessagesExternesCommandHandler
+    creerJeunePoleEmploiCommandHandler = app.get(
+      CreerJeunePoleEmploiCommandHandler
     )
   })
 
-  describe('POST /conseillers/pole-emploi/beneficiaires/notifier-message', () => {
+  describe('POST /conseillers/pole-emploi/jeunes', () => {
     describe('quand tout va bien', () => {
-      it('notifie les bénéficiaires et renvoie une 200', async () => {
+      it('crée le bénéficiaire et renvoie une 200', async () => {
         // Given
-        const payload: EnvoyerNotificationsExternePayload = {
-          idsAuthentificationBeneficiaires: ['id-auth-1', 'id-auth-2']
+        const payload: CreateJeunePoleEmploiPayload = {
+          firstName: 'Jean',
+          lastName: 'Dupont',
+          email: 'test@test.com',
+          idConseiller: 'id-conseiller-123'
         }
+        const jeune = unJeune()
 
-        notifierNouveauxMessagesExternes.execute
-          .withArgs({
-            idsAuthentificationJeunes: ['id-auth-1', 'id-auth-2']
-          })
-          .resolves(success({ idsNonTrouves: [] }))
+        creerJeunePoleEmploiCommandHandler.execute.resolves(success(jeune))
 
         // When - Then
         await request(app.getHttpServer())
-          .post('/conseillers/pole-emploi/beneficiaires/notifier-message')
-          .set({ 'X-API-KEY': 'api-key-consumer-pole-emploi' })
+          .post('/conseillers/pole-emploi/jeunes')
+          .set('authorization', unHeaderAuthorization())
           .send(payload)
           .expect(HttpStatus.CREATED)
 
         expect(
-          notifierNouveauxMessagesExternes.execute
-        ).to.have.been.calledWithExactly({
-          idsAuthentificationJeunes: ['id-auth-1', 'id-auth-2']
-        })
+          creerJeunePoleEmploiCommandHandler.execute
+        ).to.have.been.calledWithExactly(payload, unUtilisateurDecode())
       })
     })
-
-    describe('quand le conseiller cible n’existe pas', () => {
-      it('renvoie une 404 Not found', async () => {
+    describe('quand les inputs sont pas bons', () => {
+      it('renvoie une 400', async () => {
         // Given
-        const payload: EnvoyerNotificationsExternePayload = {
-          idsAuthentificationBeneficiaires: ['id-auth-1', 'id-auth-2']
+        const payload: CreateJeunePoleEmploiPayload = {
+          firstName: 'Jean',
+          lastName: 'Dupont',
+          email: 'test',
+          idConseiller: 'id-conseiller-123'
         }
+        const jeune = unJeune()
 
-        notifierNouveauxMessagesExternes.execute
-          .withArgs({
-            idsAuthentificationJeunes: ['id-auth-1', 'id-auth-2']
-          })
-          .resolves(
-            failure(
-              new NonTrouveError(
-                'Conseiller',
-                'idAuthentification id-auth-conseiller'
-              )
-            )
-          )
+        creerJeunePoleEmploiCommandHandler.execute.resolves(success(jeune))
 
         // When - Then
         await request(app.getHttpServer())
-          .post('/conseillers/pole-emploi/beneficiaires/notifier-message')
-          .set({ 'X-API-KEY': 'api-key-consumer-pole-emploi' })
+          .post('/conseillers/pole-emploi/jeunes')
+          .set('authorization', unHeaderAuthorization())
           .send(payload)
-          .expect(HttpStatus.NOT_FOUND)
-      })
-    })
-
-    describe('quand le conseiller cible n’est pas Pôle emploi', () => {
-      it('renvoie une 403 Forbidden', async () => {
-        // Given
-        const payload: EnvoyerNotificationsExternePayload = {
-          idsAuthentificationBeneficiaires: ['id-auth-1', 'id-auth-2']
-        }
-
-        notifierNouveauxMessagesExternes.execute
-          .withArgs({
-            idsAuthentificationJeunes: ['id-auth-1', 'id-auth-2']
-          })
-          .resolves(failure(new DroitsInsuffisants()))
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/conseillers/pole-emploi/beneficiaires/notifier-message')
-          .set({ 'X-API-KEY': 'api-key-consumer-pole-emploi' })
-          .send(payload)
-          .expect(HttpStatus.FORBIDDEN)
-      })
-    })
-
-    describe('est sécurisée', () => {
-      it('retourne 401 API KEY non présente', async () => {
-        // When
-        const result = await request(app.getHttpServer())
-          .post('/conseillers/pole-emploi/beneficiaires/notifier-message')
-          .send({})
-
-        // Then
-        expect(result.body).to.deep.equal({
-          statusCode: 401,
-          message: "API KEY non présent dans le header 'X-API-KEY'",
-          error: 'Unauthorized'
-        })
-      })
-
-      it('retourne 401 API KEY non valide', async () => {
-        // When
-        const result = await request(app.getHttpServer())
-          .post('/conseillers/pole-emploi/beneficiaires/notifier-message')
-          .send({})
-          .set({ 'X-API-KEY': 'api-key-keycloak-invalide' })
-
-        // Then
-        expect(result.body).to.deep.equal({
-          statusCode: 401,
-          message: 'API KEY non valide',
-          error: 'Unauthorized'
-        })
+          .expect(HttpStatus.BAD_REQUEST)
       })
     })
   })
