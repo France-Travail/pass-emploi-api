@@ -27,7 +27,7 @@ import {
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
 import { FeatureFlip } from '../../domain/feature-flip'
-import Tag = FeatureFlip.Tag
+import { DateTime } from 'luxon'
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -405,26 +405,35 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   ): Promise<Result<UtilisateurQueryModel>> {
     const idUtilisateur = result.data.id
 
-    let featureActive: boolean
+    let dateDeMigration: string | undefined
 
     switch (result.data.type) {
       case Authentification.Type.CONSEILLER:
-        featureActive =
-          await this.featureFlipService.featureActivePourConseiller(
-            Tag.MIGRATION,
+        dateDeMigration =
+          await this.featureFlipService.recupererDateDeMigrationConseiller(
             idUtilisateur
           )
         break
       case Authentification.Type.JEUNE:
-        featureActive =
-          await this.featureFlipService.featureActivePourBeneficiaire(
-            Tag.MIGRATION,
+        dateDeMigration =
+          await this.featureFlipService.recupererDateDeMigrationBeneficiaire(
             idUtilisateur
           )
         break
       default:
         return result
     }
+
+    const featureActive =
+      dateDeMigration !== undefined &&
+      (DateService.isGreater(
+        this.dateService.now(),
+        DateTime.fromISO(dateDeMigration)
+      ) ||
+        DateService.isSameDateDay(
+          this.dateService.now(),
+          DateTime.fromISO(dateDeMigration)
+        ))
 
     if (featureActive) {
       return failure(
