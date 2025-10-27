@@ -46,20 +46,24 @@ export namespace FeatureFlip {
     async recupererDateDeMigrationBeneficiaire(
       idBeneficiaire: string
     ): Promise<string | undefined> {
-      const faitPartieDeLaMigration = await this.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.MIGRATION,
-        idBeneficiaire
-      )
+      const faitPartieDeLaMigration =
+        await this.featureFlipRepository.featureActivePourBeneficiaire(
+          FeatureFlip.Tag.MIGRATION,
+          idBeneficiaire
+        )
+
       return faitPartieDeLaMigration ? this.dateDeMigration : undefined
     }
 
     async recupererDateDeMigrationConseiller(
       idConseiller: string
     ): Promise<string | undefined> {
-      const faitPartieDeLaMigration = await this.featureActivePourConseiller(
-        FeatureFlip.Tag.MIGRATION,
-        idConseiller
-      )
+      const faitPartieDeLaMigration =
+        await this.featureFlipRepository.featureActivePourConseiller(
+          FeatureFlip.Tag.MIGRATION,
+          idConseiller
+        )
+
       return faitPartieDeLaMigration ? this.dateDeMigration : undefined
     }
 
@@ -68,16 +72,6 @@ export namespace FeatureFlip {
       idBeneficiaire: string
     ): Promise<boolean> {
       return this.featureFlipRepository.featureActivePourBeneficiaire(
-        tag,
-        idBeneficiaire
-      )
-    }
-
-    async featureActivePourConseiller(
-      tag: Tag,
-      idBeneficiaire: string
-    ): Promise<boolean> {
-      return this.featureFlipRepository.featureActivePourConseiller(
         tag,
         idBeneficiaire
       )

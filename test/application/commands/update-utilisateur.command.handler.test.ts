@@ -33,7 +33,6 @@ import {
 import { Core } from '../../../src/domain/core'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { StubbedClass, expect, stubClass } from '../../utils'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
 
 describe('UpdateUtilisateurCommandHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -49,19 +48,16 @@ describe('UpdateUtilisateurCommandHandler', () => {
   }
   const authentificationFactory: Authentification.Factory =
     new Authentification.Factory(idService)
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
     authentificationRepository = stubInterface(sandbox)
     mailBrevoService = stubClass(MailBrevoService)
-    featureFlipService = stubClass(FeatureFlip.Service)
     updateUtilisateurCommandHandler = new UpdateUtilisateurCommandHandler(
       authentificationRepository,
       authentificationFactory,
       dateService,
-      mailBrevoService,
-      featureFlipService
+      mailBrevoService
     )
   })
 
@@ -144,77 +140,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
-
-              // Then
-              expect(isSuccess(result)).equal(true)
-              if (isSuccess(result)) {
-                expect(result.data).to.deep.equal(
-                  unUtilisateurQueryModel({
-                    structure: Core.Structure.POLE_EMPLOI_BRSA
-                  })
-                )
-              }
-            })
-          })
-          describe('conseiller connu qui doit migrer vers Parcours Emploi', async () => {
-            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
-              }
-
-              const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
-              })
-              authentificationRepository.getConseiller
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-
-              featureFlipService.featureActivePourConseiller
-                .withArgs(FeatureFlip.Tag.MIGRATION, utilisateur.id)
-                .resolves(true)
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect(result.error).to.be.instanceOf(NonTraitableError)
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
-                )
-              }
-            })
-          })
-          describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', async () => {
-            it('retourne le conseiller', async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
-              }
-
-              const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
-              })
-              authentificationRepository.getConseiller
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-
-              featureFlipService.featureActivePourConseiller
-                .withArgs(FeatureFlip.Tag.MIGRATION, utilisateur.id)
-                .resolves(false)
 
               // When
               const result = await updateUtilisateurCommandHandler.execute(
@@ -948,80 +873,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   command.email
                 )
               )
-            )
-          })
-        })
-        describe('jeune connu qui doit migrer vers Parcours Emploi', async () => {
-          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            featureFlipService.featureActivePourBeneficiaire
-              .withArgs(FeatureFlip.Tag.MIGRATION, utilisateur.id)
-              .resolves(true)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(isFailure(result)).to.be.true()
-            if (isFailure(result)) {
-              expect(result.error).to.be.instanceOf(NonTraitableError)
-              expect((result.error as NonTraitableError).reason).to.equal(
-                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
-              )
-            }
-          })
-        })
-        describe('jeune connu qui ne doit pas migrer vers Parcours Emploi', async () => {
-          it('retourne le jeune', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-            featureFlipService.featureActivePourBeneficiaire
-              .withArgs(FeatureFlip.Tag.MIGRATION, utilisateur.id)
-              .resolves(false)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
             )
           })
         })

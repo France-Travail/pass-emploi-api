@@ -9,10 +9,8 @@ import {
   emptySuccess,
   failure,
   isFailure,
-  isSuccess,
   Result,
-  success,
-  type Success
+  success
 } from '../../building-blocks/types/result'
 import {
   Authentification,
@@ -26,8 +24,6 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
-import { FeatureFlip } from '../../domain/feature-flip'
-import Tag = FeatureFlip.Tag
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -51,11 +47,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,
-    private readonly authentificationFactory: Authentification.Factory,
-    private readonly dateService: DateService,
+    private authentificationFactory: Authentification.Factory,
+    private dateService: DateService,
     @Inject(MailServiceToken)
-    private readonly mailBrevoService: MailBrevoService,
-    private readonly featureFlipService: FeatureFlip.Service
+    private mailBrevoService: MailBrevoService
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -68,34 +63,21 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       email: command.email?.toLocaleLowerCase()
     }
 
-    let result: Result<UtilisateurQueryModel>
-
     switch (commandSanitized.type) {
       case Authentification.Type.CONSEILLER:
-        result = await this.recupererConseiller(commandSanitized)
-        break
+        return this.recupererConseiller(commandSanitized)
       case Authentification.Type.JEUNE:
       case 'BENEFICIAIRE':
-        result = await this.recupererBeneficiaire(commandSanitized)
-        break
+        return this.recupererBeneficiaire(commandSanitized)
       case Authentification.Type.SUPPORT:
-        result = failure(
+        return failure(
           new NonTraitableError(
             'Utilisateur',
             commandSanitized.idUtilisateurAuth,
             NonTraitableReason.TYPE_UTILISATEUR_NON_TRAITABLE
           )
         )
-        break
     }
-
-    if (isSuccess(result)) {
-      return this.gererMigrationParcoursEmploi(
-        result,
-        commandSanitized.idUtilisateurAuth
-      )
-    }
-    return result
   }
 
   async authorize(): Promise<Result> {
@@ -397,45 +379,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       commandSanitized
     )
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
-  }
-
-  private async gererMigrationParcoursEmploi(
-    result: Success<UtilisateurQueryModel>,
-    idUtilisateurAuth: string
-  ): Promise<Result<UtilisateurQueryModel>> {
-    const idUtilisateur = result.data.id
-
-    let featureActive: boolean
-
-    switch (result.data.type) {
-      case Authentification.Type.CONSEILLER:
-        featureActive =
-          await this.featureFlipService.featureActivePourConseiller(
-            Tag.MIGRATION,
-            idUtilisateur
-          )
-        break
-      case Authentification.Type.JEUNE:
-        featureActive =
-          await this.featureFlipService.featureActivePourBeneficiaire(
-            Tag.MIGRATION,
-            idUtilisateur
-          )
-        break
-      default:
-        return result
-    }
-
-    if (featureActive) {
-      return failure(
-        new NonTraitableError(
-          'Utilisateur',
-          idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
-        )
-      )
-    }
-    return result
   }
 }
 
