@@ -51,10 +51,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,
-    private authentificationFactory: Authentification.Factory,
-    private dateService: DateService,
+    private readonly authentificationFactory: Authentification.Factory,
+    private readonly dateService: DateService,
     @Inject(MailServiceToken)
-    private mailBrevoService: MailBrevoService,
+    private readonly mailBrevoService: MailBrevoService,
     private readonly featureFlipService: FeatureFlip.Service
   ) {
     super('UpdateUtilisateurCommandHandler')
