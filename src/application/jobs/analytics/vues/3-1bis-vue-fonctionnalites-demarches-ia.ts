@@ -18,7 +18,7 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
       JOIN conseiller c ON c.email = ff.email_conseiller
       JOIN jeune j ON (j.id_conseiller = c.id OR j.id_conseiller_initial = c.id)
       WHERE ff.feature_tag = 'DEMARCHES_IA'
-    )
+    ),
     analytics_utilisateurs_demarches_ia AS (
       SELECT a.*
       FROM ${analyticsTableName} a
