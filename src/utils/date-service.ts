@@ -33,6 +33,15 @@ export class DateService {
     return greaterDate.toUTC() > date.toUTC()
   }
 
+  static isGreaterOrEqualAtTheStartOfDay(
+    greaterDate: DateTime,
+    otherDate: DateTime
+  ): boolean {
+    return (
+      greaterDate.toUTC().startOf('day') >= otherDate.toUTC().startOf('day')
+    )
+  }
+
   static isBetweenDates(
     dateAComparer: Date,
     dateMin: Date,

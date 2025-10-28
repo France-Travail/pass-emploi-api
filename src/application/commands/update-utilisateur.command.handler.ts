@@ -426,14 +426,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
 
     const featureActive =
       dateDeMigration !== undefined &&
-      (DateService.isGreater(
+      DateService.isGreaterOrEqualAtTheStartOfDay(
         this.dateService.now(),
         DateTime.fromISO(dateDeMigration)
-      ) ||
-        DateService.isSameDateDay(
-          this.dateService.now(),
-          DateTime.fromISO(dateDeMigration)
-        ))
+      )
 
     if (featureActive) {
       return failure(

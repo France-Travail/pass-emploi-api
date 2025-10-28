@@ -1001,9 +1001,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
 
+            const dateDeMigration = maintenant.plus({ hours: 1 })
             featureFlipService.recupererDateDeMigrationBeneficiaire
               .withArgs(utilisateur.id)
-              .resolves(maintenant.toISO())
+              .resolves(dateDeMigration.toISO())
 
             // When
             const result = await updateUtilisateurCommandHandler.execute(
