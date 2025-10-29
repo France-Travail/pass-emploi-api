@@ -34,10 +34,12 @@ import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
+import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
   let updateAgenceCommandHandler: StubbedClass<UpdateAgenceConseillerCommandHandler>
+  let fusionnerAgencesCommandHandler: StubbedClass<FusionnerAgencesCommandHandler>
   let creerSuperviseursCommandHandler: StubbedClass<CreerSuperviseursCommandHandler>
   let deleteSuperviseursCommandHandler: StubbedClass<DeleteSuperviseursCommandHandler>
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
@@ -51,6 +53,7 @@ describe('SupportController', () => {
       ArchiverJeuneSupportCommandHandler
     )
     updateAgenceCommandHandler = app.get(UpdateAgenceConseillerCommandHandler)
+    fusionnerAgencesCommandHandler = app.get(FusionnerAgencesCommandHandler)
     creerSuperviseursCommandHandler = app.get(CreerSuperviseursCommandHandler)
     deleteSuperviseursCommandHandler = app.get(DeleteSuperviseursCommandHandler)
     transfererJeunesConseillerCommandHandler = app.get(
@@ -190,6 +193,80 @@ describe('SupportController', () => {
           .post('/support/changer-agence-conseiller')
           .set({ 'X-API-KEY': 'api-key' })
           .send({ idConseiller, idNouvelleAgence })
+          // Then
+          .expect(HttpStatus.UNAUTHORIZED)
+      })
+    })
+  })
+
+  describe('POST /support/fusionner-agences', () => {
+    const idAgenceSource = 'test'
+    const idAgenceCible = 'b'
+    describe('quand la commande est en succes', () => {
+      it("change l'agence", async () => {
+        // Given
+        fusionnerAgencesCommandHandler.execute.resolves(
+          success([
+            {
+              emailConseiller: 'test',
+              idAncienneAgence: 'a',
+              idNouvelleAgence: 'b',
+              infosTransfertAnimationsCollectives: []
+            }
+          ])
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/fusionner-agences')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idAgenceSource, idAgenceCible })
+          // Then
+          .expect(HttpStatus.CREATED)
+
+        expect(
+          fusionnerAgencesCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          { idAgenceSource, idAgenceCible },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+    })
+    describe('quand la commande est en echec', () => {
+      it('throw une erreur', async () => {
+        // Given
+        fusionnerAgencesCommandHandler.execute.resolves(
+          failure(new NonTrouveError('Agence', 'b'))
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/fusionner-agences')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idAgenceSource, idAgenceCible })
+          // Then
+          .expect(HttpStatus.NOT_FOUND)
+
+        expect(
+          fusionnerAgencesCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          { idAgenceSource, idAgenceCible },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+    })
+    describe('auth', () => {
+      it('fail sans api key', async () => {
+        // Given
+        fusionnerAgencesCommandHandler.execute.resolves(
+          failure(new NonTrouveError('Agence', 'b'))
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/fusionner-agences')
+          .set({ 'X-API-KEY': 'api-key' })
+          .send({ idAgenceSource, idAgenceCible })
           // Then
           .expect(HttpStatus.UNAUTHORIZED)
       })

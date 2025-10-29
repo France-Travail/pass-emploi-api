@@ -18,6 +18,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiResponse,
   ApiSecurity,
   ApiTags
 } from '@nestjs/swagger'
@@ -34,10 +35,7 @@ import {
   RefreshJddCommand,
   RefreshJddCommandHandler
 } from '../../application/commands/support/refresh-jdd.command.handler'
-import {
-  ChangementAgenceQueryModel,
-  UpdateAgenceConseillerCommandHandler
-} from '../../application/commands/support/update-agence-conseiller.command.handler'
+import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
@@ -53,6 +51,7 @@ import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { handleResult } from './result.handler'
 import {
   ChangerAgenceConseillerPayload,
+  FusionnerAgencesPayload,
   NotifierBeneficiairesPayload,
   RefreshJDDPayload,
   SuperviseursPayload,
@@ -60,6 +59,8 @@ import {
   TransfererJeunesPayload,
   UpdateFeatureFlipPayload
 } from './validation/support.inputs'
+import { ChangementAgenceQueryModel } from '../../domain/agence'
+import { FusionnerAgencesCommandHandler } from '../../application/commands/support/fusionner-agences.command.handler'
 
 @Controller('support')
 @ApiTags('Support')
@@ -68,11 +69,12 @@ import {
 @ApiSecurity('api_key')
 export class SupportController {
   constructor(
-    private refreshJddCommandHandler: RefreshJddCommandHandler,
-    private mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
-    private updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
-    private archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
-    private transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
+    private readonly refreshJddCommandHandler: RefreshJddCommandHandler,
+    private readonly mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
+    private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
+    private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
+    private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
+    private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
     private readonly updateFeatureFlipCommandHandler: UpdateFeatureFlipCommandHandler,
@@ -139,6 +141,35 @@ export class SupportController {
       idNouvelleAgence: payload.idNouvelleAgence
     }
     const result = await this.updateAgenceCommandHandler.execute(
+      command,
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Attribue une nouvelle agence au conseiller identifié par son ID (ID en base, et pas ID Authentification)',
+    description: 'Autorisé pour le support'
+  })
+  @Post('fusionner-agences')
+  @ApiResponse({
+    type: ChangementAgenceQueryModel,
+    isArray: true
+  })
+  async fusionnerAgences(
+    @Body() payload: FusionnerAgencesPayload
+  ): Promise<ChangementAgenceQueryModel[]> {
+    const command: FusionnerAgencesPayload = {
+      idAgenceSource: payload.idAgenceSource,
+      idAgenceCible: payload.idAgenceCible
+    }
+    const result = await this.fusionnerAgencesCommandHandler.execute(
       command,
       Authentification.unUtilisateurSupport()
     )
