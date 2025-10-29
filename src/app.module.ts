@@ -239,7 +239,7 @@ import {
   ActionRepositoryToken,
   CommentaireActionRepositoryToken
 } from './domain/action/action'
-import { AgenceRepositoryToken } from './domain/agence'
+import { Agence, AgenceRepositoryToken } from './domain/agence'
 import { ArchiveJeuneRepositoryToken } from './domain/archive-jeune'
 import {
   Authentification,
@@ -388,6 +388,7 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
+import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -474,6 +475,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     SuggestionPoleEmploiService,
     Notification.Service,
     FeatureFlip.Service,
+    Agence.Service,
     RendezVous.AnimationCollective.Service,
     WorkerService,
     TaskService,
@@ -796,6 +798,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     EnvoyerMessageGroupeCommandHandler,
     MettreAJourLesJeunesCejPeCommandHandler,
     UpdateAgenceConseillerCommandHandler,
+    FusionnerAgencesCommandHandler,
     GetActionsConseillerV2QueryHandler,
     GetDiagorienteUrlsQueryHandler,
     GetCJETokenQueryHandler,
