@@ -91,7 +91,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
 
     if (isSuccess(result)) {
       return this.gererMigrationParcoursEmploi(
-        result,
+        result.data,
         commandSanitized.idUtilisateurAuth
       )
     }
@@ -400,14 +400,14 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   }
 
   private async gererMigrationParcoursEmploi(
-    result: Success<UtilisateurQueryModel>,
+    utilisateur: UtilisateurQueryModel,
     idUtilisateurAuth: string
   ): Promise<Result<UtilisateurQueryModel>> {
-    const idUtilisateur = result.data.id
+    const idUtilisateur = utilisateur.id
 
     let dateDeMigration: string | undefined
 
-    switch (result.data.type) {
+    switch (utilisateur.type) {
       case Authentification.Type.CONSEILLER:
         dateDeMigration =
           await this.featureFlipService.recupererDateDeMigrationConseiller(
@@ -421,15 +421,15 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
           )
         break
       default:
-        return result
+        return success(utilisateur)
     }
 
-    const featureActive =
-      dateDeMigration !== undefined &&
-      DateService.isGreaterOrEqualAtTheStartOfDay(
-        this.dateService.now(),
-        DateTime.fromISO(dateDeMigration)
-      )
+    const dateDeMigrationExiste = dateDeMigration !== undefined
+    const dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
+      this.dateService.now(),
+      DateTime.fromISO(dateDeMigration!)
+    )
+    const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee
 
     if (featureActive) {
       return failure(
@@ -440,7 +440,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
-    return result
+    return success(utilisateur)
   }
 }
 
