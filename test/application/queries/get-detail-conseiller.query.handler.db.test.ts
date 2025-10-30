@@ -14,7 +14,7 @@ import { detailConseillerQueryModel } from '../../fixtures/query-models/conseill
 import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
-import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
+import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
@@ -22,6 +22,7 @@ import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { testConfig } from '../../utils/module-for-testing'
 import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { DateTime } from 'luxon'
 
 const token = 'un-token'
 
@@ -72,10 +73,9 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
 
-        const dateDeMigration = '2024-09-01T00:00:00.000+02:00'
         featureFlipService.recupererDateDeMigrationConseiller
           .withArgs(idConseiller)
-          .resolves(dateDeMigration)
+          .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+02:00'))
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({
@@ -96,7 +96,7 @@ describe('GetDetailConseillerQueryHandler', () => {
               notificationsSonores: false,
               dateSignatureCGU: undefined,
               dateVisionnageActus: undefined,
-              dateDeMigration
+              dateDeMigration: '2024-09-01T00:00:00.000+02:00'
             })
           )
         )
