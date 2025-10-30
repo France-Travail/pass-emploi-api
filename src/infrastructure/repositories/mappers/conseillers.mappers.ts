@@ -2,8 +2,7 @@ import { DetailConseillerQueryModel } from '../../../application/queries/query-m
 import { ListeDeDiffusionQueryModel } from '../../../application/queries/query-models/liste-de-diffusion.query-model'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
 import { ListeDeDiffusionSqlModel } from '../../sequelize/models/liste-de-diffusion.sql-model'
-import { DateTime, Zone } from 'luxon'
-import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
+import { DateTime } from 'luxon'
 
 export function fromSqlToDetailConseillerQueryModel(
   conseillerSqlModel: ConseillerSqlModel,

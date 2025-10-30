@@ -3,6 +3,7 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { FeatureFlip } from '../../src/domain/feature-flip'
 import { expect } from '../utils'
+import { DateTime } from 'luxon'
 
 describe('FeatureFlip', () => {
   describe('Service', () => {
@@ -44,7 +45,7 @@ describe('FeatureFlip', () => {
         )
 
         // Then
-        expect(result).to.equal('2024-09-01T00:00:00.000+02:00')
+        expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
       })
 
       it("ne renvoie rien si le jeune n'est pas dans la feature", async () => {
@@ -83,7 +84,7 @@ describe('FeatureFlip', () => {
     })
 
     describe('recupererDateDeMigrationConseiller', () => {
-      it('renvoie la date (minuit Europe/Paris) quand le conseiller fait partie de MIGRATION et que la config contient une date', async () => {
+      it('renvoie la date quand le conseiller fait partie de MIGRATION et que la config contient une date', async () => {
         // Given
         const idConseiller = 'conseiller-1'
         const rawDate = '2025-03-10'
@@ -99,7 +100,7 @@ describe('FeatureFlip', () => {
         )
 
         // Then
-        expect(result).to.equal('2025-03-10T00:00:00.000+01:00')
+        expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
       })
 
       it("ne renvoie rien si le conseiller n'est pas dans la feature", async () => {
