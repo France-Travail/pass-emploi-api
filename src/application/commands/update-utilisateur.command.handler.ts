@@ -423,10 +423,13 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     }
 
     const dateDeMigrationExiste = dateDeMigration !== undefined
-    const dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
-      this.dateService.now(),
-      dateDeMigration!
-    )
+    let dateDeMigrationArrivee
+    if (dateDeMigrationExiste) {
+      dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
+        this.dateService.now(),
+        dateDeMigration!
+      )
+    }
     const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee
 
     if (featureActive) {
