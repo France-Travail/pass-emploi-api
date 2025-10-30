@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { TIME_ZONE_EUROPE_PARIS } from '../config/configuration'
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
@@ -23,7 +22,7 @@ export namespace FeatureFlip {
 
   @Injectable()
   export class Service {
-    private readonly dateDeMigration?: string
+    private readonly dateDeMigration?: DateTime
 
     constructor(
       @Inject(FeatureFlipRepositoryToken)
@@ -35,35 +34,27 @@ export namespace FeatureFlip {
       )
 
       this.dateDeMigration = dateDeMigrationFromConfig
-        ? DateTime.fromISO(dateDeMigrationFromConfig, {
-            zone: TIME_ZONE_EUROPE_PARIS
-          })
-            .startOf('day')
-            .toISO()
+        ? DateTime.fromISO(dateDeMigrationFromConfig).startOf('day')
         : undefined
     }
 
     async recupererDateDeMigrationBeneficiaire(
       idBeneficiaire: string
-    ): Promise<string | undefined> {
-      const faitPartieDeLaMigration =
-        await this.featureFlipRepository.featureActivePourBeneficiaire(
-          FeatureFlip.Tag.MIGRATION,
-          idBeneficiaire
-        )
-
+    ): Promise<DateTime | undefined> {
+      const faitPartieDeLaMigration = await this.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.MIGRATION,
+        idBeneficiaire
+      )
       return faitPartieDeLaMigration ? this.dateDeMigration : undefined
     }
 
     async recupererDateDeMigrationConseiller(
       idConseiller: string
-    ): Promise<string | undefined> {
-      const faitPartieDeLaMigration =
-        await this.featureFlipRepository.featureActivePourConseiller(
-          FeatureFlip.Tag.MIGRATION,
-          idConseiller
-        )
-
+    ): Promise<DateTime | undefined> {
+      const faitPartieDeLaMigration = await this.featureActivePourConseiller(
+        FeatureFlip.Tag.MIGRATION,
+        idConseiller
+      )
       return faitPartieDeLaMigration ? this.dateDeMigration : undefined
     }
 
@@ -72,6 +63,16 @@ export namespace FeatureFlip {
       idBeneficiaire: string
     ): Promise<boolean> {
       return this.featureFlipRepository.featureActivePourBeneficiaire(
+        tag,
+        idBeneficiaire
+      )
+    }
+
+    async featureActivePourConseiller(
+      tag: Tag,
+      idBeneficiaire: string
+    ): Promise<boolean> {
+      return this.featureFlipRepository.featureActivePourConseiller(
         tag,
         idBeneficiaire
       )

@@ -2,11 +2,12 @@ import { DetailConseillerQueryModel } from '../../../application/queries/query-m
 import { ListeDeDiffusionQueryModel } from '../../../application/queries/query-models/liste-de-diffusion.query-model'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
 import { ListeDeDiffusionSqlModel } from '../../sequelize/models/liste-de-diffusion.sql-model'
+import { DateTime } from 'luxon'
 
 export function fromSqlToDetailConseillerQueryModel(
   conseillerSqlModel: ConseillerSqlModel,
   aDesBeneficiairesARecuperer: boolean,
-  dateDeMigration?: string
+  dateDeMigration?: DateTime
 ): DetailConseillerQueryModel {
   const conseiller: DetailConseillerQueryModel = {
     id: conseillerSqlModel.id,
@@ -37,7 +38,7 @@ export function fromSqlToDetailConseillerQueryModel(
     }
   }
   if (dateDeMigration) {
-    conseiller.dateDeMigration = dateDeMigration
+    conseiller.dateDeMigration = dateDeMigration.toUTC().toISO()
   }
   return conseiller
 }
