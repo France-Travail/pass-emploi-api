@@ -75,7 +75,7 @@ describe('GetDetailConseillerQueryHandler', () => {
 
         featureFlipService.recupererDateDeMigrationConseiller
           .withArgs(idConseiller)
-          .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+02:00'))
+          .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+00:00'))
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({
@@ -96,7 +96,7 @@ describe('GetDetailConseillerQueryHandler', () => {
               notificationsSonores: false,
               dateSignatureCGU: undefined,
               dateVisionnageActus: undefined,
-              dateDeMigration: '2024-09-01T00:00:00.000+02:00'
+              dateDeMigration: '2024-09-01T00:00:00.000Z'
             })
           )
         )

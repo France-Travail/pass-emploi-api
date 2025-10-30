@@ -2,7 +2,8 @@ import { DetailConseillerQueryModel } from '../../../application/queries/query-m
 import { ListeDeDiffusionQueryModel } from '../../../application/queries/query-models/liste-de-diffusion.query-model'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
 import { ListeDeDiffusionSqlModel } from '../../sequelize/models/liste-de-diffusion.sql-model'
-import { DateTime } from 'luxon'
+import { DateTime, Zone } from 'luxon'
+import { TIME_ZONE_EUROPE_PARIS } from '../../../config/configuration'
 
 export function fromSqlToDetailConseillerQueryModel(
   conseillerSqlModel: ConseillerSqlModel,
@@ -38,7 +39,7 @@ export function fromSqlToDetailConseillerQueryModel(
     }
   }
   if (dateDeMigration) {
-    conseiller.dateDeMigration = dateDeMigration.toISO()
+    conseiller.dateDeMigration = dateDeMigration.toUTC().toISO()
   }
   return conseiller
 }
