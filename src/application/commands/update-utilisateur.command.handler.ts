@@ -11,8 +11,7 @@ import {
   isFailure,
   isSuccess,
   Result,
-  success,
-  type Success
+  success
 } from '../../building-blocks/types/result'
 import {
   Authentification,
