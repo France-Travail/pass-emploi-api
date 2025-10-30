@@ -180,7 +180,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
         demarches.dateDuCache,
         rendezVous.dateDuCache
       )?.toISO(),
-      dateDeMigration,
+      dateDeMigration: dateDeMigration?.toUTC().toISO(),
       cetteSemaine: {
         nombreRendezVous: nombreDeRendezVous,
         nombreActionsDemarchesEnRetard: nombreDeDemarchesEnRetard,

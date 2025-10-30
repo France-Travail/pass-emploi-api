@@ -9,6 +9,7 @@ import {
   emptySuccess,
   failure,
   isFailure,
+  isSuccess,
   Result,
   success
 } from '../../building-blocks/types/result'
@@ -24,6 +25,8 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
+import { FeatureFlip } from '../../domain/feature-flip'
+import { DateTime } from 'luxon'
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -47,10 +50,11 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,
-    private authentificationFactory: Authentification.Factory,
-    private dateService: DateService,
+    private readonly authentificationFactory: Authentification.Factory,
+    private readonly dateService: DateService,
     @Inject(MailServiceToken)
-    private mailBrevoService: MailBrevoService
+    private readonly mailBrevoService: MailBrevoService,
+    private readonly featureFlipService: FeatureFlip.Service
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -63,12 +67,16 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       email: command.email?.toLocaleLowerCase()
     }
 
+    let result: Result<UtilisateurQueryModel>
+
     switch (commandSanitized.type) {
       case Authentification.Type.CONSEILLER:
-        return this.recupererConseiller(commandSanitized)
+        result = await this.recupererConseiller(commandSanitized)
+        break
       case Authentification.Type.JEUNE:
       case 'BENEFICIAIRE':
-        return this.recupererBeneficiaire(commandSanitized)
+        result = await this.recupererBeneficiaire(commandSanitized)
+        break
       case Authentification.Type.SUPPORT:
         return failure(
           new NonTraitableError(
@@ -78,6 +86,14 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
           )
         )
     }
+
+    if (isSuccess(result)) {
+      return this.gererMigrationParcoursEmploi(
+        result.data,
+        commandSanitized.idUtilisateurAuth
+      )
+    }
+    return result
   }
 
   async authorize(): Promise<Result> {
@@ -379,6 +395,53 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       commandSanitized
     )
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
+  }
+
+  private async gererMigrationParcoursEmploi(
+    utilisateur: UtilisateurQueryModel,
+    idUtilisateurAuth: string
+  ): Promise<Result<UtilisateurQueryModel>> {
+    const idUtilisateur = utilisateur.id
+
+    let dateDeMigration: DateTime | undefined
+
+    switch (utilisateur.type) {
+      case Authentification.Type.CONSEILLER:
+        dateDeMigration =
+          await this.featureFlipService.recupererDateDeMigrationConseiller(
+            idUtilisateur
+          )
+        break
+      case Authentification.Type.JEUNE:
+        dateDeMigration =
+          await this.featureFlipService.recupererDateDeMigrationBeneficiaire(
+            idUtilisateur
+          )
+        break
+      default:
+        return success(utilisateur)
+    }
+
+    const dateDeMigrationExiste = dateDeMigration !== undefined
+    let dateDeMigrationArrivee
+    if (dateDeMigrationExiste) {
+      dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
+        this.dateService.now(),
+        dateDeMigration!
+      )
+    }
+    const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee
+
+    if (featureActive) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+        )
+      )
+    }
+    return success(utilisateur)
   }
 }
 
