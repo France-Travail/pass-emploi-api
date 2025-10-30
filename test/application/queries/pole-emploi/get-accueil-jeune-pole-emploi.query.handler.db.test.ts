@@ -274,7 +274,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
           // Given
           featureFlipService.recupererDateDeMigrationBeneficiaire
             .withArgs(query.idJeune)
-            .resolves('2024-09-01T00:00:00.000+02:00')
+            .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+02:00'))
 
           // When
           result = await handler.handle(query)

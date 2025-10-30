@@ -403,7 +403,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   ): Promise<Result<UtilisateurQueryModel>> {
     const idUtilisateur = utilisateur.id
 
-    let dateDeMigration: string | undefined
+    let dateDeMigration: DateTime | undefined
 
     switch (utilisateur.type) {
       case Authentification.Type.CONSEILLER:
@@ -425,7 +425,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     const dateDeMigrationExiste = dateDeMigration !== undefined
     const dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
       this.dateService.now(),
-      DateTime.fromISO(dateDeMigration!)
+      dateDeMigration!
     )
     const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee
 

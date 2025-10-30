@@ -23,7 +23,7 @@ export namespace FeatureFlip {
 
   @Injectable()
   export class Service {
-    private readonly dateDeMigration?: string
+    private readonly dateDeMigration?: DateTime
 
     constructor(
       @Inject(FeatureFlipRepositoryToken)
@@ -35,17 +35,13 @@ export namespace FeatureFlip {
       )
 
       this.dateDeMigration = dateDeMigrationFromConfig
-        ? DateTime.fromISO(dateDeMigrationFromConfig, {
-            zone: TIME_ZONE_EUROPE_PARIS
-          })
-            .startOf('day')
-            .toISO()
+        ? DateTime.fromISO(dateDeMigrationFromConfig).startOf('day')
         : undefined
     }
 
     async recupererDateDeMigrationBeneficiaire(
       idBeneficiaire: string
-    ): Promise<string | undefined> {
+    ): Promise<DateTime | undefined> {
       const faitPartieDeLaMigration = await this.featureActivePourBeneficiaire(
         FeatureFlip.Tag.MIGRATION,
         idBeneficiaire
@@ -55,7 +51,7 @@ export namespace FeatureFlip {
 
     async recupererDateDeMigrationConseiller(
       idConseiller: string
-    ): Promise<string | undefined> {
+    ): Promise<DateTime | undefined> {
       const faitPartieDeLaMigration = await this.featureActivePourConseiller(
         FeatureFlip.Tag.MIGRATION,
         idConseiller

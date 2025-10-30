@@ -179,7 +179,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
               featureFlipService.recupererDateDeMigrationConseiller
                 .withArgs(utilisateur.id)
-                .resolves(maintenant.toISO())
+                .resolves(maintenant)
 
               // When
               const result = await updateUtilisateurCommandHandler.execute(
@@ -212,7 +212,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
               featureFlipService.recupererDateDeMigrationConseiller
                 .withArgs(utilisateur.id)
-                .resolves(maintenant.plus({ days: 1 }).toISO())
+                .resolves(maintenant.plus({ days: 1 }))
 
               // When
               const result = await updateUtilisateurCommandHandler.execute(
@@ -1004,7 +1004,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const dateDeMigration = maintenant.plus({ hours: 1 })
             featureFlipService.recupererDateDeMigrationBeneficiaire
               .withArgs(utilisateur.id)
-              .resolves(dateDeMigration.toISO())
+              .resolves(dateDeMigration)
 
             // When
             const result = await updateUtilisateurCommandHandler.execute(
@@ -1037,7 +1037,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
             featureFlipService.recupererDateDeMigrationBeneficiaire
               .withArgs(utilisateur.id)
-              .resolves(maintenant.plus({ days: 3 }).toISO())
+              .resolves(maintenant.plus({ days: 3 }))
 
             // When
             const result = await updateUtilisateurCommandHandler.execute(
