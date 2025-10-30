@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { TIME_ZONE_EUROPE_PARIS } from '../config/configuration'
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
