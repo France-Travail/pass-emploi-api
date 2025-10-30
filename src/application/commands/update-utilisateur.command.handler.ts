@@ -78,14 +78,13 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         result = await this.recupererBeneficiaire(commandSanitized)
         break
       case Authentification.Type.SUPPORT:
-        result = failure(
+        return failure(
           new NonTraitableError(
             'Utilisateur',
             commandSanitized.idUtilisateurAuth,
             NonTraitableReason.TYPE_UTILISATEUR_NON_TRAITABLE
           )
         )
-        break
     }
 
     if (isSuccess(result)) {
