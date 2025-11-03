@@ -42,7 +42,8 @@ export function estJobSuivi(jobType: Planificateur.JobType): boolean {
     Planificateur.JobType.RAPPEL_SESSION,
     Planificateur.JobType.RAPPEL_ACTION,
     Planificateur.JobType.TRAITER_EVENEMENT_MILO,
-    Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS
+    Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS,
+    Planificateur.JobType.CLORE_SESSIONS
   ].includes(jobType)
 }
 export function estNotifiable(suiviJob: SuiviJob): boolean {
@@ -56,7 +57,8 @@ export function estNotifiable(suiviJob: SuiviJob): boolean {
       Planificateur.JobType.RAPPEL_SESSION,
       Planificateur.JobType.RAPPEL_ACTION,
       Planificateur.JobType.TRAITER_EVENEMENT_MILO,
-      Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS
+      Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS,
+      Planificateur.JobType.CLORE_SESSIONS
     ].includes(suiviJob.jobType)
   )
 }
