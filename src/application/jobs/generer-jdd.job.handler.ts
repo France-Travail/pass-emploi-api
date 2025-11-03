@@ -2,7 +2,6 @@ import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Inject, Injectable } from '@nestjs/common'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
-import { Command } from '../../building-blocks/types/command'
 import { DateService } from '../../utils/date-service'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ActionSqlModel } from '../../infrastructure/sequelize/models/action.sql-model'
@@ -27,25 +26,23 @@ import { uneRechercheJdd } from '../../infrastructure/jdd/recherche.jdd'
 import { unFavoriOffreEmploiJdd } from '../../infrastructure/jdd/favori.jdd'
 import Code = Qualification.Code
 
-export interface GenererJDDJobHandler extends Command {
-  job: Planificateur.Job<Planificateur.JobGenererJDD>
-}
-
 @Injectable()
 @ProcessJobType(Planificateur.JobType.GENERER_JDD)
-export class HandleJobGenererJDDCommandHandler extends JobHandler<GenererJDDJobHandler> {
+export class HandleJobGenererJDDCommandHandler extends JobHandler<Planificateur.JobGenererJDD> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.GENERER_JDD, suiviJobService)
   }
 
-  async handle(command: GenererJDDJobHandler): Promise<SuiviJob> {
+  async handle(
+    job: Planificateur.Job<Planificateur.JobGenererJDD>
+  ): Promise<SuiviJob> {
     const debut = this.dateService.now()
     try {
-      const { idConseiller, menage } = command.job.contenu
+      const { idConseiller, menage } = job.contenu
 
       const conseiller = await ConseillerSqlModel.findOne({
         where: {

@@ -116,9 +116,14 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
     it('notifie uniquement les jeunes MILO CEJ avec 0 action cette semaine et push token actif', async () => {
       // Given
       notificationService.notifier0Heures.resolves()
+      const job: Planificateur.Job<Planificateur.Job0HeuresDeclarees> = {
+        dateExecution: new Date(),
+        type: Planificateur.JobType.NOTIFIER_0_HEURES_DECLAREES,
+        contenu: {}
+      }
 
       // When
-      const result = await jobHandler.handle()
+      const result = await jobHandler.handle(job)
 
       // Then
       expect(result.succes).to.be.true()

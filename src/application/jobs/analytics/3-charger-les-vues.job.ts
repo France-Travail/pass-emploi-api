@@ -15,11 +15,11 @@ import { Sequelize } from 'sequelize-typescript'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_LES_VUES_ANALYTICS)
-export class ChargerLesVuesJobHandler extends JobHandler<Planificateur.Job> {
+export class ChargerLesVuesJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.CHARGER_LES_VUES_ANALYTICS, suiviJobService)
   }

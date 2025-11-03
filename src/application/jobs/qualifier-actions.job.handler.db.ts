@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Job } from 'bull'
 import { Op, WhereOptions } from 'sequelize'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
 import { JobHandler } from '../../building-blocks/types/job-handler'
@@ -15,14 +14,14 @@ import { DateTime } from 'luxon'
 const MAX_ACTIONS = 1000
 @Injectable()
 @ProcessJobType(Planificateur.JobType.QUALIFIER_ACTIONS)
-export class QualifierActionsJobHandler extends JobHandler<Job> {
+export class QualifierActionsJobHandler extends JobHandler {
   constructor(
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(ActionRepositoryToken)
     private readonly actionRepository: Action.Repository,
-    private actionFactory: Action.Factory
+    private readonly actionFactory: Action.Factory
   ) {
     super(Planificateur.JobType.QUALIFIER_ACTIONS, suiviJobService)
   }

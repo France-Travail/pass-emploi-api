@@ -20,9 +20,7 @@ interface Stat {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RENDEZVOUS)
-export class NotifierRappelRendezVousJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobRendezVous>
-> {
+export class NotifierRappelRendezVousJobHandler extends JobHandler<Planificateur.JobRendezVous> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,

@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { parseExpression } from 'cron-parser'
 import { Op } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   listeCronJobs,
@@ -18,9 +17,9 @@ import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.MONITORER_JOBS)
-export class MonitorJobsJobHandler extends JobHandler<Job> {
+export class MonitorJobsJobHandler extends JobHandler {
   constructor(
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service
   ) {

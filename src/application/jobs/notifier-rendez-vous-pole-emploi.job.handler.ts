@@ -6,7 +6,6 @@ import { Notification } from '../../domain/notification/notification'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { Jeune, JeunePoleEmploiRepositoryToken } from '../../domain/jeune/jeune'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Job } from '../../building-blocks/types/job'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import Type = Notification.Type
 
@@ -14,15 +13,15 @@ const NOMBRE_JEUNES_EN_PARALLELE = 100
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_RENDEZVOUS_PE)
-export class NotifierRendezVousPEJobHandler extends JobHandler<Job> {
+export class NotifierRendezVousPEJobHandler extends JobHandler {
   constructor(
-    private poleEmploiClient: PoleEmploiClient,
-    private notificationService: Notification.Service,
-    private dateService: DateService,
+    private readonly poleEmploiClient: PoleEmploiClient,
+    private readonly notificationService: Notification.Service,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(JeunePoleEmploiRepositoryToken)
-    private jeunePoleEmploiRepository: Jeune.PoleEmploi.Repository
+    private readonly jeunePoleEmploiRepository: Jeune.PoleEmploi.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_RENDEZVOUS_PE, suiviJobService)
   }

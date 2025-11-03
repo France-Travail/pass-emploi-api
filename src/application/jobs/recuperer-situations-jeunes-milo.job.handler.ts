@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
 import { Jeune } from '../../domain/jeune/jeune'
@@ -16,13 +15,13 @@ const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 100
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RECUPERER_SITUATIONS_JEUNES_MILO)
-export class RecupererSituationsJeunesMiloJobHandler extends JobHandler<Job> {
+export class RecupererSituationsJeunesMiloJobHandler extends JobHandler {
   constructor(
     @Inject(JeuneMiloRepositoryToken)
-    private miloRepository: JeuneMilo.Repository,
+    private readonly miloRepository: JeuneMilo.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(
       Planificateur.JobType.RECUPERER_SITUATIONS_JEUNES_MILO,
@@ -100,12 +99,12 @@ export class RecupererSituationsJeunesMiloJobHandler extends JobHandler<Job> {
         })
       )
 
-      promises.forEach(promise => {
+      for (const promise of promises) {
         if (promise.status === 'rejected') {
           stats.erreurs++
           this.logger.error(promise.reason)
         }
-      })
+      }
       stats.jeunesMilo += jeunes.length
       offset += PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM
     } while (jeunes.length)

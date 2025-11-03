@@ -33,9 +33,9 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   Planificateur.JobId
 > {
   constructor(
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super('NotifierBeneficiairesCommandHandler')
   }

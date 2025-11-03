@@ -7,11 +7,11 @@ import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NETTOYER_EVENEMENTS_CHARGES_ANALYTICS)
-export class NettoyerEvenementsChargesAnalyticsJobHandler extends JobHandler<Planificateur.Job> {
+export class NettoyerEvenementsChargesAnalyticsJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(
       Planificateur.JobType.NETTOYER_EVENEMENTS_CHARGES_ANALYTICS,

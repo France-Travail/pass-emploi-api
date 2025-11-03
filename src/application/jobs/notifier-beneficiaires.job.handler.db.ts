@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op, WhereOptions } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   Notification,
@@ -26,38 +25,28 @@ const NOMBRE_MINUTES_ENTRE_BATCHS_DEFAUT = 5
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_BENEFICIAIRES)
-export class NotifierBeneficiairesJobHandler extends JobHandler<Job> {
+export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.JobNotifierBeneficiaires> {
   constructor(
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
+    private readonly notificationRepository: Notification.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_BENEFICIAIRES, suiviJobService)
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.JobNotifierBeneficiaires>
+    job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires>
   ): Promise<SuiviJob> {
     let succes = true
     const stats: Stats = {
-      nbBeneficiairesNotifies: job?.contenu?.nbBeneficiairesNotifies || 0,
+      nbBeneficiairesNotifies: job.contenu?.nbBeneficiairesNotifies || 0,
       estLaDerniereExecution: false
     }
     const maintenant = this.dateService.now()
-
-    if (!job)
-      return {
-        jobType: this.jobType,
-        nbErreurs: 0,
-        succes: false,
-        dateExecution: maintenant,
-        tempsExecution: DateService.calculerTempsExecution(maintenant),
-        resultat: stats
-      }
 
     try {
       const offset = job.contenu?.offset || 0

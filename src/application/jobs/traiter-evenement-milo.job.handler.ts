@@ -22,9 +22,9 @@ import { Notification } from '../../domain/notification/notification'
 import {
   Planificateur,
   PlanificateurService,
-  ProcessJobType,
   planifierLesRappelsDeRendezVous,
   planifierRappelsInstanceSessionMilo,
+  ProcessJobType,
   replanifierLesRappelsDeRendezVous,
   supprimerLesRappelsDeRendezVous,
   supprimerRappelsInstanceSessionMilo
@@ -38,25 +38,23 @@ import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.TRAITER_EVENEMENT_MILO)
-export class TraiterEvenementMiloJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobTraiterEvenementMilo>
-> {
+export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.JobTraiterEvenementMilo> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(JeuneMiloRepositoryToken)
-    private jeuneRepository: JeuneMilo.Repository,
+    private readonly jeuneRepository: JeuneMilo.Repository,
     @Inject(RendezVousRepositoryToken)
-    private rendezVousRepository: RendezVous.Repository,
+    private readonly rendezVousRepository: RendezVous.Repository,
     @Inject(SessionMiloRepositoryToken)
-    private sessionMiloRepository: SessionMilo.Repository,
+    private readonly sessionMiloRepository: SessionMilo.Repository,
     @Inject(RendezVousMiloRepositoryToken)
-    private rendezVousMiloRepository: RendezVousMilo.Repository,
-    private rendezVousMiloFactory: RendezVousMilo.Factory,
-    private notificationService: Notification.Service,
-    private planificateurService: PlanificateurService,
-    private configuration: ConfigService
+    private readonly rendezVousMiloRepository: RendezVousMilo.Repository,
+    private readonly rendezVousMiloFactory: RendezVousMilo.Factory,
+    private readonly notificationService: Notification.Service,
+    private readonly planificateurService: PlanificateurService,
+    private readonly configuration: ConfigService
   ) {
     super(Planificateur.JobType.TRAITER_EVENEMENT_MILO, suiviJobService)
   }

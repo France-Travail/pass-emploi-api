@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Core } from '../../domain/core'
 import {
@@ -25,25 +24,25 @@ const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 2000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_BONNE_ALTERNANCE)
-export class NotifierBonneAlternanceJobHandler extends JobHandler<Job> {
+export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.JobNotifierParGroupe> {
   constructor(
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
+    private readonly notificationRepository: Notification.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_BONNE_ALTERNANCE, suiviJobService)
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.JobNotifierParGroupe>
+    job: Planificateur.Job<Planificateur.JobNotifierParGroupe>
   ): Promise<SuiviJob> {
     let succes = true
     const stats: Stats = {
-      nbPersonnesNotifiees: job?.contenu?.nbPersonnesNotifiees || 0,
+      nbPersonnesNotifiees: job.contenu?.nbPersonnesNotifiees || 0,
       estLaDerniereExecution: false
     }
     const maintenant = this.dateService.now()
@@ -55,7 +54,7 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Job> {
         Core.Structure.POLE_EMPLOI_AIJ
       ]
 
-      const offset = job?.contenu?.offset || 0
+      const offset = job.contenu?.offset || 0
 
       const idsJeunesANotifier = await JeuneSqlModel.findAll({
         where: {

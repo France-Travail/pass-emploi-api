@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Job } from 'bull'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   EvenementMilo,
@@ -17,16 +16,16 @@ import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.SUIVRE_FILE_EVENEMENTS_MILO)
-export class SuivreEvenementsMiloCronJobHandler extends JobHandler<Job> {
+export class SuivreEvenementsMiloCronJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(EvenementMiloRepositoryToken)
-    private evenementMiloRepository: EvenementMilo.Repository,
-    private dateService: DateService,
-    private planificateurService: PlanificateurService,
+    private readonly evenementMiloRepository: EvenementMilo.Repository,
+    private readonly dateService: DateService,
+    private readonly planificateurService: PlanificateurService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository,
+    private readonly planificateurRepository: Planificateur.Repository,
     private readonly configService: ConfigService
   ) {
     super(Planificateur.JobType.SUIVRE_FILE_EVENEMENTS_MILO, suiviJobService)

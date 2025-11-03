@@ -25,19 +25,17 @@ interface Stats {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RAPPEL_SESSION)
-export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobRappelSession>
-> {
+export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Planificateur.JobRappelSession> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(SessionMiloRepositoryToken)
-    private sessionMiloRepository: SessionMilo.Repository,
+    private readonly sessionMiloRepository: SessionMilo.Repository,
     @Inject(JeuneMiloRepositoryToken)
-    private jeuneRepository: JeuneMilo.Repository,
+    private readonly jeuneRepository: JeuneMilo.Repository,
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
-    private dateService: DateService
+    private readonly notificationRepository: Notification.Repository,
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.RAPPEL_SESSION, suiviJobService)
   }

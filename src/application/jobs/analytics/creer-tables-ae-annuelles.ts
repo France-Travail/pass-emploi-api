@@ -28,7 +28,7 @@ export const infosTablesAEAnnuelles: InfoTableAEAnnuelle[] = [
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CREER_TABLES_AE_ANNUELLES_ANALYTICS)
-export class CreerTablesAEAnnuellesJobHandler extends JobHandler<Planificateur.Job> {
+export class CreerTablesAEAnnuellesJobHandler extends JobHandler {
   private connexionSource: PgConnexion | undefined
   private connexionTarget: PgConnexion | undefined
   constructor(

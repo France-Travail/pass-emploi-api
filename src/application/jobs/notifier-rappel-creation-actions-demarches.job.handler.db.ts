@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Core } from '../../domain/core'
 import { Evenement } from '../../domain/evenement'
@@ -26,15 +25,15 @@ const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 2000
 @ProcessJobType(
   Planificateur.JobType.NOTIFIER_RAPPEL_CREATION_ACTIONS_DEMARCHES
 )
-export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler<Job> {
+export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler<Planificateur.JobRappelCreationActionsDemarches> {
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
-    private notificationService: Notification.Service,
+    private readonly notificationService: Notification.Service,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(
       Planificateur.JobType.NOTIFIER_RAPPEL_CREATION_ACTIONS_DEMARCHES,
@@ -43,11 +42,11 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.JobRappelCreationActionsDemarches>
+    job: Planificateur.Job<Planificateur.JobRappelCreationActionsDemarches>
   ): Promise<SuiviJob> {
     let succes = true
     const stats: Stats = {
-      nbJeunesNotifies: job?.contenu?.nbJeunesNotifies || 0,
+      nbJeunesNotifies: job.contenu?.nbJeunesNotifies || 0,
       estLaDerniereExecution: false
     }
     const maintenant = this.dateService.now()
@@ -58,7 +57,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
         Core.Structure.POLE_EMPLOI
       ]
 
-      const offset = job?.contenu?.offset || 0
+      const offset = job.contenu?.offset || 0
 
       const idsJeunesANotifier: Array<{
         id: string

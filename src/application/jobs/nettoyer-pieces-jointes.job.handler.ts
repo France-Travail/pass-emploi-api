@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Chat, ChatRepositoryToken } from 'src/domain/chat'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Fichier, FichierRepositoryToken } from '../../domain/fichier'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
@@ -10,11 +9,11 @@ import { buildError } from '../../utils/logger.module'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NETTOYER_LES_PIECES_JOINTES)
-export class NettoyerPiecesJointesJobHandler extends JobHandler<Job> {
+export class NettoyerPiecesJointesJobHandler extends JobHandler {
   constructor(
     @Inject(FichierRepositoryToken)
-    private fichierRepository: Fichier.Repository,
-    private dateService: DateService,
+    private readonly fichierRepository: Fichier.Repository,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(ChatRepositoryToken)

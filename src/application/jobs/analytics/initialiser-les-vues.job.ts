@@ -11,7 +11,7 @@ import { migrate } from './vues/3-0-migrate-schema'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.INITIALISER_LES_VUES)
-export class InitialiserLesVuesJobHandler extends JobHandler<Planificateur.Job> {
+export class InitialiserLesVuesJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,

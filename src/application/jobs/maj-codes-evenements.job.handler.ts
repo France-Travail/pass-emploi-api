@@ -3,17 +3,16 @@ import { SequelizeInjectionToken } from '../../infrastructure/sequelize/provider
 import { Sequelize } from 'sequelize'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Job } from 'bull'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.MAJ_CODES_EVENEMENTS)
-export class MajCodesEvenementsJobHandler extends JobHandler<Job> {
+export class MajCodesEvenementsJobHandler extends JobHandler {
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
     @Inject(SuiviJobServiceToken) suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.MAJ_CODES_EVENEMENTS, suiviJobService)
   }

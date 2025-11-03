@@ -46,13 +46,13 @@ export class WorkerService {
     let suivi: SuiviJob | undefined
     try {
       const jobHandlerType = getJobHandlerTypeByJobType(job)
-      if (!jobHandlerType) {
-        this.logger.error(`Pas de job handler trouvé pour le type: ${job.type}`)
-        success = false
-      } else {
+      if (jobHandlerType) {
         const jobhandler =
           this.moduleRef.get<JobHandler<unknown>>(jobHandlerType)
         suivi = await jobhandler.execute(job)
+      } else {
+        this.logger.error(`Pas de job handler trouvé pour le type: ${job.type}`)
+        success = false
       }
     } catch (e) {
       success = false

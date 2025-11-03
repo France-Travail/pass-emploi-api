@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Core } from '../../domain/core'
 import {
@@ -25,33 +24,34 @@ interface Stats {
   estLaDerniereExecution: boolean
   reprogrammmationPourLeLendemain: boolean
 }
+interface JobNotifierActualisation {
+  offset: number
+  nbNotifsEnvoyees: number
+}
 
 const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 17000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_ACTUALISATION)
-export class NotifierActualisationJobHandler extends JobHandler<Job> {
+export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActualisation> {
   constructor(
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
+    private readonly notificationRepository: Notification.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_ACTUALISATION, suiviJobService)
   }
 
   async handle(
-    job?: Planificateur.Job<{
-      offset: number
-      nbNotifsEnvoyees: number
-    }>
+    job: Planificateur.Job<JobNotifierActualisation>
   ): Promise<SuiviJob> {
     let succes = true
     const stats: Stats = {
-      nbNotifsEnvoyees: job?.contenu?.nbNotifsEnvoyees || 0,
+      nbNotifsEnvoyees: job.contenu?.nbNotifsEnvoyees || 0,
       totalBeneficiairesANotifier: 0,
       estLaDerniereExecution: false,
       reprogrammmationPourLeLendemain: false

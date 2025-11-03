@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Core } from '../../domain/core'
 import { Jeune } from '../../domain/jeune/jeune'
@@ -23,21 +22,21 @@ const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 2000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_0_HEURES_DECLAREES)
-export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Job> {
+export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur.Job0HeuresDeclarees> {
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
-    private notificationService: Notification.Service,
+    private readonly notificationService: Notification.Service,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_0_HEURES_DECLAREES, suiviJobService)
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.Job0HeuresDeclarees>
+    job: Planificateur.Job<Planificateur.Job0HeuresDeclarees>
   ): Promise<SuiviJob> {
     let succes = true
     const stats: Stats = {

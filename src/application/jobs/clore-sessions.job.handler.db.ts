@@ -13,9 +13,7 @@ type CloreSessionsStats = {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CLORE_SESSIONS)
-export class CloreSessionsJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobCloreSessions>
-> {
+export class CloreSessionsJobHandler extends JobHandler<Planificateur.JobCloreSessions> {
   constructor(
     private readonly dateService: DateService,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,

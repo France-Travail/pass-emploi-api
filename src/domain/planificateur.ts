@@ -169,12 +169,15 @@ export namespace Planificateur {
     message: string
   }
 
-  export type ContenuJob = JobRendezVous | JobRappelSession | JobFake
-
-  export interface Job<T = ContenuJob> {
+  export interface Job<T> {
     dateExecution: Date
     type: JobType
     contenu: T
+  }
+
+  export interface JobNotifBatch<T> extends Job<T> {
+    nbBeneficiaires?: number
+    offset?: number
   }
 
   export interface JobId {

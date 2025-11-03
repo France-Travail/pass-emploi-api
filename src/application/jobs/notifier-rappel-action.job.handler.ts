@@ -23,20 +23,18 @@ interface NotifierRappelActionStats {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RAPPEL_ACTION)
-export class NotifierRappelActionJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobRappelAction>
-> {
+export class NotifierRappelActionJobHandler extends JobHandler<Planificateur.JobRappelAction> {
   constructor(
     @Inject(ActionRepositoryToken)
-    private actionRepository: Action.Repository,
+    private readonly actionRepository: Action.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
-    private actionFactory: Action.Factory,
+    private readonly notificationRepository: Notification.Repository,
+    private readonly actionFactory: Action.Factory,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.RAPPEL_ACTION, suiviJobService)
   }
