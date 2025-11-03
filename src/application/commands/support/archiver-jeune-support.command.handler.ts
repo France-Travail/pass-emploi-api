@@ -65,7 +65,7 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
 
-    const motif: ArchiveJeune.MotifSuppressionSupport = 'Support'
+    const motif = ArchiveJeune.MotifSuppressionSupport.SUPPORT
 
     const metadonneesArchive: ArchiveJeune.Metadonnees = {
       idJeune: command.idJeune,
@@ -75,7 +75,7 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
       structure: jeune.structure,
       dateCreation: jeune.creationDate.toJSDate(),
       datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
-      motif,
+      motif: motif,
       commentaire: COMMENTAIRE_SUPPRESSION_SUPPORT,
       dateArchivage: this.dateService.nowJs(),
       dispositif: jeune.dispositif

@@ -1,9 +1,17 @@
-import { Result } from '../building-blocks/types/result'
+import { emptySuccess, failure, Result } from '../building-blocks/types/result'
 import { Core } from './core'
-import { Jeune } from './jeune/jeune'
+import { Jeune, JeuneRepositoryToken } from './jeune/jeune'
 import { Offre } from './offre/offre'
 import { Recherche } from './offre/recherche/recherche'
 import { CodeTypeRendezVous } from './rendez-vous/rendez-vous'
+import { Inject, Injectable } from '@nestjs/common'
+import { NonTrouveError } from '../building-blocks/types/domain-error'
+import { Chat, ChatRepositoryToken } from './chat'
+import {
+  Authentification,
+  AuthentificationRepositoryToken
+} from './authentification'
+import { DateService } from '../utils/date-service'
 
 export const ArchiveJeuneRepositoryToken = 'ArchiveJeune.Repository'
 
@@ -59,7 +67,10 @@ export namespace ArchiveJeune {
     AUTRE = 'Autre'
   }
 
-  export type MotifSuppressionSupport = 'Support'
+  export enum MotifSuppressionSupport {
+    SUPPORT = 'Support',
+    MIGRATION = 'Migration'
+  }
 
   export const motifsSuppression: Record<
     MotifSuppression,
@@ -266,5 +277,60 @@ export namespace ArchiveJeune {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
     delete(idArchive: number): Promise<void>
+  }
+
+  @Injectable()
+  export class Service {
+    constructor(
+      @Inject(JeuneRepositoryToken)
+      private readonly jeuneRepository: Jeune.Repository,
+      @Inject(ArchiveJeuneRepositoryToken)
+      private readonly archiveJeuneRepository: ArchiveJeune.Repository,
+      @Inject(ChatRepositoryToken)
+      private readonly chatRepository: Chat.Repository,
+      @Inject(AuthentificationRepositoryToken)
+      private readonly authentificationRepository: Authentification.Repository,
+      private dateService: DateService
+    ) {}
+
+    async archiver(
+      idJeune: string,
+      commentaireSuppressionSupport: string
+    ): Promise<Result> {
+      const jeune = await this.jeuneRepository.get(idJeune)
+
+      if (!jeune) {
+        return failure(new NonTrouveError('Jeune', idJeune))
+      }
+
+      const motif = ArchiveJeune.MotifSuppressionSupport.MIGRATION
+
+      const metaDonneesArchive: ArchiveJeune.Metadonnees = {
+        idJeune: idJeune,
+        email: jeune.email,
+        prenomJeune: jeune.firstName,
+        nomJeune: jeune.lastName,
+        structure: jeune.structure,
+        dateCreation: jeune.creationDate.toJSDate(),
+        datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+        motif: motif,
+        commentaire: commentaireSuppressionSupport,
+        dateArchivage: this.dateService.nowJs(),
+        dispositif: jeune.dispositif
+      }
+
+      try {
+        await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
+
+        await this.archiveJeuneRepository.archiver(metaDonneesArchive)
+
+        await this.jeuneRepository.supprimer(idJeune)
+        await this.chatRepository.supprimerChat(idJeune)
+
+        return emptySuccess()
+      } catch (error) {
+        throw error
+      }
+    }
   }
 }
