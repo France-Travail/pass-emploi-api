@@ -12,6 +12,7 @@ import {
   AuthentificationRepositoryToken
 } from './authentification'
 import { DateService } from '../utils/date-service'
+import { Mail, MailServiceToken } from './mail'
 
 export const ArchiveJeuneRepositoryToken = 'ArchiveJeune.Repository'
 
@@ -290,20 +291,21 @@ export namespace ArchiveJeune {
       private readonly chatRepository: Chat.Repository,
       @Inject(AuthentificationRepositoryToken)
       private readonly authentificationRepository: Authentification.Repository,
-      private dateService: DateService
+      private dateService: DateService,
+      @Inject(MailServiceToken)
+      private readonly mailService: Mail.Service
     ) {}
 
     async archiver(
       idJeune: string,
-      commentaireSuppressionSupport: string
+      commentaireSuppressionSupport: string,
+      motifSuppression: MotifSuppressionSupport
     ): Promise<Result> {
       const jeune = await this.jeuneRepository.get(idJeune)
 
       if (!jeune) {
         return failure(new NonTrouveError('Jeune', idJeune))
       }
-
-      const motif = ArchiveJeune.MotifSuppressionSupport.MIGRATION
 
       const metaDonneesArchive: ArchiveJeune.Metadonnees = {
         idJeune: idJeune,
@@ -313,7 +315,7 @@ export namespace ArchiveJeune {
         structure: jeune.structure,
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
-        motif: motif,
+        motif: motifSuppression,
         commentaire: commentaireSuppressionSupport,
         dateArchivage: this.dateService.nowJs(),
         dispositif: jeune.dispositif
@@ -323,9 +325,14 @@ export namespace ArchiveJeune {
         await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
 
         await this.archiveJeuneRepository.archiver(metaDonneesArchive)
-
         await this.jeuneRepository.supprimer(idJeune)
         await this.chatRepository.supprimerChat(idJeune)
+
+        await this.mailService.envoyerEmailJeuneArchive(
+          jeune,
+          motifSuppression,
+          commentaireSuppressionSupport
+        )
 
         return emptySuccess()
       } catch (error) {

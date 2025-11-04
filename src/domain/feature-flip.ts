@@ -79,7 +79,7 @@ export namespace FeatureFlip {
       )
     }
 
-    async recupererListDesBeneficiaireAMigrer(tag: Tag): Promise<string[]> {
+    async recupererListeDesBeneficiaireAMigrer(tag: Tag): Promise<string[]> {
       return await this.featureFlipRepository.getListActiveJeunes(tag)
     }
   }

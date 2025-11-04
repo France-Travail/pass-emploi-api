@@ -173,8 +173,8 @@ export class AuthentificationSqlOidcRepository
   async deleteUtilisateurIdp(idUserCEJ: string): Promise<void> {
     try {
       await this.oidcClient.deleteAccount(idUserCEJ)
+      this.logger.log(`Utilisateur ${idUserCEJ} supprimé de OIDC SSO`)
     } catch (_e) {}
-    this.logger.log(`Utilisateur ${idUserCEJ} supprimé de OIDC SSO`)
   }
 
   async estConseillerSuperviseur(

@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { Result, emptySuccess } from '../../building-blocks/types/result'
+import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune } from '../../domain/jeune/jeune'
-import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { FeatureFlip } from '../../domain/feature-flip'
+import { SupportAuthorizer } from '../authorizers/support-authorizer'
+import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 export interface ArchiverJeuneCommand {
   idJeune: Jeune.Id
@@ -23,7 +24,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 > {
   constructor(
     private evenementService: EvenementService,
-    private conseillerAuthorizer: ConseillerAuthorizer,
+    private authorizeSupport: SupportAuthorizer,
     private readonly featureFlipService: FeatureFlip.Service,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
@@ -31,25 +32,23 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   }
 
   async authorize(
-    command: ArchiverJeuneCommand,
+    _command: ArchiverJeuneCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
-      command.idJeune,
-      utilisateur
-    )
+    return this.authorizeSupport.autoriserSupport(utilisateur)
   }
 
   async handle(): Promise<Result> {
     const idJeunes =
-      await this.featureFlipService.recupererListDesBeneficiaireAMigrer(
+      await this.featureFlipService.recupererListeDesBeneficiaireAMigrer(
         FeatureFlip.Tag.MIGRATION
       )
 
     for (const idJeune of idJeunes) {
       this.archiverJeuneService.archiver(
         idJeune,
-        "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
+        "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
+        MotifSuppressionSupport.MIGRATION
       )
     }
 
