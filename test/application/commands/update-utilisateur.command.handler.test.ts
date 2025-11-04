@@ -31,9 +31,9 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { Core } from '../../../src/domain/core'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
 
 describe('UpdateUtilisateurCommandHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -1017,6 +1017,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
               expect(result.error).to.be.instanceOf(NonTraitableError)
               expect((result.error as NonTraitableError).reason).to.equal(
                 NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              )
+              expect((result.error as NonTraitableError).email).to.equal(
+                utilisateur.email
               )
             }
           })

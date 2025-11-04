@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -18,6 +19,7 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
+import { FeatureFlip } from '../../domain/feature-flip'
 import { MailServiceToken } from '../../domain/mail'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
@@ -25,8 +27,6 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
-import { FeatureFlip } from '../../domain/feature-flip'
-import { DateTime } from 'luxon'
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -437,7 +437,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         new NonTraitableError(
           'Utilisateur',
           idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          utilisateur.email
         )
       )
     }
