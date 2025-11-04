@@ -6,13 +6,12 @@ import { Notification } from '../../../src/domain/notification/notification'
 import { SinonSandbox } from 'sinon'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { Planificateur } from '../../../src/domain/planificateur'
-import { createSandbox, StubbedClass, stubClass, expect } from '../../utils'
+import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { Core } from '../../../src/domain/core'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
 
 describe('NotifierBeneficiairesCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -68,14 +67,16 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
-          ],
-          push: true,
-          batchSize: 2000,
-          minutesEntreLesBatchs: 15
-        } as JobNotifierBeneficiaires
+          params: {
+            structures: [
+              Core.Structure.POLE_EMPLOI_AIJ,
+              Core.Structure.POLE_EMPLOI_BRSA
+            ],
+            push: true,
+            batchSize: 2000,
+            minutesEntreLesBatchs: 15
+          }
+        }
       })
       expect(result).to.deep.equal(success({ jobId: jobId }))
     })

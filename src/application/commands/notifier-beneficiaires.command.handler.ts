@@ -17,6 +17,9 @@ import { Core } from '../../domain/core'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
 
+const MINUTES_ENTRE_LES_BATCHS_DEFAUT = 5
+const PUSH_NOTIF_DEFAUT = true
+
 export interface NotifierBeneficiairesCommand extends Command {
   typeNotification: Notification.Type
   titre: string
@@ -43,7 +46,8 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   async handle(
     command: NotifierBeneficiairesCommand
   ): Promise<Result<Planificateur.JobId>> {
-    if (command.push === true && !command.structures) {
+    const push: boolean = command.push || PUSH_NOTIF_DEFAUT
+    if (push && !command.structures) {
       return failure(
         new MauvaiseCommandeError(
           `Une notif push doit cibler des structures en particulier.`
@@ -51,7 +55,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       )
     }
     if (
-      command.push === true &&
+      push &&
       command.typeNotification === Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
     ) {
       return failure(
@@ -73,16 +77,26 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
 
     const maintenant = this.dateService.now()
     const contenu: JobNotifierBeneficiaires = {
-      ...command,
       typeNotification:
         command.typeNotification ??
-        Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+        Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+      titre: command.titre,
+      description: command.description,
+      params: {
+        structures: command.structures,
+        push,
+        batchSize: command.batchSize,
+        minutesEntreLesBatchs:
+          command.minutesEntreLesBatchs || MINUTES_ENTRE_LES_BATCHS_DEFAUT
+      }
     }
-    const jobId = await this.planificateurRepository.ajouterJob({
+
+    const job: Planificateur.Job<JobNotifierBeneficiaires> = {
       dateExecution: maintenant.toJSDate(),
       type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
       contenu
-    })
+    }
+    const jobId = await this.planificateurRepository.ajouterJob(job)
 
     return success({ jobId: jobId })
   }
