@@ -10,7 +10,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
   ) {}
 
   getListActiveJeunes = async (tag: FeatureFlip.Tag): Promise<string[]> => {
-    const rows = (await this.sequelize.query(
+    const rows = await this.sequelize.query(
       `
       SELECT j.id
       FROM feature_flip ff
@@ -25,9 +25,9 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
         type: QueryTypes.SELECT,
         mapToModel: false
       }
-    )) as Array<{ id: string }>
+    )
 
-    return rows.map(row => row.id)
+    return rows.map((row: { id: string }) => row.id)
   }
 
   async featureActivePourBeneficiaire(

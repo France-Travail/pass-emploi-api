@@ -291,7 +291,7 @@ export namespace ArchiveJeune {
       private readonly chatRepository: Chat.Repository,
       @Inject(AuthentificationRepositoryToken)
       private readonly authentificationRepository: Authentification.Repository,
-      private dateService: DateService,
+      private readonly dateService: DateService,
       @Inject(MailServiceToken)
       private readonly mailService: Mail.Service
     ) {}
@@ -321,23 +321,19 @@ export namespace ArchiveJeune {
         dispositif: jeune.dispositif
       }
 
-      try {
-        await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
+      await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
 
-        await this.archiveJeuneRepository.archiver(metaDonneesArchive)
-        await this.jeuneRepository.supprimer(idJeune)
-        await this.chatRepository.supprimerChat(idJeune)
+      await this.archiveJeuneRepository.archiver(metaDonneesArchive)
+      await this.jeuneRepository.supprimer(idJeune)
+      await this.chatRepository.supprimerChat(idJeune)
 
-        await this.mailService.envoyerEmailJeuneArchive(
-          jeune,
-          motifSuppression,
-          commentaireSuppressionSupport
-        )
+      await this.mailService.envoyerEmailJeuneArchive(
+        jeune,
+        motifSuppression,
+        commentaireSuppressionSupport
+      )
 
-        return emptySuccess()
-      } catch (error) {
-        throw error
-      }
+      return emptySuccess()
     }
   }
 }

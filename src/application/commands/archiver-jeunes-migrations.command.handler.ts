@@ -24,8 +24,8 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   void
 > {
   constructor(
-    private evenementService: EvenementService,
-    private authorizeSupport: SupportAuthorizer,
+    private readonly evenementService: EvenementService,
+    private readonly authorizeSupport: SupportAuthorizer,
     private readonly featureFlipService: FeatureFlip.Service,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
