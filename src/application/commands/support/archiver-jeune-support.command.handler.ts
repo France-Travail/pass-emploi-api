@@ -1,10 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { Authentification } from '../../../domain/authentification'
 
-import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { Jeune } from '../../../domain/jeune/jeune'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 const COMMENTAIRE_SUPPRESSION_SUPPORT =
@@ -20,8 +20,6 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
   void
 > {
   constructor(
-    @Inject(JeuneRepositoryToken)
-    private readonly jeuneRepository: Jeune.Repository,
     private authorizeSupport: SupportAuthorizer,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {

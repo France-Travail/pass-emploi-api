@@ -9,6 +9,7 @@ import { Jeune } from '../../domain/jeune/jeune'
 import { FeatureFlip } from '../../domain/feature-flip'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import { ArchiverJeuneSupportCommand } from './support/archiver-jeune-support.command.handler'
 
 export interface ArchiverJeuneCommand {
   idJeune: Jeune.Id
@@ -19,7 +20,7 @@ export interface ArchiverJeuneCommand {
 
 @Injectable()
 export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
-  ArchiverJeuneCommand,
+  ArchiverJeuneSupportCommand,
   void
 > {
   constructor(
@@ -32,7 +33,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   }
 
   async authorize(
-    _command: ArchiverJeuneCommand,
+    _command: ArchiverJeuneSupportCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     return this.authorizeSupport.autoriserSupport(utilisateur)
