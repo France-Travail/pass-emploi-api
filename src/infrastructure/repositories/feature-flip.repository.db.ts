@@ -9,7 +9,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
-  getListActiveJeunes = async (tag: FeatureFlip.Tag): Promise<string[]> => {
+  async getIdsBeneficiaires(tag: FeatureFlip.Tag): Promise<string[]> {
     const rows = await this.sequelize.query(
       `
       SELECT j.id

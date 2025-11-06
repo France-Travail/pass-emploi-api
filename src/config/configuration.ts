@@ -156,7 +156,9 @@ export default () => {
         compteJeuneArchivePEBRSA:
           process.env.SENDINBLUE_COMPTE_JEUNE_ARCHIVE_PE_BRSA_ID ?? '386',
         creationConseillerMilo:
-          process.env.BREVO_CREATION_CONSEILLER_MILO_ID ?? '264'
+          process.env.BREVO_CREATION_CONSEILLER_MILO_ID ?? '264',
+        compteJeuneArchiveMigration:
+          process.env.SENDINBLUE_COMPTE_JEUNE_ARCHIVE_MIGRATION ?? '539'
       },
       mailingLists: {
         poleEmploi: process.env.SENDINBLUE_POLE_EMPLOI_MAILING_LIST_ID ?? 7,

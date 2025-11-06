@@ -109,7 +109,8 @@ export const configurationSchema = Joi.object({
       suppressionBeneficiairePassEmploi: Joi.number().required(),
       compteJeuneArchiveMILO: Joi.number().required(),
       compteJeuneArchivePECEJ: Joi.number().required(),
-      compteJeuneArchivePEBRSA: Joi.number().required()
+      compteJeuneArchivePEBRSA: Joi.number().required(),
+      compteJeuneArchiveMigration: Joi.number().required()
     }),
     mailingLists: Joi.object({
       poleEmploi: Joi.number().required(),

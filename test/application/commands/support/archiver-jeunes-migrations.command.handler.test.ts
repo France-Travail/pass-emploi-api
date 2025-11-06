@@ -84,7 +84,7 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
       it('archive le jeune', async () => {
         // Given
         const idJeunes = ['1', '2', '3']
-        featureFlipService.recupererListeDesBeneficiaireAMigrer
+        featureFlipService.recupererIdDesBeneficiaireAMigrer
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves(idJeunes)
 

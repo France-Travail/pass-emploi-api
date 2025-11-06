@@ -18,7 +18,7 @@ export namespace FeatureFlip {
       tag: Tag,
       idConseiller: string
     ): Promise<boolean>
-    getListActiveJeunes(tag: Tag): Promise<string[]>
+    getIdsBeneficiaires(tag: Tag): Promise<string[]>
   }
 
   @Injectable()
@@ -79,8 +79,8 @@ export namespace FeatureFlip {
       )
     }
 
-    async recupererListeDesBeneficiaireAMigrer(tag: Tag): Promise<string[]> {
-      return await this.featureFlipRepository.getListActiveJeunes(tag)
+    async recupererIdDesBeneficiaireAMigrer(tag: Tag): Promise<string[]> {
+      return await this.featureFlipRepository.getIdsBeneficiaires(tag)
     }
   }
 }

@@ -31,6 +31,7 @@ export class MailBrevoService implements Mail.Service {
     compteJeuneArchivePECEJ: string
     compteJeuneArchivePEBRSA: string
     creationConseillerMilo: string
+    compteJeuneArchiveMigration: string
   }
   private readonly frontendUrl: string
   private logger: Logger
@@ -144,22 +145,28 @@ export class MailBrevoService implements Mail.Service {
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport,
     commentaire?: string
   ): Promise<void> {
-    const templateId = ((): number => {
-      switch (jeune.structure) {
-        case Core.Structure.MILO:
-          return parseInt(this.templates.compteJeuneArchiveMILO)
-        case Core.Structure.POLE_EMPLOI:
-          return parseInt(this.templates.compteJeuneArchivePECEJ)
-        case Core.Structure.POLE_EMPLOI_BRSA:
-        case Core.Structure.POLE_EMPLOI_AIJ:
-        case Core.Structure.CONSEIL_DEPT:
-        case Core.Structure.AVENIR_PRO:
-        case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-        case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-        case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-          return parseInt(this.templates.compteJeuneArchivePEBRSA)
-      }
-    })()
+    let templateId: number
+
+    if (ArchiveJeune.MotifSuppressionSupport.MIGRATION) {
+      templateId = parseInt(this.templates.compteJeuneArchiveMigration)
+    } else {
+      templateId = ((): number => {
+        switch (jeune.structure) {
+          case Core.Structure.MILO:
+            return parseInt(this.templates.compteJeuneArchiveMILO)
+          case Core.Structure.POLE_EMPLOI:
+            return parseInt(this.templates.compteJeuneArchivePECEJ)
+          case Core.Structure.POLE_EMPLOI_BRSA:
+          case Core.Structure.POLE_EMPLOI_AIJ:
+          case Core.Structure.CONSEIL_DEPT:
+          case Core.Structure.AVENIR_PRO:
+          case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
+          case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
+          case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
+            return parseInt(this.templates.compteJeuneArchivePEBRSA)
+        }
+      })()
+    }
 
     const mailDataDto: MailDataDto = {
       to: [

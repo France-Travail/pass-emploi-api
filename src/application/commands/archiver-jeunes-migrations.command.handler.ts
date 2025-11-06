@@ -11,6 +11,9 @@ import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 import { ArchiverJeuneSupportCommand } from './support/archiver-jeune-support.command.handler'
 
+const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
+  "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
+
 export interface ArchiverJeuneCommand {
   idJeune: Jeune.Id
   motif: ArchiveJeune.MotifSuppression
@@ -41,14 +44,14 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 
   async handle(): Promise<Result> {
     const idJeunes =
-      await this.featureFlipService.recupererListeDesBeneficiaireAMigrer(
+      await this.featureFlipService.recupererIdDesBeneficiaireAMigrer(
         FeatureFlip.Tag.MIGRATION
       )
 
     for (const idJeune of idJeunes) {
       this.archiverJeuneService.archiver(
         idJeune,
-        "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
+        COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
         MotifSuppressionSupport.MIGRATION
       )
     }
