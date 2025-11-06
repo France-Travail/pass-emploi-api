@@ -148,14 +148,14 @@ export class MailBrevoService implements Mail.Service {
     let templateId: number
 
     if (motif === ArchiveJeune.MotifSuppressionSupport.MIGRATION) {
-      templateId = parseInt(this.templates.compteJeuneArchiveMigration)
+      templateId = Number.parseInt(this.templates.compteJeuneArchiveMigration)
     } else {
       templateId = ((): number => {
         switch (jeune.structure) {
           case Core.Structure.MILO:
-            return parseInt(this.templates.compteJeuneArchiveMILO)
+            return Number.parseInt(this.templates.compteJeuneArchiveMILO)
           case Core.Structure.POLE_EMPLOI:
-            return parseInt(this.templates.compteJeuneArchivePECEJ)
+            return Number.parseInt(this.templates.compteJeuneArchivePECEJ)
           case Core.Structure.POLE_EMPLOI_BRSA:
           case Core.Structure.POLE_EMPLOI_AIJ:
           case Core.Structure.CONSEIL_DEPT:
@@ -163,7 +163,7 @@ export class MailBrevoService implements Mail.Service {
           case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-            return parseInt(this.templates.compteJeuneArchivePEBRSA)
+            return Number.parseInt(this.templates.compteJeuneArchivePEBRSA)
         }
       })()
     }
