@@ -147,7 +147,7 @@ export class MailBrevoService implements Mail.Service {
   ): Promise<void> {
     let templateId: number
 
-    if (ArchiveJeune.MotifSuppressionSupport.MIGRATION) {
+    if (motif === ArchiveJeune.MotifSuppressionSupport.MIGRATION) {
       templateId = parseInt(this.templates.compteJeuneArchiveMigration)
     } else {
       templateId = ((): number => {
