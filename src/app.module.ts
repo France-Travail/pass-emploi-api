@@ -101,7 +101,7 @@ import { DeleteSuperviseursCommandHandler } from './application/commands/support
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { RefreshJddCommandHandler } from './application/commands/support/refresh-jdd.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from './application/commands/support/update-feature-flip.command.handler'
+import { UpdateFeatureFlipCommandHandler } from './application/commands/support/update-feature-flip.command.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
 import { TeleverserFichierCommandHandler } from './application/commands/televerser-fichier.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from './application/commands/transferer-jeunes-conseiller.command.handler'

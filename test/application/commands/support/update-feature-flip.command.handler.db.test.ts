@@ -3,7 +3,7 @@ import { SupportAuthorizer } from '../../../../src/application/authorizers/suppo
 import {
   UpdateFeatureFlipCommand,
   UpdateFeatureFlipCommandHandler
-} from '../../../../src/application/commands/support/update-feature-flip.command.handler'
+} from '../../../../src/application/commands/support/update-feature-flip.command.handler.db'
 import { FeatureFlip } from '../../../../src/domain/feature-flip'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { FeatureFlipSqlModel } from '../../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
@@ -36,10 +36,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
     await JeuneSqlModel.bulkCreate([j1, j2])
 
     supportAuthorizer = stubClass(SupportAuthorizer)
-    handler = new UpdateFeatureFlipCommandHandler(
-      supportAuthorizer,
-      databaseForTesting.sequelize
-    )
+    handler = new UpdateFeatureFlipCommandHandler(supportAuthorizer)
   })
 
   describe('handle - ajout', () => {
