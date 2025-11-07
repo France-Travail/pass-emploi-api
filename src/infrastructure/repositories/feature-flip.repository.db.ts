@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { FeatureFlip } from '../../domain/feature-flip'
 import { SequelizeInjectionToken } from '../sequelize/providers'
+import { Core } from '../../domain/core'
 
 @Injectable()
 export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
@@ -15,12 +16,18 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       SELECT j.id
       FROM feature_flip ff
       JOIN conseiller c ON c.email = ff.email_conseiller
-      JOIN jeune j ON j.id_conseiller = c.id
+      JOIN jeune j ON (j.id_conseiller = c.id OR j.id_conseiller_initial = c.id)
       WHERE ff.feature_tag = :featureTag
-    `,
+      AND (
+        ff.feature_tag != :featureTagMigration
+        OR j.structure = :structureMigration
+      )
+      `,
       {
         replacements: {
-          featureTag: tag
+          featureTag: tag,
+          featureTagMigration: FeatureFlip.Tag.MIGRATION,
+          structureMigration: Core.Structure.POLE_EMPLOI
         },
         type: QueryTypes.SELECT,
         mapToModel: false
@@ -42,12 +49,18 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       JOIN conseiller c ON c.id IN (j.id_conseiller, j.id_conseiller_initial)
       WHERE ff.feature_tag = :featureTag
         AND ff.email_conseiller = c.email
+        AND (
+        ff.feature_tag != :featureTagMigration
+        OR j.structure = :structureMigration
+      )
       LIMIT 1
       `,
       {
         replacements: {
           idJeune: idBeneficiaire,
-          featureTag: tag
+          featureTag: tag,
+          featureTagMigration: FeatureFlip.Tag.MIGRATION,
+          structureMigration: Core.Structure.POLE_EMPLOI
         },
         type: QueryTypes.SELECT
       }
@@ -66,12 +79,18 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       JOIN conseiller c ON c.id = :idConseiller
       WHERE ff.feature_tag = :featureTag
         AND ff.email_conseiller = c.email
+        AND (
+        ff.feature_tag != :featureTagMigration
+        OR c.structure = :structureMigration
+      )
       LIMIT 1
       `,
       {
         replacements: {
           idConseiller,
-          featureTag: tag
+          featureTag: tag,
+          featureTagMigration: FeatureFlip.Tag.MIGRATION,
+          structureMigration: Core.Structure.POLE_EMPLOI
         },
         type: QueryTypes.SELECT
       }

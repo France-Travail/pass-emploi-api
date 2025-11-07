@@ -10,6 +10,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../utils/database-for-testing'
+import { Core } from '../../../src/domain/core'
 
 describe('FeatureFlipSqlRepository', () => {
   let databaseForTesting: DatabaseForTesting
@@ -20,12 +21,35 @@ describe('FeatureFlipSqlRepository', () => {
     await databaseForTesting.cleanPG()
     repo = new FeatureFlipSqlRepository(databaseForTesting.sequelize)
 
-    const conseillerDto1 = unConseillerDto({ id: 'c1', email: 'c1@email.com' })
-    const conseillerDto2 = unConseillerDto({ id: 'c2', email: 'c2@email.com' })
+    const conseillerCEJMigrationDto = unConseillerDto({
+      id: 'cej',
+      structure: Core.Structure.POLE_EMPLOI,
+      email: 'conseillerCEJMigration@email.com'
+    })
+    const conseillerAIJMigrationDto = unConseillerDto({
+      id: 'aij',
+      structure: Core.Structure.POLE_EMPLOI_AIJ,
+      email: 'conseillerAIJMigration@email.com'
+    })
+    const conseillerDtoFTIA = unConseillerDto({
+      id: 'c2',
+      email: 'conseillerFTIA@email.com'
+    })
 
-    const jeuneDtoJ1 = unJeuneDto({
-      id: 'j1',
-      idConseiller: 'c1'
+    const jeuneCEJDto = unJeuneDto({
+      id: 'cej',
+      structure: Core.Structure.POLE_EMPLOI,
+      idConseiller: 'cej'
+    })
+    const jeuneAIJDto = unJeuneDto({
+      id: 'aij',
+      structure: Core.Structure.POLE_EMPLOI_AIJ,
+      idConseiller: 'aij'
+    })
+    const jeuneAIJSuiviCEJDto = unJeuneDto({
+      id: 'aij-suivi-cej',
+      structure: Core.Structure.POLE_EMPLOI_AIJ,
+      idConseiller: 'cej'
     })
     const jeuneDtoJ2 = unJeuneDto({
       id: 'j2',
@@ -33,29 +57,48 @@ describe('FeatureFlipSqlRepository', () => {
     })
     const jeuneDtoJ3 = unJeuneDto({
       id: 'j3',
+      structure: Core.Structure.POLE_EMPLOI,
       idConseiller: 'c2',
-      idConseillerInitial: 'c1'
+      idConseillerInitial: 'cej'
     })
 
-    await ConseillerSqlModel.bulkCreate([conseillerDto1, conseillerDto2])
-    await JeuneSqlModel.bulkCreate([jeuneDtoJ1, jeuneDtoJ2, jeuneDtoJ3])
+    await ConseillerSqlModel.bulkCreate([
+      conseillerCEJMigrationDto,
+      conseillerAIJMigrationDto,
+      conseillerDtoFTIA
+    ])
+    await JeuneSqlModel.bulkCreate([
+      jeuneCEJDto,
+      jeuneAIJDto,
+      jeuneAIJSuiviCEJDto,
+      jeuneDtoJ2,
+      jeuneDtoJ3
+    ])
 
-    const j1Migration = {
+    const ffMigrationCEJ = {
       featureTag: FeatureFlip.Tag.MIGRATION,
-      emailConseiller: 'c1@email.com'
+      emailConseiller: 'conseillerCEJMigration@email.com'
     }
-    const j2DemarchesIA = {
+    const ffMigrationAIJ = {
+      featureTag: FeatureFlip.Tag.MIGRATION,
+      emailConseiller: 'conseillerAIJMigration@email.com'
+    }
+    const ffFTIA = {
       featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-      emailConseiller: 'c2@email.com'
+      emailConseiller: 'conseillerFTIA@email.com'
     }
-    await FeatureFlipSqlModel.bulkCreate([j1Migration, j2DemarchesIA])
+    await FeatureFlipSqlModel.bulkCreate([
+      ffMigrationCEJ,
+      ffMigrationAIJ,
+      ffFTIA
+    ])
   })
 
   describe('featureActivePourBeneficiaire', () => {
     it("renvoie true si l'id jeune existe pour cette feature", async () => {
       const actif = await repo.featureActivePourBeneficiaire(
         FeatureFlip.Tag.MIGRATION,
-        'j1'
+        'cej'
       )
       expect(actif).to.be.true()
     })
@@ -63,7 +106,23 @@ describe('FeatureFlipSqlRepository', () => {
     it("renvoie false si l'id jeune existe mais pour une autre feature", async () => {
       const actif = await repo.featureActivePourBeneficiaire(
         FeatureFlip.Tag.DEMARCHES_IA,
-        'j1'
+        'cej'
+      )
+      expect(actif).to.be.false()
+    })
+
+    it('renvoie false si jeune pas CEJ', async () => {
+      const actif = await repo.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        'aij'
+      )
+      expect(actif).to.be.false()
+    })
+
+    it('renvoie false si conseiller pas CEJ', async () => {
+      const actif = await repo.featureActivePourBeneficiaire(
+        FeatureFlip.Tag.DEMARCHES_IA,
+        'aij-suivi-cej'
       )
       expect(actif).to.be.false()
     })
@@ -86,10 +145,10 @@ describe('FeatureFlipSqlRepository', () => {
   })
 
   describe('featureActivePourConseiller', () => {
-    it("renvoie true si l'email du conseiller est autorisé pour la feature", async () => {
+    it("renvoie true si l'email du conseiller est autorisée pour la feature", async () => {
       const actif = await repo.featureActivePourConseiller(
         FeatureFlip.Tag.MIGRATION,
-        'c1'
+        'cej'
       )
       expect(actif).to.be.true()
     })
@@ -98,6 +157,14 @@ describe('FeatureFlipSqlRepository', () => {
       const actif = await repo.featureActivePourConseiller(
         FeatureFlip.Tag.MIGRATION,
         'c2'
+      )
+      expect(actif).to.be.false()
+    })
+
+    it("renvoie false si le conseiller n'est pas CEJ pour Migration", async () => {
+      const actif = await repo.featureActivePourConseiller(
+        FeatureFlip.Tag.MIGRATION,
+        'aij'
       )
       expect(actif).to.be.false()
     })
@@ -111,10 +178,10 @@ describe('FeatureFlipSqlRepository', () => {
     })
   })
 
-  describe('getListActiveJeunes', () => {
-    it('renvoie la liste des id des jeunes pour un conseiller avec le tag migration', async () => {
+  describe('getIdsBeneficiaires', () => {
+    it('renvoie la liste des id des jeunes pour un conseiller avec le tag migration et aussi ceux qui ont ce conseiller initial mais pas ceux non CEJ', async () => {
       const idJeunes = await repo.getIdsBeneficiaires(FeatureFlip.Tag.MIGRATION)
-      expect(idJeunes).to.be.deep.equal(['j1'])
+      expect(idJeunes).to.be.deep.equal(['cej', 'j3'])
     })
   })
 })
