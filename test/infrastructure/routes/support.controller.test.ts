@@ -14,7 +14,7 @@ import {
   DeleteSuperviseursCommandHandler
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler'
+import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler.db'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler

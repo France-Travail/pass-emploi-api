@@ -1,15 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 
-import { Sequelize } from 'sequelize'
-import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
-import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
-import { AsSql } from '../../../infrastructure/sequelize/types'
 import { FeatureFlip } from '../../../domain/feature-flip'
+import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
+import { AsSql } from '../../../infrastructure/sequelize/types'
+import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface UpdateFeatureFlipCommand extends Command {
   emailsConseillersAjout?: string[]
@@ -23,10 +21,7 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
   UpdateFeatureFlipCommand,
   void
 > {
-  constructor(
-    private supportAuthorizer: SupportAuthorizer,
-    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
-  ) {
+  constructor(private supportAuthorizer: SupportAuthorizer) {
     super('UpdateFeatureFlipCommandHandler')
   }
 
