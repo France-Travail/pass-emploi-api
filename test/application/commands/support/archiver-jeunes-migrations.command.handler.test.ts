@@ -1,10 +1,7 @@
 import { stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
-import {
-  ArchiverJeuneSupportCommand,
-  ArchiverJeuneSupportCommandHandler
-} from '../../../../src/application/commands/support/archiver-jeune-support.command.handler'
+import { ArchiverJeuneSupportCommand } from '../../../../src/application/commands/support/archiver-jeune-support.command.handler'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
 import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
@@ -15,11 +12,16 @@ import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Authentification } from '../../../../src/domain/authentification'
 import Service = ArchiveJeune.Service
+import { ArchiverJeunesMigrationCommandHandler } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
+import { FeatureFlip } from '../../../../src/domain/feature-flip'
+import { EvenementService } from '../../../../src/domain/evenement'
 
-describe('ArchiverJeuneSupportCommandHandler', () => {
-  let archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler
+describe('ArchiverJeunesMigrationCommandHandler', () => {
+  let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
   let serviceMock: Service
   let authorizeSupport: StubbedClass<SupportAuthorizer>
+  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let evenementService: StubbedClass<EvenementService>
 
   const maintenant = new Date('2022-03-01T03:24:00Z')
 
@@ -47,10 +49,15 @@ describe('ArchiverJeuneSupportCommandHandler', () => {
     } as unknown as Service
 
     authorizeSupport = stubClass(SupportAuthorizer)
-    archiverJeuneSupportCommandHandler = new ArchiverJeuneSupportCommandHandler(
-      authorizeSupport,
-      serviceMock
-    )
+    featureFlipService = stubClass(FeatureFlip.Service)
+    evenementService = stubClass(EvenementService)
+    archiverJeunesMigrationSupportCommandHandler =
+      new ArchiverJeunesMigrationCommandHandler(
+        evenementService,
+        authorizeSupport,
+        featureFlipService,
+        serviceMock
+      )
   })
 
   describe('authorize', () => {
@@ -60,7 +67,7 @@ describe('ArchiverJeuneSupportCommandHandler', () => {
         idJeune: 'idJeune'
       }
       // When
-      archiverJeuneSupportCommandHandler.authorize(
+      archiverJeunesMigrationSupportCommandHandler.authorize(
         command,
         unUtilisateurSupport()
       )
@@ -74,15 +81,16 @@ describe('ArchiverJeuneSupportCommandHandler', () => {
 
   describe('handle', () => {
     describe('quand le jeune existe', () => {
-      const command: ArchiverJeuneSupportCommand = {
-        idJeune: 'idJeune'
-      }
-
       it('archive le jeune', async () => {
         // Given
+        const idJeunes = ['1', '2', '3']
+        featureFlipService.recupererIdDesBeneficiaireAMigrer
+          .withArgs(FeatureFlip.Tag.MIGRATION)
+          .resolves(idJeunes)
 
         // When
-        const result = await archiverJeuneSupportCommandHandler.handle(command)
+        const result =
+          await archiverJeunesMigrationSupportCommandHandler.handle()
 
         // Then
         expect(result).to.deep.equal(emptySuccess())

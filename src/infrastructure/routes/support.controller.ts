@@ -61,6 +61,7 @@ import {
 } from './validation/support.inputs'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
 import { FusionnerAgencesCommandHandler } from '../../application/commands/support/fusionner-agences.command.handler'
+import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 
 @Controller('support')
 @ApiTags('Support')
@@ -80,7 +81,8 @@ export class SupportController {
     private readonly updateFeatureFlipCommandHandler: UpdateFeatureFlipCommandHandler,
     private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
-    private readonly planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository,
+    private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler
   ) {}
 
   @SetMetadata(
@@ -389,6 +391,27 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
     } catch (e) {
       result = failure(e)
     }
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: "Archive les jeune d'une region",
+    description:
+      ' l’API support pour archiver le jeune\n' +
+      '- Suppression de la BDD de son compte utilisateur\n' +
+      '- Suppression de l’authentification Keycloak\n' +
+      '- Suppression du chat firebase\n' +
+      '- Envoi d’un email au jeune\n'
+  })
+  @Post('archiver-jeunes-migration')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async archiverJeuneRegion(): Promise<void> {
+    const result = await this.archiverJeunesMigrationCommandHandler.handle()
+
     return handleResult(result)
   }
 }

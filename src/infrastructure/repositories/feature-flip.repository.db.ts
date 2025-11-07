@@ -9,6 +9,27 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
+  async getIdsBeneficiaires(tag: FeatureFlip.Tag): Promise<string[]> {
+    const rows = await this.sequelize.query(
+      `
+      SELECT j.id
+      FROM feature_flip ff
+      JOIN conseiller c ON c.email = ff.email_conseiller
+      JOIN jeune j ON j.id_conseiller = c.id
+      WHERE ff.feature_tag = :featureTag
+    `,
+      {
+        replacements: {
+          featureTag: tag
+        },
+        type: QueryTypes.SELECT,
+        mapToModel: false
+      }
+    )
+
+    return rows.map((row: { id: string }) => row.id)
+  }
+
   async featureActivePourBeneficiaire(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string

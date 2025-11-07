@@ -110,4 +110,11 @@ describe('FeatureFlipSqlRepository', () => {
       expect(actif).to.be.true()
     })
   })
+
+  describe('getListActiveJeunes', () => {
+    it('renvoie la liste des id des jeunes pour un conseiller avec le tag migration', async () => {
+      const idJeunes = await repo.getIdsBeneficiaires(FeatureFlip.Tag.MIGRATION)
+      expect(idJeunes).to.be.deep.equal(['j1'])
+    })
+  })
 })
