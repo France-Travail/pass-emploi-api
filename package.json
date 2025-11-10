@@ -177,7 +177,9 @@
   "resolutions": {
     "download/got": "11.8.5",
     "elastic-apm-node/cookie": "1.0.2",
-    "cross-spawn": "7.0.5"
+    "cross-spawn": "7.0.5",
+    "form-data": "2.5.4",
+    "multer": "2.0.2"
   },
   "mocha": {
     "require": [
