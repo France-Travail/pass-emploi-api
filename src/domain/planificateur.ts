@@ -170,6 +170,7 @@ export namespace Planificateur {
 
   export interface ParamsJobNotif {
     structures?: Core.Structure[]
+    beneficiairesFaisantPartieDeLaMigration?: boolean
     push: boolean
     minutesEntreLesBatchs: number
     batchSize?: number

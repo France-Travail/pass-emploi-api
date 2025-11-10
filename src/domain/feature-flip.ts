@@ -66,7 +66,7 @@ export namespace FeatureFlip {
         : undefined
     }
 
-    async recupererIdDesBeneficiaireAMigrer(): Promise<string[]> {
+    async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
       const idsBeneficiairesFeatureMigration =
         await this.featureFlipRepository.getIdsBeneficiairesDeLaFeature(
           FeatureFlip.Tag.MIGRATION

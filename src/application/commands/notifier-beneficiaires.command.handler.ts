@@ -25,6 +25,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   titre: string
   description: string
   structures?: Core.Structure[]
+  beneficiairesMigration?: boolean
   push?: boolean
   batchSize?: number
   minutesEntreLesBatchs?: number
@@ -84,6 +85,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       description: command.description,
       params: {
         structures: command.structures,
+        beneficiairesFaisantPartieDeLaMigration: command.beneficiairesMigration,
         push,
         batchSize: command.batchSize,
         minutesEntreLesBatchs:

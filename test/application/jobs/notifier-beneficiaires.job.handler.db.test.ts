@@ -15,6 +15,7 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { Core } from '../../../src/domain/core'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 import JobType = Planificateur.JobType
 
 const idJeune1 = 'j1'
@@ -31,6 +32,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
   let notificationRepository: StubbedClass<Notification.Repository>
   let planificateurRepository: StubbedType<Planificateur.Repository>
   let sandbox: SinonSandbox
+  let featureFlipService: StubbedClass<FeatureFlip.Service>
 
   before(async () => {
     const databaseForTesting = getDatabase()
@@ -42,12 +44,14 @@ describe('NotifierBeneficiairesJobHandler', () => {
     dateService.now.returns(maintenant)
     suiviJobService = stubInterface(sandbox)
     planificateurRepository = stubInterface(sandbox)
+    featureFlipService = stubClass(FeatureFlip.Service)
 
     handler = new NotifierBeneficiairesJobHandler(
       notificationRepository,
       suiviJobService,
       dateService,
-      planificateurRepository
+      planificateurRepository,
+      featureFlipService
     )
   })
 
@@ -191,6 +195,72 @@ describe('NotifierBeneficiairesJobHandler', () => {
           }
         }
       })
+    })
+
+    it('envoie une notification aux bénéficiaires faisant partie de la migration vers Parcours Emploi', async () => {
+      // Given
+      // Conseiller
+      await ConseillerSqlModel.bulkCreate([
+        unConseillerDto({
+          id: 'con1'
+        })
+      ])
+      // Jeunes
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: idJeune1,
+          idConseiller: 'con1',
+          pushNotificationToken: 'push1',
+          structure: Core.Structure.POLE_EMPLOI
+        })
+      ])
+
+      const maintenant = uneDatetime()
+
+      featureFlipService.recupererIdsDesBeneficiaireAMigrer.resolves([idJeune1])
+
+      const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
+        dateExecution: maintenant.toJSDate(),
+        type: JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+          titre: "C'est bientôt la fin",
+          description: 'Parcours Emploi vous tend la main',
+          params: {
+            beneficiairesFaisantPartieDeLaMigration: true,
+            push: true,
+            minutesEntreLesBatchs: 5,
+            batchSize: 2
+          }
+        }
+      }
+
+      // When
+      const result = await handler.handle(job)
+
+      // Then
+      expect(result.succes).to.be.true()
+      expect(result.resultat).to.deep.equal({
+        estLaDerniereExecution: true,
+        nbBeneficiairesNotifies: 1,
+        nbPopulationTotale: 1,
+        offset: 0
+      })
+      expect(notificationRepository.send).to.have.been.calledOnce()
+      expect(notificationRepository.send).to.have.been.calledWithExactly(
+        {
+          token: 'push1',
+          notification: {
+            title: job.contenu!.titre,
+            body: job.contenu!.description
+          },
+          data: {
+            type: job.contenu!.typeNotification
+          }
+        },
+        idJeune1,
+        true
+      )
     })
 
     it("n'envoie pas de notification push si ce n'est pas spécifié dans le job", async () => {

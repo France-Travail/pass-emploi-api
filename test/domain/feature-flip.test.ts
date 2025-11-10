@@ -288,7 +288,7 @@ describe('FeatureFlip', () => {
           ])
 
         // When
-        const result = await service.recupererIdDesBeneficiaireAMigrer()
+        const result = await service.recupererIdsDesBeneficiaireAMigrer()
 
         // Then
         expect(result).to.deep.equal(['jeune-1'])
