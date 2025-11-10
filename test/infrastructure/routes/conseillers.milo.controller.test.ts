@@ -175,7 +175,8 @@ describe('ConseillersMiloController', () => {
           email: 'email',
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.PACEA,
-          surcharge: undefined
+          surcharge: undefined,
+          peutVoirLeCompteurDesHeures: false
         }
 
         const payload: CreerJeuneMiloPayload = {
@@ -184,7 +185,8 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
 
         creerJeuneMiloCommandHandler.execute.resolves(
@@ -214,7 +216,8 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ
+          dispositif: Jeune.Dispositif.CEJ,
+          peutVoirLeCompteurDesHeures: false
         }
         creerJeuneMiloCommandHandler.execute.resolves(
           failure(new ErreurHttp('email pas bon', 400))
@@ -238,7 +241,8 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ
+          dispositif: Jeune.Dispositif.CEJ,
+          peutVoirLeCompteurDesHeures: false
         }
 
         creerJeuneMiloCommandHandler.execute.resolves(
@@ -263,7 +267,8 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
 
         creerJeuneMiloCommandHandler.execute.resolves(

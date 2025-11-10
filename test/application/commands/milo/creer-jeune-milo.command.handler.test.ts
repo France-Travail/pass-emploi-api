@@ -83,7 +83,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
         jeuneRepository.getByEmail.withArgs(command.email).resolves(unJeune())
 
@@ -105,7 +106,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
         miloRepository.getByIdDossier
           .withArgs(command.idPartenaire)
@@ -129,7 +131,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
         miloRepository.creerJeune
           .withArgs(command.idPartenaire)
@@ -201,7 +204,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'Jeune.Nom@Email.Com',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ
+          dispositif: Jeune.Dispositif.CEJ,
+          peutVoirLeCompteurDesHeures: false
         }
         miloRepository.creerJeune
           .withArgs(command.idPartenaire)
@@ -252,7 +256,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
         miloRepository.creerJeune
           .withArgs(command.idPartenaire)
@@ -272,7 +277,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
         }
         const echec = failure(
           new MauvaiseCommandeError(
@@ -297,7 +303,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ
+          dispositif: Jeune.Dispositif.CEJ,
+          peutVoirLeCompteurDesHeures: false
         }
         const echec = failure(new ErreurHttp(command.email, 400))
         miloRepository.creerJeune.resolves(echec)
@@ -320,7 +327,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
         prenom: 'prenom',
         email: 'email',
         idConseiller: 'idConseiller',
-        dispositif: Jeune.Dispositif.CEJ
+        dispositif: Jeune.Dispositif.CEJ,
+        peutVoirLeCompteurDesHeures: false
       }
 
       const utilisateur = unUtilisateurConseiller()
