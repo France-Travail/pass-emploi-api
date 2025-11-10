@@ -45,9 +45,10 @@ export class RecupererAnalyseAntivirusJobHandler extends JobHandler<Planificateu
     job: Planificateur.Job<Planificateur.JobRecupererAnalyseAntivirus>
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
+    const contenu = job.contenu!
 
     const fichierMetadata = await this.fichierRepository.getFichierMetadata(
-      job.contenu.idFichier
+      contenu.idFichier
     )
     if (!fichierMetadata)
       return this.buildSuiviErreur(debut, 'Fichier non trouvé')

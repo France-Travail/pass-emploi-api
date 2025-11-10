@@ -42,7 +42,7 @@ export class HandleJobGenererJDDCommandHandler extends JobHandler<Planificateur.
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
     try {
-      const { idConseiller, menage } = job.contenu
+      const { idConseiller, menage } = job.contenu!
 
       const conseiller = await ConseillerSqlModel.findOne({
         where: {

@@ -67,7 +67,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       'features.notifierRendezVousMilo'
     )
 
-    const evenement: EvenementMilo = job.contenu
+    const evenement: EvenementMilo = job.contenu!
 
     if (evenement.action === EvenementMilo.ActionEvenement.NON_TRAITABLE) {
       return this.buildSuiviJob(

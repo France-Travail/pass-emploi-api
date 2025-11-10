@@ -106,7 +106,7 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
   private async reprogrammerPourLeLendemain(
     maintenant: DateTime,
     stats: Stats,
-    job?: Planificateur.Job<{ offset: number; nbNotifsEnvoyees: number }>
+    job: Planificateur.Job<{ offset: number; nbNotifsEnvoyees: number }>
   ): Promise<SuiviJob> {
     const demainA8h = maintenant
       .plus({ days: 1 })
@@ -117,7 +117,7 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
     await this.planificateurRepository.ajouterJob({
       dateExecution: demainA8h,
       type: Planificateur.JobType.NOTIFIER_ACTUALISATION,
-      contenu: job?.contenu
+      contenu: job.contenu
     })
 
     stats.reprogrammmationPourLeLendemain = true

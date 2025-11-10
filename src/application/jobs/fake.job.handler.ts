@@ -16,7 +16,7 @@ export class FakeJobHandler extends JobHandler<Planificateur.JobFake> {
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.JobFake>
+    job: Planificateur.Job<Planificateur.JobFake>
   ): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
     this.logger.log({

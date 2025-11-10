@@ -182,7 +182,7 @@ export namespace Planificateur {
   export interface Job<T> {
     dateExecution: Date
     type: JobType
-    contenu: T
+    contenu?: T
   }
 
   export interface JobId {

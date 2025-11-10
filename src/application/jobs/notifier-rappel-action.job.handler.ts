@@ -43,8 +43,8 @@ export class NotifierRappelActionJobHandler extends JobHandler<Planificateur.Job
     job: Planificateur.Job<Planificateur.JobRappelAction>
   ): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
-
-    const action = await this.actionRepository.get(job.contenu.idAction)
+    const contenu = job.contenu!
+    const action = await this.actionRepository.get(contenu.idAction)
 
     const stats: NotifierRappelActionStats = {
       notificationEnvoyee: false
@@ -68,7 +68,7 @@ export class NotifierRappelActionJobHandler extends JobHandler<Planificateur.Job
         ) {
           const notification = Notification.creerNotificationRappelAction(
             configuration.pushNotificationToken,
-            job.contenu.idAction
+            contenu.idAction
           )
           if (notification) {
             await this.notificationRepository.send(

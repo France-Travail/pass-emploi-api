@@ -44,8 +44,9 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
   ): Promise<SuiviJob> {
     let succes = true
     const maintenant = this.dateService.now()
-    const jobStats = job.contenu.stats
-    const jobParams = job.contenu.params
+    const contenu = job.contenu!
+    const jobStats = contenu.stats
+    const jobParams = contenu.params
 
     let taillePopulationTotale = jobStats?.taillePopulationTotale
     let nbBeneficiairesNotifiesOuErreur = jobStats?.nbBeneficiairesNotifies || 0
@@ -75,7 +76,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
 
       nbBeneficiairesNotifiesOuErreur += idsEtTokensBeneficiairesDuBatch.length
       for (const idEtTokenBeneficiaire of idsEtTokensBeneficiairesDuBatch) {
-        await this.envoyerLaNotification(idEtTokenBeneficiaire, job.contenu)
+        await this.envoyerLaNotification(idEtTokenBeneficiaire, contenu)
       }
 
       const ilResteDesBeneficiairesANotifier =
@@ -89,7 +90,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
           offset: offset + batchSize,
           estLaDerniereExecution: estLaDerniereExecution
         }
-        this.planifierLeProchainJob(maintenant, job.contenu, stats, batchSize)
+        this.planifierLeProchainJob(maintenant, contenu, stats, batchSize)
       }
     } catch (e) {
       this.logger.error(e)

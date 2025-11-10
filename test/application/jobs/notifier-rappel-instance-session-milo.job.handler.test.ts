@@ -77,10 +77,10 @@ describe('handler', () => {
         idStructureMilo: '1241'
       }
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneSansToken))
 
       // When
@@ -102,10 +102,10 @@ describe('handler', () => {
         idStructureMilo: '1241'
       }
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
 
       // When
@@ -120,7 +120,7 @@ describe('handler', () => {
         },
         data: {
           type: 'DETAIL_SESSION_MILO',
-          id: job.contenu.idSession
+          id: job.contenu!.idSession
         }
       })
     })
@@ -136,10 +136,10 @@ describe('handler', () => {
         idStructureMilo: '1241'
       }
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
 
       // When
@@ -155,7 +155,7 @@ describe('handler', () => {
           },
           data: {
             type: 'DETAIL_SESSION_MILO',
-            id: job.contenu.idSession
+            id: job.contenu!.idSession
           }
         },
         jeuneAvecToken.id
@@ -173,10 +173,10 @@ describe('handler', () => {
         idStructureMilo: '1241'
       }
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
 
       // When
@@ -193,14 +193,14 @@ describe('handler', () => {
         dateHeureDebut: today.minus({ day: 1 }).toFormat(MILO_DATE_FORMAT)
       })
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
       const jeuneAvecToken: JeuneMilo = {
         ...unJeune(),
         idStructureMilo: '1241'
       }
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
 
       // When
@@ -217,14 +217,14 @@ describe('handler', () => {
         dateHeureDebut: today.plus({ day: 8 }).toFormat(MILO_DATE_FORMAT)
       })
       sessionRepository.findInstanceSession
-        .withArgs(job.contenu.idInstance)
+        .withArgs(job.contenu!.idInstance)
         .resolves(instance)
       const jeuneAvecToken: JeuneMilo = {
         ...unJeune(),
         idStructureMilo: '1241'
       }
       jeuneRepository.getByIdDossier
-        .withArgs(job.contenu.idDossier)
+        .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
 
       // When

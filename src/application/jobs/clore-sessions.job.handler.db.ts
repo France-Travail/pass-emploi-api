@@ -40,15 +40,15 @@ export class CloreSessionsJobHandler extends JobHandler<Planificateur.JobCloreSe
 
     const [rows, nbAffectedRows] = (await this.sequelize.query(query, {
       replacements: {
-        values: contenu.idsSessions.map(id => [
+        values: contenu!.idsSessions.map(id => [
           id,
           debutExecutionJob.toSQL(),
           debutExecutionJob.toSQL(),
-          contenu.dateCloture,
-          contenu.idStructureMilo
+          contenu!.dateCloture,
+          contenu!.idStructureMilo
         ]),
         dateExecution: debutExecutionJob.toSQL(),
-        dateCloture: contenu.dateCloture
+        dateCloture: contenu!.dateCloture
       },
       type: QueryTypes.RAW
     })) as [Array<{ datepremiereconfiguration: Date }>, number]

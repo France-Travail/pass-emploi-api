@@ -47,18 +47,19 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
 
   async handle(job: Planificateur.Job<JobCampagne>): Promise<SuiviJob> {
     let succes = true
+    const contenu = job.contenu!
     const stats: Stats = {
-      nbNotifsEnvoyees: job.contenu.nbNotifsEnvoyees,
+      nbNotifsEnvoyees: contenu.nbNotifsEnvoyees,
       estLaDerniereExecution: false
     }
     const maintenant = this.dateService.now()
 
     try {
-      const offset = job.contenu.offset
+      const offset = contenu.offset
 
       const idsJeunesQuiOntReponduALaCampagne = (
         await ReponseCampagneSqlModel.findAll({
-          where: { idCampagne: job.contenu.idCampagne },
+          where: { idCampagne: contenu.idCampagne },
           attributes: ['idJeune']
         })
       ).map(campagneSql => campagneSql.idJeune)
@@ -111,7 +112,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
           type: Planificateur.JobType.NOTIFIER_CAMPAGNE,
           contenu: {
             offset: offset + PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM,
-            idCampagne: job.contenu.idCampagne,
+            idCampagne: contenu.idCampagne,
             nbNotifsEnvoyees: stats.nbNotifsEnvoyees
           }
         })

@@ -141,11 +141,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push1',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune1,
@@ -157,11 +157,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push4',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune4,
@@ -240,11 +240,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push1',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune1,

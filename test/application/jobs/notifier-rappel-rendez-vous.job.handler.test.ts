@@ -47,7 +47,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
     it("n'envoie pas de notification", async () => {
       // Given
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(undefined)
 
       // When
@@ -65,7 +65,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
         ...unRendezVous()
       }
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(unRendezVousSansToken)
 
       // When
@@ -84,7 +84,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
         date: today.plus({ day: 1 }).toJSDate()
       }
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(rendezVous)
 
       // When
@@ -115,7 +115,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
         date: today.plus({ day: 7 }).toJSDate()
       }
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(rendezVous)
 
       // When
@@ -146,7 +146,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
         date: today.plus({ day: 5 }).toJSDate()
       }
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(unRendezVousSansToken)
 
       // When
@@ -164,7 +164,7 @@ describe('HandlerJobRendezVousCommandHandler', () => {
         date: today.minus({ day: 1 }).toJSDate()
       }
       rendezVousRepository.get
-        .withArgs(job.contenu.idRendezVous)
+        .withArgs(job.contenu!.idRendezVous)
         .resolves(unRendezVousSansToken)
 
       // When
