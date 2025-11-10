@@ -19,7 +19,7 @@ interface PgConnexion {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CREER_VUE_AE_MENSUELLE)
-export class CreerVueAEMensuelleJobHandler extends JobHandler<Planificateur.Job> {
+export class CreerVueAEMensuelleJobHandler extends JobHandler {
   private connexionSource: PgConnexion | undefined
   private connexionTarget: PgConnexion | undefined
 

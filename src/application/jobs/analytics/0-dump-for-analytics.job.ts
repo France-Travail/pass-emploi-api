@@ -7,18 +7,18 @@ import {
 } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { DateService } from '../../../utils/date-service'
-import { promisify } from 'util'
-import { exec } from 'child_process'
+import { promisify } from 'node:util'
+import { exec } from 'node:child_process'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.DUMP_ANALYTICS)
-export class DumpForAnalyticsJobHandler extends JobHandler<Planificateur.Job> {
+export class DumpForAnalyticsJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.DUMP_ANALYTICS, suiviJobService)
   }
@@ -49,7 +49,7 @@ export class DumpForAnalyticsJobHandler extends JobHandler<Planificateur.Job> {
     return {
       jobType: this.jobType,
       nbErreurs: 0,
-      succes: erreur ? false : true,
+      succes: !erreur,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
       resultat: {}

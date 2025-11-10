@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Job } from 'bull'
 import { DateTime } from 'luxon'
 import { Op, QueryTypes, Sequelize, WhereOptions } from 'sequelize'
 import { SequelizeInjectionToken } from 'src/infrastructure/sequelize/providers'
@@ -34,7 +33,7 @@ import { ComptageJeuneSqlModel } from '../../infrastructure/sequelize/models/com
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NETTOYER_LES_DONNEES)
-export class NettoyerLesDonneesJobHandler extends JobHandler<Job> {
+export class NettoyerLesDonneesJobHandler extends JobHandler {
   constructor(
     private dateService: DateService,
     @Inject(SuiviJobServiceToken)

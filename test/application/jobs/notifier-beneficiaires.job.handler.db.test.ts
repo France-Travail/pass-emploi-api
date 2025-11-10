@@ -103,6 +103,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
       ])
 
       const maintenant = uneDatetime()
+
       const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
         dateExecution: maintenant.toJSDate(),
         type: JobType.NOTIFIER_BENEFICIAIRES,
@@ -110,13 +111,15 @@ describe('NotifierBeneficiairesJobHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: 'Une notification très importante',
           description: "C'est incroyable",
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
-          ],
-          push: true,
-          batchSize: 2,
-          minutesEntreLesBatchs: 5
+          params: {
+            structures: [
+              Core.Structure.POLE_EMPLOI_AIJ,
+              Core.Structure.POLE_EMPLOI_BRSA
+            ],
+            push: true,
+            minutesEntreLesBatchs: 5,
+            batchSize: 2
+          }
         }
       }
 
@@ -127,7 +130,9 @@ describe('NotifierBeneficiairesJobHandler', () => {
       expect(result.succes).to.be.true()
       expect(result.resultat).to.deep.equal({
         estLaDerniereExecution: false,
-        nbBeneficiairesNotifies: 2
+        nbBeneficiairesNotifies: 2,
+        nbPopulationTotale: 3,
+        offset: 0
       })
       expect(notificationRepository.send).to.have.been.calledTwice()
       expect(
@@ -136,11 +141,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push1',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune1,
@@ -152,11 +157,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push4',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune4,
@@ -169,15 +174,21 @@ describe('NotifierBeneficiairesJobHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: 'Une notification très importante',
           description: "C'est incroyable",
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
-          ],
-          push: true,
-          batchSize: 2,
-          minutesEntreLesBatchs: 5,
-          offset: 2,
-          nbBeneficiairesNotifies: 2
+          params: {
+            structures: [
+              Core.Structure.POLE_EMPLOI_AIJ,
+              Core.Structure.POLE_EMPLOI_BRSA
+            ],
+            push: true,
+            batchSize: 2,
+            minutesEntreLesBatchs: 5
+          },
+          stats: {
+            taillePopulationTotale: 3,
+            nbBeneficiairesNotifies: 2,
+            offset: 2,
+            estLaDerniereExecution: false
+          }
         }
       })
     })
@@ -199,6 +210,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
       ])
 
       const maintenant = uneDatetime()
+
       const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
         dateExecution: maintenant.toJSDate(),
         type: JobType.NOTIFIER_BENEFICIAIRES,
@@ -206,13 +218,15 @@ describe('NotifierBeneficiairesJobHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: 'Une notification très importante',
           description: "C'est incroyable",
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
-          ],
-          push: false,
-          batchSize: 1,
-          minutesEntreLesBatchs: 5
+          params: {
+            structures: [
+              Core.Structure.POLE_EMPLOI_AIJ,
+              Core.Structure.POLE_EMPLOI_BRSA
+            ],
+            push: false,
+            minutesEntreLesBatchs: 5,
+            batchSize: 1
+          }
         }
       }
 
@@ -226,34 +240,16 @@ describe('NotifierBeneficiairesJobHandler', () => {
         {
           token: 'push1',
           notification: {
-            title: job.contenu.titre,
-            body: job.contenu.description
+            title: job.contenu!.titre,
+            body: job.contenu!.description
           },
           data: {
-            type: job.contenu.typeNotification
+            type: job.contenu!.typeNotification
           }
         },
         idJeune1,
         false
       )
-      expect(planificateurRepository.ajouterJob).to.have.been.calledWith({
-        dateExecution: maintenant.plus({ minute: 5 }).toJSDate(),
-        type: JobType.NOTIFIER_BENEFICIAIRES,
-        contenu: {
-          typeNotification: Notification.Type.OUTILS,
-          titre: 'Une notification très importante',
-          description: "C'est incroyable",
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
-          ],
-          push: false,
-          batchSize: 1,
-          minutesEntreLesBatchs: 5,
-          offset: 1,
-          nbBeneficiairesNotifies: 1
-        }
-      })
     })
 
     it("détermine la taille du batch à 1/4 de la population à notifier si elle n'est pas définie", async () => {
@@ -342,10 +338,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: 'Une notification très importante',
           description: "C'est incroyable",
-          structures: [Core.Structure.MILO],
-          push: true,
-          batchSize: undefined,
-          minutesEntreLesBatchs: undefined
+          params: {
+            structures: [Core.Structure.MILO],
+            push: true,
+            minutesEntreLesBatchs: 5,
+            batchSize: undefined
+          }
         }
       }
 
@@ -356,7 +354,9 @@ describe('NotifierBeneficiairesJobHandler', () => {
       expect(result.succes).to.be.true()
       expect(result.resultat).to.deep.equal({
         estLaDerniereExecution: false,
-        nbBeneficiairesNotifies: 2
+        nbBeneficiairesNotifies: 2,
+        nbPopulationTotale: 11,
+        offset: 0
       })
       expect(notificationRepository.send).to.have.callCount(2)
       expect(planificateurRepository.ajouterJob).to.have.been.calledWith({
@@ -366,12 +366,18 @@ describe('NotifierBeneficiairesJobHandler', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: 'Une notification très importante',
           description: "C'est incroyable",
-          structures: [Core.Structure.MILO],
-          push: true,
-          batchSize: 2,
-          minutesEntreLesBatchs: 5,
-          offset: 2,
-          nbBeneficiairesNotifies: 2
+          params: {
+            structures: [Core.Structure.MILO],
+            push: true,
+            batchSize: 2,
+            minutesEntreLesBatchs: 5
+          },
+          stats: {
+            taillePopulationTotale: 11,
+            nbBeneficiairesNotifies: 2,
+            offset: 2,
+            estLaDerniereExecution: false
+          }
         }
       })
     })
@@ -390,6 +396,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
             idConseiller: 'con1',
             pushNotificationToken: 'push1',
             structure: Core.Structure.MILO
+          }),
+          unJeuneDto({
+            id: 'j2',
+            idConseiller: 'con1',
+            pushNotificationToken: 'push2',
+            structure: Core.Structure.MILO
           })
         ])
 
@@ -397,7 +409,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           .setZone(TIME_ZONE_EUROPE_PARIS)
           .set({ localWeekday: 1, hour: 17, minute: 12 })
         dateService.now.returns(lundi17h12)
-
         const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
           dateExecution: lundi17h12.toJSDate(),
           type: JobType.NOTIFIER_BENEFICIAIRES,
@@ -405,12 +416,14 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              minutesEntreLesBatchs: 5,
+              batchSize: 1
+            }
           }
         }
-
         // When
         const result = await handler.handle(job)
 
@@ -426,11 +439,18 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5,
-            offset: 1,
-            nbBeneficiairesNotifies: 1
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              batchSize: 1,
+              minutesEntreLesBatchs: 5
+            },
+            stats: {
+              taillePopulationTotale: 2,
+              nbBeneficiairesNotifies: 1,
+              offset: 1,
+              estLaDerniereExecution: false
+            }
           }
         })
       })
@@ -448,6 +468,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
             idConseiller: 'con1',
             pushNotificationToken: 'push1',
             structure: Core.Structure.MILO
+          }),
+          unJeuneDto({
+            id: 'j2',
+            idConseiller: 'con1',
+            pushNotificationToken: 'push2',
+            structure: Core.Structure.MILO
           })
         ])
 
@@ -463,9 +489,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              minutesEntreLesBatchs: 5,
+              batchSize: 1
+            }
           }
         }
 
@@ -484,11 +513,18 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5,
-            offset: 1,
-            nbBeneficiairesNotifies: 1
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              batchSize: 1,
+              minutesEntreLesBatchs: 5
+            },
+            stats: {
+              taillePopulationTotale: 2,
+              nbBeneficiairesNotifies: 1,
+              offset: 1,
+              estLaDerniereExecution: false
+            }
           }
         })
       })
@@ -506,6 +542,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
             idConseiller: 'con1',
             pushNotificationToken: 'push1',
             structure: Core.Structure.MILO
+          }),
+          unJeuneDto({
+            id: 'j2',
+            idConseiller: 'con1',
+            pushNotificationToken: 'push2',
+            structure: Core.Structure.MILO
           })
         ])
 
@@ -521,9 +563,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              minutesEntreLesBatchs: 5,
+              batchSize: 1
+            }
           }
         }
 
@@ -542,11 +587,18 @@ describe('NotifierBeneficiairesJobHandler', () => {
             typeNotification: Notification.Type.OUTILS,
             titre: 'Une notification très importante',
             description: "C'est incroyable",
-            structures: [Core.Structure.MILO],
-            batchSize: 1,
-            minutesEntreLesBatchs: 5,
-            offset: 1,
-            nbBeneficiairesNotifies: 1
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              batchSize: 1,
+              minutesEntreLesBatchs: 5
+            },
+            stats: {
+              taillePopulationTotale: 2,
+              nbBeneficiairesNotifies: 1,
+              offset: 1,
+              estLaDerniereExecution: false
+            }
           }
         })
       })

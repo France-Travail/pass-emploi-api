@@ -197,12 +197,12 @@ describe('PlanificateurRedisRepository', () => {
           type: jobType,
           contenu: { message: 'delayed' }
         }
-        const job: Planificateur.Job = {
+        const job: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobType,
           contenu: { message: 'job' }
         }
-        const jobError: Planificateur.Job = {
+        const jobError: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobTypeError,
           contenu: { message: 'jobError' }
@@ -305,17 +305,17 @@ describe('PlanificateurRedisRepository', () => {
           type: jobType,
           contenu: { message: 'delayed' }
         }
-        const job1: Planificateur.Job = {
+        const job1: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobType,
           contenu: { message: 'job1' }
         }
-        const job2: Planificateur.Job = {
+        const job2: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobType,
           contenu: { message: 'job2' }
         }
-        const jobError: Planificateur.Job = {
+        const jobError: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobTypeError,
           contenu: { message: 'jobError' }
@@ -435,12 +435,12 @@ describe('PlanificateurRedisRepository', () => {
           type: jobTypeDelayed,
           contenu: { message: 'delayed' }
         }
-        const job: Planificateur.Job = {
+        const job: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobType,
           contenu: { message: 'job' }
         }
-        const jobError: Planificateur.Job = {
+        const jobError: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.toJSDate(),
           type: jobType,
           contenu: { message: 'jobError' }

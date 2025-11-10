@@ -5,7 +5,6 @@ import {
   AnalyseAntivirusPasTerminee,
   FichierMalveillant
 } from '../../building-blocks/types/domain-error'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
@@ -25,7 +24,7 @@ import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS)
-export class RecupererAnalyseAntivirusJobHandler extends JobHandler<Job> {
+export class RecupererAnalyseAntivirusJobHandler extends JobHandler<Planificateur.JobRecupererAnalyseAntivirus> {
   constructor(
     @Inject(FichierRepositoryToken)
     private readonly fichierRepository: Fichier.Repository,
@@ -46,9 +45,10 @@ export class RecupererAnalyseAntivirusJobHandler extends JobHandler<Job> {
     job: Planificateur.Job<Planificateur.JobRecupererAnalyseAntivirus>
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
+    const contenu = job.contenu!
 
     const fichierMetadata = await this.fichierRepository.getFichierMetadata(
-      job.contenu.idFichier
+      contenu.idFichier
     )
     if (!fichierMetadata)
       return this.buildSuiviErreur(debut, 'Fichier non trouvé')

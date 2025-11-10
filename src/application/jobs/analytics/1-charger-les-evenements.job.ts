@@ -22,13 +22,13 @@ const TAILLE_DU_BATCH = 150000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS)
-export class ChargerEvenementsJobHandler extends JobHandler<Planificateur.Job> {
+export class ChargerEvenementsJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS, suiviJobService)
   }
@@ -78,7 +78,7 @@ export class ChargerEvenementsJobHandler extends JobHandler<Planificateur.Job> {
     return {
       jobType: this.jobType,
       nbErreurs: 0,
-      succes: erreur ? false : true,
+      succes: !erreur,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
       resultat: {

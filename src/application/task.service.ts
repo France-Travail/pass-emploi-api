@@ -12,17 +12,20 @@ export enum Task {
   INIT_JOBS = 'INIT_JOBS',
   INIT_CRONS = 'INIT_CRONS'
 }
+interface JobTask {
+  message: string
+}
 
 @Injectable()
 export class TaskService {
-  private logger: Logger = new Logger('TaskService')
+  private readonly logger: Logger = new Logger('TaskService')
 
   constructor(
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository,
-    private synchronizeJobsCommandHandler: SynchronizeJobsCommandHandler,
-    private initCronsCommandHandler: InitCronsCommandHandler,
-    private planifierExecutionCronCommandHandler: PlanifierExecutionCronCommandHandler
+    private readonly planificateurRepository: Planificateur.Repository,
+    private readonly synchronizeJobsCommandHandler: SynchronizeJobsCommandHandler,
+    private readonly initCronsCommandHandler: InitCronsCommandHandler,
+    private readonly planifierExecutionCronCommandHandler: PlanifierExecutionCronCommandHandler
   ) {}
 
   async handle(task: Task, date?: string): Promise<void> {
@@ -36,14 +39,15 @@ export class TaskService {
         })
       } else {
         switch (task) {
-          case Task.DUMMY_JOB:
-            const job: Planificateur.Job = {
+          case Task.DUMMY_JOB: {
+            const job: Planificateur.Job<JobTask> = {
               dateExecution: new Date(),
               type: Planificateur.JobType.FAKE,
               contenu: { message: 'dummy job' }
             }
             await this.planificateurRepository.ajouterJob(job)
             break
+          }
           case Task.INIT_JOBS:
             await this.synchronizeJobsCommandHandler.execute()
             break

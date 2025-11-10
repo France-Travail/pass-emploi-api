@@ -123,9 +123,18 @@ describe('NotifierCreationActionsDemarchesJobHandler', () => {
     it('notifie uniquement les jeunes ayant que des AEs hors création action/démarches', async () => {
       // Given
       notificationService.notifierRappelCreationActionDemarche.resolves()
+      const job: Planificateur.Job<Planificateur.JobRappelCreationActionsDemarches> =
+        {
+          dateExecution: new Date(),
+          type: Planificateur.JobType
+            .NOTIFIER_RAPPEL_CREATION_ACTIONS_DEMARCHES,
+          contenu: {}
+        }
 
       // When
-      const result = await notifierCreationActionsDemarchesJobHandler.handle()
+      const result = await notifierCreationActionsDemarchesJobHandler.handle(
+        job
+      )
 
       // Then
       expect(result.succes).to.be.true()

@@ -56,7 +56,7 @@ describe('WorkerService', () => {
       workerService.subscribe()
 
       // When
-      const job: Planificateur.Job = {
+      const job: Planificateur.Job<Planificateur.JobFake> = {
         dateExecution: new Date(),
         type: Planificateur.JobType.FAKE,
         contenu: { message: 'my test dummy job' }

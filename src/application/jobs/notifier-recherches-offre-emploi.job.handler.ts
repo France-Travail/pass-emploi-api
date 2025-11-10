@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   isFailure,
@@ -24,16 +23,16 @@ import { OffresEmploiQueryModel } from '../queries/query-models/offres-emploi.qu
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOUVELLES_OFFRES_EMPLOI)
-export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler<Job> {
+export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler {
   constructor(
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(RecherchesRepositoryToken)
-    private rechercheRepository: Offre.Recherche.Repository,
-    private findAllOffresEmploiQueryGetter: FindAllOffresEmploiQueryGetter,
-    private notificationService: Notification.Service,
+    private readonly rechercheRepository: Offre.Recherche.Repository,
+    private readonly findAllOffresEmploiQueryGetter: FindAllOffresEmploiQueryGetter,
+    private readonly notificationService: Notification.Service,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
-    private configuration: ConfigService,
+    private readonly jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly configuration: ConfigService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service
   ) {
@@ -42,7 +41,7 @@ export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler<Job> {
 
   async handle(): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
-    const nombreRecherches = parseInt(
+    const nombreRecherches = Number.parseInt(
       this.configuration.get(
         'jobs.notificationRecherches.nombreDeRequetesEnParallele'
       )!

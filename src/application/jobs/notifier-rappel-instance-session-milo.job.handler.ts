@@ -25,19 +25,17 @@ interface Stats {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RAPPEL_SESSION)
-export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobRappelSession>
-> {
+export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Planificateur.JobRappelSession> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(SessionMiloRepositoryToken)
-    private sessionMiloRepository: SessionMilo.Repository,
+    private readonly sessionMiloRepository: SessionMilo.Repository,
     @Inject(JeuneMiloRepositoryToken)
-    private jeuneRepository: JeuneMilo.Repository,
+    private readonly jeuneRepository: JeuneMilo.Repository,
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
-    private dateService: DateService
+    private readonly notificationRepository: Notification.Repository,
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.RAPPEL_SESSION, suiviJobService)
   }
@@ -46,21 +44,22 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<
     job: Planificateur.Job<Planificateur.JobRappelSession>
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
+    const contenu = job.contenu!
     const stats: Stats = {
-      idDossier: job.contenu.idDossier,
+      idDossier: contenu.idDossier,
       notificationEnvoyee: false
     }
     let nbErreurs = 0
 
     try {
       const instance = await this.sessionMiloRepository.findInstanceSession(
-        job.contenu.idInstance,
-        job.contenu.idDossier
+        contenu.idInstance,
+        contenu.idDossier
       )
 
       if (instance && instance.statut === SessionMilo.StatutInstance.PRESCRIT) {
         const resultJeune = await this.jeuneRepository.getByIdDossier(
-          job.contenu.idDossier
+          contenu.idDossier
         )
         if (isSuccess(resultJeune)) {
           if (resultJeune.data.configuration?.pushNotificationToken) {
@@ -72,7 +71,7 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<
             const notification =
               Notification.creerNotificationRappelSessionMilo(
                 resultJeune.data.configuration.pushNotificationToken,
-                job.contenu.idSession,
+                contenu.idSession,
                 dateTimezonee,
                 this.dateService
               )

@@ -13,9 +13,7 @@ type CloreSessionsStats = {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CLORE_SESSIONS)
-export class CloreSessionsJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobCloreSessions>
-> {
+export class CloreSessionsJobHandler extends JobHandler<Planificateur.JobCloreSessions> {
   constructor(
     private readonly dateService: DateService,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
@@ -42,15 +40,15 @@ export class CloreSessionsJobHandler extends JobHandler<
 
     const [rows, nbAffectedRows] = (await this.sequelize.query(query, {
       replacements: {
-        values: contenu.idsSessions.map(id => [
+        values: contenu!.idsSessions.map(id => [
           id,
           debutExecutionJob.toSQL(),
           debutExecutionJob.toSQL(),
-          contenu.dateCloture,
-          contenu.idStructureMilo
+          contenu!.dateCloture,
+          contenu!.idStructureMilo
         ]),
         dateExecution: debutExecutionJob.toSQL(),
-        dateCloture: contenu.dateCloture
+        dateCloture: contenu!.dateCloture
       },
       type: QueryTypes.RAW
     })) as [Array<{ datepremiereconfiguration: Date }>, number]

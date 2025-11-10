@@ -19,13 +19,13 @@ import {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.ENRICHIR_EVENEMENTS_ANALYTICS)
-export class EnrichirEvenementsJobHandler extends JobHandler<Planificateur.Job> {
+export class EnrichirEvenementsJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.ENRICHIR_EVENEMENTS_ANALYTICS, suiviJobService)
   }

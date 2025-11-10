@@ -11,11 +11,11 @@ import { migrate } from './vues/3-0-migrate-schema'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.INITIALISER_LES_VUES_DERNIERE_ANNEE)
-export class InitialiserLesVuesSurLaDerniereAnneeJobHandler extends JobHandler<Planificateur.Job> {
+export class InitialiserLesVuesSurLaDerniereAnneeJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService
+    private readonly dateService: DateService
   ) {
     super(
       Planificateur.JobType.INITIALISER_LES_VUES_DERNIERE_ANNEE,

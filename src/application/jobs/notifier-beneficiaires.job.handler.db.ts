@@ -1,6 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Op, WhereOptions } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   Notification,
@@ -16,130 +14,83 @@ import { DateService } from '../../utils/date-service'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { DateTime, WeekdayNumbers } from 'luxon'
+import StatsJobNotif = Planificateur.StatsJobNotif
+import { Core } from '../../domain/core'
+import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
 
-interface Stats {
-  nbBeneficiairesNotifies: number
-  estLaDerniereExecution: boolean
+const MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF = 500
+const TOKEN_NOT_NULL = {
+  pushNotificationToken: {
+    [Op.ne]: null
+  }
 }
-
-const NOMBRE_MINUTES_ENTRE_BATCHS_DEFAUT = 5
-
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_BENEFICIAIRES)
-export class NotifierBeneficiairesJobHandler extends JobHandler<Job> {
+export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.JobNotifierBeneficiaires> {
   constructor(
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
+    private readonly notificationRepository: Notification.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_BENEFICIAIRES, suiviJobService)
   }
 
   async handle(
-    job?: Planificateur.Job<Planificateur.JobNotifierBeneficiaires>
+    job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires>
   ): Promise<SuiviJob> {
     let succes = true
-    const stats: Stats = {
-      nbBeneficiairesNotifies: job?.contenu?.nbBeneficiairesNotifies || 0,
-      estLaDerniereExecution: false
-    }
     const maintenant = this.dateService.now()
+    const contenu = job.contenu!
+    const jobStats = contenu.stats
+    const jobParams = contenu.params
 
-    if (!job)
-      return {
-        jobType: this.jobType,
-        nbErreurs: 0,
-        succes: false,
-        dateExecution: maintenant,
-        tempsExecution: DateService.calculerTempsExecution(maintenant),
-        resultat: stats
-      }
+    let taillePopulationTotale = jobStats?.taillePopulationTotale
+    let nbBeneficiairesNotifiesOuErreur = jobStats?.nbBeneficiairesNotifies || 0
+    const offset = jobStats?.offset || 0
+    let estLaDerniereExecution = true
 
     try {
-      const offset = job.contenu?.offset || 0
-
-      let pagination = job.contenu.batchSize
-      const where: WhereOptions = {
-        pushNotificationToken: {
-          [Op.ne]: null
-        }
-      }
-      if (job.contenu.structures && job.contenu.structures.length > 0) {
-        where.structure = { [Op.in]: job.contenu.structures }
-      }
-      if (!pagination) {
-        const nbBeneficiairesTotal = await JeuneSqlModel.count({
-          where
+      const filtreRequete = this.construireFiltreRequete(jobParams.structures)
+      let batchSize = jobParams.batchSize
+      if (!taillePopulationTotale) {
+        taillePopulationTotale = await JeuneSqlModel.count({
+          where: filtreRequete
         })
-        const unQuartDeLaPopulationTotaleEtMinimum1 = Math.max(
-          Math.trunc(0.25 * nbBeneficiairesTotal),
-          1
-        )
-        pagination =
-          job.contenu.batchSize || unQuartDeLaPopulationTotaleEtMinimum1
+      }
+      if (!batchSize) {
+        const unQuartDeLaPopulation = Math.trunc(0.25 * taillePopulationTotale)
+        batchSize = Math.max(unQuartDeLaPopulation, 1)
       }
 
-      const idsBeneficiairesAvecComptage = await JeuneSqlModel.findAll({
-        where,
+      const idsEtTokensBeneficiairesDuBatch = await JeuneSqlModel.findAll({
+        where: filtreRequete,
         attributes: ['id', 'pushNotificationToken'],
         offset,
-        limit: pagination,
+        limit: batchSize,
         order: [['id', 'ASC']]
       })
 
-      stats.nbBeneficiairesNotifies += idsBeneficiairesAvecComptage.length
-      for (const beneficiaire of idsBeneficiairesAvecComptage) {
-        try {
-          const notification = {
-            token: beneficiaire.pushNotificationToken!,
-            notification: {
-              title: job.contenu.titre,
-              body: job.contenu.description
-            },
-            data: {
-              type: job.contenu.typeNotification
-            }
-          }
-          await this.notificationRepository.send(
-            notification,
-            beneficiaire.id,
-            job.contenu.push
-          )
-        } catch (e) {
-          this.logger.error(e)
-        }
-        await new Promise(resolve => setTimeout(resolve, 500))
+      nbBeneficiairesNotifiesOuErreur += idsEtTokensBeneficiairesDuBatch.length
+      for (const idEtTokenBeneficiaire of idsEtTokensBeneficiairesDuBatch) {
+        await this.envoyerLaNotification(idEtTokenBeneficiaire, contenu)
       }
 
-      const minutesEntreLesBatchs =
-        job.contenu.minutesEntreLesBatchs || NOMBRE_MINUTES_ENTRE_BATCHS_DEFAUT
-      // todo: condition d'arret à revoir ?
-      if (idsBeneficiairesAvecComptage.length === pagination) {
-        let dateExecution = maintenant
-          .plus({
-            minute: minutesEntreLesBatchs
-          })
-          .setZone(TIME_ZONE_EUROPE_PARIS)
+      const ilResteDesBeneficiairesANotifier =
+        nbBeneficiairesNotifiesOuErreur !== taillePopulationTotale
 
-        dateExecution = this.reporterDateEnJourOuvreLaJournee(dateExecution)
-
-        this.planificateurRepository.ajouterJob({
-          dateExecution: dateExecution.toJSDate(),
-          type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
-          contenu: {
-            ...job.contenu,
-            batchSize: pagination,
-            minutesEntreLesBatchs: minutesEntreLesBatchs,
-            offset: offset + pagination,
-            nbBeneficiairesNotifies: stats.nbBeneficiairesNotifies
-          }
-        })
-      } else {
-        stats.estLaDerniereExecution = true
+      if (ilResteDesBeneficiairesANotifier) {
+        estLaDerniereExecution = false
+        const stats: StatsJobNotif = {
+          taillePopulationTotale: taillePopulationTotale,
+          nbBeneficiairesNotifies: nbBeneficiairesNotifiesOuErreur,
+          offset: offset + batchSize,
+          estLaDerniereExecution: estLaDerniereExecution
+        }
+        this.planifierLeProchainJob(maintenant, contenu, stats, batchSize)
       }
     } catch (e) {
       this.logger.error(e)
@@ -152,8 +103,69 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Job> {
       succes,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
-      resultat: stats
+      resultat: {
+        nbPopulationTotale: taillePopulationTotale,
+        nbBeneficiairesNotifies: nbBeneficiairesNotifiesOuErreur,
+        offset,
+        estLaDerniereExecution: estLaDerniereExecution
+      }
     }
+  }
+
+  private planifierLeProchainJob(
+    maintenant: DateTime,
+    contenuJob: Planificateur.JobNotifierBeneficiaires,
+    stats: StatsJobNotif,
+    batchSize: number
+  ): void {
+    let dateExecution = maintenant
+      .plus({
+        minute: contenuJob.params.minutesEntreLesBatchs
+      })
+      .setZone(TIME_ZONE_EUROPE_PARIS)
+
+    dateExecution = this.reporterDateEnJourOuvreLaJournee(dateExecution)
+
+    this.planificateurRepository.ajouterJob({
+      dateExecution: dateExecution.toJSDate(),
+      type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+      contenu: {
+        ...contenuJob,
+        stats,
+        params: {
+          ...contenuJob.params,
+          batchSize
+        }
+      }
+    })
+  }
+
+  private async envoyerLaNotification(
+    idEtTokenBeneficiaire: JeuneSqlModel,
+    contenuJob: Planificateur.JobNotifierBeneficiaires
+  ): Promise<void> {
+    try {
+      const notification = {
+        token: idEtTokenBeneficiaire.pushNotificationToken!,
+        notification: {
+          title: contenuJob.titre,
+          body: contenuJob.description
+        },
+        data: {
+          type: contenuJob.typeNotification
+        }
+      }
+      await this.notificationRepository.send(
+        notification,
+        idEtTokenBeneficiaire.id,
+        contenuJob.params.push
+      )
+    } catch (e) {
+      this.logger.error(e)
+    }
+    await new Promise(resolve =>
+      setTimeout(resolve, MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF)
+    )
   }
 
   private reporterDateEnJourOuvreLaJournee(date: DateTime): DateTime {
@@ -182,5 +194,15 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Job> {
     }
 
     return newDate
+  }
+
+  private construireFiltreRequete(
+    structures?: Core.Structure[]
+  ): WhereAttributeHash<unknown> {
+    const where: WhereOptions = TOKEN_NOT_NULL
+    if (structures && structures.length > 0) {
+      where.structure = { [Op.in]: structures }
+    }
+    return where
   }
 }

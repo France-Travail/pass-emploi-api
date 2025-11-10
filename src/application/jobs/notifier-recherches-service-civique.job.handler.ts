@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
 import {
@@ -22,15 +21,15 @@ const PAGINATION_NOMBRE_D_OFFRES_MAXIMUM = 1000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOUVELLES_OFFRES_SERVICE_CIVIQUE)
-export class NotifierRecherchesServiceCiviqueJobHandler extends JobHandler<Job> {
+export class NotifierRecherchesServiceCiviqueJobHandler extends JobHandler {
   constructor(
     @Inject(RecherchesRepositoryToken)
-    private rechercheRepository: Recherche.Repository,
+    private readonly rechercheRepository: Recherche.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
-    private notificationService: Notification.Service,
-    private findAllOffresServicesCiviqueQueryGetter: FindAllOffresServicesCiviqueQueryGetter,
-    private dateService: DateService,
+    private readonly jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly notificationService: Notification.Service,
+    private readonly findAllOffresServicesCiviqueQueryGetter: FindAllOffresServicesCiviqueQueryGetter,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service
   ) {

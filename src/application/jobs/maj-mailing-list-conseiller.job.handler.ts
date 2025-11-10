@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Core } from '../../domain/core'
 import { Mail, MailRepositoryToken, MailServiceToken } from '../../domain/mail'
@@ -10,14 +9,14 @@ import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.UPDATE_CONTACTS_CONSEILLER_MAILING_LISTS)
-export class MajMailingListConseillerJobHandler extends JobHandler<Job> {
+export class MajMailingListConseillerJobHandler extends JobHandler {
   constructor(
     @Inject(MailServiceToken)
-    private mailService: Mail.Service,
+    private readonly mailService: Mail.Service,
     @Inject(MailRepositoryToken)
-    private mailRepository: Mail.Repository,
-    private configuration: ConfigService,
-    private dateService: DateService,
+    private readonly mailRepository: Mail.Repository,
+    private readonly configuration: ConfigService,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service
   ) {
@@ -72,7 +71,7 @@ export class MajMailingListConseillerJobHandler extends JobHandler<Job> {
       }
     }
 
-    Object.entries(mailingLists).forEach(async ([structure, mailingList]) => {
+    for (const [structure, mailingList] of Object.entries(mailingLists)) {
       const contacts =
         await this.mailRepository.findAllContactsConseillerByStructures([
           structure as Core.Structure
@@ -81,9 +80,9 @@ export class MajMailingListConseillerJobHandler extends JobHandler<Job> {
 
       await this.mailService.mettreAJourMailingList(
         contacts,
-        parseInt(mailingList.id)
+        Number.parseInt(mailingList.id)
       )
-    })
+    }
 
     stats.conseillersSansEmail =
       await this.mailRepository.countContactsConseillerSansEmail()

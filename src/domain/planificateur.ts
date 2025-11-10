@@ -9,8 +9,8 @@ import { EvenementMilo } from './milo/evenement.milo'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import { Notification } from './notification/notification'
-import { Core } from './core'
 import Bull from 'bull'
+import { Core } from './core'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -157,24 +157,32 @@ export namespace Planificateur {
     typeNotification: Notification.Type
     titre: string
     description: string
+    params: ParamsJobNotif
+    stats?: StatsJobNotif
+  }
+
+  export interface StatsJobNotif {
+    taillePopulationTotale: number
+    nbBeneficiairesNotifies: number
+    offset: number
+    estLaDerniereExecution: false
+  }
+
+  export interface ParamsJobNotif {
     structures?: Core.Structure[]
-    push?: boolean
+    push: boolean
+    minutesEntreLesBatchs: number
     batchSize?: number
-    minutesEntreLesBatchs?: number
-    offset?: number
-    nbBeneficiairesNotifies?: number
   }
 
   export interface JobFake {
     message: string
   }
 
-  export type ContenuJob = JobRendezVous | JobRappelSession | JobFake
-
-  export interface Job<T = ContenuJob> {
+  export interface Job<T> {
     dateExecution: Date
     type: JobType
-    contenu: T
+    contenu?: T
   }
 
   export interface JobId {

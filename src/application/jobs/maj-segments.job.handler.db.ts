@@ -3,11 +3,10 @@ import { SequelizeInjectionToken } from '../../infrastructure/sequelize/provider
 import { QueryTypes, Sequelize } from 'sequelize'
 import { BigqueryClient } from '../../infrastructure/clients/bigquery.client'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Job } from 'bull'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
-import { createWriteStream } from 'fs'
+import { createWriteStream } from 'node:fs'
 import { Core } from '../../domain/core'
 import { DateTime } from 'luxon'
 
@@ -35,13 +34,13 @@ enum SEGMENTS {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.MAJ_SEGMENTS)
-export class MajSegmentsJobHandler extends JobHandler<Job> {
+export class MajSegmentsJobHandler extends JobHandler {
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
-    private bigqueryClient: BigqueryClient
+    private readonly dateService: DateService,
+    private readonly bigqueryClient: BigqueryClient
   ) {
     super(Planificateur.JobType.MAJ_SEGMENTS, suiviJobService)
   }
@@ -115,11 +114,11 @@ export class MajSegmentsJobHandler extends JobHandler<Job> {
         'Bénéficiaires France Travail Equip’emploi / Equip’recrut'
     }
 
-    Object.entries(metadatas).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(metadatas)) {
       metadataWriteStream.write(
         JSON.stringify({ segment_label: key, display_name: value }) + NEW_LINE
       )
-    })
+    }
     metadataWriteStream.end()
   }
 
@@ -142,10 +141,10 @@ export class MajSegmentsJobHandler extends JobHandler<Job> {
 
   async handleSegmentJeunes(segments: Map<string, string[]>): Promise<number> {
     const jeunes: RawJeune[] = await this.fetchJeunes()
-    jeunes.forEach(jeune => {
+    for (const jeune of jeunes) {
       const segment = this.buildSegmentJeune(jeune.structure)
       segments.set(jeune.instance_id, [segment])
-    })
+    }
     return jeunes.length
   }
 

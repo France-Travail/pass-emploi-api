@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   Planificateur,
@@ -11,11 +10,11 @@ import { DateService } from '../../utils/date-service'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NETTOYER_LES_JOBS)
-export class NettoyerLesJobsJobHandler extends JobHandler<Job> {
+export class NettoyerLesJobsJobHandler extends JobHandler {
   constructor(
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository,
-    private dateService: DateService,
+    private readonly planificateurRepository: Planificateur.Repository,
+    private readonly dateService: DateService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service
   ) {
@@ -36,7 +35,7 @@ export class NettoyerLesJobsJobHandler extends JobHandler<Job> {
     return {
       jobType: this.jobType,
       nbErreurs: 0,
-      succes: erreur ? false : true,
+      succes: !erreur,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
       resultat: erreur ?? stats,

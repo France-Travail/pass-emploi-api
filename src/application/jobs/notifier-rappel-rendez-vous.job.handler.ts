@@ -20,9 +20,7 @@ interface Stat {
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.RENDEZVOUS)
-export class NotifierRappelRendezVousJobHandler extends JobHandler<
-  Planificateur.Job<Planificateur.JobRendezVous>
-> {
+export class NotifierRappelRendezVousJobHandler extends JobHandler<Planificateur.JobRendezVous> {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
@@ -39,10 +37,8 @@ export class NotifierRappelRendezVousJobHandler extends JobHandler<
     job: Planificateur.Job<Planificateur.JobRendezVous>
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
-
-    const rendezVous = await this.rendezVousRepository.get(
-      job.contenu.idRendezVous
-    )
+    const contenu = job.contenu!
+    const rendezVous = await this.rendezVousRepository.get(contenu.idRendezVous)
 
     const stats: Stat[] = []
 
@@ -54,7 +50,7 @@ export class NotifierRappelRendezVousJobHandler extends JobHandler<
           } else {
             const notification = Notification.creerNotificationRappelRdv(
               jeune.configuration.pushNotificationToken,
-              job.contenu.idRendezVous,
+              contenu.idRendezVous,
               DateTime.fromJSDate(rendezVous.date),
               this.dateService
             )

@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
-import { Job } from '../../building-blocks/types/job'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { structuresCampagnes } from '../../domain/core'
 import {
@@ -23,44 +22,44 @@ interface Stats {
   nbNotifsEnvoyees: number
   estLaDerniereExecution: boolean
 }
+interface JobCampagne {
+  offset: number
+  idCampagne: string
+  nbNotifsEnvoyees: number
+}
 
 const PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM = 17000
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_CAMPAGNE)
-export class NotifierCampagneJobHandler extends JobHandler<Job> {
+export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
   constructor(
     @Inject(NotificationRepositoryToken)
-    private notificationRepository: Notification.Repository,
+    private readonly notificationRepository: Notification.Repository,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private dateService: DateService,
+    private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_CAMPAGNE, suiviJobService)
   }
 
-  async handle(
-    job: Planificateur.Job<{
-      offset: number
-      idCampagne: string
-      nbNotifsEnvoyees: number
-    }>
-  ): Promise<SuiviJob> {
+  async handle(job: Planificateur.Job<JobCampagne>): Promise<SuiviJob> {
     let succes = true
+    const contenu = job.contenu!
     const stats: Stats = {
-      nbNotifsEnvoyees: job.contenu.nbNotifsEnvoyees,
+      nbNotifsEnvoyees: contenu.nbNotifsEnvoyees,
       estLaDerniereExecution: false
     }
     const maintenant = this.dateService.now()
 
     try {
-      const offset = job.contenu.offset
+      const offset = contenu.offset
 
       const idsJeunesQuiOntReponduALaCampagne = (
         await ReponseCampagneSqlModel.findAll({
-          where: { idCampagne: job.contenu.idCampagne },
+          where: { idCampagne: contenu.idCampagne },
           attributes: ['idJeune']
         })
       ).map(campagneSql => campagneSql.idJeune)
@@ -113,7 +112,7 @@ export class NotifierCampagneJobHandler extends JobHandler<Job> {
           type: Planificateur.JobType.NOTIFIER_CAMPAGNE,
           contenu: {
             offset: offset + PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM,
-            idCampagne: job.contenu.idCampagne,
+            idCampagne: contenu.idCampagne,
             nbNotifsEnvoyees: stats.nbNotifsEnvoyees
           }
         })
