@@ -22,57 +22,56 @@ describe('FeatureFlipSqlRepository', () => {
     repo = new FeatureFlipSqlRepository(databaseForTesting.sequelize)
 
     const conseillerCEJMigrationDto = unConseillerDto({
-      id: 'cej',
+      id: 'cejMigration',
       structure: Core.Structure.POLE_EMPLOI,
       email: 'conseillerCEJMigration@email.com'
     })
     const conseillerAIJMigrationDto = unConseillerDto({
-      id: 'aij',
+      id: 'aijMigration',
       structure: Core.Structure.POLE_EMPLOI_AIJ,
       email: 'conseillerAIJMigration@email.com'
     })
-    const conseillerDtoFTIA = unConseillerDto({
-      id: 'c2',
-      email: 'conseillerFTIA@email.com'
+    const conseillerFtIaDto = unConseillerDto({
+      id: 'ftIAPasMigration',
+      email: 'conseillerFTIA@email.com',
+      structure: Core.Structure.POLE_EMPLOI_AIJ
     })
 
-    const jeuneCEJDto = unJeuneDto({
-      id: 'cej',
+    const jeuneCEJConseillerMigrationDto = unJeuneDto({
+      id: 'cejMigration',
       structure: Core.Structure.POLE_EMPLOI,
-      idConseiller: 'cej'
+      idConseiller: 'cejMigration',
+      idConseillerInitial: undefined
     })
-    const jeuneAIJDto = unJeuneDto({
-      id: 'aij',
+    const jeuneAijConseillerMigrationDto = unJeuneDto({
+      id: 'aijMigration',
       structure: Core.Structure.POLE_EMPLOI_AIJ,
-      idConseiller: 'aij'
+      idConseiller: 'aijMigration',
+      idConseillerInitial: undefined
     })
-    const jeuneAIJSuiviCEJDto = unJeuneDto({
+    const jeuneAiJSuiviCejMigrationDto = unJeuneDto({
       id: 'aij-suivi-cej',
       structure: Core.Structure.POLE_EMPLOI_AIJ,
-      idConseiller: 'cej'
+      idConseiller: 'cejMigration',
+      idConseillerInitial: 'ftIAPasMigration'
     })
-    const jeuneDtoJ2 = unJeuneDto({
-      id: 'j2',
-      idConseiller: 'c2'
-    })
-    const jeuneDtoJ3 = unJeuneDto({
-      id: 'j3',
+    const jeuneCejSuiviAijSansMigrationDto = unJeuneDto({
+      id: 'cej-suivi-aij-sans-migration',
       structure: Core.Structure.POLE_EMPLOI,
-      idConseiller: 'c2',
-      idConseillerInitial: 'cej'
+      idConseiller: 'ftIAPasMigration',
+      idConseillerInitial: 'cejMigration'
     })
 
     await ConseillerSqlModel.bulkCreate([
       conseillerCEJMigrationDto,
       conseillerAIJMigrationDto,
-      conseillerDtoFTIA
+      conseillerFtIaDto
     ])
     await JeuneSqlModel.bulkCreate([
-      jeuneCEJDto,
-      jeuneAIJDto,
-      jeuneAIJSuiviCEJDto,
-      jeuneDtoJ2,
-      jeuneDtoJ3
+      jeuneCEJConseillerMigrationDto,
+      jeuneAijConseillerMigrationDto,
+      jeuneAiJSuiviCejMigrationDto,
+      jeuneCejSuiviAijSansMigrationDto
     ])
 
     const ffMigrationCEJ = {
@@ -95,93 +94,89 @@ describe('FeatureFlipSqlRepository', () => {
   })
 
   describe('featureActivePourBeneficiaire', () => {
-    it("renvoie true si l'id jeune existe pour cette feature", async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
+    it("renvoie l'id et la structure du jeune si son conseiller a la feature demandée", async () => {
+      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
-        'cej'
+        'cejMigration'
       )
-      expect(actif).to.be.true()
+      expect(idEtStructure).to.deep.equal({
+        id: 'cejMigration',
+        structure: Core.Structure.POLE_EMPLOI
+      })
     })
 
-    it("renvoie false si l'id jeune existe mais pour une autre feature", async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
+    it("renvoie l'id et la structure du jeune si son conseiller initial a la feature demandée", async () => {
+      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
+        FeatureFlip.Tag.MIGRATION,
+        'cej-suivi-aij-sans-migration'
+      )
+      expect(idEtStructure).to.deep.equal({
+        id: 'cej-suivi-aij-sans-migration',
+        structure: Core.Structure.POLE_EMPLOI
+      })
+    })
+
+    it("ne renvoie rien si ni son conseiller, ni son conseiller initial n'ont la feature demandée", async () => {
+      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.DEMARCHES_IA,
-        'cej'
+        'cejMigration'
       )
-      expect(actif).to.be.false()
+      expect(idEtStructure).to.be.undefined()
     })
 
-    it('renvoie false si jeune pas CEJ', async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.DEMARCHES_IA,
-        'aij'
-      )
-      expect(actif).to.be.false()
-    })
-
-    it('renvoie false si conseiller pas CEJ', async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.DEMARCHES_IA,
-        'aij-suivi-cej'
-      )
-      expect(actif).to.be.false()
-    })
-
-    it("renvoie false si l'id jeune n'existe pas", async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
+    it("ne renvoie rien si l'id jeune n'existe pas", async () => {
+      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'id-inexistant'
       )
-      expect(actif).to.be.false()
-    })
-
-    it("renvoie true si l'email du conseiller initial est autorisé pour la feature", async () => {
-      const actif = await repo.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.MIGRATION,
-        'j3'
-      )
-      expect(actif).to.be.true()
+      expect(idEtStructure).to.be.undefined()
     })
   })
 
   describe('featureActivePourConseiller', () => {
-    it("renvoie true si l'email du conseiller est autorisée pour la feature", async () => {
-      const actif = await repo.featureActivePourConseiller(
+    it("renvoie l'id et la structure du conseiller si l'email du conseiller est autorisée pour la feature", async () => {
+      const idEtStructure = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
-        'cej'
+        'cejMigration'
       )
-      expect(actif).to.be.true()
+      expect(idEtStructure).to.deep.equal({
+        id: 'cejMigration',
+        structure: Core.Structure.POLE_EMPLOI
+      })
     })
 
-    it("renvoie false si le conseiller n'est pas autorisé pour cette feature", async () => {
-      const actif = await repo.featureActivePourConseiller(
+    it("ne renvoie rien si le conseiller n'est pas autorisé pour cette feature", async () => {
+      const idEtStructure = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
-        'c2'
+        'ftIAPasMigration'
       )
-      expect(actif).to.be.false()
-    })
-
-    it("renvoie false si le conseiller n'est pas CEJ pour Migration", async () => {
-      const actif = await repo.featureActivePourConseiller(
-        FeatureFlip.Tag.MIGRATION,
-        'aij'
-      )
-      expect(actif).to.be.false()
-    })
-
-    it('renvoie true pour un autre feature tag autorisé sur un autre conseiller', async () => {
-      const actif = await repo.featureActivePourConseiller(
-        FeatureFlip.Tag.DEMARCHES_IA,
-        'c2'
-      )
-      expect(actif).to.be.true()
+      expect(idEtStructure).to.be.undefined()
     })
   })
 
   describe('getIdsBeneficiaires', () => {
-    it('renvoie la liste des id des jeunes pour un conseiller avec le tag migration et aussi ceux qui ont ce conseiller initial mais pas ceux non CEJ', async () => {
-      const idJeunes = await repo.getIdsBeneficiaires(FeatureFlip.Tag.MIGRATION)
-      expect(idJeunes).to.be.deep.equal(['cej', 'j3'])
+    it('renvoie la liste des id et structure des jeunes des conseillers en cours ou initial avec le tag migration', async () => {
+      const idJeunes = await repo.getIdsBeneficiairesDeLaFeature(
+        FeatureFlip.Tag.MIGRATION
+      )
+      expect(idJeunes).to.be.deep.equal([
+        {
+          id: 'cejMigration',
+          structure: 'POLE_EMPLOI'
+        },
+        {
+          id: 'aij-suivi-cej',
+          structure: 'POLE_EMPLOI_AIJ'
+        },
+        {
+          id: 'cej-suivi-aij-sans-migration',
+          structure: 'POLE_EMPLOI'
+        },
+        {
+          id: 'aijMigration',
+          structure: 'POLE_EMPLOI_AIJ'
+        }
+      ])
     })
   })
 })

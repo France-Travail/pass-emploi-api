@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { DateTime } from 'luxon'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -27,6 +26,7 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
+import Type = Authentification.Type
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -401,33 +401,21 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     utilisateur: UtilisateurQueryModel,
     idUtilisateurAuth: string
   ): Promise<Result<UtilisateurQueryModel>> {
-    const idUtilisateur = utilisateur.id
+    if (utilisateur.type === Type.SUPPORT) return success(utilisateur)
 
-    let dateDeMigration: DateTime | undefined
-
-    switch (utilisateur.type) {
-      case Authentification.Type.CONSEILLER:
-        dateDeMigration =
-          await this.featureFlipService.recupererDateDeMigrationConseiller(
-            idUtilisateur
-          )
-        break
-      case Authentification.Type.JEUNE:
-        dateDeMigration =
-          await this.featureFlipService.recupererDateDeMigrationBeneficiaire(
-            idUtilisateur
-          )
-        break
-      default:
-        return success(utilisateur)
-    }
-
-    const dateDeMigrationExiste = dateDeMigration !== undefined
+    const dateDeMigration =
+      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+        {
+          id: utilisateur.id,
+          type: utilisateur.type
+        }
+      )
+    const dateDeMigrationExiste = !!dateDeMigration
     let dateDeMigrationArrivee
     if (dateDeMigrationExiste) {
       dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
         this.dateService.now(),
-        dateDeMigration!
+        dateDeMigration
       )
     }
     const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee

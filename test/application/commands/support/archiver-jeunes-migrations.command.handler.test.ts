@@ -11,10 +11,10 @@ import { Mail } from '../../../../src/domain/mail'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Authentification } from '../../../../src/domain/authentification'
-import Service = ArchiveJeune.Service
 import { ArchiverJeunesMigrationCommandHandler } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
 import { FeatureFlip } from '../../../../src/domain/feature-flip'
 import { EvenementService } from '../../../../src/domain/evenement'
+import Service = ArchiveJeune.Service
 
 describe('ArchiverJeunesMigrationCommandHandler', () => {
   let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
@@ -84,9 +84,7 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
       it('archive le jeune', async () => {
         // Given
         const idJeunes = ['1', '2', '3']
-        featureFlipService.recupererIdDesBeneficiaireAMigrer
-          .withArgs(FeatureFlip.Tag.MIGRATION)
-          .resolves(idJeunes)
+        featureFlipService.recupererIdDesBeneficiaireAMigrer.resolves(idJeunes)
 
         // When
         const result =

@@ -44,9 +44,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 
   async handle(): Promise<Result> {
     const idJeunes =
-      await this.featureFlipService.recupererIdDesBeneficiaireAMigrer(
-        FeatureFlip.Tag.MIGRATION
-      )
+      await this.featureFlipService.recupererIdDesBeneficiaireAMigrer()
 
     for (const idJeune of idJeunes) {
       this.archiverJeuneService.archiver(

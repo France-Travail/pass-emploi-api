@@ -23,6 +23,7 @@ import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/mod
 import { testConfig } from '../../utils/module-for-testing'
 import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { DateTime } from 'luxon'
+import { Authentification } from '../../../src/domain/authentification'
 
 const token = 'un-token'
 
@@ -73,8 +74,11 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
 
-        featureFlipService.recupererDateDeMigrationConseiller
-          .withArgs(idConseiller)
+        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+00:00'))
 
         // When
@@ -113,8 +117,11 @@ describe('GetDetailConseillerQueryHandler', () => {
         await JeuneSqlModel.creer(
           unJeuneDto({ idConseillerInitial: idConseiller })
         )
-        featureFlipService.recupererDateDeMigrationConseiller
-          .withArgs(idConseiller)
+        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(undefined)
 
         const actual = await getDetailConseillerQueryHandler.handle({
@@ -169,8 +176,11 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
         conseillerMiloService.recupererEtMettreAJourStructure.resolves()
-        featureFlipService.recupererDateDeMigrationConseiller
-          .withArgs(idConseiller)
+        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(undefined)
 
         // When

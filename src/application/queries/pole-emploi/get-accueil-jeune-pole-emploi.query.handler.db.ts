@@ -26,6 +26,7 @@ import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-e
 import { DemarcheQueryModel } from '../query-models/actions.query-model'
 import { AccueilJeunePoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
+import UtilisateurFeature = FeatureFlip.UtilisateurFeature
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
@@ -164,15 +165,20 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
           )[0]
         : undefined
 
+    const utilisateur: UtilisateurFeature = {
+      id: query.idJeune,
+      type: Authentification.Type.JEUNE
+    }
+
     const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationBeneficiaire(
-        query.idJeune
+      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+        utilisateur
       )
 
     const eligibleDemarchesIA =
-      await this.featureFlipService.featureActivePourBeneficiaire(
+      await this.featureFlipService.laFeatureEstActive(
         FeatureFlip.Tag.DEMARCHES_IA,
-        query.idJeune
+        utilisateur
       )
 
     const data: AccueilJeunePoleEmploiQueryModel = {

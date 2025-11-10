@@ -60,9 +60,9 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
     if (isFailure(rdvs) && isFailure(demarches)) return rdvs
 
     const eligibleDemarchesIA =
-      await this.featureFlipService.featureActivePourBeneficiaire(
+      await this.featureFlipService.laFeatureEstActive(
         FeatureFlip.Tag.DEMARCHES_IA,
-        query.idJeune
+        { id: query.idJeune, type: Authentification.Type.JEUNE }
       )
 
     return success({
