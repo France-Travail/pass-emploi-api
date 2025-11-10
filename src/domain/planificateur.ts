@@ -281,12 +281,6 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     description: 'Tous les jours à 9h45.'
   },
   {
-    type: Planificateur.JobType.MAJ_SEGMENTS,
-    expression: '0 6 * * *',
-    description:
-      "Tous les jours à 6h. MAJ Segments d'utilisateurs sur Firebase."
-  },
-  {
     type: Planificateur.JobType.DUMP_ANALYTICS,
     expression: '30 2 * * *',
     description: 'Tous les jours à 2h30. Dump de la DB vers analytics.'
