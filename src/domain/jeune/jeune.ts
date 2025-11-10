@@ -167,7 +167,8 @@ export namespace Jeune {
         configuration: {
           idJeune: id
         },
-        dispositif: jeuneACreer.dispositif
+        dispositif: jeuneACreer.dispositif,
+        peutVoirLeComptageDesHeures: jeuneACreer.peutVoirLeCompteurDesHeures
       }
     }
   }
@@ -181,6 +182,7 @@ export namespace Jeune {
       structure: Core.Structure
       idPartenaire?: string
       dispositif: Jeune.Dispositif
+      peutVoirLeCompteurDesHeures?: boolean
     }
   }
 
