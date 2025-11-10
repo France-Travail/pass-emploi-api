@@ -170,7 +170,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           configuration: {
             idJeune: 'DFKAL'
           },
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeComptageDesHeures: false
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(
           expectedJeune
@@ -241,9 +242,84 @@ describe('CreerJeuneMiloCommandHandler', () => {
           configuration: {
             idJeune: 'DFKAL'
           },
-          dispositif: Jeune.Dispositif.CEJ
+          dispositif: Jeune.Dispositif.CEJ,
+          peutVoirLeComptageDesHeures: false
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
+      })
+
+      it('crée un jeune et affiche le compteur de temps', async () => {
+        // Given
+        const command: CreerJeuneMiloCommand = {
+          idPartenaire,
+          nom: 'nom',
+          prenom: 'prenom',
+          email: 'email',
+          idConseiller: 'idConseiller',
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: true
+        }
+        miloRepository.creerJeune
+          .withArgs(command.idPartenaire)
+          .resolves(success({ idAuthentification: 'mon-sub' }))
+        const dossier = unDossierMilo()
+        miloRepository.getDossier.resolves(success(dossier))
+
+        // When
+        const result = await creerJeuneMiloCommandHandler.handle(command)
+
+        // Then
+        const expectedJeune: Jeune = {
+          id: 'DFKAL',
+          firstName: 'prenom',
+          lastName: 'nom',
+          email: 'email',
+          isActivated: false,
+          creationDate: date,
+          conseiller: {
+            id: '1',
+            lastName: 'Tavernier',
+            firstName: 'Nils',
+            email: 'nils.tavernier@passemploi.com'
+          },
+          structure: Core.Structure.MILO,
+          preferences: {
+            partageFavoris: true,
+            alertesOffres: true,
+            messages: true,
+            creationActionConseiller: true,
+            rendezVousSessions: true,
+            rappelActions: true
+          },
+          idPartenaire,
+          configuration: {
+            idJeune: 'DFKAL'
+          },
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeComptageDesHeures: true
+        }
+        expect(jeuneRepository.save).to.have.been.calledWithExactly(
+          expectedJeune
+        )
+        expect(
+          authentificationRepository.updateJeune
+        ).to.have.been.calledWithExactly({
+          id: idNouveauJeune,
+          idAuthentification: 'mon-sub'
+        })
+        expect(
+          chatRepository.initializeChatIfNotExists
+        ).to.have.been.calledWith(idNouveauJeune, conseiller.id)
+        expect(result).to.deep.equal(
+          success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
+        )
+        expect(miloRepository.getDossier).to.have.been.calledOnceWithExactly(
+          idPartenaire
+        )
+        expect(miloRepository.save).to.have.been.calledOnceWithExactly(
+          expectedJeune,
+          dossier.codeStructure
+        )
       })
     })
 
