@@ -22,9 +22,9 @@ import { GetAgendaSessionsConseillerMiloQueryHandler } from 'src/application/que
 import { GetCompteursBeneficiaireMiloQueryHandler } from 'src/application/queries/milo/get-compteurs-portefeuille-milo.query.handler.db'
 import { GetDetailSessionConseillerMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-conseiller.milo.query.handler.db'
 import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-jeune.milo.query.handler.db'
-import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { GetSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-sessions-conseiller.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
+import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
@@ -54,6 +54,7 @@ import { AddFavoriOffreImmersionCommandHandler } from './application/commands/ad
 import { AddFavoriOffreServiceCiviqueCommandHandler } from './application/commands/add-favori-offre-service-civique.command.handler'
 import { AjouterJeuneListeDeDiffusionCommandHandler } from './application/commands/ajouter-jeune-liste-de-diffusion.command.handler'
 import { ArchiverJeuneCommandHandler } from './application/commands/archiver-jeune.command.handler'
+import { ArchiverJeunesMigrationCommandHandler } from './application/commands/archiver-jeunes-migrations.command.handler'
 import { CreateCampagneCommandHandler } from './application/commands/campagne/create-campagne.command.handler'
 import { CreateEvaluationCommandHandler } from './application/commands/campagne/create-evaluation.command.handler'
 import { CloreRendezVousCommandHandler } from './application/commands/clore-rendez-vous.command.handler'
@@ -98,6 +99,7 @@ import { SendNotificationsNouveauxMessagesCommandHandler } from './application/c
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from './application/commands/support/delete-superviseurs.command.handler'
+import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { RefreshJddCommandHandler } from './application/commands/support/refresh-jdd.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
@@ -126,7 +128,6 @@ import { FakeJobHandler } from './application/jobs/fake.job.handler'
 import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
 import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evenements.job.handler'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
-import { MajSegmentsJobHandler } from './application/jobs/maj-segments.job.handler.db'
 import { MonitorJobsJobHandler } from './application/jobs/monitor-jobs.job.handler.db'
 import { NettoyerLesDonneesJobHandler } from './application/jobs/nettoyer-les-donnees.job.handler.db'
 import { NettoyerLesJobsJobHandler } from './application/jobs/nettoyer-les-jobs.job.handler'
@@ -303,7 +304,6 @@ import { SuperviseursRepositoryToken } from './domain/superviseur'
 import { ApiKeyAuthGuard } from './infrastructure/auth/api-key.auth-guard'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
-import { BigqueryClient } from './infrastructure/clients/bigquery.client'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
 import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
@@ -390,8 +390,6 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
-import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
-import { ArchiverJeunesMigrationCommandHandler } from './application/commands/archiver-jeunes-migrations.command.handler'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -490,7 +488,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     Conseiller.ListeDeDiffusion.Factory,
     Conseiller.ListeDeDiffusion.Service,
     RendezVousMilo.Factory,
-    BigqueryClient,
     DiagorienteClient,
     {
       provide: APP_GUARD,
@@ -863,7 +860,6 @@ export const JobHandlerProviders = [
   MajMailingListConseillerJobHandler,
   NotifierRecherchesServiceCiviqueJobHandler,
   NettoyerLesDonneesJobHandler,
-  MajSegmentsJobHandler,
   MonitorJobsJobHandler,
   HandleJobGenererJDDCommandHandler,
   SuivreEvenementsMiloCronJobHandler,
