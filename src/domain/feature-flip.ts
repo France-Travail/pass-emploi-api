@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Core } from './core'
-import { IdEtStructure } from '../infrastructure/repositories/feature-flip.repository.db'
+import { BeneficiaireMigration } from '../infrastructure/repositories/feature-flip.repository.db'
 import { Authentification } from './authentification'
 import Structure = Core.Structure
 
@@ -23,12 +23,12 @@ export namespace FeatureFlip {
     getBeneficiaireSiFeatureActive(
       tag: Tag,
       idBeneficiaire: string
-    ): Promise<IdEtStructure | undefined>
+    ): Promise<BeneficiaireMigration | undefined>
     getConseillerSiFeatureActive(
       tag: Tag,
       idConseiller: string
-    ): Promise<IdEtStructure | undefined>
-    getIdsBeneficiairesDeLaFeature(tag: Tag): Promise<IdEtStructure[]>
+    ): Promise<BeneficiaireMigration | undefined>
+    getIdsBeneficiairesDeLaFeature(tag: Tag): Promise<BeneficiaireMigration[]>
   }
 
   @Injectable()
@@ -65,11 +65,16 @@ export namespace FeatureFlip {
     }
 
     async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
-      const idsBeneficiairesFeatureMigration =
+      const beneficiairesMigration =
         await this.featureFlipRepository.getIdsBeneficiairesDeLaFeature(
           FeatureFlip.Tag.MIGRATION
         )
-      return idsBeneficiairesFeatureMigration
+      return beneficiairesMigration
+        .filter(beneficiaire =>
+          this.structureEligibleMigration(
+            beneficiaire.structureConseillerRattachement
+          )
+        )
         .filter(beneficiaire =>
           this.structureEligibleMigration(beneficiaire.structure)
         )
@@ -83,14 +88,21 @@ export namespace FeatureFlip {
         Tag.MIGRATION,
         utilisateur
       )
-      return this.structureEligibleMigration(idEtStructure?.structure)
+      return (
+        this.structureEligibleMigration(idEtStructure?.structure) &&
+        (idEtStructure?.structureConseillerRattachement
+          ? this.structureEligibleMigration(
+              idEtStructure?.structureConseillerRattachement
+            )
+          : true)
+      )
     }
 
     private async getIdEtStructureSiFeatureActive(
       tag: Tag,
       utilisateur: UtilisateurFeature
-    ): Promise<IdEtStructure | undefined> {
-      let idEtStructure: IdEtStructure | undefined
+    ): Promise<BeneficiaireMigration | undefined> {
+      let idEtStructure: BeneficiaireMigration | undefined
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
           idEtStructure =

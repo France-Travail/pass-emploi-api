@@ -283,8 +283,16 @@ describe('FeatureFlip', () => {
         repository.getIdsBeneficiairesDeLaFeature
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves([
-            { id: 'jeune-1', structure: Core.Structure.POLE_EMPLOI },
-            { id: 'jeune-2', structure: Core.Structure.MILO }
+            {
+              id: 'jeune-1',
+              structure: Core.Structure.POLE_EMPLOI,
+              structureConseillerRattachement: Core.Structure.POLE_EMPLOI
+            },
+            {
+              id: 'jeune-2',
+              structure: Core.Structure.MILO,
+              structureConseillerRattachement: Core.Structure.MILO
+            }
           ])
 
         // When

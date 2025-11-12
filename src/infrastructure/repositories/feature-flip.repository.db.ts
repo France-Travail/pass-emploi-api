@@ -4,9 +4,10 @@ import { FeatureFlip } from '../../domain/feature-flip'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import { Core } from '../../domain/core'
 
-export interface IdEtStructure {
+export interface BeneficiaireMigration {
   id: string
   structure: Core.Structure
+  structureConseillerRattachement: Core.Structure
 }
 
 @Injectable()
@@ -17,21 +18,23 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
 
   async getIdsBeneficiairesDeLaFeature(
     tag: FeatureFlip.Tag
-  ): Promise<IdEtStructure[]> {
-    return await this.sequelize.query<IdEtStructure>(
+  ): Promise<BeneficiaireMigration[]> {
+    return await this.sequelize.query<BeneficiaireMigration>(
       `
-      SELECT j.id, j.structure
-      FROM feature_flip ff
-      JOIN conseiller c ON c.email = ff.email_conseiller
-      JOIN jeune j ON (j.id_conseiller = c.id OR j.id_conseiller_initial = c.id)
+      SELECT
+        j.id,
+        j.structure,
+        c.structure AS "structureConseillerRattachement"
+      FROM jeune j
+      JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+      JOIN feature_flip ff ON ff.email_conseiller = c.email
       WHERE ff.feature_tag = :featureTag
       `,
       {
         replacements: {
           featureTag: tag
         },
-        type: QueryTypes.SELECT,
-        mapToModel: false
+        type: QueryTypes.SELECT
       }
     )
   }
@@ -39,13 +42,16 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
   async getBeneficiaireSiFeatureActive(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string
-  ): Promise<IdEtStructure | undefined> {
-    const rows = await this.sequelize.query<IdEtStructure>(
+  ): Promise<BeneficiaireMigration | undefined> {
+    const rows = await this.sequelize.query<BeneficiaireMigration>(
       `
-      SELECT j.id, j.structure
+      SELECT
+          j.id,
+          j.structure,
+          c.structure AS "structureConseillerRattachement"
       FROM feature_flip ff
       JOIN jeune j ON j.id = :idJeune
-      JOIN conseiller c ON c.id IN (j.id_conseiller, j.id_conseiller_initial)
+      JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
       WHERE ff.feature_tag = :featureTag
       AND ff.email_conseiller = c.email
       LIMIT 1
@@ -64,8 +70,8 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
   async getConseillerSiFeatureActive(
     tag: FeatureFlip.Tag,
     idConseiller: string
-  ): Promise<IdEtStructure | undefined> {
-    const rows = await this.sequelize.query<IdEtStructure>(
+  ): Promise<BeneficiaireMigration | undefined> {
+    const rows = await this.sequelize.query<BeneficiaireMigration>(
       `
       SELECT c.id, c.structure
       FROM feature_flip ff

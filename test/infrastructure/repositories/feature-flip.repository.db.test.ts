@@ -101,7 +101,8 @@ describe('FeatureFlipSqlRepository', () => {
       )
       expect(idEtStructure).to.deep.equal({
         id: 'cejMigration',
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI,
+        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
       })
     })
 
@@ -112,7 +113,8 @@ describe('FeatureFlipSqlRepository', () => {
       )
       expect(idEtStructure).to.deep.equal({
         id: 'cej-suivi-aij-sans-migration',
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI,
+        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
       })
     })
 
@@ -155,26 +157,25 @@ describe('FeatureFlipSqlRepository', () => {
   })
 
   describe('getIdsBeneficiaires', () => {
-    it('renvoie la liste des id et structure des jeunes des conseillers en cours ou initial avec le tag migration', async () => {
+    it('renvoie la liste des id et structure des jeunes des conseillers de rattachement avec le tag migration', async () => {
       const idJeunes = await repo.getIdsBeneficiairesDeLaFeature(
         FeatureFlip.Tag.MIGRATION
       )
       expect(idJeunes).to.have.deep.members([
         {
           id: 'cejMigration',
-          structure: 'POLE_EMPLOI'
+          structure: 'POLE_EMPLOI',
+          structureConseillerRattachement: 'POLE_EMPLOI'
         },
         {
           id: 'aijMigration',
-          structure: 'POLE_EMPLOI_AIJ'
-        },
-        {
-          id: 'aij-suivi-cej',
-          structure: 'POLE_EMPLOI_AIJ'
+          structure: 'POLE_EMPLOI_AIJ',
+          structureConseillerRattachement: 'POLE_EMPLOI_AIJ'
         },
         {
           id: 'cej-suivi-aij-sans-migration',
-          structure: 'POLE_EMPLOI'
+          structure: 'POLE_EMPLOI',
+          structureConseillerRattachement: 'POLE_EMPLOI'
         }
       ])
     })
