@@ -159,10 +159,14 @@ describe('FeatureFlipSqlRepository', () => {
       const idJeunes = await repo.getIdsBeneficiairesDeLaFeature(
         FeatureFlip.Tag.MIGRATION
       )
-      expect(idJeunes).to.be.deep.equal([
+      expect(idJeunes).to.have.deep.members([
         {
           id: 'cejMigration',
           structure: 'POLE_EMPLOI'
+        },
+        {
+          id: 'aijMigration',
+          structure: 'POLE_EMPLOI_AIJ'
         },
         {
           id: 'aij-suivi-cej',
@@ -171,10 +175,6 @@ describe('FeatureFlipSqlRepository', () => {
         {
           id: 'cej-suivi-aij-sans-migration',
           structure: 'POLE_EMPLOI'
-        },
-        {
-          id: 'aijMigration',
-          structure: 'POLE_EMPLOI_AIJ'
         }
       ])
     })
