@@ -183,12 +183,12 @@ export namespace Notification {
 
   @Injectable()
   export class Service {
-    private logger: Logger
+    private readonly logger: Logger
 
     constructor(
       @Inject(NotificationRepositoryToken)
-      private notificationRepository: Notification.Repository,
-      private dateService: DateService
+      private readonly notificationRepository: Notification.Repository,
+      private readonly dateService: DateService
     ) {
       this.logger = new Logger('NotificationService')
     }

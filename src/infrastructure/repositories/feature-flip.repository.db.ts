@@ -28,8 +28,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       `,
       {
         replacements: {
-          featureTag: tag,
-          structureMigration: Core.Structure.POLE_EMPLOI
+          featureTag: tag
         },
         type: QueryTypes.SELECT,
         mapToModel: false
@@ -54,8 +53,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       {
         replacements: {
           idJeune: idBeneficiaire,
-          featureTag: tag,
-          structureMigration: Core.Structure.POLE_EMPLOI
+          featureTag: tag
         },
         type: QueryTypes.SELECT
       }
@@ -79,8 +77,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
       {
         replacements: {
           idConseiller,
-          featureTag: tag,
-          structureMigration: Core.Structure.POLE_EMPLOI
+          featureTag: tag
         },
         type: QueryTypes.SELECT
       }
