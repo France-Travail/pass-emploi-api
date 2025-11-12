@@ -9,8 +9,6 @@ import Structure = Core.Structure
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
 export namespace FeatureFlip {
-  const STRUCTURE_QUI_MIGRE = Structure.POLE_EMPLOI
-
   export enum Tag {
     DEMARCHES_IA = 'DEMARCHES_IA',
     MIGRATION = 'MIGRATION'
@@ -72,7 +70,9 @@ export namespace FeatureFlip {
           FeatureFlip.Tag.MIGRATION
         )
       return idsBeneficiairesFeatureMigration
-        .filter(beneficiaire => beneficiaire.structure === STRUCTURE_QUI_MIGRE)
+        .filter(beneficiaire =>
+          this.structureEligibleMigration(beneficiaire.structure)
+        )
         .map(beneficiaire => beneficiaire.id)
     }
 
@@ -83,7 +83,7 @@ export namespace FeatureFlip {
         Tag.MIGRATION,
         utilisateur
       )
-      return idEtStructure?.structure === STRUCTURE_QUI_MIGRE
+      return this.structureEligibleMigration(idEtStructure?.structure)
     }
 
     private async getIdEtStructureSiFeatureActive(
@@ -107,6 +107,12 @@ export namespace FeatureFlip {
             )
       }
       return idEtStructure
+    }
+
+    private structureEligibleMigration(
+      structure: Core.Structure | undefined
+    ): boolean {
+      return structure === Structure.POLE_EMPLOI
     }
   }
 }
