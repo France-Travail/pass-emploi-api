@@ -89,7 +89,8 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         configuration: {
           idJeune: idNouveauJeune
         },
-        dispositif: Jeune.Dispositif.CEJ
+        dispositif: Jeune.Dispositif.CEJ,
+        peutVoirLeComptageDesHeures: undefined
       }
       expect(result).to.deep.equal(success(expectedJeune))
       expect(chatRepository.initializeChatIfNotExists).to.have.been.calledWith(
