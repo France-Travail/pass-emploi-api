@@ -14,16 +14,13 @@ import { DateService } from '../../utils/date-service'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { DateTime, WeekdayNumbers } from 'luxon'
-import StatsJobNotif = Planificateur.StatsJobNotif
-import { Core } from '../../domain/core'
 import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
+import { FeatureFlip } from '../../domain/feature-flip'
+import StatsJobNotif = Planificateur.StatsJobNotif
+import ParamsJobNotif = Planificateur.ParamsJobNotif
 
 const MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF = 500
-const TOKEN_NOT_NULL = {
-  pushNotificationToken: {
-    [Op.ne]: null
-  }
-}
+
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_BENEFICIAIRES)
 export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.JobNotifierBeneficiaires> {
@@ -34,7 +31,8 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     suiviJobService: SuiviJob.Service,
     private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private readonly planificateurRepository: Planificateur.Repository
+    private readonly planificateurRepository: Planificateur.Repository,
+    private readonly featureFlipService: FeatureFlip.Service
   ) {
     super(Planificateur.JobType.NOTIFIER_BENEFICIAIRES, suiviJobService)
   }
@@ -54,7 +52,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     let estLaDerniereExecution = true
 
     try {
-      const filtreRequete = this.construireFiltreRequete(jobParams.structures)
+      const filtreRequete = await this.construireFiltreRequete(jobParams)
       let batchSize = jobParams.batchSize
       if (!taillePopulationTotale) {
         taillePopulationTotale = await JeuneSqlModel.count({
@@ -90,7 +88,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
           offset: offset + batchSize,
           estLaDerniereExecution: estLaDerniereExecution
         }
-        this.planifierLeProchainJob(maintenant, contenu, stats, batchSize)
+        await this.planifierLeProchainJob(maintenant, contenu, stats, batchSize)
       }
     } catch (e) {
       this.logger.error(e)
@@ -112,12 +110,12 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     }
   }
 
-  private planifierLeProchainJob(
+  private async planifierLeProchainJob(
     maintenant: DateTime,
     contenuJob: Planificateur.JobNotifierBeneficiaires,
     stats: StatsJobNotif,
     batchSize: number
-  ): void {
+  ): Promise<void> {
     let dateExecution = maintenant
       .plus({
         minute: contenuJob.params.minutesEntreLesBatchs
@@ -126,7 +124,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
 
     dateExecution = this.reporterDateEnJourOuvreLaJournee(dateExecution)
 
-    this.planificateurRepository.ajouterJob({
+    await this.planificateurRepository.ajouterJob({
       dateExecution: dateExecution.toJSDate(),
       type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
       contenu: {
@@ -196,12 +194,21 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     return newDate
   }
 
-  private construireFiltreRequete(
-    structures?: Core.Structure[]
-  ): WhereAttributeHash<unknown> {
-    const where: WhereOptions = TOKEN_NOT_NULL
-    if (structures && structures.length > 0) {
-      where.structure = { [Op.in]: structures }
+  private async construireFiltreRequete(
+    params: ParamsJobNotif
+  ): Promise<WhereAttributeHash<unknown>> {
+    const where: WhereOptions<JeuneSqlModel> = {
+      pushNotificationToken: {
+        [Op.ne]: null
+      }
+    }
+    if (params.structures && params.structures.length > 0) {
+      where.structure = { [Op.in]: params.structures }
+    }
+    if (params.beneficiairesFaisantPartieDeLaMigration === true) {
+      const idsBeneficiairesMigration =
+        await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer()
+      where.id = { [Op.in]: idsBeneficiairesMigration }
     }
     return where
   }

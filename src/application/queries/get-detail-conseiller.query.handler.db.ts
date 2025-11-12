@@ -4,7 +4,7 @@ import { Includeable } from 'sequelize'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
-import { Result, failure, success } from '../../building-blocks/types/result'
+import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
 import { FeatureFlip } from '../../domain/feature-flip'
@@ -16,6 +16,7 @@ import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-m
 import { StructureMiloSqlModel } from '../../infrastructure/sequelize/models/structure-milo.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DetailConseillerQueryModel } from './query-models/conseillers.query-model'
+import Type = Authentification.Type
 
 export interface GetDetailConseillerQuery extends Query {
   idConseiller: string
@@ -76,8 +77,8 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
     } catch {}
 
     const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationConseiller(
-        query.idConseiller
+      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+        { id: query.idConseiller, type: Type.CONSEILLER }
       )
 
     return success(

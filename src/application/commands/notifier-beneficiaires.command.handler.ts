@@ -25,6 +25,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   titre: string
   description: string
   structures?: Core.Structure[]
+  beneficiairesMigration?: boolean
   push?: boolean
   batchSize?: number
   minutesEntreLesBatchs?: number
@@ -47,13 +48,6 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
     command: NotifierBeneficiairesCommand
   ): Promise<Result<Planificateur.JobId>> {
     const push: boolean = command.push || PUSH_NOTIF_DEFAUT
-    if (push && !command.structures) {
-      return failure(
-        new MauvaiseCommandeError(
-          `Une notif push doit cibler des structures en particulier.`
-        )
-      )
-    }
     if (
       push &&
       command.typeNotification === Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
@@ -84,6 +78,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       description: command.description,
       params: {
         structures: command.structures,
+        beneficiairesFaisantPartieDeLaMigration: command.beneficiairesMigration,
         push,
         batchSize: command.batchSize,
         minutesEntreLesBatchs:

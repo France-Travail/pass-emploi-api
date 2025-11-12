@@ -22,6 +22,7 @@ import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vo
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
+import { Authentification } from '../../../../src/domain/authentification'
 import Structure = Core.Structure
 
 describe('GetMonSuiviPoleEmploiQueryHandler', () => {
@@ -73,8 +74,11 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
           queryModel: [demarche]
         })
       )
-      featureFlipService.featureActivePourBeneficiaire
-        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, 'id-jeune')
+      featureFlipService.laFeatureEstActive
+        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+          id: 'id-jeune',
+          type: Authentification.Type.JEUNE
+        })
         .resolves(false)
 
       result = await handler.handle({
@@ -119,8 +123,11 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       await JeuneSqlModel.create(
         unJeuneDto({ id: 'id-jeune', idConseiller: undefined })
       )
-      featureFlipService.featureActivePourBeneficiaire
-        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, 'id-jeune')
+      featureFlipService.laFeatureEstActive
+        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+          id: 'id-jeune',
+          type: Authentification.Type.JEUNE
+        })
         .resolves(true)
       getDemarchesQueryGetter.handle.resolves(
         failure(new NonTrouveError('Démarches KO'))

@@ -28,6 +28,7 @@ import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../../utils'
+import { Authentification } from '../../../../src/domain/authentification'
 import Structure = Core.Structure
 
 describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
@@ -199,8 +200,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             })
             .resolves(campagneQueryModel)
 
-          featureFlipService.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+          featureFlipService.laFeatureEstActive
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(true)
         })
         it('retourne le prochain rendez-vous', async () => {
@@ -272,8 +276,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie la date de migration quand elle existe', async () => {
           // Given
-          featureFlipService.recupererDateDeMigrationBeneficiaire
-            .withArgs(query.idJeune)
+          featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+            .withArgs({
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(DateTime.fromISO('2024-09-01T00:00:00.000Z'))
 
           // When
@@ -286,8 +293,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('ne renvoie pas de date de migration quand elle est inexistente', async () => {
           // Given
-          featureFlipService.recupererDateDeMigrationBeneficiaire
-            .withArgs(query.idJeune)
+          featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+            .withArgs({
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(undefined)
 
           // When
@@ -300,8 +310,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie eligibleDemarchesIA quand la feature est active', async () => {
           // Given
-          featureFlipService.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+          featureFlipService.laFeatureEstActive
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(true)
 
           // When
@@ -314,8 +327,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie eligibleDemarchesIA false quand la feature est inactive', async () => {
           // Given
-          featureFlipService.featureActivePourBeneficiaire
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+          featureFlipService.laFeatureEstActive
+            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(false)
 
           // When
@@ -365,8 +381,11 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
           })
           .resolves(campagneQueryModel)
 
-        featureFlipService.featureActivePourBeneficiaire
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, query.idJeune)
+        featureFlipService.laFeatureEstActive
+          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
+            id: query.idJeune,
+            type: Authentification.Type.JEUNE
+          })
           .resolves(false)
 
         // When

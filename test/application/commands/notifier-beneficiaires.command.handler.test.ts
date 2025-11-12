@@ -49,6 +49,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           Core.Structure.POLE_EMPLOI_AIJ,
           Core.Structure.POLE_EMPLOI_BRSA
         ],
+        beneficiairesMigration: false,
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15
@@ -72,6 +73,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
               Core.Structure.POLE_EMPLOI_AIJ,
               Core.Structure.POLE_EMPLOI_BRSA
             ],
+            beneficiairesFaisantPartieDeLaMigration: false,
             push: true,
             batchSize: 2000,
             minutesEntreLesBatchs: 15

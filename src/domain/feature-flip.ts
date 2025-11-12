@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import { Core } from './core'
+import { IdEtStructure } from '../infrastructure/repositories/feature-flip.repository.db'
+import { Authentification } from './authentification'
+import Structure = Core.Structure
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
@@ -9,16 +13,22 @@ export namespace FeatureFlip {
     DEMARCHES_IA = 'DEMARCHES_IA',
     MIGRATION = 'MIGRATION'
   }
+
+  export interface UtilisateurFeature {
+    id: string
+    type: Authentification.Type.JEUNE | Authentification.Type.CONSEILLER
+  }
+
   export interface Repository {
-    featureActivePourBeneficiaire(
+    getBeneficiaireSiFeatureActive(
       tag: Tag,
       idBeneficiaire: string
-    ): Promise<boolean>
-    featureActivePourConseiller(
+    ): Promise<IdEtStructure | undefined>
+    getConseillerSiFeatureActive(
       tag: Tag,
       idConseiller: string
-    ): Promise<boolean>
-    getIdsBeneficiaires(tag: Tag): Promise<string[]>
+    ): Promise<IdEtStructure | undefined>
+    getIdsBeneficiairesDeLaFeature(tag: Tag): Promise<IdEtStructure[]>
   }
 
   @Injectable()
@@ -39,48 +49,70 @@ export namespace FeatureFlip {
         : undefined
     }
 
-    async recupererDateDeMigrationBeneficiaire(
-      idBeneficiaire: string
-    ): Promise<DateTime | undefined> {
-      const faitPartieDeLaMigration = await this.featureActivePourBeneficiaire(
-        FeatureFlip.Tag.MIGRATION,
-        idBeneficiaire
-      )
-      return faitPartieDeLaMigration ? this.dateDeMigration : undefined
-    }
-
-    async recupererDateDeMigrationConseiller(
-      idConseiller: string
-    ): Promise<DateTime | undefined> {
-      const faitPartieDeLaMigration = await this.featureActivePourConseiller(
-        FeatureFlip.Tag.MIGRATION,
-        idConseiller
-      )
-      return faitPartieDeLaMigration ? this.dateDeMigration : undefined
-    }
-
-    async featureActivePourBeneficiaire(
+    async laFeatureEstActive(
       tag: Tag,
-      idBeneficiaire: string
+      utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      return this.featureFlipRepository.featureActivePourBeneficiaire(
-        tag,
-        idBeneficiaire
-      )
+      return !!(await this.getIdEtStructureSiFeatureActive(tag, utilisateur))
     }
 
-    async featureActivePourConseiller(
+    async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+      utilisateur: UtilisateurFeature
+    ): Promise<DateTime | undefined> {
+      return (await this.faitPartieDeLaMigration(utilisateur))
+        ? this.dateDeMigration
+        : undefined
+    }
+
+    async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
+      const idsBeneficiairesFeatureMigration =
+        await this.featureFlipRepository.getIdsBeneficiairesDeLaFeature(
+          FeatureFlip.Tag.MIGRATION
+        )
+      return idsBeneficiairesFeatureMigration
+        .filter(beneficiaire =>
+          this.structureEligibleMigration(beneficiaire.structure)
+        )
+        .map(beneficiaire => beneficiaire.id)
+    }
+
+    private async faitPartieDeLaMigration(
+      utilisateur: UtilisateurFeature
+    ): Promise<boolean> {
+      const idEtStructure = await this.getIdEtStructureSiFeatureActive(
+        Tag.MIGRATION,
+        utilisateur
+      )
+      return this.structureEligibleMigration(idEtStructure?.structure)
+    }
+
+    private async getIdEtStructureSiFeatureActive(
       tag: Tag,
-      idBeneficiaire: string
-    ): Promise<boolean> {
-      return this.featureFlipRepository.featureActivePourConseiller(
-        tag,
-        idBeneficiaire
-      )
+      utilisateur: UtilisateurFeature
+    ): Promise<IdEtStructure | undefined> {
+      let idEtStructure: IdEtStructure | undefined
+      switch (utilisateur.type) {
+        case Authentification.Type.CONSEILLER:
+          idEtStructure =
+            await this.featureFlipRepository.getConseillerSiFeatureActive(
+              tag,
+              utilisateur.id
+            )
+          break
+        case Authentification.Type.JEUNE:
+          idEtStructure =
+            await this.featureFlipRepository.getBeneficiaireSiFeatureActive(
+              tag,
+              utilisateur.id
+            )
+      }
+      return idEtStructure
     }
 
-    async recupererIdDesBeneficiaireAMigrer(tag: Tag): Promise<string[]> {
-      return await this.featureFlipRepository.getIdsBeneficiaires(tag)
+    private structureEligibleMigration(
+      structure: Core.Structure | undefined
+    ): boolean {
+      return structure === Structure.POLE_EMPLOI
     }
   }
 }

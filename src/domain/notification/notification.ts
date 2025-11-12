@@ -47,7 +47,8 @@ export namespace Notification {
     BENEVOLAT = 'BENEVOLAT',
     CAMPAGNE = 'CAMPAGNE',
     NOUVELLES_FONCTIONNALITES = 'NOUVELLES_FONCTIONNALITES',
-    CENTRE_DE_NOTIFS_UNIQUEMENT = 'CENTRE_DE_NOTIFS_UNIQUEMENT'
+    CENTRE_DE_NOTIFS_UNIQUEMENT = 'CENTRE_DE_NOTIFS_UNIQUEMENT',
+    MIGRATION_PARCOURS_EMPLOI = 'MIGRATION_PARCOURS_EMPLOI'
   }
 
   export type TypeRdv =
@@ -67,7 +68,8 @@ export namespace Notification {
     OUTILS = Type.OUTILS,
     RECHERCHE = Type.RECHERCHE,
     SAVED_SEARCHES = Type.SAVED_SEARCHES,
-    CENTRE_DE_NOTIFS_UNIQUEMENT = Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+    CENTRE_DE_NOTIFS_UNIQUEMENT = Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+    MIGRATION_PARCOURS_EMPLOI = Type.MIGRATION_PARCOURS_EMPLOI
   }
 
   export interface Message {
@@ -181,12 +183,12 @@ export namespace Notification {
 
   @Injectable()
   export class Service {
-    private logger: Logger
+    private readonly logger: Logger
 
     constructor(
       @Inject(NotificationRepositoryToken)
-      private notificationRepository: Notification.Repository,
-      private dateService: DateService
+      private readonly notificationRepository: Notification.Repository,
+      private readonly dateService: DateService
     ) {
       this.logger = new Logger('NotificationService')
     }

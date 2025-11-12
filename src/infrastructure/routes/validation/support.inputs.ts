@@ -147,6 +147,12 @@ export class NotifierBeneficiairesPayload {
   @IsOptional()
   @IsBoolean()
   @IsIn([true, false])
+  beneficiairesMigration?: boolean
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  @IsIn([true, false])
   push: boolean
 
   @ApiPropertyOptional()

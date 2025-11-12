@@ -177,8 +177,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererDateDeMigrationConseiller
-                .withArgs(utilisateur.id)
+              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(maintenant)
 
               // When
@@ -210,8 +213,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererDateDeMigrationConseiller
-                .withArgs(utilisateur.id)
+              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(maintenant.plus({ days: 1 }))
 
               // When
@@ -246,8 +252,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererDateDeMigrationConseiller
-                .withArgs(utilisateur.id)
+              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(undefined)
 
               // When
@@ -1002,8 +1011,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             const dateDeMigration = maintenant.plus({ hours: 1 })
-            featureFlipService.recupererDateDeMigrationBeneficiaire
-              .withArgs(utilisateur.id)
+            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(dateDeMigration)
 
             // When
@@ -1038,8 +1050,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
 
-            featureFlipService.recupererDateDeMigrationBeneficiaire
-              .withArgs(utilisateur.id)
+            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(maintenant.plus({ days: 3 }))
 
             // When
@@ -1077,8 +1092,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
-            featureFlipService.recupererDateDeMigrationBeneficiaire
-              .withArgs(utilisateur.id)
+            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(undefined)
 
             // When
