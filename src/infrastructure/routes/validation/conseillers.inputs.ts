@@ -94,6 +94,10 @@ export class CreerJeuneMiloPayload {
   @IsBoolean()
   @IsOptional()
   surcharge?: boolean
+
+  @ApiProperty()
+  @IsBoolean()
+  peutVoirLeCompteurDesHeures: boolean
 }
 
 export class EnvoyerNotificationsPayload {

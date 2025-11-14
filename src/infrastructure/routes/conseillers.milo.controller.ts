@@ -130,7 +130,9 @@ export class ConseillersMiloController {
       prenom: creerJeuneMiloPayload.prenom,
       idPartenaire: creerJeuneMiloPayload.idDossier,
       dispositif: creerJeuneMiloPayload.dispositif,
-      surcharge: creerJeuneMiloPayload.surcharge
+      surcharge: creerJeuneMiloPayload.surcharge,
+      peutVoirLeCompteurDesHeures:
+        creerJeuneMiloPayload.peutVoirLeCompteurDesHeures
     }
     const result = await this.creerJeuneMiloCommandHandler.execute(
       command,

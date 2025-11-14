@@ -40,6 +40,7 @@ export interface CreerJeuneMiloCommand extends Command {
   idConseiller: string
   dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
   surcharge?: boolean
+  peutVoirLeCompteurDesHeures: boolean
 }
 
 @Injectable()
@@ -156,7 +157,8 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       structure: Core.Structure.MILO,
       conseiller,
       idPartenaire: command.idPartenaire,
-      dispositif: command.dispositif
+      dispositif: command.dispositif,
+      peutVoirLeCompteurDesHeures: command.peutVoirLeCompteurDesHeures
     }
 
     const nouveauJeune = this.jeuneFactory.creer(jeuneACreer)
