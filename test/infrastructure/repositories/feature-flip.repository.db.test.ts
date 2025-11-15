@@ -93,88 +93,89 @@ describe('FeatureFlipSqlRepository', () => {
     ])
   })
 
-  describe('featureActivePourBeneficiaire', () => {
-    it("renvoie l'id et la structure du jeune si son conseiller a la feature demandée", async () => {
-      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
+  describe('getBeneficiaireSiFeatureActive', () => {
+    it('renvoie le bénéficiaire si son conseiller a la feature demandée', async () => {
+      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'cejMigration'
       )
-      expect(idEtStructure).to.deep.equal({
+      expect(beneficiaire).to.deep.equal({
         id: 'cejMigration',
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI,
+        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
       })
     })
 
-    it("renvoie l'id et la structure du jeune si son conseiller initial a la feature demandée", async () => {
-      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
+    it('renvoie le bénéficiaire si son conseiller initial a la feature demandée', async () => {
+      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'cej-suivi-aij-sans-migration'
       )
-      expect(idEtStructure).to.deep.equal({
+      expect(beneficiaire).to.deep.equal({
         id: 'cej-suivi-aij-sans-migration',
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI,
+        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
       })
     })
 
     it("ne renvoie rien si ni son conseiller, ni son conseiller initial n'ont la feature demandée", async () => {
-      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
+      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.DEMARCHES_IA,
         'cejMigration'
       )
-      expect(idEtStructure).to.be.undefined()
+      expect(beneficiaire).to.be.undefined()
     })
 
     it("ne renvoie rien si l'id jeune n'existe pas", async () => {
-      const idEtStructure = await repo.getBeneficiaireSiFeatureActive(
+      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'id-inexistant'
       )
-      expect(idEtStructure).to.be.undefined()
+      expect(beneficiaire).to.be.undefined()
     })
   })
 
   describe('featureActivePourConseiller', () => {
-    it("renvoie l'id et la structure du conseiller si l'email du conseiller est autorisée pour la feature", async () => {
-      const idEtStructure = await repo.getConseillerSiFeatureActive(
+    it("renvoie le conseiller si l'email du conseiller est autorisée pour la feature", async () => {
+      const conseiller = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'cejMigration'
       )
-      expect(idEtStructure).to.deep.equal({
+      expect(conseiller).to.deep.equal({
         id: 'cejMigration',
         structure: Core.Structure.POLE_EMPLOI
       })
     })
 
     it("ne renvoie rien si le conseiller n'est pas autorisé pour cette feature", async () => {
-      const idEtStructure = await repo.getConseillerSiFeatureActive(
+      const conseiller = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
         'ftIAPasMigration'
       )
-      expect(idEtStructure).to.be.undefined()
+      expect(conseiller).to.be.undefined()
     })
   })
 
-  describe('getIdsBeneficiaires', () => {
-    it('renvoie la liste des id et structure des jeunes des conseillers en cours ou initial avec le tag migration', async () => {
-      const idJeunes = await repo.getIdsBeneficiairesDeLaFeature(
+  describe('getBeneficiairesDeLaFeature', () => {
+    it('renvoie la liste des id et structure des jeunes des conseillers de rattachement avec le tag migration', async () => {
+      const idJeunes = await repo.getBeneficiairesDeLaFeature(
         FeatureFlip.Tag.MIGRATION
       )
       expect(idJeunes).to.have.deep.members([
         {
           id: 'cejMigration',
-          structure: 'POLE_EMPLOI'
+          structure: 'POLE_EMPLOI',
+          structureConseillerRattachement: 'POLE_EMPLOI'
         },
         {
           id: 'aijMigration',
-          structure: 'POLE_EMPLOI_AIJ'
-        },
-        {
-          id: 'aij-suivi-cej',
-          structure: 'POLE_EMPLOI_AIJ'
+          structure: 'POLE_EMPLOI_AIJ',
+          structureConseillerRattachement: 'POLE_EMPLOI_AIJ'
         },
         {
           id: 'cej-suivi-aij-sans-migration',
-          structure: 'POLE_EMPLOI'
+          structure: 'POLE_EMPLOI',
+          structureConseillerRattachement: 'POLE_EMPLOI'
         }
       ])
     })
