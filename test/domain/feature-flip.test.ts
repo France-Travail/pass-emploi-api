@@ -1,7 +1,11 @@
 import { ConfigService } from '@nestjs/config'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
-import { FeatureFlip } from '../../src/domain/feature-flip'
+import {
+  BeneficiaireMigration,
+  ConseillerMigration,
+  FeatureFlip
+} from '../../src/domain/feature-flip'
 import { expect } from '../utils'
 import { DateTime } from 'luxon'
 import { Authentification } from '../../src/domain/authentification'
@@ -41,7 +45,13 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getBeneficiaireSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves({ id: 'jeune-1', structure: Core.Structure.POLE_EMPLOI })
+          .resolves(
+            new BeneficiaireMigration(
+              'jeune-1',
+              Core.Structure.POLE_EMPLOI,
+              Core.Structure.POLE_EMPLOI
+            )
+          )
 
         // When
         const result =
@@ -62,7 +72,13 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getBeneficiaireSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves({ id: idJeune, structure: Core.Structure.MILO })
+          .resolves(
+            new BeneficiaireMigration(
+              idJeune,
+              Core.Structure.MILO,
+              Core.Structure.MILO
+            )
+          )
 
         // When
         const result =
@@ -100,7 +116,13 @@ describe('FeatureFlip', () => {
         buildService(undefined)
         repository.getBeneficiaireSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves({ id: 'jeune-1', structure: Core.Structure.POLE_EMPLOI })
+          .resolves(
+            new BeneficiaireMigration(
+              'jeune-1',
+              Core.Structure.POLE_EMPLOI,
+              Core.Structure.POLE_EMPLOI
+            )
+          )
 
         // When
         const result =
@@ -123,7 +145,9 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves({ id: idConseiller, structure: Core.Structure.POLE_EMPLOI })
+          .resolves(
+            new ConseillerMigration(idConseiller, Core.Structure.POLE_EMPLOI)
+          )
 
         // When
         const result =
@@ -182,7 +206,9 @@ describe('FeatureFlip', () => {
         buildService(undefined)
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves(true)
+          .resolves(
+            new ConseillerMigration(idConseiller, Core.Structure.POLE_EMPLOI)
+          )
 
         // When
         const result =
@@ -275,24 +301,24 @@ describe('FeatureFlip', () => {
       })
     })
 
-    describe('recupererIdDesBeneficiaireAMigrer', () => {
+    describe('recupererIdsDesBeneficiaireAMigrer', () => {
       it('renvoie les ids des bénéficiaires faisant partie de la feature MIGRATION et étant FT CEJ', async () => {
         // Given
         const rawDate = '2024-09-01'
         buildService(rawDate)
-        repository.getIdsBeneficiairesDeLaFeature
+        repository.getBeneficiairesDeLaFeature
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves([
-            {
-              id: 'jeune-1',
-              structure: Core.Structure.POLE_EMPLOI,
-              structureConseillerRattachement: Core.Structure.POLE_EMPLOI
-            },
-            {
-              id: 'jeune-2',
-              structure: Core.Structure.MILO,
-              structureConseillerRattachement: Core.Structure.MILO
-            }
+            new BeneficiaireMigration(
+              'jeune-1',
+              Core.Structure.POLE_EMPLOI,
+              Core.Structure.POLE_EMPLOI
+            ),
+            new BeneficiaireMigration(
+              'jeune-2',
+              Core.Structure.MILO,
+              Core.Structure.MILO
+            )
           ])
 
         // When
