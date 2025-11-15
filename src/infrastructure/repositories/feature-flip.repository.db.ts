@@ -1,14 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
-import { FeatureFlip } from '../../domain/feature-flip'
+import {
+  BeneficiaireMigration,
+  ConseillerMigration,
+  FeatureFlip
+} from '../../domain/feature-flip'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import { Core } from '../../domain/core'
-
-export interface BeneficiaireMigration {
-  id: string
-  structure: Core.Structure
-  structureConseillerRattachement: Core.Structure
-}
 
 @Injectable()
 export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
@@ -16,10 +14,33 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
-  async getIdsBeneficiairesDeLaFeature(
+  private mapToBeneficiaireMigration(row: {
+    id: string
+    structure: string
+    structureConseillerRattachement: string
+  }): BeneficiaireMigration {
+    return new BeneficiaireMigration(
+      row.id,
+      row.structure as Core.Structure,
+      row.structureConseillerRattachement as Core.Structure
+    )
+  }
+
+  private mapToConseillerMigration(row: {
+    id: string
+    structure: string
+  }): ConseillerMigration {
+    return new ConseillerMigration(row.id, row.structure as Core.Structure)
+  }
+
+  async getBeneficiairesDeLaFeature(
     tag: FeatureFlip.Tag
   ): Promise<BeneficiaireMigration[]> {
-    return await this.sequelize.query<BeneficiaireMigration>(
+    const rows = await this.sequelize.query<{
+      id: string
+      structure: string
+      structureConseillerRattachement: string
+    }>(
       `
       SELECT
         j.id,
@@ -37,13 +58,18 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
         type: QueryTypes.SELECT
       }
     )
+    return rows.map(row => this.mapToBeneficiaireMigration(row))
   }
 
   async getBeneficiaireSiFeatureActive(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string
   ): Promise<BeneficiaireMigration | undefined> {
-    const rows = await this.sequelize.query<BeneficiaireMigration>(
+    const rows = await this.sequelize.query<{
+      id: string
+      structure: string
+      structureConseillerRattachement: string
+    }>(
       `
       SELECT
           j.id,
@@ -64,14 +90,19 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
         type: QueryTypes.SELECT
       }
     )
-    return rows.length > 0 ? rows[0] : undefined
+    if (rows.length === 0) return undefined
+
+    return this.mapToBeneficiaireMigration(rows[0])
   }
 
   async getConseillerSiFeatureActive(
     tag: FeatureFlip.Tag,
     idConseiller: string
-  ): Promise<BeneficiaireMigration | undefined> {
-    const rows = await this.sequelize.query<BeneficiaireMigration>(
+  ): Promise<ConseillerMigration | undefined> {
+    const rows = await this.sequelize.query<{
+      id: string
+      structure: string
+    }>(
       `
       SELECT c.id, c.structure
       FROM feature_flip ff
@@ -88,6 +119,8 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
         type: QueryTypes.SELECT
       }
     )
-    return rows.length > 0 ? rows[0] : undefined
+    if (rows.length === 0) return undefined
+
+    return this.mapToConseillerMigration(rows[0])
   }
 }
