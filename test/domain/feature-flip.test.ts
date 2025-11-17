@@ -43,7 +43,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(
             new BeneficiaireMigration(
@@ -70,7 +70,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(
             new BeneficiaireMigration(
@@ -95,7 +95,7 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-2'
         buildService('2024-09-01')
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(undefined)
 
@@ -114,7 +114,7 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-3'
         buildService(undefined)
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(
             new BeneficiaireMigration(
@@ -267,7 +267,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
           .resolves({ id: 'jeune-1', structure: Core.Structure.POLE_EMPLOI })
 
@@ -286,7 +286,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActive
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
           .resolves(undefined)
 
@@ -306,7 +306,7 @@ describe('FeatureFlip', () => {
         // Given
         const rawDate = '2024-09-01'
         buildService(rawDate)
-        repository.getBeneficiairesDeLaFeature
+        repository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves([
             new BeneficiaireMigration(
