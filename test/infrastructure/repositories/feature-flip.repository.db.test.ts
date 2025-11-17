@@ -95,10 +95,11 @@ describe('FeatureFlipSqlRepository', () => {
 
   describe('getBeneficiaireSiFeatureActive', () => {
     it('renvoie le bénéficiaire si son conseiller a la feature demandée', async () => {
-      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
-        FeatureFlip.Tag.MIGRATION,
-        'cejMigration'
-      )
+      const beneficiaire =
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+          FeatureFlip.Tag.MIGRATION,
+          'cejMigration'
+        )
       expect(beneficiaire).to.deep.equal({
         id: 'cejMigration',
         structure: Core.Structure.POLE_EMPLOI,
@@ -107,10 +108,11 @@ describe('FeatureFlipSqlRepository', () => {
     })
 
     it('renvoie le bénéficiaire si son conseiller initial a la feature demandée', async () => {
-      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
-        FeatureFlip.Tag.MIGRATION,
-        'cej-suivi-aij-sans-migration'
-      )
+      const beneficiaire =
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+          FeatureFlip.Tag.MIGRATION,
+          'cej-suivi-aij-sans-migration'
+        )
       expect(beneficiaire).to.deep.equal({
         id: 'cej-suivi-aij-sans-migration',
         structure: Core.Structure.POLE_EMPLOI,
@@ -119,18 +121,20 @@ describe('FeatureFlipSqlRepository', () => {
     })
 
     it("ne renvoie rien si ni son conseiller, ni son conseiller initial n'ont la feature demandée", async () => {
-      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
-        FeatureFlip.Tag.DEMARCHES_IA,
-        'cejMigration'
-      )
+      const beneficiaire =
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+          FeatureFlip.Tag.DEMARCHES_IA,
+          'cejMigration'
+        )
       expect(beneficiaire).to.be.undefined()
     })
 
     it("ne renvoie rien si l'id jeune n'existe pas", async () => {
-      const beneficiaire = await repo.getBeneficiaireSiFeatureActive(
-        FeatureFlip.Tag.MIGRATION,
-        'id-inexistant'
-      )
+      const beneficiaire =
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+          FeatureFlip.Tag.MIGRATION,
+          'id-inexistant'
+        )
       expect(beneficiaire).to.be.undefined()
     })
   })
@@ -158,9 +162,10 @@ describe('FeatureFlipSqlRepository', () => {
 
   describe('getBeneficiairesDeLaFeature', () => {
     it('renvoie la liste des id et structure des jeunes des conseillers de rattachement avec le tag migration', async () => {
-      const idJeunes = await repo.getBeneficiairesDeLaFeature(
-        FeatureFlip.Tag.MIGRATION
-      )
+      const idJeunes =
+        await repo.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+          FeatureFlip.Tag.MIGRATION
+        )
       expect(idJeunes).to.have.deep.members([
         {
           id: 'cejMigration',

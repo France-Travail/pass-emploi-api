@@ -26,14 +26,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     )
   }
 
-  private mapToConseillerMigration(row: {
-    id: string
-    structure: string
-  }): ConseillerMigration {
-    return new ConseillerMigration(row.id, row.structure as Core.Structure)
-  }
-
-  async getBeneficiairesDeLaFeature(
+  async getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
     tag: FeatureFlip.Tag
   ): Promise<BeneficiaireMigration[]> {
     const rows = await this.sequelize.query<{
@@ -61,7 +54,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     return rows.map(row => this.mapToBeneficiaireMigration(row))
   }
 
-  async getBeneficiaireSiFeatureActive(
+  async getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string
   ): Promise<BeneficiaireMigration | undefined> {
@@ -122,5 +115,12 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     if (rows.length === 0) return undefined
 
     return this.mapToConseillerMigration(rows[0])
+  }
+
+  private mapToConseillerMigration(row: {
+    id: string
+    structure: string
+  }): ConseillerMigration {
+    return new ConseillerMigration(row.id, row.structure as Core.Structure)
   }
 }

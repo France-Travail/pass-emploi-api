@@ -54,7 +54,7 @@ export namespace FeatureFlip {
   }
 
   export interface Repository {
-    getBeneficiaireSiFeatureActive(
+    getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
       tag: Tag,
       idBeneficiaire: string
     ): Promise<BeneficiaireMigration | undefined>
@@ -62,7 +62,9 @@ export namespace FeatureFlip {
       tag: Tag,
       idConseiller: string
     ): Promise<ConseillerMigration | undefined>
-    getBeneficiairesDeLaFeature(tag: Tag): Promise<BeneficiaireMigration[]>
+    getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+      tag: Tag
+    ): Promise<BeneficiaireMigration[]>
   }
 
   @Injectable()
@@ -100,7 +102,7 @@ export namespace FeatureFlip {
 
     async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
       const beneficiairesMigration =
-        await this.featureFlipRepository.getBeneficiairesDeLaFeature(
+        await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
           FeatureFlip.Tag.MIGRATION
         )
       return beneficiairesMigration
@@ -135,7 +137,7 @@ export namespace FeatureFlip {
           break
         case Authentification.Type.JEUNE:
           utilisateurMigration =
-            await this.featureFlipRepository.getBeneficiaireSiFeatureActive(
+            await this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
               tag,
               utilisateur.id
             )
