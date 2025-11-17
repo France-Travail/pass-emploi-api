@@ -277,6 +277,10 @@ export namespace ArchiveJeune {
   export interface Repository {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
+    estArchiveAvecMotif(
+      idJeune: string,
+      motif: MotifSuppression | MotifSuppressionSupport
+    ): Promise<boolean>
     delete(idArchive: number): Promise<void>
   }
 

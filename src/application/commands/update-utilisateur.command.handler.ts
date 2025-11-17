@@ -26,7 +26,12 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
+import {
+  ArchiveJeune,
+  ArchiveJeuneRepositoryToken
+} from '../../domain/archive-jeune'
 import Type = Authentification.Type
+import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
@@ -54,7 +59,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly dateService: DateService,
     @Inject(MailServiceToken)
     private readonly mailBrevoService: MailBrevoService,
-    private readonly featureFlipService: FeatureFlip.Service
+    private readonly featureFlipService: FeatureFlip.Service,
+    @Inject(ArchiveJeuneRepositoryToken)
+    private readonly archiverJeuneRepository: ArchiveJeune.Repository
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -418,9 +425,19 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         dateDeMigration
       )
     }
-    const featureActive = dateDeMigrationExiste && dateDeMigrationArrivee
+    let estJeuneArchiveMotifMigration = false
+    if (utilisateur.type === Authentification.Type.JEUNE) {
+      estJeuneArchiveMotifMigration =
+        await this.archiverJeuneRepository.estArchiveAvecMotif(
+          utilisateur.id,
+          MotifSuppressionSupport.MIGRATION
+        )
+    }
+    const lUtilisateurDoitMigrer =
+      estJeuneArchiveMotifMigration ||
+      (dateDeMigrationExiste && dateDeMigrationArrivee)
 
-    if (featureActive) {
+    if (lUtilisateurDoitMigrer) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
