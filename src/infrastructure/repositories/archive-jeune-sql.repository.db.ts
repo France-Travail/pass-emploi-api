@@ -84,14 +84,14 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   }
 
   async estArchiveAvecMotif(
-    idJeune: string,
+    emailJeune: string,
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
   ): Promise<boolean> {
     return (
       (await ArchiveJeuneSqlModel.findOne({
         where: {
-          idJeune: {
-            [Op.eq]: idJeune
+          email: {
+            [Op.eq]: emailJeune
           },
           motif: {
             [Op.eq]: motif

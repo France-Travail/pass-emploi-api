@@ -95,7 +95,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     }
 
     if (isSuccess(result)) {
-      return this.gererMigrationParcoursEmploi(
+      return this.verifierSiLUtilisateurDoitMigrerVersParcoursEmploi(
         result.data,
         commandSanitized.idUtilisateurAuth
       )
@@ -133,6 +133,24 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private async recupererBeneficiaire(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
+    if (commandSanitized.email) {
+      const leJeuneEstArchivePourMotifMigration =
+        await this.archiverJeuneRepository.estArchiveAvecMotif(
+          commandSanitized.email,
+          MotifSuppressionSupport.MIGRATION
+        )
+      if (leJeuneEstArchivePourMotifMigration) {
+        return failure(
+          new NonTraitableError(
+            'Utilisateur',
+            commandSanitized.idUtilisateurAuth,
+            NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+            commandSanitized.email
+          )
+        )
+      }
+    }
+
     switch (commandSanitized.structure) {
       case Core.Structure.MILO:
         return this.authentificationJeuneMilo(commandSanitized)
@@ -404,7 +422,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async gererMigrationParcoursEmploi(
+  private async verifierSiLUtilisateurDoitMigrerVersParcoursEmploi(
     utilisateur: UtilisateurQueryModel,
     idUtilisateurAuth: string
   ): Promise<Result<UtilisateurQueryModel>> {
@@ -425,17 +443,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         dateDeMigration
       )
     }
-    let estJeuneArchiveMotifMigration = false
-    if (utilisateur.type === Authentification.Type.JEUNE) {
-      estJeuneArchiveMotifMigration =
-        await this.archiverJeuneRepository.estArchiveAvecMotif(
-          utilisateur.id,
-          MotifSuppressionSupport.MIGRATION
-        )
-    }
+
     const lUtilisateurDoitMigrer =
-      estJeuneArchiveMotifMigration ||
-      (dateDeMigrationExiste && dateDeMigrationArrivee)
+      dateDeMigrationExiste && dateDeMigrationArrivee
 
     if (lUtilisateurDoitMigrer) {
       return failure(
