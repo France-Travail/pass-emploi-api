@@ -1048,7 +1048,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
+              structure: Core.Structure.POLE_EMPLOI,
+              email: 'jeune@mail.fr'
             }
 
             const utilisateur = unUtilisateurJeune({
@@ -1056,7 +1057,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
+              .resolves(undefined)
 
             featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
               .withArgs({
@@ -1065,7 +1066,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               })
               .resolves(undefined)
             archiverJeuneRepository.estArchiveAvecMotif
-              .withArgs(utilisateur.id, MotifSuppressionSupport.MIGRATION)
+              .withArgs('jeune@mail.fr', MotifSuppressionSupport.MIGRATION)
               .resolves(true)
 
             // When
@@ -1081,7 +1082,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
               )
               expect((result.error as NonTraitableError).email).to.equal(
-                utilisateur.email
+                command.email
               )
             }
           })

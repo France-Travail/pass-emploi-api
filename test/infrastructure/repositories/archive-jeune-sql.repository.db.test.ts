@@ -446,19 +446,23 @@ describe('ArchiveJeuneSqlRepository', () => {
       // Given
       const jeuneDto = unJeuneDto({
         id: 'j1',
-        idConseiller: secondConseillerDto.id
+        idConseiller: secondConseillerDto.id,
+        email: 'j1@mail.fr'
       })
       const jeuneSecondDto = unJeuneDto({
         id: 'j2',
-        idConseiller: secondConseillerDto.id
+        idConseiller: secondConseillerDto.id,
+        email: 'j2@mail.fr'
       })
       const archiveMigration = uneArchiveJeuneMetadonnees({
         idJeune: jeuneDto.id,
-        motif: MotifSuppressionSupport.MIGRATION
+        motif: MotifSuppressionSupport.MIGRATION,
+        email: jeuneDto.email!
       })
       const archiveAutre = uneArchiveJeuneMetadonnees({
         idJeune: jeuneSecondDto.id,
-        motif: MotifSuppression.AUTRE
+        motif: MotifSuppression.AUTRE,
+        email: jeuneSecondDto.email!
       })
       await ConseillerSqlModel.creer(secondConseillerDto)
       await JeuneSqlModel.creer(jeuneDto)
@@ -469,19 +473,19 @@ describe('ArchiveJeuneSqlRepository', () => {
       // When / Then
       expect(
         await archiveJeuneSqlRepository.estArchiveAvecMotif(
-          jeuneDto.id,
+          jeuneDto.email!,
           MotifSuppressionSupport.MIGRATION
         )
       ).to.be.true()
       expect(
         await archiveJeuneSqlRepository.estArchiveAvecMotif(
-          jeuneSecondDto.id,
+          jeuneSecondDto.email!,
           MotifSuppressionSupport.MIGRATION
         )
       ).to.be.false()
       expect(
         await archiveJeuneSqlRepository.estArchiveAvecMotif(
-          'j0',
+          'j0@mail.fr',
           MotifSuppressionSupport.MIGRATION
         )
       ).to.be.false()
