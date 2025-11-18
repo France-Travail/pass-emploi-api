@@ -46,6 +46,8 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../utils/database-for-testing'
+import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import MotifSuppression = ArchiveJeune.MotifSuppression
 
 const idStructureMilo = 'test'
 
@@ -437,6 +439,52 @@ describe('ArchiveJeuneSqlRepository', () => {
       )
       // Then
       expect(results.length).to.equal(2)
+    })
+  })
+  describe('.estArchiveAvecMotif()', () => {
+    it('retourne true si le bénéficiaire est archivé avec le motif renseigné', async () => {
+      // Given
+      const jeuneDto = unJeuneDto({
+        id: 'j1',
+        idConseiller: secondConseillerDto.id
+      })
+      const jeuneSecondDto = unJeuneDto({
+        id: 'j2',
+        idConseiller: secondConseillerDto.id
+      })
+      const archiveMigration = uneArchiveJeuneMetadonnees({
+        idJeune: jeuneDto.id,
+        motif: MotifSuppressionSupport.MIGRATION
+      })
+      const archiveAutre = uneArchiveJeuneMetadonnees({
+        idJeune: jeuneSecondDto.id,
+        motif: MotifSuppression.AUTRE
+      })
+      await ConseillerSqlModel.creer(secondConseillerDto)
+      await JeuneSqlModel.creer(jeuneDto)
+      await JeuneSqlModel.creer(jeuneSecondDto)
+      await archiveJeuneSqlRepository.archiver(archiveMigration)
+      await archiveJeuneSqlRepository.archiver(archiveAutre)
+
+      // When / Then
+      expect(
+        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+          jeuneDto.id,
+          MotifSuppressionSupport.MIGRATION
+        )
+      ).to.be.true()
+      expect(
+        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+          jeuneSecondDto.id,
+          MotifSuppressionSupport.MIGRATION
+        )
+      ).to.be.false()
+      expect(
+        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+          'j0',
+          MotifSuppressionSupport.MIGRATION
+        )
+      ).to.be.false()
     })
   })
 })

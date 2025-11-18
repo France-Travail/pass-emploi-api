@@ -34,6 +34,8 @@ import { Core } from '../../../src/domain/core'
 import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
+import { ArchiveJeune } from '../../../src/domain/archive-jeune'
+import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 describe('UpdateUtilisateurCommandHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -50,18 +52,21 @@ describe('UpdateUtilisateurCommandHandler', () => {
   const authentificationFactory: Authentification.Factory =
     new Authentification.Factory(idService)
   let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let archiverJeuneRepository: StubbedType<ArchiveJeune.Repository>
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
     authentificationRepository = stubInterface(sandbox)
     mailBrevoService = stubClass(MailBrevoService)
     featureFlipService = stubClass(FeatureFlip.Service)
+    archiverJeuneRepository = stubInterface(sandbox)
     updateUtilisateurCommandHandler = new UpdateUtilisateurCommandHandler(
       authentificationRepository,
       authentificationFactory,
       dateService,
       mailBrevoService,
-      featureFlipService
+      featureFlipService,
+      archiverJeuneRepository
     )
   })
 
@@ -234,6 +239,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   })
                 )
               }
+              expect(
+                archiverJeuneRepository.estArchiveAvecMotif
+              ).not.to.have.been.called()
             })
           })
           describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', async () => {
@@ -1017,6 +1025,48 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 type: Authentification.Type.JEUNE
               })
               .resolves(dateDeMigration)
+
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(isFailure(result)).to.be.true()
+            if (isFailure(result)) {
+              expect(result.error).to.be.instanceOf(NonTraitableError)
+              expect((result.error as NonTraitableError).reason).to.equal(
+                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              )
+              expect((result.error as NonTraitableError).email).to.equal(
+                utilisateur.email
+              )
+            }
+          })
+          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.POLE_EMPLOI
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.POLE_EMPLOI
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
+              .resolves(undefined)
+            archiverJeuneRepository.estArchiveAvecMotif
+              .withArgs(utilisateur.id, MotifSuppressionSupport.MIGRATION)
+              .resolves(true)
 
             // When
             const result = await updateUtilisateurCommandHandler.execute(

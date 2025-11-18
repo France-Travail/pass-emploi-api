@@ -83,6 +83,24 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     return archivesSql.map(archive => archive.id)
   }
 
+  async estArchiveAvecMotif(
+    idJeune: string,
+    motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
+  ): Promise<boolean> {
+    return (
+      (await ArchiveJeuneSqlModel.findOne({
+        where: {
+          idJeune: {
+            [Op.eq]: idJeune
+          },
+          motif: {
+            [Op.eq]: motif
+          }
+        }
+      })) !== null
+    )
+  }
+
   private async construire(
     metadonnes: ArchiveJeune.Metadonnees
   ): Promise<
