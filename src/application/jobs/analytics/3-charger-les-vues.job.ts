@@ -12,6 +12,7 @@ import {
 } from './vues/3-2-vue-engagement'
 import { chargerLaVueFonctionnaliteDemarchesIA } from './vues/3-1bis-vue-fonctionnalites-demarches-ia'
 import { Sequelize } from 'sequelize-typescript'
+import { chargerLaVueFonctionnaliteMigration } from './vues/3-1bis-vue-fonctionnalites-migration'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_LES_VUES_ANALYTICS)
@@ -68,6 +69,12 @@ export async function chargerLesVuesDeLaSemaine(
 ): Promise<void> {
   logger.log(`Charger la vue fonctionnalité de la semaine ${semaine}`)
   await chargerLaVueFonctionnalite(connexion, semaine, analyticsTableName)
+  logger.log(`Charger la vue fonctionnalité migration la semaine ${semaine}`)
+  await chargerLaVueFonctionnaliteMigration(
+    connexion,
+    semaine,
+    analyticsTableName
+  )
   logger.log(
     `Charger la vue fonctionnalité démarches IA de la semaine ${semaine}`
   )
