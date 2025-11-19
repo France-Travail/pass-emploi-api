@@ -30,7 +30,7 @@ export abstract class QueryHandler<Q extends Query | void, R> {
     try {
       const authorizedResult = await this.authorize(query, utilisateur)
       if (isFailure(authorizedResult)) {
-        throw new ForbiddenException('Ressource non autorisée')
+        throw new ForbiddenException(authorizedResult.error.message)
       }
 
       const result = await this.handle(query, utilisateur)
