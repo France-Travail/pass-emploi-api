@@ -96,6 +96,9 @@ export class RendezVousDto extends Model {
 
   @Column({ field: 'nombre_max_participants', type: DataType.INTEGER })
   nombreMaxParticipants: number | null
+
+  @Column({ field: 'annule', type: DataType.BOOLEAN })
+  annule: boolean
 }
 
 @Table({ timestamps: false, tableName: 'rendez_vous' })

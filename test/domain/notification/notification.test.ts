@@ -114,6 +114,32 @@ describe('Notification', () => {
           rdv.jeunes[0].id
         )
       })
+      it('notifie les jeunes avec pushNotificationToken du rdv annulé', async () => {
+        // Given
+        const rdv = unRendezVous({
+          jeunes: [unJeune(), unJeuneSansPushNotificationToken()]
+        })
+        const typeNotification = Notification.Type.CANCELED_RENDEZVOUS
+        const expectedNotification = uneNotification({
+          token: rdv.jeunes[0].configuration?.pushNotificationToken,
+          notification: {
+            title: 'Rendez-vous annnulé',
+            body: `Votre rendez-vous du 11/11 est annnulé`
+          },
+          data: {
+            type: typeNotification
+          }
+        })
+
+        // When
+        await notificationService.notifierLesJeunesDuRdv(rdv, typeNotification)
+
+        // Then
+        expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
+          expectedNotification,
+          rdv.jeunes[0].id
+        )
+      })
       it('ne notifie pas les jeunes avec preferences de notification désactivés pour les rdv', async () => {
         // Given
         const rdv = unRendezVous({

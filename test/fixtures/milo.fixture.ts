@@ -106,7 +106,7 @@ export const unRendezVousMilo = (
     titre: 'Test RDV',
     idPartenaireBeneficiaire: '5045180',
     commentaire: '',
-    statut: 'Planifié'
+    statut: RendezVousMilo.Statut.RDV_PLANIFIE
   }
   return { ...defaults, ...args }
 }

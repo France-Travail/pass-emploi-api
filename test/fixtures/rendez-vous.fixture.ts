@@ -36,7 +36,8 @@ export const unRendezVous = (args: Partial<RendezVous> = {}): RendezVous => {
       nom: 'Tavernier',
       prenom: 'Nils'
     },
-    nombreMaxParticipants: undefined
+    nombreMaxParticipants: undefined,
+    statut: RendezVous.Statut.PLANIFIE
   }
   return { ...defaults, ...args }
 }
@@ -68,7 +69,8 @@ export const uneAnimationCollective = (
       nom: 'Tavernier',
       prenom: 'Nils'
     },
-    nombreMaxParticipants: undefined
+    nombreMaxParticipants: undefined,
+    statut: RendezVous.Statut.PLANIFIE
   }
   return { ...defaults, ...args }
 }
