@@ -81,7 +81,7 @@ export namespace Notification {
       body: string
     }
     data: {
-      type: string
+      type: Notification.Type
       id?: string
     }
   }

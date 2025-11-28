@@ -39,7 +39,8 @@ export function unRendezVousQueryModel(
       label: 'Entretien individuel conseiller'
     },
     source: RendezVous.Source.PASS_EMPLOI,
-    futPresent: undefined
+    futPresent: undefined,
+    annule: false
   }
 
   return { ...defaults, ...args }
@@ -68,7 +69,8 @@ export const unRendezVousJeuneDetailQueryModel = (
     },
     comment: 'commentaire',
     adresse: undefined,
-    source: RendezVous.Source.PASS_EMPLOI
+    source: RendezVous.Source.PASS_EMPLOI,
+    annule: false
   }
 
   return { ...defaults, ...args }

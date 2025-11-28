@@ -32,7 +32,7 @@ export function unRendezVousJDD(
     typePartenaire: null,
     idPartenaire: null,
     nombreMaxParticipants: null,
-    statut: RendezVous.Statut.PLANIFIE
+    annule: false
   }
 
   return { ...defaults, ...args }

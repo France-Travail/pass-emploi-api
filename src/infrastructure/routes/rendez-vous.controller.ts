@@ -307,7 +307,7 @@ export class RendezVousController {
     return handleResult(result)
   }
 
-  @Get('jeunes/:idJeune/rendezvous')
+  @Get('jeunes/:idJeune/rendezvous') // todo virer
   @ApiOperation({
     summary: 'Récupère les rendez-vous d’un jeune FT Connect, sans cache',
     description: 'Autorisé pour un jeune FT Connect'
@@ -340,7 +340,7 @@ export class RendezVousController {
     })
   }
 
-  @Get('v2/jeunes/:idJeune/rendezvous')
+  @Get('v2/jeunes/:idJeune/rendezvous') // todo virer
   @ApiOperation({
     summary: 'Récupère les rendez-vous d’un jeune FT Connect, avec cache',
     description: 'Autorisé pour un jeune FT Connect'

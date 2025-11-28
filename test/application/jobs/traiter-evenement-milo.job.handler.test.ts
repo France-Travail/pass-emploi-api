@@ -31,7 +31,6 @@ import {
 import { unRendezVous } from '../../fixtures/rendez-vous.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
-import Statut = RendezVous.Statut
 
 describe('TraiterEvenementMiloJobHandler', () => {
   let handler: TraiterEvenementMiloJobHandler
@@ -527,7 +526,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
                     .withArgs(evenement)
                     .resolves(rendezVousMilo)
                   const rendezVousUpdated = unRendezVous({
-                    statut: Statut.ANNULE
+                    annule: true
                   })
                   rendezVousMiloFactory.updateRendezVousCEJ
                     .withArgs(rendezVous, rendezVousMilo)
@@ -538,7 +537,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
 
                   // Then
                   expect(result.resultat).to.be.deep.equal({
-                    traitement: Traitement.RENDEZ_VOUS_SUPPRIME,
+                    traitement: Traitement.RENDEZ_VOUS_MODIFIE,
                     idJeune: jeune.id,
                     idObjet: rendezVous.id
                   })

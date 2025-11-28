@@ -135,7 +135,7 @@ export interface RendezVous {
   dateCloture?: DateTime
   informationsPartenaire?: RendezVous.InformationsPartenaire
   nombreMaxParticipants?: number
-  statut: RendezVous.Statut
+  annule: boolean
 }
 
 export interface InfosRendezVousACreer {
@@ -340,7 +340,7 @@ export namespace RendezVous {
         },
         idAgence,
         nombreMaxParticipants: infosRendezVousACreer.nombreMaxParticipants,
-        statut: RendezVous.Statut.PLANIFIE
+        annule: false
       })
     }
 

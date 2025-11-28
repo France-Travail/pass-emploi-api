@@ -82,7 +82,7 @@ export namespace RendezVousMilo {
           id: rendezVousMilo.id,
           type: EvenementMilo.ObjetEvenement.RENDEZ_VOUS
         },
-        statut: RendezVous.Statut.PLANIFIE
+        annule: false
       }
     }
 
@@ -105,10 +105,7 @@ export namespace RendezVousMilo {
         jeunes: rendezVousCEJ.jeunes.map(jeune =>
           this.mapPresenceToJeuneDuRendezVous(jeune, rendezVousMilo.statut)
         ),
-        statut:
-          rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE
-            ? RendezVous.Statut.ANNULE
-            : RendezVous.Statut.PLANIFIE
+        annule: rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE
       }
     }
 

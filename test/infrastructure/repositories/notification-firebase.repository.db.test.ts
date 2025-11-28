@@ -62,7 +62,7 @@ describe('NotificationFirebaseSqlRepository', () => {
         body: 'Description'
       },
       data: {
-        type: 'OUTILS'
+        type: Notification.Type.OUTILS
       }
     }
 

@@ -38,7 +38,7 @@ export function toRendezVousDto(rendezVous: RendezVous): AsSql<RendezVousDto> {
     typePartenaire: rendezVous.informationsPartenaire?.type ?? null,
     idPartenaire: rendezVous.informationsPartenaire?.id ?? null,
     nombreMaxParticipants: rendezVous.nombreMaxParticipants ?? null,
-    statut: rendezVous.statut
+    annule: rendezVous.annule
   }
 }
 
@@ -65,7 +65,7 @@ export function toRendezVous(rendezVousSql: RendezVousSqlModel): RendezVous {
     idAgence: rendezVousSql.idAgence ?? undefined,
     informationsPartenaire: buildInformationsPartenaire(rendezVousSql),
     nombreMaxParticipants: rendezVousSql.nombreMaxParticipants ?? undefined,
-    statut: fromStatutStringToStatutRendezVous(rendezVousSql.statut)
+    annule: rendezVousSql.annule
   }
 }
 
@@ -108,19 +108,6 @@ function fromSourceStringToSourceRendezVous(
       return RendezVous.Source.PASS_EMPLOI
     case 'MILO':
       return RendezVous.Source.MILO
-    default:
-      throw new Error('Type non traité')
-  }
-}
-
-function fromStatutStringToStatutRendezVous(
-  statutString: string
-): RendezVous.Statut {
-  switch (statutString) {
-    case 'Planifie':
-      return RendezVous.Statut.PLANIFIE
-    case 'Annule':
-      return RendezVous.Statut.ANNULE
     default:
       throw new Error('Type non traité')
   }
