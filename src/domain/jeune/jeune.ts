@@ -90,7 +90,11 @@ export namespace Jeune {
   ): Jeune {
     return {
       ...jeune,
-      dispositif
+      dispositif,
+      peutVoirLeComptageDesHeures:
+        dispositif === Dispositif.PACEA
+          ? false
+          : jeune.peutVoirLeComptageDesHeures
     }
   }
 
