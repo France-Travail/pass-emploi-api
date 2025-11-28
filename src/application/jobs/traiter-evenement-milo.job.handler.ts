@@ -220,7 +220,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     if (rendezVousMILO) {
       if (rendezVousCEJExistant) {
         if (
-          !this.rdvNonReporte(rendezVousMILO) ||
+          this.rdvReporte(rendezVousMILO) ||
           !this.isDateRecuperable(rendezVousMILO, jeune)
         ) {
           return this.handleDeleteRDV(
@@ -572,8 +572,11 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
   }
 
   private rdvNonReporte(rendezVousMILO: RendezVousMilo): boolean {
+    return !this.rdvReporte(rendezVousMILO)
+  }
+  private rdvReporte(rendezVousMILO: RendezVousMilo): boolean {
     return (
-      RendezVousMilo.Statut.RDV_REPORTE !==
+      RendezVousMilo.Statut.RDV_REPORTE ===
       (rendezVousMILO.statut as RendezVousMilo.Statut)
     )
   }

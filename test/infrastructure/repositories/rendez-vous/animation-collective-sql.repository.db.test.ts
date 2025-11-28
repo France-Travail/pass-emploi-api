@@ -179,7 +179,8 @@ describe('AnimationsCollectivesSqlRepository', () => {
         idAgence: uneACAVenir.idAgence!,
         source: RendezVous.Source.PASS_EMPLOI,
         informationsPartenaire: undefined,
-        nombreMaxParticipants: undefined
+        nombreMaxParticipants: undefined,
+        annule: false
       }
       expect(animationCollectives[0]).to.deep.equal(expected)
     })
@@ -286,7 +287,8 @@ describe('AnimationsCollectivesSqlRepository', () => {
         idAgence: uneACAVenir.idAgence!,
         source: RendezVous.Source.PASS_EMPLOI,
         informationsPartenaire: undefined,
-        nombreMaxParticipants: undefined
+        nombreMaxParticipants: undefined,
+        annule: false
       }
       expect(animationCollectives[0]).to.deep.equal(expected)
       expect(animationCollectives[1].id).to.equal(uneACClose.id)

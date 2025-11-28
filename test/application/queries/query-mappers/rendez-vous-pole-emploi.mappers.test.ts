@@ -63,7 +63,8 @@ describe('RendezVousPrestationMappers', () => {
         },
         visio: true,
         lienVisio: 'lien',
-        source: Core.Structure.POLE_EMPLOI
+        source: Core.Structure.POLE_EMPLOI,
+        annule: false
       })
     })
     it('retourne un RendezVousConseillerQueryModel avec la modalité agence, et le conseiller', async () => {

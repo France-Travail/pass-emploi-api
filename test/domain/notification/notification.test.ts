@@ -123,8 +123,8 @@ describe('Notification', () => {
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
-            title: 'Rendez-vous annnulé',
-            body: `Votre rendez-vous du 11/11 est annnulé`
+            title: 'Rendez-vous annulé',
+            body: `Votre rendez-vous du 11/11 est annulé`
           },
           data: {
             type: typeNotification

@@ -524,7 +524,8 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 isLocaleDate: true,
                 visio: false,
                 lienVisio: 'lien',
-                source: RendezVous.Source.POLE_EMPLOI
+                source: RendezVous.Source.POLE_EMPLOI,
+                annule: false
               },
               {
                 idStable: undefined,
@@ -639,7 +640,8 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 isLocaleDate: true,
                 visio: true,
                 lienVisio: 'lien',
-                source: RendezVous.Source.POLE_EMPLOI
+                source: RendezVous.Source.POLE_EMPLOI,
+                annule: false
               },
               {
                 idStable: idVisio,
@@ -774,7 +776,8 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 isLocaleDate: true,
                 visio: true,
                 lienVisio: 'lien',
-                source: RendezVous.Source.POLE_EMPLOI
+                source: RendezVous.Source.POLE_EMPLOI,
+                annule: false
               }
             ],
             dateDuCache: undefined
