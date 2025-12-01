@@ -200,6 +200,56 @@ describe('GetComptageJeuneQueryGetter', () => {
         fin: maintenant.endOf('week')
       })
     })
+
+    it('ne compte pas les rdvs annulés', async () => {
+      // Given
+      const query: GetComptageJeuneQuery = {
+        idJeune: jeune.id,
+        idDossier: 'idDossier',
+        accessTokenJeune: 'accessToken'
+      }
+      oidcClient.exchangeToken.resolves('idpToken')
+      miloClient.getSessionsParDossierJeune.resolves(success([]))
+
+      const rdv1 = unRendezVousDto({
+        date: maintenant.toJSDate(),
+        type: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
+        annule: true
+      })
+      const rdv2 = unRendezVousDto({
+        date: maintenant.toJSDate(),
+        type: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
+        annule: false
+      })
+      await RendezVousSqlModel.create(rdv1)
+      await RendezVousSqlModel.create(rdv2)
+
+      await RendezVousJeuneAssociationSqlModel.bulkCreate([
+        { idRendezVous: rdv1.id, idJeune: jeune.id, present: true },
+        { idRendezVous: rdv2.id, idJeune: jeune.id, present: true }
+      ])
+      await ComptageJeuneSqlModel.create({
+        idJeune: jeune.id,
+        heuresDeclarees: 10,
+        heuresValidees: 10,
+        jourDebut: maintenant.minus({ days: 5 }).startOf('week').toISODate(),
+        jourFin: maintenant.endOf('week').toISODate(),
+        dateMiseAJour: maintenant.minus({ minutes: 1 }).toJSDate()
+      })
+
+      // When
+      const result = await getComptageJeuneQueryGetter.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          nbHeuresDeclarees: 1,
+          nbHeuresValidees: 1,
+          dateDerniereMiseAJour: maintenant.toUTC().toISO()
+        })
+      )
+    })
+
     it('calcule les sessions', async () => {
       // Given
       const query: GetComptageJeuneQuery = {
