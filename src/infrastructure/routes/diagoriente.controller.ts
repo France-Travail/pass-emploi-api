@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Controller, Get, GoneException, Param, Query } from '@nestjs/common'
 import { ApiPropertyOptional, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
 import { IsBoolean, IsIn, IsOptional } from 'class-validator'
@@ -15,6 +15,7 @@ import { Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import { transformStringToBoolean } from './validation/utils/transformers'
+import { ConfigService } from '@nestjs/config'
 
 class GetDiagorienteMetiersFavorisQueryParams {
   @ApiPropertyOptional()
@@ -29,10 +30,14 @@ class GetDiagorienteMetiersFavorisQueryParams {
 @CustomSwaggerApiOAuth2()
 @ApiTags('Diagoriente')
 export class DiagorienteController {
+  private readonly isDisabled: boolean
   constructor(
     private readonly getDiagorienteUrlsQueryHandler: GetDiagorienteUrlsQueryHandler,
-    private readonly getDiagorienteMetiersFavorisQueryHandler: GetDiagorienteMetiersFavorisQueryHandler
-  ) {}
+    private readonly getDiagorienteMetiersFavorisQueryHandler: GetDiagorienteMetiersFavorisQueryHandler,
+    private readonly config: ConfigService
+  ) {
+    this.isDisabled = this.config.get('diagoriente').disabled
+  }
 
   @Get('urls')
   @ApiResponse({
@@ -42,6 +47,7 @@ export class DiagorienteController {
     @Param('idJeune') idJeune: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<DiagorienteUrlsQueryModel> {
+    if (this.isDisabled) throw new GoneException()
     const result = await this.getDiagorienteUrlsQueryHandler.execute(
       {
         idJeune
@@ -62,6 +68,7 @@ export class DiagorienteController {
     getDiagorienteMetiersFavorisQueryParams: GetDiagorienteMetiersFavorisQueryParams,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<DiagorienteMetiersFavorisQueryModel> {
+    if (this.isDisabled) throw new GoneException()
     const result = await this.getDiagorienteMetiersFavorisQueryHandler.execute(
       {
         idJeune,

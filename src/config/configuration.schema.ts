@@ -61,7 +61,8 @@ export const configurationSchema = Joi.object({
   diagoriente: {
     url: Joi.string().uri().required(),
     clientId: Joi.string().required(),
-    clientSecret: Joi.string().required()
+    clientSecret: Joi.string().required(),
+    disabled: Joi.boolean().default(false)
   },
   jecliqueoupas: {
     url: Joi.string().uri().required(),

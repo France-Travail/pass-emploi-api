@@ -94,7 +94,8 @@ export default () => {
         process.env.DIAGORIENTE_API_URL ??
         'https://api-dev.diagoriente.fr/graphql',
       clientId: process.env.DIAGORIENTE_CLIENT_ID ?? '',
-      clientSecret: process.env.DIAGORIENTE_CLIENT_SECRET ?? ''
+      clientSecret: process.env.DIAGORIENTE_CLIENT_SECRET ?? '',
+      disabled: process.env.DIAGORIENTE_DISABLED ?? false
     },
     jecliqueoupas: {
       url: process.env.JECLIQUEOUPAS_API_URL,
