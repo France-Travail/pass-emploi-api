@@ -1,5 +1,9 @@
 import { expect } from '../../utils'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
+import { Jeune } from '../../../src/domain/jeune/jeune'
+import { unJeune } from '../../fixtures/jeune.fixture'
+import Dispositif = Jeune.Dispositif
+import { unConseiller } from '../../fixtures/conseiller.fixture'
 
 describe('Milo', () => {
   const situationsPrevuEmploi = {
@@ -109,6 +113,27 @@ describe('Milo', () => {
 
       // Then
       expect(situationCourante).to.deep.equal(undefined)
+    })
+  })
+
+  describe('mettre à jour le dispositif', () => {
+    it('ne peut voir le comptage des heures si PACEA ', () => {
+      const jeune = unJeune()
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+
+      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
+    it('le jeune est suivi temporairement ', () => {
+      const jeune = unJeune({
+        conseillerInitial: unConseiller()
+      })
+
+      const estSuiviTemporairement = Jeune.estSuiviTemporairement(jeune)
+
+      expect(estSuiviTemporairement).equal(true)
     })
   })
 })

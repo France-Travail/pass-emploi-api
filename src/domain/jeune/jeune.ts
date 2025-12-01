@@ -98,6 +98,16 @@ export namespace Jeune {
     }
   }
 
+  export function mettreAJourPeutVoirComptageDesHeures(
+    jeune: Jeune,
+    peutVoirLeComptageDesHeures: boolean
+  ): Jeune {
+    return {
+      ...jeune,
+      peutVoirLeComptageDesHeures: peutVoirLeComptageDesHeures
+    }
+  }
+
   export interface Repository {
     get(id: string): Promise<Jeune | undefined>
 
