@@ -197,11 +197,11 @@ export class GetComptageJeuneQueryGetter {
       present: boolean | null
     }>(
       `
-      SELECT type, present
-      FROM rendez_vous
-      JOIN rendez_vous_jeune_association ON rendez_vous.id = rendez_vous_jeune_association.id_rendez_vous
-      WHERE rendez_vous.date BETWEEN :dateDebut AND :dateFin
-        AND rendez_vous_jeune_association.id_jeune = :idJeune
+        SELECT type, present
+        FROM rendez_vous_jeune_association
+        JOIN rendez_vous ON rendez_vous.id = rendez_vous_jeune_association.id_rendez_vous
+        WHERE rendez_vous_jeune_association.id_jeune = :idJeune
+        AND rendez_vous.date BETWEEN :dateDebut AND :dateFin
       `,
       {
         replacements: {
