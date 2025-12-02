@@ -1,6 +1,10 @@
 import { FirebaseClient } from 'src/infrastructure/clients/firebase-client'
 import { MatomoClient } from 'src/infrastructure/clients/matomo-client'
-import { NotificationFirebaseSqlRepository } from 'src/infrastructure/repositories/notification-firebase.repository.db'
+import {
+  NotificationFirebaseSqlRepository,
+  NotificationRepository,
+  TypeNotificationRepository
+} from 'src/infrastructure/repositories/notification-firebase.repository.db'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { StubbedClass, stubClass } from '../../utils'
@@ -142,5 +146,78 @@ describe('NotificationFirebaseSqlRepository', () => {
         matomoClient.trackEventPushNotificationEnvoyee
       ).not.to.have.been.called()
     })
+
+    describe('envoie le bon type de notification', () => {
+      it('envoie un DETAIL_RENDEZVOUS pour un NEW_RENDEZVOUS', async () => {
+        await repository.send(unMessagePush(Notification.Type.NEW_RENDEZVOUS))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un RAPPEL_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.RAPPEL_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un UPDATED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.UPDATED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un CANCELED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.CANCELED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un DELETED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.DELETED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DELETED_RENDEZVOUS)
+        )
+      })
+    })
   })
 })
+
+const notifSansType = {
+  token: 'push1',
+  notification: {
+    title: 'Titre',
+    body: 'Description'
+  },
+  idJeune: 'j1',
+  pushNotification: true
+}
+function unMessagePush(type: Notification.Type): Notification.Message {
+  return {
+    ...notifSansType,
+    data: {
+      type
+    }
+  }
+}
+function unMessageRepoPush(
+  type: TypeNotificationRepository
+): NotificationRepository {
+  return {
+    ...notifSansType,
+    data: {
+      type
+    }
+  }
+}

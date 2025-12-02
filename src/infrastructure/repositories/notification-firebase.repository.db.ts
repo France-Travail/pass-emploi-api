@@ -10,7 +10,7 @@ import {
 } from '../sequelize/models/notification-jeune.sql-model'
 import { AsSql } from '../sequelize/types'
 
-enum TypeNotificationRepository {
+export enum TypeNotificationRepository {
   NEW_ACTION = 'NEW_ACTION',
   DETAIL_RENDEZVOUS = 'DETAIL_RENDEZVOUS',
   DELETED_RENDEZVOUS = 'DELETED_RENDEZVOUS',
