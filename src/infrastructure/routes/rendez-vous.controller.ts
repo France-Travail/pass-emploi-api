@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -35,9 +34,7 @@ import {
   GetRendezVousACloreQueryModel,
   RendezVousConseillerDetailQueryModel,
   RendezVousConseillerQueryModel,
-  RendezVousJeuneDetailQueryModel,
-  RendezVousJeuneQueryModel,
-  RendezVousJeuneQueryModelV2
+  RendezVousJeuneDetailQueryModel
 } from '../../application/queries/query-models/rendez-vous.query-model'
 import {
   GetAnimationsCollectivesJeuneQuery,
@@ -57,13 +54,10 @@ import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../application/quer
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
-import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
+import { Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { GetRendezVousConseillerV2QueryParams } from './validation/conseillers.inputs'
-import {
-  GetRendezVousJeuneQueryParams,
-  MaintenantQueryParams
-} from './validation/jeunes.inputs'
+import { MaintenantQueryParams } from './validation/jeunes.inputs'
 import {
   CloreRendezVousPayload,
   CreateRendezVousPayload,

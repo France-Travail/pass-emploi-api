@@ -14,18 +14,15 @@ import {
   DeleteRendezVousCommand,
   DeleteRendezVousCommandHandler
 } from '../../../src/application/commands/delete-rendez-vous.command.handler.db'
-import { RendezVousJeuneQueryModel } from '../../../src/application/queries/query-models/rendez-vous.query-model'
 import { GetAnimationsCollectivesJeuneQueryHandler } from '../../../src/application/queries/rendez-vous/get-animations-collectives-jeune.query.handler.db'
 import { GetDetailRendezVousJeuneQueryHandler } from '../../../src/application/queries/rendez-vous/get-detail-rendez-vous-jeune.query.handler.db'
 import { GetDetailRendezVousQueryHandler } from '../../../src/application/queries/rendez-vous/get-detail-rendez-vous.query.handler.db'
 import { GetRendezVousConseillerPaginesQueryHandler } from '../../../src/application/queries/rendez-vous/get-rendez-vous-conseiller-pagines.query.handler.db'
-import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../../src/application/queries/rendez-vous/get-rendez-vous-jeune-pole-emploi.query.handler'
 import {
   JeuneNonLieAuConseillerError,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
-import { Cached } from '../../../src/building-blocks/types/query'
 import {
   emptySuccess,
   failure,
@@ -36,7 +33,6 @@ import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import {
   unHeaderAuthorization,
   unJwtPayloadValide,
-  unJwtPayloadValideJeunePE,
   unUtilisateurDecode
 } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -58,7 +54,6 @@ describe('RendezvousController', () => {
   let createRendezVousCommandHandler: StubbedClass<CreateRendezVousCommandHandler>
   let cloreRendezVousCommandHandler: StubbedClass<CloreRendezVousCommandHandler>
   let getRendezVousConseillerPaginesQueryHandler: StubbedClass<GetRendezVousConseillerPaginesQueryHandler>
-  let getRendezVousJeunePoleEmploiQueryHandler: StubbedClass<GetRendezVousJeunePoleEmploiQueryHandler>
   let getDetailRendezVousJeuneQueryHandler: StubbedClass<GetDetailRendezVousJeuneQueryHandler>
   let getAnimationsCollectivesJeuneQueryHandler: StubbedClass<GetAnimationsCollectivesJeuneQueryHandler>
   let jwtService: StubbedClass<JwtService>
@@ -74,9 +69,6 @@ describe('RendezvousController', () => {
       GetRendezVousConseillerPaginesQueryHandler
     )
     createRendezVousCommandHandler = app.get(CreateRendezVousCommandHandler)
-    getRendezVousJeunePoleEmploiQueryHandler = app.get(
-      GetRendezVousJeunePoleEmploiQueryHandler
-    )
     getDetailRendezVousJeuneQueryHandler = app.get(
       GetDetailRendezVousJeuneQueryHandler
     )
