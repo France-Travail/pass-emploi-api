@@ -117,8 +117,21 @@ describe('Milo', () => {
   })
 
   describe('mettre à jour le dispositif', () => {
-    it('ne peut voir le comptage des heures si PACEA ', () => {
-      const jeune = unJeune()
+    it("ne peut voir le comptage des heures si PACEA alors qu'il pouvait en CEJ", () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: true
+      })
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+
+      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
+    it('Lors du changement de dispositif de CEJ à PACEA si peutVoirLeComptageDesHeures était à faux il reste a faux', () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: false
+      })
 
       const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
 

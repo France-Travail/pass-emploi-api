@@ -47,16 +47,7 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
       jeuneMisAJour = Jeune.mettreAJourDispositif(jeune, command.dispositif)
     }
 
-    function peutVoirLeComptageDesHeuresMilo(): boolean {
-      return (
-        estMilo(jeune!.structure) && jeune!.dispositif === Jeune.Dispositif.CEJ
-      )
-    }
-
-    if (
-      command.peutVoirLeComptageDesHeures !== undefined &&
-      peutVoirLeComptageDesHeuresMilo()
-    ) {
+    if (command.peutVoirLeComptageDesHeures !== undefined) {
       jeuneMisAJour = Jeune.mettreAJourPeutVoirComptageDesHeures(
         jeune,
         command.peutVoirLeComptageDesHeures
