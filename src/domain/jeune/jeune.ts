@@ -6,7 +6,6 @@ import { IdService } from '../../utils/id-service'
 import { Core, estMilo } from '../core'
 import * as _ConfigurationApplication from './configuration-application'
 import * as _PoleEmploi from './jeune.pole-emploi'
-import { StructureUtilisateurAuth } from '../../application/commands/update-utilisateur.command.handler'
 
 export const JeuneRepositoryToken = 'JeuneRepositoryToken'
 export const JeuneConfigurationApplicationRepositoryToken =
