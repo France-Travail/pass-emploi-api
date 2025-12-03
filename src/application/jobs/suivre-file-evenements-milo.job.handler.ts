@@ -62,8 +62,7 @@ export class SuivreEvenementsMiloCronJobHandler extends JobHandler {
 
         const evenementsAPlanifier = trouverEvenementsAPlanifier(evenementsMilo)
         this.logger.log(
-          `**evenementsAPlanifier`,
-          JSON.stringify(evenementsAPlanifier)
+          `**evenementsAPlanifier :${JSON.stringify(evenementsAPlanifier)}`
         )
         for (const evenementAPlanifier of evenementsAPlanifier) {
           await this.planificateurService.ajouterJobEvenementMiloSiIlNaPasEteCreeAvant(
