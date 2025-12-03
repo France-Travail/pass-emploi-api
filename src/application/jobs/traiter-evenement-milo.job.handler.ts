@@ -103,7 +103,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             evenement.idObjet,
             evenement.objet
           )
-
+        this.logger.log(`Traitement`, JSON.stringify(rendezVousMILO))
+        this.logger.log(`CEJ existant`, JSON.stringify(rendezVousCEJExistant))
         switch (evenement.action) {
           case EvenementMilo.ActionEvenement.CREATE:
             return this.handleCreateRDV(
