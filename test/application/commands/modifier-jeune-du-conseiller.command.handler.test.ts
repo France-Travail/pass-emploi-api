@@ -14,7 +14,8 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
-import { StubbedClass, expect, stubClass } from '../../utils'
+import { expect, StubbedClass, stubClass } from '../../utils'
+import Dispositif = Jeune.Dispositif
 
 describe('ModifierJeuneDuConseillerCommandHandler', () => {
   let modifierJeuneDuConseillerCommandHandler: ModifierJeuneDuConseillerCommandHandler
@@ -97,6 +98,29 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         const expected: Jeune = {
           ...jeune,
           peutVoirLeComptageDesHeures: command.peutVoirLeComptageDesHeures
+        }
+        expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
+        expect(result).to.deep.equal(emptySuccess())
+      })
+      it('met à jour dispositif CEJ vers PACEA et modifie peutVoirLeComptageDesHeures à false ', async () => {
+        const jeune = unJeune({
+          structure: Core.Structure.MILO,
+          dispositif: Dispositif.CEJ
+        })
+        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
+        const command: ModifierJeuneDuConseillerCommand = {
+          idJeune: jeune.id,
+          dispositif: Dispositif.PACEA
+        }
+
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          command
+        )
+
+        const expected: Jeune = {
+          ...jeune,
+          dispositif: Dispositif.PACEA,
+          peutVoirLeComptageDesHeures: false
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(result).to.deep.equal(emptySuccess())

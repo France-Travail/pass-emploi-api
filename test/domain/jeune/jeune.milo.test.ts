@@ -1,5 +1,9 @@
 import { expect } from '../../utils'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
+import { Jeune } from '../../../src/domain/jeune/jeune'
+import { unJeune } from '../../fixtures/jeune.fixture'
+import Dispositif = Jeune.Dispositif
+import { unConseiller } from '../../fixtures/conseiller.fixture'
 
 describe('Milo', () => {
   const situationsPrevuEmploi = {
@@ -109,6 +113,40 @@ describe('Milo', () => {
 
       // Then
       expect(situationCourante).to.deep.equal(undefined)
+    })
+  })
+
+  describe('mettre à jour le dispositif', () => {
+    it("ne peut voir le comptage des heures si PACEA alors qu'il pouvait en CEJ", () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: true
+      })
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+
+      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
+    it('Lors du changement de dispositif de CEJ à PACEA si peutVoirLeComptageDesHeures était à faux il reste a faux', () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: false
+      })
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+
+      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
+    it('le jeune est suivi temporairement ', () => {
+      const jeune = unJeune({
+        conseillerInitial: unConseiller()
+      })
+
+      const estSuiviTemporairement = Jeune.estSuiviTemporairement(jeune)
+
+      expect(estSuiviTemporairement).equal(true)
     })
   })
 })

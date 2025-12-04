@@ -3,7 +3,7 @@ import { DateTime } from 'luxon'
 import { Brand } from '../../building-blocks/types/brand'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
-import { Core } from '../core'
+import { Core, estMilo } from '../core'
 import * as _ConfigurationApplication from './configuration-application'
 import * as _PoleEmploi from './jeune.pole-emploi'
 
@@ -39,6 +39,7 @@ export namespace Jeune {
   export import Preferences = _ConfigurationApplication.ConfigurationApplication.Preferences
   // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import PoleEmploi = _PoleEmploi.JeunePoleEmploi
+  import Structure = Core.Structure
 
   export interface Conseiller {
     id: string
@@ -84,13 +85,38 @@ export namespace Jeune {
     }
   }
 
+  function autoriseAVoirLeComptage(
+    structure: Structure,
+    dispositif: Dispositif
+  ): boolean {
+    return estMilo(structure) && dispositif === Jeune.Dispositif.CEJ
+  }
+
   export function mettreAJourDispositif(
     jeune: Jeune,
     dispositif: Dispositif
   ): Jeune {
     return {
       ...jeune,
-      dispositif
+      dispositif,
+      peutVoirLeComptageDesHeures: autoriseAVoirLeComptage(
+        jeune.structure,
+        dispositif
+      )
+        ? jeune.peutVoirLeComptageDesHeures
+        : false
+    }
+  }
+
+  export function mettreAJourPeutVoirComptageDesHeures(
+    jeune: Jeune,
+    peutVoirLeComptageDesHeures: boolean
+  ): Jeune {
+    if (!autoriseAVoirLeComptage(jeune.structure, jeune.dispositif))
+      return jeune
+    return {
+      ...jeune,
+      peutVoirLeComptageDesHeures: peutVoirLeComptageDesHeures
     }
   }
 
