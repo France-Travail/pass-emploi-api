@@ -90,8 +90,8 @@ export class RendezVousJeuneQueryModel implements RendezVousBaseQueryModel {
   @ApiProperty({ required: false })
   visio?: boolean
 
-  @ApiProperty({ required: false })
-  annule?: boolean
+  @ApiProperty()
+  annule: boolean
 
   @ApiProperty({ required: false })
   lienVisio?: string

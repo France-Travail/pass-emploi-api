@@ -31,7 +31,7 @@ export function fromPrestationDtoToRendezVousQueryModel(
     agencePE: prestation.session.enAgence,
     theme: prestation.session.typePrestation?.libelle,
     telephone: prestation.session.adresse?.telephone,
-    annule: prestation.annule,
+    annule: prestation.annule ?? false,
     visio: estVisio(prestation),
     lienVisio,
     source: RendezVous.Source.POLE_EMPLOI

@@ -55,7 +55,8 @@ export function fromSqlToRendezVousJeuneQueryModel(
           prenom: rendezVousSql.jeunes[0].conseiller!.prenom
         },
     source: rendezVousSql.source,
-    futPresent: jeuneSql ? getPresence(jeuneSql) : undefined
+    futPresent: jeuneSql ? getPresence(jeuneSql) : undefined,
+    annule: rendezVousSql.annule
   }
 }
 
@@ -87,7 +88,8 @@ export function fromSqlToRendezVousDetailJeuneQueryModel(
     presenceConseiller: rendezVousSql.presenceConseiller,
     invitation: Boolean(rendezVousSql.invitation),
     createur: rendezVousSql.createur,
-    source: rendezVousSql.source
+    source: rendezVousSql.source,
+    annule: rendezVousSql.annule
   }
 }
 

@@ -29,6 +29,7 @@ export namespace Notification {
     RAPPEL_RENDEZVOUS = 'RAPPEL_RENDEZVOUS',
     DELETED_RENDEZVOUS = 'DELETED_RENDEZVOUS',
     UPDATED_RENDEZVOUS = 'UPDATED_RENDEZVOUS',
+    CANCELED_RENDEZVOUS = 'CANCELED_RENDEZVOUS',
     NEW_MESSAGE = 'NEW_MESSAGE',
     NOUVELLE_OFFRE = 'NOUVELLE_OFFRE',
     DETAIL_ACTION = 'DETAIL_ACTION',
@@ -55,6 +56,7 @@ export namespace Notification {
     | Type.NEW_RENDEZVOUS
     | Type.DELETED_RENDEZVOUS
     | Type.UPDATED_RENDEZVOUS
+    | Type.CANCELED_RENDEZVOUS
 
   export enum TypeNotifManuelle {
     ACTUALISATION_PE = Type.ACTUALISATION_PE,
@@ -79,7 +81,7 @@ export namespace Notification {
       body: string
     }
     data: {
-      type: string
+      type: Notification.Type
       id?: string
     }
   }
@@ -250,6 +252,9 @@ export namespace Notification {
             token,
             rendezVous.date
           )
+          break
+        case Type.CANCELED_RENDEZVOUS:
+          notification = this.creerNotificationRdvAnnule(token, rendezVous.date)
           break
       }
 
@@ -621,6 +626,23 @@ export namespace Notification {
         },
         data: {
           type: Type.DELETED_RENDEZVOUS
+        }
+      }
+    }
+
+    private creerNotificationRdvAnnule(
+      token: string,
+      date: Date
+    ): Notification.Message {
+      const formattedDate = DateTime.fromJSDate(date).toFormat('dd/MM')
+      return {
+        token,
+        notification: {
+          title: 'Rendez-vous annulé',
+          body: `Votre rendez-vous du ${formattedDate} est annulé`
+        },
+        data: {
+          type: Type.CANCELED_RENDEZVOUS
         }
       }
     }

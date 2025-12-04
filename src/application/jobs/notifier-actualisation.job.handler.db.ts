@@ -142,7 +142,7 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
             body: 'Pensez à vous actualiser avant le 15 du mois'
           },
           data: {
-            type: 'ACTUALISATION_PE'
+            type: Notification.Type.ACTUALISATION_PE
           }
         }
         await this.notificationRepository.send(notification, id)

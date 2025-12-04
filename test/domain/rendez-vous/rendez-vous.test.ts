@@ -112,7 +112,8 @@ describe('Rendez-vous', () => {
               sousTitre: 'avec Nils',
               titre: 'Rendez-vous conseiller',
               type: 'ENTRETIEN_INDIVIDUEL_CONSEILLER',
-              nombreMaxParticipants: undefined
+              nombreMaxParticipants: undefined,
+              annule: false
             })
           })
         })

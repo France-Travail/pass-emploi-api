@@ -41,7 +41,8 @@ export function fromRendezVousDtoToRendezVousQueryModel(
     presenceConseiller: true,
     visio: rendezVousPoleEmploiDto.modaliteContact === 'VISIO',
     lienVisio: rendezVousPoleEmploiDto.lienVisio,
-    source: RendezVous.Source.POLE_EMPLOI
+    source: RendezVous.Source.POLE_EMPLOI,
+    annule: false
   }
 }
 

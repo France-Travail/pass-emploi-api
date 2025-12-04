@@ -173,7 +173,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     if (
       rendezVousMILO &&
       this.isDateRecuperable(rendezVousMILO, jeune) &&
-      this.isStatutRDVRecuperable(rendezVousMILO)
+      this.rdvNonReporte(rendezVousMILO) &&
+      this.rdvNonAnnule(rendezVousMILO)
     ) {
       const newRendezVousCEJ = this.rendezVousMiloFactory.createRendezVousCEJ(
         rendezVousMILO,
@@ -219,7 +220,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     if (rendezVousMILO) {
       if (rendezVousCEJExistant) {
         if (
-          !this.isStatutRDVRecuperable(rendezVousMILO) ||
+          this.rdvReporte(rendezVousMILO) ||
           !this.isDateRecuperable(rendezVousMILO, jeune)
         ) {
           return this.handleDeleteRDV(
@@ -239,21 +240,39 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
 
         await this.rendezVousRepository.save(rendezVousCEJUpdated)
 
-        replanifierLesRappelsDeRendezVous(
-          rendezVousCEJUpdated,
-          rendezVousCEJExistant,
-          this.planificateurService,
-          this.logger,
-          this.apmService
-        )
+        if (this.rdvNonAnnule(rendezVousMILO)) {
+          replanifierLesRappelsDeRendezVous(
+            rendezVousCEJUpdated,
+            rendezVousCEJExistant,
+            this.planificateurService,
+            this.logger,
+            this.apmService
+          )
 
-        this.notifierRDV(
-          rendezVousMILO,
-          rendezVousCEJUpdated,
-          maintenant,
-          Notification.Type.UPDATED_RENDEZVOUS,
-          FT_NOTIFIER_EVENEMENTS_MILO
-        )
+          this.notifierRDV(
+            rendezVousMILO,
+            rendezVousCEJUpdated,
+            maintenant,
+            Notification.Type.UPDATED_RENDEZVOUS,
+            FT_NOTIFIER_EVENEMENTS_MILO
+          )
+        } else {
+          supprimerLesRappelsDeRendezVous(
+            rendezVousCEJExistant.id,
+            this.planificateurService,
+            this.logger,
+            this.apmService
+          )
+
+          this.notifierRDV(
+            rendezVousMILO,
+            rendezVousCEJUpdated,
+            maintenant,
+            Notification.Type.CANCELED_RENDEZVOUS,
+            FT_NOTIFIER_EVENEMENTS_MILO
+          )
+        }
+
         return this.buildSuiviJob(
           maintenant,
           Traitement.RENDEZ_VOUS_MODIFIE,
@@ -552,12 +571,22 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     )
   }
 
-  private isStatutRDVRecuperable(rendezVousMILO: RendezVousMilo): boolean {
-    return ![
-      RendezVousMilo.Statut.RDV_ANNULE,
-      RendezVousMilo.Statut.RDV_REPORTE
-    ].includes(rendezVousMILO.statut as RendezVousMilo.Statut)
+  private rdvNonReporte(rendezVousMILO: RendezVousMilo): boolean {
+    return !this.rdvReporte(rendezVousMILO)
   }
+  private rdvReporte(rendezVousMILO: RendezVousMilo): boolean {
+    return (
+      RendezVousMilo.Statut.RDV_REPORTE ===
+      (rendezVousMILO.statut as RendezVousMilo.Statut)
+    )
+  }
+  private rdvNonAnnule(rendezVousMILO: RendezVousMilo): boolean {
+    return (
+      RendezVousMilo.Statut.RDV_ANNULE !==
+      (rendezVousMILO.statut as RendezVousMilo.Statut)
+    )
+  }
+
   private isStatutInstanceSessionRecuperable(
     instanceSessionMilo: InstanceSessionMilo
   ): boolean {
@@ -572,7 +601,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       RendezVousMilo.Statut.RDV_ABSENT,
       RendezVousMilo.Statut.RDV_NON_PRECISE,
       RendezVousMilo.Statut.RDV_PLANIFIE,
-      RendezVousMilo.Statut.RDV_PRESENT
+      RendezVousMilo.Statut.RDV_PRESENT,
+      RendezVousMilo.Statut.RDV_ANNULE
     ].includes(rendezVousMILO.statut as RendezVousMilo.Statut)
   }
   private isStatutInstanceSessionNotifiable(
@@ -588,6 +618,7 @@ export enum Traitement {
   RENDEZ_VOUS_SUPPRIME = 'RENDEZ_VOUS_SUPPRIME',
   RENDEZ_VOUS_AJOUTE = 'RENDEZ_VOUS_AJOUTE',
   RENDEZ_VOUS_MODIFIE = 'RENDEZ_VOUS_MODIFIE',
+  RENDEZ_VOUS_ANNULE = 'RENDEZ_VOUS_ANNULE',
   NOTIFICATION_INSTANCE_SESSION_SUPPRESSION = 'NOTIFICATION_INSTANCE_SESSION_SUPPRESSION',
   NOTIFICATION_INSTANCE_SESSION_AJOUT = 'NOTIFICATION_INSTANCE_SESSION_AJOUT',
   NOTIFICATION_INSTANCE_SESSION_MODIFICATION = 'NOTIFICATION_INSTANCE_SESSION_MODIFICATION',

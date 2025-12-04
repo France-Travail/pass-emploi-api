@@ -142,7 +142,8 @@ describe('MiloRendezVous', () => {
               id: rdvMilo.id
             },
             createur: { id: '', nom: '', prenom: '' },
-            adresse: undefined
+            adresse: undefined,
+            annule: false
           }
           expect(rendezVousObtenu).to.deep.equal(expected)
         })
@@ -186,7 +187,8 @@ describe('MiloRendezVous', () => {
               id: rdvMilo.id
             },
             createur: { id: '', nom: '', prenom: '' },
-            modalite: undefined
+            modalite: undefined,
+            annule: false
           }
           expect(rendezVousObtenu).to.deep.equal(expected)
         })

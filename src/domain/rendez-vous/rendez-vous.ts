@@ -135,6 +135,7 @@ export interface RendezVous {
   dateCloture?: DateTime
   informationsPartenaire?: RendezVous.InformationsPartenaire
   nombreMaxParticipants?: number
+  annule: boolean
 }
 
 export interface InfosRendezVousACreer {
@@ -207,6 +208,11 @@ export namespace RendezVous {
     PASS_EMPLOI = 'PASS_EMPLOI',
     MILO = 'MILO',
     POLE_EMPLOI = 'POLE_EMPLOI'
+  }
+
+  export enum Statut {
+    PLANIFIE = 'PLANIFIE',
+    ANNULE = 'ANNULE'
   }
 
   export interface InformationsPartenaire {
@@ -326,17 +332,15 @@ export namespace RendezVous {
         adresse: infosRendezVousACreer.adresse,
         organisme: infosRendezVousACreer.organisme,
         invitation: infosRendezVousACreer.invitation,
-        presenceConseiller:
-          infosRendezVousACreer.presenceConseiller === undefined
-            ? true
-            : infosRendezVousACreer.presenceConseiller,
+        presenceConseiller: infosRendezVousACreer.presenceConseiller ?? true,
         createur: {
           id: conseiller.id,
           nom: conseiller.lastName,
           prenom: conseiller.firstName
         },
         idAgence,
-        nombreMaxParticipants: infosRendezVousACreer.nombreMaxParticipants
+        nombreMaxParticipants: infosRendezVousACreer.nombreMaxParticipants,
+        annule: false
       })
     }
 

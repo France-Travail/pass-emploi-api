@@ -157,7 +157,8 @@ describe('GetUnRendezVousJeuneQueryHandler', () => {
           },
           comment: 'commentaire',
           adresse: undefined,
-          source: RendezVous.Source.PASS_EMPLOI
+          source: RendezVous.Source.PASS_EMPLOI,
+          annule: false
         }
         expect(isSuccess(result) && result.data).to.deep.equal(expected)
       })
@@ -197,7 +198,8 @@ describe('GetUnRendezVousJeuneQueryHandler', () => {
           },
           comment: 'commentaire',
           adresse: undefined,
-          source: RendezVous.Source.PASS_EMPLOI
+          source: RendezVous.Source.PASS_EMPLOI,
+          annule: false
         }
         expect(isSuccess(result) && result.data).to.deep.equal(expected)
       })

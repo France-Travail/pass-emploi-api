@@ -3,10 +3,10 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as APM from 'elastic-apm-node'
 import { firstValueFrom } from 'rxjs'
-import { Notification } from '../../domain/notification/notification'
 import { buildError } from '../../utils/logger.module'
 import { getAPMInstance } from '../monitoring/apm.init'
 import { RateLimiterService } from '../../utils/rate-limiter.service'
+import { NotificationRepository } from '../repositories/notification-firebase.repository.db'
 
 @Injectable()
 export class MatomoClient {
@@ -29,7 +29,7 @@ export class MatomoClient {
   }
 
   async trackEventPushNotificationEnvoyee(
-    message: Notification.Message
+    message: NotificationRepository
   ): Promise<void> {
     if (this.isActive) {
       const categorieEvent = 'Push notifications sur mobile'

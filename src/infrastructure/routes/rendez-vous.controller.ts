@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -35,9 +34,7 @@ import {
   GetRendezVousACloreQueryModel,
   RendezVousConseillerDetailQueryModel,
   RendezVousConseillerQueryModel,
-  RendezVousJeuneDetailQueryModel,
-  RendezVousJeuneQueryModel,
-  RendezVousJeuneQueryModelV2
+  RendezVousJeuneDetailQueryModel
 } from '../../application/queries/query-models/rendez-vous.query-model'
 import {
   GetAnimationsCollectivesJeuneQuery,
@@ -57,13 +54,10 @@ import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../application/quer
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
-import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
+import { Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { GetRendezVousConseillerV2QueryParams } from './validation/conseillers.inputs'
-import {
-  GetRendezVousJeuneQueryParams,
-  MaintenantQueryParams
-} from './validation/jeunes.inputs'
+import { MaintenantQueryParams } from './validation/jeunes.inputs'
 import {
   CloreRendezVousPayload,
   CreateRendezVousPayload,
@@ -305,67 +299,5 @@ export class RendezVousController {
     )
 
     return handleResult(result)
-  }
-
-  @Get('jeunes/:idJeune/rendezvous')
-  @ApiOperation({
-    summary: 'Récupère les rendez-vous d’un jeune FT Connect, sans cache',
-    description: 'Autorisé pour un jeune FT Connect'
-  })
-  @ApiResponse({
-    type: RendezVousJeuneQueryModel,
-    isArray: true
-  })
-  async getRendezVousJeune(
-    @Param('idJeune') idJeune: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur,
-    @AccessToken() accessToken: string,
-    @Query() getRendezVousQueryParams?: GetRendezVousJeuneQueryParams
-  ): Promise<RendezVousJeuneQueryModel[]> {
-    const result = await this.getRendezVousJeunePoleEmploiQueryHandler.execute(
-      {
-        idJeune,
-        accessToken,
-        periode: getRendezVousQueryParams?.periode
-      },
-      utilisateur
-    )
-
-    return handleResult(result, ({ queryModel, dateDuCache }) => {
-      if (dateDuCache)
-        throw new InternalServerErrorException(
-          'Les données de Pôle emploi sont inaccessibles'
-        )
-      return queryModel
-    })
-  }
-
-  @Get('v2/jeunes/:idJeune/rendezvous')
-  @ApiOperation({
-    summary: 'Récupère les rendez-vous d’un jeune FT Connect, avec cache',
-    description: 'Autorisé pour un jeune FT Connect'
-  })
-  @ApiResponse({
-    type: RendezVousJeuneQueryModelV2
-  })
-  async getRendezVousJeuneV2(
-    @Param('idJeune') idJeune: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur,
-    @AccessToken() accessToken: string,
-    @Query() getRendezVousQueryParams?: GetRendezVousJeuneQueryParams
-  ): Promise<RendezVousJeuneQueryModelV2> {
-    const result = await this.getRendezVousJeunePoleEmploiQueryHandler.execute(
-      {
-        idJeune,
-        accessToken,
-        periode: getRendezVousQueryParams?.periode
-      },
-      utilisateur
-    )
-
-    return handleResult(result, ({ queryModel, dateDuCache }) => ({
-      resultat: queryModel,
-      dateDerniereMiseAJour: dateDuCache?.toJSDate()
-    }))
   }
 }

@@ -1,6 +1,10 @@
 import { FirebaseClient } from 'src/infrastructure/clients/firebase-client'
 import { MatomoClient } from 'src/infrastructure/clients/matomo-client'
-import { NotificationFirebaseSqlRepository } from 'src/infrastructure/repositories/notification-firebase.repository.db'
+import {
+  NotificationFirebaseSqlRepository,
+  NotificationRepository,
+  TypeNotificationRepository
+} from 'src/infrastructure/repositories/notification-firebase.repository.db'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { StubbedClass, stubClass } from '../../utils'
@@ -62,7 +66,7 @@ describe('NotificationFirebaseSqlRepository', () => {
         body: 'Description'
       },
       data: {
-        type: 'OUTILS'
+        type: Notification.Type.OUTILS
       }
     }
 
@@ -142,5 +146,248 @@ describe('NotificationFirebaseSqlRepository', () => {
         matomoClient.trackEventPushNotificationEnvoyee
       ).not.to.have.been.called()
     })
+
+    describe('envoie le bon type de notification', () => {
+      it('envoie un DETAIL_RENDEZVOUS pour un NEW_RENDEZVOUS', async () => {
+        await repository.send(unMessagePush(Notification.Type.NEW_RENDEZVOUS))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un RAPPEL_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.RAPPEL_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un UPDATED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.UPDATED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un CANCELED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.CANCELED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+        )
+      })
+
+      it('envoie un DETAIL_RENDEZVOUS pour un DELETED_RENDEZVOUS', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.DELETED_RENDEZVOUS)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DELETED_RENDEZVOUS)
+        )
+      })
+      it('envoie un NEW_ACTION pour un NEW_ACTION', async () => {
+        await repository.send(unMessagePush(Notification.Type.NEW_ACTION))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.NEW_ACTION)
+        )
+      })
+
+      it('envoie un NEW_MESSAGE pour un NEW_MESSAGE', async () => {
+        await repository.send(unMessagePush(Notification.Type.NEW_MESSAGE))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.NEW_MESSAGE)
+        )
+      })
+
+      it('envoie un NOUVELLE_OFFRE pour un NOUVELLE_OFFRE', async () => {
+        await repository.send(unMessagePush(Notification.Type.NOUVELLE_OFFRE))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.NOUVELLE_OFFRE)
+        )
+      })
+
+      it('envoie un DETAIL_ACTION pour un DETAIL_ACTION', async () => {
+        await repository.send(unMessagePush(Notification.Type.DETAIL_ACTION))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_ACTION)
+        )
+      })
+
+      it('envoie un DETAIL_SESSION_MILO pour un DETAIL_SESSION_MILO', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.DETAIL_SESSION_MILO)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DETAIL_SESSION_MILO)
+        )
+      })
+
+      it('envoie un DELETED_SESSION_MILO pour un DELETED_SESSION_MILO', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.DELETED_SESSION_MILO)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.DELETED_SESSION_MILO)
+        )
+      })
+
+      it('envoie un RAPPEL_CREATION_ACTION pour un RAPPEL_CREATION_ACTION', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.RAPPEL_CREATION_ACTION)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.RAPPEL_CREATION_ACTION)
+        )
+      })
+
+      it('envoie un RAPPEL_CREATION_DEMARCHE pour un RAPPEL_CREATION_DEMARCHE', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.RAPPEL_CREATION_DEMARCHE)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.RAPPEL_CREATION_DEMARCHE)
+        )
+      })
+
+      it('envoie un OUTILS pour un OUTILS', async () => {
+        await repository.send(unMessagePush(Notification.Type.OUTILS))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.OUTILS)
+        )
+      })
+
+      it('envoie un SAVED_SEARCHES pour un SAVED_SEARCHES', async () => {
+        await repository.send(unMessagePush(Notification.Type.SAVED_SEARCHES))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.SAVED_SEARCHES)
+        )
+      })
+
+      it('envoie un OFFRES_ENREGISTREES pour un OFFRES_ENREGISTREES', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.OFFRES_ENREGISTREES)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.OFFRES_ENREGISTREES)
+        )
+      })
+
+      it('envoie un RECHERCHE pour un RECHERCHE', async () => {
+        await repository.send(unMessagePush(Notification.Type.RECHERCHE))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.RECHERCHE)
+        )
+      })
+
+      it('envoie un ACTUALISATION_PE pour un ACTUALISATION_PE', async () => {
+        await repository.send(unMessagePush(Notification.Type.ACTUALISATION_PE))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.ACTUALISATION_PE)
+        )
+      })
+
+      it('envoie un MON_SUIVI pour un MON_SUIVI', async () => {
+        await repository.send(unMessagePush(Notification.Type.MON_SUIVI))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.MON_SUIVI)
+        )
+      })
+
+      it('envoie un EVENT_LIST pour un EVENT_LIST', async () => {
+        await repository.send(unMessagePush(Notification.Type.EVENT_LIST))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.EVENT_LIST)
+        )
+      })
+
+      it('envoie un LA_BONNE_ALTERNANCE pour un LA_BONNE_ALTERNANCE', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.LA_BONNE_ALTERNANCE)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.LA_BONNE_ALTERNANCE)
+        )
+      })
+
+      it('envoie un BENEVOLAT pour un BENEVOLAT', async () => {
+        await repository.send(unMessagePush(Notification.Type.BENEVOLAT))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.BENEVOLAT)
+        )
+      })
+
+      it('envoie un CAMPAGNE pour un CAMPAGNE', async () => {
+        await repository.send(unMessagePush(Notification.Type.CAMPAGNE))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.CAMPAGNE)
+        )
+      })
+
+      it('envoie un NOUVELLES_FONCTIONNALITES pour un NOUVELLES_FONCTIONNALITES', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.NOUVELLES_FONCTIONNALITES)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(
+            TypeNotificationRepository.NOUVELLES_FONCTIONNALITES
+          )
+        )
+      })
+
+      it('envoie un CENTRE_DE_NOTIFS_UNIQUEMENT pour un CENTRE_DE_NOTIFS_UNIQUEMENT', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(
+            TypeNotificationRepository.CENTRE_DE_NOTIFS_UNIQUEMENT
+          )
+        )
+      })
+
+      it('envoie un MIGRATION_PARCOURS_EMPLOI pour un MIGRATION_PARCOURS_EMPLOI', async () => {
+        await repository.send(
+          unMessagePush(Notification.Type.MIGRATION_PARCOURS_EMPLOI)
+        )
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(
+            TypeNotificationRepository.MIGRATION_PARCOURS_EMPLOI
+          )
+        )
+      })
+    })
   })
 })
+
+const notifSansType = {
+  token: 'push1',
+  notification: {
+    title: 'Titre',
+    body: 'Description'
+  },
+  idJeune: 'j1',
+  pushNotification: true
+}
+function unMessagePush(type: Notification.Type): Notification.Message {
+  return {
+    ...notifSansType,
+    data: {
+      type
+    }
+  }
+}
+function unMessageRepoPush(
+  type: TypeNotificationRepository
+): NotificationRepository {
+  return {
+    ...notifSansType,
+    data: {
+      type
+    }
+  }
+}

@@ -93,7 +93,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
               body: 'Aidez-nous à améliorer l’application en partageant votre avis. Cela ne prend qu’une minute !'
             },
             data: {
-              type: 'CAMPAGNE'
+              type: Notification.Type.CAMPAGNE
             }
           }
           await this.notificationRepository.send(notification, jeune.id)

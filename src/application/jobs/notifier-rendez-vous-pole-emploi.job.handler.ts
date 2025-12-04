@@ -202,7 +202,8 @@ interface NotificationAEnvoyer {
 const ordreTypeRendezVous: { [type in Notification.TypeRdv]: number } = {
   NEW_RENDEZVOUS: 1,
   UPDATED_RENDEZVOUS: 2,
-  DELETED_RENDEZVOUS: 3
+  DELETED_RENDEZVOUS: 3,
+  CANCELED_RENDEZVOUS: 4
 }
 
 function createdPuisUpdatedPuisDeleted(

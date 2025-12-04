@@ -83,7 +83,7 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
               body: `Accédez en quelques clics aux écoles et entreprises prêtes à vous accueillir`
             },
             data: {
-              type: 'BONNE_ALTERNANCE'
+              type: Notification.Type.LA_BONNE_ALTERNANCE
             }
           }
           await this.notificationRepository.send(notification, jeune.id)
