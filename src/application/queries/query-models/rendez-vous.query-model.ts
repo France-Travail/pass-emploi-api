@@ -128,17 +128,6 @@ export class RendezVousJeuneQueryModel implements RendezVousBaseQueryModel {
   futPresent?: boolean
 }
 
-export class RendezVousJeuneQueryModelV2 {
-  @ApiProperty({
-    type: RendezVousJeuneQueryModel,
-    isArray: true
-  })
-  resultat: RendezVousJeuneQueryModel[]
-
-  @ApiPropertyOptional()
-  dateDerniereMiseAJour?: Date
-}
-
 class LogModificationRendezVousQueryModel {
   @ApiProperty()
   date: string
@@ -203,6 +192,9 @@ export class RendezVousConseillerQueryModel
 
   @ApiPropertyOptional()
   nombreMaxParticipants?: number
+
+  @ApiProperty()
+  annule: boolean
 }
 
 export class AnimationCollectiveQueryModel extends RendezVousConseillerQueryModel {

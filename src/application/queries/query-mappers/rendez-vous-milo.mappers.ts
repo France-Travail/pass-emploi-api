@@ -120,7 +120,8 @@ export function fromSqlToRendezVousConseillerQueryModel(
     presenceConseiller: rendezVousSql.presenceConseiller,
     invitation: Boolean(rendezVousSql.invitation),
     createur: rendezVousSql.createur,
-    source: rendezVousSql.source
+    source: rendezVousSql.source,
+    annule: rendezVousSql.annule
   }
 }
 

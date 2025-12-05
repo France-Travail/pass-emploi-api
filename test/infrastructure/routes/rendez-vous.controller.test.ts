@@ -94,7 +94,8 @@ describe('RendezvousController', () => {
           duration: rendezvous.duree,
           modality: rendezvous.modalite!,
           invitation: rendezvous.invitation!,
-          source: rendezvous.source
+          source: rendezvous.source,
+          annule: false
         })
       )
       //When - Then
@@ -121,7 +122,8 @@ describe('RendezvousController', () => {
             modality: rendezvous.modalite!,
             invitation: rendezvous.invitation!,
             historique: [],
-            source: rendezvous.source
+            source: rendezvous.source,
+            annule: true
           })
         )
       //When - Then

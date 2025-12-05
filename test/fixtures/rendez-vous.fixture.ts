@@ -1,8 +1,6 @@
-import { RendezVousConseillerQueryModel } from 'src/application/queries/query-models/rendez-vous.query-model'
 import {
   CodeTypeRendezVous,
   JeuneDuRendezVous,
-  mapCodeLabelTypeRendezVous,
   RendezVous
 } from '../../src/domain/rendez-vous/rendez-vous'
 import {
@@ -89,41 +87,5 @@ export const unJeuneDuRendezVous = (
     present: undefined
   }
 
-  return { ...defaults, ...args }
-}
-
-export const unRendezVousConseillerQueryModel = (
-  args: Partial<RendezVousConseillerQueryModel> = {}
-): RendezVousConseillerQueryModel => {
-  const defaults = {
-    id: '1',
-    title: '',
-    modality: 'modalite',
-    comment: 'commentaire',
-    date: new Date('2021-11-11T08:03:30.000Z'),
-    duration: 30,
-    invitation: false,
-    jeune: {
-      id: '1',
-      nom: 'test',
-      prenom: 'test'
-    },
-    jeunes: [
-      {
-        id: '1',
-        nom: 'test',
-        prenom: 'test'
-      }
-    ],
-    type: {
-      code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-      label:
-        mapCodeLabelTypeRendezVous[
-          CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER
-        ]
-    },
-    presenceConseiller: true,
-    source: RendezVous.Source.PASS_EMPLOI
-  }
   return { ...defaults, ...args }
 }

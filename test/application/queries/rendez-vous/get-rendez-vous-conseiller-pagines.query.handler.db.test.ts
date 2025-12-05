@@ -35,6 +35,7 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
   let unRendezVousFutur: AsSql<RendezVousDto>
   let unRendezVousPasAuConseiller: AsSql<RendezVousDto>
   let unRendezVousTresFuturPresenceConseillerFalse: AsSql<RendezVousDto>
+  let unRendezVousAnnule: AsSql<RendezVousDto>
   const jeune1 = unJeune({ id: 'jeune-1' })
   const jeune2 = unJeune({ id: 'jeune-2' })
 
@@ -75,13 +76,19 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       titre: 'UN RENDEZ TRES FUTUR',
       presenceConseiller: false
     })
+    unRendezVousAnnule = unRendezVousDto({
+      date: maintenant.plus({ days: 21 }).toJSDate(),
+      titre: 'UN RENDEZ VOUS ANNULE',
+      annule: true
+    })
 
     await RendezVousSqlModel.bulkCreate([
       unRendezVousPasse,
       unRendezVousTresPasse,
       unRendezVousTresFuturPresenceConseillerFalse,
       unRendezVousFutur,
-      unRendezVousPasAuConseiller
+      unRendezVousPasAuConseiller,
+      unRendezVousAnnule
     ])
     await RendezVousJeuneAssociationSqlModel.bulkCreate([
       {
@@ -119,6 +126,10 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       {
         idJeune: jeune2.id,
         idRendezVous: unRendezVousPasAuConseiller.id
+      },
+      {
+        idJeune: jeune1.id,
+        idRendezVous: unRendezVousAnnule.id
       }
     ])
   })
@@ -132,13 +143,14 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(4)
+        expect(result.data.length).to.equal(5)
         expect(result.data[0].date).to.deep.equal(unRendezVousTresPasse.date)
         expect(result.data[1].date).to.deep.equal(unRendezVousPasse.date)
         expect(result.data[2].date).to.deep.equal(unRendezVousFutur.date)
         expect(result.data[3].date).to.deep.equal(
           unRendezVousTresFuturPresenceConseillerFalse.date
         )
+        expect(result.data[4].annule).to.be.true()
       }
     })
     it('retourne les rendez-vous du conseiller avant une dateFin', async () => {
@@ -164,7 +176,7 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(2)
+        expect(result.data.length).to.equal(3)
         expect(result.data[0].date).to.deep.equal(unRendezVousFutur.date)
         expect(result.data[1].date).to.deep.equal(
           unRendezVousTresFuturPresenceConseillerFalse.date
@@ -210,10 +222,11 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(3)
-        expect(result.data[0].date).to.deep.equal(unRendezVousFutur.date)
-        expect(result.data[1].date).to.deep.equal(unRendezVousPasse.date)
-        expect(result.data[2].date).to.deep.equal(unRendezVousTresPasse.date)
+        expect(result.data.length).to.equal(4)
+        expect(result.data[0].date).to.deep.equal(unRendezVousAnnule.date)
+        expect(result.data[1].date).to.deep.equal(unRendezVousFutur.date)
+        expect(result.data[2].date).to.deep.equal(unRendezVousPasse.date)
+        expect(result.data[3].date).to.deep.equal(unRendezVousTresPasse.date)
       }
     })
   })
