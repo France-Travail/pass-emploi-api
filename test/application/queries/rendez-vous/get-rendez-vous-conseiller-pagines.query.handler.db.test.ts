@@ -176,7 +176,7 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(2)
+        expect(result.data.length).to.equal(3)
         expect(result.data[0].date).to.deep.equal(unRendezVousFutur.date)
         expect(result.data[1].date).to.deep.equal(
           unRendezVousTresFuturPresenceConseillerFalse.date
@@ -222,10 +222,11 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(3)
-        expect(result.data[0].date).to.deep.equal(unRendezVousFutur.date)
-        expect(result.data[1].date).to.deep.equal(unRendezVousPasse.date)
-        expect(result.data[2].date).to.deep.equal(unRendezVousTresPasse.date)
+        expect(result.data.length).to.equal(4)
+        expect(result.data[0].date).to.deep.equal(unRendezVousAnnule.date)
+        expect(result.data[1].date).to.deep.equal(unRendezVousFutur.date)
+        expect(result.data[2].date).to.deep.equal(unRendezVousPasse.date)
+        expect(result.data[3].date).to.deep.equal(unRendezVousTresPasse.date)
       }
     })
   })
