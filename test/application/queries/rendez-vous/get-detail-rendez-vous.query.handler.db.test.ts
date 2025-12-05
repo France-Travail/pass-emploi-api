@@ -54,7 +54,8 @@ const queryModel: RendezVousConseillerDetailQueryModel = {
     label: 'Entretien individuel conseiller'
   },
   source: RendezVous.Source.PASS_EMPLOI,
-  nombreMaxParticipants: undefined
+  nombreMaxParticipants: undefined,
+  annule: false
 }
 
 describe('GetDetailRendezVousQueryHandler', () => {

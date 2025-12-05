@@ -192,6 +192,9 @@ export class RendezVousConseillerQueryModel
 
   @ApiPropertyOptional()
   nombreMaxParticipants?: number
+
+  @ApiProperty()
+  annule: boolean
 }
 
 export class AnimationCollectiveQueryModel extends RendezVousConseillerQueryModel {

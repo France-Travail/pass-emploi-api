@@ -135,7 +135,7 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
   })
 
   describe('handle', () => {
-    it('retourne tous les rendez-vous du conseiller non annulés triés par date croissante par défaut', async () => {
+    it('retourne tous les rendez-vous du conseiller triés par date croissante par défaut', async () => {
       //When
       const result = await getRendezVousConseillerPaginesQueryHandler.handle({
         idConseiller: jeune1.conseiller.id
@@ -143,13 +143,14 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       // Then
       expect(result._isSuccess).to.be.true()
       if (isSuccess(result)) {
-        expect(result.data.length).to.equal(4)
+        expect(result.data.length).to.equal(5)
         expect(result.data[0].date).to.deep.equal(unRendezVousTresPasse.date)
         expect(result.data[1].date).to.deep.equal(unRendezVousPasse.date)
         expect(result.data[2].date).to.deep.equal(unRendezVousFutur.date)
         expect(result.data[3].date).to.deep.equal(
           unRendezVousTresFuturPresenceConseillerFalse.date
         )
+        expect(result.data[4].annule).to.be.true()
       }
     })
     it('retourne les rendez-vous du conseiller avant une dateFin', async () => {
