@@ -58,6 +58,7 @@ export class GetRendezVousConseillerPaginesQueryHandler extends QueryHandler<
               AND jeune.id_conseiller = :id_conseiller
             )`)
         },
+        annule: false,
         ...generateDateCondition(query.dateDebut, query.dateFin),
         ...presenceConseillerCondition
       },

@@ -35,6 +35,7 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
   let unRendezVousFutur: AsSql<RendezVousDto>
   let unRendezVousPasAuConseiller: AsSql<RendezVousDto>
   let unRendezVousTresFuturPresenceConseillerFalse: AsSql<RendezVousDto>
+  let unRendezVousAnnule: AsSql<RendezVousDto>
   const jeune1 = unJeune({ id: 'jeune-1' })
   const jeune2 = unJeune({ id: 'jeune-2' })
 
@@ -75,13 +76,19 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       titre: 'UN RENDEZ TRES FUTUR',
       presenceConseiller: false
     })
+    unRendezVousAnnule = unRendezVousDto({
+      date: maintenant.plus({ days: 21 }).toJSDate(),
+      titre: 'UN RENDEZ VOUS ANNULE',
+      annule: true
+    })
 
     await RendezVousSqlModel.bulkCreate([
       unRendezVousPasse,
       unRendezVousTresPasse,
       unRendezVousTresFuturPresenceConseillerFalse,
       unRendezVousFutur,
-      unRendezVousPasAuConseiller
+      unRendezVousPasAuConseiller,
+      unRendezVousAnnule
     ])
     await RendezVousJeuneAssociationSqlModel.bulkCreate([
       {
@@ -119,12 +126,16 @@ describe('GetRendezVousConseillerPaginesQueryHandler', () => {
       {
         idJeune: jeune2.id,
         idRendezVous: unRendezVousPasAuConseiller.id
+      },
+      {
+        idJeune: jeune1.id,
+        idRendezVous: unRendezVousAnnule.id
       }
     ])
   })
 
   describe('handle', () => {
-    it('retourne tous les rendez-vous du conseiller triés par date croissante par défaut', async () => {
+    it('retourne tous les rendez-vous du conseiller non annulés triés par date croissante par défaut', async () => {
       //When
       const result = await getRendezVousConseillerPaginesQueryHandler.handle({
         idConseiller: jeune1.conseiller.id
