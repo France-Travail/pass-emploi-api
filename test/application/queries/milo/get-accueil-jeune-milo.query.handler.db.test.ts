@@ -312,9 +312,10 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
       })
     })
 
-    describe('retourne le prochain rendez-vous', () => {
+    describe('retourne le prochain rendez-vous non annulé', () => {
       const dansDeuxSemainesDateJS = maintenant.plus({ week: 2 }).toJSDate()
       let prochainRendezVousDans2Semaines: RendezVousSqlModel
+      let prochainRendezVousDans1SemaineAnnule: RendezVousSqlModel
 
       beforeEach(async () => {
         // Given
@@ -323,9 +324,19 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
             date: dansDeuxSemainesDateJS
           })
         )
+        prochainRendezVousDans1SemaineAnnule = await RendezVousSqlModel.create(
+          unRendezVousDto({
+            date: maintenant.plus({ week: 1 }).toJSDate(),
+            annule: true
+          })
+        )
         await RendezVousJeuneAssociationSqlModel.create({
           idJeune: accueilQuery.idJeune,
           idRendezVous: prochainRendezVousDans2Semaines.id
+        })
+        await RendezVousJeuneAssociationSqlModel.create({
+          idJeune: accueilQuery.idJeune,
+          idRendezVous: prochainRendezVousDans1SemaineAnnule.id
         })
       })
 

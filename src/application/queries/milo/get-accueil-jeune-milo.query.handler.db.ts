@@ -235,7 +235,8 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   ): Promise<RendezVousSqlModel | null> {
     return RendezVousSqlModel.findOne({
       where: {
-        date: { [Op.gte]: maintenant.toJSDate() }
+        date: { [Op.gte]: maintenant.toJSDate() },
+        annule: false
       },
       order: [['date', 'ASC']],
       include: [
