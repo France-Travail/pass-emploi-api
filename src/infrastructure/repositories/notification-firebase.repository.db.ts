@@ -12,7 +12,7 @@ import { AsSql } from '../sequelize/types'
 
 export enum TypeNotificationRepository {
   NEW_ACTION = 'NEW_ACTION',
-  DETAIL_RENDEZVOUS = 'DETAIL_RENDEZVOUS',
+  NEW_RENDEZVOUS = 'NEW_RENDEZVOUS',
   DELETED_RENDEZVOUS = 'DELETED_RENDEZVOUS',
   NEW_MESSAGE = 'NEW_MESSAGE',
   NOUVELLE_OFFRE = 'NOUVELLE_OFFRE',
@@ -58,7 +58,7 @@ function typeNotificationToTypeNotificationRepository(
     case Notification.Type.RAPPEL_RENDEZVOUS:
     case Notification.Type.UPDATED_RENDEZVOUS:
     case Notification.Type.CANCELED_RENDEZVOUS:
-      return TypeNotificationRepository.DETAIL_RENDEZVOUS
+      return TypeNotificationRepository.NEW_RENDEZVOUS
     case Notification.Type.DELETED_RENDEZVOUS:
       return TypeNotificationRepository.DELETED_RENDEZVOUS
     case Notification.Type.NEW_MESSAGE:

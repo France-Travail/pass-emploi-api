@@ -148,41 +148,41 @@ describe('NotificationFirebaseSqlRepository', () => {
     })
 
     describe('envoie le bon type de notification', () => {
-      it('envoie un DETAIL_RENDEZVOUS pour un NEW_RENDEZVOUS', async () => {
+      it('envoie un NEW_RENDEZVOUS pour un NEW_RENDEZVOUS', async () => {
         await repository.send(unMessagePush(Notification.Type.NEW_RENDEZVOUS))
         expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
-          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+          unMessageRepoPush(TypeNotificationRepository.NEW_RENDEZVOUS)
         )
       })
 
-      it('envoie un DETAIL_RENDEZVOUS pour un RAPPEL_RENDEZVOUS', async () => {
+      it('envoie un NEW_RENDEZVOUS pour un RAPPEL_RENDEZVOUS', async () => {
         await repository.send(
           unMessagePush(Notification.Type.RAPPEL_RENDEZVOUS)
         )
         expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
-          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+          unMessageRepoPush(TypeNotificationRepository.NEW_RENDEZVOUS)
         )
       })
 
-      it('envoie un DETAIL_RENDEZVOUS pour un UPDATED_RENDEZVOUS', async () => {
+      it('envoie un NEW_RENDEZVOUS pour un UPDATED_RENDEZVOUS', async () => {
         await repository.send(
           unMessagePush(Notification.Type.UPDATED_RENDEZVOUS)
         )
         expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
-          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+          unMessageRepoPush(TypeNotificationRepository.NEW_RENDEZVOUS)
         )
       })
 
-      it('envoie un DETAIL_RENDEZVOUS pour un CANCELED_RENDEZVOUS', async () => {
+      it('envoie un NEW_RENDEZVOUS pour un CANCELED_RENDEZVOUS', async () => {
         await repository.send(
           unMessagePush(Notification.Type.CANCELED_RENDEZVOUS)
         )
         expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
-          unMessageRepoPush(TypeNotificationRepository.DETAIL_RENDEZVOUS)
+          unMessageRepoPush(TypeNotificationRepository.NEW_RENDEZVOUS)
         )
       })
 
-      it('envoie un DETAIL_RENDEZVOUS pour un DELETED_RENDEZVOUS', async () => {
+      it('envoie un NEW_RENDEZVOUS pour un DELETED_RENDEZVOUS', async () => {
         await repository.send(
           unMessagePush(Notification.Type.DELETED_RENDEZVOUS)
         )

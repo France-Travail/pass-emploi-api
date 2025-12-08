@@ -127,7 +127,8 @@ describe('Notification', () => {
             body: `Votre rendez-vous du 11/11 est annulé`
           },
           data: {
-            type: typeNotification
+            type: typeNotification,
+            id: rdv.id
           }
         })
 

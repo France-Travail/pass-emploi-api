@@ -254,7 +254,11 @@ export namespace Notification {
           )
           break
         case Type.CANCELED_RENDEZVOUS:
-          notification = this.creerNotificationRdvAnnule(token, rendezVous.date)
+          notification = this.creerNotificationRdvAnnule(
+            token,
+            rendezVous.date,
+            rendezVous.id
+          )
           break
       }
 
@@ -632,7 +636,8 @@ export namespace Notification {
 
     private creerNotificationRdvAnnule(
       token: string,
-      date: Date
+      date: Date,
+      idRdv: string
     ): Notification.Message {
       const formattedDate = DateTime.fromJSDate(date).toFormat('dd/MM')
       return {
@@ -642,7 +647,8 @@ export namespace Notification {
           body: `Votre rendez-vous du ${formattedDate} est annulé`
         },
         data: {
-          type: Type.CANCELED_RENDEZVOUS
+          type: Type.CANCELED_RENDEZVOUS,
+          id: idRdv
         }
       }
     }
