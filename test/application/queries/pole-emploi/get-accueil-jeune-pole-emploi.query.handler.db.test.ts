@@ -20,6 +20,7 @@ import {
   Result,
   success
 } from '../../../../src/building-blocks/types/result'
+import { Authentification } from '../../../../src/domain/authentification'
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
 import { FeatureFlip } from '../../../../src/domain/feature-flip'
@@ -28,7 +29,6 @@ import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import { Authentification } from '../../../../src/domain/authentification'
 import Structure = Core.Structure
 
 describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
@@ -199,13 +199,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
               idJeune: query.idJeune
             })
             .resolves(campagneQueryModel)
-
-          featureFlipService.laFeatureEstActive
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-              id: query.idJeune,
-              type: Authentification.Type.JEUNE
-            })
-            .resolves(true)
         })
         it('retourne le prochain rendez-vous', async () => {
           // When
@@ -308,40 +301,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             isSuccess(result) && result.data.dateDeMigration
           ).to.be.undefined()
         })
-        it('renvoie eligibleDemarchesIA quand la feature est active', async () => {
-          // Given
-          featureFlipService.laFeatureEstActive
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-              id: query.idJeune,
-              type: Authentification.Type.JEUNE
-            })
-            .resolves(true)
-
-          // When
-          result = await handler.handle(query)
-
-          // Then
-          expect(
-            isSuccess(result) && result.data.eligibleDemarchesIA
-          ).to.be.true()
-        })
-        it('renvoie eligibleDemarchesIA false quand la feature est inactive', async () => {
-          // Given
-          featureFlipService.laFeatureEstActive
-            .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-              id: query.idJeune,
-              type: Authentification.Type.JEUNE
-            })
-            .resolves(false)
-
-          // When
-          result = await handler.handle(query)
-
-          // Then
-          expect(
-            isSuccess(result) && result.data.eligibleDemarchesIA
-          ).to.be.false()
-        })
       })
     })
 
@@ -380,13 +339,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             idJeune: query.idJeune
           })
           .resolves(campagneQueryModel)
-
-        featureFlipService.laFeatureEstActive
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-            id: query.idJeune,
-            type: Authentification.Type.JEUNE
-          })
-          .resolves(false)
 
         // When
         result = await handler.handle(query)
