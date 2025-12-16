@@ -61,7 +61,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
       await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
       const dossierDto = await firstValueFrom(
         this.httpService.get<DossierMiloDto>(
-          `${this.apiUrl}/sue/dossiers/${idDossier}`,
+          `${this.apiUrl}/api-dossiers-cej/dossiers/${idDossier}`,
           {
             headers: { 'X-Gravitee-Api-Key': `${this.apiKeyDossier}` }
           }
@@ -78,7 +78,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
         dateFinCEJ: DateService.fromStringToDateTime(
           dossierDto.data.accompagnementCEJ.dateFinPrevue
         ),
-        situations: dossierDto.data.situations.map(situation => {
+        situations: dossierDto.data.situationsCEJ.map(situation => {
           return {
             etat: situation.etat,
             categorie: situation.categorieSituation,
