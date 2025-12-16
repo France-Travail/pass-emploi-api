@@ -55,9 +55,6 @@ export class AccueilJeunePoleEmploiQueryModel {
 
   @ApiPropertyOptional()
   campagne?: CampagneQueryModel
-
-  @ApiPropertyOptional()
-  eligibleDemarchesIA?: boolean
 }
 
 export class CVPoleEmploiQueryModel {
