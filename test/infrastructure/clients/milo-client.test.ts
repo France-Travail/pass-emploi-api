@@ -277,7 +277,7 @@ describe('MiloClient', () => {
       const idpToken = 'idpToken'
 
       nock(MILO_BASE_URL)
-        .get(`/operateurs/utilisateurs/moi/structures`)
+        .get(`/api-utilisateurs/utilisateurs/moi/structures`)
         .reply(200, uneListeDeStructuresConseillerMiloDto)
         .isDone()
 
