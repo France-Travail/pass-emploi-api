@@ -86,7 +86,7 @@ describe('MiloEvenementsHttpRepository', () => {
     it('acquitte l‘evenement quand milo répond NO CONTENT', async () => {
       // Given
       nock('https://milo.com')
-        .post(`/operateurs/events/${evenement.id}/ack`, {})
+        .post(`/api-evenements/events/${evenement.id}/ack`, {})
         .reply(204)
 
       // When
@@ -98,7 +98,7 @@ describe('MiloEvenementsHttpRepository', () => {
     it('retourne une failure quand milo répond INTERNAL SERVER ERROR', async () => {
       // Given
       nock('https://milo.com')
-        .post(`/operateurs/events/${evenement.id}/ack`, {})
+        .post(`/api-evenements/events/${evenement.id}/ack`, {})
         .reply(500, 'Im not a teapot')
 
       // When
