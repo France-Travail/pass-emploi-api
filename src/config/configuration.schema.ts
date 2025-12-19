@@ -48,6 +48,7 @@ export const configurationSchema = Joi.object({
     apiKeySessionDetailConseiller: Joi.string().required(),
     apiKeySessionsDetailEtListeJeune: Joi.string().required(),
     apiKeySessionsListeConseiller: Joi.string().required(),
+    apiKeySessionJwt: Joi.string().required(),
     apiKeyUtilisateurs: Joi.string().required(),
     apiKeyEnvoiEmail: Joi.string().required()
   }),

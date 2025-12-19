@@ -216,7 +216,7 @@ describe('MiloClient', () => {
       const idSession = '1'
 
       nock(MILO_BASE_URL)
-        .get(`/operateurs/sessions/${idSession}`)
+        .get(`/api-sessions/sessions/${idSession}`)
         .reply(200, unDetailSessionConseillerDto)
         .isDone()
 
@@ -238,7 +238,7 @@ describe('MiloClient', () => {
       const idDossier = 'id-dossier'
 
       nock(MILO_BASE_URL)
-        .get(`/operateurs/sessions/${idSession}`)
+        .get(`/api-sessions/sessions/${idSession}`)
         .reply(200, unDetailSessionJeuneDto)
         .isDone()
 
@@ -709,7 +709,7 @@ describe('MiloClient', () => {
         const idSession = '1'
 
         nock(MILO_BASE_URL)
-          .get(`/operateurs/sessions/${idSession}`)
+          .get(`/api-sessions/sessions/${idSession}`)
           .reply(404, { message: 'Not Found' })
 
         // When
@@ -731,7 +731,7 @@ describe('MiloClient', () => {
         const idDossier = 'id-dossier'
 
         nock(MILO_BASE_URL)
-          .get(`/operateurs/sessions/${idSession}`)
+          .get(`/api-sessions/sessions/${idSession}`)
           .reply(404, { message: 'Not Found' })
 
         // When
@@ -753,7 +753,7 @@ describe('MiloClient', () => {
         const idDossier = 'id-dossier'
 
         nock(MILO_BASE_URL)
-          .get(`/operateurs/sessions/${idSession}`)
+          .get(`/api-sessions/sessions/${idSession}`)
           .reply(200, unDetailSessionJeuneDto)
 
         nock(MILO_BASE_URL)
@@ -781,7 +781,7 @@ describe('MiloClient', () => {
         const idDossier = 'id-dossier'
 
         nock(MILO_BASE_URL)
-          .get(`/operateurs/sessions/${idSession}`)
+          .get(`/api-sessions/sessions/${idSession}`)
           .reply(200, unDetailSessionJeuneDto)
 
         nock(MILO_BASE_URL)
