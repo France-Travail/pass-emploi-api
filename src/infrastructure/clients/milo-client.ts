@@ -213,8 +213,8 @@ export class MiloClient {
     idpToken: string
   ): Promise<Result<StructureConseillerMiloDto>> {
     await this.rateLimiterService.structuresMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const resultStructures = await this.get<StructureConseillerMiloDto[]>(
-      `utilisateurs/moi/structures`,
+    const resultStructures = await this.newGet<StructureConseillerMiloDto[]>(
+      `api-utilisateurs/utilisateurs/moi/structures`,
       {
         apiKey: this.apiKeyUtilisateurs,
         idpToken
@@ -390,6 +390,39 @@ export class MiloClient {
 
       const response = await firstValueFrom(
         this.httpService.get<T>(`${this.apiUrl}/operateurs/${suffixUrl}`, {
+          params,
+          headers
+        })
+      )
+      if (!response.data) {
+        return failure(new ErreurHttp('Ressource Milo introuvable', 404))
+      }
+      return success(response.data)
+    } catch (e) {
+      this.apmService.captureError(e)
+      return handleAxiosError(e, this.logger, 'Erreur GET Milo')
+    }
+  }
+
+  private async newGet<T>(
+    suffixUrl: string,
+    auth: {
+      apiKey: string
+      idpToken?: string
+    },
+    params?: URLSearchParams
+  ): Promise<Result<T>> {
+    try {
+      const headers: Record<string, string> = {
+        'X-Gravitee-Api-Key': auth.apiKey,
+        operateur: 'APPLICATION_CEJ'
+      }
+      if (auth.idpToken) {
+        headers.Authorization = `Bearer ${auth.idpToken}`
+      }
+
+      const response = await firstValueFrom(
+        this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
           params,
           headers
         })
