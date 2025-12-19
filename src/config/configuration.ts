@@ -63,7 +63,6 @@ export default () => {
       apiKeyDossierCej: process.env.MILO_DOSSIER_CEJ_API_KEY,
       apiKeyCreerJeune: process.env.MILO_JEUNE_API_KEY,
       apiKeyEvents: process.env.MILO_EVENTS_API_KEY,
-      apiKeyEventsNew: process.env.MILO_EVENTS_API_KEY_NEW,
       apiKeyDetailRendezVous: process.env.MILO_RENDEZ_VOUS_API_KEY,
       apiKeyInstanceSessionLecture:
         process.env.MILO_INSTANCE_SESSION_LECTURE_API_KEY,

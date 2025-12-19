@@ -17,7 +17,6 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
   private logger: Logger
   private readonly apiUrl: string
   private readonly apiKeyEvents: string
-  private readonly apiKeyEventsNew: string
 
   constructor(
     private httpService: HttpService,
@@ -27,7 +26,6 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
     this.logger = new Logger('EvenementMiloHttpRepository')
     this.apiUrl = this.configService.get('milo').url
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
-    this.apiKeyEventsNew = this.configService.get('milo').apiKeyEventsNew
   }
 
   async findAllEvenements(): Promise<EvenementMilo[]> {
@@ -37,7 +35,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
       this.httpService.get<EvenementMiloDto[]>(
         `${this.apiUrl}/api-evenements/events`,
         {
-          headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEventsNew}` }
+          headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }
         }
       )
     )
@@ -58,7 +56,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
       await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
       await firstValueFrom(
         this.httpService.post(
-          `${this.apiUrl}/operateurs/events/${evenement.id}/ack`,
+          `${this.apiUrl}/api-evenements/events/${evenement.id}/ack`,
           {},
           {
             headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }
