@@ -2,7 +2,11 @@ import { HttpService } from '@nestjs/axios'
 import { expect } from 'chai'
 import { DateTime } from 'luxon'
 import * as nock from 'nock'
-import { emptySuccess, success } from 'src/building-blocks/types/result'
+import {
+  emptySuccess,
+  isFailure,
+  success
+} from 'src/building-blocks/types/result'
 import { MiloClient } from 'src/infrastructure/clients/milo-client'
 import {
   unDetailSessionConseillerDto,
@@ -444,7 +448,7 @@ describe('MiloClient', () => {
           idDossier: 'id-dossier-3',
           idInstanceSession: 'id-inscription-3',
           statut: MILO_REFUS_JEUNE,
-          commentaire: 'J’ai pas envie'
+          commentaire: `J'ai pas envie`
         },
         {
           idDossier: 'id-dossier-4',
@@ -469,7 +473,7 @@ describe('MiloClient', () => {
       const scope3 = nock(MILO_BASE_URL)
         .put(
           `/operateurs/dossiers/${aModifier[2].idDossier}/instances-session/${aModifier[2].idInstanceSession}`,
-          { statut: MILO_REFUS_JEUNE, commentaire: 'J’ai pas envie' }
+          { statut: MILO_REFUS_JEUNE, commentaire: `J'ai pas envie` }
         )
         .reply(201)
       const scope4 = nock(MILO_BASE_URL)
@@ -491,6 +495,490 @@ describe('MiloClient', () => {
       expect(scope3.isDone()).to.equal(true)
       expect(scope4.isDone()).to.equal(true)
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('envoyerEmailActivation', () => {
+    it("envoie un email d'activation", async () => {
+      // Given
+      const idpToken = 'idpToken'
+      const email = 'test@example.com'
+
+      nock(MILO_BASE_URL).put('/sue/sendVerifyEmail', email).reply(200).isDone()
+
+      // When
+      const result = await miloClient.envoyerEmailActivation(idpToken, email)
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('gestion des erreurs', () => {
+    describe('envoyerEmailActivation', () => {
+      it("retourne une erreur en cas d'échec", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const email = 'test@example.com'
+
+        nock(MILO_BASE_URL)
+          .put('/sue/sendVerifyEmail', email)
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.envoyerEmailActivation(idpToken, email)
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+    })
+    describe('getSessionsConseillerParStructure', () => {
+      it("retourne une erreur en cas d'échec de l'API", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idStructure = '1'
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.getSessionsConseillerParStructure(
+          idpToken,
+          idStructure,
+          'Europe/Paris',
+          { periode: {} }
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it('retourne une erreur si les données sont vides', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idStructure = '1'
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+          )
+          .reply(200, undefined)
+
+        // When
+        const result = await miloClient.getSessionsConseillerParStructure(
+          idpToken,
+          idStructure,
+          'Europe/Paris',
+          { periode: {} }
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it('récupère la page 2 quand il y a 150 résultats ou plus', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idStructure = '1'
+        const sessionsPage1 = Array(150).fill(unDetailSessionConseillerDto)
+        const sessionsPage2 = [unDetailSessionConseillerDto]
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+          )
+          .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
+          )
+          .reply(200, { sessions: sessionsPage2, page: 2, nbSessions: 151 })
+
+        // When
+        const result = await miloClient.getSessionsConseillerParStructure(
+          idpToken,
+          idStructure,
+          'Europe/Paris',
+          { periode: {} }
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(false)
+        if (!isFailure(result)) {
+          expect(result.data.length).to.equal(151)
+        }
+      })
+
+      it('continue même si la page 2 échoue', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idStructure = '1'
+        const sessionsPage1 = Array(150).fill(unDetailSessionConseillerDto)
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+          )
+          .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
+          )
+          .reply(400)
+
+        // When
+        const result = await miloClient.getSessionsConseillerParStructure(
+          idpToken,
+          idStructure,
+          'Europe/Paris',
+          { periode: {} }
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(false)
+        if (!isFailure(result)) {
+          expect(result.data.length).to.equal(150)
+        }
+      })
+    })
+
+    describe('getSessionsParDossierJeune', () => {
+      it("retourne une erreur en cas d'échec de l'API", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idDossier = 'idDossier'
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.getSessionsParDossierJeune(
+          idpToken,
+          idDossier
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it('récupère la page 2 quand il y a 150 résultats ou plus', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idDossier = 'idDossier'
+        const sessionsPage1 = Array(150).fill(unDetailSessionJeuneDto)
+        const sessionsPage2 = [unDetailSessionJeuneDto]
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+          )
+          .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
+
+        nock(MILO_BASE_URL)
+          .get(
+            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06&page=2`
+          )
+          .reply(200, { sessions: sessionsPage2, page: 2, nbSessions: 151 })
+
+        // When
+        const result = await miloClient.getSessionsParDossierJeune(
+          idpToken,
+          idDossier
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(false)
+        if (!isFailure(result)) {
+          expect(result.data.length).to.equal(151)
+        }
+      })
+    })
+
+    describe('getDetailSessionConseiller', () => {
+      it("retourne une erreur en cas d'échec de l'API", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idSession = '1'
+
+        nock(MILO_BASE_URL)
+          .get(`/operateurs/sessions/${idSession}`)
+          .reply(404, { message: 'Not Found' })
+
+        // When
+        const result = await miloClient.getDetailSessionConseiller(
+          idpToken,
+          idSession
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('getDetailSessionJeune', () => {
+      it('retourne une erreur si le détail de la session échoue', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idSession = '1'
+        const idDossier = 'id-dossier'
+
+        nock(MILO_BASE_URL)
+          .get(`/operateurs/sessions/${idSession}`)
+          .reply(404, { message: 'Not Found' })
+
+        // When
+        const result = await miloClient.getDetailSessionJeune(
+          idpToken,
+          idSession,
+          idDossier,
+          'Europe/Paris'
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it('retourne une erreur si la récupération des sessions par dossier échoue', async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idSession = '1'
+        const idDossier = 'id-dossier'
+
+        nock(MILO_BASE_URL)
+          .get(`/operateurs/sessions/${idSession}`)
+          .reply(200, unDetailSessionJeuneDto)
+
+        nock(MILO_BASE_URL)
+          .get(
+            '/operateurs/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.getDetailSessionJeune(
+          idpToken,
+          idSession,
+          idDossier,
+          'Europe/Paris'
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it("retourne le détail sans inscription si la session n'est pas trouvée dans le dossier", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idSession = '1'
+        const idDossier = 'id-dossier'
+
+        nock(MILO_BASE_URL)
+          .get(`/operateurs/sessions/${idSession}`)
+          .reply(200, unDetailSessionJeuneDto)
+
+        nock(MILO_BASE_URL)
+          .get(
+            '/operateurs/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
+          )
+          .reply(200, {
+            page: 1,
+            nbSessions: 1,
+            sessions: [
+              {
+                ...unDetailSessionJeuneDto,
+                session: { ...unDetailSessionJeuneDto.session, id: 999 }
+              }
+            ]
+          })
+
+        // When
+        const result = await miloClient.getDetailSessionJeune(
+          idpToken,
+          idSession,
+          idDossier,
+          'Europe/Paris'
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(false)
+        if (!isFailure(result)) {
+          expect(result.data.sessionInstance).to.equal(undefined)
+        }
+      })
+    })
+
+    describe('getListeInscritsSession', () => {
+      it("retourne une erreur en cas d'échec de l'API", async () => {
+        // Given
+        const idpToken = 'idpToken'
+        const idSession = '1'
+
+        nock(MILO_BASE_URL)
+          .get(`/operateurs/sessions/${idSession}/inscrits`)
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.getListeInscritsSession(
+          idpToken,
+          idSession
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('getStructureConseiller', () => {
+      it("retourne une erreur en cas d'échec de l'API", async () => {
+        // Given
+        const idpToken = 'idpToken'
+
+        nock(MILO_BASE_URL)
+          .get(`/api-utilisateurs/utilisateurs/moi/structures`)
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.getStructureConseiller(idpToken)
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it("retourne une erreur si aucune structure principale n''est trouvée", async () => {
+        // Given
+        const idpToken = 'idpToken'
+
+        nock(MILO_BASE_URL)
+          .get(`/api-utilisateurs/utilisateurs/moi/structures`)
+          .reply(200, [
+            { id: '1', nom: 'Structure 1', principale: false },
+            { id: '2', nom: 'Structure 2', principale: false }
+          ])
+
+        // When
+        const result = await miloClient.getStructureConseiller(idpToken)
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('inscrireJeunesSession', () => {
+      it("retourne une erreur dès qu'une inscription échoue", async () => {
+        // Given
+        const idSession = 'id-session'
+        const idsDossier = ['id-dossier-1', 'id-dossier-2']
+
+        nock(MILO_BASE_URL)
+          .post(
+            `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+            JSON.stringify(idSession)
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.inscrireJeunesSession(
+          'idpToken',
+          idSession,
+          idsDossier
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+
+      it('gère les réponses sans data', async () => {
+        // Given
+        const idSession = 'id-session'
+        const idsDossier = ['id-dossier-1']
+
+        nock(MILO_BASE_URL)
+          .post(
+            `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+            JSON.stringify(idSession)
+          )
+          .reply(201)
+
+        // When
+        const result = await miloClient.inscrireJeunesSession(
+          'idpToken',
+          idSession,
+          idsDossier
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(false)
+        if (!isFailure(result)) {
+          expect(result.data).to.deep.equal([])
+        }
+      })
+    })
+
+    describe('desinscrireJeunesSession', () => {
+      it("'retourne une erreur dès qu'une désinscription échoue", async () => {
+        // Given
+        const aDesinscrire = [
+          { idDossier: 'id-dossier-1', idInstanceSession: 'id-inscription-1' },
+          { idDossier: 'id-dossier-2', idInstanceSession: 'id-inscription-2' }
+        ]
+
+        nock(MILO_BASE_URL)
+          .delete(
+            `/operateurs/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.desinscrireJeunesSession(
+          'idpToken',
+          aDesinscrire
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('modifierInscriptionJeunesSession', () => {
+      it("retourne une erreur dès qu'une modification échoue", async () => {
+        // Given
+        const aModifier = [
+          {
+            idDossier: 'id-dossier-1',
+            idInstanceSession: 'id-inscription-1',
+            statut: MILO_INSCRIT
+          },
+          {
+            idDossier: 'id-dossier-2',
+            idInstanceSession: 'id-inscription-2',
+            statut: MILO_REFUS_TIERS
+          }
+        ]
+
+        nock(MILO_BASE_URL)
+          .put(
+            `/operateurs/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
+            { statut: MILO_INSCRIT }
+          )
+          .reply(400, { message: 'Erreur dans la requete' })
+
+        // When
+        const result = await miloClient.modifierInscriptionJeunesSession(
+          'idpToken',
+          aModifier
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+      })
     })
   })
 })
