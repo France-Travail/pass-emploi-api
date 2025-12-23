@@ -402,17 +402,17 @@ describe('MiloClient', () => {
 
       const scope1 = nock(MILO_BASE_URL)
         .delete(
-          `/operateurs/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
+          `/api-sessions/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
         )
         .reply(201)
       const scope2 = nock(MILO_BASE_URL)
         .delete(
-          `/operateurs/dossiers/${aDesinscrire[1].idDossier}/instances-session/${aDesinscrire[1].idInstanceSession}`
+          `/api-sessions/dossiers/${aDesinscrire[1].idDossier}/instances-session/${aDesinscrire[1].idInstanceSession}`
         )
         .reply(201)
       const scope3 = nock(MILO_BASE_URL)
         .delete(
-          `/operateurs/dossiers/${aDesinscrire[2].idDossier}/instances-session/${aDesinscrire[2].idInstanceSession}`
+          `/api-sessions/dossiers/${aDesinscrire[2].idDossier}/instances-session/${aDesinscrire[2].idInstanceSession}`
         )
         .reply(201)
 
@@ -932,7 +932,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .delete(
-            `/operateurs/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
+            `/api-sessions/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
           )
           .reply(400, { message: 'Erreur dans la requete' })
 
