@@ -28,7 +28,7 @@ export interface DossierMiloDto {
     dateFinReelle: string | null
     premierAccompagnement: string | null
   }
-  situations: [
+  situationsCEJ: [
     {
       etat: JeuneMilo.EtatSituation
       dateFin: string | null

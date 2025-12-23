@@ -26,7 +26,7 @@ import { fromSqlToJeune } from '../mappers/jeunes.mappers'
 export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   private logger: Logger
   private readonly apiUrl: string
-  private readonly apiKeyDossier: string
+  private readonly apiKeyDossierCej: string
   private readonly apiKeyCreerJeune: string
 
   constructor(
@@ -36,7 +36,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   ) {
     this.logger = new Logger('MiloHttpRepository')
     this.apiUrl = this.configService.get('milo').url
-    this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
+    this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
     this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
   }
 
@@ -61,9 +61,9 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
       await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
       const dossierDto = await firstValueFrom(
         this.httpService.get<DossierMiloDto>(
-          `${this.apiUrl}/sue/dossiers/${idDossier}`,
+          `${this.apiUrl}/api-dossiers-cej/dossiers/${idDossier}`,
           {
-            headers: { 'X-Gravitee-Api-Key': `${this.apiKeyDossier}` }
+            headers: { 'X-Gravitee-Api-Key': `${this.apiKeyDossierCej}` }
           }
         )
       )
@@ -78,7 +78,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
         dateFinCEJ: DateService.fromStringToDateTime(
           dossierDto.data.accompagnementCEJ.dateFinPrevue
         ),
-        situations: dossierDto.data.situations.map(situation => {
+        situations: dossierDto.data.situationsCEJ.map(situation => {
           return {
             etat: situation.etat,
             categorie: situation.categorieSituation,
