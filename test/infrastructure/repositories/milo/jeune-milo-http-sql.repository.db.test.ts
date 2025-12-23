@@ -126,7 +126,7 @@ describe('JeuneMiloHttpRepository', () => {
       it('renvoie le dossier', async () => {
         // Given
         nock('https://milo.com')
-          .get('/sue/dossiers/1')
+          .get('/api-dossiers-cej/dossiers/1')
           .reply(200, JSON.stringify(dossierDto()))
           .isDone()
 
@@ -160,7 +160,7 @@ describe('JeuneMiloHttpRepository', () => {
       it("renvoie l'erreur", async () => {
         // Given
         nock('https://milo.com')
-          .get('/sue/dossiers/1')
+          .get('/api-dossiers-cej/dossiers/1')
           .reply(404, {
             message: 'un message'
           })
@@ -638,7 +638,7 @@ const dossierDto = (): DossierMiloDto => ({
     dateFinReelle: null,
     premierAccompagnement: null
   },
-  situations: [
+  situationsCEJ: [
     {
       etat: JeuneMilo.EtatSituation.EN_COURS,
       dateFin: null,
