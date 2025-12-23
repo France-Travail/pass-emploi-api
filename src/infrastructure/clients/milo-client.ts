@@ -247,10 +247,9 @@ export class MiloClient {
   ): Promise<Result<InscrireJeuneSessionDto[]>> {
     const dto: InscrireJeuneSessionDto[] = []
     for (const idDossier of idsDossier) {
-      const result = await this.post<InscrireJeuneSessionDto>(
-        `dossiers/${idDossier}/instances-session`,
+      const result = await this.postInscriptionSession<InscrireJeuneSessionDto>(
+        idDossier,
         idSession,
-        this.apiKeyInstanceSessionEcritureConseiller,
         idpToken
       )
       if (isFailure(result)) {
@@ -473,21 +472,20 @@ export class MiloClient {
     }
   }
 
-  private async post<T>(
-    suffixUrl: string,
-    payload: { [p: string]: string } | string,
-    apiKey: string,
+  private async postInscriptionSession<T>(
+    idDossier: string,
+    idSession: string,
     idpToken: string
   ): Promise<Result<T | void>> {
     try {
       const response = await firstValueFrom(
         this.httpService.post<T>(
-          `${this.apiUrl}/operateurs/${suffixUrl}`,
-          payload,
+          `${this.apiUrl}/api-sessions/dossiers/${idDossier}/instances-session`,
+          idSession,
           {
             headers: {
               Authorization: `Bearer ${idpToken}`,
-              'X-Gravitee-Api-Key': apiKey,
+              'X-Gravitee-Api-Key': this.apiKeySessionJwt,
               operateur: 'APPLICATION_CEJ',
               'Content-Type': 'application/json'
             }
