@@ -460,25 +460,25 @@ describe('MiloClient', () => {
 
       const scope1 = nock(MILO_BASE_URL)
         .put(
-          `/operateurs/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
+          `/api-sessions/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
           { statut: MILO_INSCRIT }
         )
         .reply(201)
       const scope2 = nock(MILO_BASE_URL)
         .put(
-          `/operateurs/dossiers/${aModifier[1].idDossier}/instances-session/${aModifier[1].idInstanceSession}`,
+          `/api-sessions/dossiers/${aModifier[1].idDossier}/instances-session/${aModifier[1].idInstanceSession}`,
           { statut: MILO_REFUS_TIERS }
         )
         .reply(201)
       const scope3 = nock(MILO_BASE_URL)
         .put(
-          `/operateurs/dossiers/${aModifier[2].idDossier}/instances-session/${aModifier[2].idInstanceSession}`,
+          `/api-sessions/dossiers/${aModifier[2].idDossier}/instances-session/${aModifier[2].idInstanceSession}`,
           { statut: MILO_REFUS_JEUNE, commentaire: `J'ai pas envie` }
         )
         .reply(201)
       const scope4 = nock(MILO_BASE_URL)
         .put(
-          `/operateurs/dossiers/${aModifier[3].idDossier}/instances-session/${aModifier[3].idInstanceSession}`,
+          `/api-sessions/dossiers/${aModifier[3].idDossier}/instances-session/${aModifier[3].idInstanceSession}`,
           { statut: MILO_PRESENT, dateDebutReelle: '2020-04-08' }
         )
         .reply(201)
@@ -965,7 +965,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .put(
-            `/operateurs/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
+            `/api-sessions/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
             { statut: MILO_INSCRIT }
           )
           .reply(400, { message: 'Erreur dans la requete' })
