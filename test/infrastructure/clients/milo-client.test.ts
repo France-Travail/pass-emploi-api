@@ -323,7 +323,7 @@ describe('MiloClient', () => {
 
       const scope1 = nock(MILO_BASE_URL)
         .post(
-          `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+          `/api-sessions/dossiers/${idsDossier[0]}/instances-session`,
           JSON.stringify(idSession)
         )
         .reply(201, {
@@ -334,7 +334,7 @@ describe('MiloClient', () => {
         })
       const scope2 = nock(MILO_BASE_URL)
         .post(
-          `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
+          `/api-sessions/dossiers/${idsDossier[1]}/instances-session`,
           JSON.stringify(idSession)
         )
         .reply(201, {
@@ -345,7 +345,7 @@ describe('MiloClient', () => {
         })
       const scope3 = nock(MILO_BASE_URL)
         .post(
-          `/operateurs/dossiers/${idsDossier[2]}/instances-session`,
+          `/api-sessions/dossiers/${idsDossier[2]}/instances-session`,
           JSON.stringify(idSession)
         )
         .reply(201, {
@@ -879,7 +879,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .post(
-            `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+            `/api-sessions/dossiers/${idsDossier[0]}/instances-session`,
             JSON.stringify(idSession)
           )
           .reply(400, { message: 'Erreur dans la requete' })
@@ -902,7 +902,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .post(
-            `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+            `/api-sessions/dossiers/${idsDossier[0]}/instances-session`,
             JSON.stringify(idSession)
           )
           .reply(201)
