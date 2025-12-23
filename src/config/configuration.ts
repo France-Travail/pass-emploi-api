@@ -76,6 +76,7 @@ export default () => {
         process.env.MILO_SESSIONS_DETAIL_ET_LISTE_JEUNE_API_KEY,
       apiKeySessionsListeConseiller:
         process.env.MILO_SESSIONS_LISTE_CONSEILLER_API_KEY,
+      apiKeySessionJwt: process.env.MILO_SESSION_JWT_API_KEY,
       apiKeyUtilisateurs: process.env.MILO_UTILISATEURS_API_KEY,
       apiKeyEnvoiEmail: process.env.MILO_ENVOI_EMAIL_API_KEY,
       urlWeb: process.env.MILO_WEB_URL
