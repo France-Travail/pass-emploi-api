@@ -39,6 +39,7 @@ export const configurationSchema = Joi.object({
     maxNombreEvenementsBatch: Joi.number().required(),
     apiKeyDossier: Joi.string().required(),
     apiKeyCreerJeune: Joi.string().required(),
+    apiKeyDossierCej: Joi.string().required(),
     apiKeyEvents: Joi.string().required(),
     apiKeyDetailRendezVous: Joi.string().required(),
     apiKeyInstanceSessionLecture: Joi.string().required(),
