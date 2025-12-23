@@ -292,14 +292,14 @@ export class MiloClient {
     }>
   ): Promise<Result> {
     for (const modification of modifications) {
-      const result = await this.put(
-        `dossiers/${modification.idDossier}/instances-session/${modification.idInstanceSession}`,
+      const result = await this.putModificationInscriptionSession(
+        modification.idDossier,
+        modification.idInstanceSession,
         {
           statut: modification.statut,
           commentaire: modification.commentaire,
           dateDebutReelle: modification.dateDebutReelle
         },
-        this.apiKeyInstanceSessionEcritureConseiller,
         idpToken
       )
       if (isFailure(result)) return result
@@ -461,6 +461,34 @@ export class MiloClient {
               operateur: 'APPLICATION_CEJ',
               'Content-Type':
                 typeof payload === 'string' ? 'text/plain' : 'application/json'
+            }
+          }
+        )
+      )
+      return emptySuccess()
+    } catch (e) {
+      this.apmService.captureError(e)
+      return handleAxiosError(e, this.logger, 'Erreur PUT Milo')
+    }
+  }
+
+  private async putModificationInscriptionSession(
+    idDossier: string,
+    idInstanceSession: string,
+    payload: { [p: string]: string | undefined } | string,
+    idpToken: string
+  ): Promise<Result> {
+    try {
+      await firstValueFrom(
+        this.httpService.put(
+          `${this.apiUrl}/api-sessions/dossiers/${idDossier}/instances-session/${idInstanceSession}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${idpToken}`,
+              'X-Gravitee-Api-Key': this.apiKeySessionsJwt,
+              operateur: 'APPLICATION_CEJ',
+              'Content-Type': 'application/json'
             }
           }
         )
