@@ -208,10 +208,13 @@ export class MiloClient {
     idSession: string
   ): Promise<Result<InscritSessionMiloDto[]>> {
     await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.get<InscritSessionMiloDto[]>(`sessions/${idSession}/inscrits`, {
-      apiKey: this.apiKeySessionDetailConseiller,
-      idpToken
-    })
+    return this.newGet<InscritSessionMiloDto[]>(
+      `api-sessions/sessions/${idSession}/inscrits`,
+      {
+        apiKey: this.apiKeySessionJwt,
+        idpToken
+      }
+    )
   }
 
   async getStructureConseiller(
