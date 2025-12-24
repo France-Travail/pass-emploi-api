@@ -128,7 +128,7 @@ export class MiloClient {
     return this.recupererSessionsParDossierJeune(
       idpToken,
       idDossier,
-      this.apiKeySessionsDetailEtListeJeune,
+      this.apiKeySessionsJwt,
       periode
     )
   }
@@ -142,7 +142,7 @@ export class MiloClient {
     return this.recupererSessionsParDossierJeune(
       idpToken,
       idDossier,
-      this.apiKeySessionDetailConseiller,
+      this.apiKeySessionsJwt,
       periode
     )
   }
@@ -346,8 +346,8 @@ export class MiloClient {
 
     // On assure jusqu'à 300 résultats
     const sessions: SessionParDossierJeuneDto[] = []
-    const dtoResult = await this.get<ListeSessionsJeuneMiloDto>(
-      `sessions`,
+    const dtoResult = await this.newGet<ListeSessionsJeuneMiloDto>(
+      `api-sessions/sessions`,
       {
         apiKey,
         idpToken
@@ -360,8 +360,8 @@ export class MiloClient {
     sessions.push(...dtoResult.data.sessions)
     if (dtoResult.data.sessions.length >= TAILLE_PAGE_MAX_APIS_MILO) {
       params.append('page', '2')
-      const dtoPage2Result = await this.get<ListeSessionsJeuneMiloDto>(
-        `sessions`,
+      const dtoPage2Result = await this.newGet<ListeSessionsJeuneMiloDto>(
+        `api-sessions/sessions`,
         {
           apiKey,
           idpToken
