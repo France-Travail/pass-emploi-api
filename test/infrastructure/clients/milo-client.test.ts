@@ -117,7 +117,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+          `/api-sessions/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
         )
         .reply(200, uneListeSessionsJeuneDto)
         .isDone()
@@ -139,7 +139,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          `/operateurs/sessions?idDossier=${idDossier}&dateDebutRecherche=2023-07-21&dateFinRecherche=2023-07-26&taillePage=150`
+          `/api-sessions/sessions?idDossier=${idDossier}&dateDebutRecherche=2023-07-21&dateFinRecherche=2023-07-26&taillePage=150`
         )
         .reply(200, uneListeSessionsJeuneDto)
         .isDone()
@@ -167,7 +167,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+          `/api-sessions/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
         )
         .reply(200, uneListeSessionsJeuneDto)
         .isDone()
@@ -189,7 +189,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          `/operateurs/sessions?idDossier=${idDossier}&dateDebutRecherche=2023-07-21&dateFinRecherche=2023-07-26&taillePage=150`
+          `/api-sessions/sessions?idDossier=${idDossier}&dateDebutRecherche=2023-07-21&dateFinRecherche=2023-07-26&taillePage=150`
         )
         .reply(200, uneListeSessionsJeuneDto)
         .isDone()
@@ -244,7 +244,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          '/operateurs/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
+          '/api-sessions/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
         )
         .reply(200, {
           page: 1,
@@ -655,7 +655,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+            `/api-sessions/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
           )
           .reply(400, { message: 'Erreur dans la requete' })
 
@@ -678,13 +678,13 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
+            `/api-sessions/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06`
           )
           .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06&page=2`
+            `/api-sessions/sessions?idDossier=${idDossier}&taillePage=150&dateFinRecherche=2020-07-06&page=2`
           )
           .reply(200, { sessions: sessionsPage2, page: 2, nbSessions: 151 })
 
@@ -758,7 +758,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            '/operateurs/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
+            '/api-sessions/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
           )
           .reply(400, { message: 'Erreur dans la requete' })
 
@@ -786,7 +786,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            '/operateurs/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
+            '/api-sessions/sessions?idDossier=id-dossier&taillePage=150&dateDebutRecherche=2020-04-06&dateFinRecherche=2020-04-06'
           )
           .reply(200, {
             page: 1,
