@@ -301,7 +301,7 @@ describe('MiloClient', () => {
       const idSession = '1'
 
       nock(MILO_BASE_URL)
-        .get(`/operateurs/sessions/${idSession}/inscrits`)
+        .get(`/api-sessions/sessions/${idSession}/inscrits`)
         .reply(200, [uneInscriptionSessionMiloDto()])
         .isDone()
 
@@ -822,7 +822,7 @@ describe('MiloClient', () => {
         const idSession = '1'
 
         nock(MILO_BASE_URL)
-          .get(`/operateurs/sessions/${idSession}/inscrits`)
+          .get(`/api-sessions/sessions/${idSession}/inscrits`)
           .reply(400, { message: 'Erreur dans la requete' })
 
         // When
