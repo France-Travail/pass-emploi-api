@@ -58,7 +58,7 @@ describe('MiloClient', () => {
 
       nock(MILO_BASE_URL)
         .get(
-          `/operateurs/structures/${idStructure}/sessions?dateDebutRecherche=2023-05-31&dateFinRecherche=2023-06-29&taillePage=150&rechercheInscrits=true`
+          `/api-sessions/structures/${idStructure}/sessions?dateDebutRecherche=2023-05-31&dateFinRecherche=2023-06-29&taillePage=150&rechercheInscrits=true`
         )
         .reply(200, uneListeSessionsConseillerDto)
         .isDone()
@@ -74,32 +74,6 @@ describe('MiloClient', () => {
             fin: DateTime.fromISO('2023-06-30T00:00:00')
           }
         }
-      )
-
-      // Then
-      expect(result).to.deep.equal(
-        success(uneListeSessionsConseillerDto.sessions)
-      )
-    })
-
-    it('recupere la liste des sessions milo de la structure du conseiller', async () => {
-      // Given
-      const idpToken = 'idpToken'
-      const idStructure = '1'
-
-      nock(MILO_BASE_URL)
-        .get(
-          `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
-        )
-        .reply(200, uneListeSessionsConseillerDto)
-        .isDone()
-
-      // When
-      const result = await miloClient.getSessionsConseillerParStructure(
-        idpToken,
-        idStructure,
-        'America/Cayenne',
-        { periode: {} }
       )
 
       // Then
@@ -540,7 +514,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
           )
           .reply(400, { message: 'Erreur dans la requete' })
 
@@ -563,7 +537,7 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
           )
           .reply(200, undefined)
 
@@ -588,13 +562,13 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
           )
           .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
           )
           .reply(200, { sessions: sessionsPage2, page: 2, nbSessions: 151 })
 
@@ -621,13 +595,13 @@ describe('MiloClient', () => {
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
           )
           .reply(200, { sessions: sessionsPage1, page: 1, nbSessions: 151 })
 
         nock(MILO_BASE_URL)
           .get(
-            `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
+            `/api-sessions/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true&page=2`
           )
           .reply(400)
 
