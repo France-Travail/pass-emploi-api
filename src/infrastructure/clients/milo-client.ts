@@ -90,10 +90,10 @@ export class MiloClient {
 
     // On assure jusqu'à 300 résultats
     const sessions: SessionConseillerDetailDto[] = []
-    const dtoResult = await this.get<ListeSessionsConseillerMiloDto>(
-      `structures/${idStructure}/sessions`,
+    const dtoResult = await this.newGet<ListeSessionsConseillerMiloDto>(
+      `api-sessions/structures/${idStructure}/sessions`,
       {
-        apiKey: this.apiKeySessionsListeConseiller,
+        apiKey: this.apiKeySessionsJwt,
         idpToken
       },
       params
@@ -104,10 +104,10 @@ export class MiloClient {
     sessions.push(...dtoResult.data.sessions)
     if (dtoResult.data.sessions.length >= TAILLE_PAGE_MAX_APIS_MILO) {
       params.append('page', '2')
-      const dtoPage2Result = await this.get<ListeSessionsConseillerMiloDto>(
-        `structures/${idStructure}/sessions`,
+      const dtoPage2Result = await this.newGet<ListeSessionsConseillerMiloDto>(
+        `api-sessions/structures/${idStructure}/sessions`,
         {
-          apiKey: this.apiKeySessionsListeConseiller,
+          apiKey: this.apiKeySessionsJwt,
           idpToken
         },
         params
