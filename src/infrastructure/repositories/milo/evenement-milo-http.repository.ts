@@ -33,7 +33,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
 
     const evenements = await firstValueFrom(
       this.httpService.get<EvenementMiloDto[]>(
-        `${this.apiUrl}/operateurs/events`,
+        `${this.apiUrl}/api-evenements/events`,
         {
           headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }
         }
@@ -56,7 +56,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
       await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
       await firstValueFrom(
         this.httpService.post(
-          `${this.apiUrl}/operateurs/events/${evenement.id}/ack`,
+          `${this.apiUrl}/api-evenements/events/${evenement.id}/ack`,
           {},
           {
             headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }

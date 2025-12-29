@@ -61,7 +61,7 @@ export default () => {
       maxNombreEvenementsBatch: process.env.MILO_MAX_NOMBRE_EVENEMENTS_BATCH,
       apiKeyDossier: process.env.MILO_DOSSIER_API_KEY,
       apiKeyCreerJeune: process.env.MILO_JEUNE_API_KEY,
-      apiKeyEvents: process.env.MILO_EVENTS_API_KEY,
+      apiKeyEvents: process.env.MILO_V2_EVENTS_API_KEY,
       apiKeyDetailRendezVous: process.env.MILO_RENDEZ_VOUS_API_KEY,
       apiKeyInstanceSessionLecture:
         process.env.MILO_INSTANCE_SESSION_LECTURE_API_KEY,
