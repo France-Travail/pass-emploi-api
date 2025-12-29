@@ -37,6 +37,7 @@ export class MiloClient {
   private readonly apiKeySessionsListeConseiller: string
   private readonly apiKeySessionsDetailEtListeJeune: string
   private readonly apiKeySessionDetailConseiller: string
+  private readonly apiKeySessionsJwt: string
   private readonly apiKeyInstanceSessionEcritureConseiller: string
   private readonly apiKeyEnvoiEmail: string
   private readonly apiKeyUtilisateurs: string
@@ -58,6 +59,7 @@ export class MiloClient {
       this.configService.get('milo').apiKeySessionsDetailEtListeJeune
     this.apiKeySessionDetailConseiller =
       this.configService.get('milo').apiKeySessionDetailConseiller
+    this.apiKeySessionsJwt = this.configService.get('milo').apiKeySessionsJwt
     this.apiKeyInstanceSessionEcritureConseiller =
       this.configService.get('milo').apiKeyInstanceSessionEcritureConseiller
     this.apiKeyUtilisateurs = this.configService.get('milo').apiKeyUtilisateurs
@@ -150,10 +152,13 @@ export class MiloClient {
     idSession: string
   ): Promise<Result<SessionConseillerDetailDto>> {
     await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.get<SessionConseillerDetailDto>(`sessions/${idSession}`, {
-      apiKey: this.apiKeySessionDetailConseiller,
-      idpToken
-    })
+    return this.newGet<SessionConseillerDetailDto>(
+      `api-sessions/sessions/${idSession}`,
+      {
+        apiKey: this.apiKeySessionsJwt,
+        idpToken
+      }
+    )
   }
 
   async getDetailSessionJeune(
@@ -163,10 +168,10 @@ export class MiloClient {
     timezone: string
   ): Promise<Result<SessionParDossierJeuneDto>> {
     await this.rateLimiterService.sessionsJeuneMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const resultDetail = await this.get<SessionJeuneDetailDto>(
-      `sessions/${idSession}`,
+    const resultDetail = await this.newGet<SessionJeuneDetailDto>(
+      `api-sessions/sessions/${idSession}`,
       {
-        apiKey: this.apiKeySessionsDetailEtListeJeune,
+        apiKey: this.apiKeySessionsJwt,
         idpToken
       }
     )
