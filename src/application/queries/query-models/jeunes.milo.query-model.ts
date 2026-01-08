@@ -43,6 +43,9 @@ export class AccueilJeuneMiloQueryModel {
   sessionsMiloAVenir: SessionJeuneMiloQueryModel[]
 
   @ApiProperty()
+  sessionsEnCoursDeChargement: boolean
+
+  @ApiProperty()
   mesAlertes: RechercheQueryModel[]
 
   @ApiPropertyOptional()

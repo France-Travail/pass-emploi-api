@@ -139,6 +139,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         )
       ),
       sessionsMiloAVenir: resultatSessionsMilo.sessionsNonInscrit.slice(0, 3),
+      sessionsEnCoursDeChargement: resultatSessionsMilo.enCoursDeChargement,
       mesAlertes: recherchesQueryModels,
       mesFavoris: favorisQueryModels,
       campagne: campagneQueryModel,
@@ -307,27 +308,45 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     let sessionsInscrit: SessionJeuneMiloQueryModel[] = []
     let sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[] = []
     let sessionsNonInscrit: SessionJeuneMiloQueryModel[] = []
+    let enCoursDeChargement = false
 
     if (jeuneSqlModel.idPartenaire) {
       try {
-        const sessionsQueryModels = await this.getSessionsQueryGetter.handle(
+        const TIMEOUT_MS = 6000
+
+        const timeoutPromise = new Promise<'timeout'>(resolve => {
+          setTimeout(() => resolve('timeout'), TIMEOUT_MS)
+        })
+
+        const sessionsPromise = this.getSessionsQueryGetter.handle(
           query.idJeune,
           query.accessToken,
           {
             periode: { debut: maintenant, fin: datePlus30Jours }
           }
         )
-        if (isSuccess(sessionsQueryModels)) {
-          sessionsInscrit = sessionsQueryModels.data.filter(session =>
-            SessionMilo.Inscription.aEteInscrit(session.inscription)
+
+        const result = await Promise.race([sessionsPromise, timeoutPromise])
+
+        if (result === 'timeout') {
+          this.logger.warn(
+            `La récupération des sessions de l'accueil du jeune ${query.idJeune} a dépassé le timeout de ${TIMEOUT_MS}ms`
           )
-          sessionsInscritCetteSemaine = sessionsInscrit.filter(session => {
-            const dateDebutSession = DateTime.fromISO(session.dateHeureDebut)
-            return dateDebutSession < dateFinDeSemaine
-          })
-          sessionsNonInscrit = sessionsQueryModels.data.filter(
-            session => !SessionMilo.Inscription.aEteInscrit(session.inscription)
-          )
+          enCoursDeChargement = true
+        } else {
+          if (isSuccess(result)) {
+            sessionsInscrit = result.data.filter(session =>
+              SessionMilo.Inscription.aEteInscrit(session.inscription)
+            )
+            sessionsInscritCetteSemaine = sessionsInscrit.filter(session => {
+              const dateDebutSession = DateTime.fromISO(session.dateHeureDebut)
+              return dateDebutSession < dateFinDeSemaine
+            })
+            sessionsNonInscrit = result.data.filter(
+              session =>
+                !SessionMilo.Inscription.aEteInscrit(session.inscription)
+            )
+          }
         }
       } catch (e) {
         this.logger.error(
@@ -336,13 +355,15 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
             e
           )
         )
+        enCoursDeChargement = true
       }
     }
 
     return {
       sessionsInscrit: sessionsInscrit,
       sessionsInscritCetteSemaine: sessionsInscritCetteSemaine,
-      sessionsNonInscrit: sessionsNonInscrit
+      sessionsNonInscrit: sessionsNonInscrit,
+      enCoursDeChargement: enCoursDeChargement
     }
   }
 }
@@ -351,4 +372,5 @@ class ResultatSessionsMilo {
   sessionsInscrit: SessionJeuneMiloQueryModel[]
   sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[]
   sessionsNonInscrit: SessionJeuneMiloQueryModel[]
+  enCoursDeChargement: boolean
 }
