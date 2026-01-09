@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 
 import { DateTime } from 'luxon'
 import { Op, Sequelize } from 'sequelize'
@@ -27,8 +27,8 @@ import { TYPES_ANIMATIONS_COLLECTIVES } from 'src/domain/rendez-vous/rendez-vous
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
+import { RendezVousJeuneAssociationSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
 import { RendezVousSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous.sql-model'
-import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { buildError } from '../../../utils/logger.module'
 import {
   fromSqlToRendezVousDetailJeuneQueryModel,
@@ -53,8 +53,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     private getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
     private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
-    private getCampagneQueryGetter: GetCampagneQueryGetter,
-    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
+    private getCampagneQueryGetter: GetCampagneQueryGetter
   ) {
     super('GetAccueilJeuneMiloQueryHandler')
   }
@@ -245,6 +244,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           where: {
             id: idJeune
           },
+          required: true,
           include: [ConseillerSqlModel]
         }
       ]
@@ -284,14 +284,18 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         type: {
           [Op.in]: TYPES_ANIMATIONS_COLLECTIVES
         },
-        id: {
-          [Op.notIn]: this.sequelize.literal(`(
-              SELECT DISTINCT id_rendez_vous
-              FROM rendez_vous_jeune_association
-              WHERE rendez_vous_jeune_association.id_jeune = '${jeuneSqlModel.id}'
-           )`)
-        }
+        '$RendezVousJeuneAssociationSqlModel.id_rendez_vous$': null
       },
+      include: [
+        {
+          model: RendezVousJeuneAssociationSqlModel,
+          required: false,
+          where: {
+            idJeune: jeuneSqlModel.id
+          },
+          attributes: []
+        }
+      ],
       order: [['date', 'ASC']],
       limit: 3
     })
