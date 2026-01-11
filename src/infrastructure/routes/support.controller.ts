@@ -23,10 +23,12 @@ import {
   ApiTags
 } from '@nestjs/swagger'
 import Bull from 'bull'
+import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from '../../application/commands/support/delete-superviseurs.command.handler'
+import { FusionnerAgencesCommandHandler } from '../../application/commands/support/fusionner-agences.command.handler'
 import {
   MettreAJourLesJeunesCejPeCommandHandler,
   MettreAJourLesJeunesCEJPoleEmploiCommand
@@ -39,6 +41,8 @@ import { UpdateAgenceConseillerCommandHandler } from '../../application/commands
 import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
+import { ChangementAgenceQueryModel } from '../../domain/agence'
+import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
 import { Notification } from '../../domain/notification/notification'
@@ -47,6 +51,7 @@ import {
   PlanificateurRepositoryToken
 } from '../../domain/planificateur'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
+import { FirebaseClient } from '../clients/firebase-client'
 import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { handleResult } from './result.handler'
 import {
@@ -59,9 +64,8 @@ import {
   TransfererJeunesPayload,
   UpdateFeatureFlipPayload
 } from './validation/support.inputs'
-import { ChangementAgenceQueryModel } from '../../domain/agence'
-import { FusionnerAgencesCommandHandler } from '../../application/commands/support/fusionner-agences.command.handler'
-import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
+import { ConfigService } from '@nestjs/config'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 
 @Controller('support')
 @ApiTags('Support')
@@ -82,7 +86,9 @@ export class SupportController {
     private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
-    private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler
+    private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
+    private readonly firebaseClient: FirebaseClient,
+    private readonly configService: ConfigService
   ) {}
 
   @SetMetadata(
@@ -415,5 +421,31 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
     const result = await this.archiverJeunesMigrationCommandHandler.handle()
 
     return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: "Récupère le chat d'un bénéficiaire",
+    description: 'Autorisé pour le support - Activation requise'
+  })
+  @Get('chat/:idJeune')
+  async getChat(
+    @Param('idJeune') idJeune: string
+  ): Promise<ArchiveJeune.Message[]> {
+    if (!this.configService.get<boolean>('feature.activerRecuperationChat')) {
+      return handleResult(
+        failure(
+          new DroitsInsuffisants(
+            'La récupération des chats est désactivée. Veuillez contacter un administrateur.'
+          )
+        )
+      )
+    }
+    const result = await this.firebaseClient.getChatAArchiver(idJeune)
+
+    return handleResult(success(result))
   }
 }

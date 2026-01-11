@@ -13,6 +13,7 @@ import {
   DeleteSuperviseursCommand,
   DeleteSuperviseursCommandHandler
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
+import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler.db'
 import {
@@ -34,7 +35,6 @@ import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
-import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -63,6 +63,19 @@ describe('SupportController', () => {
     creerNotificationCommandHandler = app.get(
       NotifierBeneficiairesCommandHandler
     )
+  })
+
+  describe('GET /support/chat/:idJeune', () => {
+    describe('quand la feature est inactive', () => {
+      it('retourne une 403', async () => {
+        // When
+        await request(app.getHttpServer())
+          .get('/support/chat/test')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          // Then
+          .expect(HttpStatus.FORBIDDEN)
+      })
+    })
   })
 
   describe('POST /support/archiver-jeune/:idJeune', () => {

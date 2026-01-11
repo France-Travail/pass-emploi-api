@@ -205,7 +205,8 @@ export const configurationSchema = Joi.object({
       .allow(null)
       .messages({
         'string.pattern.base': 'dateDeMigration doit être au format YYYY-MM-DD'
-      })
+      }),
+    activerRecuperationChat: Joi.boolean()
   }),
   values: Joi.object({
     maxRechercheConseillers: Joi.number()
