@@ -35,6 +35,7 @@ import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
+import { OidcClient } from '../../../src/infrastructure/clients/oidc-client.db'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -45,6 +46,7 @@ describe('SupportController', () => {
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
   let creerNotificationCommandHandler: StubbedClass<NotifierBeneficiairesCommandHandler>
   let updateFeatureFlipCommandHandler: StubbedClass<UpdateFeatureFlipCommandHandler>
+  let oidcClient: StubbedClass<OidcClient>
   let app: INestApplication
 
   before(async () => {
@@ -63,6 +65,22 @@ describe('SupportController', () => {
     creerNotificationCommandHandler = app.get(
       NotifierBeneficiairesCommandHandler
     )
+    oidcClient = app.get(OidcClient)
+  })
+
+  describe('POST /support/logout/:idJeune', () => {
+    it('retourne une 200', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/support/logout/test')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(oidcClient.deleteAccount).to.have.been.calledOnceWithExactly(
+        'test'
+      )
+    })
   })
 
   describe('GET /support/chat/:idJeune', () => {

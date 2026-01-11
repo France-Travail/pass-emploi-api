@@ -66,6 +66,7 @@ import {
 } from './validation/support.inputs'
 import { ConfigService } from '@nestjs/config'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
+import { OidcClient } from '../clients/oidc-client.db'
 
 @Controller('support')
 @ApiTags('Support')
@@ -88,7 +89,8 @@ export class SupportController {
     private readonly planificateurRepository: Planificateur.Repository,
     private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
     private readonly firebaseClient: FirebaseClient,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly oidcClient: OidcClient
   ) {}
 
   @SetMetadata(
@@ -447,5 +449,19 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
     const result = await this.firebaseClient.getChatAArchiver(idJeune)
 
     return handleResult(success(result))
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Supprime les tokens partenaire du jeune pour forcer une déconnexion',
+    description: 'Autorisé pour le support'
+  })
+  @Post('logout/:idJeune')
+  async logoutJeune(@Param('idJeune') idJeune: string): Promise<void> {
+    await this.oidcClient.deleteAccount(idJeune)
   }
 }
