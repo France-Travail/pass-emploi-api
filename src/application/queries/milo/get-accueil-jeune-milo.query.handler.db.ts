@@ -264,23 +264,26 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     dateFinDeSemaine: DateTime,
     idJeune: string
   ): Promise<number> {
-    return RendezVousSqlModel.count({
-      where: {
-        date: {
-          [Op.between]: [maintenant.toJSDate(), dateFinDeSemaine.toJSDate()]
-        }
-      },
-      include: [
-        {
-          model: RendezVousJeuneAssociationSqlModel,
-          required: true,
-          attributes: [],
-          where: {
-            idJeune
-          }
-        }
-      ]
-    })
+    const result = (await RendezVousSqlModel.sequelize?.query(
+      `
+      SELECT COUNT(DISTINCT rv.id) as count
+      FROM rendez_vous rv
+      INNER JOIN rendez_vous_jeune_association rja
+        ON rv.id = rja.id_rendez_vous
+        AND rja.id_jeune = :idJeune
+      WHERE rv.date BETWEEN :dateDebut AND :dateFin
+      `,
+      {
+        replacements: {
+          idJeune,
+          dateDebut: maintenant.toJSDate(),
+          dateFin: dateFinDeSemaine.toJSDate()
+        },
+        type: 'SELECT'
+      }
+    )) as Array<{ count: string }>
+
+    return parseInt(result[0].count, 10)
   }
 
   private evenementsAVenir(
