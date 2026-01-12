@@ -250,6 +250,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       include: [
         {
           model: JeuneSqlModel,
+          required: true,
           where: {
             id: idJeune
           },
