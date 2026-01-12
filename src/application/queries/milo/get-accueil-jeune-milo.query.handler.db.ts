@@ -78,7 +78,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           attributes: ['id', 'idAgence']
         }
       ]
-    })
+    }) // recuperer le modèle jeune
 
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
@@ -98,7 +98,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       campagneQueryModel,
       resultatSessionsMilo
     ] = await Promise.all([
-      this.countRendezVousSemaine(maintenant, dateFinDeSemaine, idJeune),
+      this.countRendezVousSemaine(maintenant, dateFinDeSemaine, idJeune), // select from rdv (1er)
       this.prochainRendezVous(maintenant, idJeune),
       this.countActions(
         idJeune,
@@ -272,9 +272,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       },
       include: [
         {
-          model: JeuneSqlModel,
+          model: RendezVousJeuneAssociationSqlModel,
+          required: true,
+          attributes: [],
           where: {
-            id: idJeune
+            idJeune
           }
         }
       ]
