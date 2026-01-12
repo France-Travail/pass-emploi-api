@@ -70,8 +70,16 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     const { idJeune } = query
 
     const jeuneSqlModel = await JeuneSqlModel.findByPk(query.idJeune, {
-      include: [{ model: ConseillerSqlModel, required: true }]
+      attributes: ['id', 'idPartenaire', 'peutVoirLeComptageDesHeures'],
+      include: [
+        {
+          model: ConseillerSqlModel,
+          required: true,
+          attributes: ['id', 'idAgence']
+        }
+      ]
     })
+
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
     }
