@@ -23,7 +23,8 @@ export namespace Authentification {
     KEYCLOAK = 'KEYCLOAK',
     IMMERSION = 'IMMERSION',
     POLE_EMPLOI = 'POLE_EMPLOI',
-    SUPPORT = 'SUPPORT'
+    SUPPORT = 'SUPPORT',
+    ADMIN = 'ADMIN'
   }
 
   export function unUtilisateurSupport(): Utilisateur {

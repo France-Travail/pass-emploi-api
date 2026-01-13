@@ -390,6 +390,7 @@ import { DateService } from './utils/date-service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
+import { AdminController } from './infrastructure/routes/admin.controller'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -439,6 +440,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     CJEController,
     AuthentificationController,
     SupportController,
+    AdminController,
     ConfigController,
     HealthController
   ],

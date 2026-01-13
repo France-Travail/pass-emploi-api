@@ -127,7 +127,10 @@ export default () => {
       keycloak: JSON.parse(process.env.API_KEY_KEYCLOAK!),
       immersion: JSON.parse(process.env.API_KEY_PARTENAIRE_IMMERSION!),
       poleEmploi: JSON.parse(process.env.API_KEY_CONSUMER_POLE_EMPLOI!),
-      support: JSON.parse(process.env.API_KEY_SUPPORT!)
+      support: JSON.parse(process.env.API_KEY_SUPPORT!),
+      admin: process.env.API_KEY_ADMIN
+        ? JSON.parse(process.env.API_KEY_ADMIN)
+        : []
     },
     redis: {
       url: process.env.REDIS_URL

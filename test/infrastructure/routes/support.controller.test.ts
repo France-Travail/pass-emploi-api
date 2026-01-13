@@ -83,19 +83,6 @@ describe('SupportController', () => {
     })
   })
 
-  describe('GET /support/chat/:idJeune', () => {
-    describe('quand la feature est inactive', () => {
-      it('retourne une 403', async () => {
-        // When
-        await request(app.getHttpServer())
-          .get('/support/chat/test')
-          .set({ 'X-API-KEY': 'api-key-support' })
-          // Then
-          .expect(HttpStatus.FORBIDDEN)
-      })
-    })
-  })
-
   describe('POST /support/archiver-jeune/:idJeune', () => {
     describe('quand la commande est en succes', () => {
       it('archive le jeune', async () => {
