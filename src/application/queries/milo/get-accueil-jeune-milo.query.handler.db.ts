@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 
 import { DateTime } from 'luxon'
-import { Op, Sequelize } from 'sequelize'
+import { Op, QueryTypes, Sequelize } from 'sequelize'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -27,7 +27,6 @@ import { TYPES_ANIMATIONS_COLLECTIVES } from 'src/domain/rendez-vous/rendez-vous
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
-import { RendezVousJeuneAssociationSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
 import { RendezVousSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { buildError } from '../../../utils/logger.module'
@@ -242,137 +241,47 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     maintenant: DateTime,
     idJeune: string
   ): Promise<RendezVousSqlModel | null> {
-    interface ProchainRendezVousResult {
-      id: string
-      commentaire: string | null
-      date: Date
-      modalite: string | null
-      duree: number
-      titre: string
-      type: string
-      precision: string | null
-      adresse: string | null
-      organisme: string | null
-      presence_conseiller: boolean
-      invitation: boolean | null
-      createur: { id: string; nom: string; prenom: string }
-      source: string
-      annule: boolean
-      conseiller: {
-        id: string
-        nom: string
-        prenom: string
-      }
-      association: {
-        present: boolean | null
-      }
-    }
-
-    const result = (await RendezVousSqlModel.sequelize?.query(
+    const result = (await this.sequelize.query(
       `
-      SELECT
-        rv.id,
-        rv.commentaire,
-        rv.date,
-        rv.modalite,
-        rv.duree,
-        rv.titre,
-        rv.type,
-        rv.precision,
-        rv.adresse,
-        rv.organisme,
-        rv.presence_conseiller,
-        rv.invitation,
-        rv.createur,
-        rv.source,
-        rv.annule,
-        c.id as "conseiller.id",
-        c.nom as "conseiller.nom",
-        c.prenom as "conseiller.prenom",
-        rja.present as "association.present"
-      FROM rendez_vous rv
-      INNER JOIN rendez_vous_jeune_association rja
-        ON rv.id = rja.id_rendez_vous
-        AND rja.id_jeune = :idJeune
-      INNER JOIN jeune j
-        ON rja.id_jeune = j.id
-      INNER JOIN conseiller c
-        ON j.id_conseiller = c.id
-      WHERE rv.date >= :maintenant
-        AND rv.annule = false
-      ORDER BY rv.date ASC
-      LIMIT 1
+          SELECT rv.id
+          FROM rendez_vous rv
+                   INNER JOIN rendez_vous_jeune_association rvja
+                              ON rvja.id_rendez_vous = rv.id
+          WHERE rvja.id_jeune = :idJeune
+            AND rv.annule = false
+            AND rv.date >= :maintenant
+          ORDER BY rv.date ASC LIMIT 1
       `,
       {
         replacements: {
           idJeune,
           maintenant: maintenant.toJSDate()
         },
-        type: 'SELECT',
-        nest: true
+        type: QueryTypes.SELECT
       }
-    )) as Array<ProchainRendezVousResult>
+    )) as Array<{ id: string }>
 
-    if (!result || result.length === 0) {
+    if (!result.length) {
       return null
     }
 
-    // Reconstruire le RendezVousSqlModel avec la structure attendue par le mapper
-    const rdv = result[0]
-    const rendezVousSql = RendezVousSqlModel.build(
-      {
-        id: rdv.id,
-        commentaire: rdv.commentaire,
-        date: rdv.date,
-        modalite: rdv.modalite,
-        duree: rdv.duree,
-        titre: rdv.titre,
-        type: rdv.type,
-        precision: rdv.precision,
-        adresse: rdv.adresse,
-        organisme: rdv.organisme,
-        presenceConseiller: rdv.presence_conseiller,
-        invitation: rdv.invitation,
-        createur: rdv.createur,
-        source: rdv.source,
-        annule: rdv.annule
-      },
-      { isNewRecord: false }
-    )
+    const rendezVousId = result[0].id
 
-    // Ajouter le conseiller et le jeune pour le mapper
-    const conseiller = ConseillerSqlModel.build(
-      {
-        id: rdv.conseiller.id,
-        nom: rdv.conseiller.nom,
-        prenom: rdv.conseiller.prenom
-      },
-      { isNewRecord: false }
-    )
-
-    const jeune = JeuneSqlModel.build(
-      {
-        id: idJeune
-      },
-      { isNewRecord: false }
-    )
-
-    jeune.conseiller = conseiller
-
-    // Ajouter l'association pour getPresence()
-    const association = RendezVousJeuneAssociationSqlModel.build(
-      {
-        idJeune,
-        idRendezVous: rdv.id,
-        present: rdv.association.present
-      },
-      { isNewRecord: false }
-    )
-
-    jeune.setDataValue(RendezVousJeuneAssociationSqlModel.name, association)
-    rendezVousSql.jeunes = [jeune]
-
-    return rendezVousSql
+    return RendezVousSqlModel.findByPk(rendezVousId, {
+      include: [
+        {
+          model: JeuneSqlModel,
+          required: true,
+          where: { id: idJeune },
+          include: [
+            {
+              model: ConseillerSqlModel,
+              required: true
+            }
+          ]
+        }
+      ]
+    })
   }
 
   private async countRendezVousSemaine(
