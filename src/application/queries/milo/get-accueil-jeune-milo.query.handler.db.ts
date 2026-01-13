@@ -305,6 +305,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         ON rv.id = rja.id_rendez_vous
         AND rja.id_jeune = :idJeune
       WHERE rv.date BETWEEN :dateDebut AND :dateFin
+        AND rv.annule = false
       `,
       {
         replacements: {
@@ -327,6 +328,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       where: {
         idAgence: jeuneSqlModel.conseiller?.idAgence,
         date: { [Op.gte]: maintenant.toJSDate() },
+        annule: false,
         type: {
           [Op.in]: TYPES_ANIMATIONS_COLLECTIVES
         },
