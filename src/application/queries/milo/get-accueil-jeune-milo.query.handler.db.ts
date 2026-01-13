@@ -241,7 +241,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     maintenant: DateTime,
     idJeune: string
   ): Promise<RendezVousSqlModel | null> {
-    const result = (await this.sequelize.query(
+    interface RendezVousIdResult {
+      id: string
+    }
+
+    const result: RendezVousIdResult[] = (await this.sequelize.query(
       `
           SELECT rv.id
           FROM rendez_vous rv
@@ -259,7 +263,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         },
         type: QueryTypes.SELECT
       }
-    )) as Array<{ id: string }>
+    )) as RendezVousIdResult[]
 
     if (!result.length) {
       return null
@@ -308,7 +312,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       }
     )) as Array<{ count: string }>
 
-    return parseInt(result[0].count, 10)
+    return Number.parseInt(result[0].count, 10)
   }
 
   private evenementsAVenir(
