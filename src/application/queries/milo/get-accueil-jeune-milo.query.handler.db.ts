@@ -322,13 +322,14 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         type: {
           [Op.in]: TYPES_ANIMATIONS_COLLECTIVES
         },
-        id: {
-          [Op.notIn]: this.sequelize.literal(`(
-              SELECT DISTINCT id_rendez_vous
-              FROM rendez_vous_jeune_association
-              WHERE rendez_vous_jeune_association.id_jeune = '${jeuneSqlModel.id}'
-           )`)
-        }
+        [Op.and]: this.sequelize.literal(`
+        NOT EXISTS (
+          SELECT 1
+          FROM rendez_vous_jeune_association rvja
+          WHERE rvja.id_rendez_vous = "RendezVousSqlModel"."id"
+          AND rvja.id_jeune = ${this.sequelize.escape(jeuneSqlModel.id)}
+        )
+      `)
       },
       order: [['date', 'ASC']],
       limit: 3
