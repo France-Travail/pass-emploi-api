@@ -49,11 +49,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   Result<AccueilJeuneMiloQueryModel>
 > {
   constructor(
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
-    private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
-    private getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
-    private getCampagneQueryGetter: GetCampagneQueryGetter,
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
+    private readonly getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
+    private readonly getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
+    private readonly getCampagneQueryGetter: GetCampagneQueryGetter,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {
     super('GetAccueilJeuneMiloQueryHandler')
@@ -79,7 +79,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           attributes: ['id', 'idAgence']
         }
       ]
-    }) // recuperer le modèle jeune
+    })
 
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
@@ -99,7 +99,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       campagneQueryModel,
       resultatSessionsMilo
     ] = await Promise.all([
-      this.countRendezVousSemaine(maintenant, dateFinDeSemaine, idJeune), // select from rdv (1er)
+      this.countRendezVousSemaine(maintenant, dateFinDeSemaine, idJeune),
       this.prochainRendezVous(maintenant, idJeune),
       this.countActions(
         idJeune,
@@ -245,7 +245,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       id: string
     }
 
-    const result: RendezVousIdResult[] = (await this.sequelize.query(
+    /* Requête en 2 temps pour optimiser la requête :
+     * 1. Requête SQL literal pour trouver le prochain rdv
+     * 2. Chargement du modèle RendezVousSqlModel via Sequelize
+     */
+    const result: RendezVousIdResult[] = await this.sequelize.query(
       `
           SELECT rv.id
           FROM rendez_vous rv
@@ -263,7 +267,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         },
         type: QueryTypes.SELECT
       }
-    )) as RendezVousIdResult[]
+    )
 
     if (!result.length) {
       return null
@@ -308,7 +312,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           dateDebut: maintenant.toJSDate(),
           dateFin: dateFinDeSemaine.toJSDate()
         },
-        type: 'SELECT'
+        type: QueryTypes.SELECT
       }
     )) as Array<{ count: string }>
 
