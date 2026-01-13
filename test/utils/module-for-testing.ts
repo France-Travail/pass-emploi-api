@@ -29,6 +29,7 @@ import { stubClass, stubClassSandbox } from './types'
 import TokenMessage = messaging.TokenMessage
 import { PlanificateurRepositoryToken } from '../../src/domain/planificateur'
 import { PlanificateurRedisRepository } from '../../src/infrastructure/repositories/planificateur-redis.repository.db'
+import { OidcClient } from '../../src/infrastructure/clients/oidc-client.db'
 
 export function buildTestingModuleForHttpTesting(
   sandbox: SinonSandbox = createSandbox()
@@ -188,6 +189,7 @@ export const testConfig = (): ConfigService => {
       keycloak: ['api-key-keycloak'],
       immersion: ['api-key-immersion'],
       support: ['api-key-support'],
+      admin: ['api-key-admin'],
       poleEmploi: ['api-key-consumer-pole-emploi']
     },
     features: {
@@ -246,6 +248,10 @@ const stubProviders = (sandbox: SinonSandbox): Provider[] => {
     {
       provide: PlanificateurRepositoryToken,
       useClass: PlanificateurRedisRepository
+    },
+    {
+      provide: OidcClient,
+      useValue: stubClassSandbox(OidcClient, sandbox)
     }
   ]
   const queryCommandsProviders = buildQueryCommandsProviders().map(

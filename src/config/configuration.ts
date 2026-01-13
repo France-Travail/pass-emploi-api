@@ -126,7 +126,10 @@ export default () => {
       keycloak: JSON.parse(process.env.API_KEY_KEYCLOAK!),
       immersion: JSON.parse(process.env.API_KEY_PARTENAIRE_IMMERSION!),
       poleEmploi: JSON.parse(process.env.API_KEY_CONSUMER_POLE_EMPLOI!),
-      support: JSON.parse(process.env.API_KEY_SUPPORT!)
+      support: JSON.parse(process.env.API_KEY_SUPPORT!),
+      admin: process.env.API_KEY_ADMIN
+        ? JSON.parse(process.env.API_KEY_ADMIN)
+        : []
     },
     redis: {
       url: process.env.REDIS_URL
@@ -260,7 +263,8 @@ export default () => {
       notifierRendezVousMilo: process.env.FEATURE_NOTIFIER_RDV_MILO === 'true',
       recupererStructureMilo:
         process.env.FEATURE_RECUPERER_STRUCTURE_MILO === 'true',
-      dateDeMigration: process.env.DATE_MIGRATION_PARCOURS_EMPLOI
+      dateDeMigration: process.env.DATE_MIGRATION_PARCOURS_EMPLOI,
+      activerRecuperationChat: process.env.FEATURE_RECUPERATION_CHAT === 'true'
     },
     values: {
       maxRechercheConseillers: process.env.MAX_RECHERCHE_CONSEILLERS ?? '10'

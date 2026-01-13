@@ -47,6 +47,9 @@ export class ApiKeyAuthGuard implements CanActivate {
       case Authentification.Partenaire.SUPPORT:
         apiKeys = this.configService.get('apiKeys.support')!
         break
+      case Authentification.Partenaire.ADMIN:
+        apiKeys = this.configService.get('apiKeys.admin') || []
+        break
     }
 
     if (apiKeys.includes(apiKeyRequest)) {

@@ -91,7 +91,8 @@ export const configurationSchema = Joi.object({
     keycloak: Joi.array().items(Joi.string().required()).min(1).required(),
     immersion: Joi.array().items(Joi.string().required()).min(1).required(),
     poleEmploi: Joi.array().items(Joi.string().required()).min(1).required(),
-    support: Joi.array().items(Joi.string().required()).min(1).required()
+    support: Joi.array().items(Joi.string().required()).min(1).required(),
+    admin: Joi.array().items(Joi.string())
   }),
   redis: Joi.object({
     url: Joi.string().uri()
@@ -204,7 +205,8 @@ export const configurationSchema = Joi.object({
       .allow(null)
       .messages({
         'string.pattern.base': 'dateDeMigration doit être au format YYYY-MM-DD'
-      })
+      }),
+    activerRecuperationChat: Joi.boolean()
   }),
   values: Joi.object({
     maxRechercheConseillers: Joi.number()
