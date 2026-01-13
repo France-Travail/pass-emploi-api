@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 
 import { DateTime } from 'luxon'
-import { Op, Sequelize } from 'sequelize'
+import { Op, QueryTypes, Sequelize } from 'sequelize'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -49,11 +49,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   Result<AccueilJeuneMiloQueryModel>
 > {
   constructor(
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
-    private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
-    private getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
-    private getCampagneQueryGetter: GetCampagneQueryGetter,
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
+    private readonly getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
+    private readonly getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
+    private readonly getCampagneQueryGetter: GetCampagneQueryGetter,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {
     super('GetAccueilJeuneMiloQueryHandler')
@@ -71,8 +71,16 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     const { idJeune } = query
 
     const jeuneSqlModel = await JeuneSqlModel.findByPk(query.idJeune, {
-      include: [{ model: ConseillerSqlModel, required: true }]
+      attributes: ['id', 'idPartenaire', 'peutVoirLeComptageDesHeures'],
+      include: [
+        {
+          model: ConseillerSqlModel,
+          required: true,
+          attributes: ['id', 'idAgence']
+        }
+      ]
     })
+
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
     }
@@ -229,23 +237,56 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     })
   }
 
-  private prochainRendezVous(
+  private async prochainRendezVous(
     maintenant: DateTime,
     idJeune: string
   ): Promise<RendezVousSqlModel | null> {
-    return RendezVousSqlModel.findOne({
-      where: {
-        date: { [Op.gte]: maintenant.toJSDate() },
-        annule: false
-      },
-      order: [['date', 'ASC']],
+    interface RendezVousIdResult {
+      id: string
+    }
+
+    /* Requête en 2 temps pour optimiser la requête :
+     * 1. Requête SQL literal pour trouver le prochain rdv
+     * 2. Chargement du modèle RendezVousSqlModel via Sequelize
+     */
+    const result: RendezVousIdResult[] = await this.sequelize.query(
+      `
+          SELECT rv.id
+          FROM rendez_vous rv
+                   INNER JOIN rendez_vous_jeune_association rvja
+                              ON rvja.id_rendez_vous = rv.id
+          WHERE rvja.id_jeune = :idJeune
+            AND rv.annule = false
+            AND rv.date >= :maintenant
+          ORDER BY rv.date ASC LIMIT 1
+      `,
+      {
+        replacements: {
+          idJeune,
+          maintenant: maintenant.toJSDate()
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+
+    if (!result.length) {
+      return null
+    }
+
+    const rendezVousId = result[0].id
+
+    return RendezVousSqlModel.findByPk(rendezVousId, {
       include: [
         {
           model: JeuneSqlModel,
-          where: {
-            id: idJeune
-          },
-          include: [ConseillerSqlModel]
+          required: true,
+          where: { id: idJeune },
+          include: [
+            {
+              model: ConseillerSqlModel,
+              required: true
+            }
+          ]
         }
       ]
     })
@@ -256,21 +297,27 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     dateFinDeSemaine: DateTime,
     idJeune: string
   ): Promise<number> {
-    return RendezVousSqlModel.count({
-      where: {
-        date: {
-          [Op.between]: [maintenant.toJSDate(), dateFinDeSemaine.toJSDate()]
-        }
-      },
-      include: [
-        {
-          model: JeuneSqlModel,
-          where: {
-            id: idJeune
-          }
-        }
-      ]
-    })
+    const result = (await RendezVousSqlModel.sequelize?.query(
+      `
+      SELECT COUNT(DISTINCT rv.id) as count
+      FROM rendez_vous rv
+      INNER JOIN rendez_vous_jeune_association rja
+        ON rv.id = rja.id_rendez_vous
+        AND rja.id_jeune = :idJeune
+      WHERE rv.date BETWEEN :dateDebut AND :dateFin
+        AND rv.annule = false
+      `,
+      {
+        replacements: {
+          idJeune,
+          dateDebut: maintenant.toJSDate(),
+          dateFin: dateFinDeSemaine.toJSDate()
+        },
+        type: QueryTypes.SELECT
+      }
+    )) as Array<{ count: string }>
+
+    return Number.parseInt(result[0].count, 10)
   }
 
   private evenementsAVenir(
@@ -281,16 +328,18 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       where: {
         idAgence: jeuneSqlModel.conseiller?.idAgence,
         date: { [Op.gte]: maintenant.toJSDate() },
+        annule: false,
         type: {
           [Op.in]: TYPES_ANIMATIONS_COLLECTIVES
         },
-        id: {
-          [Op.notIn]: this.sequelize.literal(`(
-              SELECT DISTINCT id_rendez_vous
-              FROM rendez_vous_jeune_association
-              WHERE rendez_vous_jeune_association.id_jeune = '${jeuneSqlModel.id}'
-           )`)
-        }
+        [Op.and]: this.sequelize.literal(`
+        NOT EXISTS (
+          SELECT 1
+          FROM rendez_vous_jeune_association rvja
+          WHERE rvja.id_rendez_vous = "RendezVousSqlModel"."id"
+          AND rvja.id_jeune = ${this.sequelize.escape(jeuneSqlModel.id)}
+        )
+      `)
       },
       order: [['date', 'ASC']],
       limit: 3
