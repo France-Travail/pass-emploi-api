@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Op } from 'sequelize'
+import { Op, literal } from 'sequelize'
 import { Core } from '../../domain/core'
+import { FeatureFlip } from '../../domain/feature-flip'
 import { Mail } from '../../domain/mail'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 
@@ -15,7 +16,14 @@ export class MailSqlRepository implements Mail.Repository {
       where: {
         [Op.and]: [
           { structure: { [Op.in]: structures } },
-          { email: { [Op.not]: null } }
+          { email: { [Op.not]: null } },
+          literal(`
+            email NOT IN (
+              SELECT email_conseiller
+              FROM feature_flip
+              WHERE feature_tag = '${FeatureFlip.Tag.MIGRATION}'
+            )
+          `)
         ]
       }
     })
