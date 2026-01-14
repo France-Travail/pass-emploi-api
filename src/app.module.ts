@@ -391,6 +391,7 @@ import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
 import { AdminController } from './infrastructure/routes/admin.controller'
+import { QueueTimeMiddleware } from './infrastructure/middlewares/queue-time.middleware'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -891,5 +892,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(CacheControlMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.GET })
+      .apply(QueueTimeMiddleware)
+      .forRoutes('*')
   }
 }
