@@ -39,6 +39,20 @@ export class ConseillerAuthorizer {
     return failure(new DroitsInsuffisants())
   }
 
+  async autoriserLeConseillerPourTous(
+    utilisateur: Authentification.Utilisateur,
+    structureAutorisee = true
+  ): Promise<Result> {
+    if (
+      structureAutorisee &&
+      Authentification.estConseiller(utilisateur.type)
+    ) {
+      return emptySuccess()
+    }
+
+    return failure(new DroitsInsuffisants())
+  }
+
   async autoriserLeConseillerPourSonJeune(
     idConseiller: string,
     idJeune: string,
