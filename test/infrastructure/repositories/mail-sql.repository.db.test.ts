@@ -1,7 +1,9 @@
 import { Core } from '../../../src/domain/core'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Mail } from '../../../src/domain/mail'
 import { MailSqlRepository } from '../../../src/infrastructure/repositories/mail-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import { FeatureFlipSqlModel } from '../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
@@ -108,6 +110,52 @@ describe('MailSqlRepository', () => {
 
         // Then
         expect(actual).to.deep.equal([])
+      })
+    })
+
+    describe('quand il y a un conseiller MILO présent dans featureFlip', () => {
+      it('ne retourne pas le conseiller présent dans feature_flip avec tag MIGRATION', async () => {
+        // Given
+        await ConseillerSqlModel.creer(
+          unConseillerDto({
+            id: '1',
+            email: 'unEmail1',
+            nom: 'unNom1',
+            prenom: 'unPrenom1',
+            structure: Core.Structure.MILO
+          })
+        )
+        await ConseillerSqlModel.creer(
+          unConseillerDto({
+            id: '2',
+            email: 'unEmail2',
+            nom: 'unNom2',
+            prenom: 'unPrenom2',
+            structure: Core.Structure.MILO
+          })
+        )
+
+        // Ajouter le conseiller 1 dans feature_flip avec tag MIGRATION
+        await FeatureFlipSqlModel.create({
+          featureTag: FeatureFlip.Tag.MIGRATION,
+          emailConseiller: 'unEmail1'
+        })
+
+        // When
+        const actual =
+          await mailSqlRepository.findAllContactsConseillerByStructures([
+            Core.Structure.MILO
+          ])
+
+        // Then
+        const expected: Mail.Contact[] = [
+          {
+            email: 'unEmail2',
+            nom: 'unNom2',
+            prenom: 'unPrenom2'
+          }
+        ]
+        expect(actual).to.deep.equal(expected)
       })
     })
   })
