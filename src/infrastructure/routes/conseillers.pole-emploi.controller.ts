@@ -57,8 +57,7 @@ export class ConseillersPoleEmploiController {
    */
   @ApiOperation({
     summary: 'Vérifie si un email existe pour créer un bénéficiaire',
-    description:
-      'Autorisé pour un conseiller FT ou MILO sur un mail de bénéficiaire FT ou MILO'
+    description: 'Autorisé pour un conseiller FT sur un mail de bénéficiaire FT'
   })
   @Post('verifier-email-beneficiaire')
   @HttpCode(HttpStatus.OK)

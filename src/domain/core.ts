@@ -43,10 +43,6 @@ export function estFranceTravail(structure: Core.Structure): boolean {
   return Core.structuresFT.includes(structure)
 }
 
-export function estFranceTravailOuMilo(structure: Core.Structure): boolean {
-  return estFranceTravail(structure) || estMilo(structure)
-}
-
 export function estPassEmploi(structure: Core.Structure): boolean {
   return (
     Core.structuresBeneficiaireFTConnect.includes(structure) &&

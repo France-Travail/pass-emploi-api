@@ -5,7 +5,7 @@ import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import { estFranceTravailOuMilo } from '../../../domain/core'
+import { estFranceTravail } from '../../../domain/core'
 import { DroitsInsuffisants } from '../../../building-blocks/types/domain-error'
 
 export interface VerifierEmailBeneficiaireFTQuery extends Query {
@@ -39,7 +39,7 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
       return success({
         emailExistant: false
       })
-    } else if (estFranceTravailOuMilo(beneficiaire.structure)) {
+    } else if (estFranceTravail(beneficiaire.structure)) {
       return success({
         emailExistant: true
       })
@@ -54,7 +54,7 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseillerPourTous(
       utilisateur,
-      estFranceTravailOuMilo(utilisateur.structure)
+      estFranceTravail(utilisateur.structure)
     )
   }
 

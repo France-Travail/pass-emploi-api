@@ -6,7 +6,7 @@ import {
   VerifierEmailBeneficiaireFTQuery,
   VerifierEmailBeneficiaireQueryHandler
 } from '../../../../src/application/queries/pole-emploi/verifier-email-beneficaire.query.handler'
-import { Core, estFranceTravailOuMilo } from '../../../../src/domain/core'
+import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
@@ -117,7 +117,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
         conseillerAuthorizer.autoriserLeConseillerPourTous
       ).to.have.been.calledWithExactly(
         utilisateur,
-        estFranceTravailOuMilo(utilisateur.structure)
+        estFranceTravail(utilisateur.structure)
       )
     })
   })
