@@ -59,6 +59,13 @@ export class CreateJeunePoleEmploiPayload {
   idConseiller: string
 }
 
+export class VerifierEmailBeneficiairePayload {
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string
+}
+
 export class CreerJeuneMiloPayload {
   @ApiProperty()
   @IsString()
@@ -106,15 +113,6 @@ export class EnvoyerNotificationsPayload {
   @ArrayNotEmpty()
   @IsNotEmpty({ each: true })
   idsJeunes: string[]
-}
-
-export class GetRendezVousConseillerQueryParams {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  @IsIn([true, false])
-  @Transform(params => transformStringToBoolean(params, 'presenceConseiller'))
-  presenceConseiller?: boolean
 }
 
 export class GetRendezVousConseillerV2QueryParams {

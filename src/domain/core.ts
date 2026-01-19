@@ -26,8 +26,6 @@ export namespace Core {
     Structure.AVENIR_PRO
   ]
 
-  export type StructuresFT = (typeof structuresFT)[number]
-
   export interface Id {
     id: string
   }
@@ -43,6 +41,10 @@ export function beneficiaireEstFTConnect(structure: Core.Structure): boolean {
 
 export function estFranceTravail(structure: Core.Structure): boolean {
   return Core.structuresFT.includes(structure)
+}
+
+export function estFranceTravailOuMilo(structure: Core.Structure): boolean {
+  return estFranceTravail(structure) || estMilo(structure)
 }
 
 export function estPassEmploi(structure: Core.Structure): boolean {

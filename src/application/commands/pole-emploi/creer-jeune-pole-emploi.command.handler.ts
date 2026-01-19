@@ -6,10 +6,10 @@ import {
   EmailExisteDejaError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
-import { Result, failure, success } from '../../../building-blocks/types/result'
+import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { Core, beneficiaireEstFTConnect } from '../../../domain/core'
+import { beneficiaireEstFTConnect, Core } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -31,13 +31,13 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
 > {
   constructor(
     @Inject(JeuneRepositoryToken)
-    private jeuneRepository: Jeune.Repository,
+    private readonly jeuneRepository: Jeune.Repository,
     @Inject(ConseillerRepositoryToken)
-    private conseillerRepository: Conseiller.Repository,
+    private readonly conseillerRepository: Conseiller.Repository,
     @Inject(ChatRepositoryToken)
-    private chatRepository: Chat.Repository,
-    private conseillerAuthorizer: ConseillerAuthorizer,
-    private jeuneFactory: Jeune.Factory
+    private readonly chatRepository: Chat.Repository,
+    private readonly conseillerAuthorizer: ConseillerAuthorizer,
+    private readonly jeuneFactory: Jeune.Factory
   ) {
     super('CreerJeunePoleEmploiCommandHandler')
   }
@@ -48,7 +48,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
     }
 
-    const lowerCaseEmail = command.email.toLocaleLowerCase()
+    const lowerCaseEmail = command.email.trim().toLocaleLowerCase()
     const jeune = await this.jeuneRepository.getByEmail(lowerCaseEmail)
     if (jeune) {
       return failure(new EmailExisteDejaError(lowerCaseEmail))
