@@ -32,6 +32,16 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
       JOIN conseillers_demarches_ia cdi
         ON tc.id_conseiller_source = cdi.id
       WHERE tc.date_transfert >= DATE '${semaine}'
+
+      UNION
+
+      SELECT DISTINCT ee.id_utilisateur AS id_jeune
+      FROM evenement_engagement ee
+      WHERE ee.semaine = DATE '${semaine}'
+        AND ee.structure IS NOT NULL
+        AND ee.structure != 'PASS_EMPLOI'
+        AND ee.code ILIKE '%\_ia%' ESCAPE '\'
+        AND ee.type_utilisateur = 'JEUNE'
     ),
     analytics_utilisateurs_demarches_ia AS (
       SELECT a.*
