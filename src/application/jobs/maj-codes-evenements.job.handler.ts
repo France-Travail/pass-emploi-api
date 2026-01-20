@@ -248,6 +248,12 @@ const evenements = [
     action: 'Envoi multiple PJ'
   },
   {
+    code: 'MESSAGE_ENVOYE_MULTIPLE_OFFRE',
+    categorie: 'Message',
+    action: 'Envoi multiple',
+    nom: 'Offre'
+  },
+  {
     code: 'MESSAGE_ENVOYE_PJ',
     categorie: 'Message',
     action: 'Envoi PJ'
