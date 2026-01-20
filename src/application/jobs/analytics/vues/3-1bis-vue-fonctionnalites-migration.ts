@@ -12,15 +12,26 @@ export async function chargerLaVueFonctionnaliteMigration(
      where semaine = '${semaine}';`
   )
   await connexion.query(`
-    WITH utilisateurs_migration AS (
-      SELECT DISTINCT a.id_jeune AS id_jeune
-      FROM archive_jeune a
-      WHERE a.motif = 'Migration'
+    WITH conseillers_migration AS (
+      SELECT DISTINCT c.id AS id_utilisateur
+      FROM feature_flip ff
+      JOIN conseiller c ON c.email = ff.email_conseiller
+      WHERE ff.feature_tag ILIKE '%migration%'
+    ),
+    jeunes_migration AS (
+      SELECT DISTINCT aj.id_jeune AS id_utilisateur
+      FROM archive_jeune aj
+      WHERE aj.motif ILIKE '%migration%'
+    ),
+    utilisateurs_migration AS (
+      SELECT id_utilisateur FROM jeunes_migration
+      UNION
+      SELECT id_utilisateur FROM conseillers_migration
     ),
     analytics_utilisateurs_migration AS (
       SELECT a.*
       FROM ${analyticsTableName} a
-      JOIN utilisateurs_migration u ON u.id_jeune = a.id_utilisateur
+      JOIN utilisateurs_migration u ON u.id_utilisateur = a.id_utilisateur
       WHERE a.structure IS NOT NULL
         AND a.structure != 'PASS_EMPLOI'
         AND a.semaine = '${semaine}'

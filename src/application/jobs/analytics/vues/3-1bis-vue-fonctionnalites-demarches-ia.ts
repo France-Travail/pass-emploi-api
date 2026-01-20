@@ -12,12 +12,26 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
      where semaine = '${semaine}';`
   )
   await connexion.query(`
-    WITH utilisateurs_demarches_ia AS (
-      SELECT DISTINCT j.id AS id_jeune
+    WITH conseillers_demarches_ia AS (
+      SELECT DISTINCT c.id
       FROM feature_flip ff
       JOIN conseiller c ON c.email = ff.email_conseiller
-      JOIN jeune j ON (j.id_conseiller = c.id OR j.id_conseiller_initial = c.id)
       WHERE ff.feature_tag = 'DEMARCHES_IA'
+    ),
+    utilisateurs_demarches_ia AS (
+      SELECT DISTINCT j.id AS id_jeune
+      FROM jeune j
+      JOIN conseillers_demarches_ia cdi
+        ON j.id_conseiller = cdi.id
+        OR j.id_conseiller_initial = cdi.id
+
+      UNION
+
+      SELECT DISTINCT tc.id_jeune AS id_jeune
+      FROM transfert_conseiller tc
+      JOIN conseillers_demarches_ia cdi
+        ON tc.id_conseiller_source = cdi.id
+      WHERE tc.date_transfert >= DATE '${semaine}'
     ),
     analytics_utilisateurs_demarches_ia AS (
       SELECT a.*
