@@ -82,7 +82,8 @@ export function toDetailJeuneConseillerQueryModel(
       ? { id: sqlJeune.id_structure_milo }
       : undefined,
     estAArchiver: estAArchiver(sqlJeune, maintenant),
-    dispositif: sqlJeune.dispositif
+    dispositif: sqlJeune.dispositif,
+    idPartenaire: sqlJeune.id_partenaire ?? undefined
   }
   if (
     sqlJeune.date_derniere_actualisation_token ||
@@ -155,4 +156,5 @@ export interface DetailJeuneRawSql extends JeuneRawSql {
   date_derniere_connexion: Date | null
   id_structure_milo: string | null
   est_a_archiver: boolean
+  id_partenaire: string | null
 }

@@ -9,7 +9,6 @@ import {
 } from '../../../../src/application/commands/milo/creer-jeune-milo.command.handler'
 import {
   DossierExisteDejaError,
-  EmailExisteDejaError,
   EmailExisteDejaMiloError,
   ErreurHttp,
   MauvaiseCommandeError,
