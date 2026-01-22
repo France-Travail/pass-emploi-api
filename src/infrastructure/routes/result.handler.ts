@@ -21,6 +21,7 @@ import {
   DossierExisteDejaError,
   DroitsInsuffisants,
   EmailExisteDejaError,
+  EmailExisteDejaMiloError,
   EmargementIncorrect,
   ErreurHttp,
   FavoriExisteDejaError,
@@ -87,6 +88,7 @@ function handleFailure(result: Failure): never {
     case CompteDiagorienteInvalideError.CODE:
       throw new ForbiddenException(result.error.message)
     case EmailExisteDejaError.CODE:
+    case EmailExisteDejaMiloError.CODE:
     case DossierExisteDejaError.CODE:
     case FavoriExisteDejaError.CODE:
       throw new ConflictException(result.error.message)

@@ -3,15 +3,15 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
   DossierExisteDejaError,
-  EmailExisteDejaError,
+  EmailExisteDejaMiloError,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
 import {
-  Result,
   failure,
   isFailure,
   isSuccess,
+  Result,
   success
 } from '../../../building-blocks/types/result'
 import {
@@ -73,11 +73,22 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
 
     const lowerCaseEmail = command.email.toLocaleLowerCase()
     const [jeuneByEmail, jeuneByIdDossier] = await Promise.all([
-      this.jeuneRepository.getByEmail(lowerCaseEmail),
+      this.jeuneRepository.getByEmail(lowerCaseEmail, {
+        includeConseiller: true
+      }),
       this.miloJeuneRepository.getByIdDossier(command.idPartenaire)
     ])
     if (jeuneByEmail) {
-      return failure(new EmailExisteDejaError(lowerCaseEmail))
+      if (estMilo(jeuneByEmail.structure)) {
+        return failure(
+          new EmailExisteDejaMiloError(
+            lowerCaseEmail,
+            jeuneByEmail.conseiller?.email
+          )
+        )
+      } else {
+        return failure(new EmailExisteDejaMiloError(lowerCaseEmail))
+      }
     }
     if (isSuccess(jeuneByIdDossier)) {
       return failure(new DossierExisteDejaError(command.idPartenaire))

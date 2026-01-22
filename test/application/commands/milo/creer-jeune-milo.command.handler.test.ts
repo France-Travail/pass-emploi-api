@@ -10,6 +10,7 @@ import {
 import {
   DossierExisteDejaError,
   EmailExisteDejaError,
+  EmailExisteDejaMiloError,
   ErreurHttp,
   MauvaiseCommandeError,
   NonTrouveError
@@ -30,8 +31,10 @@ import { IdService } from '../../../../src/utils/id-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
-import { StubbedClass, createSandbox, expect, stubClass } from '../../../utils'
+import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { unDossierMilo } from '../../../fixtures/milo.fixture'
+import Structure = Core.Structure
+
 const idPartenaire = 'idDossier'
 
 describe('CreerJeuneMiloCommandHandler', () => {
@@ -75,7 +78,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
 
   describe('handle', () => {
     describe('quand il existe déjà un jeune avec cet email', () => {
-      it('renvoie une erreur', async () => {
+      it('renvoie une erreur avec le mail du conseiller si le jeune est MILO', async () => {
         // Given
         const command: CreerJeuneMiloCommand = {
           idPartenaire,
@@ -86,14 +89,44 @@ describe('CreerJeuneMiloCommandHandler', () => {
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false
         }
-        jeuneRepository.getByEmail.withArgs(command.email).resolves(unJeune())
+        jeuneRepository.getByEmail.withArgs(command.email).resolves(
+          unJeune({
+            structure: Core.Structure.MILO,
+            conseiller: unConseiller({ email: 'mail@conseiller.fr' })
+          })
+        )
 
         // When
         const result = await creerJeuneMiloCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(
-          failure(new EmailExisteDejaError(command.email))
+          failure(
+            new EmailExisteDejaMiloError(command.email, 'mail@conseiller.fr')
+          )
+        )
+      })
+      it("renvoie une erreur sans le mail du conseiller si le jeune n'est pas MILO", async () => {
+        // Given
+        const command: CreerJeuneMiloCommand = {
+          idPartenaire,
+          nom: 'nom',
+          prenom: 'prenom',
+          email: 'email',
+          idConseiller: 'idConseiller',
+          dispositif: Jeune.Dispositif.PACEA,
+          peutVoirLeCompteurDesHeures: false
+        }
+        jeuneRepository.getByEmail
+          .withArgs(command.email)
+          .resolves(unJeune({ structure: Structure.POLE_EMPLOI_AIJ }))
+
+        // When
+        const result = await creerJeuneMiloCommandHandler.handle(command)
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(new EmailExisteDejaMiloError(command.email))
         )
       })
     })
