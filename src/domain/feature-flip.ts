@@ -1,12 +1,25 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { Core } from './core'
-import { IdEtStructure } from '../infrastructure/repositories/feature-flip.repository.db'
 import { Authentification } from './authentification'
-import Structure = Core.Structure
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
+
+export class BeneficiaireMigration {
+  constructor(id: string) {
+    this.id = id
+  }
+
+  id: string
+}
+
+export class ConseillerMigration {
+  constructor(id: string) {
+    this.id = id
+  }
+
+  id: string
+}
 
 export namespace FeatureFlip {
   export enum Tag {
@@ -20,15 +33,17 @@ export namespace FeatureFlip {
   }
 
   export interface Repository {
-    getBeneficiaireSiFeatureActive(
+    getBeneficiaireSiFeatureActivePourLeConseillerInitial(
       tag: Tag,
       idBeneficiaire: string
-    ): Promise<IdEtStructure | undefined>
+    ): Promise<BeneficiaireMigration | undefined>
     getConseillerSiFeatureActive(
       tag: Tag,
       idConseiller: string
-    ): Promise<IdEtStructure | undefined>
-    getIdsBeneficiairesDeLaFeature(tag: Tag): Promise<IdEtStructure[]>
+    ): Promise<ConseillerMigration | undefined>
+    getBeneficiairesDeLaFeatureDuConseillerInitial(
+      tag: Tag
+    ): Promise<BeneficiaireMigration[]>
   }
 
   @Injectable()
@@ -53,7 +68,7 @@ export namespace FeatureFlip {
       tag: Tag,
       utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      return !!(await this.getIdEtStructureSiFeatureActive(tag, utilisateur))
+      return !!(await this.getUtilisateurSiFeatureActive(tag, utilisateur))
     }
 
     async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
@@ -65,54 +80,38 @@ export namespace FeatureFlip {
     }
 
     async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
-      const idsBeneficiairesFeatureMigration =
-        await this.featureFlipRepository.getIdsBeneficiairesDeLaFeature(
+      const beneficiairesMigration =
+        await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerInitial(
           FeatureFlip.Tag.MIGRATION
         )
-      return idsBeneficiairesFeatureMigration
-        .filter(beneficiaire =>
-          this.structureEligibleMigration(beneficiaire.structure)
-        )
-        .map(beneficiaire => beneficiaire.id)
+      return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
     private async faitPartieDeLaMigration(
       utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      const idEtStructure = await this.getIdEtStructureSiFeatureActive(
+      return !!(await this.getUtilisateurSiFeatureActive(
         Tag.MIGRATION,
         utilisateur
-      )
-      return this.structureEligibleMigration(idEtStructure?.structure)
+      ))
     }
 
-    private async getIdEtStructureSiFeatureActive(
+    private async getUtilisateurSiFeatureActive(
       tag: Tag,
       utilisateur: UtilisateurFeature
-    ): Promise<IdEtStructure | undefined> {
-      let idEtStructure: IdEtStructure | undefined
+    ): Promise<BeneficiaireMigration | ConseillerMigration | undefined> {
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
-          idEtStructure =
-            await this.featureFlipRepository.getConseillerSiFeatureActive(
-              tag,
-              utilisateur.id
-            )
-          break
+          return this.featureFlipRepository.getConseillerSiFeatureActive(
+            tag,
+            utilisateur.id
+          )
         case Authentification.Type.JEUNE:
-          idEtStructure =
-            await this.featureFlipRepository.getBeneficiaireSiFeatureActive(
-              tag,
-              utilisateur.id
-            )
+          return this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
+            tag,
+            utilisateur.id
+          )
       }
-      return idEtStructure
-    }
-
-    private structureEligibleMigration(
-      structure: Core.Structure | undefined
-    ): boolean {
-      return structure === Structure.POLE_EMPLOI
     }
   }
 }

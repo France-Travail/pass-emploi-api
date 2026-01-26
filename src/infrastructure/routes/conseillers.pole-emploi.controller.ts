@@ -38,7 +38,8 @@ export class ConseillersPoleEmploiController {
   ): Promise<JeuneQueryModel> {
     const result = await this.creerJeunePoleEmploiCommandHandler.execute(
       {
-        ...createJeunePayload
+        ...createJeunePayload,
+        idConseiller: utilisateur.id
       },
       utilisateur
     )
