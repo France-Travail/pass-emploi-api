@@ -1,7 +1,10 @@
 import { stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
-import { ArchiverJeuneSupportCommand } from '../../../../src/application/commands/support/archiver-jeune-support.command.handler'
+import {
+  ArchiverJeunesMigrationCommand,
+  ArchiverJeunesMigrationCommandHandler
+} from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
 import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
@@ -11,8 +14,7 @@ import { Mail } from '../../../../src/domain/mail'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Authentification } from '../../../../src/domain/authentification'
-import { ArchiverJeunesMigrationCommandHandler } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
-import { FeatureFlip } from '../../../../src/domain/feature-flip'
+import { FeatureFlip, PhaseDeMigration } from '../../../../src/domain/feature-flip'
 import { EvenementService } from '../../../../src/domain/evenement'
 import Service = ArchiveJeune.Service
 
@@ -63,8 +65,8 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
   describe('authorize', () => {
     it('autorise un membre du support à acceder au handler', () => {
       // Given
-      const command: ArchiverJeuneSupportCommand = {
-        idJeune: 'idJeune'
+      const command: ArchiverJeunesMigrationCommand = {
+        phaseDeMigration: PhaseDeMigration.PHASE_A
       }
       // When
       archiverJeunesMigrationSupportCommandHandler.authorize(
@@ -83,12 +85,15 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
     describe('quand le jeune existe', () => {
       it('archive le jeune', async () => {
         // Given
+        const command: ArchiverJeunesMigrationCommand = {
+          phaseDeMigration: PhaseDeMigration.PHASE_A
+        }
         const idJeunes = ['1', '2', '3']
         featureFlipService.recupererIdsDesBeneficiaireAMigrer.resolves(idJeunes)
 
         // When
         const result =
-          await archiverJeunesMigrationSupportCommandHandler.handle()
+          await archiverJeunesMigrationSupportCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())

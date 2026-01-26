@@ -6,7 +6,8 @@ import { Authentification } from '../../src/domain/authentification'
 import {
   BeneficiaireMigration,
   ConseillerMigration,
-  FeatureFlip
+  FeatureFlip,
+  PhaseDeMigration
 } from '../../src/domain/feature-flip'
 import { expect } from '../utils'
 import Type = Authentification.Type
@@ -18,10 +19,13 @@ describe('FeatureFlip', () => {
     let configService: StubbedType<ConfigService>
     let service: FeatureFlip.Service
 
-    const buildService = (dateFromConfig?: string): void => {
+    const buildService = (datePhaseA?: string, datePhaseB?: string): void => {
       configService.get
-        .withArgs('features.dateDeMigration')
-        .returns(dateFromConfig)
+        .withArgs('features.dateDeMigrationPhaseA')
+        .returns(datePhaseA)
+      configService.get
+        .withArgs('features.dateDeMigrationPhaseB')
+        .returns(datePhaseB)
 
       service = new FeatureFlip.Service(
         repository,
@@ -43,15 +47,18 @@ describe('FeatureFlip', () => {
 
         buildService(rawDate)
         repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idJeune,
-            type: Type.JEUNE
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idJeune,
+              type: Type.JEUNE
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
@@ -62,15 +69,18 @@ describe('FeatureFlip', () => {
         const idJeune = 'jeune-2'
         buildService('2024-09-01')
         repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idJeune)
           .resolves(undefined)
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idJeune,
-            type: Type.JEUNE
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idJeune,
+              type: Type.JEUNE
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.be.undefined()
@@ -81,15 +91,18 @@ describe('FeatureFlip', () => {
         const idJeune = 'jeune-3'
         buildService(undefined)
         repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idJeune,
-            type: Type.JEUNE
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idJeune,
+              type: Type.JEUNE
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.be.undefined()
@@ -104,15 +117,18 @@ describe('FeatureFlip', () => {
 
         buildService(rawDate)
         repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idConseiller)
           .resolves(new ConseillerMigration(idConseiller))
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idConseiller,
-            type: Type.CONSEILLER
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idConseiller,
+              type: Type.CONSEILLER
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
@@ -123,15 +139,18 @@ describe('FeatureFlip', () => {
         const idConseiller = 'conseiller-2'
         buildService('2025-03-10')
         repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idConseiller)
           .resolves(undefined)
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idConseiller,
-            type: Type.CONSEILLER
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idConseiller,
+              type: Type.CONSEILLER
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.be.undefined()
@@ -142,15 +161,18 @@ describe('FeatureFlip', () => {
         const idConseiller = 'conseiller-3'
         buildService(undefined)
         repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A, idConseiller)
           .resolves(new ConseillerMigration(idConseiller))
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idConseiller,
-            type: Type.CONSEILLER
-          })
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+            {
+              id: idConseiller,
+              type: Type.CONSEILLER
+            },
+            PhaseDeMigration.PHASE_A
+          )
 
         // Then
         expect(result).to.be.undefined()
@@ -242,14 +264,16 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
         buildService(rawDate)
         repository.getBeneficiairesDeLaFeatureDuConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A)
           .resolves([
             new BeneficiaireMigration('jeune-1'),
             new BeneficiaireMigration('jeune-2')
           ])
 
         // When
-        const result = await service.recupererIdsDesBeneficiaireAMigrer()
+        const result = await service.recupererIdsDesBeneficiaireAMigrer(
+          PhaseDeMigration.PHASE_A
+        )
 
         // Then
         expect(result).to.deep.equal(['jeune-1', 'jeune-2'])

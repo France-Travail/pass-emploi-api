@@ -16,7 +16,7 @@ import {
   peutVoirLesCampagnes
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
-import { FeatureFlip } from '../../../domain/feature-flip'
+import { FeatureFlip, PhaseDeMigration } from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -33,6 +33,7 @@ export interface GetAccueilJeunePoleEmploiQuery extends Query {
   structure: Core.Structure
   maintenant: string
   accessToken: string
+  phaseDeMigration?: PhaseDeMigration
 }
 
 @Injectable()
@@ -170,10 +171,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
       type: Authentification.Type.JEUNE
     }
 
-    const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-        utilisateur
-      )
+    const dateDeMigration = query.phaseDeMigration
+      ? await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+          utilisateur,
+          query.phaseDeMigration
+        )
+      : undefined
 
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(

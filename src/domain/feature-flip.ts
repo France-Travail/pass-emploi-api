@@ -21,10 +21,25 @@ export class ConseillerMigration {
   id: string
 }
 
+export enum PhaseDeMigration {
+  PHASE_A = 'PHASE_A',
+  PHASE_B = 'PHASE_B'
+}
+
 export namespace FeatureFlip {
   export enum Tag {
     DEMARCHES_IA = 'DEMARCHES_IA',
-    MIGRATION = 'MIGRATION'
+    MIGRATION_PHASE_A = 'MIGRATION_PHASE_A',
+    MIGRATION_PHASE_B = 'MIGRATION_PHASE_B'
+  }
+
+  export function getTagPourPhase(phase: PhaseDeMigration): Tag {
+    switch (phase) {
+      case PhaseDeMigration.PHASE_A:
+        return Tag.MIGRATION_PHASE_A
+      case PhaseDeMigration.PHASE_B:
+        return Tag.MIGRATION_PHASE_B
+    }
   }
 
   export interface UtilisateurFeature {
@@ -48,20 +63,34 @@ export namespace FeatureFlip {
 
   @Injectable()
   export class Service {
-    private readonly dateDeMigration?: DateTime
+    private readonly datesDeMigration: Map<PhaseDeMigration, DateTime>
 
     constructor(
       @Inject(FeatureFlipRepositoryToken)
       private readonly featureFlipRepository: Repository,
       private readonly configService: ConfigService
     ) {
-      const dateDeMigrationFromConfig = this.configService.get(
-        'features.dateDeMigration'
-      )
+      this.datesDeMigration = new Map()
 
-      this.dateDeMigration = dateDeMigrationFromConfig
-        ? DateTime.fromISO(dateDeMigrationFromConfig).startOf('day')
-        : undefined
+      const datePhaseA = this.configService.get(
+        'features.dateDeMigrationPhaseA'
+      )
+      if (datePhaseA) {
+        this.datesDeMigration.set(
+          PhaseDeMigration.PHASE_A,
+          DateTime.fromISO(datePhaseA).startOf('day')
+        )
+      }
+
+      const datePhaseB = this.configService.get(
+        'features.dateDeMigrationPhaseB'
+      )
+      if (datePhaseB) {
+        this.datesDeMigration.set(
+          PhaseDeMigration.PHASE_B,
+          DateTime.fromISO(datePhaseB).startOf('day')
+        )
+      }
     }
 
     async laFeatureEstActive(
@@ -72,28 +101,31 @@ export namespace FeatureFlip {
     }
 
     async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-      utilisateur: UtilisateurFeature
+      utilisateur: UtilisateurFeature,
+      phase: PhaseDeMigration
     ): Promise<DateTime | undefined> {
-      return (await this.faitPartieDeLaMigration(utilisateur))
-        ? this.dateDeMigration
+      const tag = getTagPourPhase(phase)
+      return (await this.faitPartieDeLaMigration(utilisateur, tag))
+        ? this.datesDeMigration.get(phase)
         : undefined
     }
 
-    async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
+    async recupererIdsDesBeneficiaireAMigrer(
+      phase: PhaseDeMigration
+    ): Promise<string[]> {
+      const tag = getTagPourPhase(phase)
       const beneficiairesMigration =
         await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerInitial(
-          FeatureFlip.Tag.MIGRATION
+          tag
         )
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
     private async faitPartieDeLaMigration(
-      utilisateur: UtilisateurFeature
+      utilisateur: UtilisateurFeature,
+      tag: Tag
     ): Promise<boolean> {
-      return !!(await this.getUtilisateurSiFeatureActive(
-        Tag.MIGRATION,
-        utilisateur
-      ))
+      return !!(await this.getUtilisateurSiFeatureActive(tag, utilisateur))
     }
 
     private async getUtilisateurSiFeatureActive(
