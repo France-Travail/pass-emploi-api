@@ -42,7 +42,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
@@ -61,7 +61,7 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-2'
         buildService('2024-09-01')
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(undefined)
 
@@ -80,7 +80,7 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-3'
         buildService(undefined)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
@@ -202,7 +202,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
@@ -221,7 +221,7 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
+        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
           .resolves(undefined)
 
@@ -241,7 +241,7 @@ describe('FeatureFlip', () => {
         // Given
         const rawDate = '2024-09-01'
         buildService(rawDate)
-        repository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement
+        repository.getBeneficiairesDeLaFeatureDuConseillerInitial
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves([
             new BeneficiaireMigration('jeune-1'),

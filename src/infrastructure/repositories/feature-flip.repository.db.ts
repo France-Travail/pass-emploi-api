@@ -13,9 +13,10 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
-  async getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+  async getBeneficiairesDeLaFeatureDuConseillerInitial(
     tag: FeatureFlip.Tag
   ): Promise<BeneficiaireMigration[]> {
+    // on veut que le conseiller initial : si on est dans un cas de transfert temporaire il est dans le champ id_conseiller_initial, sinon dans le champ id_conseiller
     const rows = await this.sequelize.query<{ id: string }>(
       `
       SELECT j.id
@@ -34,7 +35,7 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     return rows.map(row => new BeneficiaireMigration(row.id))
   }
 
-  async getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+  async getBeneficiaireSiFeatureActivePourLeConseillerInitial(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string
   ): Promise<BeneficiaireMigration | undefined> {

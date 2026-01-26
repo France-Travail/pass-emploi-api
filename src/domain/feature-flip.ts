@@ -33,7 +33,7 @@ export namespace FeatureFlip {
   }
 
   export interface Repository {
-    getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+    getBeneficiaireSiFeatureActivePourLeConseillerInitial(
       tag: Tag,
       idBeneficiaire: string
     ): Promise<BeneficiaireMigration | undefined>
@@ -41,7 +41,7 @@ export namespace FeatureFlip {
       tag: Tag,
       idConseiller: string
     ): Promise<ConseillerMigration | undefined>
-    getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+    getBeneficiairesDeLaFeatureDuConseillerInitial(
       tag: Tag
     ): Promise<BeneficiaireMigration[]>
   }
@@ -81,7 +81,7 @@ export namespace FeatureFlip {
 
     async recupererIdsDesBeneficiaireAMigrer(): Promise<string[]> {
       const beneficiairesMigration =
-        await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+        await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerInitial(
           FeatureFlip.Tag.MIGRATION
         )
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
@@ -107,7 +107,7 @@ export namespace FeatureFlip {
             utilisateur.id
           )
         case Authentification.Type.JEUNE:
-          return this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+          return this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
             tag,
             utilisateur.id
           )

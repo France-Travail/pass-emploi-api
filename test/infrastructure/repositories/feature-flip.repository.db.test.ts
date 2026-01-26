@@ -71,7 +71,7 @@ describe('FeatureFlipSqlRepository', () => {
   describe('getBeneficiaireSiFeatureActive', () => {
     it('renvoie le bénéficiaire si son conseiller a la feature demandée', async () => {
       const beneficiaire =
-        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
           FeatureFlip.Tag.MIGRATION,
           'jeuneMigration'
         )
@@ -82,7 +82,7 @@ describe('FeatureFlipSqlRepository', () => {
 
     it('renvoie le bénéficiaire si son conseiller initial a la feature demandée', async () => {
       const beneficiaire =
-        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
           FeatureFlip.Tag.MIGRATION,
           'jeune-suivi-conseiller-migration'
         )
@@ -93,7 +93,7 @@ describe('FeatureFlipSqlRepository', () => {
 
     it("ne renvoie rien si ni son conseiller, ni son conseiller initial n'ont la feature demandée", async () => {
       const beneficiaire =
-        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
           FeatureFlip.Tag.DEMARCHES_IA,
           'jeuneMigration'
         )
@@ -102,7 +102,7 @@ describe('FeatureFlipSqlRepository', () => {
 
     it("ne renvoie rien si l'id jeune n'existe pas", async () => {
       const beneficiaire =
-        await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+        await repo.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
           FeatureFlip.Tag.MIGRATION,
           'id-inexistant'
         )
@@ -133,7 +133,7 @@ describe('FeatureFlipSqlRepository', () => {
   describe('getBeneficiairesDeLaFeature', () => {
     it('renvoie la liste des ids des jeunes des conseillers de rattachement avec le tag migration', async () => {
       const beneficiaires =
-        await repo.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
+        await repo.getBeneficiairesDeLaFeatureDuConseillerInitial(
           FeatureFlip.Tag.MIGRATION
         )
       expect(beneficiaires).to.have.deep.members([
