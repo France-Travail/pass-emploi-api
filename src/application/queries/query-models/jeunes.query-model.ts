@@ -217,6 +217,9 @@ export class DetailJeuneConseillerQueryModel {
 
   @ApiProperty()
   dispositif: Jeune.Dispositif
+
+  @ApiProperty({ required: false })
+  idPartenaire?: string
 }
 
 export class PreferencesJeuneQueryModel {
