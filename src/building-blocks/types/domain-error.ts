@@ -188,14 +188,31 @@ export class EmailExisteDejaError implements DomainError {
     this.message = `Un compte avec l'email ${email} existe déjà`
   }
 }
+export class EmailExisteDejaMiloError implements DomainError {
+  static CODE = 'EMAIL_EXISTE_DEJA_MILO'
+  readonly code: string = EmailExisteDejaMiloError.CODE
+  readonly message: string
+
+  constructor(emailJeune: string, emailConseiller?: string) {
+    this.message = emailConseiller
+      ? `Le compte associé à cette adresse email ${emailJeune} est déjà présent dans le portefeuille du conseiller ${emailConseiller}. Veuillez contacter ce conseiller.`
+      : `Le compte associé à cette adresse email ${emailJeune} est déjà présent dans le portefeuille d'un autre conseiller`
+  }
+}
 
 export class DossierExisteDejaError implements DomainError {
   static CODE = 'DOSSIER_EXISTE_DEJA'
   readonly code: string = DossierExisteDejaError.CODE
   readonly message: string
 
-  constructor(idDossier: string) {
-    this.message = `Un compte avec l'id dossier ${idDossier} existe déjà`
+  constructor(
+    idDossier: string,
+    emailJeune?: string,
+    emailConseiller?: string
+  ) {
+    this.message = emailConseiller
+      ? `Le dossier ${idDossier} associé à l'adresse email ${emailJeune} est déjà présent dans le portefeuille du conseiller ${emailConseiller}. Veuillez contacter ce conseiller.`
+      : `Le dossier ${idDossier} associé à l'adresse email ${emailJeune} est déjà présent dans le portefeuille d'un autre conseiller`
   }
 }
 

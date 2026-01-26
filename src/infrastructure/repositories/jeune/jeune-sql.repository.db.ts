@@ -53,9 +53,13 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return Boolean(exists[0][0].exists)
   }
 
-  async getByEmail(email: string): Promise<Jeune | undefined> {
+  async getByEmail(
+    email: string,
+    options?: { includeConseiller: boolean }
+  ): Promise<Jeune | undefined> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
-      where: { email }
+      where: { email },
+      ...(options?.includeConseiller && { include: [ConseillerSqlModel] })
     })
     if (!jeuneSqlModel) {
       return undefined

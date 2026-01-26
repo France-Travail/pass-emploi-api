@@ -3,15 +3,15 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
   DossierExisteDejaError,
-  EmailExisteDejaError,
+  EmailExisteDejaMiloError,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
 import {
-  Result,
   failure,
   isFailure,
   isSuccess,
+  Result,
   success
 } from '../../../building-blocks/types/result'
 import {
@@ -49,16 +49,18 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
   IdentiteJeuneQueryModel
 > {
   constructor(
-    private conseillerAuthorizer: ConseillerAuthorizer,
+    private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(JeuneMiloRepositoryToken)
-    private miloJeuneRepository: JeuneMilo.Repository,
-    @Inject(JeuneRepositoryToken) private jeuneRepository: Jeune.Repository,
+    private readonly miloJeuneRepository: JeuneMilo.Repository,
+    @Inject(JeuneRepositoryToken)
+    private readonly jeuneRepository: Jeune.Repository,
     @Inject(AuthentificationRepositoryToken)
-    private authentificationRepository: Authentification.Repository,
+    private readonly authentificationRepository: Authentification.Repository,
     @Inject(ConseillerRepositoryToken)
-    private conseillerRepository: Conseiller.Repository,
-    @Inject(ChatRepositoryToken) private chatRepository: Chat.Repository,
-    private jeuneFactory: Jeune.Factory
+    private readonly conseillerRepository: Conseiller.Repository,
+    @Inject(ChatRepositoryToken)
+    private readonly chatRepository: Chat.Repository,
+    private readonly jeuneFactory: Jeune.Factory
   ) {
     super('CreerJeuneMiloCommandHandler')
   }
@@ -73,14 +75,33 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
 
     const lowerCaseEmail = command.email.toLocaleLowerCase()
     const [jeuneByEmail, jeuneByIdDossier] = await Promise.all([
-      this.jeuneRepository.getByEmail(lowerCaseEmail),
-      this.miloJeuneRepository.getByIdDossier(command.idPartenaire)
+      this.jeuneRepository.getByEmail(lowerCaseEmail, {
+        includeConseiller: true
+      }),
+      this.miloJeuneRepository.getByIdDossier(command.idPartenaire, {
+        includeConseiller: true
+      })
     ])
     if (jeuneByEmail) {
-      return failure(new EmailExisteDejaError(lowerCaseEmail))
+      if (estMilo(jeuneByEmail.structure)) {
+        return failure(
+          new EmailExisteDejaMiloError(
+            lowerCaseEmail,
+            jeuneByEmail.conseiller?.email
+          )
+        )
+      } else {
+        return failure(new EmailExisteDejaMiloError(lowerCaseEmail))
+      }
     }
     if (isSuccess(jeuneByIdDossier)) {
-      return failure(new DossierExisteDejaError(command.idPartenaire))
+      return failure(
+        new DossierExisteDejaError(
+          command.idPartenaire,
+          command.email,
+          jeuneByIdDossier.data.conseiller?.email
+        )
+      )
     }
 
     const result = await this.miloJeuneRepository.creerJeune(

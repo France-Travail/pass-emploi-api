@@ -68,7 +68,8 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         unJeuneDto({
           idConseiller,
           dateDerniereActualisationToken: dateEvenement,
-          dateFinCEJ: null
+          dateFinCEJ: null,
+          idPartenaire: '123456'
         })
       )
 
@@ -82,7 +83,8 @@ describe('GetJeunesByConseillerQueryHandler', () => {
           unDetailJeuneConseillerQueryModel({
             lastActivity: dateEvenement.toISOString(),
             dateFinCEJ: undefined,
-            estAArchiver: true
+            estAArchiver: true,
+            idPartenaire: '123456'
           })
         ])
       )
@@ -90,10 +92,12 @@ describe('GetJeunesByConseillerQueryHandler', () => {
     it("retourne les jeunes d'un conseiller avec la date d'evenement d'engagement", async () => {
       // Given
       const dateEvenement = uneDatetime().toJSDate()
+      const dateFinCEJ = new Date('2022-06-11')
       const jeune = unJeuneDto({
         idConseiller,
         dateDerniereActualisationToken: dateEvenement,
-        dateFinCEJ: new Date('2022-06-11')
+        dateFinCEJ: dateFinCEJ,
+        idPartenaire: '123456'
       })
       await ConseillerSqlModel.creer(unConseillerDto({ id: idConseiller }))
       await JeuneSqlModel.creer(jeune)
@@ -107,8 +111,11 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       expect(actual).to.deep.equal(
         success([
           {
-            ...unDetailJeuneConseillerQueryModel(),
-            lastActivity: dateEvenement.toISOString()
+            ...unDetailJeuneConseillerQueryModel({
+              lastActivity: dateEvenement.toISOString(),
+              dateFinCEJ: DateService.fromJSDateToISOString(dateFinCEJ),
+              idPartenaire: '123456'
+            })
           }
         ])
       )
@@ -116,10 +123,12 @@ describe('GetJeunesByConseillerQueryHandler', () => {
     it("retourne les jeunes d'un conseiller avec la date du DERNIER evenement d'engagement", async () => {
       // Given
       const dateEvenementRecent = uneDatetime().toJSDate()
+      const dateFinCEJ = new Date('2022-06-11')
       const jeune = unJeuneDto({
         idConseiller,
         dateDerniereActualisationToken: dateEvenementRecent,
-        dateFinCEJ: new Date('2022-06-11')
+        dateFinCEJ: dateFinCEJ,
+        idPartenaire: '123456'
       })
       await ConseillerSqlModel.creer(unConseillerDto({ id: idConseiller }))
       await JeuneSqlModel.creer(jeune)
@@ -133,8 +142,11 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       expect(actual).to.deep.equal(
         success([
           {
-            ...unDetailJeuneConseillerQueryModel(),
-            lastActivity: dateEvenementRecent.toISOString()
+            ...unDetailJeuneConseillerQueryModel({
+              lastActivity: dateEvenementRecent.toISOString(),
+              dateFinCEJ: DateService.fromJSDateToISOString(dateFinCEJ),
+              idPartenaire: '123456'
+            })
           }
         ])
       )
@@ -154,12 +166,14 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       const idDernierConseillerPrecedent = '43'
       const idJeune = '1'
       const dateEvenement = uneDatetime().toJSDate()
+      const dateFinCEJ = new Date('2022-06-11')
       const jeune = unJeuneDto({
         id: idJeune,
         idConseiller: idConseillerCible,
         idConseillerInitial: idDernierConseillerPrecedent,
         dateDerniereActualisationToken: dateEvenement,
-        dateFinCEJ: new Date('2022-06-11')
+        dateFinCEJ: dateFinCEJ,
+        idPartenaire: '123456'
       })
       await ConseillerSqlModel.creer(
         unConseillerDto({
@@ -190,14 +204,18 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       expect(actual).to.deep.equal(
         success([
           {
-            ...unDetailJeuneConseillerQueryModel({ id: idJeune }),
-            lastActivity: dateEvenement.toISOString(),
-            conseillerPrecedent: {
-              email: '43@43.com',
-              nom: 'Tavernier',
-              prenom: 'Nils'
-            },
-            isReaffectationTemporaire: true
+            ...unDetailJeuneConseillerQueryModel({
+              id: idJeune,
+              lastActivity: dateEvenement.toISOString(),
+              dateFinCEJ: DateService.fromJSDateToISOString(dateFinCEJ),
+              conseillerPrecedent: {
+                email: '43@43.com',
+                nom: 'Tavernier',
+                prenom: 'Nils'
+              },
+              isReaffectationTemporaire: true,
+              idPartenaire: '123456'
+            })
           }
         ])
       )
@@ -214,13 +232,15 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         nomOfficiel: 'test',
         timezone: 'Europe/Paris'
       })
+      const dateFinCEJ = new Date('2022-06-11')
       await JeuneSqlModel.creer(
         unJeuneDto({
           id: idJeune,
           idConseiller,
           dateDerniereActualisationToken: dateEvenement,
           idStructureMilo: idStructure,
-          dateFinCEJ: new Date('2022-06-11')
+          dateFinCEJ: dateFinCEJ,
+          idPartenaire: '123456'
         })
       )
       await SituationsMiloSqlModel.create(situationsDuJeune)
@@ -236,7 +256,9 @@ describe('GetJeunesByConseillerQueryHandler', () => {
             id: idJeune,
             situationCourante: situationsDuJeune.situationCourante ?? undefined,
             lastActivity: dateEvenement.toISOString(),
-            structureMilo: { id: idStructure }
+            dateFinCEJ: DateService.fromJSDateToISOString(dateFinCEJ),
+            structureMilo: { id: idStructure },
+            idPartenaire: '123456'
           })
         ])
       )

@@ -101,9 +101,13 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
     }
   }
 
-  async getByIdDossier(idDossier: string): Promise<Result<JeuneMilo>> {
+  async getByIdDossier(
+    idDossier: string,
+    options?: { includeConseiller: boolean }
+  ): Promise<Result<JeuneMilo>> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
-      where: { idPartenaire: idDossier }
+      where: { idPartenaire: idDossier },
+      ...(options?.includeConseiller && { include: [ConseillerSqlModel] })
     })
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Dossier Milo', idDossier))
