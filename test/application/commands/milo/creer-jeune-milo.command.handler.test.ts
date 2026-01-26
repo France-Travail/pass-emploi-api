@@ -136,21 +136,31 @@ describe('CreerJeuneMiloCommandHandler', () => {
           idPartenaire,
           nom: 'nom',
           prenom: 'prenom',
-          email: 'email',
+          email: 'email@mail.fr',
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false
         }
-        miloRepository.getByIdDossier
-          .withArgs(command.idPartenaire)
-          .resolves(success(unJeune()))
+        miloRepository.getByIdDossier.withArgs(command.idPartenaire).resolves(
+          success(
+            unJeune({
+              conseiller: unConseiller({ email: 'mail@conseiller.com' })
+            })
+          )
+        )
 
         // When
         const result = await creerJeuneMiloCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(
-          failure(new DossierExisteDejaError(command.idPartenaire))
+          failure(
+            new DossierExisteDejaError(
+              command.idPartenaire,
+              'email@mail.fr',
+              'mail@conseiller.com'
+            )
+          )
         )
       })
     })
