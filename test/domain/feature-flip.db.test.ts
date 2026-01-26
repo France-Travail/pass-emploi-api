@@ -20,97 +20,82 @@ describe('FeatureFlip.Service', () => {
   let service: FeatureFlip.Service
   let dateDeMigration: DateTime
 
-  const conseillerFtCejMigrant = unConseillerDto({
-    id: 'conseiller-ft-cej-migrant',
+  // Conseillers
+  const conseillerMigrant = unConseillerDto({
+    id: 'conseiller-migrant',
     structure: Core.Structure.POLE_EMPLOI,
-    email: 'conseiller.ft-cej.migrantpe@email.com'
+    email: 'conseiller.migrant@email.com'
   })
-  const conseillerAijMigrant = unConseillerDto({
-    id: 'conseiller-aij-migrant',
+  const conseillerMigrant2 = unConseillerDto({
+    id: 'conseiller-migrant-2',
     structure: Core.Structure.POLE_EMPLOI_AIJ,
-    email: 'conseiller.aij.migrant@email.com'
+    email: 'conseiller.migrant2@email.com'
   })
-  const conseillerFtCejNonMigrant = unConseillerDto({
-    id: 'conseiller-ft-cej-non-migrant',
+  const conseillerNonMigrant = unConseillerDto({
+    id: 'conseiller-non-migrant',
     structure: Core.Structure.POLE_EMPLOI,
-    email: 'conseiller.ft-cej.non-migrant@email.com'
+    email: 'conseiller.non-migrant@email.com'
   })
-  const conseillerAijNonMigrant = unConseillerDto({
-    id: 'conseiller-aij-non-migrant',
+  const conseillerNonMigrant2 = unConseillerDto({
+    id: 'conseiller-non-migrant-2',
     structure: Core.Structure.POLE_EMPLOI_AIJ,
-    email: 'conseiller.aij.non-migrant@email.com'
+    email: 'conseiller.non-migrant2@email.com'
   })
-  const jeuneCejConseillerCejMigrant = unJeuneDto({
-    id: 'j1',
+
+  // Règle 1: bénéficiaire avec conseiller migrant → concerné
+  const beneficiaireConseillerMigrant = unJeuneDto({
+    id: 'regle-1',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerFtCejMigrant.id,
+    idConseiller: conseillerMigrant.id,
     idConseillerInitial: undefined
   })
-  const jeuneCejConseillerCejNonMigrant = unJeuneDto({
-    id: 'j2',
+
+  // Règle 2: bénéficiaire avec conseiller ne migrant pas → non concerné
+  const beneficiaireConseillerNonMigrant = unJeuneDto({
+    id: 'regle-2',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerFtCejNonMigrant.id,
+    idConseiller: conseillerNonMigrant.id,
     idConseillerInitial: undefined
   })
-  const jeuneCejTransfertTmpCejNonMigrant = unJeuneDto({
-    id: 'j3',
+
+  // Règle 3: conseiller initial migrant + conseiller temporaire ne migrant pas → concerné
+  const beneficiaireInitialMigrantTmpNonMigrant = unJeuneDto({
+    id: 'regle-3',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerFtCejNonMigrant.id,
-    idConseillerInitial: conseillerFtCejMigrant.id
+    idConseiller: conseillerNonMigrant.id,
+    idConseillerInitial: conseillerMigrant.id
   })
-  const jeuneCejTransfertTmpAijNonMigrant = unJeuneDto({
-    id: 'j4',
+
+  // Règle 4: conseiller initial migrant + conseiller temporaire migrant → concerné
+  const beneficiaireInitialMigrantTmpMigrant = unJeuneDto({
+    id: 'regle-4',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerAijNonMigrant.id,
-    idConseillerInitial: conseillerFtCejMigrant.id
+    idConseiller: conseillerMigrant2.id,
+    idConseillerInitial: conseillerMigrant.id
   })
-  const jeuneCejTransfertDefinitifCejNonMigrant = unJeuneDto({
-    id: 'j5',
+
+  // Règle 5: conseiller initial ne migrant pas + conseiller temporaire migrant → non concerné
+  const beneficiaireInitialNonMigrantTmpMigrant = unJeuneDto({
+    id: 'regle-5',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerFtCejNonMigrant.id,
-    idConseillerInitial: undefined
+    idConseiller: conseillerMigrant.id,
+    idConseillerInitial: conseillerNonMigrant.id
   })
-  const jeuneCejTransfertDefinitifAijNonMigrant = unJeuneDto({
-    id: 'j6',
+
+  // Règle 6: conseiller initial ne migrant pas + conseiller temporaire ne migrant pas → non concerné
+  const beneficiaireInitialNonMigrantTmpNonMigrant = unJeuneDto({
+    id: 'regle-6',
     structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerAijNonMigrant.id,
-    idConseillerInitial: undefined
+    idConseiller: conseillerNonMigrant2.id,
+    idConseillerInitial: conseillerNonMigrant.id
   })
-  const jeuneAijConseillerAijNonMigrant = unJeuneDto({
-    id: 'j7',
+
+  // Cas supplémentaires pour vérifier que la structure n'est plus un critère
+  const beneficiaireAijConseillerMigrant = unJeuneDto({
+    id: 'aij-conseiller-migrant',
     structure: Core.Structure.POLE_EMPLOI_AIJ,
-    idConseiller: conseillerAijNonMigrant.id,
+    idConseiller: conseillerMigrant.id,
     idConseillerInitial: undefined
-  })
-  const jeuneAijTransfertTmpCejMigrant = unJeuneDto({
-    id: 'j8',
-    structure: Core.Structure.POLE_EMPLOI_AIJ,
-    idConseiller: conseillerFtCejMigrant.id,
-    idConseillerInitial: conseillerAijNonMigrant.id
-  })
-  const jeuneAijConseillerCejMigrant = unJeuneDto({
-    id: 'j9',
-    structure: Core.Structure.POLE_EMPLOI_AIJ,
-    idConseiller: conseillerFtCejMigrant.id,
-    idConseillerInitial: undefined
-  })
-  const jeuneAijConseillerAijMigrant = unJeuneDto({
-    id: 'j10',
-    structure: Core.Structure.POLE_EMPLOI_AIJ,
-    idConseiller: conseillerAijMigrant.id,
-    idConseillerInitial: undefined
-  })
-  const jeuneCejConseillerCejMigrantTransfertTmpAijMigrant = unJeuneDto({
-    id: 'j11',
-    structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerAijMigrant.id,
-    idConseillerInitial: conseillerFtCejMigrant.id
-  })
-  const jeuneCejConseillerAijMigrantTransfertTmpCejMigrant = unJeuneDto({
-    id: 'j12',
-    structure: Core.Structure.POLE_EMPLOI,
-    idConseiller: conseillerFtCejMigrant.id,
-    idConseillerInitial: conseillerAijMigrant.id
   })
 
   before(async () => {
@@ -134,164 +119,150 @@ describe('FeatureFlip.Service', () => {
     service = new FeatureFlip.Service(featureFlipRepository, configService)
 
     await ConseillerSqlModel.bulkCreate([
-      conseillerFtCejMigrant,
-      conseillerAijMigrant,
-      conseillerFtCejNonMigrant,
-      conseillerAijNonMigrant
+      conseillerMigrant,
+      conseillerMigrant2,
+      conseillerNonMigrant,
+      conseillerNonMigrant2
     ])
 
     await FeatureFlipSqlModel.bulkCreate([
       {
         featureTag: FeatureFlip.Tag.MIGRATION,
-        emailConseiller: conseillerFtCejMigrant.email
+        emailConseiller: conseillerMigrant.email
       },
       {
         featureTag: FeatureFlip.Tag.MIGRATION,
-        emailConseiller: conseillerAijMigrant.email
+        emailConseiller: conseillerMigrant2.email
       },
       {
         featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-        emailConseiller: conseillerFtCejNonMigrant.email
+        emailConseiller: conseillerNonMigrant.email
       },
       {
         featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-        emailConseiller: conseillerAijNonMigrant.email
+        emailConseiller: conseillerNonMigrant2.email
       }
     ])
 
     await JeuneSqlModel.bulkCreate([
-      jeuneCejConseillerCejMigrant,
-      jeuneCejConseillerCejNonMigrant,
-      jeuneCejTransfertTmpCejNonMigrant,
-      jeuneCejTransfertTmpAijNonMigrant,
-      jeuneCejTransfertDefinitifCejNonMigrant,
-      jeuneCejTransfertDefinitifAijNonMigrant,
-      jeuneAijConseillerAijNonMigrant,
-      jeuneAijTransfertTmpCejMigrant,
-      jeuneAijConseillerCejMigrant,
-      jeuneAijConseillerAijMigrant,
-      jeuneCejConseillerCejMigrantTransfertTmpAijMigrant,
-      jeuneCejConseillerAijMigrantTransfertTmpCejMigrant
+      beneficiaireConseillerMigrant,
+      beneficiaireConseillerNonMigrant,
+      beneficiaireInitialMigrantTmpNonMigrant,
+      beneficiaireInitialMigrantTmpMigrant,
+      beneficiaireInitialNonMigrantTmpMigrant,
+      beneficiaireInitialNonMigrantTmpNonMigrant,
+      beneficiaireAijConseillerMigrant
     ])
   })
 
   describe('recupererIdsDesBeneficiaireAMigrer', () => {
-    it('renvoie les ids des bénéficiaires FT CEJ devant migrer vers Parcours Emploi', async () => {
+    it('renvoie les ids des bénéficiaires dont le conseiller de rattachement migre vers Parcours Emploi', async () => {
       // When
       const result = await service.recupererIdsDesBeneficiaireAMigrer()
 
       // Then
       expect(result).to.have.members([
-        jeuneCejConseillerCejMigrant.id,
-        jeuneCejTransfertTmpCejNonMigrant.id,
-        jeuneCejTransfertTmpAijNonMigrant.id,
-        //jeuneCejTransfertDefinitifCejNonMigrant.id, Impossible avec implem actuelle
-        //jeuneCejTransfertDefinitifAijNonMigrant.id, Impossible avec implem actuelle
-        jeuneCejConseillerCejMigrantTransfertTmpAijMigrant.id
+        beneficiaireConseillerMigrant.id, // Règle 1
+        beneficiaireInitialMigrantTmpNonMigrant.id, // Règle 3
+        beneficiaireInitialMigrantTmpMigrant.id, // Règle 4
+        beneficiaireAijConseillerMigrant.id // La structure du bénéficiaire n'est plus un critère
       ])
     })
   })
+
   describe('recupererDateDeMigrationSiLUtilisateurDoitMigrer', () => {
-    it('renvoie la date de migration si le bénéficiaire est FT CEJ et que son conseiller de rattachement est FT CEJ et doit migrer vers Parcours Emploi', async () => {
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejConseillerCejMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.deep.equal(dateDeMigration)
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejConseillerCejNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejTransfertTmpCejNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.deep.equal(dateDeMigration)
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejTransfertTmpAijNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.deep.equal(dateDeMigration)
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejTransfertDefinitifCejNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejTransfertDefinitifAijNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneAijConseillerAijNonMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneAijTransfertTmpCejMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneAijConseillerCejMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneAijConseillerAijMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejConseillerCejMigrantTransfertTmpAijMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.deep.equal(dateDeMigration)
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: jeuneCejConseillerAijMigrantTransfertTmpCejMigrant.id,
-          type: Type.JEUNE
-        })
-      ).to.be.undefined()
+    describe('pour les bénéficiaires', () => {
+      it('Règle 1: bénéficiaire avec conseiller migrant → concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireConseillerMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
+
+      it('Règle 2: bénéficiaire avec conseiller ne migrant pas → non concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireConseillerNonMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.be.undefined()
+      })
+
+      it('Règle 3: conseiller initial migrant + conseiller temporaire ne migrant pas → concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialMigrantTmpNonMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
+
+      it('Règle 4: conseiller initial migrant + conseiller temporaire migrant → concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialMigrantTmpMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
+
+      it('Règle 5: conseiller initial ne migrant pas + conseiller temporaire migrant → non concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialNonMigrantTmpMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.be.undefined()
+      })
+
+      it('Règle 6: conseiller initial ne migrant pas + conseiller temporaire ne migrant pas → non concerné', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialNonMigrantTmpNonMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.be.undefined()
+      })
+
+      it('bénéficiaire AIJ avec conseiller migrant → concerné (structure bénéficiaire non critère)', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireAijConseillerMigrant.id,
+            type: Type.JEUNE
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
     })
 
-    it('renvoie la date de migration si le conseiller est FT CEJ et doit migrer vers Parcours Emploi', async () => {
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: conseillerFtCejMigrant.id,
-          type: Type.CONSEILLER
-        })
-      ).to.deep.equal(dateDeMigration)
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: conseillerFtCejNonMigrant.id,
-          type: Type.CONSEILLER
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: conseillerAijMigrant.id,
-          type: Type.CONSEILLER
-        })
-      ).to.be.undefined()
-      expect(
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-          id: conseillerAijNonMigrant.id,
-          type: Type.CONSEILLER
-        })
-      ).to.be.undefined()
+    describe('pour les conseillers', () => {
+      it('renvoie la date de migration si le conseiller migre vers Parcours Emploi', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerMigrant.id,
+            type: Type.CONSEILLER
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
+
+      it('renvoie undefined si le conseiller ne migre pas', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerNonMigrant.id,
+            type: Type.CONSEILLER
+          })
+        expect(result).to.be.undefined()
+      })
+
+      it('conseiller AIJ migrant → concerné (structure conseiller non critère)', async () => {
+        const result =
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerMigrant2.id,
+            type: Type.CONSEILLER
+          })
+        expect(result).to.deep.equal(dateDeMigration)
+      })
     })
   })
 })

@@ -6,7 +6,6 @@ import {
   FeatureFlip
 } from '../../domain/feature-flip'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import { Core } from '../../domain/core'
 
 @Injectable()
 export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
@@ -14,31 +13,12 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
-  private mapToBeneficiaireMigration(row: {
-    id: string
-    structure: string
-    structureConseillerRattachement: string
-  }): BeneficiaireMigration {
-    return new BeneficiaireMigration(
-      row.id,
-      row.structure as Core.Structure,
-      row.structureConseillerRattachement as Core.Structure
-    )
-  }
-
   async getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
     tag: FeatureFlip.Tag
   ): Promise<BeneficiaireMigration[]> {
-    const rows = await this.sequelize.query<{
-      id: string
-      structure: string
-      structureConseillerRattachement: string
-    }>(
+    const rows = await this.sequelize.query<{ id: string }>(
       `
-      SELECT
-        j.id,
-        j.structure,
-        c.structure AS "structureConseillerRattachement"
+      SELECT j.id
       FROM jeune j
       JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
       JOIN feature_flip ff ON ff.email_conseiller = c.email
@@ -51,23 +31,16 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
         type: QueryTypes.SELECT
       }
     )
-    return rows.map(row => this.mapToBeneficiaireMigration(row))
+    return rows.map(row => new BeneficiaireMigration(row.id))
   }
 
   async getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
     tag: FeatureFlip.Tag,
     idBeneficiaire: string
   ): Promise<BeneficiaireMigration | undefined> {
-    const rows = await this.sequelize.query<{
-      id: string
-      structure: string
-      structureConseillerRattachement: string
-    }>(
+    const rows = await this.sequelize.query<{ id: string }>(
       `
-      SELECT
-          j.id,
-          j.structure,
-          c.structure AS "structureConseillerRattachement"
+      SELECT j.id
       FROM feature_flip ff
       JOIN jeune j ON j.id = :idJeune
       JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
@@ -85,19 +58,16 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     )
     if (rows.length === 0) return undefined
 
-    return this.mapToBeneficiaireMigration(rows[0])
+    return new BeneficiaireMigration(rows[0].id)
   }
 
   async getConseillerSiFeatureActive(
     tag: FeatureFlip.Tag,
     idConseiller: string
   ): Promise<ConseillerMigration | undefined> {
-    const rows = await this.sequelize.query<{
-      id: string
-      structure: string
-    }>(
+    const rows = await this.sequelize.query<{ id: string }>(
       `
-      SELECT c.id, c.structure
+      SELECT c.id
       FROM feature_flip ff
       JOIN conseiller c ON c.id = :idConseiller
       WHERE ff.feature_tag = :featureTag
@@ -114,13 +84,6 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     )
     if (rows.length === 0) return undefined
 
-    return this.mapToConseillerMigration(rows[0])
-  }
-
-  private mapToConseillerMigration(row: {
-    id: string
-    structure: string
-  }): ConseillerMigration {
-    return new ConseillerMigration(row.id, row.structure as Core.Structure)
+    return new ConseillerMigration(rows[0].id)
   }
 }

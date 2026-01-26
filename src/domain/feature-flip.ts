@@ -1,45 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { Core } from './core'
 import { Authentification } from './authentification'
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
-const STRUCTURE_ELIGIBLE = Core.Structure.POLE_EMPLOI
 
-export abstract class UtilisateurMigration {
-  constructor(id: string, structure: Core.Structure) {
+export class BeneficiaireMigration {
+  constructor(id: string) {
     this.id = id
-    this.structure = structure
   }
 
   id: string
-  structure: Core.Structure
-  abstract structureEligible(): boolean
 }
 
-export class BeneficiaireMigration extends UtilisateurMigration {
-  constructor(
-    id: string,
-    structure: Core.Structure,
-    structureConseillerRattachement: Core.Structure
-  ) {
-    super(id, structure)
-    this.structureConseillerRattachement = structureConseillerRattachement
+export class ConseillerMigration {
+  constructor(id: string) {
+    this.id = id
   }
 
-  structureConseillerRattachement: Core.Structure
-  structureEligible(): boolean {
-    return (
-      this.structure === STRUCTURE_ELIGIBLE &&
-      this.structureConseillerRattachement === STRUCTURE_ELIGIBLE
-    )
-  }
-}
-export class ConseillerMigration extends UtilisateurMigration {
-  structureEligible(): boolean {
-    return this.structure === STRUCTURE_ELIGIBLE
-  }
+  id: string
 }
 
 export namespace FeatureFlip {
@@ -105,44 +84,34 @@ export namespace FeatureFlip {
         await this.featureFlipRepository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
           FeatureFlip.Tag.MIGRATION
         )
-      return beneficiairesMigration
-        .filter(beneficiaire => beneficiaire.structureEligible())
-        .map(beneficiaire => beneficiaire.id)
+      return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
     private async faitPartieDeLaMigration(
       utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      const utilisateurMigration = await this.getUtilisateurSiFeatureActive(
+      return !!(await this.getUtilisateurSiFeatureActive(
         Tag.MIGRATION,
         utilisateur
-      )
-      return utilisateurMigration
-        ? utilisateurMigration.structureEligible()
-        : false
+      ))
     }
 
     private async getUtilisateurSiFeatureActive(
       tag: Tag,
       utilisateur: UtilisateurFeature
-    ): Promise<UtilisateurMigration | undefined> {
-      let utilisateurMigration: UtilisateurMigration | undefined
+    ): Promise<BeneficiaireMigration | ConseillerMigration | undefined> {
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
-          utilisateurMigration =
-            await this.featureFlipRepository.getConseillerSiFeatureActive(
-              tag,
-              utilisateur.id
-            )
-          break
+          return this.featureFlipRepository.getConseillerSiFeatureActive(
+            tag,
+            utilisateur.id
+          )
         case Authentification.Type.JEUNE:
-          utilisateurMigration =
-            await this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
-              tag,
-              utilisateur.id
-            )
+          return this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
+            tag,
+            utilisateur.id
+          )
       }
-      return utilisateurMigration
     }
   }
 }

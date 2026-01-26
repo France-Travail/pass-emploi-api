@@ -1,15 +1,14 @@
 import { ConfigService } from '@nestjs/config'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { createSandbox } from 'sinon'
+import { Authentification } from '../../src/domain/authentification'
 import {
   BeneficiaireMigration,
   ConseillerMigration,
   FeatureFlip
 } from '../../src/domain/feature-flip'
 import { expect } from '../utils'
-import { DateTime } from 'luxon'
-import { Authentification } from '../../src/domain/authentification'
-import { Core } from '../../src/domain/core'
 import Type = Authentification.Type
 import Tag = FeatureFlip.Tag
 
@@ -37,7 +36,7 @@ describe('FeatureFlip', () => {
     })
 
     describe('recupererDateDeMigrationSiLUtilisateurDoitMigrer - bénéficiaire', () => {
-      it('renvoie la date (minuit Europe/Paris) quand le jeune fait partie de MIGRATION et de la structure POLE_EMPLOI, et que la config contient une date', async () => {
+      it('renvoie la date (minuit Europe/Paris) quand le jeune fait partie de MIGRATION et que la config contient une date', async () => {
         // Given
         const idJeune = 'jeune-1'
         const rawDate = '2024-09-01'
@@ -45,13 +44,7 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves(
-            new BeneficiaireMigration(
-              'jeune-1',
-              Core.Structure.POLE_EMPLOI,
-              Core.Structure.POLE_EMPLOI
-            )
-          )
+          .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
         const result =
@@ -62,33 +55,6 @@ describe('FeatureFlip', () => {
 
         // Then
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
-      })
-
-      it("ne renvoie rien quand le jeune fait partie de MIGRATION mais fait partie d'une structure différente de POLE_EMPLOI", async () => {
-        // Given
-        const idJeune = 'jeune-1'
-        const rawDate = '2024-09-01'
-
-        buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves(
-            new BeneficiaireMigration(
-              idJeune,
-              Core.Structure.MILO,
-              Core.Structure.MILO
-            )
-          )
-
-        // When
-        const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idJeune,
-            type: Type.JEUNE
-          })
-
-        // Then
-        expect(result).to.be.undefined()
       })
 
       it("ne renvoie rien si le jeune n'est pas dans la feature", async () => {
@@ -116,13 +82,7 @@ describe('FeatureFlip', () => {
         buildService(undefined)
         repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves(
-            new BeneficiaireMigration(
-              'jeune-1',
-              Core.Structure.POLE_EMPLOI,
-              Core.Structure.POLE_EMPLOI
-            )
-          )
+          .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
         const result =
@@ -145,9 +105,7 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves(
-            new ConseillerMigration(idConseiller, Core.Structure.POLE_EMPLOI)
-          )
+          .resolves(new ConseillerMigration(idConseiller))
 
         // When
         const result =
@@ -160,34 +118,13 @@ describe('FeatureFlip', () => {
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
       })
 
-      it("ne renvoie rien quand le conseiller fait partie de MIGRATION mais fait partie d'une structure différente de POLE_EMPLOI", async () => {
-        // Given
-        const idConseiller = 'conseiller-1'
-        const rawDate = '2024-09-01'
-
-        buildService(rawDate)
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves({ id: idConseiller, structure: Core.Structure.MILO })
-
-        // When
-        const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
-            id: idConseiller,
-            type: Type.JEUNE
-          })
-
-        // Then
-        expect(result).to.be.undefined()
-      })
-
       it("ne renvoie rien si le conseiller n'est pas dans la feature", async () => {
         // Given
         const idConseiller = 'conseiller-2'
         buildService('2025-03-10')
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves(false)
+          .resolves(undefined)
 
         // When
         const result =
@@ -206,9 +143,7 @@ describe('FeatureFlip', () => {
         buildService(undefined)
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves(
-            new ConseillerMigration(idConseiller, Core.Structure.POLE_EMPLOI)
-          )
+          .resolves(new ConseillerMigration(idConseiller))
 
         // When
         const result =
@@ -231,7 +166,7 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getConseillerSiFeatureActive
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idConseiller)
-          .resolves({ id: idConseiller, structure: Core.Structure.POLE_EMPLOI })
+          .resolves(new ConseillerMigration(idConseiller))
 
         // When
         const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
@@ -269,7 +204,7 @@ describe('FeatureFlip', () => {
         buildService(rawDate)
         repository.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
-          .resolves({ id: 'jeune-1', structure: Core.Structure.POLE_EMPLOI })
+          .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
         const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
@@ -302,30 +237,22 @@ describe('FeatureFlip', () => {
     })
 
     describe('recupererIdsDesBeneficiaireAMigrer', () => {
-      it('renvoie les ids des bénéficiaires faisant partie de la feature MIGRATION et étant FT CEJ', async () => {
+      it('renvoie les ids de tous les bénéficiaires faisant partie de la feature MIGRATION', async () => {
         // Given
         const rawDate = '2024-09-01'
         buildService(rawDate)
         repository.getBeneficiairesDeLaFeatureDuConseillerDeRattachement
           .withArgs(FeatureFlip.Tag.MIGRATION)
           .resolves([
-            new BeneficiaireMigration(
-              'jeune-1',
-              Core.Structure.POLE_EMPLOI,
-              Core.Structure.POLE_EMPLOI
-            ),
-            new BeneficiaireMigration(
-              'jeune-2',
-              Core.Structure.MILO,
-              Core.Structure.MILO
-            )
+            new BeneficiaireMigration('jeune-1'),
+            new BeneficiaireMigration('jeune-2')
           ])
 
         // When
         const result = await service.recupererIdsDesBeneficiaireAMigrer()
 
         // Then
-        expect(result).to.deep.equal(['jeune-1'])
+        expect(result).to.deep.equal(['jeune-1', 'jeune-2'])
       })
     })
   })

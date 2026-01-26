@@ -21,76 +21,51 @@ describe('FeatureFlipSqlRepository', () => {
     await databaseForTesting.cleanPG()
     repo = new FeatureFlipSqlRepository(databaseForTesting.sequelize)
 
-    const conseillerCEJMigrationDto = unConseillerDto({
-      id: 'cejMigration',
+    const conseillerMigrationDto = unConseillerDto({
+      id: 'conseillerMigration',
       structure: Core.Structure.POLE_EMPLOI,
-      email: 'conseillerCEJMigration@email.com'
+      email: 'conseillerMigration@email.com'
     })
-    const conseillerAIJMigrationDto = unConseillerDto({
-      id: 'aijMigration',
-      structure: Core.Structure.POLE_EMPLOI_AIJ,
-      email: 'conseillerAIJMigration@email.com'
-    })
-    const conseillerFtIaDto = unConseillerDto({
-      id: 'ftIAPasMigration',
-      email: 'conseillerFTIA@email.com',
-      structure: Core.Structure.POLE_EMPLOI_AIJ
+    const conseillerNonMigrationDto = unConseillerDto({
+      id: 'conseillerNonMigration',
+      email: 'conseillerNonMigration@email.com'
     })
 
-    const jeuneCEJConseillerMigrationDto = unJeuneDto({
-      id: 'cejMigration',
-      structure: Core.Structure.POLE_EMPLOI,
-      idConseiller: 'cejMigration',
+    const jeuneConseillerMigrationDto = unJeuneDto({
+      id: 'jeuneMigration',
+      idConseiller: 'conseillerMigration',
       idConseillerInitial: undefined
     })
-    const jeuneAijConseillerMigrationDto = unJeuneDto({
-      id: 'aijMigration',
-      structure: Core.Structure.POLE_EMPLOI_AIJ,
-      idConseiller: 'aijMigration',
+    const jeuneSuiviConseillerMigrationDto = unJeuneDto({
+      id: 'jeune-suivi-conseiller-migration',
+      idConseiller: 'conseillerNonMigration',
+      idConseillerInitial: 'conseillerMigration'
+    })
+    const jeuneConseillerNonMigrationDto = unJeuneDto({
+      id: 'jeuneNonMigration',
+      idConseiller: 'conseillerNonMigration',
       idConseillerInitial: undefined
-    })
-    const jeuneAiJSuiviCejMigrationDto = unJeuneDto({
-      id: 'aij-suivi-cej',
-      structure: Core.Structure.POLE_EMPLOI_AIJ,
-      idConseiller: 'cejMigration',
-      idConseillerInitial: 'ftIAPasMigration'
-    })
-    const jeuneCejSuiviAijSansMigrationDto = unJeuneDto({
-      id: 'cej-suivi-aij-sans-migration',
-      structure: Core.Structure.POLE_EMPLOI,
-      idConseiller: 'ftIAPasMigration',
-      idConseillerInitial: 'cejMigration'
     })
 
     await ConseillerSqlModel.bulkCreate([
-      conseillerCEJMigrationDto,
-      conseillerAIJMigrationDto,
-      conseillerFtIaDto
+      conseillerMigrationDto,
+      conseillerNonMigrationDto
     ])
     await JeuneSqlModel.bulkCreate([
-      jeuneCEJConseillerMigrationDto,
-      jeuneAijConseillerMigrationDto,
-      jeuneAiJSuiviCejMigrationDto,
-      jeuneCejSuiviAijSansMigrationDto
+      jeuneConseillerMigrationDto,
+      jeuneSuiviConseillerMigrationDto,
+      jeuneConseillerNonMigrationDto
     ])
 
-    const ffMigrationCEJ = {
+    const ffMigration = {
       featureTag: FeatureFlip.Tag.MIGRATION,
-      emailConseiller: 'conseillerCEJMigration@email.com'
+      emailConseiller: 'conseillerMigration@email.com'
     }
-    const ffMigrationAIJ = {
-      featureTag: FeatureFlip.Tag.MIGRATION,
-      emailConseiller: 'conseillerAIJMigration@email.com'
-    }
-    const ffFTIA = {
+    const ffDemarchesIA = {
       featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-      emailConseiller: 'conseillerFTIA@email.com'
+      emailConseiller: 'conseillerNonMigration@email.com'
     }
-    await FeatureFlipSqlModel.bulkCreate([
-      ffMigrationCEJ,
-      ffMigrationAIJ,
-      ffFTIA
-    ])
+    await FeatureFlipSqlModel.bulkCreate([ffMigration, ffDemarchesIA])
   })
 
   describe('getBeneficiaireSiFeatureActive', () => {
@@ -98,12 +73,10 @@ describe('FeatureFlipSqlRepository', () => {
       const beneficiaire =
         await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
           FeatureFlip.Tag.MIGRATION,
-          'cejMigration'
+          'jeuneMigration'
         )
       expect(beneficiaire).to.deep.equal({
-        id: 'cejMigration',
-        structure: Core.Structure.POLE_EMPLOI,
-        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
+        id: 'jeuneMigration'
       })
     })
 
@@ -111,12 +84,10 @@ describe('FeatureFlipSqlRepository', () => {
       const beneficiaire =
         await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
           FeatureFlip.Tag.MIGRATION,
-          'cej-suivi-aij-sans-migration'
+          'jeune-suivi-conseiller-migration'
         )
       expect(beneficiaire).to.deep.equal({
-        id: 'cej-suivi-aij-sans-migration',
-        structure: Core.Structure.POLE_EMPLOI,
-        structureConseillerRattachement: Core.Structure.POLE_EMPLOI
+        id: 'jeune-suivi-conseiller-migration'
       })
     })
 
@@ -124,7 +95,7 @@ describe('FeatureFlipSqlRepository', () => {
       const beneficiaire =
         await repo.getBeneficiaireSiFeatureActivePourLeConseillerDeRattachement(
           FeatureFlip.Tag.DEMARCHES_IA,
-          'cejMigration'
+          'jeuneMigration'
         )
       expect(beneficiaire).to.be.undefined()
     })
@@ -143,45 +114,31 @@ describe('FeatureFlipSqlRepository', () => {
     it("renvoie le conseiller si l'email du conseiller est autorisée pour la feature", async () => {
       const conseiller = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
-        'cejMigration'
+        'conseillerMigration'
       )
       expect(conseiller).to.deep.equal({
-        id: 'cejMigration',
-        structure: Core.Structure.POLE_EMPLOI
+        id: 'conseillerMigration'
       })
     })
 
     it("ne renvoie rien si le conseiller n'est pas autorisé pour cette feature", async () => {
       const conseiller = await repo.getConseillerSiFeatureActive(
         FeatureFlip.Tag.MIGRATION,
-        'ftIAPasMigration'
+        'conseillerNonMigration'
       )
       expect(conseiller).to.be.undefined()
     })
   })
 
   describe('getBeneficiairesDeLaFeature', () => {
-    it('renvoie la liste des id et structure des jeunes des conseillers de rattachement avec le tag migration', async () => {
-      const idJeunes =
+    it('renvoie la liste des ids des jeunes des conseillers de rattachement avec le tag migration', async () => {
+      const beneficiaires =
         await repo.getBeneficiairesDeLaFeatureDuConseillerDeRattachement(
           FeatureFlip.Tag.MIGRATION
         )
-      expect(idJeunes).to.have.deep.members([
-        {
-          id: 'cejMigration',
-          structure: 'POLE_EMPLOI',
-          structureConseillerRattachement: 'POLE_EMPLOI'
-        },
-        {
-          id: 'aijMigration',
-          structure: 'POLE_EMPLOI_AIJ',
-          structureConseillerRattachement: 'POLE_EMPLOI_AIJ'
-        },
-        {
-          id: 'cej-suivi-aij-sans-migration',
-          structure: 'POLE_EMPLOI',
-          structureConseillerRattachement: 'POLE_EMPLOI'
-        }
+      expect(beneficiaires).to.have.deep.members([
+        { id: 'jeuneMigration' },
+        { id: 'jeune-suivi-conseiller-migration' }
       ])
     })
   })
