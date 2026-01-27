@@ -6,14 +6,14 @@ import { Authentification } from '../../src/domain/authentification'
 import {
   BeneficiaireMigration,
   ConseillerMigration,
-  FeatureFlip,
-  PhaseDeMigration
+  FeatureFlip
 } from '../../src/domain/feature-flip'
 import { expect, stubClass } from '../utils'
 import Type = Authentification.Type
 import Tag = FeatureFlip.Tag
 import { DateService } from '../../src/utils/date-service'
 import { uneDate } from '../fixtures/date.fixture'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 describe('FeatureFlip', () => {
   describe('Service', () => {

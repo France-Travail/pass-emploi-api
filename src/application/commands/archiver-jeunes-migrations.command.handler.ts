@@ -6,9 +6,10 @@ import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune } from '../../domain/jeune/jeune'
-import { FeatureFlip, PhaseDeMigration } from '../../domain/feature-flip'
+import { FeatureFlip } from '../../domain/feature-flip'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."

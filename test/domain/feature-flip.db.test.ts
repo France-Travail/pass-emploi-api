@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config'
-import { FeatureFlip, PhaseDeMigration } from '../../src/domain/feature-flip'
+import { FeatureFlip } from '../../src/domain/feature-flip'
 import { Core } from '../../src/domain/core'
 import { FeatureFlipSqlRepository } from '../../src/infrastructure/repositories/feature-flip.repository.db'
 import { ConseillerSqlModel } from '../../src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -14,6 +14,7 @@ import Type = Authentification.Type
 import { DateTime } from 'luxon'
 import { DateService } from '../../src/utils/date-service'
 import { uneDate } from '../fixtures/date.fixture'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 describe('FeatureFlip.Service', () => {
   let databaseForTesting: DatabaseForTesting

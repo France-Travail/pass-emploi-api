@@ -44,7 +44,6 @@ import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
-import { PhaseDeMigration } from '../../domain/feature-flip'
 import { Notification } from '../../domain/notification/notification'
 import {
   Planificateur,
@@ -64,6 +63,8 @@ import {
   TransfererJeunesPayload,
   UpdateFeatureFlipPayload
 } from './validation/support.inputs'
+import { FeatureFlip } from '../../domain/feature-flip'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 @Controller('support')
 @ApiTags('Support')
