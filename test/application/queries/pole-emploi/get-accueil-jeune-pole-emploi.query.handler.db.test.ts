@@ -23,10 +23,7 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
-import {
-  FeatureFlip,
-  PhaseDeMigration
-} from '../../../../src/domain/feature-flip'
+import { FeatureFlip } from '../../../../src/domain/feature-flip'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -272,10 +269,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie la date de migration quand elle existe', async () => {
           // Given
-          const queryAvecPhase = {
-            ...query,
-            phaseDeMigration: PhaseDeMigration.PHASE_A
-          }
           featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
             .withArgs({
               id: query.idJeune,
@@ -284,7 +277,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             .resolves(DateTime.fromISO('2024-09-01T00:00:00.000Z'))
 
           // When
-          result = await handler.handle(queryAvecPhase)
+          result = await handler.handle(query)
 
           // Then
           expect(isSuccess(result) && result.data.dateDeMigration).to.equal(
@@ -293,10 +286,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('ne renvoie pas de date de migration quand elle est inexistente', async () => {
           // Given
-          const queryAvecPhase = {
-            ...query,
-            phaseDeMigration: PhaseDeMigration.PHASE_A
-          }
           featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
             .withArgs({
               id: query.idJeune,
@@ -305,7 +294,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             .resolves(undefined)
 
           // When
-          result = await handler.handle(queryAvecPhase)
+          result = await handler.handle(query)
 
           // Then
           expect(
