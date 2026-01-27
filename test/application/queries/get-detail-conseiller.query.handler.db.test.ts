@@ -21,7 +21,7 @@ import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { testConfig } from '../../utils/module-for-testing'
-import { FeatureFlip, PhaseDeMigration } from '../../../src/domain/feature-flip'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { DateTime } from 'luxon'
 import { Authentification } from '../../../src/domain/authentification'
 
@@ -75,21 +75,17 @@ describe('GetDetailConseillerQueryHandler', () => {
         )
 
         featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs(
-            {
-              id: idConseiller,
-              type: Authentification.Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+00:00'))
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({
           idConseiller,
           structure,
-          accessToken: token,
-          phaseDeMigration: PhaseDeMigration.PHASE_A
+          accessToken: token
         })
 
         // Then
@@ -122,13 +118,10 @@ describe('GetDetailConseillerQueryHandler', () => {
           unJeuneDto({ idConseillerInitial: idConseiller })
         )
         featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs(
-            {
-              id: idConseiller,
-              type: Authentification.Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(undefined)
 
         const actual = await getDetailConseillerQueryHandler.handle({
@@ -184,13 +177,10 @@ describe('GetDetailConseillerQueryHandler', () => {
         )
         conseillerMiloService.recupererEtMettreAJourStructure.resolves()
         featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs(
-            {
-              id: idConseiller,
-              type: Authentification.Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          .withArgs({
+            id: idConseiller,
+            type: Authentification.Type.CONSEILLER
+          })
           .resolves(undefined)
 
         // When
