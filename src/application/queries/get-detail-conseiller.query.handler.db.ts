@@ -7,7 +7,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { FeatureFlip, PhaseDeMigration } from '../../domain/feature-flip'
+import { FeatureFlip } from '../../domain/feature-flip'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { fromSqlToDetailConseillerQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
@@ -22,7 +22,6 @@ export interface GetDetailConseillerQuery extends Query {
   idConseiller: string
   structure: Core.Structure
   accessToken: string
-  phaseDeMigration?: PhaseDeMigration
 }
 
 @Injectable()
@@ -77,12 +76,10 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
       })
     } catch {}
 
-    const dateDeMigration = query.phaseDeMigration
-      ? await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-          { id: query.idConseiller, type: Type.CONSEILLER },
-          query.phaseDeMigration
-        )
-      : undefined
+    const dateDeMigration =
+      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+        { id: query.idConseiller, type: Type.CONSEILLER }
+      )
 
     return success(
       fromSqlToDetailConseillerQueryModel(
