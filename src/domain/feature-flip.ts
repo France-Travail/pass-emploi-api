@@ -22,12 +22,12 @@ export class ConseillerMigration {
   id: string
 }
 
-export enum PhaseDeMigration {
-  PHASE_A = 'PHASE_A',
-  PHASE_B = 'PHASE_B'
-}
-
 export namespace FeatureFlip {
+  export enum PhaseDeMigration {
+    PHASE_A = 'PHASE_A',
+    PHASE_B = 'PHASE_B'
+  }
+
   export enum Tag {
     DEMARCHES_IA = 'DEMARCHES_IA',
     MIGRATION_PHASE_A = 'MIGRATION_PHASE_A',
