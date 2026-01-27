@@ -23,7 +23,10 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
-import { FeatureFlip, PhaseDeMigration } from '../../../../src/domain/feature-flip'
+import {
+  FeatureFlip,
+  PhaseDeMigration
+} from '../../../../src/domain/feature-flip'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -274,13 +277,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             phaseDeMigration: PhaseDeMigration.PHASE_A
           }
           featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-            .withArgs(
-              {
-                id: query.idJeune,
-                type: Authentification.Type.JEUNE
-              },
-              PhaseDeMigration.PHASE_A
-            )
+            .withArgs({
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(DateTime.fromISO('2024-09-01T00:00:00.000Z'))
 
           // When
@@ -298,13 +298,10 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
             phaseDeMigration: PhaseDeMigration.PHASE_A
           }
           featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-            .withArgs(
-              {
-                id: query.idJeune,
-                type: Authentification.Type.JEUNE
-              },
-              PhaseDeMigration.PHASE_A
-            )
+            .withArgs({
+              id: query.idJeune,
+              type: Authentification.Type.JEUNE
+            })
             .resolves(undefined)
 
           // When

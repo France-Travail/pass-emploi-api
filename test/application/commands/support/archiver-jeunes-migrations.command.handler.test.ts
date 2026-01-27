@@ -14,7 +14,10 @@ import { Mail } from '../../../../src/domain/mail'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Authentification } from '../../../../src/domain/authentification'
-import { FeatureFlip, PhaseDeMigration } from '../../../../src/domain/feature-flip'
+import {
+  FeatureFlip,
+  PhaseDeMigration
+} from '../../../../src/domain/feature-flip'
 import { EvenementService } from '../../../../src/domain/evenement'
 import Service = ArchiveJeune.Service
 
