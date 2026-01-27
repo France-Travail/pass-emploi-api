@@ -20,7 +20,8 @@ describe('FeatureFlip.Service', () => {
   let featureFlipRepository: FeatureFlipSqlRepository
   let configService: ConfigService
   let service: FeatureFlip.Service
-  let dateDeMigration: DateTime
+  let dateDeMigrationPhaseA: DateTime
+  let dateDeMigrationPhaseB: DateTime
   const dateService = stubClass(DateService)
   const maintenant = DateService.fromJSDateToDateTime(uneDate())!
   dateService.nowJs.returns(maintenant.toJSDate())
@@ -117,10 +118,15 @@ describe('FeatureFlip.Service', () => {
         if (key === 'features.dateDeMigrationPhaseA') {
           return '2025-11-20'
         }
+        if (key === 'features.dateDeMigrationPhaseB') {
+          return '2026-02-17'
+        }
         return undefined
       }
     } as ConfigService
-    dateDeMigration = DateTime.fromISO('2025-11-20').startOf('day')
+
+    dateDeMigrationPhaseA = DateTime.fromISO('2025-11-20').startOf('day')
+    dateDeMigrationPhaseB = DateTime.fromISO('2026-02-17').startOf('day')
 
     service = new FeatureFlip.Service(
       featureFlipRepository,
@@ -141,7 +147,7 @@ describe('FeatureFlip.Service', () => {
         emailConseiller: conseillerMigrant.email
       },
       {
-        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A,
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
         emailConseiller: conseillerMigrant2.email
       },
       {
@@ -190,7 +196,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireConseillerMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 2: bénéficiaire avec conseiller ne migrant pas → non concerné', async () => {
@@ -208,7 +214,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireInitialMigrantTmpNonMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 4: conseiller initial migrant + conseiller temporaire migrant → concerné', async () => {
@@ -217,7 +223,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireInitialMigrantTmpMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 5: conseiller initial ne migrant pas + conseiller temporaire migrant → non concerné', async () => {
@@ -244,7 +250,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireAijConseillerMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
     })
 
@@ -255,7 +261,7 @@ describe('FeatureFlip.Service', () => {
             id: conseillerMigrant.id,
             type: Type.CONSEILLER
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('renvoie undefined si le conseiller ne migre pas', async () => {
@@ -267,13 +273,13 @@ describe('FeatureFlip.Service', () => {
         expect(result).to.be.undefined()
       })
 
-      it('conseiller AIJ migrant → concerné (structure conseiller non critère)', async () => {
+      it('conseiller migrant phase B → concerné (récupérer la date de migration phase b)', async () => {
         const result =
           await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
             id: conseillerMigrant2.id,
             type: Type.CONSEILLER
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseB)
       })
     })
   })
