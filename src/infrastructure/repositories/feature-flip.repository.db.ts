@@ -1,11 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
-import {
-  BeneficiaireMigration,
-  ConseillerMigration,
-  FeatureFlip
-} from '../../domain/feature-flip'
+import { BeneficiaireMigration, FeatureFlip } from '../../domain/feature-flip'
 import { SequelizeInjectionToken } from '../sequelize/providers'
+import Tag = FeatureFlip.Tag
 
 @Injectable()
 export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
@@ -35,56 +32,58 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     return rows.map(row => new BeneficiaireMigration(row.id))
   }
 
-  async getBeneficiaireSiFeatureActivePourLeConseillerInitial(
-    tag: FeatureFlip.Tag,
+  async getTagSiFeatureActivePourLeConseillerDuJeune(
+    tags: FeatureFlip.Tag[],
     idBeneficiaire: string
-  ): Promise<BeneficiaireMigration | undefined> {
-    const rows = await this.sequelize.query<{ id: string }>(
+  ): Promise<FeatureFlip.Tag | undefined> {
+    const rows = await this.sequelize.query<{ feature_tag: FeatureFlip.Tag }>(
       `
-      SELECT j.id
-      FROM feature_flip ff
-      JOIN jeune j ON j.id = :idJeune
-      JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
-      WHERE ff.feature_tag = :featureTag
-      AND ff.email_conseiller = c.email
-      LIMIT 1
+        SELECT ff.feature_tag
+        FROM feature_flip ff
+               JOIN jeune j ON j.id = :idJeune
+               JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+        WHERE ff.feature_tag IN (:featureTags)
+          AND ff.email_conseiller = c.email
+          LIMIT 1
       `,
       {
         replacements: {
           idJeune: idBeneficiaire,
-          featureTag: tag
+          featureTags: tags
         },
         type: QueryTypes.SELECT
       }
     )
     if (rows.length === 0) return undefined
 
-    return new BeneficiaireMigration(rows[0].id)
+    return rows[0].feature_tag
   }
 
-  async getConseillerSiFeatureActive(
-    tag: FeatureFlip.Tag,
+  async getTagSiFeatureActivePourLeConseiller(
+    tags: FeatureFlip.Tag[],
     idConseiller: string
-  ): Promise<ConseillerMigration | undefined> {
-    const rows = await this.sequelize.query<{ id: string }>(
+  ): Promise<Tag | undefined> {
+    const rows = await this.sequelize.query<{
+      feature_tag: FeatureFlip.Tag
+    }>(
       `
-      SELECT c.id
-      FROM feature_flip ff
-      JOIN conseiller c ON c.id = :idConseiller
-      WHERE ff.feature_tag = :featureTag
-      AND ff.email_conseiller = c.email
-      LIMIT 1
+        SELECT ff.feature_tag
+        FROM feature_flip ff
+               JOIN conseiller c ON c.id = :idConseiller
+        WHERE ff.feature_tag in (:featureTags)
+          AND ff.email_conseiller = c.email
+          LIMIT 1
       `,
       {
         replacements: {
           idConseiller,
-          featureTag: tag
+          featureTags: tags
         },
         type: QueryTypes.SELECT
       }
     )
     if (rows.length === 0) return undefined
 
-    return new ConseillerMigration(rows[0].id)
+    return rows[0].feature_tag
   }
 }

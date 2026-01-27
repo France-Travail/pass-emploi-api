@@ -27,11 +27,6 @@ export enum PhaseDeMigration {
   PHASE_B = 'PHASE_B'
 }
 
-export interface MigrationActive {
-  phase: PhaseDeMigration
-  dateDeMigration: DateTime
-}
-
 export namespace FeatureFlip {
   export enum Tag {
     DEMARCHES_IA = 'DEMARCHES_IA',
@@ -39,13 +34,36 @@ export namespace FeatureFlip {
     MIGRATION_PHASE_B = 'MIGRATION_PHASE_B'
   }
 
-  export function getTagPourPhase(phase: PhaseDeMigration): Tag {
-    switch (phase) {
-      case PhaseDeMigration.PHASE_A:
-        return Tag.MIGRATION_PHASE_A
-      case PhaseDeMigration.PHASE_B:
-        return Tag.MIGRATION_PHASE_B
+  interface PhaseConfig {
+    tag: Tag
+    configKey: string
+  }
+
+  export const PHASES_CONFIG: Record<PhaseDeMigration, PhaseConfig> = {
+    [PhaseDeMigration.PHASE_A]: {
+      tag: Tag.MIGRATION_PHASE_A,
+      configKey: 'features.dateDeMigrationPhaseA'
+    },
+    [PhaseDeMigration.PHASE_B]: {
+      tag: Tag.MIGRATION_PHASE_B,
+      configKey: 'features.dateDeMigrationPhaseB'
     }
+  }
+
+  const TAG_TO_PHASE: Partial<Record<Tag, PhaseDeMigration>> =
+    Object.fromEntries(
+      Object.entries(PHASES_CONFIG).map(([phase, config]) => [
+        config.tag,
+        phase
+      ])
+    )
+
+  export function getTagPourPhase(phase: PhaseDeMigration): Tag {
+    return PHASES_CONFIG[phase].tag
+  }
+
+  export function getPhasePourTag(tag: Tag): PhaseDeMigration | undefined {
+    return TAG_TO_PHASE[tag]
   }
 
   export interface UtilisateurFeature {
@@ -54,17 +72,17 @@ export namespace FeatureFlip {
   }
 
   export interface Repository {
-    getBeneficiaireSiFeatureActivePourLeConseillerInitial(
-      tag: Tag,
-      idBeneficiaire: string
-    ): Promise<BeneficiaireMigration | undefined>
-    getConseillerSiFeatureActive(
-      tag: Tag,
-      idConseiller: string
-    ): Promise<ConseillerMigration | undefined>
     getBeneficiairesDeLaFeatureDuConseillerInitial(
       tag: Tag
     ): Promise<BeneficiaireMigration[]>
+    getTagSiFeatureActivePourLeConseiller(
+      tags: Tag[],
+      idConseiller: string
+    ): Promise<Tag | undefined>
+    getTagSiFeatureActivePourLeConseillerDuJeune(
+      tags: Tag[],
+      idBeneficiaire: string
+    ): Promise<Tag | undefined>
   }
 
   @Injectable()
@@ -79,24 +97,14 @@ export namespace FeatureFlip {
     ) {
       this.datesDeMigration = new Map()
 
-      const datePhaseA = this.configService.get(
-        'features.dateDeMigrationPhaseA'
-      )
-      if (datePhaseA) {
-        this.datesDeMigration.set(
-          PhaseDeMigration.PHASE_A,
-          DateTime.fromISO(datePhaseA).startOf('day')
-        )
-      }
-
-      const datePhaseB = this.configService.get(
-        'features.dateDeMigrationPhaseB'
-      )
-      if (datePhaseB) {
-        this.datesDeMigration.set(
-          PhaseDeMigration.PHASE_B,
-          DateTime.fromISO(datePhaseB).startOf('day')
-        )
+      for (const [phase, config] of Object.entries(PHASES_CONFIG)) {
+        const date = this.configService.get(config.configKey)
+        if (date) {
+          this.datesDeMigration.set(
+            phase as PhaseDeMigration,
+            DateTime.fromISO(date).startOf('day')
+          )
+        }
       }
     }
 
@@ -104,7 +112,7 @@ export namespace FeatureFlip {
       tag: Tag,
       utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      return !!(await this.getUtilisateurSiFeatureActive(tag, utilisateur))
+      return !!(await this.getTagSiFeatureActive([tag], utilisateur))
     }
 
     async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
@@ -125,14 +133,12 @@ export namespace FeatureFlip {
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
-    async recupererMigrationActiveSiDateArrivee(
+    async faitPartieDeLaMigrationEtLaDateEstPassee(
       utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      //refléchir à optimiser la perf car ouvert à chaque accueil
       const dateDeMigration =
         await this.recupererDateDeMigrationSiLUtilisateurDoitMigrer(utilisateur)
 
-      //doit on gerer si il est dans deux phase exemple phase a et b
       if (
         dateDeMigration &&
         DateService.isGreaterOrEqualAtTheStartOfDay(
@@ -149,36 +155,33 @@ export namespace FeatureFlip {
     private async faitPartieDeLaMigration(
       utilisateurFeature: UtilisateurFeature
     ): Promise<PhaseDeMigration | undefined> {
-      // update pour récupérer tout dans l'énum
-      for (const phase of [
-        PhaseDeMigration.PHASE_A,
-        PhaseDeMigration.PHASE_B
-      ]) {
-        const tag = getTagPourPhase(phase)
-        const utilisateur = await this.getUtilisateurSiFeatureActive(
-          tag,
-          utilisateurFeature
-        )
-        if (utilisateur) {
-          return phase
-        }
+      const allPhaseDeMigration: PhaseDeMigration[] =
+        Object.values(PhaseDeMigration)
+      const tag = await this.getTagSiFeatureActive(
+        allPhaseDeMigration.map(phaseDeMigration =>
+          getTagPourPhase(phaseDeMigration)
+        ),
+        utilisateurFeature
+      )
+      if (tag) {
+        return getPhasePourTag(tag)
       }
       return undefined
     }
 
-    private async getUtilisateurSiFeatureActive(
-      tag: Tag,
+    private async getTagSiFeatureActive(
+      tags: Tag[],
       utilisateur: UtilisateurFeature
-    ): Promise<BeneficiaireMigration | ConseillerMigration | undefined> {
+    ): Promise<Tag | undefined> {
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
-          return this.featureFlipRepository.getConseillerSiFeatureActive(
-            tag,
+          return this.featureFlipRepository.getTagSiFeatureActivePourLeConseiller(
+            tags,
             utilisateur.id
           )
         case Authentification.Type.JEUNE:
-          return this.featureFlipRepository.getBeneficiaireSiFeatureActivePourLeConseillerInitial(
-            tag,
+          return this.featureFlipRepository.getTagSiFeatureActivePourLeConseillerDuJeune(
+            tags,
             utilisateur.id
           )
       }

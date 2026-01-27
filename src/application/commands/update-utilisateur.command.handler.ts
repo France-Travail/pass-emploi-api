@@ -429,7 +429,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (utilisateur.type === Type.SUPPORT) return success(utilisateur)
 
     const migrationActive =
-      await this.featureFlipService.recupererMigrationActiveSiDateArrivee({
+      await this.featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee({
         id: utilisateur.id,
         type: utilisateur.type
       })

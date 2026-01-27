@@ -182,7 +182,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererMigrationActiveSiDateArrivee
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
@@ -1018,7 +1018,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
 
-            featureFlipService.recupererMigrationActiveSiDateArrivee
+            featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
               .withArgs({
                 id: utilisateur.id,
                 type: Authentification.Type.JEUNE
