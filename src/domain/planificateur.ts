@@ -11,7 +11,6 @@ import { NettoyageJobsStats } from './suivi-job'
 import { Notification } from './notification/notification'
 import Bull from 'bull'
 import { Core } from './core'
-import { PhaseDeMigration } from './feature-flip'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
