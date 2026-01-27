@@ -9,15 +9,21 @@ import {
   FeatureFlip,
   PhaseDeMigration
 } from '../../src/domain/feature-flip'
-import { expect } from '../utils'
+import { expect, stubClass } from '../utils'
 import Type = Authentification.Type
 import Tag = FeatureFlip.Tag
+import { DateService } from '../../src/utils/date-service'
+import { uneDate } from '../fixtures/date.fixture'
 
 describe('FeatureFlip', () => {
   describe('Service', () => {
     let repository: StubbedType<FeatureFlip.Repository>
     let configService: StubbedType<ConfigService>
     let service: FeatureFlip.Service
+    const dateService = stubClass(DateService)
+    const maintenant = DateService.fromJSDateToDateTime(uneDate())!
+    dateService.nowJs.returns(maintenant.toJSDate())
+    dateService.now.returns(maintenant)
 
     const buildService = (datePhaseA?: string, datePhaseB?: string): void => {
       configService.get
@@ -29,7 +35,8 @@ describe('FeatureFlip', () => {
 
       service = new FeatureFlip.Service(
         repository,
-        configService as unknown as ConfigService
+        configService as unknown as ConfigService,
+        dateService
       )
     }
 
@@ -52,13 +59,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idJeune,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idJeune,
+            type: Type.JEUNE
+          })
 
         // Then
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
@@ -74,13 +78,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idJeune,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idJeune,
+            type: Type.JEUNE
+          })
 
         // Then
         expect(result).to.be.undefined()
@@ -96,13 +97,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idJeune,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idJeune,
+            type: Type.JEUNE
+          })
 
         // Then
         expect(result).to.be.undefined()
@@ -122,13 +120,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idConseiller,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idConseiller,
+            type: Type.CONSEILLER
+          })
 
         // Then
         expect(result).to.deep.equal(DateTime.fromISO(rawDate).startOf('day'))
@@ -144,13 +139,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idConseiller,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idConseiller,
+            type: Type.CONSEILLER
+          })
 
         // Then
         expect(result).to.be.undefined()
@@ -166,13 +158,10 @@ describe('FeatureFlip', () => {
 
         // When
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: idConseiller,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: idConseiller,
+            type: Type.CONSEILLER
+          })
 
         // Then
         expect(result).to.be.undefined()

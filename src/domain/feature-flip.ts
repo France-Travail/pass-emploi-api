@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Authentification } from './authentification'
+import { DateService } from '../utils/date-service'
 
 export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
@@ -24,6 +25,11 @@ export class ConseillerMigration {
 export enum PhaseDeMigration {
   PHASE_A = 'PHASE_A',
   PHASE_B = 'PHASE_B'
+}
+
+export interface MigrationActive {
+  phase: PhaseDeMigration
+  dateDeMigration: DateTime
 }
 
 export namespace FeatureFlip {
@@ -68,7 +74,8 @@ export namespace FeatureFlip {
     constructor(
       @Inject(FeatureFlipRepositoryToken)
       private readonly featureFlipRepository: Repository,
-      private readonly configService: ConfigService
+      private readonly configService: ConfigService,
+      private readonly dateService: DateService
     ) {
       this.datesDeMigration = new Map()
 
@@ -101,13 +108,10 @@ export namespace FeatureFlip {
     }
 
     async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-      utilisateur: UtilisateurFeature,
-      phase: PhaseDeMigration
+      utilisateur: UtilisateurFeature
     ): Promise<DateTime | undefined> {
-      const tag = getTagPourPhase(phase)
-      return (await this.faitPartieDeLaMigration(utilisateur, tag))
-        ? this.datesDeMigration.get(phase)
-        : undefined
+      const phase = await this.faitPartieDeLaMigration(utilisateur)
+      return phase ? this.datesDeMigration.get(phase) : undefined
     }
 
     async recupererIdsDesBeneficiaireAMigrer(
@@ -121,11 +125,45 @@ export namespace FeatureFlip {
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
-    private async faitPartieDeLaMigration(
-      utilisateur: UtilisateurFeature,
-      tag: Tag
+    async recupererMigrationActiveSiDateArrivee(
+      utilisateur: UtilisateurFeature
     ): Promise<boolean> {
-      return !!(await this.getUtilisateurSiFeatureActive(tag, utilisateur))
+      //refléchir à optimiser la perf car ouvert à chaque accueil
+      const dateDeMigration =
+        await this.recupererDateDeMigrationSiLUtilisateurDoitMigrer(utilisateur)
+
+      //doit on gerer si il est dans deux phase exemple phase a et b
+      if (
+        dateDeMigration &&
+        DateService.isGreaterOrEqualAtTheStartOfDay(
+          this.dateService.now(),
+          dateDeMigration
+        )
+      ) {
+        return true
+      }
+
+      return false
+    }
+
+    private async faitPartieDeLaMigration(
+      utilisateurFeature: UtilisateurFeature
+    ): Promise<PhaseDeMigration | undefined> {
+      // update pour récupérer tout dans l'énum
+      for (const phase of [
+        PhaseDeMigration.PHASE_A,
+        PhaseDeMigration.PHASE_B
+      ]) {
+        const tag = getTagPourPhase(phase)
+        const utilisateur = await this.getUtilisateurSiFeatureActive(
+          tag,
+          utilisateurFeature
+        )
+        if (utilisateur) {
+          return phase
+        }
+      }
+      return undefined
     }
 
     private async getUtilisateurSiFeatureActive(

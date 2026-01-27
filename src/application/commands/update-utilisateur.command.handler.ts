@@ -18,7 +18,7 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { FeatureFlip, PhaseDeMigration } from '../../domain/feature-flip'
+import { FeatureFlip } from '../../domain/feature-flip'
 import { MailServiceToken } from '../../domain/mail'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
@@ -428,36 +428,21 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   ): Promise<Result<UtilisateurQueryModel>> {
     if (utilisateur.type === Type.SUPPORT) return success(utilisateur)
 
-    const phases = [PhaseDeMigration.PHASE_A, PhaseDeMigration.PHASE_B]
+    const migrationActive =
+      await this.featureFlipService.recupererMigrationActiveSiDateArrivee({
+        id: utilisateur.id,
+        type: utilisateur.type
+      })
 
-    for (const phase of phases) {
-      const dateDeMigration =
-        await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-          {
-            id: utilisateur.id,
-            type: utilisateur.type
-          },
-          phase
+    if (migrationActive) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          utilisateur.email
         )
-
-      if (dateDeMigration) {
-        const dateDeMigrationArrivee =
-          DateService.isGreaterOrEqualAtTheStartOfDay(
-            this.dateService.now(),
-            dateDeMigration
-          )
-
-        if (dateDeMigrationArrivee) {
-          return failure(
-            new NonTraitableError(
-              'Utilisateur',
-              idUtilisateurAuth,
-              NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-              utilisateur.email
-            )
-          )
-        }
-      }
+      )
     }
 
     return success(utilisateur)

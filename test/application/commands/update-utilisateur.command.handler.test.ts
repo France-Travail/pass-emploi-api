@@ -31,7 +31,7 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { Core } from '../../../src/domain/core'
-import { FeatureFlip, PhaseDeMigration } from '../../../src/domain/feature-flip'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
@@ -183,13 +183,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-                .withArgs(
-                  {
-                    id: utilisateur.id,
-                    type: Authentification.Type.CONSEILLER
-                  },
-                  PhaseDeMigration.PHASE_A
-                )
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(maintenant)
 
               // When
@@ -222,13 +219,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-                .withArgs(
-                  {
-                    id: utilisateur.id,
-                    type: Authentification.Type.CONSEILLER
-                  },
-                  PhaseDeMigration.PHASE_A
-                )
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(maintenant.plus({ days: 1 }))
 
               // When
@@ -267,13 +261,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-                .withArgs(
-                  {
-                    id: utilisateur.id,
-                    type: Authentification.Type.CONSEILLER
-                  },
-                  PhaseDeMigration.PHASE_A
-                )
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.CONSEILLER
+                })
                 .resolves(undefined)
 
               // When
@@ -1029,13 +1020,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
             const dateDeMigration = maintenant.plus({ hours: 1 })
             featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs(
-                {
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                },
-                PhaseDeMigration.PHASE_A
-              )
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(dateDeMigration)
 
             // When
@@ -1072,13 +1060,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(undefined)
 
             featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs(
-                {
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                },
-                PhaseDeMigration.PHASE_A
-              )
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(undefined)
             archiverJeuneRepository.estArchiveAvecMotif
               .withArgs('jeune@mail.fr', MotifSuppressionSupport.MIGRATION)
@@ -1117,13 +1102,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs(
-                {
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                },
-                PhaseDeMigration.PHASE_A
-              )
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(maintenant.plus({ days: 3 }))
 
             // When
@@ -1162,13 +1144,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
             featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs(
-                {
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                },
-                PhaseDeMigration.PHASE_A
-              )
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
               .resolves(undefined)
 
             // When

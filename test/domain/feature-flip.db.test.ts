@@ -7,11 +7,13 @@ import { JeuneSqlModel } from '../../src/infrastructure/sequelize/models/jeune.s
 import { FeatureFlipSqlModel } from '../../src/infrastructure/sequelize/models/feature-flip.sql-model'
 import { unConseillerDto } from '../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../fixtures/sql-models/jeune.sql-model'
-import { expect } from '../utils'
+import { expect, stubClass } from '../utils'
 import { DatabaseForTesting, getDatabase } from '../utils/database-for-testing'
 import { Authentification } from '../../src/domain/authentification'
 import Type = Authentification.Type
 import { DateTime } from 'luxon'
+import { DateService } from '../../src/utils/date-service'
+import { uneDate } from '../fixtures/date.fixture'
 
 describe('FeatureFlip.Service', () => {
   let databaseForTesting: DatabaseForTesting
@@ -19,6 +21,10 @@ describe('FeatureFlip.Service', () => {
   let configService: ConfigService
   let service: FeatureFlip.Service
   let dateDeMigration: DateTime
+  const dateService = stubClass(DateService)
+  const maintenant = DateService.fromJSDateToDateTime(uneDate())!
+  dateService.nowJs.returns(maintenant.toJSDate())
+  dateService.now.returns(maintenant)
 
   // Conseillers
   const conseillerMigrant = unConseillerDto({
@@ -116,7 +122,11 @@ describe('FeatureFlip.Service', () => {
     } as ConfigService
     dateDeMigration = DateTime.fromISO('2025-11-20').startOf('day')
 
-    service = new FeatureFlip.Service(featureFlipRepository, configService)
+    service = new FeatureFlip.Service(
+      featureFlipRepository,
+      configService,
+      dateService
+    )
 
     await ConseillerSqlModel.bulkCreate([
       conseillerMigrant,
@@ -176,85 +186,64 @@ describe('FeatureFlip.Service', () => {
     describe('pour les bénéficiaires', () => {
       it('Règle 1: bénéficiaire avec conseiller migrant → concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireConseillerMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireConseillerMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
 
       it('Règle 2: bénéficiaire avec conseiller ne migrant pas → non concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireConseillerNonMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireConseillerNonMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.be.undefined()
       })
 
       it('Règle 3: conseiller initial migrant + conseiller temporaire ne migrant pas → concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireInitialMigrantTmpNonMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialMigrantTmpNonMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
 
       it('Règle 4: conseiller initial migrant + conseiller temporaire migrant → concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireInitialMigrantTmpMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialMigrantTmpMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
 
       it('Règle 5: conseiller initial ne migrant pas + conseiller temporaire migrant → non concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireInitialNonMigrantTmpMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialNonMigrantTmpMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.be.undefined()
       })
 
       it('Règle 6: conseiller initial ne migrant pas + conseiller temporaire ne migrant pas → non concerné', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireInitialNonMigrantTmpNonMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireInitialNonMigrantTmpNonMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.be.undefined()
       })
 
       it('bénéficiaire AIJ avec conseiller migrant → concerné (structure bénéficiaire non critère)', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: beneficiaireAijConseillerMigrant.id,
-              type: Type.JEUNE
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: beneficiaireAijConseillerMigrant.id,
+            type: Type.JEUNE
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
     })
@@ -262,37 +251,28 @@ describe('FeatureFlip.Service', () => {
     describe('pour les conseillers', () => {
       it('renvoie la date de migration si le conseiller migre vers Parcours Emploi', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: conseillerMigrant.id,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerMigrant.id,
+            type: Type.CONSEILLER
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
 
       it('renvoie undefined si le conseiller ne migre pas', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: conseillerNonMigrant.id,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerNonMigrant.id,
+            type: Type.CONSEILLER
+          })
         expect(result).to.be.undefined()
       })
 
       it('conseiller AIJ migrant → concerné (structure conseiller non critère)', async () => {
         const result =
-          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-            {
-              id: conseillerMigrant2.id,
-              type: Type.CONSEILLER
-            },
-            PhaseDeMigration.PHASE_A
-          )
+          await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
+            id: conseillerMigrant2.id,
+            type: Type.CONSEILLER
+          })
         expect(result).to.deep.equal(dateDeMigration)
       })
     })
