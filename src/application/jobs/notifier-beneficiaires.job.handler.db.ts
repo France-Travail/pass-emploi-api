@@ -205,13 +205,10 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     if (params.structures && params.structures.length > 0) {
       where.structure = { [Op.in]: params.structures }
     }
-    if (
-      params.beneficiairesFaisantPartieDeLaMigration === true &&
-      params.phaseDeMigration
-    ) {
+    if (params.beneficiairesFaisantPartieDeLaMigration === true) {
       const idsBeneficiairesMigration =
         await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
-          params.phaseDeMigration
+          FeatureFlip.PhaseDeMigration.PHASE_A
         )
       where.id = { [Op.in]: idsBeneficiairesMigration }
     }
