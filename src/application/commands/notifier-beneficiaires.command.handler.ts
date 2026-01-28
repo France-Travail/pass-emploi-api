@@ -15,6 +15,7 @@ import {
 import { DateService } from '../../utils/date-service'
 import { Core } from '../../domain/core'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import { FeatureFlip } from '../../domain/feature-flip'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
 
 const MINUTES_ENTRE_LES_BATCHS_DEFAUT = 5
@@ -25,7 +26,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   titre: string
   description: string
   structures?: Core.Structure[]
-  beneficiairesMigration?: boolean
+  tagFeatureMigration?: FeatureFlip.Tag
   push?: boolean
   batchSize?: number
   minutesEntreLesBatchs?: number
@@ -78,7 +79,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       description: command.description,
       params: {
         structures: command.structures,
-        beneficiairesFaisantPartieDeLaMigration: command.beneficiairesMigration,
+        tagFeatureMigration: command.tagFeatureMigration,
         push,
         batchSize: command.batchSize,
         minutesEntreLesBatchs:

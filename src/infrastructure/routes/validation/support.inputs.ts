@@ -143,11 +143,16 @@ export class NotifierBeneficiairesPayload {
   @IsEnum(Core.Structure, { each: true })
   structures?: Core.Structure[]
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    enum: FeatureFlip.Tag,
+    description: `Tag de feature flip pour cibler les bénéficiaires de la migration. Valeurs possibles : ${Object.values(
+      FeatureFlip.Tag
+    ).join(', ')}`
+  })
   @IsOptional()
-  @IsBoolean()
-  @IsIn([true, false])
-  beneficiairesMigration?: boolean
+  @IsString()
+  @IsEnum(FeatureFlip.Tag)
+  tagFeatureMigration?: FeatureFlip.Tag
 
   @ApiPropertyOptional()
   @IsOptional()
