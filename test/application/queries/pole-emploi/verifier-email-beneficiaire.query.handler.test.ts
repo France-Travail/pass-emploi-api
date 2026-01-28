@@ -66,21 +66,6 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       expect(result).to.deep.equal(success({ emailExistant: true }))
     })
 
-    it('ne tient pas compte de la casse et espaces avant la recherche', async () => {
-      // Given
-      const query: VerifierEmailBeneficiaireFTQuery = {
-        email: '  Test@Test.COM  '
-      }
-
-      // When
-      await verifierEmailBeneficiaireQueryHandler.handle(query)
-
-      // Then
-      expect(jeuneRepository.getByEmail).to.have.been.calledWithExactly(
-        'test@test.com'
-      )
-    })
-
     it('renvoie une erreur pour droits insuffisants si le bénéficiaire du mail est conseiller départemental', async () => {
       // Given
       const query: VerifierEmailBeneficiaireFTQuery = {

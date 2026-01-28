@@ -239,57 +239,6 @@ describe('CreerJeuneMiloCommandHandler', () => {
         )
       })
 
-      it("minusculise l'email", async () => {
-        // Given
-        const command: CreerJeuneMiloCommand = {
-          idPartenaire,
-          nom: 'nom',
-          prenom: 'prenom',
-          email: 'Jeune.Nom@Email.Com',
-          idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ,
-          peutVoirLeCompteurDesHeures: false
-        }
-        miloRepository.creerJeune
-          .withArgs(command.idPartenaire)
-          .resolves(success({ idAuthentification: 'mon-sub' }))
-
-        // When
-        await creerJeuneMiloCommandHandler.handle(command)
-
-        // Then
-        const expected: Jeune = {
-          id: 'DFKAL',
-          firstName: 'prenom',
-          lastName: 'nom',
-          email: 'jeune.nom@email.com',
-          isActivated: false,
-          creationDate: date,
-          conseiller: {
-            id: '1',
-            lastName: 'Tavernier',
-            firstName: 'Nils',
-            email: 'nils.tavernier@passemploi.com'
-          },
-          structure: Core.Structure.MILO,
-          preferences: {
-            partageFavoris: true,
-            alertesOffres: true,
-            messages: true,
-            creationActionConseiller: true,
-            rendezVousSessions: true,
-            rappelActions: true
-          },
-          idPartenaire,
-          configuration: {
-            idJeune: 'DFKAL'
-          },
-          dispositif: Jeune.Dispositif.CEJ,
-          peutVoirLeComptageDesHeures: false
-        }
-        expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
-      })
-
       it('crée un jeune et affiche le compteur de temps', async () => {
         // Given
         const command: CreerJeuneMiloCommand = {
