@@ -167,7 +167,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             })
           })
           describe('conseiller connu qui doit migrer vers Parcours Emploi', async () => {
-            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si la date de migration est dépassée', async () => {
+            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
@@ -202,46 +202,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
                 )
               }
-            })
-            it("retourne le conseiller si la date de migration n'est dépassée", async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
-              }
-
-              const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
-              })
-              authentificationRepository.getConseiller
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-
-              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-                .withArgs({
-                  id: utilisateur.id,
-                  type: Authentification.Type.CONSEILLER
-                })
-                .resolves(maintenant.plus({ days: 1 }))
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
-
-              // Then
-              expect(isSuccess(result)).equal(true)
-              if (isSuccess(result)) {
-                expect(result.data).to.deep.equal(
-                  unUtilisateurQueryModel({
-                    structure: Core.Structure.POLE_EMPLOI_BRSA
-                  })
-                )
-              }
-              expect(
-                archiverJeuneRepository.estArchiveAvecMotif
-              ).not.to.have.been.called()
             })
           })
           describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', async () => {
@@ -845,6 +805,84 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             )
           })
+          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune a migré vers Parcours Emploi', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.POLE_EMPLOI
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.POLE_EMPLOI
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            const dateDeMigration = maintenant.plus({ hours: 1 })
+            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              .withArgs({
+                id: utilisateur.id,
+                type: Authentification.Type.JEUNE
+              })
+              .resolves(dateDeMigration)
+
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(isFailure(result)).to.be.true()
+            if (isFailure(result)) {
+              expect(result.error).to.be.instanceOf(NonTraitableError)
+              expect((result.error as NonTraitableError).reason).to.equal(
+                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              )
+              expect((result.error as NonTraitableError).email).to.equal(
+                utilisateur.email
+              )
+            }
+          })
+          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.POLE_EMPLOI
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.POLE_EMPLOI
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+            archiverJeuneRepository.estArchiveAvecMotif
+              .withArgs(
+                command.idUtilisateurAuth,
+                MotifSuppressionSupport.MIGRATION
+              )
+              .resolves(true)
+
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(isFailure(result)).to.be.true()
+            if (isFailure(result)) {
+              expect(result.error).to.be.instanceOf(NonTraitableError)
+              expect((result.error as NonTraitableError).reason).to.equal(
+                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              )
+              expect((result.error as NonTraitableError).email).to.equal(
+                command.email
+              )
+            }
+          })
         })
         describe('jeune connu par son email (première connexion)', async () => {
           it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
@@ -1001,72 +1039,26 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             )
           })
-        })
-        describe('jeune connu qui doit migrer vers Parcours Emploi', async () => {
-          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si la date de migration est dépassée', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            const dateDeMigration = maintenant.plus({ hours: 1 })
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
-              .resolves(dateDeMigration)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(isFailure(result)).to.be.true()
-            if (isFailure(result)) {
-              expect(result.error).to.be.instanceOf(NonTraitableError)
-              expect((result.error as NonTraitableError).reason).to.equal(
-                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
-              )
-              expect((result.error as NonTraitableError).email).to.equal(
-                utilisateur.email
-              )
-            }
-          })
           it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
             // Given
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
+              email: 'abc@test.com',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI,
-              email: 'jeune@mail.fr'
+              structure: Core.Structure.POLE_EMPLOI_BRSA
             }
 
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
               .resolves(undefined)
-
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
+            authentificationRepository.getJeuneByEmail
+              .withArgs(command.email, command.structure)
               .resolves(undefined)
             archiverJeuneRepository.estArchiveAvecMotif
-              .withArgs('jeune@mail.fr', MotifSuppressionSupport.MIGRATION)
+              .withArgs(
+                command.idUtilisateurAuth,
+                MotifSuppressionSupport.MIGRATION
+              )
               .resolves(true)
 
             // When
@@ -1085,89 +1077,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 command.email
               )
             }
-          })
-          it("retourne le jeune si la date de migration n'est pas dépassée", async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
-              .resolves(maintenant.plus({ days: 3 }))
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
-            )
-          })
-        })
-        describe('jeune connu qui ne doit pas migrer vers Parcours Emploi', async () => {
-          it('retourne le jeune', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
-              .resolves(undefined)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
-            )
           })
         })
       })

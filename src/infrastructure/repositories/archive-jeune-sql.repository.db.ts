@@ -43,6 +43,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
 
     await ArchiveJeuneSqlModel.creer({
       idJeune: metadonnees.idJeune,
+      idAuthentification: archiveResult.data.idAuthentification,
       email: metadonnees.email ?? null,
       prenom: metadonnees.prenomJeune,
       nom: metadonnees.nomJeune,
@@ -84,14 +85,14 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   }
 
   async estArchiveAvecMotif(
-    emailJeune: string,
+    idAuthentification: string,
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
   ): Promise<boolean> {
     return (
       (await ArchiveJeuneSqlModel.findOne({
         where: {
-          email: {
-            [Op.eq]: emailJeune
+          idAuthentification: {
+            [Op.eq]: idAuthentification
           },
           motif: {
             [Op.eq]: motif
@@ -101,10 +102,12 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     )
   }
 
-  private async construire(
-    metadonnes: ArchiveJeune.Metadonnees
-  ): Promise<
-    Result<{ donnees: ArchiveJeune; idStructureMilo: string | null }>
+  private async construire(metadonnes: ArchiveJeune.Metadonnees): Promise<
+    Result<{
+      donnees: ArchiveJeune
+      idStructureMilo: string | null
+      idAuthentification: string | null
+    }>
   > {
     const idJeune = metadonnes.idJeune
 
@@ -174,7 +177,8 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
         recherches,
         messages
       ),
-      idStructureMilo: jeuneSqlModel.idStructureMilo ?? null
+      idStructureMilo: jeuneSqlModel.idStructureMilo ?? null,
+      idAuthentification: jeuneSqlModel.idAuthentification ?? null
     })
   }
 

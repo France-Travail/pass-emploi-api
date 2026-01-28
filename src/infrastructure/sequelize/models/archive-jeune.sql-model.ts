@@ -22,6 +22,12 @@ export class ArchiveJeuneDto extends Model {
   idJeune: string
 
   @Column({
+    field: 'id_authentification',
+    type: DataType.STRING
+  })
+  idAuthentification: string | null
+
+  @Column({
     field: 'motif',
     type: DataType.STRING
   })

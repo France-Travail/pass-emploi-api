@@ -133,24 +133,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private async recupererBeneficiaire(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
-    if (commandSanitized.email) {
-      const leJeuneEstArchivePourMotifMigration =
-        await this.archiverJeuneRepository.estArchiveAvecMotif(
-          commandSanitized.email,
-          MotifSuppressionSupport.MIGRATION
-        )
-      if (leJeuneEstArchivePourMotifMigration) {
-        return failure(
-          new NonTraitableError(
-            'Utilisateur',
-            commandSanitized.idUtilisateurAuth,
-            NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-            commandSanitized.email
-          )
-        )
-      }
-    }
-
     switch (commandSanitized.structure) {
       case Core.Structure.MILO:
         return this.authentificationJeuneMilo(commandSanitized)
@@ -317,6 +299,21 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       await this.authentificationRepository.getJeuneByIdAuthentification(
         commandSanitized.idUtilisateurAuth
       )
+    const leJeuneEstArchivePourMotifMigration =
+      await this.archiverJeuneRepository.estArchiveAvecMotif(
+        commandSanitized.idUtilisateurAuth,
+        MotifSuppressionSupport.MIGRATION
+      )
+    if (leJeuneEstArchivePourMotifMigration) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          commandSanitized.email
+        )
+      )
+    }
     if (!utilisateurTrouve) {
       return failure(
         new NonTraitableError(
@@ -349,7 +346,21 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       await this.authentificationRepository.getJeuneByIdAuthentification(
         commandSanitized.idUtilisateurAuth
       )
-
+    const leJeuneEstArchivePourMotifMigration =
+      await this.archiverJeuneRepository.estArchiveAvecMotif(
+        commandSanitized.idUtilisateurAuth,
+        MotifSuppressionSupport.MIGRATION
+      )
+    if (leJeuneEstArchivePourMotifMigration) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          commandSanitized.email
+        )
+      )
+    }
     if (!utilisateurTrouve) {
       return this.authentifierJeuneParEmail(commandSanitized)
     }

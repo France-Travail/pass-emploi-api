@@ -278,7 +278,7 @@ export namespace ArchiveJeune {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
     estArchiveAvecMotif(
-      emailJeune: string,
+      idAuthentification: string,
       motif: MotifSuppression | MotifSuppressionSupport
     ): Promise<boolean>
     delete(idArchive: number): Promise<void>
