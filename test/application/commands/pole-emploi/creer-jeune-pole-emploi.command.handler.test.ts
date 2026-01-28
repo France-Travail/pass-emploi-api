@@ -119,27 +119,6 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         )
       })
     })
-
-    it("minusculise l'email", async () => {
-      // Given
-      const command: CreateJeuneCommand = {
-        firstName: 'Kenji',
-        lastName: 'Lefameux',
-        email: 'Kenji.Lefameux@Poleemploi.fr',
-        idConseiller: conseiller.id
-      }
-
-      // When
-      await createJeuneCommandHandler.handle(command)
-
-      // Then
-      expect(jeuneRepository.getByEmail).to.have.been.calledWithExactly(
-        'kenji.lefameux@poleemploi.fr'
-      )
-      expect(jeuneRepository.save).to.have.been.calledWithExactly(
-        sandbox.match.has('email', 'kenji.lefameux@poleemploi.fr')
-      )
-    })
   })
 
   describe('authorize', () => {

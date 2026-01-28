@@ -48,16 +48,15 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
     }
 
-    const lowerCaseEmail = command.email.trim().toLocaleLowerCase()
-    const jeune = await this.jeuneRepository.getByEmail(lowerCaseEmail)
+    const jeune = await this.jeuneRepository.getByEmail(command.email)
     if (jeune) {
-      return failure(new EmailExisteDejaError(lowerCaseEmail))
+      return failure(new EmailExisteDejaError(command.email))
     }
 
     const jeuneACreer: Jeune.Factory.ACreer = {
       prenom: command.firstName,
       nom: command.lastName,
-      email: lowerCaseEmail,
+      email: command.email,
       conseiller: {
         id: conseiller.id,
         lastName: conseiller.lastName,

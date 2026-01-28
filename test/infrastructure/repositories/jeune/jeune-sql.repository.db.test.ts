@@ -475,6 +475,34 @@ describe('JeuneSqlRepository', () => {
         // Then
         expect(result).to.deep.equal(jeune)
       })
+
+      it("retourne le jeune quand l'email a une casse différente", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail('JOHN.DOE@PLOP.IO')
+
+        // Then
+        expect(result).to.deep.equal(jeune)
+      })
+
+      it("retourne le jeune quand l'email a des espaces en début et fin", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          '  john.doe@plop.io  '
+        )
+
+        // Then
+        expect(result).to.deep.equal(jeune)
+      })
+
+      it("retourne le jeune quand l'email a une casse différente et des espaces", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          '  John.Doe@Plop.IO  '
+        )
+
+        // Then
+        expect(result).to.deep.equal(jeune)
+      })
     })
 
     describe("quand aucun jeune n'existe avec cet email", () => {
@@ -484,6 +512,92 @@ describe('JeuneSqlRepository', () => {
 
         // Then
         expect(jeune).to.equal(undefined)
+      })
+    })
+
+    describe('avec includeConseiller', () => {
+      let jeuneAvecConseiller: Jeune
+
+      beforeEach(async () => {
+        // Given
+        const conseillerDto = unConseillerDto({
+          id: 'conseiller-test',
+          email: 'conseiller@example.com',
+          structure: Core.Structure.MILO
+        })
+        await ConseillerSqlModel.creer(conseillerDto)
+
+        jeuneAvecConseiller = {
+          ...unJeune({
+            id: 'jeune-avec-conseiller',
+            email: 'jeune.test@example.com',
+            conseiller: unConseillerDuJeune({
+              id: conseillerDto.id,
+              email: conseillerDto.email ?? undefined,
+              idAgence: undefined
+            }),
+            configuration: uneConfiguration({
+              idJeune: 'jeune-avec-conseiller'
+            })
+          }),
+          dateSignatureCGU: undefined,
+          peutVoirLeComptageDesHeures: undefined
+        }
+
+        await JeuneSqlModel.creer(
+          unJeuneDto({
+            id: 'jeune-avec-conseiller',
+            email: 'jeune.test@example.com',
+            idConseiller: conseillerDto.id,
+            dateCreation: jeuneAvecConseiller.creationDate.toJSDate(),
+            datePremiereConnexion:
+              jeuneAvecConseiller.datePremiereConnexion!.toJSDate()
+          })
+        )
+      })
+
+      it('retourne le jeune avec son conseiller', async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          'jeune.test@example.com',
+          { includeConseiller: true }
+        )
+
+        // Then
+        expect(result).to.deep.equal(jeuneAvecConseiller)
+      })
+
+      it("retourne le jeune avec son conseiller quand l'email a une casse différente", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          'JEUNE.TEST@EXAMPLE.COM',
+          { includeConseiller: true }
+        )
+
+        // Then
+        expect(result).to.deep.equal(jeuneAvecConseiller)
+      })
+
+      it("retourne le jeune avec son conseiller quand l'email a des espaces", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          '  jeune.test@example.com  ',
+          { includeConseiller: true }
+        )
+
+        // Then
+        expect(result).to.deep.equal(jeuneAvecConseiller)
+      })
+
+      it("retourne undefined quand aucun jeune n'existe avec cet email", async () => {
+        // When
+        const result = await jeuneSqlRepository.getByEmail(
+          'inexistant@example.com',
+          { includeConseiller: true }
+        )
+
+        // Then
+        expect(result).to.equal(undefined)
       })
     })
   })
