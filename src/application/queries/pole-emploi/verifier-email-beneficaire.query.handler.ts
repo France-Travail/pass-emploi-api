@@ -32,8 +32,7 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
   async handle(
     query: VerifierEmailBeneficiaireFTQuery
   ): Promise<Result<EmailBeneficiaireFTQueryModel>> {
-    const lowerCaseEmail = query.email.trim().toLocaleLowerCase()
-    const beneficiaire = await this.jeuneRepository.getByEmail(lowerCaseEmail)
+    const beneficiaire = await this.jeuneRepository.getByEmail(query.email)
 
     if (!beneficiaire) {
       return success({

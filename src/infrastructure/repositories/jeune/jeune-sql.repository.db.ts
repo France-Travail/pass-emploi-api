@@ -57,8 +57,15 @@ export class JeuneSqlRepository implements Jeune.Repository {
     email: string,
     options?: { includeConseiller: boolean }
   ): Promise<Jeune | undefined> {
+    const normalizedEmail = email.trim().toLowerCase()
     const jeuneSqlModel = await JeuneSqlModel.findOne({
-      where: { email },
+      where: this.sequelize.where(
+        this.sequelize.fn(
+          'LOWER',
+          this.sequelize.fn('TRIM', this.sequelize.col('JeuneSqlModel.email'))
+        ),
+        normalizedEmail
+      ),
       ...(options?.includeConseiller && { include: [ConseillerSqlModel] })
     })
     if (!jeuneSqlModel) {

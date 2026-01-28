@@ -73,9 +73,8 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
     }
 
-    const lowerCaseEmail = command.email.toLocaleLowerCase()
     const [jeuneByEmail, jeuneByIdDossier] = await Promise.all([
-      this.jeuneRepository.getByEmail(lowerCaseEmail, {
+      this.jeuneRepository.getByEmail(command.email, {
         includeConseiller: true
       }),
       this.miloJeuneRepository.getByIdDossier(command.idPartenaire, {
@@ -86,12 +85,12 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       if (estMilo(jeuneByEmail.structure)) {
         return failure(
           new EmailExisteDejaMiloError(
-            lowerCaseEmail,
+            command.email,
             jeuneByEmail.conseiller?.email
           )
         )
       } else {
-        return failure(new EmailExisteDejaMiloError(lowerCaseEmail))
+        return failure(new EmailExisteDejaMiloError(command.email))
       }
     }
     if (isSuccess(jeuneByIdDossier)) {
@@ -129,7 +128,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     }
     const nouveauJeune = await this.creerLeJeune(
       command,
-      lowerCaseEmail,
+      command.email,
       conseiller
     )
 
