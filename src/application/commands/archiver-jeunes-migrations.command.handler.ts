@@ -9,7 +9,7 @@ import { Jeune } from '../../domain/jeune/jeune'
 import { FeatureFlip } from '../../domain/feature-flip'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
-import { ArchiverJeuneSupportCommand } from './support/archiver-jeune-support.command.handler'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
@@ -21,9 +21,13 @@ export interface ArchiverJeuneCommand {
   commentaire?: string
 }
 
+export interface ArchiverJeunesMigrationCommand {
+  phaseDeMigration: PhaseDeMigration
+}
+
 @Injectable()
 export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
-  ArchiverJeuneSupportCommand,
+  ArchiverJeunesMigrationCommand,
   void
 > {
   constructor(
@@ -36,15 +40,17 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   }
 
   async authorize(
-    _command: ArchiverJeuneSupportCommand,
+    _command: ArchiverJeunesMigrationCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     return this.authorizeSupport.autoriserSupport(utilisateur)
   }
 
-  async handle(): Promise<Result> {
+  async handle(command: ArchiverJeunesMigrationCommand): Promise<Result> {
     const idJeunes =
-      await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer()
+      await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
+        command.phaseDeMigration
+      )
 
     for (const idJeune of idJeunes) {
       this.archiverJeuneService.archiver(

@@ -8,24 +8,35 @@ import {
   ConseillerMigration,
   FeatureFlip
 } from '../../src/domain/feature-flip'
-import { expect } from '../utils'
+import { expect, stubClass } from '../utils'
 import Type = Authentification.Type
 import Tag = FeatureFlip.Tag
+import { DateService } from '../../src/utils/date-service'
+import { uneDate } from '../fixtures/date.fixture'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 describe('FeatureFlip', () => {
   describe('Service', () => {
     let repository: StubbedType<FeatureFlip.Repository>
     let configService: StubbedType<ConfigService>
     let service: FeatureFlip.Service
+    const dateService = stubClass(DateService)
+    const maintenant = DateService.fromJSDateToDateTime(uneDate())!
+    dateService.nowJs.returns(maintenant.toJSDate())
+    dateService.now.returns(maintenant)
 
-    const buildService = (dateFromConfig?: string): void => {
+    const buildService = (datePhaseA?: string, datePhaseB?: string): void => {
       configService.get
-        .withArgs('features.dateDeMigration')
-        .returns(dateFromConfig)
+        .withArgs('features.dateDeMigrationPhaseA')
+        .returns(datePhaseA)
+      configService.get
+        .withArgs('features.dateDeMigrationPhaseB')
+        .returns(datePhaseB)
 
       service = new FeatureFlip.Service(
         repository,
-        configService as unknown as ConfigService
+        configService as unknown as ConfigService,
+        dateService
       )
     }
 
@@ -42,9 +53,15 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves(new BeneficiaireMigration('jeune-1'))
+        repository.getTagSiFeatureActivePourLeConseillerDuJeune
+          .withArgs(
+            [
+              FeatureFlip.Tag.MIGRATION_PHASE_A,
+              FeatureFlip.Tag.MIGRATION_PHASE_B
+            ],
+            idJeune
+          )
+          .resolves(FeatureFlip.Tag.MIGRATION_PHASE_A)
 
         // When
         const result =
@@ -61,8 +78,14 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-2'
         buildService('2024-09-01')
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
+        repository.getTagSiFeatureActivePourLeConseillerDuJeune
+          .withArgs(
+            [
+              FeatureFlip.Tag.MIGRATION_PHASE_A,
+              FeatureFlip.Tag.MIGRATION_PHASE_B
+            ],
+            idJeune
+          )
           .resolves(undefined)
 
         // When
@@ -80,9 +103,13 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-3'
         buildService(undefined)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION, idJeune)
-          .resolves(new BeneficiaireMigration('jeune-1'))
+        repository.getTagSiFeatureActivePourLeConseillerDuJeune.withArgs(
+          [
+            FeatureFlip.Tag.MIGRATION_PHASE_A,
+            FeatureFlip.Tag.MIGRATION_PHASE_B
+          ],
+          idJeune
+        )
 
         // When
         const result =
@@ -103,9 +130,15 @@ describe('FeatureFlip', () => {
         const rawDate = '2025-03-10'
 
         buildService(rawDate)
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
-          .resolves(new ConseillerMigration(idConseiller))
+        repository.getTagSiFeatureActivePourLeConseiller
+          .withArgs(
+            [
+              FeatureFlip.Tag.MIGRATION_PHASE_A,
+              FeatureFlip.Tag.MIGRATION_PHASE_B
+            ],
+            idConseiller
+          )
+          .resolves(FeatureFlip.Tag.MIGRATION_PHASE_A)
 
         // When
         const result =
@@ -122,8 +155,14 @@ describe('FeatureFlip', () => {
         // Given
         const idConseiller = 'conseiller-2'
         buildService('2025-03-10')
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
+        repository.getTagSiFeatureActivePourLeConseiller
+          .withArgs(
+            [
+              FeatureFlip.Tag.MIGRATION_PHASE_A,
+              FeatureFlip.Tag.MIGRATION_PHASE_B
+            ],
+            idConseiller
+          )
           .resolves(undefined)
 
         // When
@@ -141,8 +180,14 @@ describe('FeatureFlip', () => {
         // Given
         const idConseiller = 'conseiller-3'
         buildService(undefined)
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.MIGRATION, idConseiller)
+        repository.getTagSiFeatureActivePourLeConseiller
+          .withArgs(
+            [
+              FeatureFlip.Tag.MIGRATION_PHASE_A,
+              FeatureFlip.Tag.MIGRATION_PHASE_B
+            ],
+            idConseiller
+          )
           .resolves(new ConseillerMigration(idConseiller))
 
         // When
@@ -164,8 +209,8 @@ describe('FeatureFlip', () => {
         const rawDate = '2025-03-10'
 
         buildService(rawDate)
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idConseiller)
+        repository.getTagSiFeatureActivePourLeConseiller
+          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idConseiller)
           .resolves(new ConseillerMigration(idConseiller))
 
         // When
@@ -183,8 +228,8 @@ describe('FeatureFlip', () => {
         const rawDate = '2025-03-10'
 
         buildService(rawDate)
-        repository.getConseillerSiFeatureActive
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idConseiller)
+        repository.getTagSiFeatureActivePourLeConseiller
+          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idConseiller)
           .resolves(undefined)
 
         // When
@@ -202,8 +247,8 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
+        repository.getTagSiFeatureActivePourLeConseillerDuJeune
+          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idJeune)
           .resolves(new BeneficiaireMigration('jeune-1'))
 
         // When
@@ -221,8 +266,8 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
 
         buildService(rawDate)
-        repository.getBeneficiaireSiFeatureActivePourLeConseillerInitial
-          .withArgs(FeatureFlip.Tag.DEMARCHES_IA, idJeune)
+        repository.getTagSiFeatureActivePourLeConseillerDuJeune
+          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idJeune)
           .resolves(undefined)
 
         // When
@@ -242,14 +287,16 @@ describe('FeatureFlip', () => {
         const rawDate = '2024-09-01'
         buildService(rawDate)
         repository.getBeneficiairesDeLaFeatureDuConseillerInitial
-          .withArgs(FeatureFlip.Tag.MIGRATION)
+          .withArgs(FeatureFlip.Tag.MIGRATION_PHASE_A)
           .resolves([
             new BeneficiaireMigration('jeune-1'),
             new BeneficiaireMigration('jeune-2')
           ])
 
         // When
-        const result = await service.recupererIdsDesBeneficiaireAMigrer()
+        const result = await service.recupererIdsDesBeneficiaireAMigrer(
+          PhaseDeMigration.PHASE_A
+        )
 
         // Then
         expect(result).to.deep.equal(['jeune-1', 'jeune-2'])

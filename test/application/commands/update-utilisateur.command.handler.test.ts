@@ -182,12 +182,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
                 })
-                .resolves(maintenant)
+                .resolves(true)
 
               // When
               const result = await updateUtilisateurCommandHandler.execute(
@@ -1018,13 +1018,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .withArgs(command.idUtilisateurAuth)
               .resolves(utilisateur)
 
-            const dateDeMigration = maintenant.plus({ hours: 1 })
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+            featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
               .withArgs({
                 id: utilisateur.id,
                 type: Authentification.Type.JEUNE
               })
-              .resolves(dateDeMigration)
+              .resolves(true)
 
             // When
             const result = await updateUtilisateurCommandHandler.execute(

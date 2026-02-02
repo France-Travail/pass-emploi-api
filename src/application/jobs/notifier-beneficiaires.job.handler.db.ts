@@ -207,7 +207,9 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     }
     if (params.beneficiairesFaisantPartieDeLaMigration === true) {
       const idsBeneficiairesMigration =
-        await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer()
+        await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
+          FeatureFlip.PhaseDeMigration.PHASE_A
+        )
       where.id = { [Op.in]: idsBeneficiairesMigration }
     }
     return where

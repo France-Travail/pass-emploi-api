@@ -43,7 +43,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
     it('ajoute une ligne unique par email conseiller', async () => {
       // Given
       const command: UpdateFeatureFlipCommand = {
-        tagFeature: FeatureFlip.Tag.MIGRATION,
+        tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_A,
         emailsConseillersAjout: ['c1@email.com', 'c2@email.com', 'c1@email.com']
       }
 
@@ -53,7 +53,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       // Then
       expect(result._isSuccess).to.equal(true)
       const rows = await FeatureFlipSqlModel.findAll({
-        where: { featureTag: FeatureFlip.Tag.MIGRATION },
+        where: { featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A },
         order: [['emailConseiller', 'ASC']]
       })
       expect(rows.map(r => r.emailConseiller)).to.deep.equal([
@@ -66,12 +66,12 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       // Given
       const dejaEnBase = {
         emailConseiller: 'c1@email.com',
-        featureTag: FeatureFlip.Tag.MIGRATION
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A
       }
       await FeatureFlipSqlModel.create(dejaEnBase)
 
       const command: UpdateFeatureFlipCommand = {
-        tagFeature: FeatureFlip.Tag.MIGRATION,
+        tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_A,
         emailsConseillersAjout: ['c1@email.com']
       }
 
@@ -82,7 +82,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       expect(result._isSuccess).to.equal(true)
       const count = await FeatureFlipSqlModel.count({
         where: {
-          featureTag: FeatureFlip.Tag.MIGRATION,
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A,
           emailConseiller: 'c1@email.com'
         }
       })
@@ -96,11 +96,11 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       const dejaEnBase = [
         {
           emailConseiller: 'c1@email.com',
-          featureTag: FeatureFlip.Tag.MIGRATION
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A
         },
         {
           emailConseiller: 'c2@email.com',
-          featureTag: FeatureFlip.Tag.MIGRATION
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A
         },
         {
           emailConseiller: 'c1@email.com',
@@ -110,7 +110,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       await FeatureFlipSqlModel.bulkCreate(dejaEnBase)
 
       const command: UpdateFeatureFlipCommand = {
-        tagFeature: FeatureFlip.Tag.MIGRATION,
+        tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_A,
         emailsConseillersSuppression: ['c1@email.com']
       }
 
@@ -129,7 +129,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
         restantsEnBase.map(r => `${r.featureTag}:${r.emailConseiller}`)
       ).to.deep.equal([
         `${FeatureFlip.Tag.DEMARCHES_IA}:c1@email.com`,
-        `${FeatureFlip.Tag.MIGRATION}:c2@email.com`
+        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c2@email.com`
       ])
     })
   })
@@ -140,11 +140,11 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       const dejaEnBase = [
         {
           emailConseiller: 'c1@email.com',
-          featureTag: FeatureFlip.Tag.MIGRATION
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A
         },
         {
           emailConseiller: 'c2@email.com',
-          featureTag: FeatureFlip.Tag.MIGRATION
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A
         },
         {
           emailConseiller: 'c0@passemploi.com',
@@ -154,7 +154,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       await FeatureFlipSqlModel.bulkCreate(dejaEnBase)
 
       const command: UpdateFeatureFlipCommand = {
-        tagFeature: FeatureFlip.Tag.MIGRATION,
+        tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_A,
         supprimerExistants: true,
         emailsConseillersAjout: ['c3@passemploi.com']
       }
@@ -174,7 +174,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
         restants.map(r => `${r.featureTag}:${r.emailConseiller}`)
       ).to.deep.equal([
         `${FeatureFlip.Tag.DEMARCHES_IA}:c0@passemploi.com`,
-        `${FeatureFlip.Tag.MIGRATION}:c3@passemploi.com`
+        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c3@passemploi.com`
       ])
     })
   })
