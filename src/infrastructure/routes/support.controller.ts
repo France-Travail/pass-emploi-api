@@ -63,6 +63,8 @@ import {
   TransfererJeunesPayload,
   UpdateFeatureFlipPayload
 } from './validation/support.inputs'
+import { FeatureFlip } from '../../domain/feature-flip'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 @Controller('support')
 @ApiTags('Support')
@@ -403,18 +405,22 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
     Authentification.Partenaire.SUPPORT
   )
   @ApiOperation({
-    summary: "Archive les jeune d'une region",
+    summary: "Archive les jeunes d'une phase de migration",
     description:
-      ' l’API support pour archiver le jeune\n' +
+      "L'API support pour archiver les jeunes d'une phase de migration\n" +
       '- Suppression de la BDD de son compte utilisateur\n' +
-      '- Suppression de l’authentification Keycloak\n' +
+      "- Suppression de l'authentification Keycloak\n" +
       '- Suppression du chat firebase\n' +
-      '- Envoi d’un email au jeune\n'
+      "- Envoi d'un email au jeune\n"
   })
-  @Post('archiver-jeunes-migration')
+  @Post('archiver-jeunes-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async archiverJeuneRegion(): Promise<void> {
-    const result = await this.archiverJeunesMigrationCommandHandler.handle()
+  async archiverJeuneRegion(
+    @Param('phaseDeMigration') phaseDeMigration: PhaseDeMigration
+  ): Promise<void> {
+    const result = await this.archiverJeunesMigrationCommandHandler.handle({
+      phaseDeMigration
+    })
 
     return handleResult(result)
   }

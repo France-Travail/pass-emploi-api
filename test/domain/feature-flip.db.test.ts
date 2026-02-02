@@ -7,18 +7,26 @@ import { JeuneSqlModel } from '../../src/infrastructure/sequelize/models/jeune.s
 import { FeatureFlipSqlModel } from '../../src/infrastructure/sequelize/models/feature-flip.sql-model'
 import { unConseillerDto } from '../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../fixtures/sql-models/jeune.sql-model'
-import { expect } from '../utils'
+import { expect, stubClass } from '../utils'
 import { DatabaseForTesting, getDatabase } from '../utils/database-for-testing'
 import { Authentification } from '../../src/domain/authentification'
 import Type = Authentification.Type
 import { DateTime } from 'luxon'
+import { DateService } from '../../src/utils/date-service'
+import { uneDate } from '../fixtures/date.fixture'
+import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 describe('FeatureFlip.Service', () => {
   let databaseForTesting: DatabaseForTesting
   let featureFlipRepository: FeatureFlipSqlRepository
   let configService: ConfigService
   let service: FeatureFlip.Service
-  let dateDeMigration: DateTime
+  let dateDeMigrationPhaseA: DateTime
+  let dateDeMigrationPhaseB: DateTime
+  const dateService = stubClass(DateService)
+  const maintenant = DateService.fromJSDateToDateTime(uneDate())!
+  dateService.nowJs.returns(maintenant.toJSDate())
+  dateService.now.returns(maintenant)
 
   // Conseillers
   const conseillerMigrant = unConseillerDto({
@@ -108,15 +116,24 @@ describe('FeatureFlip.Service', () => {
 
     configService = {
       get: (key: string) => {
-        if (key === 'features.dateDeMigration') {
+        if (key === 'features.dateDeMigrationPhaseA') {
           return '2025-11-20'
+        }
+        if (key === 'features.dateDeMigrationPhaseB') {
+          return '2026-02-17'
         }
         return undefined
       }
     } as ConfigService
-    dateDeMigration = DateTime.fromISO('2025-11-20').startOf('day')
 
-    service = new FeatureFlip.Service(featureFlipRepository, configService)
+    dateDeMigrationPhaseA = DateTime.fromISO('2025-11-20').startOf('day')
+    dateDeMigrationPhaseB = DateTime.fromISO('2026-02-17').startOf('day')
+
+    service = new FeatureFlip.Service(
+      featureFlipRepository,
+      configService,
+      dateService
+    )
 
     await ConseillerSqlModel.bulkCreate([
       conseillerMigrant,
@@ -127,11 +144,11 @@ describe('FeatureFlip.Service', () => {
 
     await FeatureFlipSqlModel.bulkCreate([
       {
-        featureTag: FeatureFlip.Tag.MIGRATION,
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A,
         emailConseiller: conseillerMigrant.email
       },
       {
-        featureTag: FeatureFlip.Tag.MIGRATION,
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
         emailConseiller: conseillerMigrant2.email
       },
       {
@@ -158,7 +175,9 @@ describe('FeatureFlip.Service', () => {
   describe('recupererIdsDesBeneficiaireAMigrer', () => {
     it('renvoie les ids des bénéficiaires dont le conseiller de rattachement migre vers Parcours Emploi', async () => {
       // When
-      const result = await service.recupererIdsDesBeneficiaireAMigrer()
+      const result = await service.recupererIdsDesBeneficiaireAMigrer(
+        PhaseDeMigration.PHASE_A
+      )
 
       // Then
       expect(result).to.have.members([
@@ -178,7 +197,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireConseillerMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 2: bénéficiaire avec conseiller ne migrant pas → non concerné', async () => {
@@ -196,7 +215,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireInitialMigrantTmpNonMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 4: conseiller initial migrant + conseiller temporaire migrant → concerné', async () => {
@@ -205,7 +224,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireInitialMigrantTmpMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('Règle 5: conseiller initial ne migrant pas + conseiller temporaire migrant → non concerné', async () => {
@@ -232,7 +251,7 @@ describe('FeatureFlip.Service', () => {
             id: beneficiaireAijConseillerMigrant.id,
             type: Type.JEUNE
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
     })
 
@@ -243,7 +262,7 @@ describe('FeatureFlip.Service', () => {
             id: conseillerMigrant.id,
             type: Type.CONSEILLER
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseA)
       })
 
       it('renvoie undefined si le conseiller ne migre pas', async () => {
@@ -255,13 +274,13 @@ describe('FeatureFlip.Service', () => {
         expect(result).to.be.undefined()
       })
 
-      it('conseiller AIJ migrant → concerné (structure conseiller non critère)', async () => {
+      it('conseiller migrant phase B → concerné (récupérer la date de migration phase b)', async () => {
         const result =
           await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer({
             id: conseillerMigrant2.id,
             type: Type.CONSEILLER
           })
-        expect(result).to.deep.equal(dateDeMigration)
+        expect(result).to.deep.equal(dateDeMigrationPhaseB)
       })
     })
   })

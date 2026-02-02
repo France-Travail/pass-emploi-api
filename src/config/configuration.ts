@@ -263,7 +263,8 @@ export default () => {
       notifierRendezVousMilo: process.env.FEATURE_NOTIFIER_RDV_MILO === 'true',
       recupererStructureMilo:
         process.env.FEATURE_RECUPERER_STRUCTURE_MILO === 'true',
-      dateDeMigration: process.env.DATE_MIGRATION_PARCOURS_EMPLOI,
+      dateDeMigrationPhaseA: process.env.DATE_MIGRATION_PHASE_A,
+      dateDeMigrationPhaseB: process.env.DATE_MIGRATION_PHASE_B,
       activerRecuperationChat: process.env.FEATURE_RECUPERATION_CHAT === 'true'
     },
     values: {

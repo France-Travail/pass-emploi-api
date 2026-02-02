@@ -428,26 +428,13 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   ): Promise<Result<UtilisateurQueryModel>> {
     if (utilisateur.type === Type.SUPPORT) return success(utilisateur)
 
-    const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-        {
-          id: utilisateur.id,
-          type: utilisateur.type
-        }
-      )
-    const dateDeMigrationExiste = !!dateDeMigration
-    let dateDeMigrationArrivee
-    if (dateDeMigrationExiste) {
-      dateDeMigrationArrivee = DateService.isGreaterOrEqualAtTheStartOfDay(
-        this.dateService.now(),
-        dateDeMigration
-      )
-    }
+    const migrationActive =
+      await this.featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee({
+        id: utilisateur.id,
+        type: utilisateur.type
+      })
 
-    const lUtilisateurDoitMigrer =
-      dateDeMigrationExiste && dateDeMigrationArrivee
-
-    if (lUtilisateurDoitMigrer) {
+    if (migrationActive) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -457,6 +444,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
+
     return success(utilisateur)
   }
 }
