@@ -65,6 +65,15 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
           "Participation à un salon ou un forum pour s'informer sur un métier",
         commentObligatoire: false,
         comment: []
+      },
+      {
+        codePourquoi: 'P01',
+        libellePourquoi: 'Mon (nouveau) métier',
+        codeQuoi: 'Q119',
+        libelleQuoi:
+          'Rechercher une entreprise en vue de réaliser une immersion',
+        commentObligatoire: false,
+        comment: []
       }
     ]
   },
@@ -128,6 +137,15 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
         libellePourquoi: 'Ma formation professionnelle',
         codeQuoi: 'Q10',
         libelleQuoi: "Réalisation d'une démarche de VAE",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P02',
+        libellePourquoi: 'Ma formation professionnelle',
+        codeQuoi: 'Q120',
+        libelleQuoi:
+          'Se former en autonomie (webinaire, e-learning, MOOC, cours du soir...)',
         commentObligatoire: false,
         comment: []
       }
@@ -204,6 +222,56 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
         libellePourquoi: 'Mes candidatures',
         codeQuoi: 'Q42',
         libelleQuoi: 'Recherche de missions de service civique',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q43',
+        libelleQuoi: 'Développer son réseau',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q44',
+        libelleQuoi:
+          "S'inscrire ou compléter son profil sur un réseau professionnel",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q46',
+        libelleQuoi: "Organiser ses démarches de recherche d'emploi",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q47',
+        libelleQuoi: 'Publier son profil de compétence',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q48',
+        libelleQuoi: 'Compléter son profil de compétence',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q50',
+        libelleQuoi:
+          "S'inscrire sur une plateforme de recrutement (agence d'intérim, cabinet de recrutement, site spécialisé...)",
         commentObligatoire: false,
         comment: []
       }
@@ -451,6 +519,55 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
             label: 'Par un autre moyen'
           }
         ]
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q121',
+        libelleQuoi:
+          "Définir et clarifier son idée de création ou de reprise d'entreprise",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q122',
+        libelleQuoi: 'Valider sa cohérence personne-projet',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q123',
+        libelleQuoi: "Diagnostiquer l'entreprise (reprise ou pivot)",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q124',
+        libelleQuoi: "Installer l'entreprise",
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q125',
+        libelleQuoi: 'Se repositionner stratégiquement',
+        commentObligatoire: false,
+        comment: []
+      },
+      {
+        codePourquoi: 'P05',
+        libellePourquoi: "Ma création et reprise d'entreprise",
+        codeQuoi: 'Q126',
+        libelleQuoi: 'Gérer son entreprise',
+        commentObligatoire: false,
+        comment: []
       }
     ]
   },
