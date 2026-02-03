@@ -26,7 +26,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   titre: string
   description: string
   structures?: Core.Structure[]
-  tagFeatureMigration?: FeatureFlip.Tag
+  phaseDeMigration?: FeatureFlip.PhaseDeMigration
   push?: boolean
   batchSize?: number
   minutesEntreLesBatchs?: number
@@ -79,7 +79,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       description: command.description,
       params: {
         structures: command.structures,
-        tagFeatureMigration: command.tagFeatureMigration,
+        phaseDeMigration: command.phaseDeMigration,
         push,
         batchSize: command.batchSize,
         minutesEntreLesBatchs:

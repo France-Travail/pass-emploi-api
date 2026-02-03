@@ -227,7 +227,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: "C'est bientôt la fin",
           description: 'Parcours Emploi vous tend la main',
           params: {
-            tagFeatureMigration: FeatureFlip.Tag.MIGRATION_PHASE_A,
+            phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2

@@ -323,8 +323,8 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
 - \`structures\` (optionnel, défaut = toutes les structures) : ${Object.values(
       Core.Structure
     ).join(', ')}
-- \`tagFeatureMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
-      FeatureFlip.Tag
+- \`PhaseDeMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
+      FeatureFlip.PhaseDeMigration
     ).join(', ')}
 - \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
 - \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
@@ -338,7 +338,7 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
         titre: '1000 immersions sur la vente et la logistique !',
         description: 'Explorez les métiers de vente et de la logistique',
         structures: ['MILO', 'POLE_EMPLOI_AIJ'],
-        tagFeatureMigration: 'MIGRATION_PHASE_A',
+        PhaseDeMigration: 'PHASE_A',
         push: true
       }
     }

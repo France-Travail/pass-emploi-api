@@ -171,7 +171,7 @@ export namespace Planificateur {
 
   export interface ParamsJobNotif {
     structures?: Core.Structure[]
-    tagFeatureMigration?: FeatureFlip.Tag
+    phaseDeMigration?: FeatureFlip.PhaseDeMigration
     push: boolean
     minutesEntreLesBatchs: number
     batchSize?: number
