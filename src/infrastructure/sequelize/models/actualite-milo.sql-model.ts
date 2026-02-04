@@ -23,16 +23,16 @@ export class ActualiteMiloDto extends Model {
   @Column({ field: 'id_conseiller', type: DataType.STRING })
   idConseiller: string
 
-  @Column({ field: 'titre', type: DataType.STRING(255) })
+  @Column({ field: 'titre', type: DataType.STRING(100) })
   titre: string
 
-  @Column({ field: 'contenu', type: DataType.TEXT })
+  @Column({ field: 'contenu', type: DataType.STRING(500) })
   contenu: string
 
-  @Column({ field: 'titre_lien', type: DataType.STRING(255) })
+  @Column({ field: 'titre_lien', type: DataType.STRING(50) })
   titreLien: string | null
 
-  @Column({ field: 'lien', type: DataType.STRING(2048) })
+  @Column({ field: 'lien', type: DataType.STRING(2000) })
   lien: string | null
 
   @Column({ field: 'date_creation', type: DataType.DATE })

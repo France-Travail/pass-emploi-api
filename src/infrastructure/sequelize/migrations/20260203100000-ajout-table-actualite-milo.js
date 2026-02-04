@@ -30,22 +30,22 @@ module.exports = {
       },
       titre: {
         field: 'titre',
-        type: Sequelize.STRING(255),
+        type: Sequelize.STRING(100),
         allowNull: false
       },
       contenu: {
         field: 'contenu',
-        type: Sequelize.TEXT,
+        type: Sequelize.STRING(500),
         allowNull: false
       },
       titreLien: {
         field: 'titre_lien',
-        type: Sequelize.STRING(255),
+        type: Sequelize.STRING(50),
         allowNull: true
       },
       lien: {
         field: 'lien',
-        type: Sequelize.STRING(2048),
+        type: Sequelize.STRING(2000),
         allowNull: true
       },
       dateCreation: {

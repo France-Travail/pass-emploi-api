@@ -11,19 +11,20 @@ export class CreateActualiteMiloPayload {
   @ApiProperty({ description: "Titre de l'actualité" })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(255)
+  @MaxLength(100)
   titre: string
 
   @ApiProperty({ description: "Contenu/description de l'actualité" })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(500)
   contenu: string
 
   @ApiPropertyOptional({ description: 'Titre du lien optionnel' })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(255)
+  @MaxLength(50)
   titreLien?: string
 
   @ApiPropertyOptional({ description: 'URL du lien optionnel' })
