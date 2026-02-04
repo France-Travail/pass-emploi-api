@@ -10,7 +10,7 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
-import { MiloClient } from '../../../infrastructure/clients/milo-client'
+import { MiloClient } from '../../../infrastructure/clients/milo/milo-client'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 
@@ -44,7 +44,7 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
     }
 
     const jeune = await this.jeuneRepository.get(command.idJeune)
-    if (!jeune || !jeune.email) {
+    if (!jeune?.email) {
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
 

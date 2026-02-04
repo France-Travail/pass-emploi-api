@@ -10,7 +10,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { ErreurHttp } from 'src/building-blocks/types/domain-error'
-import { MiloClient } from 'src/infrastructure/clients/milo-client'
+import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import {
   unDetailSessionConseillerDto,
   unDetailSessionJeuneDto,
@@ -32,6 +32,7 @@ import { RateLimiterService } from '../../../src/utils/rate-limiter.service'
 import { DateService } from '../../../src/utils/date-service'
 import { StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
+import { MiloClientUtils } from '../../../src/infrastructure/clients/milo/milo-client-utils'
 
 initializeAPMAgent()
 
@@ -44,10 +45,11 @@ describe('MiloClient', () => {
 
   beforeEach(() => {
     const httpService = new HttpService()
+    const miloClientUtils = new MiloClientUtils(httpService, configService)
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
     miloClient = new MiloClient(
-      httpService,
+      miloClientUtils,
       configService,
       rateLimiterService,
       dateService

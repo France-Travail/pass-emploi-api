@@ -312,7 +312,7 @@ import { ImmersionClient } from './infrastructure/clients/immersion-client'
 import { InvitationIcsClient } from './infrastructure/clients/invitation-ics.client'
 import { MailBrevoService } from './infrastructure/clients/mail-brevo.service.db'
 import { MatomoClient } from './infrastructure/clients/matomo-client'
-import { MiloClient } from './infrastructure/clients/milo-client'
+import { MiloClient } from './infrastructure/clients/milo/milo-client'
 import { ObjectStorageClient } from './infrastructure/clients/object-storage.client'
 import { PoleEmploiClient } from './infrastructure/clients/pole-emploi-client'
 import {
@@ -393,6 +393,7 @@ import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
 import { AdminController } from './infrastructure/routes/admin.controller'
 import { QueueTimeMiddleware } from './infrastructure/middlewares/queue-time.middleware'
+import { MiloClientUtils } from './infrastructure/clients/milo/milo-client-utils'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -459,6 +460,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RateLimiterService,
     PoleEmploiClient,
     MiloClient,
+    MiloClientUtils,
     ImmersionClient,
     EngagementClient,
     MatomoClient,

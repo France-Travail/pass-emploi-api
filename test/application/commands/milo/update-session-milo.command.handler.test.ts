@@ -13,7 +13,7 @@ import {
   EnvoyerEmailActivationCommandHandler
 } from '../../../../src/application/commands/milo/envoyer-email-activation.command.handler'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
-import { MiloClient } from '../../../../src/infrastructure/clients/milo-client'
+import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { unJeune } from '../../../fixtures/jeune.fixture'
 import Utilisateur = Authentification.Utilisateur
 
