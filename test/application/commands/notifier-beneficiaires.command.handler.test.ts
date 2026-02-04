@@ -50,7 +50,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           Core.Structure.POLE_EMPLOI_AIJ,
           Core.Structure.POLE_EMPLOI_BRSA
         ],
-        tagFeatureMigration: FeatureFlip.Tag.MIGRATION_PHASE_A,
+        phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15
@@ -74,7 +74,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
               Core.Structure.POLE_EMPLOI_AIJ,
               Core.Structure.POLE_EMPLOI_BRSA
             ],
-            tagFeatureMigration: FeatureFlip.Tag.MIGRATION_PHASE_A,
+            phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
             push: true,
             batchSize: 2000,
             minutesEntreLesBatchs: 15
