@@ -34,6 +34,7 @@ import { NotificationJeuneSqlModel } from './notification-jeune.sql-model'
 import { ComptageJeuneSqlModel } from './comptage-jeune.sql-model'
 import { FeedbackSqlModel } from './feedback.sql-model'
 import { FeatureFlipSqlModel } from './feature-flip.sql-model'
+import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 
 export const sqlModels = [
   ConseillerSqlModel,
@@ -71,5 +72,6 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
-  FeatureFlipSqlModel
+  FeatureFlipSqlModel,
+  ActualiteMiloSqlModel
 ]
