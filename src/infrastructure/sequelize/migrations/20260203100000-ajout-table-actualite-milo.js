@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('actualite_milo', {
+    await queryInterface.createTable('actualite', {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
@@ -18,15 +18,15 @@ module.exports = {
         },
         onDelete: 'CASCADE'
       },
+      nomPrenomConseiller: {
+        field: 'nom_prenom_conseiller',
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       idConseiller: {
         field: 'id_conseiller',
         type: Sequelize.STRING,
-        allowNull: false,
-        references: {
-          model: 'conseiller',
-          key: 'id'
-        },
-        onDelete: 'CASCADE'
+        allowNull: false
       },
       titre: {
         field: 'titre',
@@ -57,15 +57,20 @@ module.exports = {
         field: 'date_modification',
         type: Sequelize.DATE,
         allowNull: false
+      },
+      dateSuppression: {
+        field: 'date_suppression',
+        type: Sequelize.DATE,
+        allowNull: true
       }
     })
 
-    await queryInterface.addIndex('actualite_milo', ['id_structure_milo'], {
-      name: 'actualite_milo_id_structure_milo_idx'
+    await queryInterface.addIndex('actualite', ['id_structure_milo'], {
+      name: 'actualite_id_structure_milo_idx'
     })
   },
 
   down: async queryInterface => {
-    await queryInterface.dropTable('actualite_milo')
+    await queryInterface.dropTable('actualite')
   }
 }

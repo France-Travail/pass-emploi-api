@@ -13,6 +13,7 @@ import { ConseillerInterStructureMiloAuthorizer } from '../../authorizers/consei
 
 export interface CreateActualiteMiloCommand extends Command {
   idStructureMilo: string
+  nomPrenomConseiller: string
   titre: string
   contenu: string
   titreLien?: string
@@ -57,6 +58,7 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     const actualite = this.actualiteMiloFactory.creer({
       idStructureMilo: command.idStructureMilo,
       idConseiller: utilisateur.id,
+      nomPrenomConseiller: command.nomPrenomConseiller,
       titre: command.titre,
       contenu: command.contenu,
       titreLien: command.titreLien,

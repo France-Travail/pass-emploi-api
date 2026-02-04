@@ -33,6 +33,7 @@ export class ActualitesMiloController {
   ): Promise<ActualiteMiloQueryModel> {
     const command: CreateActualiteMiloCommand = {
       idStructureMilo,
+      nomPrenomConseiller: `${utilisateur.prenom} ${utilisateur.nom}`,
       titre: payload.titre,
       contenu: payload.contenu,
       titreLien: payload.titreLien,
@@ -58,6 +59,6 @@ function toActualiteMiloQueryModel(
     titreLien: actualite.titreLien,
     lien: actualite.lien,
     dateCreation: actualite.dateCreation.toISO(),
-    dateModification: actualite.dateModification.toISO()
+    dateModification: actualite.dateModification?.toISO()
   }
 }

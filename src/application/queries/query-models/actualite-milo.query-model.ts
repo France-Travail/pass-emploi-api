@@ -19,6 +19,6 @@ export class ActualiteMiloQueryModel {
   @ApiProperty()
   dateCreation: string
 
-  @ApiProperty()
-  dateModification: string
+  @ApiPropertyOptional()
+  dateModification?: string
 }

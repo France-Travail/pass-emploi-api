@@ -8,19 +8,22 @@ export const ActualiteMiloRepositoryToken = 'ActualiteMiloRepositoryToken'
 export interface ActualiteMilo {
   id: string
   idStructureMilo: string
+  nomPrenomConseiller: string
   idConseiller: string
   titre: string
   contenu: string
   titreLien?: string
   lien?: string
   dateCreation: DateTime
-  dateModification: DateTime
+  dateModification?: DateTime
+  dateSuppression?: DateTime
 }
 
 export namespace ActualiteMilo {
   export interface InfosCreation {
     idStructureMilo: string
     idConseiller: string
+    nomPrenomConseiller: string
     titre: string
     contenu: string
     titreLien?: string
@@ -49,13 +52,15 @@ export namespace ActualiteMilo {
       return {
         id: this.idService.uuid(),
         idStructureMilo: infosCreation.idStructureMilo,
+        nomPrenomConseiller: infosCreation.nomPrenomConseiller,
         idConseiller: infosCreation.idConseiller,
         titre: infosCreation.titre,
         contenu: infosCreation.contenu,
         titreLien: infosCreation.titreLien,
         lien: infosCreation.lien,
         dateCreation: maintenant,
-        dateModification: maintenant
+        dateModification: maintenant,
+        dateSuppression: undefined
       }
     }
   }

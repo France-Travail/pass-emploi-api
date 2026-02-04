@@ -8,7 +8,6 @@ import {
   Table
 } from 'sequelize-typescript'
 import { StructureMiloSqlModel } from './structure-milo.sql-model'
-import { ConseillerSqlModel } from './conseiller.sql-model'
 
 export class ActualiteMiloDto extends Model {
   @PrimaryKey
@@ -19,7 +18,9 @@ export class ActualiteMiloDto extends Model {
   @Column({ field: 'id_structure_milo', type: DataType.STRING })
   idStructureMilo: string
 
-  @ForeignKey(() => ConseillerSqlModel)
+  @Column({ field: 'nom_prenom_conseiller', type: DataType.STRING })
+  nomPrenomConseiller: string
+
   @Column({ field: 'id_conseiller', type: DataType.STRING })
   idConseiller: string
 
@@ -40,13 +41,13 @@ export class ActualiteMiloDto extends Model {
 
   @Column({ field: 'date_modification', type: DataType.DATE })
   dateModification: Date
+
+  @Column({ field: 'date_suppression', type: DataType.DATE })
+  dateSuppression: Date | null
 }
 
-@Table({ timestamps: false, tableName: 'actualite_milo' })
+@Table({ timestamps: false, tableName: 'actualite' })
 export class ActualiteMiloSqlModel extends ActualiteMiloDto {
   @BelongsTo(() => StructureMiloSqlModel)
   structure?: StructureMiloSqlModel
-
-  @BelongsTo(() => ConseillerSqlModel)
-  conseiller?: ConseillerSqlModel
 }

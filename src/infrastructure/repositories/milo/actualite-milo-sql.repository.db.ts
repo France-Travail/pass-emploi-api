@@ -12,6 +12,7 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
   async save(actualite: ActualiteMilo): Promise<void> {
     const dto: AsSql<ActualiteMiloDto> = {
       id: actualite.id,
+      nomPrenomConseiller: actualite.nomPrenomConseiller,
       idStructureMilo: actualite.idStructureMilo,
       idConseiller: actualite.idConseiller,
       titre: actualite.titre,
@@ -19,7 +20,8 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
       titreLien: actualite.titreLien ?? null,
       lien: actualite.lien ?? null,
       dateCreation: actualite.dateCreation.toJSDate(),
-      dateModification: actualite.dateModification.toJSDate()
+      dateModification: actualite.dateModification!.toJSDate(),
+      dateSuppression: actualite.dateSuppression?.toJSDate() ?? null
     }
     await ActualiteMiloSqlModel.upsert(dto)
   }
@@ -50,11 +52,17 @@ function toActualiteMilo(sqlModel: ActualiteMiloSqlModel): ActualiteMilo {
     id: sqlModel.id,
     idStructureMilo: sqlModel.idStructureMilo,
     idConseiller: sqlModel.idConseiller,
+    nomPrenomConseiller: sqlModel.nomPrenomConseiller,
     titre: sqlModel.titre,
     contenu: sqlModel.contenu,
     titreLien: sqlModel.titreLien ?? undefined,
     lien: sqlModel.lien ?? undefined,
     dateCreation: DateTime.fromJSDate(sqlModel.dateCreation),
-    dateModification: DateTime.fromJSDate(sqlModel.dateModification)
+    dateModification: sqlModel.dateModification
+      ? DateTime.fromJSDate(sqlModel.dateModification)
+      : undefined,
+    dateSuppression: sqlModel.dateSuppression
+      ? DateTime.fromJSDate(sqlModel.dateSuppression)
+      : undefined
   }
 }
