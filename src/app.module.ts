@@ -86,6 +86,7 @@ import { EnvoyerEmailActivationCommandHandler } from './application/commands/mil
 import { QualifierActionCommandHandler } from './application/commands/milo/qualifier-action.command.handler'
 import { QualifierActionsMiloCommandHandler } from './application/commands/milo/qualifier-actions-milo.command.handler'
 import { UpdateSessionMiloCommandHandler } from './application/commands/milo/update-session-milo.command.handler'
+import { CreateActualiteMiloCommandHandler } from './application/commands/milo/create-actualite-milo.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
 import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
@@ -263,6 +264,10 @@ import {
 } from './domain/jeune/jeune'
 import { Mail, MailRepositoryToken, MailServiceToken } from './domain/mail'
 import { ActionMiloRepositoryToken } from './domain/milo/action.milo'
+import {
+  ActualiteMilo,
+  ActualiteMiloRepositoryToken
+} from './domain/milo/actualite.milo'
 import { Conseiller, ConseillerRepositoryToken } from './domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from './domain/milo/conseiller.milo.db'
 import { EvenementMiloRepositoryToken } from './domain/milo/evenement.milo'
@@ -342,6 +347,7 @@ import { ActionMiloHttpRepository } from './infrastructure/repositories/milo/act
 import { ConseillerMiloSqlRepository } from './infrastructure/repositories/milo/conseiller.milo.repository.db'
 import { EvenementMiloHttpRepository } from './infrastructure/repositories/milo/evenement-milo-http.repository'
 import { MiloJeuneHttpSqlRepository } from './infrastructure/repositories/milo/jeune-milo-http-sql.repository.db'
+import { ActualiteMiloSqlRepository } from './infrastructure/repositories/milo/actualite-milo-sql.repository.db'
 import { RendezVousMiloHttpRepository } from './infrastructure/repositories/milo/rendez-vous-milo-http.repository'
 import { SessionMiloHttpSqlRepository } from './infrastructure/repositories/milo/session-milo-http-sql.repository.db'
 import { NotificationFirebaseSqlRepository } from './infrastructure/repositories/notification-firebase.repository.db'
@@ -384,6 +390,7 @@ import { ReferentielsController } from './infrastructure/routes/referentiels.con
 import { RendezVousController } from './infrastructure/routes/rendez-vous.controller'
 import { ServicesCiviqueController } from './infrastructure/routes/services-civique.controller'
 import { StructuresMiloController } from './infrastructure/routes/structures.milo.controller'
+import { ActualitesMiloController } from './infrastructure/routes/actualites.milo.controller'
 import { SupportController } from './infrastructure/routes/support.controller'
 import { databaseProviders } from './infrastructure/sequelize/providers'
 import { ChatCryptoService } from './utils/chat-crypto-service'
@@ -419,6 +426,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVousController,
     EtablissementsController,
     StructuresMiloController,
+    ActualitesMiloController,
     // Recherche
     OffresEmploiController,
     OffresImmersionController,
@@ -492,6 +500,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     Conseiller.ListeDeDiffusion.Factory,
     Conseiller.ListeDeDiffusion.Service,
     RendezVousMilo.Factory,
+    ActualiteMilo.Factory,
     DiagorienteClient,
     {
       provide: APP_GUARD,
@@ -644,6 +653,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: EvenementMiloRepositoryToken,
       useClass: EvenementMiloHttpRepository
+    },
+    {
+      provide: ActualiteMiloRepositoryToken,
+      useClass: ActualiteMiloSqlRepository
     },
     {
       provide: PoleEmploiPartenaireClientToken,
@@ -841,7 +854,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     GenerateDemarchesIACommandHandler,
     CreateFeedbackCommandHandler,
     UpdateFeatureFlipCommandHandler,
-    NotifierBeneficiairesCommandHandler
+    NotifierBeneficiairesCommandHandler,
+    CreateActualiteMiloCommandHandler
   ]
 }
 
