@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -57,6 +59,11 @@ import {
   QualifierActionsMiloPayload,
   UpdateSessionMiloPayload
 } from './validation/conseillers.milo.inputs'
+import { CreateActualiteMiloPayload } from './validation/actualites.milo.inputs'
+import {
+  CreateActualiteMiloCommand,
+  CreateActualiteMiloCommandHandler
+} from '../../application/commands/milo/create-actualite-milo.command.handler'
 
 @Controller()
 @CustomSwaggerApiOAuth2()
@@ -72,7 +79,8 @@ export class ConseillersMiloController {
     private readonly getJeuneMiloByDossierQueryHandler: GetJeuneMiloByDossierQueryHandler,
     private readonly creerJeuneMiloCommandHandler: CreerJeuneMiloCommandHandler,
     private readonly qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler,
-    private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler
+    private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler,
+    private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
   ) {}
   @ApiOperation({
     summary: "Récupère le dossier Milo d'un jeune",
@@ -342,6 +350,34 @@ export class ConseillersMiloController {
       },
       utilisateur
     )
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Crée une actualité pour la structure MILO du conseiller',
+    description: 'Autorisé pour un conseiller MILO de la structure'
+  })
+  @Post('conseillers/:idConseiller/actualites')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async createActualite(
+    @Param('idConseiller') idConseiller: string,
+    @Body() payload: CreateActualiteMiloPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const command: CreateActualiteMiloCommand = {
+      idConseiller,
+      prenomNomConseiller: `${utilisateur.prenom} ${utilisateur.nom}`,
+      titre: payload.titre,
+      contenu: payload.contenu,
+      titreLien: payload.titreLien,
+      lien: payload.lien
+    }
+
+    const result = await this.createActualiteMiloCommandHandler.execute(
+      command,
+      utilisateur
+    )
+
     return handleResult(result)
   }
 }

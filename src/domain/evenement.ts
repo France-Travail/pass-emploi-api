@@ -170,7 +170,8 @@ export namespace Evenement {
     RECHERCHE_ALTERNANCE_SUPPRIMEE = 'RECHERCHE_ALTERNANCE_SUPPRIMEE',
     RECHERCHE_IMMERSION_SUPPRIMEE = 'RECHERCHE_IMMERSION_SUPPRIMEE',
     RECHERCHE_SERVICE_CIVIQUE_SUPPRIMEE = 'RECHERCHE_SERVICE_CIVIQUE_SUPPRIMEE',
-    SUIVI_POLE_EMPLOI = 'SUIVI_POLE_EMPLOI'
+    SUIVI_POLE_EMPLOI = 'SUIVI_POLE_EMPLOI',
+    ACTUALITE_MILO_CREEE = 'ACTUALITE_MILO_CREEE'
   }
 
   export interface Repository {
@@ -886,6 +887,10 @@ const evenements: {
   [Evenement.Code.RECHERCHE_MESSAGE]: {
     categorie: 'Message',
     action: 'Recherche'
+  },
+  [Evenement.Code.ACTUALITE_MILO_CREEE]: {
+    categorie: 'Actualite',
+    action: 'Création'
   }
 }
 
