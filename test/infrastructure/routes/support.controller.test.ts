@@ -458,6 +458,22 @@ describe('SupportController', () => {
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)
       })
+      it("renvoie 400 quand le phaseDeMigration n'existe pas", async () => {
+        // Given
+        const payload = {
+          texte: 'Nouvelle notification !',
+          structures: ['MILO', 'POLE_EMPLOI'],
+          push: true,
+          phaseDeMigration: 'test'
+        }
+
+        // When - Then
+        await request(app.getHttpServer())
+          .post('/support/notifier-beneficiaires')
+          .send(payload)
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .expect(HttpStatus.BAD_REQUEST)
+      })
     })
     describe('quand la commande a échoué', () => {
       it("renvoie 400 quand l'erreur est de type MauvaiseCommandeError", async () => {
