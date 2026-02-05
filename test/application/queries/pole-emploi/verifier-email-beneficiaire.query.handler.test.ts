@@ -1,17 +1,16 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { failure, success } from 'src/building-blocks/types/result'
+import { success } from 'src/building-blocks/types/result'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
 import {
   VerifierEmailBeneficiaireFTQuery,
   VerifierEmailBeneficiaireQueryHandler
-} from '../../../../src/application/queries/pole-emploi/verifier-email-beneficaire.query.handler'
-import { Core, estFranceTravail } from '../../../../src/domain/core'
+} from '../../../../src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
+import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, stubClass } from '../../../utils'
-import { DroitsInsuffisants } from '../../../../src/building-blocks/types/domain-error'
 
 describe('VerifierEmailBeneficiaireQueryHandler', () => {
   let verifierEmailBeneficiaireQueryHandler: VerifierEmailBeneficiaireQueryHandler
@@ -66,7 +65,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       expect(result).to.deep.equal(success({ emailExistant: true }))
     })
 
-    it('renvoie une erreur pour droits insuffisants si le bénéficiaire du mail est conseiller départemental', async () => {
+    it('retourne un succès si le bénéficiaire du mail est conseiller départemental', async () => {
       // Given
       const query: VerifierEmailBeneficiaireFTQuery = {
         email: 'existant@test.com'
@@ -79,19 +78,19 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
 
       // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+      expect(result).to.deep.equal(success({ emailExistant: true }))
     })
   })
 
   describe('authorize', () => {
-    it('autorise un conseiller FT et MILO', async () => {
+    it('autorise un conseiller dont le bénéficiaire est FT connect', async () => {
       // Given
       const query: VerifierEmailBeneficiaireFTQuery = {
         email: 'test@test.com'
       }
 
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.CONSEIL_DEPT
       })
 
       // When
@@ -100,10 +99,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       // Then
       expect(
         conseillerAuthorizer.autoriserLeConseillerPourTous
-      ).to.have.been.calledWithExactly(
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
-      )
+      ).to.have.been.calledWithExactly(utilisateur, true)
     })
   })
 })

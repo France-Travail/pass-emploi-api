@@ -25,7 +25,7 @@ import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/m
 import { GetSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-sessions-conseiller.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
-import { VerifierEmailBeneficiaireQueryHandler } from 'src/application/queries/pole-emploi/verifier-email-beneficaire.query.handler'
+import { VerifierEmailBeneficiaireQueryHandler } from 'src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'

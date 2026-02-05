@@ -4,7 +4,7 @@ import * as request from 'supertest'
 import { StubbedClass, expect } from 'test/utils'
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
 import { CreerJeunePoleEmploiCommandHandler } from '../../../src/application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
-import { VerifierEmailBeneficiaireQueryHandler } from '../../../src/application/queries/pole-emploi/verifier-email-beneficaire.query.handler'
+import { VerifierEmailBeneficiaireQueryHandler } from '../../../src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
 import {
   CreateJeunePoleEmploiPayload,
   VerifierEmailBeneficiairePayload

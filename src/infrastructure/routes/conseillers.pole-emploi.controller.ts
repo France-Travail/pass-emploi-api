@@ -5,7 +5,7 @@ import { CreerJeunePoleEmploiCommandHandler } from '../../application/commands/p
 import {
   EmailBeneficiaireFTQueryModel,
   VerifierEmailBeneficiaireQueryHandler
-} from '../../application/queries/pole-emploi/verifier-email-beneficaire.query.handler'
+} from '../../application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
 import { Authentification } from '../../domain/authentification'
 import { Utilisateur } from '../decorators/authenticated.decorator'
