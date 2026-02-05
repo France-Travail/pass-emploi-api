@@ -1,12 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
-import { failure, Result, success } from '../../../building-blocks/types/result'
+import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { beneficiaireEstFTConnect } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import { estFranceTravail, estFranceTravailOuMilo } from '../../../domain/core'
-import { DroitsInsuffisants } from '../../../building-blocks/types/domain-error'
 
 export interface VerifierEmailBeneficiaireFTQuery extends Query {
   email: string
@@ -35,17 +34,9 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
     const lowerCaseEmail = query.email.trim().toLocaleLowerCase()
     const beneficiaire = await this.jeuneRepository.getByEmail(lowerCaseEmail)
 
-    if (!beneficiaire) {
-      return success({
-        emailExistant: false
-      })
-    } else if (estFranceTravailOuMilo(beneficiaire.structure)) {
-      return success({
-        emailExistant: true
-      })
-    }
-
-    return failure(new DroitsInsuffisants())
+    return success({
+      emailExistant: Boolean(beneficiaire)
+    })
   }
 
   async authorize(
@@ -54,7 +45,7 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseillerPourTous(
       utilisateur,
-      estFranceTravail(utilisateur.structure)
+      beneficiaireEstFTConnect(utilisateur.structure)
     )
   }
 
