@@ -156,8 +156,33 @@ describe('JeuneMiloHttpRepository', () => {
       })
     })
 
-    describe('quand il y a une erreur 4XX', () => {
-      it("renvoie l'erreur", async () => {
+    describe('quand il y a une erreur 400', () => {
+      it('renvoie le message custom', async () => {
+        // Given
+        nock('https://milo.com')
+          .get('/api-dossiers-cej/dossiers/1')
+          .reply(400, {
+            message: 'Bad Request'
+          })
+          .isDone()
+
+        // When
+        const dossier = await miloHttpSqlRepository.getDossier('1')
+
+        // Then
+        expect(dossier).to.deep.equal(
+          failure(
+            new ErreurHttp(
+              'Le numéro de dossier est incorrect. Renseignez un numéro. Exemple : 123456.',
+              400
+            )
+          )
+        )
+      })
+    })
+
+    describe('quand il y a une erreur 401-404', () => {
+      it("renvoie le message de l'API", async () => {
         // Given
         nock('https://milo.com')
           .get('/api-dossiers-cej/dossiers/1')
@@ -174,6 +199,39 @@ describe('JeuneMiloHttpRepository', () => {
           failure(new ErreurHttp('un message', 404))
         )
       })
+    })
+
+    describe('quand il y a une erreur 500', () => {
+      it('throw une RuntimeException', async () => {
+        // Given
+        nock('https://milo.com')
+          .get('/api-dossiers-cej/dossiers/1')
+          .reply(500, 'Internal Server Error')
+          .isDone()
+
+        // When
+        const promise = miloHttpSqlRepository.getDossier('1')
+
+        // Then
+        await expect(promise).to.be.rejected()
+      })
+    })
+
+    it('envoie le header X-Gravitee-Api-Key', async () => {
+      // Given
+      const scope = nock('https://milo.com')
+        .get('/api-dossiers-cej/dossiers/1')
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDossierCej
+        )
+        .reply(200, JSON.stringify(dossierDto()))
+
+      // When
+      await miloHttpSqlRepository.getDossier('1')
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
     })
   })
 
@@ -243,6 +301,23 @@ describe('JeuneMiloHttpRepository', () => {
   })
 
   describe('creerJeune', () => {
+    it('envoie le header X-Gravitee-Api-Key', async () => {
+      // Given
+      const scope = nock('https://milo.com')
+        .post('/sue/compte-jeune/1')
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyCreerJeune
+        )
+        .reply(204)
+
+      // When
+      await miloHttpSqlRepository.creerJeune('1')
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
     describe('quand le jeune est nouveau', () => {
       describe("l'api ne retourne pas de sub", () => {
         it("le crée chez Milo sans retourner l'id", async () => {
@@ -371,6 +446,21 @@ describe('JeuneMiloHttpRepository', () => {
             expect(dossier).to.deep.equal(
               failure(new ErreurHttp('le jeune est suivi par john', 422))
             )
+          })
+        })
+        describe('quand Milo renvoie une erreur 500', () => {
+          it('throw une RuntimeException', async () => {
+            // Given
+            nock('https://milo.com')
+              .post('/sue/compte-jeune/1')
+              .reply(500, 'Internal Server Error')
+              .isDone()
+
+            // When
+            const promise = miloHttpSqlRepository.creerJeune('1')
+
+            // Then
+            await expect(promise).to.be.rejected()
           })
         })
         describe('api pas en prod : pas de sub', () => {

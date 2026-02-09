@@ -27,7 +27,7 @@ describe('MiloHttpSqlRepository', () => {
   })
 
   describe('save', () => {
-    describe('quand Milo renvoie une erreur', () => {
+    describe('quand Milo renvoie une erreur 4XX', () => {
       it('renvoie une failure', async () => {
         // Given
         nock('https://milo.com')
@@ -47,18 +47,12 @@ describe('MiloHttpSqlRepository', () => {
       })
     })
 
-    describe('quand Milo est up and ready', () => {
-      it('crée une SNP', async () => {
+    describe('quand Milo renvoie une erreur 500', () => {
+      it('throw une exception', async () => {
         // Given
         nock('https://milo.com')
-          .post('/sue/dossiers/idDossier/situation', {
-            dateDebut: '2022-03-01',
-            dateFinReelle: '2022-03-01',
-            commentaire: 'Un commentaire',
-            mesure: 'SANTE',
-            loginConseiller: 'loginConseiller'
-          })
-          .reply(201)
+          .post('/sue/dossiers/idDossier/situation')
+          .reply(500, 'Internal Server Error')
           .isDone()
 
         // When
@@ -67,6 +61,36 @@ describe('MiloHttpSqlRepository', () => {
         )
 
         // Then
+        expect(result).to.deep.equal(
+          failure(new ErreurHttp('Erreur API MILO qualification', 500))
+        )
+      })
+    })
+
+    describe('quand Milo est up and ready', () => {
+      it('crée une SNP avec le bon body et le bon header', async () => {
+        // Given
+        const scope = nock('https://milo.com')
+          .post('/sue/dossiers/idDossier/situation', {
+            dateDebut: '2022-03-01',
+            dateFinReelle: '2022-03-01',
+            commentaire: 'Un commentaire',
+            mesure: 'SANTE',
+            loginConseiller: 'loginConseiller'
+          })
+          .matchHeader(
+            'X-Gravitee-Api-Key',
+            configService.get('milo').apiKeyDossier
+          )
+          .reply(201)
+
+        // When
+        const result = await repository.save(
+          uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
+        )
+
+        // Then
+        expect(scope.isDone()).to.equal(true)
         expect(result).to.deep.equal(emptySuccess())
       })
     })

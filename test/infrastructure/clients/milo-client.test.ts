@@ -2,7 +2,14 @@ import { HttpService } from '@nestjs/axios'
 import { expect } from 'chai'
 import { DateTime } from 'luxon'
 import * as nock from 'nock'
-import { emptySuccess, success } from 'src/building-blocks/types/result'
+import {
+  emptySuccess,
+  failure,
+  isFailure,
+  isSuccess,
+  success
+} from 'src/building-blocks/types/result'
+import { ErreurHttp } from 'src/building-blocks/types/domain-error'
 import { MiloClient } from 'src/infrastructure/clients/milo-client'
 import {
   unDetailSessionConseillerDto,
@@ -10,7 +17,8 @@ import {
   uneInscriptionSessionMiloDto,
   uneListeDeStructuresConseillerMiloDto,
   uneListeSessionsConseillerDto,
-  uneListeSessionsJeuneDto
+  uneListeSessionsJeuneDto,
+  uneStructureConseillerMiloDto
 } from 'test/fixtures/milo-dto.fixture'
 import { testConfig } from 'test/utils/module-for-testing'
 import {
@@ -44,6 +52,10 @@ describe('MiloClient', () => {
       rateLimiterService,
       dateService
     )
+  })
+
+  afterEach(() => {
+    nock.cleanAll()
   })
 
   describe('getSessionsConseiller', () => {
@@ -103,6 +115,71 @@ describe('MiloClient', () => {
         success(uneListeSessionsConseillerDto.sessions)
       )
     })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const idpToken = 'idpToken'
+      const idStructure = '1'
+
+      const scope = nock(MILO_BASE_URL)
+        .get(
+          `/operateurs/structures/${idStructure}/sessions?taillePage=150&rechercheInscrits=true`
+        )
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeySessionsListeConseiller
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .matchHeader('Authorization', `Bearer ${idpToken}`)
+        .reply(200, uneListeSessionsConseillerDto)
+
+      // When
+      await miloClient.getSessionsConseillerParStructure(
+        idpToken,
+        idStructure,
+        'America/Cayenne',
+        { periode: {} }
+      )
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie une failure quand Milo renvoie 400', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(/\/operateurs\/structures\/1\/sessions/)
+        .reply(400, { message: 'Bad Request' })
+
+      // When
+      const result = await miloClient.getSessionsConseillerParStructure(
+        'idpToken',
+        '1',
+        'America/Cayenne',
+        { periode: {} }
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(/\/operateurs\/structures\/1\/sessions/)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getSessionsConseillerParStructure(
+        'idpToken',
+        '1',
+        'America/Cayenne',
+        { periode: {} }
+      )
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
   })
 
   describe('getSessionsJeune', () => {
@@ -152,6 +229,38 @@ describe('MiloClient', () => {
 
       // Then
       expect(result).to.deep.equal(success(uneListeSessionsJeuneDto.sessions))
+    })
+
+    it('renvoie une failure quand Milo renvoie 400', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(/\/operateurs\/sessions/)
+        .reply(400, { message: 'Bad Request' })
+
+      // When
+      const result = await miloClient.getSessionsParDossierJeune(
+        'idpToken',
+        'idDossier'
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(/\/operateurs\/sessions/)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getSessionsParDossierJeune(
+        'idpToken',
+        'idDossier'
+      )
+
+      // Then
+      await expect(promise).to.be.rejected()
     })
   })
 
@@ -206,7 +315,7 @@ describe('MiloClient', () => {
   })
 
   describe('getDetailSessionConseiller', () => {
-    it('recupere le detail d’une sessions milo', async () => {
+    it("recupere le detail d'une sessions milo", async () => {
       // Given
       const idpToken = 'idpToken'
       const idSession = '1'
@@ -224,10 +333,39 @@ describe('MiloClient', () => {
       // Then
       expect(result).to.deep.equal(success(unDetailSessionConseillerDto))
     })
+
+    it('renvoie une failure quand Milo renvoie 404', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/operateurs/sessions/1')
+        .reply(404, { message: 'Not Found' })
+
+      // When
+      const result = await miloClient.getDetailSessionConseiller(
+        'idpToken',
+        '1'
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/operateurs/sessions/1')
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getDetailSessionConseiller('idpToken', '1')
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
   })
 
   describe('getDetailSessionJeune', () => {
-    it('recupere le detail d’une sessions milo', async () => {
+    it("recupere le detail d'une sessions milo", async () => {
       // Given
       const idpToken = 'idpToken'
       const idSession = '1'
@@ -269,6 +407,24 @@ describe('MiloClient', () => {
         })
       )
     })
+
+    it('renvoie une failure quand le detail renvoie 404', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/operateurs/sessions/1')
+        .reply(404, { message: 'Not Found' })
+
+      // When
+      const result = await miloClient.getDetailSessionJeune(
+        'idpToken',
+        '1',
+        'id-dossier',
+        'America/Cayenne'
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
   })
 
   describe('getStructureConseiller', () => {
@@ -288,10 +444,25 @@ describe('MiloClient', () => {
         success(uneListeDeStructuresConseillerMiloDto[1])
       )
     })
+
+    it('renvoie une failure quand aucune structure principale', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/operateurs/utilisateurs/moi/structures')
+        .reply(200, [uneStructureConseillerMiloDto({ principale: false })])
+
+      // When
+      const result = await miloClient.getStructureConseiller('idpToken')
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp('Structure Milo principale introuvable', 404))
+      )
+    })
   })
 
   describe('getListeInscritsSessionConseillers', () => {
-    it('recupere les inscrits d’une sessions milo', async () => {
+    it("recupere les inscrits d'une sessions milo", async () => {
       // Given
       const idpToken = 'idpToken'
       const idSession = '1'
@@ -309,9 +480,89 @@ describe('MiloClient', () => {
       // Then
       expect(result).to.deep.equal(success([uneInscriptionSessionMiloDto()]))
     })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/operateurs/sessions/1/inscrits')
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getListeInscritsSession('idpToken', '1')
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
   })
 
   describe('inscrireJeunesSession', () => {
+    it('renvoie une failure et arrête la boucle quand une inscription échoue', async () => {
+      // Given
+      const idSession = 'id-session'
+      const idsDossier = ['id-dossier-1', 'id-dossier-2']
+
+      nock(MILO_BASE_URL)
+        .post(
+          `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+          JSON.stringify(idSession)
+        )
+        .reply(400, { message: 'Erreur inscription' })
+
+      const scope2 = nock(MILO_BASE_URL)
+        .post(
+          `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
+          JSON.stringify(idSession)
+        )
+        .reply(201, {
+          id: 'inst2',
+          idDossier: idsDossier[1],
+          idSession,
+          statut: 'test'
+        })
+
+      // When
+      const result = await miloClient.inscrireJeunesSession(
+        'idpToken',
+        idSession,
+        idsDossier
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect(scope2.isDone()).to.equal(false)
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const idSession = 'id-session'
+      const idsDossier = ['id-dossier-1']
+
+      const scope = nock(MILO_BASE_URL)
+        .post(
+          `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
+          JSON.stringify(idSession)
+        )
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyInstanceSessionEcritureConseiller
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .matchHeader('Authorization', 'Bearer idpToken')
+        .matchHeader('Content-Type', 'application/json')
+        .reply(201, {
+          id: 'inst1',
+          idDossier: idsDossier[0],
+          idSession,
+          statut: 'test'
+        })
+
+      // When
+      await miloClient.inscrireJeunesSession('idpToken', idSession, idsDossier)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
     it('inscrit chaque jeune à la session', async () => {
       // Given
       const idSession = 'id-session'
@@ -388,6 +639,29 @@ describe('MiloClient', () => {
   })
 
   describe('desinscrireJeunesSession', () => {
+    it('renvoie une failure quand une désinscription échoue', async () => {
+      // Given
+      const aDesinscrire = [
+        { idDossier: 'id-dossier-1', idInstanceSession: 'id-inscription-1' },
+        { idDossier: 'id-dossier-2', idInstanceSession: 'id-inscription-2' }
+      ]
+
+      nock(MILO_BASE_URL)
+        .delete(
+          `/operateurs/dossiers/${aDesinscrire[0].idDossier}/instances-session/${aDesinscrire[0].idInstanceSession}`
+        )
+        .reply(400, { message: 'Erreur' })
+
+      // When
+      const result = await miloClient.desinscrireJeunesSession(
+        'idpToken',
+        aDesinscrire
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
     it('désinscrit chaque jeune de la session', async () => {
       // Given
       const aDesinscrire = [
@@ -427,6 +701,33 @@ describe('MiloClient', () => {
   })
 
   describe('modifierInscriptionJeunesSession', () => {
+    it('renvoie une failure quand une modification échoue', async () => {
+      // Given
+      const aModifier = [
+        {
+          idDossier: 'id-dossier-1',
+          idInstanceSession: 'id-inscription-1',
+          statut: MILO_INSCRIT
+        }
+      ]
+
+      nock(MILO_BASE_URL)
+        .put(
+          `/operateurs/dossiers/${aModifier[0].idDossier}/instances-session/${aModifier[0].idInstanceSession}`,
+          { statut: MILO_INSCRIT }
+        )
+        .reply(400, { message: 'Erreur modification' })
+
+      // When
+      const result = await miloClient.modifierInscriptionJeunesSession(
+        'idpToken',
+        aModifier
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
     it('modifie les inscriptions de chaque jeune à la session', async () => {
       // Given
       const aModifier = [
@@ -491,6 +792,48 @@ describe('MiloClient', () => {
       expect(scope3.isDone()).to.equal(true)
       expect(scope4.isDone()).to.equal(true)
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('envoyerEmailActivation', () => {
+    it("envoie un email d'activation", async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .put('/sue/sendVerifyEmail', 'test@example.com')
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyEnvoiEmail
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .matchHeader('Authorization', 'Bearer idpToken')
+        .matchHeader('Content-Type', 'text/plain')
+        .reply(200)
+
+      // When
+      const result = await miloClient.envoyerEmailActivation(
+        'idpToken',
+        'test@example.com'
+      )
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+
+    it('renvoie une failure quand Milo renvoie une erreur', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .put('/sue/sendVerifyEmail', 'test@example.com')
+        .reply(400, { message: 'Erreur envoi email' })
+
+      // When
+      const result = await miloClient.envoyerEmailActivation(
+        'idpToken',
+        'test@example.com'
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
     })
   })
 })

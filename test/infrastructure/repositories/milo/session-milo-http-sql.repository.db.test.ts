@@ -107,7 +107,7 @@ describe('SessionMiloHttpSqlRepository', () => {
       })
     })
 
-    describe('quand elle n’existe pas', () => {
+    describe("quand elle n'existe pas", () => {
       it('renvoie undefined', async () => {
         // Given
         nock('https://milo.com')
@@ -124,6 +124,49 @@ describe('SessionMiloHttpSqlRepository', () => {
         // Then
         expect(resultat).to.be.undefined()
       })
+    })
+
+    describe('quand Milo renvoie une erreur 500', () => {
+      it('throw une exception', async () => {
+        // Given
+        nock('https://milo.com')
+          .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+          .reply(500, 'Internal Server Error')
+
+        // When
+        const promise = repository.findInstanceSession(idInstance, idDossier)
+
+        // Then
+        await expect(promise).to.be.rejected()
+      })
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock('https://milo.com')
+        .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDetailRendezVous
+        )
+        .matchHeader('operateur', 'applicationcej')
+        .reply(200, {
+          lieu: 'la',
+          nom: 'test',
+          idSession: '123456',
+          id: idInstance,
+          dateHeureDebut: '2020-10-06 10:00:00',
+          dateHeureFin: '2020-10-06 12:00:00',
+          idDossier: idDossier,
+          commentaire: 'commentaire',
+          statut: 'Prescrit'
+        })
+
+      // When
+      await repository.findInstanceSession(idInstance, idDossier)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
     })
   })
 

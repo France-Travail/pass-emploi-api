@@ -66,6 +66,43 @@ describe('MiloEvenementsHttpRepository', () => {
         })
         expect(resultat).to.deep.equal(expected)
       })
+
+      it('envoie les bons headers', async () => {
+        // Given
+        const scope = nock('https://milo.com')
+          .get(
+            `/operateurs/dossiers/${idPartenaireBeneficiaire}/rdv/${idObjet}`
+          )
+          .matchHeader(
+            'X-Gravitee-Api-Key',
+            configService.get('milo').apiKeyDetailRendezVous
+          )
+          .matchHeader('operateur', 'applicationcej')
+          .reply(200, {
+            id: idObjet,
+            dateHeureDebut: '2020-10-06 10:00:00',
+            dateHeureFin: '2020-10-06 12:00:00',
+            objet: 'Test RDV',
+            conseiller: 'SIMILO SIMILO',
+            idDossier: idPartenaireBeneficiaire,
+            commentaire: '',
+            type: 'Téléphone',
+            statut: 'Planifié',
+            lieu: 'new'
+          })
+
+        // When
+        await repository.findRendezVousByEvenement(
+          unEvenementMilo({
+            idObjet: idObjet.toString(),
+            objet: EvenementMilo.ObjetEvenement.RENDEZ_VOUS,
+            idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString()
+          })
+        )
+
+        // Then
+        expect(scope.isDone()).to.equal(true)
+      })
     })
     describe('quand il n’existe pas', () => {
       it('renvoie undefined', async () => {
@@ -88,6 +125,28 @@ describe('MiloEvenementsHttpRepository', () => {
 
         // Then
         expect(resultat).to.be.undefined()
+      })
+    })
+    describe('quand Milo renvoie une erreur 500', () => {
+      it('throw une exception', async () => {
+        // Given
+        nock('https://milo.com')
+          .get(
+            `/operateurs/dossiers/${idPartenaireBeneficiaire}/rdv/${idObjet}`
+          )
+          .reply(500, 'Internal Server Error')
+
+        // When
+        const promise = repository.findRendezVousByEvenement(
+          unEvenementMilo({
+            idObjet: idObjet.toString(),
+            objet: EvenementMilo.ObjetEvenement.RENDEZ_VOUS,
+            idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString()
+          })
+        )
+
+        // Then
+        await expect(promise).to.be.rejected()
       })
     })
     describe("quand l'evenement est du mauvais type", () => {
