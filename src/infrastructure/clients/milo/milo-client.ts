@@ -1,128 +1,50 @@
-import { HttpStatus, Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { MILO_DATE_FORMAT } from 'src/application/queries/query-mappers/milo.mappers'
-import {
-  ErreurHttp,
-  ErreurMiloHttp
-} from 'src/building-blocks/types/domain-error'
-import {
-  emptySuccess,
-  failure,
-  isFailure,
-  isSuccess,
-  Result,
-  success
-} from 'src/building-blocks/types/result'
-import { DateService } from '../../../utils/date-service'
-import { RateLimiterService } from '../../../utils/rate-limiter.service'
-import {
-  InscrireJeuneSessionDto,
-  InscritSessionMiloDto,
-  ListeSessionsConseillerMiloDto,
-  ListeSessionsJeuneMiloDto,
-  SessionConseillerDetailDto,
-  SessionJeuneDetailDto,
-  SessionParDossierJeuneDto,
-  StructureConseillerMiloDto
-} from '../dto/milo.dto'
-import { MiloClientUtils } from './milo-client-utils'
+import { Context, ContextKey } from 'src/building-blocks/context'
+import { Result } from 'src/building-blocks/types/result'
+import { Authentification } from '../../../domain/authentification'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import {
-  DossierMiloDto,
   EvenementMiloDto,
   InstanceSessionMiloDto,
   RendezVousMiloDto
 } from '../../repositories/dto/milo.dto'
-
-export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
+import {
+  InscrireJeuneSessionDto,
+  InscritSessionMiloDto,
+  SessionConseillerDetailDto,
+  SessionParDossierJeuneDto,
+  StructureConseillerMiloDto
+} from '../dto/milo.dto'
+import { MiloClientPort } from './milo-client-port'
+import { MiloClientV1 } from './milo-client-v1'
+import { MiloClientV2 } from './milo-client-v2'
 
 @Injectable()
-export class MiloClient {
-  private readonly apiKeyDossierCej: string
-  private readonly apiKeyCreerJeune: string
-  private readonly apiKeySessionsListeConseiller: string
-  private readonly apiKeySessionsDetailEtListeJeune: string
-  private readonly apiKeySessionDetailConseiller: string
-  private readonly apiKeyInstanceSessionEcritureConseiller: string
-  private readonly apiKeyEnvoiEmail: string
-  private readonly apiKeyUtilisateurs: string
-  private readonly apiKeyDossier: string
-  private readonly apiKeyEvents: string
-  private readonly apiKeyDetailRendezVous: string
+export class MiloClient implements MiloClientPort {
+  private readonly apiV2Enabled: boolean
+  private readonly emailsConseillersV2: string[]
+  private readonly logger: Logger
 
   constructor(
-    private readonly miloClientUtils: MiloClientUtils,
     private readonly configService: ConfigService,
-    private readonly rateLimiterService: RateLimiterService,
-    private readonly dateService: DateService
+    private readonly miloClientV1: MiloClientV1,
+    private readonly miloClientV2: MiloClientV2,
+    private readonly context: Context
   ) {
-    this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
-    this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
-    this.apiKeySessionsListeConseiller =
-      this.configService.get('milo').apiKeySessionsListeConseiller
-    this.apiKeySessionsDetailEtListeJeune =
-      this.configService.get('milo').apiKeySessionsDetailEtListeJeune
-    this.apiKeySessionDetailConseiller =
-      this.configService.get('milo').apiKeySessionDetailConseiller
-    this.apiKeyInstanceSessionEcritureConseiller =
-      this.configService.get('milo').apiKeyInstanceSessionEcritureConseiller
-    this.apiKeyUtilisateurs = this.configService.get('milo').apiKeyUtilisateurs
-    this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
-    this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
-    this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
-    this.apiKeyDetailRendezVous =
-      this.configService.get('milo').apiKeyDetailRendezVous
+    this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
+    this.emailsConseillersV2 =
+      this.configService.get('milo').emailsConseillersV2
+    this.logger = new Logger('MiloClient')
   }
 
   /* ************ */
   /* API DOSSIERS */
   /* ************ */
-  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
-    await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const result = await this.miloClientUtils.get<DossierMiloDto>(
-      `api-dossiers-cej/dossiers/${idDossier}`,
-      {
-        apiKey: this.apiKeyDossierCej
-      }
-    )
-    if (isFailure(result)) {
-      const erreurHttp = result.error as ErreurMiloHttp
-      if (erreurHttp.statusCode === 400)
-        return failure(
-          new ErreurHttp(
-            'Le numéro de dossier est incorrect. Renseignez un numéro. Exemple : 123456.',
-            erreurHttp.statusCode
-          )
-        )
-      if (
-        erreurHttp.statusCode > HttpStatus.BAD_REQUEST &&
-        erreurHttp.statusCode <= HttpStatus.NOT_FOUND
-      ) {
-        return result
-      }
-      throw result.error
-    }
 
-    return success({
-      id: idDossier,
-      prenom: result.data.prenom,
-      nom: result.data.nomUsage,
-      email: result.data.mail ?? undefined,
-      codePostal: result.data.adresse?.codePostal ?? '',
-      dateDeNaissance: result.data.dateNaissance,
-      dateFinCEJ: DateService.fromStringToDateTime(
-        result.data.accompagnementCEJ.dateFinPrevue
-      ),
-      situations: result.data.situationsCEJ.map(situation => {
-        return {
-          etat: situation.etat,
-          categorie: situation.categorieSituation,
-          dateFin: situation.dateFin ?? undefined
-        }
-      }),
-      codeStructure: result.data.structureRattachement?.codeStructure
-    })
+  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
+    return this.getClient().getDossier(idDossier)
   }
 
   async creerSituationDossier(
@@ -135,73 +57,26 @@ export class MiloClient {
       loginConseiller: string
     }
   ): Promise<Result> {
-    await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return await this.miloClientUtils.post(
-      `sue/dossiers/${idDossier}/situation`,
-      body,
-      { apiKey: this.apiKeyDossier }
-    )
+    return this.getClient().creerSituationDossier(idDossier, body)
   }
 
   /* ********* */
   /* API JEUNE */
   /* ********* */
+
   async creerJeune(
     idDossier: string,
     surcharge?: boolean
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
   > {
-    let response
-    response = surcharge
-      ? await this.miloClientUtils.put<string>(
-          `sue/compte-jeune/surcharge/${idDossier}`,
-          {},
-          { apiKey: this.apiKeyCreerJeune }
-        )
-      : await this.miloClientUtils.post<string>(
-          `sue/compte-jeune/${idDossier}`,
-          {},
-          { apiKey: this.apiKeyCreerJeune }
-        )
-
-    if (isSuccess(response)) {
-      if (surcharge && !response.data) {
-        response = await this.miloClientUtils.post<string>(
-          `sue/compte-jeune/${idDossier}`,
-          {},
-          { apiKey: this.apiKeyCreerJeune }
-        )
-      }
-      if (isSuccess(response)) {
-        return success({
-          idAuthentification: response.data || undefined,
-          existeDejaChezMilo: false
-        })
-      }
-    }
-    const erreurHttp = response.error as ErreurMiloHttp
-    if (erreurHttp.codeMilo === 'SUE_ACCOUNT_EXISTING_OTHER_ML') {
-      return failure(new ErreurMiloHttp(erreurHttp.message, 422))
-    }
-
-    if (erreurHttp.statusCode >= 400 && erreurHttp.statusCode <= 404) {
-      if (erreurHttp.codeMilo === 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT') {
-        if (erreurHttp.idKeycloak) {
-          return success({
-            idAuthentification: erreurHttp.idKeycloak,
-            existeDejaChezMilo: true
-          })
-        }
-      }
-    }
-
-    return response
+    return this.getClient().creerJeune(idDossier, surcharge)
   }
 
   /* ************ */
   /* API SESSIONS */
   /* ************ */
+
   async getSessionsConseillerParStructure(
     idpToken: string,
     idStructure: string,
@@ -210,51 +85,12 @@ export class MiloClient {
       periode: { debut?: DateTime; fin?: DateTime }
     }
   ): Promise<Result<SessionConseillerDetailDto[]>> {
-    const params = new URLSearchParams()
-    params.append('taillePage', TAILLE_PAGE_MAX_APIS_MILO.toString())
-    params.append('rechercheInscrits', 'true')
-    if (options.periode.debut) {
-      const debutRecherche = options.periode.debut.setZone(timezone)
-      params.append('dateDebutRecherche', debutRecherche.toISODate())
-    }
-    if (options.periode.fin) {
-      const finRecherche = options.periode.fin.setZone(timezone)
-      params.append('dateFinRecherche', finRecherche.toISODate())
-    }
-
-    await this.rateLimiterService.sessionsStructureMiloRateLimiter.attendreLaProchaineDisponibilite()
-
-    // On assure jusqu'à 300 résultats
-    const sessions: SessionConseillerDetailDto[] = []
-    const dtoResult =
-      await this.miloClientUtils.get<ListeSessionsConseillerMiloDto>(
-        `operateurs/structures/${idStructure}/sessions`,
-        {
-          apiKey: this.apiKeySessionsListeConseiller,
-          idpToken
-        },
-        params
-      )
-    if (isFailure(dtoResult)) {
-      return dtoResult
-    }
-    sessions.push(...dtoResult.data.sessions)
-    if (dtoResult.data.sessions.length >= TAILLE_PAGE_MAX_APIS_MILO) {
-      params.append('page', '2')
-      const dtoPage2Result =
-        await this.miloClientUtils.get<ListeSessionsConseillerMiloDto>(
-          `operateurs/structures/${idStructure}/sessions`,
-          {
-            apiKey: this.apiKeySessionsListeConseiller,
-            idpToken
-          },
-          params
-        )
-      if (isSuccess(dtoPage2Result)) {
-        sessions.push(...dtoPage2Result.data.sessions)
-      }
-    }
-    return success(sessions)
+    return this.getClient().getSessionsConseillerParStructure(
+      idpToken,
+      idStructure,
+      timezone,
+      options
+    )
   }
 
   async getSessionsParDossierJeune(
@@ -262,11 +98,9 @@ export class MiloClient {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    await this.rateLimiterService.sessionsJeuneMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.recupererSessionsParDossierJeune(
+    return this.getClient().getSessionsParDossierJeune(
       idpToken,
       idDossier,
-      this.apiKeySessionsDetailEtListeJeune,
       periode
     )
   }
@@ -276,11 +110,9 @@ export class MiloClient {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.recupererSessionsParDossierJeune(
+    return this.getClient().getSessionsParDossierJeunePourConseiller(
       idpToken,
       idDossier,
-      this.apiKeySessionDetailConseiller,
       periode
     )
   }
@@ -289,14 +121,7 @@ export class MiloClient {
     idpToken: string,
     idSession: string
   ): Promise<Result<SessionConseillerDetailDto>> {
-    await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.miloClientUtils.get<SessionConseillerDetailDto>(
-      `operateurs/sessions/${idSession}`,
-      {
-        apiKey: this.apiKeySessionDetailConseiller,
-        idpToken
-      }
-    )
+    return this.getClient().getDetailSessionConseiller(idpToken, idSession)
   }
 
   async getDetailSessionJeune(
@@ -305,54 +130,19 @@ export class MiloClient {
     idDossier: string,
     timezone: string
   ): Promise<Result<SessionParDossierJeuneDto>> {
-    await this.rateLimiterService.sessionsJeuneMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const resultDetail = await this.miloClientUtils.get<SessionJeuneDetailDto>(
-      `operateurs/sessions/${idSession}`,
-      {
-        apiKey: this.apiKeySessionsDetailEtListeJeune,
-        idpToken
-      }
-    )
-    if (isFailure(resultDetail)) {
-      return resultDetail
-    }
-    const detailSessionDto = resultDetail.data
-    const dateSession = DateTime.fromFormat(
-      detailSessionDto.session.dateHeureDebut,
-      MILO_DATE_FORMAT,
-      { zone: timezone }
-    )
-
-    const resultSessionsParDossier = await this.getSessionsParDossierJeune(
+    return this.getClient().getDetailSessionJeune(
       idpToken,
+      idSession,
       idDossier,
-      { debut: dateSession, fin: dateSession }
+      timezone
     )
-    if (isFailure(resultSessionsParDossier)) {
-      return resultSessionsParDossier
-    }
-    const dtoAvecInscription = resultSessionsParDossier.data.find(
-      session => session.session.id.toString() === idSession
-    )
-
-    return success({
-      ...detailSessionDto,
-      sessionInstance: dtoAvecInscription?.sessionInstance
-    })
   }
 
   async getListeInscritsSession(
     idpToken: string,
     idSession: string
   ): Promise<Result<InscritSessionMiloDto[]>> {
-    await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.miloClientUtils.get<InscritSessionMiloDto[]>(
-      `operateurs/sessions/${idSession}/inscrits`,
-      {
-        apiKey: this.apiKeySessionDetailConseiller,
-        idpToken
-      }
-    )
+    return this.getClient().getListeInscritsSession(idpToken, idSession)
   }
 
   async inscrireJeunesSession(
@@ -360,42 +150,18 @@ export class MiloClient {
     idSession: string,
     idsDossier: string[]
   ): Promise<Result<InscrireJeuneSessionDto[]>> {
-    const dto: InscrireJeuneSessionDto[] = []
-    for (const idDossier of idsDossier) {
-      const result = await this.miloClientUtils.post<InscrireJeuneSessionDto>(
-        `operateurs/dossiers/${idDossier}/instances-session`,
-        idSession,
-        {
-          apiKey: this.apiKeyInstanceSessionEcritureConseiller,
-          idpToken
-        }
-      )
-      if (isFailure(result)) {
-        return result
-      }
-      if (result.data) {
-        dto.push(result.data)
-      }
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-
-    return success(dto)
+    return this.getClient().inscrireJeunesSession(
+      idpToken,
+      idSession,
+      idsDossier
+    )
   }
 
   async desinscrireJeunesSession(
     idpToken: string,
     desinscriptions: Array<{ idDossier: string; idInstanceSession: string }>
   ): Promise<Result> {
-    for (const desinscription of desinscriptions) {
-      const result = await this.miloClientUtils.delete(
-        `operateurs/dossiers/${desinscription.idDossier}/instances-session/${desinscription.idInstanceSession}`,
-        { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
-      )
-      if (isFailure(result)) return result
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-
-    return emptySuccess()
+    return this.getClient().desinscrireJeunesSession(idpToken, desinscriptions)
   }
 
   async modifierInscriptionJeunesSession(
@@ -408,121 +174,27 @@ export class MiloClient {
       dateDebutReelle?: string
     }>
   ): Promise<Result> {
-    for (const modification of modifications) {
-      const result = await this.miloClientUtils.put(
-        `operateurs/dossiers/${modification.idDossier}/instances-session/${modification.idInstanceSession}`,
-        {
-          statut: modification.statut,
-          commentaire: modification.commentaire,
-          dateDebutReelle: modification.dateDebutReelle
-        },
-        { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
-      )
-      if (isFailure(result)) return result
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-
-    return emptySuccess()
+    return this.getClient().modifierInscriptionJeunesSession(
+      idpToken,
+      modifications
+    )
   }
 
   async getInstanceSession(
     idInstance: string,
     idDossier: string
   ): Promise<Result<InstanceSessionMiloDto>> {
-    await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const result = await this.miloClientUtils.get<InstanceSessionMiloDto>(
-      `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
-      { apiKey: this.apiKeyDetailRendezVous },
-      undefined,
-      'applicationcej'
-    )
-    if (
-      isFailure(result) &&
-      (result.error as ErreurMiloHttp).statusCode !== HttpStatus.NOT_FOUND
-    ) {
-      throw result.error
-    }
-    return result
-  }
-
-  private async recupererSessionsParDossierJeune(
-    idpToken: string,
-    idDossier: string,
-    apiKey: string,
-    periode?: { debut?: DateTime; fin?: DateTime }
-  ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    const params = new URLSearchParams()
-    params.append('idDossier', idDossier)
-    params.append('taillePage', TAILLE_PAGE_MAX_APIS_MILO.toString())
-    if (periode?.debut) {
-      params.append('dateDebutRecherche', periode.debut.toISODate())
-    }
-
-    let fin = periode?.fin
-    if (!fin) {
-      const debut = periode?.debut ?? this.dateService.now()
-      fin = debut.plus({ months: 3 })
-    }
-    params.append('dateFinRecherche', fin.toISODate())
-
-    // On assure jusqu'à 300 résultats
-    const sessions: SessionParDossierJeuneDto[] = []
-    const dtoResult = await this.miloClientUtils.get<ListeSessionsJeuneMiloDto>(
-      `operateurs/sessions`,
-      {
-        apiKey,
-        idpToken
-      },
-      params
-    )
-    if (isFailure(dtoResult)) {
-      return dtoResult
-    }
-    sessions.push(...dtoResult.data.sessions)
-    if (dtoResult.data.sessions.length >= TAILLE_PAGE_MAX_APIS_MILO) {
-      params.append('page', '2')
-      const dtoPage2Result =
-        await this.miloClientUtils.get<ListeSessionsJeuneMiloDto>(
-          `operateurs/sessions`,
-          {
-            apiKey,
-            idpToken
-          },
-          params
-        )
-      if (isSuccess(dtoPage2Result)) {
-        sessions.push(...dtoPage2Result.data.sessions)
-      }
-    }
-    return success(sessions)
+    return this.getClient().getInstanceSession(idInstance, idDossier)
   }
 
   /* **************** */
   /* API UTILISATEURS */
   /* **************** */
+
   async getStructureConseiller(
     idpToken: string
   ): Promise<Result<StructureConseillerMiloDto>> {
-    await this.rateLimiterService.structuresMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const resultStructures = await this.miloClientUtils.get<
-      StructureConseillerMiloDto[]
-    >(`operateurs/utilisateurs/moi/structures`, {
-      apiKey: this.apiKeyUtilisateurs,
-      idpToken
-    })
-
-    if (isFailure(resultStructures)) {
-      return resultStructures
-    }
-    const structurePrincipale = resultStructures.data.find(
-      structureMilo => structureMilo.principale
-    )
-    if (!structurePrincipale) {
-      return failure(
-        new ErreurMiloHttp('Structure Milo principale introuvable', 404)
-      )
-    }
-    return success(structurePrincipale)
+    return this.getClient().getStructureConseiller(idpToken)
   }
 
   /* ******* */
@@ -533,52 +205,54 @@ export class MiloClient {
     idDossier: string,
     idRendezVous: string
   ): Promise<Result<RendezVousMiloDto>> {
-    await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const result = await this.miloClientUtils.get<RendezVousMiloDto>(
-      `operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`,
-      { apiKey: this.apiKeyDetailRendezVous },
-      undefined,
-      'applicationcej'
-    )
-    if (
-      isFailure(result) &&
-      (result.error as ErreurMiloHttp).statusCode !== HttpStatus.NOT_FOUND
-    ) {
-      throw result.error
-    }
-    return result
+    return this.getClient().getRendezVous(idDossier, idRendezVous)
   }
 
   /* *************** */
   /* API EVENEMENTS  */
   /* *************** */
+
   async getEvenements(): Promise<Result<EvenementMiloDto[]>> {
-    await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.miloClientUtils.get<EvenementMiloDto[]>(
-      `api-evenements/events`,
-      { apiKey: this.apiKeyEvents }
-    )
+    return this.getClient().getEvenements()
   }
 
   async acquitterEvenement(idEvenement: string): Promise<Result> {
-    await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return await this.miloClientUtils.post(
-      `api-evenements/events/${idEvenement}/ack`,
-      {},
-      { apiKey: this.apiKeyEvents }
-    )
+    return this.getClient().acquitterEvenement(idEvenement)
   }
 
   /* ******** */
   /* API MAIL */
   /********** */
+
   async envoyerEmailActivation(
     idpToken: string,
     email: string
   ): Promise<Result> {
-    return await this.miloClientUtils.put(`sue/sendVerifyEmail`, email, {
-      apiKey: this.apiKeyEnvoiEmail,
-      idpToken
-    })
+    return this.getClient().envoyerEmailActivation(idpToken, email)
+  }
+
+  private getClient(): MiloClientPort {
+    let useV2 = this.apiV2Enabled && this.emailsConseillersV2?.length > 0
+
+    const utilisateur = this.context.get<Authentification.Utilisateur>(
+      ContextKey.UTILISATEUR
+    )
+
+    if (useV2 && utilisateur) {
+      useV2 =
+        utilisateur.type === Authentification.Type.CONSEILLER &&
+        utilisateur.email !== undefined &&
+        this.emailsConseillersV2.includes(utilisateur.email)
+    } else {
+      useV2 = false
+    }
+
+    this.logger.log(
+      `Détermination du client Milo pour ${utilisateur?.type} - ${utilisateur?.email}`
+    )
+
+    const miloClient = useV2 ? this.miloClientV2 : this.miloClientV1
+    this.logger.log(`Sélection du client ${miloClient.constructor.name}`)
+    return miloClient
   }
 }

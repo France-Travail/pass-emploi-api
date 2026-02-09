@@ -13,7 +13,7 @@ import {
   ErreurHttp,
   ErreurMiloHttp
 } from 'src/building-blocks/types/domain-error'
-import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
+import { MiloClientV1 } from 'src/infrastructure/clients/milo/milo-client-v1'
 import {
   unDetailSessionConseillerDto,
   unDetailSessionJeuneDto,
@@ -46,11 +46,11 @@ import { MiloClientUtils } from '../../../src/infrastructure/clients/milo/milo-c
 
 initializeAPMAgent()
 
-describe('MiloClient', () => {
+describe('MiloClientV1', () => {
   const configService = testConfig()
   let dateService: StubbedClass<DateService>
   const rateLimiterService = new RateLimiterService(configService)
-  let miloClient: MiloClient
+  let miloClient: MiloClientV1
   const MILO_BASE_URL = 'https://milo.com'
 
   beforeEach(() => {
@@ -58,7 +58,7 @@ describe('MiloClient', () => {
     const miloClientUtils = new MiloClientUtils(httpService, configService)
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
-    miloClient = new MiloClient(
+    miloClient = new MiloClientV1(
       miloClientUtils,
       configService,
       rateLimiterService,

@@ -313,6 +313,8 @@ import { InvitationIcsClient } from './infrastructure/clients/invitation-ics.cli
 import { MailBrevoService } from './infrastructure/clients/mail-brevo.service.db'
 import { MatomoClient } from './infrastructure/clients/matomo-client'
 import { MiloClient } from './infrastructure/clients/milo/milo-client'
+import { MiloClientV1 } from './infrastructure/clients/milo/milo-client-v1'
+import { MiloClientV2 } from './infrastructure/clients/milo/milo-client-v2'
 import { ObjectStorageClient } from './infrastructure/clients/object-storage.client'
 import { PoleEmploiClient } from './infrastructure/clients/pole-emploi-client'
 import {
@@ -460,6 +462,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RateLimiterService,
     PoleEmploiClient,
     MiloClient,
+    MiloClientV1,
+    MiloClientV2,
     MiloClientUtils,
     ImmersionClient,
     EngagementClient,

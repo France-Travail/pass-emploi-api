@@ -8,12 +8,14 @@ import { v4 as uuidV4 } from 'uuid'
 import { getAPMInstance } from '../infrastructure/monitoring/apm.init'
 import { getWorkerTrackingServiceInstance } from '../infrastructure/monitoring/worker.tracking.service'
 
-export const configureLoggerModule = (): DynamicModule =>
-  LoggerModule.forRoot({
+export const configureLoggerModule = (): DynamicModule => {
+  return LoggerModule.forRoot({
     /* eslint-disable @typescript-eslint/ban-ts-comment */
     // @ts-ignore
     pinoHttp: [
       {
+        // eslint-disable-next-line no-process-env
+        level: process.env.LOG_LEVEL || 'info',
         autoLogging: {
           ignore: (req: IncomingMessage): boolean => {
             if (req.url?.endsWith('/health')) {
@@ -50,6 +52,7 @@ export const configureLoggerModule = (): DynamicModule =>
       }
     ]
   })
+}
 
 export interface LogError {
   message: string

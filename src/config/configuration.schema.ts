@@ -49,7 +49,9 @@ export const configurationSchema = Joi.object({
     apiKeySessionsDetailEtListeJeune: Joi.string().required(),
     apiKeySessionsListeConseiller: Joi.string().required(),
     apiKeyUtilisateurs: Joi.string().required(),
-    apiKeyEnvoiEmail: Joi.string().required()
+    apiKeyEnvoiEmail: Joi.string().required(),
+    emailsConseillersV2: Joi.array().items(Joi.string()),
+    apiV2Enabled: Joi.boolean().default(false)
   }),
   immersion: {
     url: Joi.string().uri().required(),

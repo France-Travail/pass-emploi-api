@@ -78,7 +78,11 @@ export default () => {
         process.env.MILO_SESSIONS_LISTE_CONSEILLER_API_KEY,
       apiKeyUtilisateurs: process.env.MILO_UTILISATEURS_API_KEY,
       apiKeyEnvoiEmail: process.env.MILO_ENVOI_EMAIL_API_KEY,
-      urlWeb: process.env.MILO_WEB_URL
+      urlWeb: process.env.MILO_WEB_URL,
+      emailsConseillersV2: process.env.MILO_V2_EMAILS_CONSEILLERS
+        ? JSON.parse(process.env.MILO_V2_EMAILS_CONSEILLERS)
+        : [],
+      apiV2Enabled: process.env.MILO_V2_ENABLED === 'true'
     },
     immersion: {
       url:
