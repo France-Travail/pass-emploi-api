@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { MILO_DATE_FORMAT } from 'src/application/queries/query-mappers/milo.mappers'
@@ -50,7 +50,6 @@ export class MiloClient {
   private readonly apiKeyDossier: string
   private readonly apiKeyEvents: string
   private readonly apiKeyDetailRendezVous: string
-  private readonly logger: Logger
 
   constructor(
     private readonly miloClientUtils: MiloClientUtils,
@@ -58,7 +57,6 @@ export class MiloClient {
     private readonly rateLimiterService: RateLimiterService,
     private readonly dateService: DateService
   ) {
-    this.logger = new Logger('MiloClient')
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
     this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
     this.apiKeySessionsListeConseiller =
@@ -82,14 +80,14 @@ export class MiloClient {
   /* ************ */
   async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
     await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const dossierDto = await this.miloClientUtils.get<DossierMiloDto>(
+    const result = await this.miloClientUtils.get<DossierMiloDto>(
       `api-dossiers-cej/dossiers/${idDossier}`,
       {
         apiKey: this.apiKeyDossierCej
       }
     )
-    if (isFailure(dossierDto)) {
-      const erreurHttp = dossierDto.error as ErreurMiloHttp
+    if (isFailure(result)) {
+      const erreurHttp = result.error as ErreurMiloHttp
       if (erreurHttp.statusCode === 400)
         return failure(
           new ErreurHttp(
@@ -97,27 +95,33 @@ export class MiloClient {
             erreurHttp.statusCode
           )
         )
-      return dossierDto
+      if (
+        erreurHttp.statusCode > HttpStatus.BAD_REQUEST &&
+        erreurHttp.statusCode <= HttpStatus.NOT_FOUND
+      ) {
+        return result
+      }
+      throw result.error
     }
 
     return success({
       id: idDossier,
-      prenom: dossierDto.data.prenom,
-      nom: dossierDto.data.nomUsage,
-      email: dossierDto.data.mail ?? undefined,
-      codePostal: dossierDto.data.adresse?.codePostal ?? '',
-      dateDeNaissance: dossierDto.data.dateNaissance,
+      prenom: result.data.prenom,
+      nom: result.data.nomUsage,
+      email: result.data.mail ?? undefined,
+      codePostal: result.data.adresse?.codePostal ?? '',
+      dateDeNaissance: result.data.dateNaissance,
       dateFinCEJ: DateService.fromStringToDateTime(
-        dossierDto.data.accompagnementCEJ.dateFinPrevue
+        result.data.accompagnementCEJ.dateFinPrevue
       ),
-      situations: dossierDto.data.situationsCEJ.map(situation => {
+      situations: result.data.situationsCEJ.map(situation => {
         return {
           etat: situation.etat,
           categorie: situation.categorieSituation,
           dateFin: situation.dateFin ?? undefined
         }
       }),
-      codeStructure: dossierDto.data.structureRattachement?.codeStructure
+      codeStructure: result.data.structureRattachement?.codeStructure
     })
   }
 
@@ -424,23 +428,19 @@ export class MiloClient {
   async getInstanceSession(
     idInstance: string,
     idDossier: string
-  ): Promise<Result<InstanceSessionMiloDto | undefined>> {
-    try {
-      await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
-      const result = await this.miloClientUtils.get<InstanceSessionMiloDto>(
-        `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
-        { apiKey: this.apiKeyDetailRendezVous }
-      )
-      if (isFailure(result)) {
-        return result
-      }
-      return success(result.data)
-    } catch (e) {
-      if (e.response?.status === HttpStatus.NOT_FOUND) {
-        return success(undefined)
-      }
-      throw e
+  ): Promise<Result<InstanceSessionMiloDto>> {
+    await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
+    const result = await this.miloClientUtils.get<InstanceSessionMiloDto>(
+      `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
+      { apiKey: this.apiKeyDetailRendezVous }
+    )
+    if (
+      isFailure(result) &&
+      (result.error as ErreurMiloHttp).statusCode !== HttpStatus.NOT_FOUND
+    ) {
+      throw result.error
     }
+    return result
   }
 
   private async recupererSessionsParDossierJeune(
@@ -530,7 +530,7 @@ export class MiloClient {
   async getRendezVous(
     idDossier: string,
     idRendezVous: string
-  ): Promise<Result<RendezVousMiloDto | undefined>> {
+  ): Promise<Result<RendezVousMiloDto>> {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<RendezVousMiloDto>(
       `operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`,
@@ -538,11 +538,10 @@ export class MiloClient {
     )
     if (
       isFailure(result) &&
-      (result.error as ErreurMiloHttp).statusCode == HttpStatus.NOT_FOUND
+      (result.error as ErreurMiloHttp).statusCode !== HttpStatus.NOT_FOUND
     ) {
-      return success(undefined)
+      throw result.error
     }
-
     return result
   }
 

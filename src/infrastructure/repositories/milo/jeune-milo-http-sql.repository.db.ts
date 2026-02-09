@@ -119,7 +119,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
 
     await JeuneSqlModel.update(
       {
-        dateFinCEJ: dateFinCEJ?.toJSDate(),
+        dateFinCEJ: dateFinCEJ && dateFinCEJ.toJSDate(),
         idStructureMilo: nouveauCodeStructure
       },
       { where: { id: jeune.id } }

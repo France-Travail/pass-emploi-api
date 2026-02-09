@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
+import { HttpStatus, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as APM from 'elastic-apm-node'
 import { firstValueFrom } from 'rxjs'
@@ -37,10 +37,11 @@ export class MiloClientUtils {
       apiKey: string
       idpToken?: string
     },
-    params?: URLSearchParams
+    params?: URLSearchParams,
+    operateur?: string
   ): Promise<Result<T>> {
     try {
-      const headers = this.generateHeaders(auth)
+      const headers = this.generateHeaders(auth, undefined, operateur)
 
       const response = await firstValueFrom(
         this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
@@ -48,11 +49,10 @@ export class MiloClientUtils {
           headers
         })
       )
-      /* todo
       if (!response.data) {
-        return failure(new ErreurHttp('Ressource Milo introuvable', 404))
-      }*/
-      return success(response.data)
+        return failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
+      }
+      return success(response?.data)
     } catch (e) {
       this.apmService.captureError(e)
       return this.handleAxiosError(e, 'Erreur GET Milo')
@@ -75,11 +75,7 @@ export class MiloClientUtils {
           headers
         })
       )
-      /* todo
-      if (!response.data) {
-        return failure(new ErreurHttp('Ressource Milo introuvable', 404))
-      }*/
-      return success(response.data)
+      return success(response?.data)
     } catch (e) {
       this.apmService.captureError(e)
       return this.handleAxiosError(e, 'Erreur PUT Milo')
@@ -102,8 +98,7 @@ export class MiloClientUtils {
           headers
         })
       )
-
-      return success(response.data)
+      return success(response?.data)
     } catch (e) {
       this.apmService.captureError(e)
       return this.handleAxiosError(e, 'Erreur POST Milo')
@@ -121,7 +116,7 @@ export class MiloClientUtils {
       const headers = this.generateHeaders(auth)
 
       const response = await firstValueFrom(
-        this.httpService.delete(`${this.apiUrl}/${suffixUrl}`, headers)
+        this.httpService.delete(`${this.apiUrl}/${suffixUrl}`, { headers })
       )
 
       return success(response.data)
@@ -132,15 +127,11 @@ export class MiloClientUtils {
     }
   }
 
-  handleAxiosError(
-    error: AxiosError,
-    message: string,
-    throwErrorStatusCode?: number
-  ): Failure {
+  handleAxiosError(error: AxiosError, message: string): Failure {
     this.logger.error(buildError(message, error))
 
-    const MIN_STATUS = 400
-    const MAX_STATUS = throwErrorStatusCode ?? 500
+    const MIN_STATUS = HttpStatus.BAD_REQUEST
+    const MAX_STATUS = HttpStatus.INTERNAL_SERVER_ERROR
     if (
       error.response?.status >= MIN_STATUS &&
       error.response?.status < MAX_STATUS
@@ -162,11 +153,12 @@ export class MiloClientUtils {
       | {
           [p: string]: string | undefined
         }
-      | string
+      | string,
+    operateur?: string
   ): Record<string, string> {
     const headers: Record<string, string> = {
       'X-Gravitee-Api-Key': auth.apiKey,
-      operateur: OPERATEUR_CEJ
+      operateur: operateur || OPERATEUR_CEJ
     }
     if (payload) {
       headers['Content-Type'] =

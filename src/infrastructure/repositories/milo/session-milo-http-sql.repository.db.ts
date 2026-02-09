@@ -59,9 +59,6 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       idDossier
     )
     if (isFailure(result)) {
-      throw result.error
-    }
-    if (!result.data) {
       return undefined
     }
     return {

@@ -23,9 +23,6 @@ export class RendezVousMiloHttpRepository implements RendezVousMilo.Repository {
       evenement.idObjet
     )
     if (isFailure(result)) {
-      throw result.error
-    }
-    if (!result.data) {
       return undefined
     }
 

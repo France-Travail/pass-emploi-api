@@ -1,10 +1,11 @@
 import { unEvenementMilo, unRendezVousMilo } from 'test/fixtures/milo.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
-import { success } from '../../../../src/building-blocks/types/result'
+import { failure, success } from '../../../../src/building-blocks/types/result'
 import { EvenementMilo } from '../../../../src/domain/milo/evenement.milo'
 import { RendezVousMilo } from '../../../../src/domain/milo/rendez-vous.milo'
 import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { RendezVousMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/rendez-vous-milo-http.repository'
+import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
 
 describe('RendezVousMiloHttpRepository', () => {
   let repository: RendezVousMiloHttpRepository
@@ -62,7 +63,9 @@ describe('RendezVousMiloHttpRepository', () => {
     describe("quand il n'existe pas", () => {
       it('renvoie undefined', async () => {
         // Given
-        miloClient.getRendezVous.resolves(success(undefined))
+        miloClient.getRendezVous.resolves(
+          failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
+        )
 
         // When
         const resultat = await repository.findRendezVousByEvenement(

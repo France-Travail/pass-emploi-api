@@ -258,11 +258,7 @@ export class ErreurHttp implements DomainError {
     this.statusCode = statusCode
   }
 }
-export class ErreurMiloHttp implements DomainError {
-  static CODE = 'ERREUR_MILO_HTTP'
-  readonly code: string = ErreurHttp.CODE
-  readonly message: string
-  readonly statusCode: number
+export class ErreurMiloHttp extends ErreurHttp {
   readonly codeMilo?: string
   readonly idKeycloak?: string
 
@@ -272,8 +268,7 @@ export class ErreurMiloHttp implements DomainError {
     code?: string,
     idKeycloak?: string
   ) {
-    this.message = message
-    this.statusCode = statusCode
+    super(message, statusCode)
     this.codeMilo = code
     this.idKeycloak = idKeycloak
   }

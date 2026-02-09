@@ -468,7 +468,9 @@ describe('MiloClient', () => {
 
       // Then
       expect(result).to.deep.equal(
-        failure(new ErreurHttp('Structure Milo principale introuvable', 404))
+        failure(
+          new ErreurMiloHttp('Structure Milo principale introuvable', 404)
+        )
       )
     })
   })
@@ -516,14 +518,14 @@ describe('MiloClient', () => {
       nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .reply(400, { message: 'Erreur inscription' })
 
       const scope2 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .reply(201, {
           id: 'inst2',
@@ -552,7 +554,7 @@ describe('MiloClient', () => {
       const scope = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .matchHeader(
           'X-Gravitee-Api-Key',
@@ -560,7 +562,7 @@ describe('MiloClient', () => {
         )
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .matchHeader('Authorization', 'Bearer idpToken')
-        .matchHeader('Content-Type', 'application/json')
+        .matchHeader('Content-Type', 'text/plain')
         .reply(201, {
           id: 'inst1',
           idDossier: idsDossier[0],
@@ -583,7 +585,7 @@ describe('MiloClient', () => {
       const scope1 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .reply(201, {
           id: 'inst1',
@@ -594,7 +596,7 @@ describe('MiloClient', () => {
       const scope2 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .reply(201, {
           id: 'inst2',
@@ -605,7 +607,7 @@ describe('MiloClient', () => {
       const scope3 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[2]}/instances-session`,
-          JSON.stringify(idSession)
+          idSession
         )
         .reply(201, {
           id: 'inst3',
@@ -1309,19 +1311,6 @@ describe('MiloClient', () => {
 
       // Then
       expect(scope.isDone()).to.equal(true)
-    })
-
-    it('renvoie success(undefined) quand Milo renvoie 404', async () => {
-      // Given
-      nock(MILO_BASE_URL)
-        .get(`/operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`)
-        .reply(404, { message: 'Not Found' })
-
-      // When
-      const result = await miloClient.getRendezVous(idDossier, idRendezVous)
-
-      // Then
-      expect(result).to.deep.equal(success(undefined))
     })
 
     it('throw quand Milo renvoie 500', async () => {

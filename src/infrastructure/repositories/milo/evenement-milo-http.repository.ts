@@ -10,7 +10,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
   async findAllEvenements(): Promise<EvenementMilo[]> {
     const result = await this.miloClient.getEvenements()
     if (isFailure(result)) {
-      return []
+      throw result.error
     }
     return result.data.map(evenement => {
       return {

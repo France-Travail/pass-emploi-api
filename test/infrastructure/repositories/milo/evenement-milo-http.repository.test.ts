@@ -29,17 +29,17 @@ describe('MiloEvenementsHttpRepository', () => {
       // Then
       expect(evenements).to.deep.equal([unEvenementMilo()])
     })
-    it('renvoie une liste vide quand il y a un problème HTTP', async () => {
+    it('throw une exception quand il y a un problème HTTP', async () => {
       // Given
       miloClient.getEvenements.resolves(
         failure(new ErreurHttp('Bad Request', 400))
       )
 
       // When
-      const evenements = await repository.findAllEvenements()
+      const promise = repository.findAllEvenements()
 
       // Then
-      expect(evenements).to.deep.equal([])
+      expect(promise).to.be.rejected()
     })
     it('mappe les éléments de format inconnus en non traitable', async () => {
       // Given

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import {
   emptySuccess,
+  failure,
   isSuccess,
   Success,
   success
@@ -34,6 +35,7 @@ import {
 } from '../../../../src/infrastructure/clients/dto/milo.dto'
 import { uneInstanceSessionMilo } from '../../../fixtures/milo.fixture'
 import { expect, sinon, StubbedClass, stubClass } from '../../../utils'
+import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
 
 const structureConseiller = {
   id: 'structure-milo',
@@ -97,7 +99,9 @@ describe('SessionMiloHttpSqlRepository', () => {
     describe("quand elle n'existe pas", () => {
       it('renvoie undefined', async () => {
         // Given
-        miloClient.getInstanceSession.resolves(success(undefined))
+        miloClient.getInstanceSession.resolves(
+          failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
+        )
 
         // When
         const resultat = await repository.findInstanceSession(
