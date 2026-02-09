@@ -5,6 +5,7 @@ import {
   ActualiteMiloSqlModel
 } from '../../sequelize/models/actualite-milo.sql-model'
 import { AsSql } from '../../sequelize/types'
+import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
@@ -23,5 +24,34 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
       dateSuppression: actualite.dateSuppression?.toJSDate() ?? null
     }
     await ActualiteMiloSqlModel.upsert(dto)
+  }
+
+  async getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]> {
+    const actualites = await ActualiteMiloSqlModel.findAll({
+      where: { idStructureMilo },
+      order: [['dateCreation', 'ASC']]
+    })
+
+    return actualites.map(this.mapToDomain)
+  }
+
+  private mapToDomain(dto: ActualiteMiloSqlModel): ActualiteMilo {
+    return {
+      id: dto.id,
+      idStructureMilo: dto.idStructureMilo,
+      prenomNomConseiller: dto.prenomNomConseiller,
+      idConseiller: dto.idConseiller,
+      titre: dto.titre,
+      contenu: dto.contenu,
+      titreLien: dto.titreLien ?? undefined,
+      lien: dto.lien ?? undefined,
+      dateCreation: DateService.fromJSDateToDateTime(dto.dateCreation)!,
+      dateModification: dto.dateModification
+        ? DateService.fromJSDateToDateTime(dto.dateModification)!
+        : undefined,
+      dateSuppression: dto.dateSuppression
+        ? DateService.fromJSDateToDateTime(dto.dateSuppression)!
+        : undefined
+    }
   }
 }

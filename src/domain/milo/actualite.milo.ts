@@ -32,6 +32,7 @@ export namespace ActualiteMilo {
 
   export interface Repository {
     save(actualite: ActualiteMilo): Promise<void>
+    getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]>
   }
 
   const TITRE_PAR_DEFAUT = 'En savoir plus'
