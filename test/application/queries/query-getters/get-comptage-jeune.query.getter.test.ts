@@ -12,7 +12,7 @@ import {
   MILO_PRESENT,
   MILO_REFUS_JEUNE
 } from '../../../../src/infrastructure/clients/dto/milo.dto'
-import { MiloClient } from '../../../../src/infrastructure/clients/milo-client'
+import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
 import { ActionSqlModel } from '../../../../src/infrastructure/sequelize/models/action.sql-model'
 import { ComptageJeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/comptage-jeune.sql-model'

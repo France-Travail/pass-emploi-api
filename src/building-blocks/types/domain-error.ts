@@ -258,6 +258,21 @@ export class ErreurHttp implements DomainError {
     this.statusCode = statusCode
   }
 }
+export class ErreurMiloHttp extends ErreurHttp {
+  readonly codeMilo?: string
+  readonly idKeycloak?: string
+
+  constructor(
+    message: string,
+    statusCode: number,
+    code?: string,
+    idKeycloak?: string
+  ) {
+    super(message, statusCode)
+    this.codeMilo = code
+    this.idKeycloak = idKeycloak
+  }
+}
 
 export class CampagneExisteDejaError implements DomainError {
   static CODE = 'CAMPAGNE_EXISTE_DEJA'

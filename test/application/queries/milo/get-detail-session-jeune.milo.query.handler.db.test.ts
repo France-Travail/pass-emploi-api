@@ -9,7 +9,7 @@ import {
 } from 'src/building-blocks/types/domain-error'
 import { failure, success } from 'src/building-blocks/types/result'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
-import { MiloClient } from 'src/infrastructure/clients/milo-client'
+import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import {
   SessionMiloDto,
   SessionMiloSqlModel

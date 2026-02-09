@@ -13,7 +13,7 @@ import {
   InscritSessionMiloDto,
   SessionConseillerDetailDto
 } from '../../../infrastructure/clients/dto/milo.dto'
-import { MiloClient } from '../../../infrastructure/clients/milo-client'
+import { MiloClient } from '../../../infrastructure/clients/milo/milo-client'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import {

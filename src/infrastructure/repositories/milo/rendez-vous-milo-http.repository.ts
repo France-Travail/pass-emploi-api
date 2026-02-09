@@ -1,26 +1,12 @@
-import { HttpService } from '@nestjs/axios'
-import { HttpStatus, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
+import { Injectable } from '@nestjs/common'
+import { isFailure } from '../../../building-blocks/types/result'
 import { EvenementMilo } from '../../../domain/milo/evenement.milo'
 import { RendezVousMilo } from '../../../domain/milo/rendez-vous.milo'
-import { RateLimiterService } from '../../../utils/rate-limiter.service'
-import { RendezVousMiloDto } from '../dto/milo.dto'
+import { MiloClient } from '../../clients/milo/milo-client'
 
 @Injectable()
 export class RendezVousMiloHttpRepository implements RendezVousMilo.Repository {
-  private readonly apiUrl: string
-  private readonly apiKeyDetailRendezVous: string
-
-  constructor(
-    private httpService: HttpService,
-    private configService: ConfigService,
-    private rateLimiterService: RateLimiterService
-  ) {
-    this.apiUrl = this.configService.get('milo').url
-    this.apiKeyDetailRendezVous =
-      this.configService.get('milo').apiKeyDetailRendezVous
-  }
+  constructor(private readonly miloClient: MiloClient) {}
 
   async findRendezVousByEvenement(
     evenement: EvenementMilo
@@ -28,35 +14,27 @@ export class RendezVousMiloHttpRepository implements RendezVousMilo.Repository {
     if (evenement.objet !== EvenementMilo.ObjetEvenement.RENDEZ_VOUS) {
       return undefined
     }
-    try {
-      await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
-      const rendezVousMilo = await firstValueFrom(
-        this.httpService.get<RendezVousMiloDto>(
-          `${this.apiUrl}/operateurs/dossiers/${evenement.idPartenaireBeneficiaire}/rdv/${evenement.idObjet}`,
-          {
-            headers: {
-              'X-Gravitee-Api-Key': `${this.apiKeyDetailRendezVous}`,
-              operateur: 'applicationcej'
-            }
-          }
-        )
-      )
+    if (!evenement.idObjet) {
+      return undefined
+    }
 
-      return {
-        id: rendezVousMilo.data.id.toString(),
-        dateHeureDebut: rendezVousMilo.data.dateHeureDebut,
-        dateHeureFin: rendezVousMilo.data.dateHeureFin,
-        titre: rendezVousMilo.data.objet,
-        idPartenaireBeneficiaire: rendezVousMilo.data.idDossier.toString(),
-        commentaire: rendezVousMilo.data.commentaire,
-        adresse: rendezVousMilo.data.lieu,
-        statut: rendezVousMilo.data.statut
-      }
-    } catch (e) {
-      if (e.response?.status === HttpStatus.NOT_FOUND) {
-        return undefined
-      }
-      throw e
+    const result = await this.miloClient.getRendezVous(
+      evenement.idPartenaireBeneficiaire,
+      evenement.idObjet
+    )
+    if (isFailure(result)) {
+      return undefined
+    }
+
+    return {
+      id: result.data.id.toString(),
+      dateHeureDebut: result.data.dateHeureDebut,
+      dateHeureFin: result.data.dateHeureFin,
+      titre: result.data.objet,
+      idPartenaireBeneficiaire: result.data.idDossier.toString(),
+      commentaire: result.data.commentaire,
+      adresse: result.data.lieu,
+      statut: result.data.statut
     }
   }
 }

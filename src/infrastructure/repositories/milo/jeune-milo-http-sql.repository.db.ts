@@ -1,43 +1,24 @@
-import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { firstValueFrom } from 'rxjs'
 import { Op } from 'sequelize'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneMiloAArchiverSqlModel } from 'src/infrastructure/sequelize/models/jeune-milo-a-archiver.sql-model'
-import {
-  ErreurHttp,
-  NonTrouveError
-} from '../../../building-blocks/types/domain-error'
-import { Result, failure, success } from '../../../building-blocks/types/result'
+import { NonTrouveError } from '../../../building-blocks/types/domain-error'
+import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Core } from '../../../domain/core'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
-import { DateService } from '../../../utils/date-service'
-import { RateLimiterService } from '../../../utils/rate-limiter.service'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { SituationsMiloSqlModel } from '../../sequelize/models/situations-milo.sql-model'
 import { StructureMiloSqlModel } from '../../sequelize/models/structure-milo.sql-model'
-import { DossierMiloDto } from '../dto/milo.dto'
 import { fromSqlToJeune } from '../mappers/jeunes.mappers'
+import { MiloClient } from '../../clients/milo/milo-client'
 
 @Injectable()
 export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
-  private logger: Logger
-  private readonly apiUrl: string
-  private readonly apiKeyDossierCej: string
-  private readonly apiKeyCreerJeune: string
+  constructor(private readonly miloClient: MiloClient) {}
 
-  constructor(
-    private httpService: HttpService,
-    private configService: ConfigService,
-    private rateLimiterService: RateLimiterService
-  ) {
-    this.logger = new Logger('MiloHttpRepository')
-    this.apiUrl = this.configService.get('milo').url
-    this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
-    this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
+  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
+    return this.miloClient.getDossier(idDossier)
   }
 
   async get(id: string): Promise<Result<JeuneMilo>> {
@@ -54,51 +35,6 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
       idStructureMilo: jeuneSqlModel.idStructureMilo ?? undefined
     }
     return success(jeuneMilo)
-  }
-
-  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
-    try {
-      await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
-      const dossierDto = await firstValueFrom(
-        this.httpService.get<DossierMiloDto>(
-          `${this.apiUrl}/api-dossiers-cej/dossiers/${idDossier}`,
-          {
-            headers: { 'X-Gravitee-Api-Key': `${this.apiKeyDossierCej}` }
-          }
-        )
-      )
-
-      return success({
-        id: idDossier,
-        prenom: dossierDto.data.prenom,
-        nom: dossierDto.data.nomUsage,
-        email: dossierDto.data.mail ?? undefined,
-        codePostal: dossierDto.data.adresse?.codePostal ?? '',
-        dateDeNaissance: dossierDto.data.dateNaissance,
-        dateFinCEJ: DateService.fromStringToDateTime(
-          dossierDto.data.accompagnementCEJ.dateFinPrevue
-        ),
-        situations: dossierDto.data.situationsCEJ.map(situation => {
-          return {
-            etat: situation.etat,
-            categorie: situation.categorieSituation,
-            dateFin: situation.dateFin ?? undefined
-          }
-        }),
-        codeStructure: dossierDto.data.structureRattachement?.codeStructure
-      })
-    } catch (e) {
-      this.logger.error(e)
-      if (e.response?.status >= 400 && e.response?.status <= 404) {
-        const message =
-          e.response.status === 400
-            ? 'Le numéro de dossier est incorrect. Renseignez un numéro. Exemple : 123456.'
-            : e.response.data?.message
-        const erreur = new ErreurHttp(message, e.response.status)
-        return failure(erreur)
-      }
-      throw new RuntimeException(e.statusText)
-    }
   }
 
   async getByIdDossier(
@@ -125,61 +61,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
   > {
-    let response
-    try {
-      response = await firstValueFrom(
-        surcharge
-          ? this.httpService.put<string>(
-              `${this.apiUrl}/sue/compte-jeune/surcharge/${idDossier}`,
-              {},
-              { headers: { 'X-Gravitee-Api-Key': `${this.apiKeyCreerJeune}` } }
-            )
-          : this.httpService.post<string>(
-              `${this.apiUrl}/sue/compte-jeune/${idDossier}`,
-              {},
-              { headers: { 'X-Gravitee-Api-Key': `${this.apiKeyCreerJeune}` } }
-            )
-      )
-      if (surcharge && !response.data) {
-        response = await firstValueFrom(
-          this.httpService.post<string>(
-            `${this.apiUrl}/sue/compte-jeune/${idDossier}`,
-            {},
-            { headers: { 'X-Gravitee-Api-Key': `${this.apiKeyCreerJeune}` } }
-          )
-        )
-      }
-      return success({
-        idAuthentification: response.data || undefined,
-        existeDejaChezMilo: false
-      })
-    } catch (e) {
-      this.logger.error(e)
-      this.logger.error(e.response?.data)
-
-      if (e.response.data?.code === 'SUE_ACCOUNT_EXISTING_OTHER_ML') {
-        return failure(new ErreurHttp(e.response.data?.message, 422))
-      }
-
-      if (e.response?.status >= 400 && e.response?.status <= 404) {
-        if (
-          e.response.data?.code === 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT'
-        ) {
-          if (e.response.data['id-keycloak']) {
-            return success({
-              idAuthentification: e.response.data['id-keycloak'],
-              existeDejaChezMilo: true
-            })
-          }
-        }
-        const erreur = new ErreurHttp(
-          e.response.data?.message,
-          e.response.status
-        )
-        return failure(erreur)
-      }
-      throw new RuntimeException(e.statusText)
-    }
+    return this.miloClient.creerJeune(idDossier, surcharge)
   }
 
   async saveSituationsJeune(situations: JeuneMilo.Situations): Promise<void> {

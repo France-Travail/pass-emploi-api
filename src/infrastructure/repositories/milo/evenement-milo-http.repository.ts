@@ -1,45 +1,18 @@
-import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
-import { ErreurHttp } from '../../../building-blocks/types/domain-error'
-import {
-  Result,
-  emptySuccess,
-  failure
-} from '../../../building-blocks/types/result'
+import { Injectable } from '@nestjs/common'
+import { isFailure, Result } from '../../../building-blocks/types/result'
 import { EvenementMilo } from '../../../domain/milo/evenement.milo'
-import { RateLimiterService } from '../../../utils/rate-limiter.service'
-import { EvenementMiloDto } from '../dto/milo.dto'
+import { MiloClient } from '../../clients/milo/milo-client'
 
 @Injectable()
 export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
-  private logger: Logger
-  private readonly apiUrl: string
-  private readonly apiKeyEvents: string
-
-  constructor(
-    private httpService: HttpService,
-    private configService: ConfigService,
-    private rateLimiterService: RateLimiterService
-  ) {
-    this.logger = new Logger('EvenementMiloHttpRepository')
-    this.apiUrl = this.configService.get('milo').url
-    this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
-  }
+  constructor(private readonly miloClient: MiloClient) {}
 
   async findAllEvenements(): Promise<EvenementMilo[]> {
-    await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
-
-    const evenements = await firstValueFrom(
-      this.httpService.get<EvenementMiloDto[]>(
-        `${this.apiUrl}/api-evenements/events`,
-        {
-          headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }
-        }
-      )
-    )
-    return evenements.data.map(evenement => {
+    const result = await this.miloClient.getEvenements()
+    if (isFailure(result)) {
+      throw result.error
+    }
+    return result.data.map(evenement => {
       return {
         id: evenement.identifiant,
         date: evenement.date,
@@ -52,25 +25,7 @@ export class EvenementMiloHttpRepository implements EvenementMilo.Repository {
   }
 
   async acquitterEvenement(evenement: EvenementMilo): Promise<Result> {
-    try {
-      await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
-      await firstValueFrom(
-        this.httpService.post(
-          `${this.apiUrl}/api-evenements/events/${evenement.id}/ack`,
-          {},
-          {
-            headers: { 'X-Gravitee-Api-Key': `${this.apiKeyEvents}` }
-          }
-        )
-      )
-      return emptySuccess()
-    } catch (e) {
-      this.logger.error(e)
-      if (e.response) {
-        return failure(new ErreurHttp(e.response.data, e.response.status))
-      }
-      return failure(e)
-    }
+    return await this.miloClient.acquitterEvenement(evenement.id)
   }
 }
 

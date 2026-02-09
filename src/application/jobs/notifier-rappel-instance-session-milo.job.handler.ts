@@ -57,7 +57,7 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Plan
         contenu.idDossier
       )
 
-      if (instance && instance.statut === SessionMilo.StatutInstance.PRESCRIT) {
+      if (instance?.statut === SessionMilo.StatutInstance.PRESCRIT) {
         const resultJeune = await this.jeuneRepository.getByIdDossier(
           contenu.idDossier
         )

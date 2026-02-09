@@ -1,26 +1,19 @@
-import { HttpService } from '@nestjs/axios'
-import * as nock from 'nock'
 import { unEvenementMilo, unRendezVousMilo } from 'test/fixtures/milo.fixture'
-import { expect } from 'test/utils'
-import { testConfig } from 'test/utils/module-for-testing'
+import { expect, StubbedClass, stubClass } from 'test/utils'
+import { failure, success } from '../../../../src/building-blocks/types/result'
 import { EvenementMilo } from '../../../../src/domain/milo/evenement.milo'
 import { RendezVousMilo } from '../../../../src/domain/milo/rendez-vous.milo'
-import { RendezVousMiloDto } from '../../../../src/infrastructure/repositories/dto/milo.dto'
+import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { RendezVousMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/rendez-vous-milo-http.repository'
-import { RateLimiterService } from '../../../../src/utils/rate-limiter.service'
+import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
 
-describe('MiloEvenementsHttpRepository', () => {
+describe('RendezVousMiloHttpRepository', () => {
   let repository: RendezVousMiloHttpRepository
-  const configService = testConfig()
-  const rateLimiterService = new RateLimiterService(configService)
+  let miloClient: StubbedClass<MiloClient>
 
   beforeEach(async () => {
-    const httpService = new HttpService()
-    repository = new RendezVousMiloHttpRepository(
-      httpService,
-      configService,
-      rateLimiterService
-    )
+    miloClient = stubClass(MiloClient)
+    repository = new RendezVousMiloHttpRepository(miloClient)
   })
 
   describe('findRendezVousByEvenement', () => {
@@ -30,24 +23,20 @@ describe('MiloEvenementsHttpRepository', () => {
     describe('quand il existe', () => {
       it('renvoie le rendez vous milo', async () => {
         // Given
-        const rendezVousJson: RendezVousMiloDto = {
-          id: idObjet,
-          dateHeureDebut: '2020-10-06 10:00:00',
-          dateHeureFin: '2020-10-06 12:00:00',
-          objet: 'Test RDV',
-          conseiller: 'SIMILO SIMILO',
-          idDossier: idPartenaireBeneficiaire,
-          commentaire: '',
-          type: 'Téléphone',
-          statut: 'Planifié',
-          lieu: 'new'
-        }
-        nock('https://milo.com')
-          .get(
-            `/operateurs/dossiers/${idPartenaireBeneficiaire}/rdv/${idObjet}`
-          )
-          .reply(200, JSON.stringify(rendezVousJson))
-          .isDone()
+        miloClient.getRendezVous.resolves(
+          success({
+            id: idObjet,
+            dateHeureDebut: '2020-10-06 10:00:00',
+            dateHeureFin: '2020-10-06 12:00:00',
+            objet: 'Test RDV',
+            conseiller: 'SIMILO SIMILO',
+            idDossier: idPartenaireBeneficiaire,
+            commentaire: '',
+            type: 'Téléphone',
+            statut: 'Planifié',
+            lieu: 'new'
+          })
+        )
 
         // When
         const resultat = await repository.findRendezVousByEvenement(
@@ -65,17 +54,18 @@ describe('MiloEvenementsHttpRepository', () => {
           adresse: 'new'
         })
         expect(resultat).to.deep.equal(expected)
+        expect(miloClient.getRendezVous).to.have.been.calledOnceWithExactly(
+          idPartenaireBeneficiaire.toString(),
+          idObjet.toString()
+        )
       })
     })
-    describe('quand il n’existe pas', () => {
+    describe("quand il n'existe pas", () => {
       it('renvoie undefined', async () => {
         // Given
-        nock('https://milo.com')
-          .get(
-            `/operateurs/dossiers/${idPartenaireBeneficiaire}/rdv/${idObjet}`
-          )
-          .reply(404)
-          .isDone()
+        miloClient.getRendezVous.resolves(
+          failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
+        )
 
         // When
         const resultat = await repository.findRendezVousByEvenement(

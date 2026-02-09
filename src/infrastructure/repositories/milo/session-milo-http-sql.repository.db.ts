@@ -1,9 +1,6 @@
-import { HttpService } from '@nestjs/axios'
-import { HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { DateTime } from 'luxon'
-import { firstValueFrom } from 'rxjs'
 import {
   emptySuccess,
   isFailure,
@@ -22,7 +19,6 @@ import {
   planifierRappelsInstanceSessionMilo,
   supprimerRappelsInstanceSessionMilo
 } from '../../../domain/planificateur'
-import { RateLimiterService } from '../../../utils/rate-limiter.service'
 import {
   InscritSessionMiloDto,
   MILO_INSCRIT,
@@ -33,66 +29,44 @@ import {
   OffreTypeCode,
   SessionConseillerDetailDto
 } from '../../clients/dto/milo.dto'
-import { MiloClient } from '../../clients/milo-client'
+import { MiloClient } from '../../clients/milo/milo-client'
 import { getAPMInstance } from '../../monitoring/apm.init'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { SessionMiloSqlModel } from '../../sequelize/models/session-milo.sql-model'
-import { InstanceSessionMiloDto } from '../dto/milo.dto'
 
 const FORMAT_DATETIME_MILO = 'yyyy-MM-dd HH:mm:ss'
 
 @Injectable()
 export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
-  private readonly apiUrl: string
-  private readonly apiKeyInstanceSession: string
   private readonly logger: Logger
   private readonly apmService: APM.Agent
 
   constructor(
     private readonly miloClient: MiloClient,
-    private httpService: HttpService,
-    private configService: ConfigService,
-    private rateLimiterService: RateLimiterService,
     // FIXME c'est pas au repo de faire ça mais au command-handler
     private planificateurService: PlanificateurService
   ) {
     this.logger = new Logger('SessionMiloHttpSqlRepository')
     this.apmService = getAPMInstance()
-    this.apiUrl = this.configService.get('milo').url
-    this.apiKeyInstanceSession =
-      this.configService.get('milo').apiKeyDetailRendezVous
   }
 
   async findInstanceSession(
     idInstance: string,
     idDossier: string
   ): Promise<InstanceSessionMilo | undefined> {
-    try {
-      await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
-      const sessionMilo = await firstValueFrom(
-        this.httpService.get<InstanceSessionMiloDto>(
-          `${this.apiUrl}/operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
-          {
-            headers: {
-              'X-Gravitee-Api-Key': `${this.apiKeyInstanceSession}`,
-              operateur: 'applicationcej'
-            }
-          }
-        )
-      )
-
-      return {
-        id: sessionMilo.data.id,
-        dateHeureDebut: sessionMilo.data.dateHeureDebut,
-        idSession: sessionMilo.data.idSession,
-        idDossier: sessionMilo.data.idDossier,
-        statut: sessionMilo.data.statut
-      }
-    } catch (e) {
-      if (e.response?.status === HttpStatus.NOT_FOUND) {
-        return undefined
-      }
-      throw e
+    const result = await this.miloClient.getInstanceSession(
+      idInstance,
+      idDossier
+    )
+    if (isFailure(result)) {
+      return undefined
+    }
+    return {
+      id: result.data.id,
+      dateHeureDebut: result.data.dateHeureDebut,
+      idSession: result.data.idSession,
+      idDossier: result.data.idDossier,
+      statut: result.data.statut
     }
   }
 

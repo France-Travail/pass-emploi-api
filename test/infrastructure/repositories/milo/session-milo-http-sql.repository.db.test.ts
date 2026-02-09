@@ -1,8 +1,7 @@
-import { HttpService } from '@nestjs/axios'
 import { DateTime } from 'luxon'
-import * as nock from 'nock'
 import {
   emptySuccess,
+  failure,
   isSuccess,
   Success,
   success
@@ -11,7 +10,7 @@ import {
   SessionMilo,
   SessionMiloAllegeeForBeneficiaire
 } from 'src/domain/milo/session.milo'
-import { MiloClient } from 'src/infrastructure/clients/milo-client'
+import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { SessionMiloHttpSqlRepository } from 'src/infrastructure/repositories/milo/session-milo-http-sql.repository.db'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
@@ -34,11 +33,9 @@ import {
   MILO_REFUS_JEUNE,
   MILO_REFUS_TIERS
 } from '../../../../src/infrastructure/clients/dto/milo.dto'
-import { InstanceSessionMiloDto } from '../../../../src/infrastructure/repositories/dto/milo.dto'
-import { RateLimiterService } from '../../../../src/utils/rate-limiter.service'
 import { uneInstanceSessionMilo } from '../../../fixtures/milo.fixture'
 import { expect, sinon, StubbedClass, stubClass } from '../../../utils'
-import { testConfig } from '../../../utils/module-for-testing'
+import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
 
 const structureConseiller = {
   id: 'structure-milo',
@@ -49,20 +46,14 @@ describe('SessionMiloHttpSqlRepository', () => {
   let miloClient: StubbedClass<MiloClient>
   let repository: SessionMiloHttpSqlRepository
   let planificateurService: StubbedClass<PlanificateurService>
-  const configService = testConfig()
-  const rateLimiterService = new RateLimiterService(configService)
 
   beforeEach(async () => {
-    const httpService = new HttpService()
     planificateurService = stubClass(PlanificateurService)
     await getDatabase().cleanPG()
 
     miloClient = stubClass(MiloClient)
     repository = new SessionMiloHttpSqlRepository(
       miloClient,
-      httpService,
-      configService,
-      rateLimiterService,
       planificateurService
     )
   })
@@ -73,21 +64,19 @@ describe('SessionMiloHttpSqlRepository', () => {
     describe('quand elle existe', () => {
       it('renvoie la session milo', async () => {
         // Given
-        const sessionJson: InstanceSessionMiloDto = {
-          lieu: 'la',
-          nom: 'je suis un titre mais en fait le nom',
-          idSession: '123456',
-          id: idInstance,
-          dateHeureDebut: '2020-10-06 10:00:00',
-          dateHeureFin: '2020-10-06 12:00:00',
-          idDossier: idDossier,
-          commentaire: 'un petit commentaire plus ou moins long',
-          statut: 'Prescrit'
-        }
-        nock('https://milo.com')
-          .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
-          .reply(200, JSON.stringify(sessionJson))
-          .isDone()
+        miloClient.getInstanceSession.resolves(
+          success({
+            lieu: 'la',
+            nom: 'je suis un titre mais en fait le nom',
+            idSession: '123456',
+            id: idInstance,
+            dateHeureDebut: '2020-10-06 10:00:00',
+            dateHeureFin: '2020-10-06 12:00:00',
+            idDossier: idDossier,
+            commentaire: 'un petit commentaire plus ou moins long',
+            statut: 'Prescrit'
+          })
+        )
 
         // When
         const resultat = await repository.findInstanceSession(
@@ -107,13 +96,12 @@ describe('SessionMiloHttpSqlRepository', () => {
       })
     })
 
-    describe('quand elle n’existe pas', () => {
+    describe("quand elle n'existe pas", () => {
       it('renvoie undefined', async () => {
         // Given
-        nock('https://milo.com')
-          .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
-          .reply(404)
-          .isDone()
+        miloClient.getInstanceSession.resolves(
+          failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
+        )
 
         // When
         const resultat = await repository.findInstanceSession(

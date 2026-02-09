@@ -18,7 +18,7 @@ import {
   OffreTypeCode,
   SessionParDossierJeuneDto
 } from '../../../infrastructure/clients/dto/milo.dto'
-import { MiloClient } from '../../../infrastructure/clients/milo-client'
+import { MiloClient } from '../../../infrastructure/clients/milo/milo-client'
 import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 import { ActionSqlModel } from '../../../infrastructure/sequelize/models/action.sql-model'
 import { ComptageJeuneSqlModel } from '../../../infrastructure/sequelize/models/comptage-jeune.sql-model'

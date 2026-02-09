@@ -16,7 +16,7 @@ import {
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { estMilo } from 'src/domain/core'
-import { MiloClient } from 'src/infrastructure/clients/milo-client'
+import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
