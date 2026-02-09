@@ -64,6 +64,8 @@ import {
   CreateActualiteMiloCommand,
   CreateActualiteMiloCommandHandler
 } from '../../application/commands/milo/create-actualite-milo.command.handler'
+import { GetActualitesMiloConseillerQueryHandler } from '../../application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
+import { ActualitesMiloConseillerQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
 
 @Controller()
 @CustomSwaggerApiOAuth2()
@@ -80,7 +82,8 @@ export class ConseillersMiloController {
     private readonly creerJeuneMiloCommandHandler: CreerJeuneMiloCommandHandler,
     private readonly qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler,
     private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler,
-    private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
+    private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler,
+    private readonly getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
   ) {}
   @ApiOperation({
     summary: "Récupère le dossier Milo d'un jeune",
@@ -379,5 +382,20 @@ export class ConseillersMiloController {
     )
 
     return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les actualités de la structure MILO du conseiller',
+    description: 'Autorisé pour un conseiller MILO de la structure'
+  })
+  @Get('conseillers/milo/:idConseiller/actualites')
+  async getActualites(
+    @Param('idConseiller') idConseiller: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<ActualitesMiloConseillerQueryModel> {
+    return this.getActualitesMiloConseillerQueryHandler.execute(
+      { idConseiller },
+      utilisateur
+    )
   }
 }
