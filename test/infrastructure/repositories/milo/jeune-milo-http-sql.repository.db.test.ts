@@ -1,25 +1,18 @@
-import { HttpService } from '@nestjs/axios'
 import { expect } from 'chai'
-import * as nock from 'nock'
 import { SituationsMiloSqlModel } from 'src/infrastructure/sequelize/models/situations-milo.sql-model'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { uneSituationsMilo } from 'test/fixtures/milo.fixture'
-import {
-  ErreurHttp,
-  NonTrouveError
-} from '../../../../src/building-blocks/types/domain-error'
+import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
 import { failure, success } from '../../../../src/building-blocks/types/result'
 import { Core } from '../../../../src/domain/core'
 import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { FirebaseClient } from '../../../../src/infrastructure/clients/firebase-client'
 import { ConseillerSqlRepository } from '../../../../src/infrastructure/repositories/conseiller-sql.repository.db'
-import { DossierMiloDto } from '../../../../src/infrastructure/repositories/dto/milo.dto'
 import { MiloJeuneHttpSqlRepository } from '../../../../src/infrastructure/repositories/milo/jeune-milo-http-sql.repository.db'
 import { JeuneSqlRepository } from '../../../../src/infrastructure/repositories/jeune/jeune-sql.repository.db'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { StructureMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
-import { RateLimiterService } from '../../../../src/utils/rate-limiter.service'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import {
@@ -28,18 +21,17 @@ import {
   unJeuneSansConseiller
 } from '../../../fixtures/jeune.fixture'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { stubClass } from '../../../utils'
+import { StubbedClass, stubClass } from '../../../utils'
 import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
-import { testConfig } from '../../../utils/module-for-testing'
+import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 
 describe('JeuneMiloHttpRepository', () => {
   let databaseForTesting: DatabaseForTesting
-  const configService = testConfig()
-  const rateLimiterService = new RateLimiterService(configService)
   let miloHttpSqlRepository: MiloJeuneHttpSqlRepository
+  let miloClient: StubbedClass<MiloClient>
   const jeune = unJeune({ email: 'john@doe.io' })
   let idService: IdService
   let dateService: DateService
@@ -51,7 +43,6 @@ describe('JeuneMiloHttpRepository', () => {
 
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
-    const httpService = new HttpService()
     const conseillerSqlRepository = new ConseillerSqlRepository()
     await conseillerSqlRepository.save(conseiller)
     const firebaseClient = stubClass(FirebaseClient)
@@ -63,11 +54,8 @@ describe('JeuneMiloHttpRepository', () => {
     )
     await jeuneSqlRepository.save(jeune)
 
-    miloHttpSqlRepository = new MiloJeuneHttpSqlRepository(
-      httpService,
-      configService,
-      rateLimiterService
-    )
+    miloClient = stubClass(MiloClient)
+    miloHttpSqlRepository = new MiloJeuneHttpSqlRepository(miloClient)
   })
 
   describe('get', () => {
@@ -122,116 +110,27 @@ describe('JeuneMiloHttpRepository', () => {
   })
 
   describe('getDossier', () => {
-    describe('quand le dossier existe', () => {
-      it('renvoie le dossier', async () => {
-        // Given
-        nock('https://milo.com')
-          .get('/api-dossiers-cej/dossiers/1')
-          .reply(200, JSON.stringify(dossierDto()))
-          .isDone()
-
-        // When
-        const dossier = await miloHttpSqlRepository.getDossier('1')
-
-        // Then
-        expect(dossier).to.deep.equal(
-          success({
-            email: 'pass.emploi.contact@gmail.com',
-            id: '1',
-            nom: 'PEREZ',
-            prenom: 'Olivier',
-            codePostal: '65410',
-            dateDeNaissance: '1997-05-08',
-            dateFinCEJ: undefined,
-            situations: [
-              {
-                categorie: "Demandeur d'emploi",
-                etat: 'EN_COURS',
-                dateFin: undefined
-              }
-            ],
-            codeStructure: '65440S00'
-          })
-        )
-      })
-    })
-
-    describe('quand il y a une erreur 400', () => {
-      it('renvoie le message custom', async () => {
-        // Given
-        nock('https://milo.com')
-          .get('/api-dossiers-cej/dossiers/1')
-          .reply(400, {
-            message: 'Bad Request'
-          })
-          .isDone()
-
-        // When
-        const dossier = await miloHttpSqlRepository.getDossier('1')
-
-        // Then
-        expect(dossier).to.deep.equal(
-          failure(
-            new ErreurHttp(
-              'Le numéro de dossier est incorrect. Renseignez un numéro. Exemple : 123456.',
-              400
-            )
-          )
-        )
-      })
-    })
-
-    describe('quand il y a une erreur 401-404', () => {
-      it("renvoie le message de l'API", async () => {
-        // Given
-        nock('https://milo.com')
-          .get('/api-dossiers-cej/dossiers/1')
-          .reply(404, {
-            message: 'un message'
-          })
-          .isDone()
-
-        // When
-        const dossier = await miloHttpSqlRepository.getDossier('1')
-
-        // Then
-        expect(dossier).to.deep.equal(
-          failure(new ErreurHttp('un message', 404))
-        )
-      })
-    })
-
-    describe('quand il y a une erreur 500', () => {
-      it('throw une RuntimeException', async () => {
-        // Given
-        nock('https://milo.com')
-          .get('/api-dossiers-cej/dossiers/1')
-          .reply(500, 'Internal Server Error')
-          .isDone()
-
-        // When
-        const promise = miloHttpSqlRepository.getDossier('1')
-
-        // Then
-        await expect(promise).to.be.rejected()
-      })
-    })
-
-    it('envoie le header X-Gravitee-Api-Key', async () => {
+    it('délègue à MiloClient.getDossier', async () => {
       // Given
-      const scope = nock('https://milo.com')
-        .get('/api-dossiers-cej/dossiers/1')
-        .matchHeader(
-          'X-Gravitee-Api-Key',
-          configService.get('milo').apiKeyDossierCej
-        )
-        .reply(200, JSON.stringify(dossierDto()))
+      const dossierAttendu: JeuneMilo.Dossier = {
+        email: 'test@example.com',
+        id: '1',
+        nom: 'PEREZ',
+        prenom: 'Olivier',
+        codePostal: '65410',
+        dateDeNaissance: '1997-05-08',
+        dateFinCEJ: undefined,
+        situations: [],
+        codeStructure: '65440S00'
+      }
+      miloClient.getDossier.resolves(success(dossierAttendu))
 
       // When
-      await miloHttpSqlRepository.getDossier('1')
+      const result = await miloHttpSqlRepository.getDossier('1')
 
       // Then
-      expect(scope.isDone()).to.equal(true)
+      expect(miloClient.getDossier).to.have.been.calledOnceWithExactly('1')
+      expect(result).to.deep.equal(success(dossierAttendu))
     })
   })
 
@@ -301,189 +200,41 @@ describe('JeuneMiloHttpRepository', () => {
   })
 
   describe('creerJeune', () => {
-    it('envoie le header X-Gravitee-Api-Key', async () => {
+    it('délègue à MiloClient.creerJeune', async () => {
       // Given
-      const scope = nock('https://milo.com')
-        .post('/sue/compte-jeune/1')
-        .matchHeader(
-          'X-Gravitee-Api-Key',
-          configService.get('milo').apiKeyCreerJeune
-        )
-        .reply(204)
+      const resultatAttendu = success({
+        idAuthentification: 'sub-id',
+        existeDejaChezMilo: false
+      })
+      miloClient.creerJeune.resolves(resultatAttendu)
 
       // When
-      await miloHttpSqlRepository.creerJeune('1')
+      const result = await miloHttpSqlRepository.creerJeune('1')
 
       // Then
-      expect(scope.isDone()).to.equal(true)
+      expect(miloClient.creerJeune).to.have.been.calledOnceWithExactly(
+        '1',
+        undefined
+      )
+      expect(result).to.deep.equal(resultatAttendu)
     })
 
-    describe('quand le jeune est nouveau', () => {
-      describe("l'api ne retourne pas de sub", () => {
-        it("le crée chez Milo sans retourner l'id", async () => {
-          // Given
-          nock('https://milo.com')
-            .post('/sue/compte-jeune/1')
-            .reply(204)
-            .isDone()
-
-          // When
-          const dossier = await miloHttpSqlRepository.creerJeune('1')
-
-          // Then
-          expect(dossier).to.deep.equal(
-            success({
-              idAuthentification: undefined,
-              existeDejaChezMilo: false
-            })
-          )
-        })
+    it('passe le flag surcharge à MiloClient', async () => {
+      // Given
+      const resultatAttendu = success({
+        idAuthentification: 'sub-id',
+        existeDejaChezMilo: false
       })
-      describe("l'api retourne un sub", () => {
-        it("le crée chez Milo et retourne l'id", async () => {
-          // Given
-          nock('https://milo.com')
-            .post('/sue/compte-jeune/1')
-            .reply(201, 'un-id-keycloak', { 'content-type': 'text/plain' })
-            .isDone()
+      miloClient.creerJeune.resolves(resultatAttendu)
 
-          // When
-          const dossier = await miloHttpSqlRepository.creerJeune('1')
+      // When
+      await miloHttpSqlRepository.creerJeune('1', true)
 
-          // Then
-          expect(dossier).to.deep.equal(
-            success({
-              idAuthentification: 'un-id-keycloak',
-              existeDejaChezMilo: false
-            })
-          )
-        })
-      })
-      it("surcharge chez Milo et retourne l'id", async () => {
-        // Given
-        nock('https://milo.com')
-          .put('/sue/compte-jeune/surcharge/1')
-          .reply(201, 'un-id-keycloak', { 'content-type': 'text/plain' })
-          .isDone()
-
-        // When
-        const dossier = await miloHttpSqlRepository.creerJeune('1', true)
-
-        // Then
-        expect(dossier).to.deep.equal(
-          success({
-            idAuthentification: 'un-id-keycloak',
-            existeDejaChezMilo: false
-          })
-        )
-      })
-      it("surcharge chez Milo et retourne l'id quand pas de sub retourné", async () => {
-        // Given
-        nock('https://milo.com')
-          .put('/sue/compte-jeune/surcharge/1')
-          .reply(201, '', { 'content-type': 'text/plain' })
-          .isDone()
-        nock('https://milo.com')
-          .post('/sue/compte-jeune/1')
-          .reply(400, {
-            code: 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT',
-            'id-keycloak': 'un-id-keycloak'
-          })
-          .isDone()
-
-        // When
-        const dossier = await miloHttpSqlRepository.creerJeune('1', true)
-
-        // Then
-        expect(dossier).to.deep.equal(
-          success({
-            idAuthentification: 'un-id-keycloak',
-            existeDejaChezMilo: true
-          })
-        )
-      })
-    })
-    describe('quand il y a un bad request', () => {
-      describe("quand c'est SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT", () => {
-        describe('api en prod : quand le jeune existe déjà', () => {
-          it('renvoie un succès avec le sub', async () => {
-            // Given
-            nock('https://milo.com')
-              .post('/sue/compte-jeune/1')
-              .reply(400, {
-                code: 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT',
-                'id-keycloak': 'mon-sub'
-              })
-              .isDone()
-
-            // When
-            const dossier = await miloHttpSqlRepository.creerJeune('1')
-
-            // Then
-            expect(dossier).to.deep.equal(
-              success({
-                idAuthentification: 'mon-sub',
-                existeDejaChezMilo: true
-              })
-            )
-          })
-        })
-        describe('quand le jeune existe déjà dans une autre ML', () => {
-          it('renvoie un succès avec le sub', async () => {
-            // Given
-            nock('https://milo.com')
-              .post('/sue/compte-jeune/1')
-              .reply(400, {
-                code: 'SUE_ACCOUNT_EXISTING_OTHER_ML',
-                message: 'le jeune est suivi par john'
-              })
-              .isDone()
-
-            // When
-            const dossier = await miloHttpSqlRepository.creerJeune('1')
-
-            // Then
-            expect(dossier).to.deep.equal(
-              failure(new ErreurHttp('le jeune est suivi par john', 422))
-            )
-          })
-        })
-        describe('quand Milo renvoie une erreur 500', () => {
-          it('throw une RuntimeException', async () => {
-            // Given
-            nock('https://milo.com')
-              .post('/sue/compte-jeune/1')
-              .reply(500, 'Internal Server Error')
-              .isDone()
-
-            // When
-            const promise = miloHttpSqlRepository.creerJeune('1')
-
-            // Then
-            await expect(promise).to.be.rejected()
-          })
-        })
-        describe('api pas en prod : pas de sub', () => {
-          it('renvoie un échec', async () => {
-            // Given
-            nock('https://milo.com')
-              .post('/sue/compte-jeune/1')
-              .reply(400, {
-                code: 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT',
-                message: 'le mail est pas bon john'
-              })
-              .isDone()
-
-            // When
-            const dossier = await miloHttpSqlRepository.creerJeune('1')
-
-            // Then
-            expect(dossier).to.deep.equal(
-              failure(new ErreurHttp('le mail est pas bon john', 400))
-            )
-          })
-        })
-      })
+      // Then
+      expect(miloClient.creerJeune).to.have.been.calledOnceWithExactly(
+        '1',
+        true
+      )
     })
   })
 
@@ -698,44 +449,4 @@ describe('JeuneMiloHttpRepository', () => {
       expect(result).to.deep.equal(situationsMilo)
     })
   })
-})
-
-const dossierDto = (): DossierMiloDto => ({
-  idDossier: 6282,
-  idJeune: '1306654400021970358',
-  numeroDE: '4053956Z',
-  adresse: {
-    numero: '',
-    libelleVoie: 'le village',
-    complement: 'ancienne ecole',
-    codePostal: '65410',
-    commune: 'Beyrède-Jumet-Camous'
-  },
-  nomNaissance: 'PEREZ',
-  nomUsage: 'PEREZ',
-  prenom: 'Olivier',
-  dateNaissance: '1997-05-08',
-  mail: 'pass.emploi.contact@gmail.com',
-  structureRattachement: {
-    nomUsuel: 'Antenne de Tarbes',
-    nomOfficiel: '65-ML TARBES',
-    codeStructure: '65440S00'
-  },
-  accompagnementCEJ: {
-    accompagnementCEJ: false,
-    dateDebut: null,
-    dateFinPrevue: null,
-    dateFinReelle: null,
-    premierAccompagnement: null
-  },
-  situationsCEJ: [
-    {
-      etat: JeuneMilo.EtatSituation.EN_COURS,
-      dateFin: null,
-      categorieSituation: JeuneMilo.CategorieSituation.DEMANDEUR_D_EMPLOI,
-      codeRomeMetierPrepare: null,
-      codeRomePremierMetier: 'F1501',
-      codeRomeMetierExerce: null
-    }
-  ]
 })

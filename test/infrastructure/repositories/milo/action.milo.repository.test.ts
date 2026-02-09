@@ -1,98 +1,47 @@
-import { testConfig } from '../../../utils/module-for-testing'
-import { HttpService } from '@nestjs/axios'
 import { ActionMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/action.milo.repository'
-import { expect } from '../../../utils'
+import { expect, StubbedClass, stubClass } from '../../../utils'
 import { uneActionMilo } from '../../../fixtures/action.fixture'
 import {
   emptySuccess,
   failure
 } from '../../../../src/building-blocks/types/result'
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
-import * as nock from 'nock'
-import { RateLimiterService } from '../../../../src/utils/rate-limiter.service'
+import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 
-describe('MiloHttpSqlRepository', () => {
-  const configService = testConfig()
-  const rateLimiterService = new RateLimiterService(configService)
-
+describe('ActionMiloHttpRepository', () => {
   let repository: ActionMiloHttpRepository
+  let miloClient: StubbedClass<MiloClient>
 
   beforeEach(() => {
-    const httpService = new HttpService()
-    repository = new ActionMiloHttpRepository(
-      httpService,
-      configService,
-      rateLimiterService
-    )
+    miloClient = stubClass(MiloClient)
+    repository = new ActionMiloHttpRepository(miloClient)
   })
 
   describe('save', () => {
-    describe('quand Milo renvoie une erreur 4XX', () => {
-      it('renvoie une failure', async () => {
-        // Given
-        nock('https://milo.com')
-          .post('/sue/dossiers/idDossier/situation')
-          .reply(404, {
-            message: 'un message'
-          })
-          .isDone()
+    it('délègue à MiloClient.creerSituationDossier', async () => {
+      // Given
+      const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
+      miloClient.creerSituationDossier.resolves(emptySuccess())
 
-        // When
-        const result = await repository.save(
-          uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
-        )
+      // When
+      const result = await repository.save(action)
 
-        // Then
-        expect(result).to.deep.equal(failure(new ErreurHttp('un message', 404)))
-      })
+      // Then
+      expect(miloClient.creerSituationDossier).to.have.been.calledOnce()
+      expect(result).to.deep.equal(emptySuccess())
     })
 
-    describe('quand Milo renvoie une erreur 500', () => {
-      it('throw une exception', async () => {
-        // Given
-        nock('https://milo.com')
-          .post('/sue/dossiers/idDossier/situation')
-          .reply(500, 'Internal Server Error')
-          .isDone()
+    it('retourne le résultat de MiloClient en cas de failure', async () => {
+      // Given
+      const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
+      const erreur = failure(new ErreurHttp('Erreur API', 400))
+      miloClient.creerSituationDossier.resolves(erreur)
 
-        // When
-        const result = await repository.save(
-          uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
-        )
+      // When
+      const result = await repository.save(action)
 
-        // Then
-        expect(result).to.deep.equal(
-          failure(new ErreurHttp('Erreur API MILO qualification', 500))
-        )
-      })
-    })
-
-    describe('quand Milo est up and ready', () => {
-      it('crée une SNP avec le bon body et le bon header', async () => {
-        // Given
-        const scope = nock('https://milo.com')
-          .post('/sue/dossiers/idDossier/situation', {
-            dateDebut: '2022-03-01',
-            dateFinReelle: '2022-03-01',
-            commentaire: 'Un commentaire',
-            mesure: 'SANTE',
-            loginConseiller: 'loginConseiller'
-          })
-          .matchHeader(
-            'X-Gravitee-Api-Key',
-            configService.get('milo').apiKeyDossier
-          )
-          .reply(201)
-
-        // When
-        const result = await repository.save(
-          uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
-        )
-
-        // Then
-        expect(scope.isDone()).to.equal(true)
-        expect(result).to.deep.equal(emptySuccess())
-      })
+      // Then
+      expect(result).to.deep.equal(erreur)
     })
   })
 })

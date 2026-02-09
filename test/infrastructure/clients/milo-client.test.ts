@@ -9,7 +9,10 @@ import {
   isSuccess,
   success
 } from 'src/building-blocks/types/result'
-import { ErreurHttp } from 'src/building-blocks/types/domain-error'
+import {
+  ErreurHttp,
+  ErreurMiloHttp
+} from 'src/building-blocks/types/domain-error'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import {
   unDetailSessionConseillerDto,
@@ -27,6 +30,13 @@ import {
   MILO_REFUS_JEUNE,
   MILO_REFUS_TIERS
 } from '../../../src/infrastructure/clients/dto/milo.dto'
+import {
+  DossierMiloDto,
+  EvenementMiloDto,
+  InstanceSessionMiloDto,
+  RendezVousMiloDto
+} from '../../../src/infrastructure/repositories/dto/milo.dto'
+import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
 import { initializeAPMAgent } from '../../../src/infrastructure/monitoring/apm.init'
 import { RateLimiterService } from '../../../src/utils/rate-limiter.service'
 import { DateService } from '../../../src/utils/date-service'
@@ -794,6 +804,653 @@ describe('MiloClient', () => {
       expect(scope3.isDone()).to.equal(true)
       expect(scope4.isDone()).to.equal(true)
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('getDossier', () => {
+    const idDossier = '123456'
+
+    it('recupere le dossier et le mappe correctement', async () => {
+      // Given
+      const dossierDto: DossierMiloDto = {
+        idDossier: 123456,
+        idJeune: 'id-jeune',
+        numeroDE: 'num-de',
+        nomNaissance: 'Nom',
+        nomUsage: 'NomUsage',
+        prenom: 'Prenom',
+        dateNaissance: '2000-01-01',
+        mail: 'test@example.com',
+        adresse: {
+          numero: '1',
+          libelleVoie: 'rue',
+          complement: '',
+          codePostal: '75001',
+          commune: 'Paris'
+        },
+        structureRattachement: {
+          nomUsuel: 'ML Paris',
+          nomOfficiel: 'Mission Locale Paris',
+          codeStructure: 'CODE-STRUCT'
+        },
+        accompagnementCEJ: {
+          accompagnementCEJ: true,
+          dateDebut: '2023-01-01',
+          dateFinPrevue: '2023-12-31',
+          dateFinReelle: null,
+          premierAccompagnement: null
+        },
+        situationsCEJ: [
+          {
+            etat: JeuneMilo.EtatSituation.EN_COURS,
+            dateFin: null,
+            categorieSituation: JeuneMilo.CategorieSituation.EMPLOI,
+            codeRomeMetierPrepare: null,
+            codeRomePremierMetier: 'A1234',
+            codeRomeMetierExerce: null
+          }
+        ]
+      }
+      nock(MILO_BASE_URL)
+        .get(`/api-dossiers-cej/dossiers/${idDossier}`)
+        .reply(200, dossierDto)
+
+      // When
+      const result = await miloClient.getDossier(idDossier)
+
+      // Then
+      expect(isSuccess(result)).to.be.true()
+      if (isSuccess(result)) {
+        expect(result.data.id).to.equal(idDossier)
+        expect(result.data.prenom).to.equal('Prenom')
+        expect(result.data.nom).to.equal('NomUsage')
+        expect(result.data.email).to.equal('test@example.com')
+        expect(result.data.codePostal).to.equal('75001')
+        expect(result.data.codeStructure).to.equal('CODE-STRUCT')
+      }
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .get(`/api-dossiers-cej/dossiers/${idDossier}`)
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDossierCej
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, {
+          idDossier: 123456,
+          idJeune: 'id',
+          numeroDE: 'num',
+          nomNaissance: 'N',
+          nomUsage: 'N',
+          prenom: 'P',
+          dateNaissance: '2000-01-01',
+          mail: null,
+          accompagnementCEJ: {
+            accompagnementCEJ: true,
+            dateDebut: null,
+            dateFinPrevue: null,
+            dateFinReelle: null,
+            premierAccompagnement: null
+          },
+          situationsCEJ: []
+        })
+
+      // When
+      await miloClient.getDossier(idDossier)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie un message custom quand Milo renvoie 400', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/api-dossiers-cej/dossiers/${idDossier}`)
+        .reply(400, { message: 'Bad Request' })
+
+      // When
+      const result = await miloClient.getDossier(idDossier)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new ErreurHttp(
+            'Le numéro de dossier est incorrect. Renseignez un numéro. Exemple : 123456.',
+            400
+          )
+        )
+      )
+    })
+
+    it('renvoie le message API quand Milo renvoie 404', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/api-dossiers-cej/dossiers/${idDossier}`)
+        .reply(404, { message: 'Dossier introuvable' })
+
+      // When
+      const result = await miloClient.getDossier(idDossier)
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      if (isFailure(result)) {
+        expect(result.error.message).to.equal('Dossier introuvable')
+      }
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/api-dossiers-cej/dossiers/${idDossier}`)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getDossier(idDossier)
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+  })
+
+  describe('creerSituationDossier', () => {
+    const idDossier = 'idDossier'
+    const body = {
+      dateDebut: '2022-03-01',
+      dateFinReelle: '2022-03-01',
+      commentaire: 'Un commentaire',
+      mesure: 'SANTE',
+      loginConseiller: 'loginConseiller'
+    }
+
+    it('crée une SNP avec le bon body', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .post(`/sue/dossiers/${idDossier}/situation`, body)
+        .reply(201)
+
+      // When
+      const result = await miloClient.creerSituationDossier(idDossier, body)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .post(`/sue/dossiers/${idDossier}/situation`, body)
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDossier
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(201)
+
+      // When
+      await miloClient.creerSituationDossier(idDossier, body)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie une failure quand Milo renvoie 400', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/dossiers/${idDossier}/situation`)
+        .reply(400, { message: 'un message' })
+
+      // When
+      const result = await miloClient.creerSituationDossier(idDossier, body)
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/dossiers/${idDossier}/situation`)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.creerSituationDossier(idDossier, body)
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+  })
+
+  describe('creerJeune', () => {
+    const idDossier = '12345'
+
+    it('crée un jeune et renvoie le sub keycloak', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .reply(200, 'sub-keycloak-id')
+
+      // When
+      const result = await miloClient.creerJeune(idDossier)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          idAuthentification: 'sub-keycloak-id',
+          existeDejaChezMilo: false
+        })
+      )
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyCreerJeune
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, 'sub-id')
+
+      // When
+      await miloClient.creerJeune(idDossier)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie une failure 422 quand le compte existe dans une autre ML', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .reply(400, {
+          message: 'Account exists in other ML',
+          code: 'SUE_ACCOUNT_EXISTING_OTHER_ML'
+        })
+
+      // When
+      const result = await miloClient.creerJeune(idDossier)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Account exists in other ML', 422))
+      )
+    })
+
+    it('renvoie success avec existeDejaChezMilo quand le compte est déjà rattaché avec un sub keycloak', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .reply(400, {
+          message: 'Already attached',
+          code: 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT',
+          'id-keycloak': 'existing-sub'
+        })
+
+      // When
+      const result = await miloClient.creerJeune(idDossier)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          idAuthentification: 'existing-sub',
+          existeDejaChezMilo: true
+        })
+      )
+    })
+
+    it('renvoie une failure quand le compte est déjà rattaché sans sub keycloak', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .reply(400, {
+          message: 'Already attached',
+          code: 'SUE_RECORD_ALREADY_ATTACHED_TO_ACCOUNT'
+        })
+
+      // When
+      const result = await miloClient.creerJeune(idDossier)
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/sue/compte-jeune/${idDossier}`, {})
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.creerJeune(idDossier)
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+
+    describe('avec surcharge', () => {
+      it('utilise PUT sur le endpoint surcharge', async () => {
+        // Given
+        const scope = nock(MILO_BASE_URL)
+          .put(`/sue/compte-jeune/surcharge/${idDossier}`, {})
+          .reply(200, 'sub-id')
+
+        // When
+        const result = await miloClient.creerJeune(idDossier, true)
+
+        // Then
+        expect(scope.isDone()).to.equal(true)
+        expect(result).to.deep.equal(
+          success({
+            idAuthentification: 'sub-id',
+            existeDejaChezMilo: false
+          })
+        )
+      })
+
+      it('fait un POST si PUT renvoie un body vide', async () => {
+        // Given
+        nock(MILO_BASE_URL)
+          .put(`/sue/compte-jeune/surcharge/${idDossier}`, {})
+          .reply(200, '')
+
+        nock(MILO_BASE_URL)
+          .post(`/sue/compte-jeune/${idDossier}`, {})
+          .reply(200, 'sub-from-post')
+
+        // When
+        const result = await miloClient.creerJeune(idDossier, true)
+
+        // Then
+        expect(result).to.deep.equal(
+          success({
+            idAuthentification: 'sub-from-post',
+            existeDejaChezMilo: false
+          })
+        )
+      })
+    })
+  })
+
+  describe('getInstanceSession', () => {
+    const idInstance = 'id-instance'
+    const idDossier = 'id-dossier'
+
+    it('recupere une instance de session', async () => {
+      // Given
+      const instanceDto: InstanceSessionMiloDto = {
+        id: 'id-instance',
+        idSession: 'id-session',
+        nom: 'Session test',
+        dateHeureDebut: '2020-10-06 10:00:00',
+        dateHeureFin: '2020-10-06 12:00:00',
+        lieu: 'Paris',
+        idDossier: 'id-dossier',
+        statut: 'Prescrit'
+      }
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+        .reply(200, instanceDto)
+
+      // When
+      const result = await miloClient.getInstanceSession(idInstance, idDossier)
+
+      // Then
+      expect(result).to.deep.equal(success(instanceDto))
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDetailRendezVous
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, {
+          id: 'id-instance',
+          idSession: 'id-session',
+          nom: 'test',
+          dateHeureDebut: '2020-10-06 10:00:00',
+          lieu: '',
+          idDossier: 'id-dossier',
+          statut: 'Prescrit'
+        })
+
+      // When
+      await miloClient.getInstanceSession(idInstance, idDossier)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie une failure quand Milo renvoie 404', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+        .reply(404, { message: 'Not Found' })
+
+      // When
+      const result = await miloClient.getInstanceSession(idInstance, idDossier)
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/sessions/${idInstance}`)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getInstanceSession(idInstance, idDossier)
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+  })
+
+  describe('getRendezVous', () => {
+    const idDossier = '1234'
+    const idRendezVous = '5678'
+
+    it('recupere un rendez-vous', async () => {
+      // Given
+      const rdvDto: RendezVousMiloDto = {
+        id: 5678,
+        dateHeureDebut: '2020-10-06 10:00:00',
+        dateHeureFin: '2020-10-06 12:00:00',
+        objet: 'Test RDV',
+        conseiller: 'SIMILO SIMILO',
+        idDossier: 1234,
+        commentaire: '',
+        type: 'Téléphone',
+        statut: 'Planifié',
+        lieu: 'Bureau'
+      }
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`)
+        .reply(200, rdvDto)
+
+      // When
+      const result = await miloClient.getRendezVous(idDossier, idRendezVous)
+
+      // Then
+      expect(result).to.deep.equal(success(rdvDto))
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`)
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyDetailRendezVous
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, {
+          id: 5678,
+          dateHeureDebut: '2020-10-06 10:00:00',
+          objet: 'Test',
+          conseiller: 'C',
+          idDossier: 1234,
+          type: 'Tel',
+          statut: 'Planifié'
+        })
+
+      // When
+      await miloClient.getRendezVous(idDossier, idRendezVous)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie success(undefined) quand Milo renvoie 404', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`)
+        .reply(404, { message: 'Not Found' })
+
+      // When
+      const result = await miloClient.getRendezVous(idDossier, idRendezVous)
+
+      // Then
+      expect(result).to.deep.equal(success(undefined))
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get(`/operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`)
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getRendezVous(idDossier, idRendezVous)
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+  })
+
+  describe('getEvenements', () => {
+    it('recupere la liste des evenements', async () => {
+      // Given
+      const evenements: EvenementMiloDto[] = [
+        {
+          identifiant: 'evt-1',
+          idDossier: 1234,
+          type: 'RDV',
+          action: 'CREATE',
+          idType: 5678,
+          date: '2023-06-01 10:00:00'
+        }
+      ]
+      nock(MILO_BASE_URL).get('/api-evenements/events').reply(200, evenements)
+
+      // When
+      const result = await miloClient.getEvenements()
+
+      // Then
+      expect(result).to.deep.equal(success(evenements))
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .get('/api-evenements/events')
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyEvents
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, [])
+
+      // When
+      await miloClient.getEvenements()
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/api-evenements/events')
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.getEvenements()
+
+      // Then
+      await expect(promise).to.be.rejected()
+    })
+  })
+
+  describe('acquitterEvenement', () => {
+    const idEvenement = 'evt-1'
+
+    it('acquitte un evenement', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .post(`/api-evenements/events/${idEvenement}/ack`, {})
+        .reply(200)
+
+      // When
+      const result = await miloClient.acquitterEvenement(idEvenement)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+
+    it('envoie les bons headers', async () => {
+      // Given
+      const scope = nock(MILO_BASE_URL)
+        .post(`/api-evenements/events/${idEvenement}/ack`, {})
+        .matchHeader(
+          'X-Gravitee-Api-Key',
+          configService.get('milo').apiKeyEvents
+        )
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200)
+
+      // When
+      await miloClient.acquitterEvenement(idEvenement)
+
+      // Then
+      expect(scope.isDone()).to.equal(true)
+    })
+
+    it('renvoie une failure quand Milo renvoie 400', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/api-evenements/events/${idEvenement}/ack`, {})
+        .reply(400, { message: 'Erreur acquittement' })
+
+      // When
+      const result = await miloClient.acquitterEvenement(idEvenement)
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie 500', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/api-evenements/events/${idEvenement}/ack`, {})
+        .reply(500, 'Internal Server Error')
+
+      // When
+      const promise = miloClient.acquitterEvenement(idEvenement)
+
+      // Then
+      await expect(promise).to.be.rejected()
     })
   })
 
