@@ -1,0 +1,14 @@
+name: Security Alerts
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # Toutes les 3 heures
+
+jobs:
+  security-alerts:
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@1396a6a7f43e0e1817c2aa5633b96c92233df6c8
+    with:
+      repo-name: 'pass-emploi-api'
+    secrets:
+      DEPENDABOT_ALERTS_READER: ${{ secrets.DEPENDABOT_ALERTS_READER }}
+      MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}

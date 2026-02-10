@@ -1,0 +1,51 @@
+version: 2
+
+updates:
+  # ===========================================
+  # NPM Dependencies
+  # ===========================================
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+      time: '07:00'
+      timezone: Europe/Paris
+    open-pull-requests-limit: 15
+    commit-message:
+      prefix: 'chore(deps):'
+    groups:
+      # Production dependencies - patch and minor (auto-merge côté CI)
+      prod-minor-patch:
+        applies-to: version-updates
+        dependency-type: production
+        update-types:
+          - patch
+          - minor
+      # Development dependencies - patch and minor (auto-merge côté CI)
+      dev-minor-patch:
+        applies-to: version-updates
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+      # Majors : pas de groupe, chaque dépendance a sa propre PR
+
+  # ===========================================
+  # GitHub Actions
+  # ===========================================
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+      time: '07:00'
+      timezone: Europe/Paris
+    commit-message:
+      prefix: 'ci(deps):'
+    groups:
+      # GitHub Actions - patch and minor (auto-merge côté CI)
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+      # Majors : pas de groupe, chaque action a sa propre PR

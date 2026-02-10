@@ -1,0 +1,12 @@
+name: Dependabot
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  dependabot:
+    uses: France-Travail/pass-emploi-tools/.github/workflows/dependabot.yml@1396a6a7f43e0e1817c2aa5633b96c92233df6c8
