@@ -45,8 +45,8 @@ export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyJwtJeune: string
   private readonly apiKeyJwtSessions: string
   private readonly apiKeySessions: string
+  private readonly apiKeyJwtUtilisateurs: string
   private readonly apiKeyEnvoiEmail: string
-  private readonly apiKeyUtilisateurs: string
   private readonly apiKeyEvents: string
   private readonly apiKeyDetailRendezVous: string
 
@@ -61,7 +61,8 @@ export class MiloClientV2 implements MiloClientPort {
     this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
     this.apiKeyJwtSessions = this.configService.get('milo').apiKeyJwtSessions
     this.apiKeySessions = this.configService.get('milo').apiKeySessions
-    this.apiKeyUtilisateurs = this.configService.get('milo').apiKeyUtilisateurs
+    this.apiKeyJwtUtilisateurs =
+      this.configService.get('milo').apiKeyJwtUtilisateurs
     this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
     this.apiKeyDetailRendezVous =
@@ -488,8 +489,8 @@ export class MiloClientV2 implements MiloClientPort {
     await this.rateLimiterService.structuresMiloRateLimiter.attendreLaProchaineDisponibilite()
     const resultStructures = await this.miloClientUtils.get<
       StructureConseillerMiloDto[]
-    >(`operateurs/utilisateurs/moi/structures`, {
-      apiKey: this.apiKeyUtilisateurs,
+    >(`api-utilisateurs/utilisateurs/moi/structures`, {
+      apiKey: this.apiKeyJwtUtilisateurs,
       idpToken
     })
 

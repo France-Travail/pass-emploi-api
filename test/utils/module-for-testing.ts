@@ -120,6 +120,7 @@ export const testConfig = (): ConfigService => {
       apiKeyJwtJeune: 'apiKeyJwtJeune',
       apiKeyJwtSessions: 'apiKeyJwtSessions',
       apiKeySessions: 'apiKeySessions',
+      apiKeyJwtUtilisateurs: 'apiKeyJwtUtilisateurs',
       apiKeyEvents: 'apiKeyEvents'
     },
     redis: {
