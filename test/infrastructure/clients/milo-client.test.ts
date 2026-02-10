@@ -987,7 +987,7 @@ describe('MiloClientV1', () => {
         .post(`/sue/dossiers/${idDossier}/situation`, body)
         .matchHeader(
           'X-Gravitee-Api-Key',
-          configService.get('milo').apiKeyDossier
+          configService.get('milo').apiKeyDossierV1
         )
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(201)

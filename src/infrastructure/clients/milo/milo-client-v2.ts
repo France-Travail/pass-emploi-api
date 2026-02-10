@@ -41,6 +41,7 @@ export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
 @Injectable()
 export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyDossierCej: string
+  private readonly apiKeyDossier: string
   private readonly apiKeyCreerJeune: string
   private readonly apiKeySessionsListeConseiller: string
   private readonly apiKeySessionsDetailEtListeJeune: string
@@ -48,7 +49,6 @@ export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyInstanceSessionEcritureConseiller: string
   private readonly apiKeyEnvoiEmail: string
   private readonly apiKeyUtilisateurs: string
-  private readonly apiKeyDossier: string
   private readonly apiKeyEvents: string
   private readonly apiKeyDetailRendezVous: string
 
@@ -59,6 +59,7 @@ export class MiloClientV2 implements MiloClientPort {
     private readonly dateService: DateService
   ) {
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
+    this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
     this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
     this.apiKeySessionsListeConseiller =
       this.configService.get('milo').apiKeySessionsListeConseiller
@@ -70,7 +71,6 @@ export class MiloClientV2 implements MiloClientPort {
       this.configService.get('milo').apiKeyInstanceSessionEcritureConseiller
     this.apiKeyUtilisateurs = this.configService.get('milo').apiKeyUtilisateurs
     this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
-    this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
     this.apiKeyDetailRendezVous =
       this.configService.get('milo').apiKeyDetailRendezVous
@@ -138,7 +138,7 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result> {
     await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
     return await this.miloClientUtils.post(
-      `sue/dossiers/${idDossier}/situation`,
+      `api-dossiers/dossiers/${idDossier}/situation`,
       body,
       { apiKey: this.apiKeyDossier }
     )
