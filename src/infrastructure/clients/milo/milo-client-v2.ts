@@ -46,9 +46,9 @@ export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyJwtSessions: string
   private readonly apiKeySessions: string
   private readonly apiKeyJwtUtilisateurs: string
+  private readonly apiKeyRdv: string
   private readonly apiKeyEnvoiEmail: string
   private readonly apiKeyEvents: string
-  private readonly apiKeyDetailRendezVous: string
 
   constructor(
     private readonly miloClientUtils: MiloClientUtils,
@@ -63,10 +63,9 @@ export class MiloClientV2 implements MiloClientPort {
     this.apiKeySessions = this.configService.get('milo').apiKeySessions
     this.apiKeyJwtUtilisateurs =
       this.configService.get('milo').apiKeyJwtUtilisateurs
+    this.apiKeyRdv = this.configService.get('milo').apiKeyRdv
     this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
-    this.apiKeyDetailRendezVous =
-      this.configService.get('milo').apiKeyDetailRendezVous
   }
 
   /* ************ */
@@ -518,8 +517,8 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<RendezVousMiloDto>> {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<RendezVousMiloDto>(
-      `operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`,
-      { apiKey: this.apiKeyDetailRendezVous }
+      `api-rdv/dossiers/${idDossier}/rdv/${idRendezVous}`,
+      { apiKey: this.apiKeyRdv }
     )
     if (
       isFailure(result) &&

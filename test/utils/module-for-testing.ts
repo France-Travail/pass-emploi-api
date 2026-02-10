@@ -121,6 +121,7 @@ export const testConfig = (): ConfigService => {
       apiKeyJwtSessions: 'apiKeyJwtSessions',
       apiKeySessions: 'apiKeySessions',
       apiKeyJwtUtilisateurs: 'apiKeyJwtUtilisateurs',
+      apiKeyRdv: 'apiKeyRdv',
       apiKeyEvents: 'apiKeyEvents'
     },
     redis: {

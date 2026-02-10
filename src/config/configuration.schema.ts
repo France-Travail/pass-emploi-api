@@ -56,6 +56,7 @@ export const configurationSchema = Joi.object({
     apiKeyJwtSessions: Joi.string().required(),
     apiKeySessions: Joi.string().required(),
     apiKeyJwtUtilisateurs: Joi.string().required(),
+    apiKeyRdv: Joi.string().required(),
     apiKeyEvents: Joi.string().required()
   }),
   immersion: {

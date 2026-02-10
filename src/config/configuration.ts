@@ -87,6 +87,7 @@ export default () => {
       apiKeyJwtSessions: process.env.MILO_V2_SESSIONS_JWT_API_KEY,
       apiKeySessions: process.env.MILO_V2_SESSIONS_API_KEY,
       apiKeyJwtUtilisateurs: process.env.MILO_V2_UTILISATEURS_JWT_API_KEY,
+      apiKeyRdv: process.env.MILO_V2_RDV_API_KEY,
       apiKeyEvents: process.env.MILO_V2_EVENTS_API_KEY
     },
     immersion: {
