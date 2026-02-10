@@ -42,7 +42,7 @@ export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
 export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyDossierCej: string
   private readonly apiKeyDossier: string
-  private readonly apiKeyCreerJeune: string
+  private readonly apiKeyJwtJeune: string
   private readonly apiKeySessionsListeConseiller: string
   private readonly apiKeySessionsDetailEtListeJeune: string
   private readonly apiKeySessionDetailConseiller: string
@@ -60,7 +60,7 @@ export class MiloClientV2 implements MiloClientPort {
   ) {
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
     this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
-    this.apiKeyCreerJeune = this.configService.get('milo').apiKeyCreerJeune
+    this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
     this.apiKeySessionsListeConseiller =
       this.configService.get('milo').apiKeySessionsListeConseiller
     this.apiKeySessionsDetailEtListeJeune =
@@ -156,22 +156,22 @@ export class MiloClientV2 implements MiloClientPort {
     let response
     response = surcharge
       ? await this.miloClientUtils.put<string>(
-          `sue/compte-jeune/surcharge/${idDossier}`,
+          `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
           {},
-          { apiKey: this.apiKeyCreerJeune }
+          { apiKey: this.apiKeyJwtJeune }
         )
       : await this.miloClientUtils.post<string>(
-          `sue/compte-jeune/${idDossier}`,
+          `api-jeune/sue/compte-jeune/${idDossier}`,
           {},
-          { apiKey: this.apiKeyCreerJeune }
+          { apiKey: this.apiKeyJwtJeune }
         )
 
     if (isSuccess(response)) {
       if (surcharge && !response.data) {
         response = await this.miloClientUtils.post<string>(
-          `sue/compte-jeune/${idDossier}`,
+          `api-jeune/sue/compte-jeune/${idDossier}`,
           {},
-          { apiKey: this.apiKeyCreerJeune }
+          { apiKey: this.apiKeyJwtJeune }
         )
       }
       if (isSuccess(response)) {

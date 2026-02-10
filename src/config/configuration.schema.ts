@@ -37,22 +37,23 @@ export const configurationSchema = Joi.object({
       .uri()
       .description("feature flipping pour ajouter l'url du dossier du jeune"),
     maxNombreEvenementsBatch: Joi.number().required(),
-    apiKeyDossierV1: Joi.string().required(),
-    apiKeyCreerJeune: Joi.string().required(),
+    apiKeyDossierV1: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyCreerJeune: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyDetailRendezVous: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyInstanceSessionLecture: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyInstanceSessionEcritureConseiller: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyInstanceSessionAnnulationJeune: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeySessionDetailConseiller: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeySessionsDetailEtListeJeune: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeySessionsListeConseiller: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyUtilisateurs: Joi.string().required(), // todo: supprimer après migration API MiLo
+    apiKeyEnvoiEmail: Joi.string().required(), // todo: supprimer après migration API MiLo
+    emailsConseillersV2: Joi.array().items(Joi.string()), // todo: supprimer après migration API MiLo
+    apiV2Enabled: Joi.boolean().default(false),
     apiKeyDossierCej: Joi.string().required(),
     apiKeyDossier: Joi.string().required(),
-    apiKeyEvents: Joi.string().required(),
-    apiKeyDetailRendezVous: Joi.string().required(),
-    apiKeyInstanceSessionLecture: Joi.string().required(),
-    apiKeyInstanceSessionEcritureConseiller: Joi.string().required(),
-    apiKeyInstanceSessionAnnulationJeune: Joi.string().required(),
-    apiKeySessionDetailConseiller: Joi.string().required(),
-    apiKeySessionsDetailEtListeJeune: Joi.string().required(),
-    apiKeySessionsListeConseiller: Joi.string().required(),
-    apiKeyUtilisateurs: Joi.string().required(),
-    apiKeyEnvoiEmail: Joi.string().required(),
-    emailsConseillersV2: Joi.array().items(Joi.string()),
-    apiV2Enabled: Joi.boolean().default(false)
+    apiKeyJwtJeune: Joi.string().required(),
+    apiKeyEvents: Joi.string().required()
   }),
   immersion: {
     url: Joi.string().uri().required(),

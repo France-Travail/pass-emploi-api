@@ -59,31 +59,32 @@ export default () => {
     milo: {
       url: process.env.MILO_API_URL,
       maxNombreEvenementsBatch: process.env.MILO_MAX_NOMBRE_EVENEMENTS_BATCH,
-      apiKeyDossierV1: process.env.MILO_DOSSIER_API_KEY,
-      apiKeyDossier: process.env.MILO_V2_DOSSIER_API_KEY,
-      apiKeyDossierCej: process.env.MILO_V2_DOSSIER_CEJ_API_KEY,
-      apiKeyCreerJeune: process.env.MILO_JEUNE_API_KEY,
-      apiKeyEvents: process.env.MILO_V2_EVENTS_API_KEY,
+      apiKeyDossierV1: process.env.MILO_DOSSIER_API_KEY, // todo: supprimer après migration API MiLo
+      apiKeyCreerJeune: process.env.MILO_JEUNE_API_KEY, // todo: supprimer après migration API MiLo
       apiKeyDetailRendezVous: process.env.MILO_RENDEZ_VOUS_API_KEY,
       apiKeyInstanceSessionLecture:
-        process.env.MILO_INSTANCE_SESSION_LECTURE_API_KEY,
+        process.env.MILO_INSTANCE_SESSION_LECTURE_API_KEY, // todo: supprimer après migration API MiLo
       apiKeyInstanceSessionEcritureConseiller:
-        process.env.MILO_INSTANCE_SESSION_ECRITURE_CONSEILLER_API_KEY,
+        process.env.MILO_INSTANCE_SESSION_ECRITURE_CONSEILLER_API_KEY, // todo: supprimer après migration API MiLo
       apiKeyInstanceSessionAnnulationJeune:
-        process.env.MILO_INSTANCE_SESSION_ANNULATION_JEUNE_API_KEY,
+        process.env.MILO_INSTANCE_SESSION_ANNULATION_JEUNE_API_KEY, // todo: supprimer après migration API MiLo
       apiKeySessionDetailConseiller:
-        process.env.MILO_SESSION_DETAIL_CONSEILLER_API_KEY,
+        process.env.MILO_SESSION_DETAIL_CONSEILLER_API_KEY, // todo: supprimer après migration API MiLo
       apiKeySessionsDetailEtListeJeune:
-        process.env.MILO_SESSIONS_DETAIL_ET_LISTE_JEUNE_API_KEY,
+        process.env.MILO_SESSIONS_DETAIL_ET_LISTE_JEUNE_API_KEY, // todo: supprimer après migration API MiLo
       apiKeySessionsListeConseiller:
-        process.env.MILO_SESSIONS_LISTE_CONSEILLER_API_KEY,
-      apiKeyUtilisateurs: process.env.MILO_UTILISATEURS_API_KEY,
-      apiKeyEnvoiEmail: process.env.MILO_ENVOI_EMAIL_API_KEY,
-      urlWeb: process.env.MILO_WEB_URL,
+        process.env.MILO_SESSIONS_LISTE_CONSEILLER_API_KEY, // todo: supprimer après migration API MiLo
+      apiKeyUtilisateurs: process.env.MILO_UTILISATEURS_API_KEY, // todo: supprimer après migration API MiLo
+      apiKeyEnvoiEmail: process.env.MILO_ENVOI_EMAIL_API_KEY, // todo: supprimer après migration API MiLo
+      urlWeb: process.env.MILO_WEB_URL, // todo: supprimer après migration API MiLo
       emailsConseillersV2: process.env.MILO_V2_EMAILS_CONSEILLERS
         ? JSON.parse(process.env.MILO_V2_EMAILS_CONSEILLERS)
-        : [],
-      apiV2Enabled: process.env.MILO_V2_ENABLED === 'true'
+        : [], // todo: supprimer après migration API MiLo
+      apiV2Enabled: process.env.MILO_V2_ENABLED === 'true',
+      apiKeyDossierCej: process.env.MILO_V2_DOSSIER_CEJ_API_KEY,
+      apiKeyDossier: process.env.MILO_V2_DOSSIER_API_KEY,
+      apiKeyJwtJeune: process.env.MILO_V2_JEUNE_JWT_API_KEY,
+      apiKeyEvents: process.env.MILO_V2_EVENTS_API_KEY
     },
     immersion: {
       url:
