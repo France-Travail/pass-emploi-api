@@ -117,8 +117,10 @@ export const testConfig = (): ConfigService => {
       apiKeyEnvoiEmail: 'apiKeyEnvoiEmail',
       apiKeyDossierCej: 'apiKeyDossierCej',
       apiKeyDossier: 'apiKeyDossier',
-      apiKeyEvents: 'apiKeyEvents',
-      apiKeyJwtJeune: 'apiKeyJwtJeune'
+      apiKeyJwtJeune: 'apiKeyJwtJeune',
+      apiKeyJwtSessions: 'apiKeyJwtSessions',
+      apiKeySessions: 'apiKeySessions',
+      apiKeyEvents: 'apiKeyEvents'
     },
     redis: {
       // eslint-disable-next-line no-process-env

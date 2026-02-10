@@ -43,10 +43,8 @@ export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyDossierCej: string
   private readonly apiKeyDossier: string
   private readonly apiKeyJwtJeune: string
-  private readonly apiKeySessionsListeConseiller: string
-  private readonly apiKeySessionsDetailEtListeJeune: string
-  private readonly apiKeySessionDetailConseiller: string
-  private readonly apiKeyInstanceSessionEcritureConseiller: string
+  private readonly apiKeyJwtSessions: string
+  private readonly apiKeySessions: string
   private readonly apiKeyEnvoiEmail: string
   private readonly apiKeyUtilisateurs: string
   private readonly apiKeyEvents: string
@@ -61,14 +59,8 @@ export class MiloClientV2 implements MiloClientPort {
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
     this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
     this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
-    this.apiKeySessionsListeConseiller =
-      this.configService.get('milo').apiKeySessionsListeConseiller
-    this.apiKeySessionsDetailEtListeJeune =
-      this.configService.get('milo').apiKeySessionsDetailEtListeJeune
-    this.apiKeySessionDetailConseiller =
-      this.configService.get('milo').apiKeySessionDetailConseiller
-    this.apiKeyInstanceSessionEcritureConseiller =
-      this.configService.get('milo').apiKeyInstanceSessionEcritureConseiller
+    this.apiKeyJwtSessions = this.configService.get('milo').apiKeyJwtSessions
+    this.apiKeySessions = this.configService.get('milo').apiKeySessions
     this.apiKeyUtilisateurs = this.configService.get('milo').apiKeyUtilisateurs
     this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
@@ -229,9 +221,9 @@ export class MiloClientV2 implements MiloClientPort {
     const sessions: SessionConseillerDetailDto[] = []
     const dtoResult =
       await this.miloClientUtils.get<ListeSessionsConseillerMiloDto>(
-        `operateurs/structures/${idStructure}/sessions`,
+        `api-sessions/structures/${idStructure}/sessions`,
         {
-          apiKey: this.apiKeySessionsListeConseiller,
+          apiKey: this.apiKeyJwtSessions,
           idpToken
         },
         params
@@ -244,9 +236,9 @@ export class MiloClientV2 implements MiloClientPort {
       params.append('page', '2')
       const dtoPage2Result =
         await this.miloClientUtils.get<ListeSessionsConseillerMiloDto>(
-          `operateurs/structures/${idStructure}/sessions`,
+          `api-sessions/structures/${idStructure}/sessions`,
           {
-            apiKey: this.apiKeySessionsListeConseiller,
+            apiKey: this.apiKeyJwtSessions,
             idpToken
           },
           params
@@ -264,13 +256,8 @@ export class MiloClientV2 implements MiloClientPort {
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
     await this.rateLimiterService.sessionsJeuneMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.recupererSessionsParDossierJeune(
-      idpToken,
-      idDossier,
-      this.apiKeySessionsDetailEtListeJeune,
-      periode
-    )
-  }
+    return this.recupererSessionsParDossierJeune(idpToken, idDossier, periode)
+  } // todo : utiliser directement recupererSessionsParDossierJeune après migration API MiLo
 
   async getSessionsParDossierJeunePourConseiller(
     idpToken: string,
@@ -278,13 +265,8 @@ export class MiloClientV2 implements MiloClientPort {
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
     await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
-    return this.recupererSessionsParDossierJeune(
-      idpToken,
-      idDossier,
-      this.apiKeySessionDetailConseiller,
-      periode
-    )
-  }
+    return this.recupererSessionsParDossierJeune(idpToken, idDossier, periode)
+  } // todo : utiliser directement recupererSessionsParDossierJeune après migration API MiLo
 
   async getDetailSessionConseiller(
     idpToken: string,
@@ -292,9 +274,9 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<SessionConseillerDetailDto>> {
     await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
     return this.miloClientUtils.get<SessionConseillerDetailDto>(
-      `operateurs/sessions/${idSession}`,
+      `api-sessions/sessions/${idSession}`,
       {
-        apiKey: this.apiKeySessionDetailConseiller,
+        apiKey: this.apiKeyJwtSessions,
         idpToken
       }
     )
@@ -308,9 +290,9 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<SessionParDossierJeuneDto>> {
     await this.rateLimiterService.sessionsJeuneMiloRateLimiter.attendreLaProchaineDisponibilite()
     const resultDetail = await this.miloClientUtils.get<SessionJeuneDetailDto>(
-      `operateurs/sessions/${idSession}`,
+      `api-sessions/sessions/${idSession}`,
       {
-        apiKey: this.apiKeySessionsDetailEtListeJeune,
+        apiKey: this.apiKeyJwtSessions,
         idpToken
       }
     )
@@ -340,7 +322,7 @@ export class MiloClientV2 implements MiloClientPort {
       ...detailSessionDto,
       sessionInstance: dtoAvecInscription?.sessionInstance
     })
-  }
+  } // todo : merger avec getDetailSessionConseiller -> mapping des données à faire dans le repo sessions
 
   async getListeInscritsSession(
     idpToken: string,
@@ -348,9 +330,9 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<InscritSessionMiloDto[]>> {
     await this.rateLimiterService.sessionsConseillerMiloRateLimiter.attendreLaProchaineDisponibilite()
     return this.miloClientUtils.get<InscritSessionMiloDto[]>(
-      `operateurs/sessions/${idSession}/inscrits`,
+      `api-sessions/sessions/${idSession}/inscrits`,
       {
-        apiKey: this.apiKeySessionDetailConseiller,
+        apiKey: this.apiKeyJwtSessions,
         idpToken
       }
     )
@@ -364,10 +346,10 @@ export class MiloClientV2 implements MiloClientPort {
     const dto: InscrireJeuneSessionDto[] = []
     for (const idDossier of idsDossier) {
       const result = await this.miloClientUtils.post<InscrireJeuneSessionDto>(
-        `operateurs/dossiers/${idDossier}/instances-session`,
+        `api-sessions/dossiers/${idDossier}/instances-session`,
         idSession,
         {
-          apiKey: this.apiKeyInstanceSessionEcritureConseiller,
+          apiKey: this.apiKeyJwtSessions,
           idpToken
         }
       )
@@ -389,8 +371,8 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result> {
     for (const desinscription of desinscriptions) {
       const result = await this.miloClientUtils.delete(
-        `operateurs/dossiers/${desinscription.idDossier}/instances-session/${desinscription.idInstanceSession}`,
-        { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
+        `api-sessions/dossiers/${desinscription.idDossier}/instances-session/${desinscription.idInstanceSession}`,
+        { apiKey: this.apiKeyJwtSessions, idpToken }
       )
       if (isFailure(result)) return result
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -411,13 +393,13 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result> {
     for (const modification of modifications) {
       const result = await this.miloClientUtils.put(
-        `operateurs/dossiers/${modification.idDossier}/instances-session/${modification.idInstanceSession}`,
+        `api-sessions/dossiers/${modification.idDossier}/instances-session/${modification.idInstanceSession}`,
         {
           statut: modification.statut,
           commentaire: modification.commentaire,
           dateDebutReelle: modification.dateDebutReelle
         },
-        { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
+        { apiKey: this.apiKeyJwtSessions, idpToken }
       )
       if (isFailure(result)) return result
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -432,8 +414,8 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<InstanceSessionMiloDto>> {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<InstanceSessionMiloDto>(
-      `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
-      { apiKey: this.apiKeyDetailRendezVous }
+      `api-sessions/dossiers/${idDossier}/sessions/${idInstance}`,
+      { apiKey: this.apiKeySessions }
     )
     if (
       isFailure(result) &&
@@ -445,11 +427,12 @@ export class MiloClientV2 implements MiloClientPort {
   }
 
   private async recupererSessionsParDossierJeune(
-    idpToken: string,
     idDossier: string,
     apiKey: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
+    const idpToken = this.apiKeyJwtSessions
+
     const params = new URLSearchParams()
     params.append('idDossier', idDossier)
     params.append('taillePage', TAILLE_PAGE_MAX_APIS_MILO.toString())
@@ -467,7 +450,7 @@ export class MiloClientV2 implements MiloClientPort {
     // On assure jusqu'à 300 résultats
     const sessions: SessionParDossierJeuneDto[] = []
     const dtoResult = await this.miloClientUtils.get<ListeSessionsJeuneMiloDto>(
-      `operateurs/sessions`,
+      `api-sessions/sessions`,
       {
         apiKey,
         idpToken
