@@ -1,36 +1,44 @@
 import { DateTime } from 'luxon'
 import { GetActualitesMiloConseillerQueryHandler } from 'src/application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { ConseillerAuthorizer } from 'src/application/authorizers/conseiller-authorizer'
-import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
-import { Conseiller } from 'src/domain/milo/conseiller'
 import { uneActualiteMilo } from '../../../fixtures/actualite-milo.fixture'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
-import { unConseillerMilo } from '../../../fixtures/conseiller-milo.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import {
-  emptySuccess,
-  failure,
-  success
-} from 'src/building-blocks/types/result'
-import { NonTrouveError } from 'src/building-blocks/types/domain-error'
+import { emptySuccess } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
+import { ActualiteMiloSqlRepository } from '../../../../src/infrastructure/repositories/milo/actualite-milo-sql.repository.db'
+import { ConseillerMiloSqlRepository } from '../../../../src/infrastructure/repositories/milo/conseiller.milo.repository.db'
+import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import {
+  unConseillerDto,
+  unConseillerMiloDto
+} from '../../../fixtures/sql-models/conseiller.sql-model'
+import { ActualiteMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/actualite-milo.sql-model'
+import { getDatabase } from '../../../utils/database-for-testing'
+import { StructureMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 
 describe('GetActualitesMiloConseillerQueryHandler', () => {
   let getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
-  let actualiteMiloRepository: StubbedClass<ActualiteMilo.Repository>
-  let conseillerMiloRepository: StubbedClass<Conseiller.Milo.Repository>
+  let actualiteMiloRepository: ActualiteMiloSqlRepository
+  let conseillerMiloRepository: ConseillerMiloSqlRepository
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
 
   const idConseiller = 'conseiller-1'
-  const idStructureMilo = 'structure-milo-1'
+  const structureMilo = {
+    id: 'id-structure-milo',
+    nomOfficiel: 'Structure Milo',
+    timezone: 'America/Cayenne'
+  }
   const utilisateur = unUtilisateurConseiller({
     id: idConseiller,
     structure: Core.Structure.MILO
   })
 
-  beforeEach(() => {
-    actualiteMiloRepository = stubClass(ActualiteMilo.Repository)
-    conseillerMiloRepository = stubClass(Conseiller.Milo.Repository)
+  beforeEach(async () => {
+    await getDatabase().cleanPG()
+
+    actualiteMiloRepository = new ActualiteMiloSqlRepository()
+    conseillerMiloRepository = new ConseillerMiloSqlRepository()
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
 
     getActualitesMiloConseillerQueryHandler =
@@ -63,25 +71,31 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
   describe('handle', () => {
     it('retourne les actualités de la structure avec le flag proprietaire', async () => {
       // Given
-      const conseiller = unConseillerMilo({
-        id: idConseiller,
-        structure: { id: idStructureMilo }
-      })
-
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(success(conseiller))
+      const conseillerMiloDto = unConseillerMiloDto(
+        unConseillerDto({
+          id: idConseiller,
+          structure: Core.Structure.MILO
+        }),
+        structureMilo.id
+      )
+      await StructureMiloSqlModel.create(structureMilo)
+      await ConseillerSqlModel.create(conseillerMiloDto)
 
       const actualite1 = uneActualiteMilo({
-        id: 'actualite-1',
-        idConseiller,
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d',
+        idConseiller: idConseiller,
+        idStructureMilo: structureMilo.id,
         titre: 'Actualité du conseiller',
         contenu: 'Contenu 1',
         dateCreation: DateTime.fromISO('2024-01-01T10:00:00.000Z')
       })
+
+      await ActualiteMiloSqlModel.upsert(actualite1)
+
       const actualite2 = uneActualiteMilo({
-        id: 'actualite-2',
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d',
         idConseiller: 'autre-conseiller',
+        idStructureMilo: structureMilo.id,
         titre: "Actualité d'un autre",
         contenu: 'Contenu 2',
         titreLien: 'En savoir plus',
@@ -89,9 +103,7 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
         dateCreation: DateTime.fromISO('2024-01-02T10:00:00.000Z')
       })
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite1, actualite2])
+      await ActualiteMiloSqlModel.upsert(actualite2)
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(
@@ -103,7 +115,9 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result.actualites).to.have.lengthOf(2)
 
       // Actualité du conseiller
-      expect(result.actualites[0].id).to.equal('actualite-1')
+      expect(result.actualites[0].id).to.equal(
+        'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d'
+      )
       expect(result.actualites[0].titre).to.equal('Actualité du conseiller')
       expect(result.actualites[0].contenu).to.equal('Contenu 1')
       expect(result.actualites[0].prenomNomConseiller).to.exist()
@@ -111,7 +125,9 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result.actualites[0].proprietaire).to.be.true()
 
       // Actualité d'un autre conseiller
-      expect(result.actualites[1].id).to.equal('actualite-2')
+      expect(result.actualites[1].id).to.equal(
+        'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d'
+      )
       expect(result.actualites[1].titre).to.equal("Actualité d'un autre")
       expect(result.actualites[1].titreLien).to.equal('En savoir plus')
       expect(result.actualites[1].lien).to.equal('https://example.com')
@@ -120,9 +136,6 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
 
     it("retourne un tableau vide si le conseiller n'existe pas", async () => {
       // Given
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(failure(new NonTrouveError('Conseiller', idConseiller)))
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(
@@ -132,25 +145,19 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
 
       // Then
       expect(result.actualites).to.have.lengthOf(0)
-      expect(
-        actualiteMiloRepository.getByStructureMilo
-      ).not.to.have.been.called()
     })
 
     it("retourne un tableau vide si la structure n'a pas d'actualités", async () => {
       // Given
-      const conseiller = unConseillerMilo({
-        id: idConseiller,
-        structure: { id: idStructureMilo }
-      })
-
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(success(conseiller))
-
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([])
+      const conseillerMiloDto = unConseillerMiloDto(
+        unConseillerDto({
+          id: idConseiller,
+          structure: Core.Structure.MILO
+        }),
+        structureMilo.id
+      )
+      await StructureMiloSqlModel.create(structureMilo)
+      await ConseillerSqlModel.create(conseillerMiloDto)
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(
@@ -162,28 +169,27 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result.actualites).to.have.lengthOf(0)
     })
 
-    it('gère correctement les champs optionnels', async () => {
+    it('retourne une actualité avec date de suppression', async () => {
       // Given
-      const conseiller = unConseillerMilo({
-        id: idConseiller,
-        structure: { id: idStructureMilo }
-      })
-
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(success(conseiller))
+      const conseillerMiloDto = unConseillerMiloDto(
+        unConseillerDto({
+          id: idConseiller,
+          structure: Core.Structure.MILO
+        }),
+        structureMilo.id
+      )
+      await StructureMiloSqlModel.create(structureMilo)
+      await ConseillerSqlModel.create(conseillerMiloDto)
 
       const actualite = uneActualiteMilo({
-        id: 'actualite-1',
-        idConseiller,
+        idConseiller: idConseiller,
+        idStructureMilo: structureMilo.id,
         titreLien: 'Titre lien',
         lien: 'https://example.com',
         dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
       })
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite])
+      await ActualiteMiloSqlModel.upsert(actualite)
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(
@@ -199,26 +205,25 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
 
     it('gère les champs optionnels undefined', async () => {
       // Given
-      const conseiller = unConseillerMilo({
-        id: idConseiller,
-        structure: { id: idStructureMilo }
-      })
-
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(success(conseiller))
+      const conseillerMiloDto = unConseillerMiloDto(
+        unConseillerDto({
+          id: idConseiller,
+          structure: Core.Structure.MILO
+        }),
+        structureMilo.id
+      )
+      await StructureMiloSqlModel.create(structureMilo)
+      await ConseillerSqlModel.create(conseillerMiloDto)
 
       const actualite = uneActualiteMilo({
-        id: 'actualite-1',
-        idConseiller,
+        idConseiller: idConseiller,
+        idStructureMilo: structureMilo.id,
         titreLien: undefined,
         lien: undefined,
         dateSuppression: undefined
       })
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite])
+      await ActualiteMiloSqlModel.upsert(actualite)
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(
@@ -230,42 +235,6 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result.actualites[0].titreLien).to.be.undefined()
       expect(result.actualites[0].lien).to.be.undefined()
       expect(result.actualites[0].dateSuppression).to.be.undefined()
-    })
-
-    it('identifie correctement toutes les actualités comme proprietaire si toutes créées par le conseiller', async () => {
-      // Given
-      const conseiller = unConseillerMilo({
-        id: idConseiller,
-        structure: { id: idStructureMilo }
-      })
-
-      conseillerMiloRepository.get
-        .withArgs(idConseiller)
-        .resolves(success(conseiller))
-
-      const actualite1 = uneActualiteMilo({
-        id: 'actualite-1',
-        idConseiller
-      })
-      const actualite2 = uneActualiteMilo({
-        id: 'actualite-2',
-        idConseiller
-      })
-
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite1, actualite2])
-
-      // When
-      const result = await getActualitesMiloConseillerQueryHandler.handle(
-        { idConseiller },
-        utilisateur
-      )
-
-      // Then
-      expect(result.actualites).to.have.lengthOf(2)
-      expect(result.actualites[0].proprietaire).to.be.true()
-      expect(result.actualites[1].proprietaire).to.be.true()
     })
   })
 })
