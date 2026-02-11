@@ -518,8 +518,9 @@ describe('MiloClientV1', () => {
       nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
+        .matchHeader('Content-Type', 'application/json')
         .reply(400, { message: 'Erreur inscription' })
 
       const scope2 = nock(MILO_BASE_URL)
@@ -554,7 +555,7 @@ describe('MiloClientV1', () => {
       const scope = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .matchHeader(
           'X-Gravitee-Api-Key',
@@ -562,7 +563,7 @@ describe('MiloClientV1', () => {
         )
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .matchHeader('Authorization', 'Bearer idpToken')
-        .matchHeader('Content-Type', 'text/plain')
+        .matchHeader('Content-Type', 'application/json')
         .reply(201, {
           id: 'inst1',
           idDossier: idsDossier[0],
@@ -585,7 +586,7 @@ describe('MiloClientV1', () => {
       const scope1 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst1',
@@ -596,7 +597,7 @@ describe('MiloClientV1', () => {
       const scope2 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst2',
@@ -607,7 +608,7 @@ describe('MiloClientV1', () => {
       const scope3 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[2]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst3',

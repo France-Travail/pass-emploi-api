@@ -16,6 +16,23 @@ import { buildError } from '../../../utils/logger.module'
 
 const OPERATEUR_CEJ = 'APPLICATION_CEJ'
 
+interface Auth {
+  apiKey: string
+  idpToken?: string
+}
+interface Payload {
+  [p: string]: string | undefined
+}
+interface MiloRequest {
+  suffixUrl: string
+  auth: Auth
+  params?: URLSearchParams
+  payload?: Payload | string
+  operateur?: string
+  contentType?: string
+  accept?: string
+}
+
 @Injectable()
 export class MiloClientUtils {
   private readonly apiUrl: string
@@ -31,17 +48,21 @@ export class MiloClientUtils {
     this.apiUrl = this.configService.get('milo').url
   }
 
-  async get<T>(
-    suffixUrl: string,
-    auth: {
-      apiKey: string
-      idpToken?: string
-    },
-    params?: URLSearchParams,
-    operateur?: string // todo: supprimer après migration
-  ): Promise<Result<T>> {
+  async get<T>({
+    suffixUrl,
+    auth,
+    params,
+    contentType,
+    accept,
+    operateur // todo: supprimer après migration
+  }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeaders(auth, operateur)
+    const headers = this.generateHeaders({
+      auth,
+      contentType,
+      accept,
+      operateur // todo: supprimer après migration
+    })
 
     this.logRequest('GET', fullUrl, headers, params)
 
@@ -65,16 +86,22 @@ export class MiloClientUtils {
     }
   }
 
-  async put<T>(
-    suffixUrl: string,
-    payload: { [p: string]: string | undefined } | string,
-    auth: {
-      apiKey: string
-      idpToken?: string
-    }
-  ): Promise<Result<T>> {
+  async put<T>({
+    suffixUrl,
+    auth,
+    payload,
+    contentType,
+    accept,
+    operateur // todo: supprimer après migration
+  }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeadersWithPayload(auth, payload)
+    const headers = this.generateHeaders({
+      auth,
+      payload,
+      contentType,
+      accept,
+      operateur // todo: supprimer après migration
+    })
 
     this.logRequest('PUT', fullUrl, headers, undefined, payload)
 
@@ -94,17 +121,22 @@ export class MiloClientUtils {
     }
   }
 
-  async post<T>(
-    suffixUrl: string,
-    payload: { [p: string]: string | undefined } | string,
-    auth: {
-      apiKey: string
-      idpToken?: string
-    }
-  ): Promise<Result<T>> {
+  async post<T>({
+    suffixUrl,
+    auth,
+    payload,
+    contentType,
+    accept,
+    operateur // todo: supprimer après migration
+  }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeadersWithPayload(auth, payload)
-
+    const headers = this.generateHeaders({
+      auth,
+      payload,
+      contentType,
+      accept,
+      operateur // todo: supprimer après migration
+    })
     this.logRequest('POST', fullUrl, headers, undefined, payload)
 
     try {
@@ -123,15 +155,20 @@ export class MiloClientUtils {
     }
   }
 
-  async delete(
-    suffixUrl: string,
-    auth: {
-      apiKey: string
-      idpToken?: string
-    }
-  ): Promise<Result> {
+  async delete({
+    suffixUrl,
+    auth,
+    contentType,
+    accept,
+    operateur // todo: supprimer après migration
+  }: MiloRequest): Promise<Result> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeaders(auth)
+    const headers = this.generateHeaders({
+      auth,
+      contentType,
+      accept,
+      operateur // todo: supprimer après migration
+    })
 
     this.logRequest('DELETE', fullUrl, headers)
 
@@ -215,35 +252,35 @@ export class MiloClientUtils {
     throw error
   }
 
-  private generateHeaders(
-    auth: { apiKey: string; idpToken?: string },
+  private generateHeaders({
+    auth,
+    payload,
+    contentType,
+    accept,
+    operateur
+  }: {
+    auth: Auth
+    payload?: Payload | string
+    contentType?: string
+    accept?: string
     operateur?: string
-  ): Record<string, string> {
+  }): Record<string, string> {
     const headers: Record<string, string> = {
       'X-Gravitee-Api-Key': auth.apiKey,
       operateur: operateur || OPERATEUR_CEJ
     }
+
+    if (payload !== undefined) {
+      headers['Content-Type'] = contentType || 'application/json'
+    }
+
+    if (accept) {
+      headers.Accept = accept
+    }
+
     if (auth.idpToken) {
       headers.Authorization = `Bearer ${auth.idpToken}`
     }
-    return headers
-  }
-
-  private generateHeadersWithPayload(
-    auth: { apiKey: string; idpToken?: string },
-    payload:
-      | {
-          [p: string]: string | undefined
-        }
-      | string,
-    operateur?: string
-  ): Record<string, string> {
-    const headers: Record<string, string> = this.generateHeaders(
-      auth,
-      operateur
-    )
-    headers['Content-Type'] =
-      typeof payload === 'string' ? 'text/plain' : 'application/json'
     return headers
   }
 }
