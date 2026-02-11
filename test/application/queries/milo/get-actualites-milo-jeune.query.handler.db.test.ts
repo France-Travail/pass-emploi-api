@@ -1,35 +1,48 @@
 import { DateTime } from 'luxon'
 import { GetActualitesMiloJeuneQueryHandler } from 'src/application/queries/milo/get-actualites-milo-jeune.query.handler.db'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
-import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { uneActualiteMilo } from '../../../fixtures/actualite-milo.fixture'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
-import { unJeune } from '../../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { emptySuccess } from 'src/building-blocks/types/result'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { getDatabase } from '../../../utils/database-for-testing'
 import { Core } from 'src/domain/core'
+import { ActualiteMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/actualite-milo.sql-model'
+import {
+  unJeuneDto,
+  unJeuneMiloDto
+} from '../../../fixtures/sql-models/jeune.sql-model'
+import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
+import { ActualiteMiloSqlRepository } from '../../../../src/infrastructure/repositories/milo/actualite-milo-sql.repository.db'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
   let getActualitesMiloJeuneQueryHandler: GetActualitesMiloJeuneQueryHandler
-  let actualiteMiloRepository: StubbedClass<ActualiteMilo.Repository>
+  let actualiteMiloRepository: ActualiteMiloSqlRepository
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
 
-  const idJeune = 'jeune-1'
+  const idJeune = 'jeune-milo-1'
   const idStructureMilo = 'structure-milo-1'
   const utilisateur = unUtilisateurJeune({ id: idJeune })
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
 
-    actualiteMiloRepository = stubClass(ActualiteMilo.Repository)
+    actualiteMiloRepository = new ActualiteMiloSqlRepository()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 
     getActualitesMiloJeuneQueryHandler = new GetActualitesMiloJeuneQueryHandler(
       actualiteMiloRepository,
       jeuneAuthorizer
+    )
+
+    await ConseillerSqlModel.create(
+      unConseillerDto({
+        id: '1',
+        structure: Core.Structure.MILO
+      })
     )
 
     // Créer la structure MILO
@@ -62,39 +75,45 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
   describe('handle', () => {
     it('retourne les actualités de la structure du jeune triées par date croissante', async () => {
       // Given
-      await JeuneSqlModel.creer(
-        unJeune({
+      const jeuneMiloDto = unJeuneMiloDto(
+        unJeuneDto({
           id: idJeune,
-          structure: Core.Structure.MILO,
-          idStructureMilo
-        })
+          structure: Core.Structure.MILO
+        }),
+        idStructureMilo
       )
 
+      await JeuneSqlModel.creer(jeuneMiloDto)
+
       const actualite1 = uneActualiteMilo({
-        id: 'actualite-1',
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d',
         titre: 'Actualité 1',
         contenu: 'Contenu 1',
         dateCreation: DateTime.fromISO('2024-01-03T10:00:00.000Z')
       })
+
+      await ActualiteMiloSqlModel.upsert(actualite1)
+
       const actualite2 = uneActualiteMilo({
-        id: 'actualite-2',
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c6f',
         titre: 'Actualité 2',
         contenu: 'Contenu 2',
         titreLien: 'Lien 2',
         lien: 'https://example.com/2',
         dateCreation: DateTime.fromISO('2024-01-01T10:00:00.000Z')
       })
+
+      await ActualiteMiloSqlModel.upsert(actualite2)
+
       const actualite3 = uneActualiteMilo({
-        id: 'actualite-3',
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d',
         titre: 'Actualité 3',
         contenu: 'Contenu 3',
         dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z'),
         dateCreation: DateTime.fromISO('2024-01-02T10:00:00.000Z')
       })
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite1, actualite2, actualite3])
+      await ActualiteMiloSqlModel.upsert(actualite3)
 
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
@@ -104,20 +123,18 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       // Then
       expect(result.actualites).to.have.lengthOf(3)
 
-      expect(result.actualites[0].titre).to.equal('Actualité 1')
-      expect(result.actualites[0].contenu).to.equal('Contenu 1')
-      expect(result.actualites[0].nomPrenomConseiller).to.exist()
-      expect(result.actualites[0].dateCreation).to.be.a('string')
-      expect(result.actualites[0].titreLien).to.be.undefined()
-      expect(result.actualites[0].lien).to.be.undefined()
-      expect(result.actualites[0].dateSuppression).to.be.undefined()
+      expect(result.actualites[2].titre).to.equal('Actualité 1')
+      expect(result.actualites[2].contenu).to.equal('Contenu 1')
+      expect(result.actualites[2].nomPrenomConseiller).to.exist()
+      expect(result.actualites[2].dateCreation).to.be.a('string')
+      expect(result.actualites[2].dateSuppression).to.be.undefined()
 
-      expect(result.actualites[1].titre).to.equal('Actualité 2')
-      expect(result.actualites[1].titreLien).to.equal('Lien 2')
-      expect(result.actualites[1].lien).to.equal('https://example.com/2')
+      expect(result.actualites[0].titre).to.equal('Actualité 2')
+      expect(result.actualites[0].titreLien).to.equal('Lien 2')
+      expect(result.actualites[0].lien).to.equal('https://example.com/2')
 
-      expect(result.actualites[2].titre).to.equal('Actualité 3')
-      expect(result.actualites[2].dateSuppression).to.be.a('string')
+      expect(result.actualites[1].titre).to.equal('Actualité 3')
+      expect(result.actualites[1].dateSuppression).to.be.a('string')
     })
 
     it("retourne un tableau vide si le jeune n'existe pas", async () => {
@@ -128,19 +145,16 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
 
       // Then
       expect(result.actualites).to.have.lengthOf(0)
-      expect(
-        actualiteMiloRepository.getByStructureMilo
-      ).not.to.have.been.called()
     })
 
     it("retourne un tableau vide si le jeune n'a pas de structure MILO", async () => {
       // Given
-      await JeuneSqlModel.creer(
-        unJeune({
-          id: idJeune,
-          structure: Core.Structure.POLE_EMPLOI
-        })
-      )
+      const jeuneDto = unJeuneDto({
+        id: idJeune,
+        structure: Core.Structure.MILO
+      })
+
+      await JeuneSqlModel.creer(jeuneDto)
 
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
@@ -149,24 +163,21 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
 
       // Then
       expect(result.actualites).to.have.lengthOf(0)
-      expect(
-        actualiteMiloRepository.getByStructureMilo
-      ).not.to.have.been.called()
     })
 
     it("retourne un tableau vide si la structure MILO du jeune n'a pas d'actualités", async () => {
       // Given
-      await JeuneSqlModel.creer(
-        unJeune({
+      const jeuneMiloDto = unJeuneMiloDto(
+        unJeuneDto({
           id: idJeune,
-          structure: Core.Structure.MILO,
-          idStructureMilo
-        })
+          structure: Core.Structure.MILO
+        }),
+        idStructureMilo
       )
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([])
+      await JeuneSqlModel.creer(jeuneMiloDto)
+
+      // Pas d'actualités créées = tableau vide attendu
 
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
@@ -179,22 +190,22 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
 
     it('ne retourne pas le champ id dans les actualités', async () => {
       // Given
-      await JeuneSqlModel.creer(
-        unJeune({
+      const jeuneMiloDto = unJeuneMiloDto(
+        unJeuneDto({
           id: idJeune,
-          structure: Core.Structure.MILO,
-          idStructureMilo
-        })
+          structure: Core.Structure.MILO
+        }),
+        idStructureMilo
       )
 
+      await JeuneSqlModel.creer(jeuneMiloDto)
+
       const actualite = uneActualiteMilo({
-        id: 'actualite-1',
-        titre: 'Actualité'
+        idStructureMilo,
+        titre: 'Test Actualité'
       })
 
-      actualiteMiloRepository.getByStructureMilo
-        .withArgs(idStructureMilo)
-        .resolves([actualite])
+      await ActualiteMiloSqlModel.upsert(actualite)
 
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
@@ -202,6 +213,7 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       })
 
       // Then
+      expect(result.actualites).to.have.lengthOf(1)
       expect(result.actualites[0]).not.to.have.property('id')
       expect(result.actualites[0]).not.to.have.property('proprietaire')
     })

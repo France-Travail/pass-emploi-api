@@ -149,20 +149,19 @@ describe('ActualiteMiloSqlRepository', () => {
     it('retourne les actualités triées par date de création croissante', async () => {
       // Given
       const actualite1 = uneActualiteMilo({
-        id: 'actualite-1',
-        idStructureMilo,
+        idStructureMilo: idStructureMilo,
         titre: 'Actualité 1',
         dateCreation: DateTime.fromISO('2024-01-03T10:00:00.000Z')
       })
       const actualite2 = uneActualiteMilo({
-        id: 'actualite-2',
-        idStructureMilo,
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c6d',
+        idStructureMilo: idStructureMilo,
         titre: 'Actualité 2',
         dateCreation: DateTime.fromISO('2024-01-01T10:00:00.000Z')
       })
       const actualite3 = uneActualiteMilo({
-        id: 'actualite-3',
-        idStructureMilo,
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d',
+        idStructureMilo: idStructureMilo,
         titre: 'Actualité 3',
         dateCreation: DateTime.fromISO('2024-01-02T10:00:00.000Z')
       })
@@ -178,9 +177,9 @@ describe('ActualiteMiloSqlRepository', () => {
 
       // Then
       expect(actualites).to.have.lengthOf(3)
-      expect(actualites[0].id).to.equal('actualite-2')
-      expect(actualites[1].id).to.equal('actualite-3')
-      expect(actualites[2].id).to.equal('actualite-1')
+      expect(actualites[0].id).to.equal('f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c6d')
+      expect(actualites[1].id).to.equal('f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d')
+      expect(actualites[2].id).to.equal('f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d')
     })
 
     it('retourne uniquement les actualités de la structure demandée', async () => {
@@ -193,12 +192,11 @@ describe('ActualiteMiloSqlRepository', () => {
       })
 
       const actualite1 = uneActualiteMilo({
-        id: 'actualite-1',
         idStructureMilo,
         titre: 'Actualité Structure 1'
       })
       const actualite2 = uneActualiteMilo({
-        id: 'actualite-2',
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c9d',
         idStructureMilo: autreStructure,
         titre: 'Actualité Structure 2'
       })
@@ -213,7 +211,7 @@ describe('ActualiteMiloSqlRepository', () => {
 
       // Then
       expect(actualites).to.have.lengthOf(1)
-      expect(actualites[0].id).to.equal('actualite-1')
+      expect(actualites[0].id).to.equal('f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d')
       expect(actualites[0].titre).to.equal('Actualité Structure 1')
     })
 
@@ -247,8 +245,8 @@ describe('ActualiteMiloSqlRepository', () => {
       expect(actualites[0].titreLien).to.equal('Titre du lien')
       expect(actualites[0].lien).to.equal('https://example.com')
       expect(actualites[0].dateSuppression).to.exist()
-      expect(actualites[0].dateSuppression!.toISO()).to.equal(
-        '2024-03-01T10:00:00.000Z'
+      expect(actualites[0].dateSuppression).to.deep.equal(
+        DateTime.fromISO('2024-03-01T10:00:00.000Z')
       )
     })
 
