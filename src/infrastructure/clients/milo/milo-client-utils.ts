@@ -41,7 +41,7 @@ export class MiloClientUtils {
     operateur?: string // todo: supprimer après migration
   ): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeaders(auth, undefined, operateur)
+    const headers = this.generateHeaders(auth, operateur)
 
     this.logRequest('GET', fullUrl, headers, params)
 
@@ -74,7 +74,7 @@ export class MiloClientUtils {
     }
   ): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeaders(auth, payload)
+    const headers = this.generateHeadersWithPayload(auth, payload)
 
     this.logRequest('PUT', fullUrl, headers, undefined, payload)
 
@@ -103,7 +103,7 @@ export class MiloClientUtils {
     }
   ): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
-    const headers = this.generateHeaders(auth, payload)
+    const headers = this.generateHeadersWithPayload(auth, payload)
 
     this.logRequest('POST', fullUrl, headers, undefined, payload)
 
@@ -217,24 +217,33 @@ export class MiloClientUtils {
 
   private generateHeaders(
     auth: { apiKey: string; idpToken?: string },
-    payload?:
-      | {
-          [p: string]: string | undefined
-        }
-      | string,
     operateur?: string
   ): Record<string, string> {
     const headers: Record<string, string> = {
       'X-Gravitee-Api-Key': auth.apiKey,
       operateur: operateur || OPERATEUR_CEJ
     }
-    if (payload) {
-      headers['Content-Type'] =
-        typeof payload === 'string' ? 'text/plain' : 'application/json'
-    }
     if (auth.idpToken) {
       headers.Authorization = `Bearer ${auth.idpToken}`
     }
+    return headers
+  }
+
+  private generateHeadersWithPayload(
+    auth: { apiKey: string; idpToken?: string },
+    payload:
+      | {
+          [p: string]: string | undefined
+        }
+      | string,
+    operateur?: string
+  ): Record<string, string> {
+    const headers: Record<string, string> = this.generateHeaders(
+      auth,
+      operateur
+    )
+    headers['Content-Type'] =
+      typeof payload === 'string' ? 'text/plain' : 'application/json'
     return headers
   }
 }
