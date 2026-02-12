@@ -20,7 +20,7 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
       titreLien: actualite.titreLien ?? null,
       lien: actualite.lien ?? null,
       dateCreation: actualite.dateCreation.toJSDate(),
-      dateModification: actualite.dateModification!.toJSDate() ?? null,
+      dateModification: actualite.dateModification?.toJSDate() ?? null,
       dateSuppression: actualite.dateSuppression?.toJSDate() ?? null
     }
     await ActualiteMiloSqlModel.upsert(dto)

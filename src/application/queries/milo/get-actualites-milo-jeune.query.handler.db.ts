@@ -59,7 +59,7 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
         contenu: actualite.contenu,
         titreLien: actualite.titreLien,
         lien: actualite.lien,
-        nomPrenomConseiller: actualite.prenomNomConseiller,
+        prenomNomConseiller: actualite.prenomNomConseiller,
         dateCreation: actualite.dateCreation.toISO(),
         dateSuppression: actualite.dateSuppression?.toISO()
       })

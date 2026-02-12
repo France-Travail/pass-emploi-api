@@ -125,7 +125,7 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
 
       expect(result.actualites[2].titre).to.equal('Actualité 1')
       expect(result.actualites[2].contenu).to.equal('Contenu 1')
-      expect(result.actualites[2].nomPrenomConseiller).to.exist()
+      expect(result.actualites[2].prenomNomConseiller).to.exist()
       expect(result.actualites[2].dateCreation).to.be.a('string')
       expect(result.actualites[2].dateSuppression).to.be.undefined()
 
