@@ -150,12 +150,14 @@ export class MiloClientV2 implements MiloClientPort {
       ? await this.miloClientUtils.put<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
           payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          auth: { apiKey: this.apiKeyJwtJeune },
+          accept: 'application/json, text/plain'
         })
       : await this.miloClientUtils.post<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
           payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          auth: { apiKey: this.apiKeyJwtJeune },
+          accept: 'application/json, text/plain'
         })
 
     if (isSuccess(response)) {
@@ -163,7 +165,8 @@ export class MiloClientV2 implements MiloClientPort {
         response = await this.miloClientUtils.post<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
           payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          auth: { apiKey: this.apiKeyJwtJeune },
+          accept: 'application/json, text/plain'
         })
       }
       if (isSuccess(response)) {
