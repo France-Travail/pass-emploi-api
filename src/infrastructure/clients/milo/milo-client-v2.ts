@@ -149,13 +149,11 @@ export class MiloClientV2 implements MiloClientPort {
     response = surcharge
       ? await this.miloClientUtils.put<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
-          payload: {},
           auth: { apiKey: this.apiKeyJwtJeune },
           accept: 'application/json, text/plain'
         })
       : await this.miloClientUtils.post<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
-          payload: {},
           auth: { apiKey: this.apiKeyJwtJeune },
           accept: 'application/json, text/plain'
         })
@@ -164,7 +162,6 @@ export class MiloClientV2 implements MiloClientPort {
       if (surcharge && !response.data) {
         response = await this.miloClientUtils.post<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
-          payload: {},
           auth: { apiKey: this.apiKeyJwtJeune },
           accept: 'application/json, text/plain'
         })
@@ -552,7 +549,6 @@ export class MiloClientV2 implements MiloClientPort {
     await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
     return await this.miloClientUtils.post({
       suffixUrl: `api-evenements/events/${idEvenement}/ack`,
-      payload: {},
       auth: { apiKey: this.apiKeyEvents }
     })
   }
