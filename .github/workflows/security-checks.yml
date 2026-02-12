@@ -1,0 +1,14 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop, master]
+  schedule:
+    # Run weekly on Monday at 8:00 UTC
+    - cron: '0 8 * * 1'
+
+jobs:
+  security-checks:
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-checks.yml@1396a6a7f43e0e1817c2aa5633b96c92233df6c8
