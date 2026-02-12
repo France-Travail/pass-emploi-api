@@ -1,15 +1,4 @@
-export interface ActualiteMiloJeuneQueryModel {
-  titre: string
-  contenu: string
-  titreLien?: string
-  lien?: string
-  nomPrenomConseiller: string
-  dateCreation: string
-  dateSuppression?: string
-}
-
-export interface ActualiteMiloConseillerQueryModel {
-  id: string
+export interface ActualiteMiloBaseQueryModel {
   titre: string
   contenu: string
   titreLien?: string
@@ -17,6 +6,13 @@ export interface ActualiteMiloConseillerQueryModel {
   prenomNomConseiller: string
   dateCreation: string
   dateSuppression?: string
+}
+
+export type ActualiteMiloJeuneQueryModel = ActualiteMiloBaseQueryModel
+
+export interface ActualiteMiloConseillerQueryModel
+  extends ActualiteMiloBaseQueryModel {
+  id: string
   proprietaire: boolean
 }
 

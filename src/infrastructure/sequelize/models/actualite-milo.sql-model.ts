@@ -40,7 +40,7 @@ export class ActualiteMiloDto extends Model {
   dateCreation: Date
 
   @Column({ field: 'date_modification', type: DataType.DATE })
-  dateModification: Date
+  dateModification: Date | null
 
   @Column({ field: 'date_suppression', type: DataType.DATE })
   dateSuppression: Date | null
