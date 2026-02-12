@@ -102,10 +102,8 @@ export const testConfig = (): ConfigService => {
       url: 'https://milo.com',
       urlWeb: 'https://milo.com',
       maxNombreEvenementsBatch: 1500,
-      apiKeyDossier: 'apiKeyDossier',
-      apiKeyDossierCej: 'apiKeyDossierCej',
+      apiKeyDossierV1: 'apiKeyDossierV1',
       apiKeyCreerJeune: 'apiKeyCreerJeune',
-      apiKeyEvents: 'apiKeyEvents',
       apiKeyDetailRendezVous: 'apiKeyDetailRendezVous',
       apiKeyInstanceSessionLecture: 'apiKeyInstanceSessionLecture',
       apiKeyInstanceSessionEcritureConseiller:
@@ -116,7 +114,15 @@ export const testConfig = (): ConfigService => {
       apiKeySessionsDetailEtListeJeune: 'apiKeySessionsDetailEtListeJeune',
       apiKeySessionsListeConseiller: 'apiKeySessionsListeConseiller',
       apiKeyUtilisateurs: 'apiKeyUtilisateurs',
-      apiKeyEnvoiEmail: 'apiKeyEnvoiEmail'
+      apiKeyEnvoiEmail: 'apiKeyEnvoiEmail',
+      apiKeyDossierCej: 'apiKeyDossierCej',
+      apiKeyDossier: 'apiKeyDossier',
+      apiKeyJwtJeune: 'apiKeyJwtJeune',
+      apiKeyJwtSessions: 'apiKeyJwtSessions',
+      apiKeySessions: 'apiKeySessions',
+      apiKeyJwtUtilisateurs: 'apiKeyJwtUtilisateurs',
+      apiKeyRdv: 'apiKeyRdv',
+      apiKeyEvents: 'apiKeyEvents'
     },
     redis: {
       // eslint-disable-next-line no-process-env

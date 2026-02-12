@@ -13,7 +13,7 @@ import {
   ErreurHttp,
   ErreurMiloHttp
 } from 'src/building-blocks/types/domain-error'
-import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
+import { MiloClientV1 } from 'src/infrastructure/clients/milo/milo-client-v1'
 import {
   unDetailSessionConseillerDto,
   unDetailSessionJeuneDto,
@@ -46,11 +46,11 @@ import { MiloClientUtils } from '../../../src/infrastructure/clients/milo/milo-c
 
 initializeAPMAgent()
 
-describe('MiloClient', () => {
+describe('MiloClientV1', () => {
   const configService = testConfig()
   let dateService: StubbedClass<DateService>
   const rateLimiterService = new RateLimiterService(configService)
-  let miloClient: MiloClient
+  let miloClient: MiloClientV1
   const MILO_BASE_URL = 'https://milo.com'
 
   beforeEach(() => {
@@ -58,7 +58,7 @@ describe('MiloClient', () => {
     const miloClientUtils = new MiloClientUtils(httpService, configService)
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
-    miloClient = new MiloClient(
+    miloClient = new MiloClientV1(
       miloClientUtils,
       configService,
       rateLimiterService,
@@ -518,8 +518,9 @@ describe('MiloClient', () => {
       nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
+        .matchHeader('Content-Type', 'application/json')
         .reply(400, { message: 'Erreur inscription' })
 
       const scope2 = nock(MILO_BASE_URL)
@@ -554,7 +555,7 @@ describe('MiloClient', () => {
       const scope = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .matchHeader(
           'X-Gravitee-Api-Key',
@@ -562,7 +563,7 @@ describe('MiloClient', () => {
         )
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .matchHeader('Authorization', 'Bearer idpToken')
-        .matchHeader('Content-Type', 'text/plain')
+        .matchHeader('Content-Type', 'application/json')
         .reply(201, {
           id: 'inst1',
           idDossier: idsDossier[0],
@@ -585,7 +586,7 @@ describe('MiloClient', () => {
       const scope1 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[0]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst1',
@@ -596,7 +597,7 @@ describe('MiloClient', () => {
       const scope2 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[1]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst2',
@@ -607,7 +608,7 @@ describe('MiloClient', () => {
       const scope3 = nock(MILO_BASE_URL)
         .post(
           `/operateurs/dossiers/${idsDossier[2]}/instances-session`,
-          idSession
+          JSON.stringify(idSession)
         )
         .reply(201, {
           id: 'inst3',
@@ -987,7 +988,7 @@ describe('MiloClient', () => {
         .post(`/sue/dossiers/${idDossier}/situation`, body)
         .matchHeader(
           'X-Gravitee-Api-Key',
-          configService.get('milo').apiKeyDossier
+          configService.get('milo').apiKeyDossierV1
         )
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(201)
