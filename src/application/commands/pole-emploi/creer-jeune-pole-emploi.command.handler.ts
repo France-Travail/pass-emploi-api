@@ -56,7 +56,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
     const jeuneACreer: Jeune.Factory.ACreer = {
       prenom: command.firstName,
       nom: command.lastName,
-      email: command.email,
+      email: command.email.toLocaleLowerCase(),
       conseiller: {
         id: conseiller.id,
         lastName: conseiller.lastName,

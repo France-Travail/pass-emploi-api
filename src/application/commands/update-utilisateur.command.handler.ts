@@ -14,6 +14,10 @@ import {
   success
 } from '../../building-blocks/types/result'
 import {
+  ArchiveJeune,
+  ArchiveJeuneRepositoryToken
+} from '../../domain/archive-jeune'
+import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
@@ -26,10 +30,6 @@ import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
 } from '../queries/query-models/authentification.query-model'
-import {
-  ArchiveJeune,
-  ArchiveJeuneRepositoryToken
-} from '../../domain/archive-jeune'
 import Type = Authentification.Type
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
@@ -188,7 +188,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     }
 
     const utilisateurInitialTrouve =
-      await this.authentificationRepository.getJeuneByEmail(command.email)
+      await this.authentificationRepository.getJeuneByEmail(
+        command.email.toLocaleLowerCase()
+      )
 
     if (!utilisateurInitialTrouve) {
       return failure(
