@@ -6,13 +6,15 @@ import {
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Authentification } from '../../../domain/authentification'
-import { Result } from '../../../building-blocks/types/result'
+import { isFailure, Result } from '../../../building-blocks/types/result'
 import {
   ActualiteMiloJeuneQueryModel,
   ActualitesMiloJeuneQueryModel
 } from '../query-models/actualites-milo.query-model'
-import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
-import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/structure-milo.sql-model'
+import {
+  JeuneMilo,
+  JeuneMiloRepositoryToken
+} from '../../../domain/milo/jeune.milo'
 
 export interface GetActualitesMiloJeuneQuery {
   idJeune: string
@@ -26,6 +28,8 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
   constructor(
     @Inject(ActualiteMiloRepositoryToken)
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
+    @Inject(JeuneMiloRepositoryToken)
+    private readonly jeuneRepository: JeuneMilo.Repository,
     private readonly jeuneAuthorizer: JeuneAuthorizer
   ) {
     super('GetActualitesMiloJeuneQueryHandler')
@@ -41,16 +45,18 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
   async handle(
     query: GetActualitesMiloJeuneQuery
   ): Promise<ActualitesMiloJeuneQueryModel> {
-    const jeune = await JeuneSqlModel.findByPk(query.idJeune, {
-      include: [{ model: StructureMiloSqlModel, required: false }]
-    })
+    const jeune = await this.jeuneRepository.get(query.idJeune)
 
-    if (!jeune?.structureMilo?.id) {
+    if (isFailure(jeune)) {
+      return { actualites: [] }
+    }
+
+    if (!jeune.data.idStructureMilo) {
       return { actualites: [] }
     }
 
     const actualites = await this.actualiteMiloRepository.getByStructureMilo(
-      jeune.structureMilo.id
+      jeune.data.idStructureMilo
     )
 
     const actualitesQueryModel: ActualiteMiloJeuneQueryModel[] = actualites.map(

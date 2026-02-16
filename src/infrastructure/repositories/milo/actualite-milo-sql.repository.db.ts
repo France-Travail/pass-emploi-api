@@ -46,12 +46,8 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
       titreLien: dto.titreLien ?? undefined,
       lien: dto.lien ?? undefined,
       dateCreation: DateService.fromJSDateToDateTime(dto.dateCreation)!,
-      dateModification: dto.dateModification
-        ? DateService.fromJSDateToDateTime(dto.dateModification)!
-        : undefined,
-      dateSuppression: dto.dateSuppression
-        ? DateService.fromJSDateToDateTime(dto.dateSuppression)!
-        : undefined
+      dateModification: DateService.fromJSDateToDateTime(dto.dateModification),
+      dateSuppression: DateService.fromJSDateToDateTime(dto.dateSuppression)
     }
   }
 }
