@@ -22,7 +22,7 @@ describe('ConseillersMiloController - Actualités', () => {
     )
   })
 
-  describe('POST /conseillers/:idConseiller/actualites', () => {
+  describe('POST /conseillers/milo/:idConseiller/actualites', () => {
     const idConseiller = 'conseiller-1'
     const payload = {
       titre: 'Nouvelle actualité',
@@ -37,7 +37,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payload)
 
@@ -52,7 +52,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payload)
 
@@ -82,7 +82,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadSansLien)
 
@@ -98,7 +98,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -114,7 +114,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -131,7 +131,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -148,7 +148,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -167,7 +167,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -186,7 +186,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -204,7 +204,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payloadInvalide)
 
@@ -220,7 +220,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
       // When
       const response = await request(app.getHttpServer())
-        .post(`/conseillers/${idConseiller}/actualites`)
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
         .set('authorization', unHeaderAuthorization())
         .send(payload)
 
@@ -230,7 +230,7 @@ describe('ConseillersMiloController - Actualités', () => {
 
     ensureUserAuthenticationFailsIfInvalid(
       'post',
-      '/conseillers/conseiller-1/actualites'
+      '/conseillers/milo/conseiller-1/actualites'
     )
   })
 })
