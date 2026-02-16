@@ -10,7 +10,7 @@ export const uneActualiteMilo = (
     id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d',
     idStructureMilo: 'structure-milo-1',
     idConseiller: conseiller.id,
-    prenomNomConseiller: `${conseiller.firstName} ${conseiller.lastName}`,
+    prenomNomConseiller: `${conseiller.firstName}${conseiller.lastName}`,
     titre: "Titre de l'actualité",
     contenu: "Contenu de l'actualité",
     titreLien: 'En savoir plus',

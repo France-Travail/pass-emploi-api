@@ -27,6 +27,8 @@ import { Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
 import { GetMonSuiviMiloQueryHandler } from '../../application/queries/milo/get-mon-suivi-jeune.milo.query.handler.db'
+import { GetActualitesMiloJeuneQueryHandler } from '../../application/queries/milo/get-actualites-milo-jeune.query.handler.db'
+import { ActualitesMiloJeuneQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
 import { DateService } from '../../utils/date-service'
 import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
@@ -45,7 +47,8 @@ export class JeunesMiloController {
     private readonly getSessionsQueryHandler: GetSessionsJeuneMiloQueryHandler,
     private readonly getDetailSessionQueryHandler: GetDetailSessionJeuneMiloQueryHandler,
     private readonly autoinscrireBeneficiaireSessionMiloCommandHandler: AutoinscrireBeneficiaireSessionMiloCommandHandler,
-    private readonly getMonSuiviMiloQueryHandler: GetMonSuiviMiloQueryHandler
+    private readonly getMonSuiviMiloQueryHandler: GetMonSuiviMiloQueryHandler,
+    private readonly getActualitesMiloJeuneQueryHandler: GetActualitesMiloJeuneQueryHandler
   ) {}
 
   @Get(':idJeune/milo/accueil')
@@ -179,5 +182,20 @@ export class JeunesMiloController {
         utilisateur
       )
     return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les actualités de la structure MILO du jeune',
+    description: 'Autorisé pour le jeune'
+  })
+  @Get('/milo/:idJeune/actualites')
+  async getActualites(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<ActualitesMiloJeuneQueryModel> {
+    return this.getActualitesMiloJeuneQueryHandler.execute(
+      { idJeune },
+      utilisateur
+    )
   }
 }

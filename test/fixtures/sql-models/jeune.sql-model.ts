@@ -41,3 +41,10 @@ export function unJeuneDto(
 
   return { ...defaults, ...args }
 }
+
+export function unJeuneMiloDto(
+  jeuneDto: AsSql<JeuneDto>,
+  idStructureMilo: string
+): AsSql<JeuneDto> {
+  return { ...jeuneDto, idStructureMilo: idStructureMilo }
+}
