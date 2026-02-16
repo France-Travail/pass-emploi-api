@@ -12,10 +12,8 @@ import {
   ActualiteMiloConseillerQueryModel,
   ActualitesMiloConseillerQueryModel
 } from '../query-models/actualites-milo.query-model'
-import {
-  Conseiller,
-  ConseillerRepositoryToken
-} from '../../../domain/milo/conseiller'
+import { Conseiller } from '../../../domain/milo/conseiller'
+import { ConseillerMiloRepositoryToken } from '../../../domain/milo/conseiller.milo.db'
 
 export interface GetActualitesMiloConseillerQuery {
   idConseiller: string
@@ -29,7 +27,7 @@ export class GetActualitesMiloConseillerQueryHandler extends QueryHandler<
   constructor(
     @Inject(ActualiteMiloRepositoryToken)
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
-    @Inject(ConseillerRepositoryToken)
+    @Inject(ConseillerMiloRepositoryToken)
     private readonly conseillerMiloRepository: Conseiller.Milo.Repository,
     private readonly conseillerAuthorizer: ConseillerAuthorizer
   ) {
