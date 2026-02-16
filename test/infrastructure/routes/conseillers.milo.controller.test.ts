@@ -168,6 +168,8 @@ describe('ConseillersMiloController', () => {
     describe('quand le jeune est nouveau', () => {
       it('renvoie 201', async () => {
         // Given
+        const accessToken = 'accessToken'
+
         const command: CreerJeuneMiloCommand = {
           idPartenaire: 'idDossier',
           nom: 'nom',
@@ -176,7 +178,8 @@ describe('ConseillersMiloController', () => {
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.PACEA,
           surcharge: undefined,
-          peutVoirLeCompteurDesHeures: false
+          peutVoirLeCompteurDesHeures: false,
+          accessToken
         }
 
         const payload: CreerJeuneMiloPayload = {
@@ -197,7 +200,7 @@ describe('ConseillersMiloController', () => {
         await request(app.getHttpServer())
           .post('/conseillers/milo/jeunes')
           .send(payload)
-          .set('authorization', unHeaderAuthorization())
+          .set('authorization', `bearer ${accessToken}`)
           .expect(HttpStatus.CREATED)
           .expect({ id: 'idJeune', prenom: 'prenom', nom: 'nom' })
 
@@ -217,7 +220,8 @@ describe('ConseillersMiloController', () => {
           email: 'email',
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.CEJ,
-          peutVoirLeCompteurDesHeures: false
+          peutVoirLeCompteurDesHeures: false,
+          accessToken: 'accessToken'
         }
         creerJeuneMiloCommandHandler.execute.resolves(
           failure(new ErreurHttp('email pas bon', 400))
@@ -242,7 +246,8 @@ describe('ConseillersMiloController', () => {
           email: 'email',
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.CEJ,
-          peutVoirLeCompteurDesHeures: false
+          peutVoirLeCompteurDesHeures: false,
+          accessToken: 'accessToken'
         }
 
         creerJeuneMiloCommandHandler.execute.resolves(
@@ -268,7 +273,8 @@ describe('ConseillersMiloController', () => {
           email: 'email',
           idConseiller: 'idConseiller',
           dispositif: Jeune.Dispositif.PACEA,
-          peutVoirLeCompteurDesHeures: false
+          peutVoirLeCompteurDesHeures: false,
+          accessToken: 'accessToken'
         }
 
         creerJeuneMiloCommandHandler.execute.resolves(

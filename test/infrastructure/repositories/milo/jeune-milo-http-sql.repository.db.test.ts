@@ -209,11 +209,12 @@ describe('JeuneMiloHttpRepository', () => {
       miloClient.creerJeune.resolves(resultatAttendu)
 
       // When
-      const result = await miloHttpSqlRepository.creerJeune('1')
+      const result = await miloHttpSqlRepository.creerJeune('1', 'idpToken')
 
       // Then
       expect(miloClient.creerJeune).to.have.been.calledOnceWithExactly(
         '1',
+        'idpToken',
         undefined
       )
       expect(result).to.deep.equal(resultatAttendu)
@@ -228,11 +229,12 @@ describe('JeuneMiloHttpRepository', () => {
       miloClient.creerJeune.resolves(resultatAttendu)
 
       // When
-      await miloHttpSqlRepository.creerJeune('1', true)
+      await miloHttpSqlRepository.creerJeune('1', 'idpToken', true)
 
       // Then
       expect(miloClient.creerJeune).to.have.been.calledOnceWithExactly(
         '1',
+        'idpToken',
         true
       )
     })

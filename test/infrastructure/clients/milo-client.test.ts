@@ -1037,7 +1037,7 @@ describe('MiloClientV1', () => {
         .reply(200, 'sub-keycloak-id')
 
       // When
-      const result = await miloClient.creerJeune(idDossier)
+      const result = await miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       expect(result).to.deep.equal(
@@ -1060,7 +1060,7 @@ describe('MiloClientV1', () => {
         .reply(200, 'sub-id')
 
       // When
-      await miloClient.creerJeune(idDossier)
+      await miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       expect(scope.isDone()).to.equal(true)
@@ -1076,7 +1076,7 @@ describe('MiloClientV1', () => {
         })
 
       // When
-      const result = await miloClient.creerJeune(idDossier)
+      const result = await miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       expect(result).to.deep.equal(
@@ -1095,7 +1095,7 @@ describe('MiloClientV1', () => {
         })
 
       // When
-      const result = await miloClient.creerJeune(idDossier)
+      const result = await miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       expect(result).to.deep.equal(
@@ -1116,7 +1116,7 @@ describe('MiloClientV1', () => {
         })
 
       // When
-      const result = await miloClient.creerJeune(idDossier)
+      const result = await miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       expect(isFailure(result)).to.be.true()
@@ -1129,7 +1129,7 @@ describe('MiloClientV1', () => {
         .reply(500, 'Internal Server Error')
 
       // When
-      const promise = miloClient.creerJeune(idDossier)
+      const promise = miloClient.creerJeune(idDossier, 'idpToken')
 
       // Then
       await expect(promise).to.be.rejected()
@@ -1143,7 +1143,7 @@ describe('MiloClientV1', () => {
           .reply(200, 'sub-id')
 
         // When
-        const result = await miloClient.creerJeune(idDossier, true)
+        const result = await miloClient.creerJeune(idDossier, 'idpToken', true)
 
         // Then
         expect(scope.isDone()).to.equal(true)
@@ -1166,7 +1166,7 @@ describe('MiloClientV1', () => {
           .reply(200, 'sub-from-post')
 
         // When
-        const result = await miloClient.creerJeune(idDossier, true)
+        const result = await miloClient.creerJeune(idDossier, 'idpToken', true)
 
         // Then
         expect(result).to.deep.equal(

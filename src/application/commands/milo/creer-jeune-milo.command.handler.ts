@@ -31,6 +31,7 @@ import {
 } from '../../../domain/milo/jeune.milo'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { IdentiteJeuneQueryModel } from '../../queries/query-models/jeunes.query-model'
+import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 
 export interface CreerJeuneMiloCommand extends Command {
   idPartenaire: string
@@ -41,6 +42,7 @@ export interface CreerJeuneMiloCommand extends Command {
   dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
   surcharge?: boolean
   peutVoirLeCompteurDesHeures: boolean
+  accessToken: string
 }
 
 @Injectable()
@@ -60,7 +62,8 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     private readonly conseillerRepository: Conseiller.Repository,
     @Inject(ChatRepositoryToken)
     private readonly chatRepository: Chat.Repository,
-    private readonly jeuneFactory: Jeune.Factory
+    private readonly jeuneFactory: Jeune.Factory,
+    private readonly oidcClient: OidcClient
   ) {
     super('CreerJeuneMiloCommandHandler')
   }
@@ -103,8 +106,12 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       )
     }
 
+    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
+      command.accessToken
+    )
     const result = await this.miloJeuneRepository.creerJeune(
       command.idPartenaire,
+      idpToken,
       command.surcharge
     )
 

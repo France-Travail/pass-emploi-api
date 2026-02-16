@@ -121,7 +121,8 @@ export class ConseillersMiloController {
   @Post('conseillers/milo/jeunes')
   async postJeuneMilo(
     @Body() creerJeuneMiloPayload: CreerJeuneMiloPayload,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
   ): Promise<IdentiteJeuneQueryModel> {
     const command: CreerJeuneMiloCommand = {
       idConseiller: creerJeuneMiloPayload.idConseiller,
@@ -132,7 +133,8 @@ export class ConseillersMiloController {
       dispositif: creerJeuneMiloPayload.dispositif,
       surcharge: creerJeuneMiloPayload.surcharge,
       peutVoirLeCompteurDesHeures:
-        creerJeuneMiloPayload.peutVoirLeCompteurDesHeures
+        creerJeuneMiloPayload.peutVoirLeCompteurDesHeures,
+      accessToken
     }
     const result = await this.creerJeuneMiloCommandHandler.execute(
       command,

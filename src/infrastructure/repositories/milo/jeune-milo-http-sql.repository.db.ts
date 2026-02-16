@@ -57,11 +57,12 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
 
   async creerJeune(
     idDossier: string,
+    idpToken: string,
     surcharge?: boolean
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
   > {
-    return this.miloClient.creerJeune(idDossier, surcharge)
+    return this.miloClient.creerJeune(idDossier, idpToken, surcharge)
   }
 
   async saveSituationsJeune(situations: JeuneMilo.Situations): Promise<void> {

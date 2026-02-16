@@ -141,6 +141,7 @@ export class MiloClientV2 implements MiloClientPort {
   /* ********* */
   async creerJeune(
     idDossier: string,
+    idpToken: string,
     surcharge?: boolean
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
@@ -149,21 +150,24 @@ export class MiloClientV2 implements MiloClientPort {
     response = surcharge
       ? await this.miloClientUtils.put<string>({
           suffixUrl: `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
-          payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          auth: { apiKey: this.apiKeyJwtJeune, idpToken },
+          accept: 'application/json, text/plain',
+          contentType: 'application/json'
         })
       : await this.miloClientUtils.post<string>({
-          suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
-          payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          suffixUrl: `api-jeune/compte-jeune/${idDossier}`,
+          auth: { apiKey: this.apiKeyJwtJeune, idpToken },
+          accept: 'application/json, text/plain',
+          contentType: 'application/json'
         })
 
     if (isSuccess(response)) {
       if (surcharge && !response.data) {
         response = await this.miloClientUtils.post<string>({
-          suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
-          payload: {},
-          auth: { apiKey: this.apiKeyJwtJeune }
+          suffixUrl: `api-jeune/compte-jeune/${idDossier}`,
+          auth: { apiKey: this.apiKeyJwtJeune, idpToken },
+          accept: 'application/json, text/plain',
+          contentType: 'application/json'
         })
       }
       if (isSuccess(response)) {
@@ -549,7 +553,6 @@ export class MiloClientV2 implements MiloClientPort {
     await this.rateLimiterService.evenementsMiloRateLimiter.attendreLaProchaineDisponibilite()
     return await this.miloClientUtils.post({
       suffixUrl: `api-evenements/events/${idEvenement}/ack`,
-      payload: {},
       auth: { apiKey: this.apiKeyEvents }
     })
   }

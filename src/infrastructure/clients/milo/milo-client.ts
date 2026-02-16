@@ -66,11 +66,12 @@ export class MiloClient implements MiloClientPort {
 
   async creerJeune(
     idDossier: string,
+    idpToken: string,
     surcharge?: boolean
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
   > {
-    return this.getClient().creerJeune(idDossier, surcharge)
+    return this.getClient().creerJeune(idDossier, idpToken, surcharge)
   }
 
   /* ************ */
