@@ -4,7 +4,7 @@ import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { uneActualiteMilo } from '../../../fixtures/actualite-milo.fixture'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import { emptySuccess } from 'src/building-blocks/types/result'
+import { emptySuccess, success } from 'src/building-blocks/types/result'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -17,24 +17,33 @@ import {
 } from '../../../fixtures/sql-models/jeune.sql-model'
 import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { ActualiteMiloSqlRepository } from '../../../../src/infrastructure/repositories/milo/actualite-milo-sql.repository.db'
+import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { createSandbox } from 'sinon'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
   let getActualitesMiloJeuneQueryHandler: GetActualitesMiloJeuneQueryHandler
   let actualiteMiloRepository: ActualiteMiloSqlRepository
+  let jeuneMiloRepository: StubbedType<JeuneMilo.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
+  let sandbox: sinon.SinonSandbox
 
   const idJeune = 'jeune-milo-1'
   const idStructureMilo = 'structure-milo-1'
+  const idStructureMiloAutre = 'structure-milo-2'
   const utilisateur = unUtilisateurJeune({ id: idJeune })
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
+    sandbox = createSandbox()
 
     actualiteMiloRepository = new ActualiteMiloSqlRepository()
+    jeuneMiloRepository = stubInterface(sandbox)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 
     getActualitesMiloJeuneQueryHandler = new GetActualitesMiloJeuneQueryHandler(
       actualiteMiloRepository,
+      jeuneMiloRepository,
       jeuneAuthorizer
     )
 
@@ -84,6 +93,10 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       )
 
       await JeuneSqlModel.creer(jeuneMiloDto)
+
+      jeuneMiloRepository.get
+        .withArgs(jeuneMiloDto.id)
+        .resolves(success(jeuneMiloDto))
 
       const actualite1 = uneActualiteMilo({
         id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c5d',
@@ -138,6 +151,16 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
     })
 
     it("retourne un tableau vide si le jeune n'existe pas", async () => {
+      //given
+      const jeuneMiloDto = unJeuneMiloDto(
+        unJeuneDto({
+          id: 'jeune-inexistant',
+          structure: Core.Structure.MILO
+        }),
+        idStructureMiloAutre
+      )
+      jeuneMiloRepository.get.withArgs(jeuneMiloDto.id).resolves(jeuneMiloDto)
+
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
         idJeune: 'jeune-inexistant'
@@ -153,6 +176,8 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
         id: idJeune,
         structure: Core.Structure.MILO
       })
+
+      jeuneMiloRepository.get.withArgs(jeuneDto.id).resolves(success(jeuneDto))
 
       await JeuneSqlModel.creer(jeuneDto)
 
@@ -174,6 +199,10 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
         }),
         idStructureMilo
       )
+
+      jeuneMiloRepository.get
+        .withArgs(jeuneMiloDto.id)
+        .resolves(success(jeuneMiloDto))
 
       await JeuneSqlModel.creer(jeuneMiloDto)
 
@@ -197,6 +226,10 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
         }),
         idStructureMilo
       )
+
+      jeuneMiloRepository.get
+        .withArgs(jeuneMiloDto.id)
+        .resolves(success(jeuneMiloDto))
 
       await JeuneSqlModel.creer(jeuneMiloDto)
 
