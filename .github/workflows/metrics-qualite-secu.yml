@@ -28,6 +28,7 @@ jobs:
           GH_TOKEN: ${{ secrets.DEPENDABOT_ALERTS_READER }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          echo "$SONAR_TOKEN"
           DATE=$(date +%Y-%m-%d)
 
           # Header CSV
