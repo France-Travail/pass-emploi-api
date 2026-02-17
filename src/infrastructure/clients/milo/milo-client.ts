@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Context, ContextKey } from 'src/building-blocks/context'
@@ -20,6 +20,8 @@ import {
 import { MiloClientPort } from './milo-client-port'
 import { MiloClientV1 } from './milo-client-v1'
 import { MiloClientV2 } from './milo-client-v2'
+import { SequelizeInjectionToken } from '../../sequelize/providers'
+import { QueryTypes, Sequelize } from 'sequelize'
 
 @Injectable()
 export class MiloClient implements MiloClientPort {
@@ -31,7 +33,8 @@ export class MiloClient implements MiloClientPort {
     private readonly configService: ConfigService,
     private readonly miloClientV1: MiloClientV1,
     private readonly miloClientV2: MiloClientV2,
-    private readonly context: Context
+    private readonly context: Context,
+    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {
     this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
     this.emailsConseillersV2 =
@@ -44,7 +47,7 @@ export class MiloClient implements MiloClientPort {
   /* ************ */
 
   async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
-    return this.getClient().getDossier(idDossier)
+    return (await this.getClient()).getDossier(idDossier)
   }
 
   async creerSituationDossier(
@@ -57,7 +60,7 @@ export class MiloClient implements MiloClientPort {
       loginConseiller: string
     }
   ): Promise<Result> {
-    return this.getClient().creerSituationDossier(idDossier, body)
+    return (await this.getClient()).creerSituationDossier(idDossier, body)
   }
 
   /* ********* */
@@ -71,7 +74,7 @@ export class MiloClient implements MiloClientPort {
   ): Promise<
     Result<{ idAuthentification?: string; existeDejaChezMilo: boolean }>
   > {
-    return this.getClient().creerJeune(idDossier, idpToken, surcharge)
+    return (await this.getClient()).creerJeune(idDossier, idpToken, surcharge)
   }
 
   /* ************ */
@@ -86,7 +89,7 @@ export class MiloClient implements MiloClientPort {
       periode: { debut?: DateTime; fin?: DateTime }
     }
   ): Promise<Result<SessionConseillerDetailDto[]>> {
-    return this.getClient().getSessionsConseillerParStructure(
+    return (await this.getClient()).getSessionsConseillerParStructure(
       idpToken,
       idStructure,
       timezone,
@@ -99,7 +102,7 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return this.getClient().getSessionsParDossierJeune(
+    return (await this.getClient()).getSessionsParDossierJeune(
       idpToken,
       idDossier,
       periode
@@ -111,7 +114,7 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return this.getClient().getSessionsParDossierJeunePourConseiller(
+    return (await this.getClient()).getSessionsParDossierJeunePourConseiller(
       idpToken,
       idDossier,
       periode
@@ -122,7 +125,10 @@ export class MiloClient implements MiloClientPort {
     idpToken: string,
     idSession: string
   ): Promise<Result<SessionConseillerDetailDto>> {
-    return this.getClient().getDetailSessionConseiller(idpToken, idSession)
+    return (await this.getClient()).getDetailSessionConseiller(
+      idpToken,
+      idSession
+    )
   }
 
   async getDetailSessionJeune(
@@ -131,7 +137,7 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     timezone: string
   ): Promise<Result<SessionParDossierJeuneDto>> {
-    return this.getClient().getDetailSessionJeune(
+    return (await this.getClient()).getDetailSessionJeune(
       idpToken,
       idSession,
       idDossier,
@@ -143,7 +149,7 @@ export class MiloClient implements MiloClientPort {
     idpToken: string,
     idSession: string
   ): Promise<Result<InscritSessionMiloDto[]>> {
-    return this.getClient().getListeInscritsSession(idpToken, idSession)
+    return (await this.getClient()).getListeInscritsSession(idpToken, idSession)
   }
 
   async inscrireJeunesSession(
@@ -151,7 +157,7 @@ export class MiloClient implements MiloClientPort {
     idSession: string,
     idsDossier: string[]
   ): Promise<Result<InscrireJeuneSessionDto[]>> {
-    return this.getClient().inscrireJeunesSession(
+    return (await this.getClient()).inscrireJeunesSession(
       idpToken,
       idSession,
       idsDossier
@@ -162,7 +168,10 @@ export class MiloClient implements MiloClientPort {
     idpToken: string,
     desinscriptions: Array<{ idDossier: string; idInstanceSession: string }>
   ): Promise<Result> {
-    return this.getClient().desinscrireJeunesSession(idpToken, desinscriptions)
+    return (await this.getClient()).desinscrireJeunesSession(
+      idpToken,
+      desinscriptions
+    )
   }
 
   async modifierInscriptionJeunesSession(
@@ -175,7 +184,7 @@ export class MiloClient implements MiloClientPort {
       dateDebutReelle?: string
     }>
   ): Promise<Result> {
-    return this.getClient().modifierInscriptionJeunesSession(
+    return (await this.getClient()).modifierInscriptionJeunesSession(
       idpToken,
       modifications
     )
@@ -185,7 +194,7 @@ export class MiloClient implements MiloClientPort {
     idInstance: string,
     idDossier: string
   ): Promise<Result<InstanceSessionMiloDto>> {
-    return this.getClient().getInstanceSession(idInstance, idDossier)
+    return (await this.getClient()).getInstanceSession(idInstance, idDossier)
   }
 
   /* **************** */
@@ -195,7 +204,7 @@ export class MiloClient implements MiloClientPort {
   async getStructureConseiller(
     idpToken: string
   ): Promise<Result<StructureConseillerMiloDto>> {
-    return this.getClient().getStructureConseiller(idpToken)
+    return (await this.getClient()).getStructureConseiller(idpToken)
   }
 
   /* ******* */
@@ -206,7 +215,7 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     idRendezVous: string
   ): Promise<Result<RendezVousMiloDto>> {
-    return this.getClient().getRendezVous(idDossier, idRendezVous)
+    return (await this.getClient()).getRendezVous(idDossier, idRendezVous)
   }
 
   /* *************** */
@@ -214,11 +223,11 @@ export class MiloClient implements MiloClientPort {
   /* *************** */
 
   async getEvenements(): Promise<Result<EvenementMiloDto[]>> {
-    return this.getClient().getEvenements()
+    return (await this.getClient()).getEvenements()
   }
 
   async acquitterEvenement(idEvenement: string): Promise<Result> {
-    return this.getClient().acquitterEvenement(idEvenement)
+    return (await this.getClient()).acquitterEvenement(idEvenement)
   }
 
   /* ******** */
@@ -229,10 +238,10 @@ export class MiloClient implements MiloClientPort {
     idpToken: string,
     email: string
   ): Promise<Result> {
-    return this.getClient().envoyerEmailActivation(idpToken, email)
+    return (await this.getClient()).envoyerEmailActivation(idpToken, email)
   }
 
-  private getClient(): MiloClientPort {
+  private async getClient(): Promise<MiloClientPort> {
     let useV2 = this.apiV2Enabled && this.emailsConseillersV2?.length > 0
 
     const utilisateur = this.context.get<Authentification.Utilisateur>(
@@ -241,9 +250,8 @@ export class MiloClient implements MiloClientPort {
 
     if (useV2 && utilisateur) {
       useV2 =
-        utilisateur.type === Authentification.Type.CONSEILLER &&
-        utilisateur.email !== undefined &&
-        this.emailsConseillersV2.includes(utilisateur.email)
+        this.estUnConseillerBetaTesteur(utilisateur) ||
+        (await this.estUnJeuneBetaTesteur(utilisateur))
     } else {
       useV2 = false
     }
@@ -255,5 +263,36 @@ export class MiloClient implements MiloClientPort {
     const miloClient = useV2 ? this.miloClientV2 : this.miloClientV1
     this.logger.log(`Sélection du client ${miloClient.constructor.name}`)
     return miloClient
+  }
+
+  private estUnConseillerBetaTesteur(
+    utilisateur: Authentification.Utilisateur
+  ): boolean {
+    return (
+      !!utilisateur.email &&
+      utilisateur.type === Authentification.Type.CONSEILLER &&
+      this.emailsConseillersV2.includes(utilisateur.email)
+    )
+  }
+
+  private async estUnJeuneBetaTesteur(
+    utilisateur: Authentification.Utilisateur
+  ): Promise<boolean> {
+    if (utilisateur.type !== Authentification.Type.JEUNE) return false
+    if (!utilisateur.email) return false
+    const emailConseillerDuJeuneRaw = await this.sequelize.query<{
+      email: string
+    }>(
+      `SELECT c.email as email
+       FROM jeune j
+       JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+       WHERE j.id = (:idJeune)`,
+      {
+        replacements: { idJeune: utilisateur.id },
+        type: QueryTypes.SELECT
+      }
+    )
+    if (emailConseillerDuJeuneRaw.length !== 1) return false
+    return this.emailsConseillersV2.includes(emailConseillerDuJeuneRaw[0].email)
   }
 }
