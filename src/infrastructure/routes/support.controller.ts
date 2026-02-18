@@ -408,12 +408,15 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
   )
   @ApiOperation({
     summary: "Archive les jeunes d'une phase de migration",
-    description:
-      "L'API support pour archiver les jeunes d'une phase de migration\n" +
-      '- Suppression de la BDD de son compte utilisateur\n' +
-      "- Suppression de l'authentification Keycloak\n" +
-      '- Suppression du chat firebase\n' +
-      "- Envoi d'un email au jeune\n"
+    description: `
+L'API support pour archiver les jeunes d'une phase de migration
+  - Suppression de la BDD de son compte utilisateur
+  - Suppression de l'authentification Keycloak
+  - Suppression du chat firebase
+  - Envoi d'un email au jeune
+  
+PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
+ `
   })
   @Post('archiver-jeunes-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
