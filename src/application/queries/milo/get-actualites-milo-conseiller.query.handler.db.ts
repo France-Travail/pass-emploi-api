@@ -14,6 +14,7 @@ import {
 } from '../query-models/actualites-milo.query-model'
 import { Conseiller } from '../../../domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from '../../../domain/milo/conseiller.milo.db'
+import { Evenement, EvenementService } from '../../../domain/evenement'
 
 export interface GetActualitesMiloConseillerQuery {
   idConseiller: string
@@ -29,6 +30,7 @@ export class GetActualitesMiloConseillerQueryHandler extends QueryHandler<
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
     @Inject(ConseillerMiloRepositoryToken)
     private readonly conseillerMiloRepository: Conseiller.Milo.Repository,
+    private readonly evenementService: EvenementService,
     private readonly conseillerAuthorizer: ConseillerAuthorizer
   ) {
     super('GetActualitesMiloConseillerQueryHandler')
@@ -81,7 +83,10 @@ export class GetActualitesMiloConseillerQueryHandler extends QueryHandler<
     }
   }
 
-  async monitor(): Promise<void> {
-    return
+  async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
+    await this.evenementService.creer(
+      Evenement.Code.ACTUALITE_MILO_CONSULTATION,
+      utilisateur
+    )
   }
 }
