@@ -11,4 +11,4 @@ on:
 
 jobs:
   security-checks:
-    uses: France-Travail/pass-emploi-tools/.github/workflows/security-checks.yml@1396a6a7f43e0e1817c2aa5633b96c92233df6c8
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-checks.yml@7d9fdf29449ef0d959b44873984261d138d95623
