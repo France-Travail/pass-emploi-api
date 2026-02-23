@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
 import {
+  ArchivageJeuneErreur,
   BeneficiaireDejaInscritError,
   CampagneExisteDejaError,
   CampagneNonActive,
@@ -92,6 +93,8 @@ function handleFailure(result: Failure): never {
     case DossierExisteDejaError.CODE:
     case FavoriExisteDejaError.CODE:
       throw new ConflictException(result.error.message)
+    case ArchivageJeuneErreur.CODE:
+      throw new RuntimeException(result.error.message)
     default:
       throw new RuntimeException(result.error.message)
   }

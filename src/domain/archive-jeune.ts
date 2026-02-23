@@ -4,8 +4,11 @@ import { Jeune, JeuneRepositoryToken } from './jeune/jeune'
 import { Offre } from './offre/offre'
 import { Recherche } from './offre/recherche/recherche'
 import { CodeTypeRendezVous } from './rendez-vous/rendez-vous'
-import { Inject, Injectable } from '@nestjs/common'
-import { NonTrouveError } from '../building-blocks/types/domain-error'
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import {
+  ArchivageJeuneErreur,
+  NonTrouveError
+} from '../building-blocks/types/domain-error'
 import { Chat, ChatRepositoryToken } from './chat'
 import {
   Authentification,
@@ -286,6 +289,8 @@ export namespace ArchiveJeune {
 
   @Injectable()
   export class Service {
+    private readonly logger = new Logger('ArchiveJeune.Service')
+
     constructor(
       @Inject(JeuneRepositoryToken)
       private readonly jeuneRepository: Jeune.Repository,
@@ -327,15 +332,41 @@ export namespace ArchiveJeune {
 
       await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
 
-      await this.archiveJeuneRepository.archiver(metaDonneesArchive)
-      await this.jeuneRepository.supprimer(idJeune)
-      await this.chatRepository.supprimerChat(idJeune)
+      try {
+        await this.archiveJeuneRepository.archiver(metaDonneesArchive)
+      } catch (e) {
+        this.logger.warn(`̀Echec lors de l'archivage du jeune ${jeune.id}`, e)
+        return failure(new ArchivageJeuneErreur(jeune.id))
+      }
 
-      await this.mailService.envoyerEmailJeuneArchive(
-        jeune,
-        motifSuppression,
-        commentaireSuppressionSupport
-      )
+      try {
+        await this.jeuneRepository.supprimer(idJeune)
+      } catch (e) {
+        this.logger.warn(`̀Echec lors de la suppression du jeune ${jeune.id}`, e)
+        return failure(new ArchivageJeuneErreur(jeune.id))
+      }
+
+      try {
+        await this.chatRepository.supprimerChat(idJeune)
+      } catch (e) {
+        this.logger.warn(
+          `̀Echec lors de la suppression du chat du jeune ${jeune.id}`,
+          e
+        )
+      }
+
+      try {
+        await this.mailService.envoyerEmailJeuneArchive(
+          jeune,
+          motifSuppression,
+          commentaireSuppressionSupport
+        )
+      } catch (e) {
+        this.logger.warn(
+          `̀Echec lors de l'envoi du mail au jeune ${jeune.id}`,
+          e
+        )
+      }
 
       return emptySuccess()
     }
