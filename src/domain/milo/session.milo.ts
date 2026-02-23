@@ -124,7 +124,7 @@ export namespace SessionMilo {
     const sessionModifiee = {
       ...session,
       dateModification: dateEmargement,
-      dateCloture: dateEmargement
+      dateCloture: session.debut
     }
 
     const inscriptionsAModifier = []

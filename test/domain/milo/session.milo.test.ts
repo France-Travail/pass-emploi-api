@@ -197,7 +197,7 @@ describe('SessionMilo', () => {
       if (isSuccess(result)) {
         expect(result.data.sessionEmargee).to.deep.equal({
           ...uneSessionAvecUneInscription,
-          dateCloture: uneDateDEmargement,
+          dateCloture: uneSessionAvecUneInscription.debut,
           dateModification: uneDateDEmargement
         })
       }
