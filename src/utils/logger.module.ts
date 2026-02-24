@@ -14,7 +14,6 @@ export const configureLoggerModule = (): DynamicModule => {
     // @ts-ignore
     pinoHttp: [
       {
-        // eslint-disable-next-line no-process-env
         level: process.env.LOG_LEVEL || 'info',
         autoLogging: {
           ignore: (req: IncomingMessage): boolean => {

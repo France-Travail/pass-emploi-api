@@ -88,9 +88,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(
@@ -118,9 +117,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -151,9 +149,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isSuccess(result)).equal(true)
@@ -190,9 +187,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(true)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isFailure(result)).to.be.true()
@@ -228,9 +224,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isSuccess(result)).equal(true)
@@ -270,9 +265,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(
@@ -318,9 +312,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(
@@ -366,9 +359,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(
@@ -558,9 +550,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves()
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isSuccess(result)).equal(true)
@@ -587,9 +578,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isFailure(result)).equal(true)
@@ -621,9 +611,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(
@@ -658,9 +647,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(authentificationRepository.update).to.have.been.called()
@@ -687,9 +675,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateurPasMilo)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(
@@ -719,9 +706,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(undefined)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(
@@ -764,9 +750,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(false)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -805,9 +790,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(false)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -848,9 +832,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(true)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -891,9 +874,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(true)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isFailure(result)).to.be.true()
@@ -932,9 +914,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -984,9 +965,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateurMauvaiseStructure)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -1015,9 +995,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -1047,9 +1026,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -1083,9 +1061,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(true)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(isFailure(result)).to.be.true()
@@ -1120,9 +1097,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -1154,9 +1130,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(utilisateur)
 
               // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
               expect(result).to.deep.equal(
@@ -1186,9 +1161,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(
@@ -1220,9 +1194,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(
@@ -1254,9 +1227,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
               .resolves(utilisateur)
 
             // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
 
             // Then
             expect(result).to.deep.equal(

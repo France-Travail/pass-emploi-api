@@ -12,8 +12,7 @@ export const MailRepositoryToken = 'MailRepositoryToken'
 export interface MailDataDto {
   to: RecipientDto[]
   templateId: number
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  params?: Object
+  params?: object
   attachment?: AttachmentDto[]
 }
 

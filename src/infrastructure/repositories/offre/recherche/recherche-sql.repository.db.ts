@@ -171,8 +171,8 @@ export class RechercheSqlRepository implements Recherche.Repository {
           },
           Sequelize.literal(`ST_CONTAINS(geometrie, ST_SetSRID(
         st_geomfromgeojson('${JSON.stringify(point)}'),${
-            Recherche.Geometrie.PROJECTION_WGS84
-          })::geometry)`)
+          Recherche.Geometrie.PROJECTION_WGS84
+        })::geometry)`)
         ]
       }
     })
@@ -264,8 +264,8 @@ export class RechercheSqlRepository implements Recherche.Repository {
         [Op.or]: [
           Sequelize.literal(`ST_CONTAINS(geometrie, ST_SetSRID(
   st_geomfromgeojson('${JSON.stringify(point)}'),${
-            Recherche.Geometrie.PROJECTION_WGS84
-          })::geometry)`),
+    Recherche.Geometrie.PROJECTION_WGS84
+  })::geometry)`),
           {
             geometrie: {
               [Op.eq]: null

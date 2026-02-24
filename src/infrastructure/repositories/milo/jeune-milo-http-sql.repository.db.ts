@@ -110,9 +110,8 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
       nouveauCodeStructure &&
       nouveauCodeStructure !== jeune.idStructureMilo
     ) {
-      const structureSql = await StructureMiloSqlModel.findByPk(
-        nouveauCodeStructure
-      )
+      const structureSql =
+        await StructureMiloSqlModel.findByPk(nouveauCodeStructure)
       if (!structureSql) {
         nouveauCodeStructure = null
       }

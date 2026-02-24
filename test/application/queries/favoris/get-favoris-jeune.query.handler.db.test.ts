@@ -67,9 +67,8 @@ describe('GetFavorisJeuneQueryHandler', () => {
       const query = { idJeune: jeuneDto.id }
 
       // When
-      const listeFavorisObtenue = await getFavorisJeuneQueryHandler.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisJeuneQueryHandler.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal([])
@@ -126,9 +125,8 @@ describe('GetFavorisJeuneQueryHandler', () => {
 
       // When
       const query = { idJeune: jeuneDto.id }
-      const listeFavorisObtenue = await getFavorisJeuneQueryHandler.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisJeuneQueryHandler.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal(listeAttendue)
@@ -235,9 +233,8 @@ describe('GetFavorisJeuneQueryHandler', () => {
       const query = { idJeune: jeuneDto.id }
 
       // When
-      const listeFavorisObtenue = await getFavorisJeuneQueryHandler.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisJeuneQueryHandler.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal(listeAttendue)
@@ -337,9 +334,8 @@ describe('GetFavorisJeuneQueryHandler', () => {
       const query = { idJeune: jeuneDto.id }
 
       // When
-      const listeFavorisObtenue = await getFavorisJeuneQueryHandler.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisJeuneQueryHandler.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal(listeAttendue)
@@ -370,9 +366,8 @@ describe('GetFavorisJeuneQueryHandler', () => {
       const query = { idJeune: jeuneDto.id }
 
       // When
-      const listeFavorisObtenue = await getFavorisJeuneQueryHandler.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisJeuneQueryHandler.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal(listeAttendue)

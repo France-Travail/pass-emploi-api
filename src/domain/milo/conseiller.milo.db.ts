@@ -94,9 +94,8 @@ export namespace ConseillerMilo {
           : true
 
         if (moinsDe30sPasseesDepuisConnexion || passees24hDepuisVerification) {
-          const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-            accessToken
-          )
+          const idpToken =
+            await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
           const resultStructureMiloConseiller =
             await this.miloClient.getStructureConseiller(idpToken)
 

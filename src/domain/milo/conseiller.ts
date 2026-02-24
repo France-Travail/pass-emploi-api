@@ -23,9 +23,8 @@ export interface Conseiller {
 export const ConseillerRepositoryToken = 'ConseillerRepositoryToken'
 
 export namespace Conseiller {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import Milo = _Conseiller.ConseillerMilo
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   export import ListeDeDiffusion = _ListeDeDiffusion.ListeDeDiffusion
 
   export interface Repository {

@@ -31,9 +31,8 @@ export class NettoyerPiecesJointesJobHandler extends JobHandler {
       .now()
       .minus({ months: 4 })
       .toJSDate()
-    const fichiersASupprimer = await this.fichierRepository.getFichiersBefore(
-      quatreMoisPlusTot
-    )
+    const fichiersASupprimer =
+      await this.fichierRepository.getFichiersBefore(quatreMoisPlusTot)
 
     for (const { id, idCreateur, idMessage } of fichiersASupprimer) {
       try {

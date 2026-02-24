@@ -99,17 +99,16 @@ export interface Createur {
   prenom: string
 }
 
-export interface JeuneDuRendezVous
-  extends Pick<
-    Jeune,
-    | 'id'
-    | 'firstName'
-    | 'lastName'
-    | 'conseiller'
-    | 'email'
-    | 'configuration'
-    | 'preferences'
-  > {
+export interface JeuneDuRendezVous extends Pick<
+  Jeune,
+  | 'id'
+  | 'firstName'
+  | 'lastName'
+  | 'conseiller'
+  | 'email'
+  | 'configuration'
+  | 'preferences'
+> {
   present?: boolean
 }
 
@@ -169,9 +168,8 @@ export interface InfosRendezVousAMettreAJour {
 }
 
 export namespace RendezVous {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import AnimationCollective = _AnimationCollective.AnimationCollective
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Historique = _Historique.Historique
 
   export interface Repository {

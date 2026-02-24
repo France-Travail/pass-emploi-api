@@ -39,9 +39,8 @@ export class GetOffresServicesCiviqueQueryHandler extends QueryHandler<
   async handle(
     query: GetServicesCiviqueQuery
   ): Promise<Result<ServicesCiviqueQueryModel>> {
-    const result = await this.findAllOffresServicesCiviqueQueryGetter.handle(
-      query
-    )
+    const result =
+      await this.findAllOffresServicesCiviqueQueryGetter.handle(query)
 
     if (isFailure(result)) {
       return result

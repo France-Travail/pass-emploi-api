@@ -40,9 +40,8 @@ describe('GetChatSecretsQueryHandler', () => {
       firebaseClient.getToken.withArgs(utilisateur).resolves('un-token')
 
       // When
-      const actual = await getChatSecretsQueryHandler.handle(
-        getChatSecretsQuery
-      )
+      const actual =
+        await getChatSecretsQueryHandler.handle(getChatSecretsQuery)
 
       // Then
       expect(actual).to.deep.equal({

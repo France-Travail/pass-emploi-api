@@ -33,11 +33,10 @@ export interface Jeune {
 }
 
 export namespace Jeune {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import ConfigurationApplication = _ConfigurationApplication.ConfigurationApplication
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Preferences = _ConfigurationApplication.ConfigurationApplication.Preferences
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import PoleEmploi = _PoleEmploi.JeunePoleEmploi
   import Structure = Core.Structure
 
@@ -257,14 +256,17 @@ export namespace Jeune {
   export function separerLesJeunesParConseillerActuel(
     jeunes: Jeune[]
   ): Record<string, Jeune[]> {
-    return jeunes.reduce((res, jeuneActuel) => {
-      if (res[jeuneActuel.conseiller!.id]) {
-        res[jeuneActuel.conseiller!.id].push(jeuneActuel)
-      } else {
-        res[jeuneActuel.conseiller!.id] = [jeuneActuel]
-      }
-      return res
-    }, {} as Record<string, Jeune[]>)
+    return jeunes.reduce(
+      (res, jeuneActuel) => {
+        if (res[jeuneActuel.conseiller!.id]) {
+          res[jeuneActuel.conseiller!.id].push(jeuneActuel)
+        } else {
+          res[jeuneActuel.conseiller!.id] = [jeuneActuel]
+        }
+        return res
+      },
+      {} as Record<string, Jeune[]>
+    )
   }
 
   export function estSuiviTemporairement(jeune: Jeune): boolean {

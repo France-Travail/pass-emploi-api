@@ -115,9 +115,8 @@ export class GetSessionsJeuneMiloQueryGetter {
     idPartenaire: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      accessToken
-    )
+    const idpToken =
+      await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
 
     return this.miloClient.getSessionsParDossierJeunePourConseiller(
       idpToken,

@@ -18,8 +18,7 @@ import {
 } from '../../domain/offre/recherche/suggestion/suggestion'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 
-export interface CreateSuggestionConseillerServiceCiviqueCommand
-  extends Command {
+export interface CreateSuggestionConseillerServiceCiviqueCommand extends Command {
   idConseiller: string
   idsJeunes: string[]
   titre?: string

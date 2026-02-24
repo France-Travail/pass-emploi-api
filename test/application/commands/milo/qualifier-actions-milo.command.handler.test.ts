@@ -84,9 +84,8 @@ describe('QualifierActionsMiloCommandHandler', () => {
         .withArgs([idActionInexistante, idActionExistante])
         .resolves([actionTerminee])
 
-      const aggregate = await qualifierActionsMiloCommandHandler.getAggregate(
-        command
-      )
+      const aggregate =
+        await qualifierActionsMiloCommandHandler.getAggregate(command)
 
       expect(aggregate).to.deep.equal([actionTerminee])
     })

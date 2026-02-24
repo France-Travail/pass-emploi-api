@@ -12,7 +12,6 @@ import * as _PoleEmploi from './notification.pole-emploi'
 export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 
 export namespace Notification {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import PoleEmploi = _PoleEmploi.NotificationPoleEmploi
 
   export interface Repository {

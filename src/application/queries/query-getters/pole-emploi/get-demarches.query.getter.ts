@@ -114,7 +114,7 @@ export class GetDemarchesQueryGetter {
         idpToken,
         query.idJeune
       )
-    } catch (e) {
+    } catch (_e) {
       this.logger.warn(
         'Utilisation du cache pour récupérer les démarches du jeune pour son conseiller'
       )

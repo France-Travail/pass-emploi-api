@@ -22,9 +22,12 @@ import { JwtService } from './jwt.service'
 
 @Injectable()
 export class OidcAuthGuard implements CanActivate {
-  private logger: Logger
+  private readonly logger: Logger
 
-  constructor(private jwtService: JwtService, private reflector: Reflector) {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly reflector: Reflector
+  ) {
     this.logger = new Logger('OidcAuthGuard')
   }
 
@@ -51,9 +54,8 @@ export class OidcAuthGuard implements CanActivate {
       )
     }
     try {
-      const payload: JWTPayload = await this.jwtService.verifyTokenAndGetJwt(
-        accessToken
-      )
+      const payload: JWTPayload =
+        await this.jwtService.verifyTokenAndGetJwt(accessToken)
       const utilisateur = OidcAuthGuard.buildUtilisateur(payload)
       /*
       ts-ignore accepté ici

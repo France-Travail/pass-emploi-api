@@ -5,7 +5,6 @@ import { Sequelize, SequelizeOptions } from 'sequelize-typescript'
 import { Pool, PoolClient, PoolConfig } from 'pg'
 
 export async function createSequelizeForAnalytics(): Promise<Sequelize> {
-  // eslint-disable-next-line no-process-env
   const databaseUrl = process.env.DUMP_RESTORE_DB_TARGET as string
   const { host, port, database, user, password } = parse(databaseUrl)
 
@@ -18,7 +17,7 @@ export async function createSequelizeForAnalytics(): Promise<Sequelize> {
     database: database as string,
     logging: false
   }
-  // eslint-disable-next-line no-process-env
+
   if (process.env.ENVIRONMENT === 'staging') {
     options.dialectOptions = {
       ssl: {
@@ -43,13 +42,11 @@ export async function createSequelizeForAnalytics(): Promise<Sequelize> {
 }
 
 export async function getConnexionToDBSource(): Promise<PgConnexion> {
-  // eslint-disable-next-line no-process-env
   const databaseUrl = process.env.DUMP_RESTORE_DB_SOURCE as string
   return getPGConnexion(databaseUrl)
 }
 
 export async function getConnexionToDBTarget(): Promise<PgConnexion> {
-  // eslint-disable-next-line no-process-env
   const databaseUrl = process.env.DUMP_RESTORE_DB_TARGET as string
   return getPGConnexion(databaseUrl)
 }
@@ -63,7 +60,7 @@ async function getPGConnexion(databaseUrl: string): Promise<PgConnexion> {
     password: password as string,
     database: database as string
   }
-  // eslint-disable-next-line no-process-env
+
   if (process.env.ENVIRONMENT === 'staging') {
     options.ssl = true
   }

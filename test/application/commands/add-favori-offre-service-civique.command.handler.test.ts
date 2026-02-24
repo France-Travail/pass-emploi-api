@@ -58,9 +58,8 @@ describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
         dateService.now.returns(now)
 
         // When
-        const result = await addFavoriOffreServiceCiviqueCommandHandler.handle(
-          command
-        )
+        const result =
+          await addFavoriOffreServiceCiviqueCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -83,9 +82,8 @@ describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
           .resolves(uneOffreServiceCivique())
 
         // When
-        const result = await addFavoriOffreServiceCiviqueCommandHandler.handle(
-          command
-        )
+        const result =
+          await addFavoriOffreServiceCiviqueCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(

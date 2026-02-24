@@ -88,9 +88,8 @@ describe('RecupererJeunesDuConseillerCommandHandler', () => {
           .resolves([jeune1, jeune2, jeune3])
 
         // When
-        const result = await recupererJeunesDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await recupererJeunesDuConseillerCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -158,9 +157,8 @@ describe('RecupererJeunesDuConseillerCommandHandler', () => {
           .resolves([])
 
         // When
-        const result = await recupererJeunesDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await recupererJeunesDuConseillerCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -174,9 +172,8 @@ describe('RecupererJeunesDuConseillerCommandHandler', () => {
           .resolves(undefined)
 
         // When
-        const result = await recupererJeunesDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await recupererJeunesDuConseillerCommandHandler.handle(command)
 
         // Then
         expect(result).to.deep.equal(

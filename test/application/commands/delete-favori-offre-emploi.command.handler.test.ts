@@ -50,9 +50,8 @@ describe('DeleteFavoriOffreEmploiCommandHandler', () => {
         }
 
         // When
-        const result = await deleteFavoriOffreEmploiCommandHandler.handle(
-          command
-        )
+        const result =
+          await deleteFavoriOffreEmploiCommandHandler.handle(command)
         // Then
         expect(offresEmploiHttpSqlRepository.delete).to.have.been.calledWith(
           jeune.id,
@@ -74,9 +73,8 @@ describe('DeleteFavoriOffreEmploiCommandHandler', () => {
         }
 
         // When
-        const result = await deleteFavoriOffreEmploiCommandHandler.handle(
-          command
-        )
+        const result =
+          await deleteFavoriOffreEmploiCommandHandler.handle(command)
         // Then
         expect(result).to.deep.equal(
           failure(

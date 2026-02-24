@@ -77,7 +77,6 @@ export const getApplicationWithStubbedDependencies =
 
 export const testConfig = (): ConfigService => {
   const databaseUrl =
-    // eslint-disable-next-line no-process-env
     (process.env.DATABASE_URL as string) ||
     'postgresql://test:test@localhost:56432/test'
   const { host, port, database, user, password } = parse(databaseUrl)
@@ -125,7 +124,6 @@ export const testConfig = (): ConfigService => {
       apiKeyEvents: 'apiKeyEvents'
     },
     redis: {
-      // eslint-disable-next-line no-process-env
       url: process.env.REDIS_URL || 'redis://localhost:6767'
     },
     planificateur: {
@@ -279,7 +277,6 @@ export class FakeJwtService implements IJwtService {
     this.valid = valid
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   async verifyTokenAndGetJwt(_token: string): Promise<JWTPayload> {
     if (this.valid) {
       return unJwtPayloadValide()

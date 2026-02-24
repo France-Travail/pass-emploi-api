@@ -59,9 +59,8 @@ export class FichierAuthorizer {
     idFichier: string,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const fichierMetadata = await this.fichierRepository.getFichierMetadata(
-      idFichier
-    )
+    const fichierMetadata =
+      await this.fichierRepository.getFichierMetadata(idFichier)
 
     if (fichierMetadata) {
       if (fichierMetadata.idCreateur === utilisateur.id) return emptySuccess()
@@ -100,9 +99,8 @@ export class FichierAuthorizer {
     idFichier: string,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const fichierMetadata = await this.fichierRepository.getFichierMetadata(
-      idFichier
-    )
+    const fichierMetadata =
+      await this.fichierRepository.getFichierMetadata(idFichier)
     if (fichierMetadata && utilisateur.id === fichierMetadata.idCreateur)
       return emptySuccess()
 

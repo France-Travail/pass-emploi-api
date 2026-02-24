@@ -77,9 +77,8 @@ export class FichierSqlS3Repository implements Fichier.Repository {
   }
 
   async declencherAnalyseAsynchrone(fichier: Fichier): Promise<Result> {
-    const result = await this.antivirusClient.declencherAnalyseAsynchrone(
-      fichier
-    )
+    const result =
+      await this.antivirusClient.declencherAnalyseAsynchrone(fichier)
 
     if (isSuccess(result)) {
       await FichierSqlModel.update(

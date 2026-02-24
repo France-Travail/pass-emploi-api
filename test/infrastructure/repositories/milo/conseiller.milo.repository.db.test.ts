@@ -191,12 +191,10 @@ describe('ConseillerMiloSqlRepository', () => {
       })
 
       // When
-      const existe = await conseillerMiloSqlRepository.structureExiste(
-        idStructureMilo
-      )
-      const existePas = await conseillerMiloSqlRepository.structureExiste(
-        'idStructureMilo'
-      )
+      const existe =
+        await conseillerMiloSqlRepository.structureExiste(idStructureMilo)
+      const existePas =
+        await conseillerMiloSqlRepository.structureExiste('idStructureMilo')
 
       // Then
       expect(existe).to.be.true()
@@ -204,9 +202,8 @@ describe('ConseillerMiloSqlRepository', () => {
     })
     it("retourne false quand la structure Milo n'est pas présente dans le référentiel", async () => {
       // When
-      const existePas = await conseillerMiloSqlRepository.structureExiste(
-        'idStructureMilo'
-      )
+      const existePas =
+        await conseillerMiloSqlRepository.structureExiste('idStructureMilo')
 
       // Then
       expect(existePas).to.be.false()

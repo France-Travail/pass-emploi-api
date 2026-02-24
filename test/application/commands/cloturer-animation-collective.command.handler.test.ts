@@ -55,9 +55,8 @@ describe('CloturerAnimationCollectiveCommandHandler', () => {
           .withArgs(command.idAnimationCollective)
           .resolves(undefined)
         // When
-        const result = await cloturerAnimationCollectiveCommandHandler.handle(
-          command
-        )
+        const result =
+          await cloturerAnimationCollectiveCommandHandler.handle(command)
         // Then
         expect(animationCollectiveService.cloturer).to.have.callCount(0)
         expect(animationCollectiveRepository.save).to.have.callCount(0)
@@ -90,9 +89,8 @@ describe('CloturerAnimationCollectiveCommandHandler', () => {
         )
 
         // When
-        const result = await cloturerAnimationCollectiveCommandHandler.handle(
-          command
-        )
+        const result =
+          await cloturerAnimationCollectiveCommandHandler.handle(command)
         // Then
         expect(animationCollectiveRepository.save).to.have.callCount(0)
         expect(result).to.deep.equal(
@@ -122,9 +120,8 @@ describe('CloturerAnimationCollectiveCommandHandler', () => {
         )
 
         // When
-        const result = await cloturerAnimationCollectiveCommandHandler.handle(
-          command
-        )
+        const result =
+          await cloturerAnimationCollectiveCommandHandler.handle(command)
 
         // Then
         expect(

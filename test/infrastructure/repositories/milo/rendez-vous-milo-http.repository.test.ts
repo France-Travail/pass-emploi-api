@@ -90,9 +90,8 @@ describe('RendezVousMiloHttpRepository', () => {
         })
 
         // When
-        const resultat = await repository.findRendezVousByEvenement(
-          evenementPasBon
-        )
+        const resultat =
+          await repository.findRendezVousByEvenement(evenementPasBon)
 
         // Then
         expect(resultat).to.be.undefined()

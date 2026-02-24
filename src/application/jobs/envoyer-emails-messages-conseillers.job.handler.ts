@@ -86,7 +86,7 @@ export class EnvoyerEmailsMessagesConseillersJobHandler extends JobHandler<Job> 
                 maintenant.toJSDate()
               )
               stats.succes++
-            } catch (e) {
+            } catch (_e) {
               this.logger.error(
                 `Echec verification des messages non lus du conseiller ${conseiller.id}`
               )
