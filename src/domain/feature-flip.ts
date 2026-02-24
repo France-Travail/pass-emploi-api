@@ -25,13 +25,15 @@ export class ConseillerMigration {
 export namespace FeatureFlip {
   export enum PhaseDeMigration {
     PHASE_A = 'PHASE_A',
-    PHASE_B = 'PHASE_B'
+    PHASE_B = 'PHASE_B',
+    PHASE_TEST = 'PHASE_TEST'
   }
 
   export enum Tag {
     DEMARCHES_IA = 'DEMARCHES_IA',
     MIGRATION_PHASE_A = 'MIGRATION_PHASE_A',
-    MIGRATION_PHASE_B = 'MIGRATION_PHASE_B'
+    MIGRATION_PHASE_B = 'MIGRATION_PHASE_B',
+    MIGRATION_PHASE_TEST = 'MIGRATION_PHASE_TEST'
   }
 
   interface PhaseConfig {
@@ -47,6 +49,10 @@ export namespace FeatureFlip {
     [PhaseDeMigration.PHASE_B]: {
       tag: Tag.MIGRATION_PHASE_B,
       configKey: 'features.dateDeMigrationPhaseB'
+    },
+    [PhaseDeMigration.PHASE_TEST]: {
+      tag: Tag.MIGRATION_PHASE_TEST,
+      configKey: 'features.dateDeMigrationPhaseTest'
     }
   }
 

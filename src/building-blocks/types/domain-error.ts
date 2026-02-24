@@ -364,3 +364,13 @@ export class FichierMalveillant implements DomainError {
     this.message = 'Le fichier analysé est malveillant'
   }
 }
+
+export class ArchivageJeuneErreur implements DomainError {
+  static CODE = 'ERREUR_ARCHIVAGE'
+  readonly code: string = ArchivageJeuneErreur.CODE
+  readonly message: string
+
+  constructor(jeuneId: string) {
+    this.message = `Erreur archivage jeune ${jeuneId}`
+  }
+}

@@ -66,6 +66,8 @@
     "tasks:creer-tables-ae-annuelles": "IS_WEB=false TASK_NAME=CREER_TABLES_AE_ANNUELLES_ANALYTICS node dist/main",
     "tasks:creer-vue-ae-mensuelle": "IS_WEB=false TASK_NAME=CREER_VUE_AE_MENSUELLE node dist/main",
     "tasks:notifier-bonne-alternance": "IS_WEB=false TASK_NAME=NOTIFIER_BONNE_ALTERNANCE node dist/main",
+    "seed:migration-test": "node dist/scripts/seed-migration-test.js",
+    "cleanup:migration-test": "node dist/scripts/cleanup-migration-test.js",
     "dump-restore-db": "scripts/analytics/0_db_dump_restore.sh 2>&1",
     "dump-restore-db:local": "dotenv -e .environment yarn dump-restore-db",
     "release:patch": "scripts/release_version_only.sh patch",
