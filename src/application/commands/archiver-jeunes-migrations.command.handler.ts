@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { emptySuccess, Result } from '../../building-blocks/types/result'
+import {
+  emptySuccess,
+  isFailure,
+  Result
+} from '../../building-blocks/types/result'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
@@ -52,13 +56,31 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
         command.phaseDeMigration
       )
 
-    for (const idJeune of idJeunes) {
-      this.archiverJeuneService.archiver(
-        idJeune,
-        COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
-        MotifSuppressionSupport.MIGRATION
+    ;(async (): Promise<void> => {
+      const echecs: string[] = []
+
+      for (const idJeune of idJeunes) {
+        const result = await this.archiverJeuneService.archiver(
+          idJeune,
+          COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
+          MotifSuppressionSupport.MIGRATION
+        )
+        if (isFailure(result)) {
+          echecs.push(idJeune)
+        }
+      }
+
+      this.logger.log(
+        {
+          phaseDeMigration: command.phaseDeMigration,
+          total: idJeunes.length,
+          succes: idJeunes.length - echecs.length,
+          echecs: echecs.length,
+          idsEnEchec: echecs
+        },
+        'Archivage terminé'
       )
-    }
+    })()
 
     return emptySuccess()
   }

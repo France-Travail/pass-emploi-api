@@ -10,7 +10,7 @@ import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.excepti
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { firstValueFrom } from 'rxjs'
 import { Authentification } from 'src/domain/authentification'
-import { Core, estMilo, beneficiaireEstFTConnect } from 'src/domain/core'
+import { beneficiaireEstFTConnect, Core, estMilo } from 'src/domain/core'
 import { buildError } from 'src/utils/logger.module'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
@@ -172,7 +172,6 @@ export class OidcClient {
       await firstValueFrom(
         this.httpService.delete(`${url}/${idAuth}`, { headers })
       )
-      this.logger.log(`utilisateur ${idUser} supprimé`)
     } catch (e) {
       this.logger.error(
         buildError(
