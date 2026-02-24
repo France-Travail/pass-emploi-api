@@ -167,7 +167,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             })
           })
           describe('conseiller connu qui doit migrer vers Parcours Emploi', async () => {
-            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si la date de migration est dépassée', async () => {
+            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
@@ -202,46 +202,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
                 )
               }
-            })
-            it("retourne le conseiller si la date de migration n'est dépassée", async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
-              }
-
-              const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
-              })
-              authentificationRepository.getConseiller
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-
-              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-                .withArgs({
-                  id: utilisateur.id,
-                  type: Authentification.Type.CONSEILLER
-                })
-                .resolves(maintenant.plus({ days: 1 }))
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                command
-              )
-
-              // Then
-              expect(isSuccess(result)).equal(true)
-              if (isSuccess(result)) {
-                expect(result.data).to.deep.equal(
-                  unUtilisateurQueryModel({
-                    structure: Core.Structure.POLE_EMPLOI_BRSA
-                  })
-                )
-              }
-              expect(
-                archiverJeuneRepository.estArchiveAvecMotif
-              ).not.to.have.been.called()
             })
           })
           describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', async () => {
@@ -780,560 +740,538 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
       describe("jeune venant de l'idp Pole Emploi / BRSA", async () => {
         describe("jeune connu par son id d'authentification", async () => {
-          it('retourne le jeune', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
+          describe("quand le jeune n'a pas migré vers Parcours Emploi", async () => {
+            it('retourne le jeune', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI
+              }
 
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.POLE_EMPLOI
               })
-            )
-          })
-          it("retourne une failure quand la structure du jeune trouvé n'est pas PE", async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
 
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI_BRSA
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.JEUNE
+                })
+                .resolves(false)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
+
+              // Then
+              expect(result).to.deep.equal(
+                success({
+                  email: 'john.doe@plop.io',
+                  id: 'ABCDE',
+                  nom: 'Doe',
+                  prenom: 'John',
+                  roles: [],
+                  structure: 'POLE_EMPLOI',
+                  type: 'JEUNE',
+                  username: undefined
+                })
+              )
             })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
+            it("retourne une failure quand la structure du jeune trouvé n'est pas PE", async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI
+              }
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.POLE_EMPLOI_BRSA
+              })
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
 
-            // Then
-            expect(result).to.deep.equal(
-              failure(
-                new NonTraitableError(
-                  'Utilisateur',
-                  command.idUtilisateurAuth,
-                  NonTraitableReason.UTILISATEUR_DEJA_PE_BRSA
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.JEUNE
+                })
+                .resolves(false)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
+
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.UTILISATEUR_DEJA_PE_BRSA
+                  )
                 )
               )
-            )
-          })
-        })
-        describe('jeune connu par son email (première connexion)', async () => {
-          it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
-            // Given
-            const utilisateur = unUtilisateurJeunePasConnecte({
-              structure: Core.Structure.POLE_EMPLOI
             })
+            it("retourne le jeune même s'il est archivé avec le motif MIGRATION - cas nouveau compte", async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI,
+                email: 'nils.tavernier@pole-emploi.fr'
+              }
 
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'Id connection',
-              nom: 'nom jeune',
-              prenom: 'prenom jeune',
-              email: 'email jeune',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.POLE_EMPLOI,
+                email: 'nils.tavernier@pole-emploi.fr'
+              })
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
 
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(undefined)
-            authentificationRepository.getJeuneByEmail
-              .withArgs(command.email)
-              .resolves(utilisateur)
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.JEUNE
+                })
+                .resolves(false)
+              archiverJeuneRepository.estArchiveAvecMotif
+                .withArgs(utilisateur.email, MotifSuppressionSupport.MIGRATION)
+                .resolves(true)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
 
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'email jeune',
-                id: 'ABCDE',
+              // Then
+              expect(result).to.deep.equal(
+                success({
+                  email: utilisateur.email,
+                  id: 'ABCDE',
+                  nom: 'Doe',
+                  prenom: 'John',
+                  roles: [],
+                  structure: 'POLE_EMPLOI',
+                  type: 'JEUNE',
+                  username: undefined
+                })
+              )
+            })
+          })
+          describe('quand le jeune a migré vers Parcours Emploi (Feature Flip MIGRATION_PHASE_X pour son conseiller)', async () => {
+            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune a migré vers Parcours Emploi', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI
+              }
+
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.POLE_EMPLOI
+              })
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
+
+              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.JEUNE
+                })
+                .resolves(true)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect(result.error).to.be.instanceOf(NonTraitableError)
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+                expect((result.error as NonTraitableError).email).to.equal(
+                  utilisateur.email
+                )
+              }
+            })
+          })
+          describe('jeune connu par son email (première connexion)', async () => {
+            it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
+              // Given
+              const utilisateur = unUtilisateurJeunePasConnecte({
+                structure: Core.Structure.POLE_EMPLOI
+              })
+
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'Id connection',
                 nom: 'nom jeune',
                 prenom: 'prenom jeune',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
+                email: 'email jeune',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI
+              }
+
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
+              authentificationRepository.getJeuneByEmail
+                .withArgs(command.email)
+                .resolves(utilisateur)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
+
+              // Then
+              expect(result).to.deep.equal(
+                success({
+                  email: 'email jeune',
+                  id: 'ABCDE',
+                  nom: 'nom jeune',
+                  prenom: 'prenom jeune',
+                  roles: [],
+                  structure: 'POLE_EMPLOI',
+                  type: 'JEUNE',
+                  username: undefined
+                })
+              )
+              expect(
+                authentificationRepository.update
+              ).to.have.been.calledWithExactly({
+                ...utilisateur,
+                email: command.email,
+                nom: command.nom,
+                prenom: command.prenom,
+                idAuthentification: command.idUtilisateurAuth,
+                dateDerniereConnexion: uneDate(),
+                datePremiereConnexion: uneDate()
               })
-            )
-            expect(
-              authentificationRepository.update
-            ).to.have.been.calledWithExactly({
-              ...utilisateur,
-              email: command.email,
-              nom: command.nom,
-              prenom: command.prenom,
-              idAuthentification: command.idUtilisateurAuth,
-              dateDerniereConnexion: uneDate(),
-              datePremiereConnexion: uneDate()
             })
-          })
-          it('retourne une failure quand jeune trouvé pas de la bonne structure', async () => {
-            // Given
-            const utilisateurMauvaiseStructure = unUtilisateurJeune({
-              structure: Core.Structure.MILO
-            })
+            it('retourne une failure quand jeune trouvé pas de la bonne structure', async () => {
+              // Given
+              const utilisateurMauvaiseStructure = unUtilisateurJeune({
+                structure: Core.Structure.MILO
+              })
 
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'Id connection',
-              nom: 'nom jeune',
-              prenom: 'prenom jeune',
-              email: 'email jeune',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'Id connection',
+                nom: 'nom jeune',
+                prenom: 'prenom jeune',
+                email: 'email jeune',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI
+              }
 
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(undefined)
-            authentificationRepository.getJeuneByEmail
-              .withArgs(command.email)
-              .resolves(utilisateurMauvaiseStructure)
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
+              authentificationRepository.getJeuneByEmail
+                .withArgs(command.email)
+                .resolves(utilisateurMauvaiseStructure)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
 
-            // Then
-            expect(result).to.deep.equal(
-              failure(
-                new NonTraitableError(
-                  'Utilisateur',
-                  command.idUtilisateurAuth,
-                  NonTraitableReason.UTILISATEUR_DEJA_MILO
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.UTILISATEUR_DEJA_MILO
+                  )
                 )
               )
-            )
+            })
           })
-        })
-        describe("jeune non connu par son id d'authentification ou email", async () => {
-          it("retourne une failure quand l'email PE n'est pas fournie", async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI,
-              email: undefined
-            }
+          describe("jeune non connu par son id d'authentification ou email", async () => {
+            it("retourne une failure quand l'email PE n'est pas fournie", async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI,
+                email: undefined
+              }
 
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(undefined)
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
 
-            // Then
-            expect(result).to.deep.equal(
-              failure(
-                new NonTraitableError(
-                  'Utilisateur',
-                  command.idUtilisateurAuth,
-                  NonTraitableReason.EMAIL_BENEFICIAIRE_INTROUVABLE
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.EMAIL_BENEFICIAIRE_INTROUVABLE
+                  )
                 )
               )
-            )
-          })
-          it('retourne une failure quand le jeune est pas trouvé', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              email: 'abc@test.com',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI_BRSA
-            }
+            })
+            it('retourne une failure quand le jeune est pas trouvé', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                email: 'abc@test.com',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI_BRSA
+              }
 
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(undefined)
-            authentificationRepository.getJeuneByEmail
-              .withArgs(command.email, command.structure)
-              .resolves(undefined)
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
+              authentificationRepository.getJeuneByEmail
+                .withArgs(command.email, command.structure)
+                .resolves(undefined)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
 
-            // Then
-            expect(result).to.deep.equal(
-              failure(
-                new NonTraitableError(
-                  'Utilisateur',
-                  command.idUtilisateurAuth,
-                  NonTraitableReason.UTILISATEUR_INEXISTANT,
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.UTILISATEUR_INEXISTANT,
+                    command.email
+                  )
+                )
+              )
+            })
+            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                email: 'abc@test.com',
+                type: Authentification.Type.JEUNE,
+                structure: Core.Structure.POLE_EMPLOI_BRSA
+              }
+
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
+              authentificationRepository.getJeuneByEmail
+                .withArgs(command.email, command.structure)
+                .resolves(undefined)
+              archiverJeuneRepository.estArchiveAvecMotif
+                .withArgs('abc@test.com', MotifSuppressionSupport.MIGRATION)
+                .resolves(true)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
+              )
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect(result.error).to.be.instanceOf(NonTraitableError)
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+                expect((result.error as NonTraitableError).email).to.equal(
                   command.email
                 )
-              )
-            )
+              }
+            })
           })
         })
-        describe('jeune connu qui doit migrer vers Parcours Emploi', async () => {
-          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si la date de migration est dépassée', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
 
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
+        describe('BENEFICIAIRE FRANCE_TRAVAIL', async () => {
+          describe("benef connu par son id d'authentification", async () => {
+            it('retourne le benef', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: 'BENEFICIAIRE',
+                structure: 'FRANCE_TRAVAIL'
+              }
 
-            featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.POLE_EMPLOI
               })
-              .resolves(true)
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(isFailure(result)).to.be.true()
-            if (isFailure(result)) {
-              expect(result.error).to.be.instanceOf(NonTraitableError)
-              expect((result.error as NonTraitableError).reason).to.equal(
-                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
               )
-              expect((result.error as NonTraitableError).email).to.equal(
-                utilisateur.email
+
+              // Then
+              expect(result).to.deep.equal(
+                success({
+                  email: 'john.doe@plop.io',
+                  id: 'ABCDE',
+                  nom: 'Doe',
+                  prenom: 'John',
+                  roles: [],
+                  structure: 'POLE_EMPLOI',
+                  type: 'JEUNE',
+                  username: undefined
+                })
               )
-            }
-          })
-          it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI,
-              email: 'jeune@mail.fr'
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
             })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(undefined)
+            it('retourne une failure quand la structure du benef trouvé est Milo', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: 'BENEFICIAIRE',
+                structure: 'FRANCE_TRAVAIL'
+              }
 
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
+              const utilisateur = unUtilisateurJeune({
+                structure: Core.Structure.MILO
               })
-              .resolves(undefined)
-            archiverJeuneRepository.estArchiveAvecMotif
-              .withArgs('jeune@mail.fr', MotifSuppressionSupport.MIGRATION)
-              .resolves(true)
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
 
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(isFailure(result)).to.be.true()
-            if (isFailure(result)) {
-              expect(result.error).to.be.instanceOf(NonTraitableError)
-              expect((result.error as NonTraitableError).reason).to.equal(
-                NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                command
               )
-              expect((result.error as NonTraitableError).email).to.equal(
-                command.email
-              )
-            }
-          })
-          it("retourne le jeune si la date de migration n'est pas dépassée", async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
 
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
-              .resolves(maintenant.plus({ days: 3 }))
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
-            )
-          })
-        })
-        describe('jeune connu qui ne doit pas migrer vers Parcours Emploi', async () => {
-          it('retourne le jeune', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              structure: Core.Structure.POLE_EMPLOI
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-            featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-              .withArgs({
-                id: utilisateur.id,
-                type: Authentification.Type.JEUNE
-              })
-              .resolves(undefined)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
-            )
-          })
-        })
-      })
-
-      describe('BENEFICIAIRE FRANCE_TRAVAIL', async () => {
-        describe("benef connu par son id d'authentification", async () => {
-          it('retourne le benef', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: 'BENEFICIAIRE',
-              structure: 'FRANCE_TRAVAIL'
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              success({
-                email: 'john.doe@plop.io',
-                id: 'ABCDE',
-                nom: 'Doe',
-                prenom: 'John',
-                roles: [],
-                structure: 'POLE_EMPLOI',
-                type: 'JEUNE',
-                username: undefined
-              })
-            )
-          })
-          it('retourne une failure quand la structure du benef trouvé est Milo', async () => {
-            // Given
-            const command: UpdateUtilisateurCommand = {
-              idUtilisateurAuth: 'nilstavernier',
-              type: 'BENEFICIAIRE',
-              structure: 'FRANCE_TRAVAIL'
-            }
-
-            const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
-            })
-            authentificationRepository.getJeuneByIdAuthentification
-              .withArgs(command.idUtilisateurAuth)
-              .resolves(utilisateur)
-
-            // When
-            const result = await updateUtilisateurCommandHandler.execute(
-              command
-            )
-
-            // Then
-            expect(result).to.deep.equal(
-              failure(
-                new NonTraitableError(
-                  'Utilisateur',
-                  command.idUtilisateurAuth,
-                  NonTraitableReason.UTILISATEUR_DEJA_MILO
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.UTILISATEUR_DEJA_MILO
+                  )
                 )
               )
+            })
+          })
+          it('retourne une ok quand la structure du benef trouvé est dans PE', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: 'BENEFICIAIRE',
+              structure: 'FRANCE_TRAVAIL'
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.POLE_EMPLOI_BRSA
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(result).to.deep.equal(
+              success({
+                email: 'john.doe@plop.io',
+                id: 'ABCDE',
+                nom: 'Doe',
+                prenom: 'John',
+                roles: [],
+                structure: 'POLE_EMPLOI_BRSA',
+                type: 'JEUNE',
+                username: undefined
+              })
             )
           })
-        })
-        it('retourne une ok quand la structure du benef trouvé est dans PE', async () => {
-          // Given
-          const command: UpdateUtilisateurCommand = {
-            idUtilisateurAuth: 'nilstavernier',
-            type: 'BENEFICIAIRE',
-            structure: 'FRANCE_TRAVAIL'
-          }
+          it('retourne une ok pour un benef de CD', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: 'BENEFICIAIRE',
+              structure: 'FRANCE_TRAVAIL'
+            }
 
-          const utilisateur = unUtilisateurJeune({
-            structure: Core.Structure.POLE_EMPLOI_BRSA
-          })
-          authentificationRepository.getJeuneByIdAuthentification
-            .withArgs(command.idUtilisateurAuth)
-            .resolves(utilisateur)
-
-          // When
-          const result = await updateUtilisateurCommandHandler.execute(command)
-
-          // Then
-          expect(result).to.deep.equal(
-            success({
-              email: 'john.doe@plop.io',
-              id: 'ABCDE',
-              nom: 'Doe',
-              prenom: 'John',
-              roles: [],
-              structure: 'POLE_EMPLOI_BRSA',
-              type: 'JEUNE',
-              username: undefined
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.CONSEIL_DEPT
             })
-          )
-        })
-        it('retourne une ok pour un benef de CD', async () => {
-          // Given
-          const command: UpdateUtilisateurCommand = {
-            idUtilisateurAuth: 'nilstavernier',
-            type: 'BENEFICIAIRE',
-            structure: 'FRANCE_TRAVAIL'
-          }
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
 
-          const utilisateur = unUtilisateurJeune({
-            structure: Core.Structure.CONSEIL_DEPT
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(result).to.deep.equal(
+              success({
+                email: 'john.doe@plop.io',
+                id: 'ABCDE',
+                nom: 'Doe',
+                prenom: 'John',
+                roles: [],
+                structure: 'CONSEIL_DEPT',
+                type: 'JEUNE',
+                username: undefined
+              })
+            )
           })
-          authentificationRepository.getJeuneByIdAuthentification
-            .withArgs(command.idUtilisateurAuth)
-            .resolves(utilisateur)
+          it('retourne une ok pour un benef de AVENIR PRO', async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: 'BENEFICIAIRE',
+              structure: 'FRANCE_TRAVAIL'
+            }
 
-          // When
-          const result = await updateUtilisateurCommandHandler.execute(command)
-
-          // Then
-          expect(result).to.deep.equal(
-            success({
-              email: 'john.doe@plop.io',
-              id: 'ABCDE',
-              nom: 'Doe',
-              prenom: 'John',
-              roles: [],
-              structure: 'CONSEIL_DEPT',
-              type: 'JEUNE',
-              username: undefined
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.AVENIR_PRO
             })
-          )
-        })
-        it('retourne une ok pour un benef de AVENIR PRO', async () => {
-          // Given
-          const command: UpdateUtilisateurCommand = {
-            idUtilisateurAuth: 'nilstavernier',
-            type: 'BENEFICIAIRE',
-            structure: 'FRANCE_TRAVAIL'
-          }
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
 
-          const utilisateur = unUtilisateurJeune({
-            structure: Core.Structure.AVENIR_PRO
+            // When
+            const result = await updateUtilisateurCommandHandler.execute(
+              command
+            )
+
+            // Then
+            expect(result).to.deep.equal(
+              success({
+                email: 'john.doe@plop.io',
+                id: 'ABCDE',
+                nom: 'Doe',
+                prenom: 'John',
+                roles: [],
+                structure: 'AVENIR_PRO',
+                type: 'JEUNE',
+                username: undefined
+              })
+            )
           })
-          authentificationRepository.getJeuneByIdAuthentification
-            .withArgs(command.idUtilisateurAuth)
-            .resolves(utilisateur)
-
-          // When
-          const result = await updateUtilisateurCommandHandler.execute(command)
-
-          // Then
-          expect(result).to.deep.equal(
-            success({
-              email: 'john.doe@plop.io',
-              id: 'ABCDE',
-              nom: 'Doe',
-              prenom: 'John',
-              roles: [],
-              structure: 'AVENIR_PRO',
-              type: 'JEUNE',
-              username: undefined
-            })
-          )
         })
       })
     })
