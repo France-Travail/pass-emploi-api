@@ -94,10 +94,30 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
     }
 
-    if (isSuccess(result)) {
-      return this.verifierSiLUtilisateurDoitMigrerVersParcoursEmploi(
-        result.data,
-        commandSanitized.idUtilisateurAuth
+    if (
+      isSuccess(result) &&
+      (await this.lUtilisateurDoitMigrerVersParcoursEmploi(result.data))
+    ) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          result.data.email
+        )
+      )
+    }
+    if (
+      isFailure(result) &&
+      (await this.lUtilisateurEstArchive(commandSanitized.email))
+    ) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          commandSanitized.email
+        )
       )
     }
     return result
@@ -133,24 +153,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private async recupererBeneficiaire(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
-    if (commandSanitized.email) {
-      const leJeuneEstArchivePourMotifMigration =
-        await this.archiverJeuneRepository.estArchiveAvecMotif(
-          commandSanitized.email,
-          MotifSuppressionSupport.MIGRATION
-        )
-      if (leJeuneEstArchivePourMotifMigration) {
-        return failure(
-          new NonTraitableError(
-            'Utilisateur',
-            commandSanitized.idUtilisateurAuth,
-            NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-            commandSanitized.email
-          )
-        )
-      }
-    }
-
     switch (commandSanitized.structure) {
       case Core.Structure.MILO:
         return this.authentificationJeuneMilo(commandSanitized)
@@ -424,30 +426,27 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async verifierSiLUtilisateurDoitMigrerVersParcoursEmploi(
-    utilisateur: UtilisateurQueryModel,
-    idUtilisateurAuth: string
-  ): Promise<Result<UtilisateurQueryModel>> {
-    if (utilisateur.type === Type.SUPPORT) return success(utilisateur)
+  private async lUtilisateurDoitMigrerVersParcoursEmploi(
+    utilisateur: UtilisateurQueryModel
+  ): Promise<boolean> {
+    if (utilisateur.type === Type.SUPPORT) return false
 
-    const migrationActive =
-      await this.featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee({
+    return await this.featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee(
+      {
         id: utilisateur.id,
         type: utilisateur.type
-      })
+      }
+    )
+  }
 
-    if (migrationActive) {
-      return failure(
-        new NonTraitableError(
-          'Utilisateur',
-          idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          utilisateur.email
-        )
-      )
-    }
-
-    return success(utilisateur)
+  private async lUtilisateurEstArchive(
+    email: string | undefined
+  ): Promise<boolean> {
+    if (!email) return false
+    return await this.archiverJeuneRepository.estArchiveAvecMotif(
+      email,
+      MotifSuppressionSupport.MIGRATION
+    )
   }
 }
 
