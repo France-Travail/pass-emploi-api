@@ -9,10 +9,10 @@ import {
   FeatureFlip
 } from '../../src/domain/feature-flip'
 import { expect, stubClass } from '../utils'
-import Type = Authentification.Type
-import Tag = FeatureFlip.Tag
 import { DateService } from '../../src/utils/date-service'
 import { uneDate } from '../fixtures/date.fixture'
+import Type = Authentification.Type
+import Tag = FeatureFlip.Tag
 import PhaseDeMigration = FeatureFlip.PhaseDeMigration
 
 describe('FeatureFlip', () => {
@@ -57,7 +57,8 @@ describe('FeatureFlip', () => {
           .withArgs(
             [
               FeatureFlip.Tag.MIGRATION_PHASE_A,
-              FeatureFlip.Tag.MIGRATION_PHASE_B
+              FeatureFlip.Tag.MIGRATION_PHASE_B,
+              FeatureFlip.Tag.MIGRATION_PHASE_TEST
             ],
             idJeune
           )
@@ -134,7 +135,8 @@ describe('FeatureFlip', () => {
           .withArgs(
             [
               FeatureFlip.Tag.MIGRATION_PHASE_A,
-              FeatureFlip.Tag.MIGRATION_PHASE_B
+              FeatureFlip.Tag.MIGRATION_PHASE_B,
+              FeatureFlip.Tag.MIGRATION_PHASE_TEST
             ],
             idConseiller
           )

@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseEnumPipe,
   Post,
   SetMetadata,
   UploadedFile,
@@ -421,7 +422,8 @@ PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
   @Post('archiver-jeunes-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async archiverJeuneRegion(
-    @Param('phaseDeMigration') phaseDeMigration: PhaseDeMigration
+    @Param('phaseDeMigration', new ParseEnumPipe(FeatureFlip.PhaseDeMigration))
+    phaseDeMigration: PhaseDeMigration
   ): Promise<void> {
     const result = await this.archiverJeunesMigrationCommandHandler.handle({
       phaseDeMigration
