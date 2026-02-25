@@ -23,6 +23,7 @@
     "noUnusedLocals": false
   },
   "ts-node": {
-    "files": true
+    "files": true,
+    "transpileOnly": true
   }
 }

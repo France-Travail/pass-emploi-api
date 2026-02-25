@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize-typescript'
 import { sqlModels } from '../../src/infrastructure/sequelize/models'
 import { createClient } from 'redis'
-import { testConfig } from './module-for-testing'
+import { testConfig } from './test-config'
 import { RedisClientType as _RedisClientType } from '@redis/client/dist/lib/client'
 
 export let databaseForTesting: DatabaseForTesting | undefined
