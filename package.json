@@ -123,7 +123,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
-    "@nestjs/schematics": "^10.2.3",
+    "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
     "@salesforce/ts-sinon": "^1.4.31",
     "@types/bull": "^4.10.4",
