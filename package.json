@@ -124,8 +124,8 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
     "@salesforce/ts-sinon": "^1.4.31",
     "@types/bull": "^4.10.4",

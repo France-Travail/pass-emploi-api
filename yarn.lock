@@ -1785,7 +1785,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/cli@npm:^11.0.0":
+"@nestjs/cli@npm:^11.0.16":
   version: 11.0.16
   resolution: "@nestjs/cli@npm:11.0.16"
   dependencies:
@@ -1921,7 +1921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/schematics@npm:^11.0.0, @nestjs/schematics@npm:^11.0.1":
+"@nestjs/schematics@npm:^11.0.1, @nestjs/schematics@npm:^11.0.9":
   version: 11.0.9
   resolution: "@nestjs/schematics@npm:11.0.9"
   dependencies:
@@ -9097,12 +9097,12 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.988.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.988.0"
     "@nestjs/axios": "npm:^3.1.3"
-    "@nestjs/cli": "npm:^11.0.0"
+    "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.13"
     "@nestjs/config": "npm:2.3.4"
     "@nestjs/core": "npm:11.1.13"
     "@nestjs/platform-express": "npm:11.1.13"
-    "@nestjs/schematics": "npm:^11.0.0"
+    "@nestjs/schematics": "npm:^11.0.9"
     "@nestjs/swagger": "npm:11.2.6"
     "@nestjs/terminus": "npm:10.3.0"
     "@nestjs/testing": "npm:^11.1.9"
