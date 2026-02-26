@@ -16,7 +16,11 @@ const config: APM.AgentConfigOptions = {
   environment,
   active,
   serviceVersion,
-  logUncaughtExceptions: true
+  logUncaughtExceptions: true,
+  transactionSampleRate: Number.parseFloat(
+    process.env.APM_TRANSACTION_SAMPLE_RATE || '0.5'
+  ),
+  transactionIgnoreUrls: ['/metrics']
 }
 
 export const initializeAPMAgent = (): void => {
