@@ -53,9 +53,8 @@ describe('GetOffresEmploiQueryHandler', () => {
           .resolves(success(desOffresEmploiQueryModel()))
 
         // When
-        const result = await getOffresEmploiQueryHandler.handle(
-          getOffresEmploiQuery
-        )
+        const result =
+          await getOffresEmploiQueryHandler.handle(getOffresEmploiQuery)
 
         // Then
         expect(result).to.deep.equal(success(desOffresEmploiQueryModel()))
@@ -79,9 +78,8 @@ describe('GetOffresEmploiQueryHandler', () => {
           .resolves(success(desOffresEmploiQueryModel()))
 
         // When
-        const result = await getOffresEmploiQueryHandler.handle(
-          getOffresEmploiQuery
-        )
+        const result =
+          await getOffresEmploiQueryHandler.handle(getOffresEmploiQuery)
 
         // Then
         expect(result).to.deep.equal(success(desOffresEmploiQueryModel()))

@@ -46,7 +46,6 @@ export const SuggestionsPoleEmploiRepositoryToken =
   'SuggestionsPoleEmploiRepositoryToken'
 
 export namespace Suggestion {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import PoleEmploi = _PoleEmploi.PoleEmploi
 
   export interface Acceptee extends Suggestion {
@@ -435,7 +434,7 @@ export namespace Suggestion {
     ): boolean {
       return Boolean(
         suggestionPoleEmploi.codeRome &&
-          this.suggestionAvecCommuneLatLon(suggestionPoleEmploi)
+        this.suggestionAvecCommuneLatLon(suggestionPoleEmploi)
       )
     }
 
@@ -450,8 +449,8 @@ export namespace Suggestion {
     ): boolean {
       return Boolean(
         suggestionPoleEmploi.localisation.type === 'COMMUNE' &&
-          suggestionPoleEmploi.localisation.lat &&
-          suggestionPoleEmploi.localisation.lon
+        suggestionPoleEmploi.localisation.lat &&
+        suggestionPoleEmploi.localisation.lon
       )
     }
   }

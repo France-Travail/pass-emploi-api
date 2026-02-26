@@ -50,9 +50,8 @@ describe('DeleteFavoriOffreImmersionCommandHandler', () => {
         }
 
         // When
-        const result = await deleteFavoriOffreImmersionCommandHandler.handle(
-          command
-        )
+        const result =
+          await deleteFavoriOffreImmersionCommandHandler.handle(command)
         // Then
         expect(offresImmersionHttpSqlRepository.delete).to.have.been.calledWith(
           jeune.id,
@@ -74,9 +73,8 @@ describe('DeleteFavoriOffreImmersionCommandHandler', () => {
         }
 
         // When
-        const result = await deleteFavoriOffreImmersionCommandHandler.handle(
-          command
-        )
+        const result =
+          await deleteFavoriOffreImmersionCommandHandler.handle(command)
         // Then
         expect(result).to.deep.equal(
           failure(

@@ -53,9 +53,8 @@ describe('FindAllOffresServicesCiviqueQueryGetter', () => {
         })
 
         // When
-        const result = await findAllOffresServicesCiviqueQueryGetter.handle(
-          criteres
-        )
+        const result =
+          await findAllOffresServicesCiviqueQueryGetter.handle(criteres)
 
         // Then
         expect(serviceCiviqueClient.get).to.have.been.calledWithExactly(
@@ -116,9 +115,8 @@ describe('FindAllOffresServicesCiviqueQueryGetter', () => {
         })
 
         // When
-        const result = await findAllOffresServicesCiviqueQueryGetter.handle(
-          criteres
-        )
+        const result =
+          await findAllOffresServicesCiviqueQueryGetter.handle(criteres)
 
         // Then
         expect(serviceCiviqueClient.get).to.have.been.calledWithExactly(
@@ -164,9 +162,8 @@ describe('FindAllOffresServicesCiviqueQueryGetter', () => {
         })
 
         // When
-        const result = await findAllOffresServicesCiviqueQueryGetter.handle(
-          criteres
-        )
+        const result =
+          await findAllOffresServicesCiviqueQueryGetter.handle(criteres)
 
         // Then
         expect(result).to.be.deep.equal(

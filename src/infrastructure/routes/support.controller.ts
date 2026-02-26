@@ -349,9 +349,8 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
   async notifierBeneficiaires(
     @Body() payload: NotifierBeneficiairesPayload
   ): Promise<Planificateur.JobId> {
-    const createdJobId = await this.notifierBeneficiairesCommandHandler.execute(
-      payload
-    )
+    const createdJobId =
+      await this.notifierBeneficiairesCommandHandler.execute(payload)
     return handleResult(createdJobId)
   }
 

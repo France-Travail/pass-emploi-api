@@ -35,8 +35,8 @@ export function fromSqlToDetailJeuneQueryModel(
           jeuneSqlModel.dateDerniereActualisationToken
         )
       : jeuneSqlModel.dateDerniereConnexion
-      ? DateService.fromJSDateToISOString(jeuneSqlModel.dateDerniereConnexion)
-      : undefined,
+        ? DateService.fromJSDateToISOString(jeuneSqlModel.dateDerniereConnexion)
+        : undefined,
     isReaffectationTemporaire: Boolean(jeuneSqlModel.idConseillerInitial),
     conseiller: {
       id: jeuneSqlModel.idConseiller!,

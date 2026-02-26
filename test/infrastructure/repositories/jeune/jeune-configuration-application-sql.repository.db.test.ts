@@ -47,9 +47,8 @@ describe('JeuneConfigurationApplicationSqlRepository', () => {
     describe('quand le jeune existe', () => {
       it('retourne la configuration application', async () => {
         // When
-        const result = await jeuneConfigurationApplicationSqlRepositorySql.get(
-          'ABCDE'
-        )
+        const result =
+          await jeuneConfigurationApplicationSqlRepositorySql.get('ABCDE')
 
         // Then
         const configurationApplicationExpected: Jeune.ConfigurationApplication =
@@ -70,9 +69,8 @@ describe('JeuneConfigurationApplicationSqlRepository', () => {
     describe("quand le jeune n'existe pas", () => {
       it('retourne undefined', async () => {
         // When
-        const result = await jeuneConfigurationApplicationSqlRepositorySql.get(
-          'ZIZOU'
-        )
+        const result =
+          await jeuneConfigurationApplicationSqlRepositorySql.get('ZIZOU')
 
         // Then
         expect(result).to.equal(undefined)

@@ -60,9 +60,8 @@ export class EnvoyerMessageGroupeCommandHandler extends CommandHandler<
     let idsBeneficiaireDesListesDeDiffusion: string[] = []
 
     if (idsListesDeDiffusion) {
-      const listesDeDiffusion = await this.listeDeDiffusionRepository.findAll(
-        idsListesDeDiffusion
-      )
+      const listesDeDiffusion =
+        await this.listeDeDiffusionRepository.findAll(idsListesDeDiffusion)
 
       await this.envoyerLesMessagesAuxListesDeDiffusion(
         listesDeDiffusion,

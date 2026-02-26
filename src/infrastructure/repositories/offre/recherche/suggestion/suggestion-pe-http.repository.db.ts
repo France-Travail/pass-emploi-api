@@ -26,9 +26,8 @@ export class SuggestionPeHttpRepository
   ) {}
 
   async findAll(token: string): Promise<Result<Suggestion.PoleEmploi[]>> {
-    const suggestionsDtoResult = await this.client.getSuggestionsRecherches(
-      token
-    )
+    const suggestionsDtoResult =
+      await this.client.getSuggestionsRecherches(token)
 
     if (isFailure(suggestionsDtoResult)) {
       return suggestionsDtoResult
@@ -67,13 +66,13 @@ function laSuggestionAUneLocalisation(suggestion: SuggestionDto): boolean {
 function laSuggestionAUneCommune(suggestion: SuggestionDto): boolean {
   return Boolean(
     suggestion.mobilites?.length &&
-      suggestion.mobilites[0].lieu.type.code === CODE_TYPE_LIEU_COMMUNE
+    suggestion.mobilites[0].lieu.type.code === CODE_TYPE_LIEU_COMMUNE
   )
 }
 function laSuggestionAUnDepartement(suggestion: SuggestionDto): boolean {
   return Boolean(
     suggestion.mobilites?.length &&
-      suggestion.mobilites[0].lieu.type.code === CODE_TYPE_LIEU_DEPARTEMENT
+    suggestion.mobilites[0].lieu.type.code === CODE_TYPE_LIEU_DEPARTEMENT
   )
 }
 

@@ -132,9 +132,8 @@ describe('NotifierCreationActionsDemarchesJobHandler', () => {
         }
 
       // When
-      const result = await notifierCreationActionsDemarchesJobHandler.handle(
-        job
-      )
+      const result =
+        await notifierCreationActionsDemarchesJobHandler.handle(job)
 
       // Then
       expect(result.succes).to.be.true()

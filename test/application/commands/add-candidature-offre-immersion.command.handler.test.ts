@@ -75,9 +75,8 @@ describe('AddCandidatureOffreImmersionCommandHandler', () => {
         .resolves(undefined)
 
       // When
-      const result = await addCandidatureOffreImmersionCommandHandler.handle(
-        command
-      )
+      const result =
+        await addCandidatureOffreImmersionCommandHandler.handle(command)
 
       // Then
       expect(result).to.deep.equal(

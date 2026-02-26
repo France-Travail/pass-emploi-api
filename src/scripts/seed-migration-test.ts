@@ -64,9 +64,8 @@ async function main(): Promise<void> {
       replacements[`${key}_nom`] = `Test-${idx}`
       replacements[`${key}_idCons`] = CONSEILLER_ID
       replacements[`${key}_idAuth`] = `test-migration-auth-${idx}`
-      replacements[
-        `${key}_email`
-      ] = `test-migration-jeune-${idx}@passemploi.com`
+      replacements[`${key}_email`] =
+        `test-migration-jeune-${idx}@passemploi.com`
     }
 
     const batchSize = 250

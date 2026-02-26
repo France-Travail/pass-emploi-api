@@ -19,6 +19,9 @@ lerna-debug.log*
 /coverage
 /.nyc_output
 
+# ESLint cache
+.eslintcache
+
 # IDEs and editors
 .vscode/
 /.idea

@@ -1,4 +1,3 @@
-/* eslint-disable no-process-env */
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import chaiExclude from 'chai-exclude'

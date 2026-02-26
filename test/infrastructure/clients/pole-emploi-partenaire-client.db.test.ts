@@ -243,9 +243,8 @@ describe('PoleEmploiPartenaireClient', () => {
           .isDone()
 
         // When
-        const response = await poleEmploiPartenaireClient.getDocuments(
-          tokenJeune
-        )
+        const response =
+          await poleEmploiPartenaireClient.getDocuments(tokenJeune)
 
         // Then
         expect(response).to.deep.equal(success(documentsDto))
@@ -260,9 +259,8 @@ describe('PoleEmploiPartenaireClient', () => {
           .isDone()
 
         // When
-        const response = await poleEmploiPartenaireClient.getDocuments(
-          tokenJeune
-        )
+        const response =
+          await poleEmploiPartenaireClient.getDocuments(tokenJeune)
 
         // Then
         expect(response).to.deep.equal(success([]))
@@ -337,9 +335,8 @@ describe('PoleEmploiPartenaireClient', () => {
           .isDone()
 
         // When
-        const demarcheDtos = await poleEmploiPartenaireClient.getDemarches(
-          tokenJeune
-        )
+        const demarcheDtos =
+          await poleEmploiPartenaireClient.getDemarches(tokenJeune)
 
         // Then
         expect(demarcheDtos).to.deep.equal(success([uneDemarcheDto()]))
@@ -368,9 +365,8 @@ describe('PoleEmploiPartenaireClient', () => {
           .isDone()
 
         // When
-        const demarcheDtos = await poleEmploiPartenaireClient.getDemarches(
-          tokenJeune
-        )
+        const demarcheDtos =
+          await poleEmploiPartenaireClient.getDemarches(tokenJeune)
 
         // Then
         expect(demarcheDtos).to.deep.equal(successApi([]))
@@ -397,9 +393,8 @@ describe('PoleEmploiPartenaireClient', () => {
         await CacheApiPartenaireSqlModel.create(CacheApiDto)
 
         // When
-        const response = await poleEmploiPartenaireClient.getDemarchesEnCache(
-          'hermione'
-        )
+        const response =
+          await poleEmploiPartenaireClient.getDemarchesEnCache('hermione')
 
         // Then
         expect(response).to.deep.equal(
@@ -422,9 +417,8 @@ describe('PoleEmploiPartenaireClient', () => {
         await CacheApiPartenaireSqlModel.create(CacheApiDto)
 
         // When
-        const response = await poleEmploiPartenaireClient.getDemarchesEnCache(
-          'hermione'
-        )
+        const response =
+          await poleEmploiPartenaireClient.getDemarchesEnCache('hermione')
 
         // Then
         expect(response).to.deep.equal(

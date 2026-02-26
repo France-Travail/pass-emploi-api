@@ -130,9 +130,8 @@ export namespace ListeDeDiffusion {
       idConseiller: string,
       idsJeunes: string[]
     ): Promise<void> {
-      const listesDeDiffusion = await this.repository.findAllByConseiller(
-        idConseiller
-      )
+      const listesDeDiffusion =
+        await this.repository.findAllByConseiller(idConseiller)
 
       for (const listeDeDiffusion of listesDeDiffusion) {
         const listeDeDiffusionSansLesBeneficiaires = {

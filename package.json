@@ -14,8 +14,10 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "lint": "eslint --ext \".ts\" --ignore-path .gitignore .",
-    "lint:fix": "eslint --ext \".ts\" --fix --ignore-path .gitignore .",
+    "lint": "eslint",
+    "lint:fix": "eslint . --fix",
+    "lint:cache": "eslint . --cache",
+    "lint:cache:fix": "eslint . --fix --cache",
     "prepare": "husky install",
     "migration": "sequelize db:migrate",
     "psql": "docker compose exec apidb psql -h localhost -d passemploidb -U passemploi ",
@@ -122,8 +124,8 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.4.9",
-    "@nestjs/schematics": "^10.2.3",
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
     "@salesforce/ts-sinon": "^1.4.31",
     "@types/bull": "^4.10.4",
@@ -145,8 +147,8 @@
     "@types/sinon-chai": "^3.2.12",
     "@types/supertest": "^2.0.16",
     "@types/yargs": "^17.0.35",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
     "bull-repl": "^0.29.1",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
@@ -154,18 +156,18 @@
     "dirty-chai": "^2.0.1",
     "dotenv-cli": "^9.0.0",
     "dotvault": "^0.0.9",
-    "eslint": "^8.57.1",
+    "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-chai-friendly": "^1.1.0",
     "eslint-plugin-mocha": "^11.2.0",
-    "eslint-plugin-prettier": "^4.2.5",
+    "eslint-plugin-prettier": "^5.5.5",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "mocha": "^11.7.5",
     "nock": "^14.0.10",
     "npm-check-updates": "^19.2.0",
-    "nyc": "^17.1.0",
-    "prettier": "^2.8.8",
+    "nyc": "^18.0.0",
+    "prettier": "^3.8.1",
     "redis": "^4.7.1",
     "sinon": "^21.0.0",
     "sinon-chai": "^3.7.0",
@@ -178,10 +180,7 @@
     "yargs": "^18.0.0"
   },
   "resolutions": {
-    "cross-spawn": "^7.0.5",
-    "glob": "^9.3.5",
-    "fast-xml-parser": "^5.3.6",
-    "tar": "^7.5.8"
+    "minimatch": ">=9.0.5"
   },
   "mocha": {
     "require": [

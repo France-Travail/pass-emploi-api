@@ -34,11 +34,11 @@ import QueryDocumentSnapshot = firestore.QueryDocumentSnapshot
 import Timestamp = firestore.Timestamp
 import UpdateData = firestore.UpdateData
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Utf8 = require('crypto-js/enc-utf8')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const AES = require('crypto-js/aes')
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Base64 = require('crypto-js/enc-base64')
 
 const FIREBASE_CHAT_PATH = 'chat'
@@ -407,9 +407,8 @@ export class FirebaseClient {
       const messagesChiffres = await getMessagesRef(chats.docs[0].ref).get()
 
       for (const messageChiffre of messagesChiffres.docs) {
-        const messageAArchiver = await this.fromMessageChiffreToMessageArchive(
-          messageChiffre
-        )
+        const messageAArchiver =
+          await this.fromMessageChiffreToMessageArchive(messageChiffre)
         messagesArchive.push(messageAArchiver)
       }
     }

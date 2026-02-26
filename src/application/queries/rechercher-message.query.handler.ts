@@ -13,7 +13,7 @@ import { Authentification } from 'src/domain/authentification'
 import { Chat, ChatRepositoryToken, MessageRecherche } from 'src/domain/chat'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Fuse = require('fuse.js')
 
 export interface RechercherMessageQuery extends Query {
@@ -41,9 +41,8 @@ export class RechercherMessageQueryHandler extends QueryHandler<
   ): Promise<Result<ResultatsRechercheMessageQueryModel>> {
     const { idBeneficiaire, recherche } = query
 
-    const messages = await this.chatRepository.recupererMessagesConversation(
-      idBeneficiaire
-    )
+    const messages =
+      await this.chatRepository.recupererMessagesConversation(idBeneficiaire)
 
     const resultatRecherche = await this.chercherMessage(messages, recherche)
 

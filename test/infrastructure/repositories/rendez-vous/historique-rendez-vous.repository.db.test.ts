@@ -48,9 +48,8 @@ describe('LogModificationRendezVousRepositorySql', () => {
       await historiqueRendezVousRepositorySql.save(logModification)
 
       // Then
-      const logAttendu = await LogModificationRendezVousSqlModel.findByPk(
-        idLogModification
-      )
+      const logAttendu =
+        await LogModificationRendezVousSqlModel.findByPk(idLogModification)
       expect(logModification).to.deep.equal(logAttendu?.dataValues)
     })
   })

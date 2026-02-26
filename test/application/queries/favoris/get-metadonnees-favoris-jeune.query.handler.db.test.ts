@@ -103,9 +103,8 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
         }
 
         // When
-        const actual = await getMetadonneesFavorisJeuneQueryHandler.handle(
-          query
-        )
+        const actual =
+          await getMetadonneesFavorisJeuneQueryHandler.handle(query)
 
         // Then
 
@@ -150,9 +149,8 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
         }
 
         // When
-        const result = await getMetadonneesFavorisJeuneQueryHandler.handle(
-          query
-        )
+        const result =
+          await getMetadonneesFavorisJeuneQueryHandler.handle(query)
 
         // Then
         expect(result).to.deep.equal(success(expectedMetadonnees))
@@ -197,9 +195,8 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
           }
         }
         // When
-        const result = await getMetadonneesFavorisJeuneQueryHandler.handle(
-          query
-        )
+        const result =
+          await getMetadonneesFavorisJeuneQueryHandler.handle(query)
 
         // Then
         expect(result).to.deep.equal(success(expectedMetadonnees))
@@ -244,9 +241,8 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
         }
 
         // When
-        const result = await getMetadonneesFavorisJeuneQueryHandler.handle(
-          query
-        )
+        const result =
+          await getMetadonneesFavorisJeuneQueryHandler.handle(query)
 
         // Then
         expect(result).to.deep.equal(success(expectedMetadonnees))
@@ -311,9 +307,8 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
         }
 
         // When
-        const result = await getMetadonneesFavorisJeuneQueryHandler.handle(
-          query
-        )
+        const result =
+          await getMetadonneesFavorisJeuneQueryHandler.handle(query)
 
         // Then
         expect(result).to.deep.equal(success(expectedMetadonnees))

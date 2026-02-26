@@ -20,11 +20,14 @@ import { handleAxiosError } from 'src/infrastructure/clients/utils/axios-error-h
 
 @Injectable()
 export class AntivirusClient {
-  private logger: Logger
-  private apiUrl: string
-  private requestConfig: AxiosRequestConfig
+  private readonly logger: Logger
+  private readonly apiUrl: string
+  private readonly requestConfig: AxiosRequestConfig
 
-  constructor(private httpService: HttpService, configService: ConfigService) {
+  constructor(
+    private readonly httpService: HttpService,
+    configService: ConfigService
+  ) {
     this.logger = new Logger('AntivirusClient')
 
     const config = configService.get('jecliqueoupas')

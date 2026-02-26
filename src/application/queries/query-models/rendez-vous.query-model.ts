@@ -136,9 +136,7 @@ class LogModificationRendezVousQueryModel {
   auteur: ConseillerQueryModel
 }
 
-export class RendezVousConseillerQueryModel
-  implements RendezVousBaseQueryModel
-{
+export class RendezVousConseillerQueryModel implements RendezVousBaseQueryModel {
   @ApiProperty()
   id: string
 

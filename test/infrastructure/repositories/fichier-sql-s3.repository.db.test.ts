@@ -189,9 +189,8 @@ describe('FichierSqlS3Repository', () => {
       ).to.be.null()
 
       // When
-      const result = await fichierSqlS3Repository.declencherAnalyseAsynchrone(
-        fichier
-      )
+      const result =
+        await fichierSqlS3Repository.declencherAnalyseAsynchrone(fichier)
 
       // Then
       expect(

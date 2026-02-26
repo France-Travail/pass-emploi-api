@@ -127,9 +127,8 @@ export class ChargerEvenementsJobHandler extends JobHandler {
   ): Promise<number> {
     this.logger.log('Ajout des nouveaux événements')
 
-    const dateDernierEvenementCharge = await this.getDateDernierEvenementCharge(
-      clientTarget
-    )
+    const dateDernierEvenementCharge =
+      await this.getDateDernierEvenementCharge(clientTarget)
     const nombreDEvenementACharger = await this.getNombreDEvenementACharger(
       clientSource,
       dateDernierEvenementCharge

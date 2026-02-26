@@ -91,9 +91,8 @@ describe('AntivirusClient', () => {
         .reply(200, { is_malware: false, done: true })
 
       // When
-      const result = await antivirusClient.recupererResultatAnalyse(
-        'id-analyse'
-      )
+      const result =
+        await antivirusClient.recupererResultatAnalyse('id-analyse')
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -106,9 +105,8 @@ describe('AntivirusClient', () => {
         .reply(200, { is_malware: false, done: false })
 
       // When
-      const result = await antivirusClient.recupererResultatAnalyse(
-        'id-analyse'
-      )
+      const result =
+        await antivirusClient.recupererResultatAnalyse('id-analyse')
 
       // Then
       expect(result).to.deep.equal(failure(new AnalyseAntivirusPasTerminee()))
@@ -121,9 +119,8 @@ describe('AntivirusClient', () => {
         .reply(200, { is_malware: true, done: true })
 
       // When
-      const result = await antivirusClient.recupererResultatAnalyse(
-        'id-analyse'
-      )
+      const result =
+        await antivirusClient.recupererResultatAnalyse('id-analyse')
 
       // Then
       expect(result).to.deep.equal(failure(new FichierMalveillant()))
@@ -136,9 +133,8 @@ describe('AntivirusClient', () => {
         .reply(400, { status: false, error: 'message d’erreur' })
 
       // When
-      const result = await antivirusClient.recupererResultatAnalyse(
-        'id-analyse'
-      )
+      const result =
+        await antivirusClient.recupererResultatAnalyse('id-analyse')
 
       // Then
       expect(result).to.deep.equal(

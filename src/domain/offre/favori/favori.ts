@@ -11,13 +11,11 @@ export interface Favori<O> {
 }
 
 export namespace Favori {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import Emploi = _Emploi.Emploi
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Immersion = _Immersion.Immersion
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import ServiceCivique = _ServiceCivique.ServiceCivique
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
 
   export enum Type {
     EMPLOI = 'OFFRE_EMPLOI',

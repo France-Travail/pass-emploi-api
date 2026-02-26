@@ -115,9 +115,8 @@ describe('CreateRechercheFromSuggestionCommandHandler', () => {
         )
 
         // When
-        const result = await createRechercheFromSuggestionCommandHandler.handle(
-          command
-        )
+        const result =
+          await createRechercheFromSuggestionCommandHandler.handle(command)
 
         // Then
         expect(
@@ -180,9 +179,8 @@ describe('CreateRechercheFromSuggestionCommandHandler', () => {
         )
 
         // When
-        const result = await createRechercheFromSuggestionCommandHandler.handle(
-          command
-        )
+        const result =
+          await createRechercheFromSuggestionCommandHandler.handle(command)
 
         // Then
         expect(
@@ -254,9 +252,8 @@ describe('CreateRechercheFromSuggestionCommandHandler', () => {
         )
 
         // When
-        const result = await createRechercheFromSuggestionCommandHandler.handle(
-          command
-        )
+        const result =
+          await createRechercheFromSuggestionCommandHandler.handle(command)
 
         // Then
         expect(

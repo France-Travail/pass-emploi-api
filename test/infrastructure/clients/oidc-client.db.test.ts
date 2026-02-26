@@ -83,7 +83,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteUserByIdUser(idUser)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -105,7 +105,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteUserByIdUser(idUser)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -160,7 +160,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteUserByIdUser(idUser)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -187,7 +187,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteUserByIdUser(idUser)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -211,7 +211,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteAccount(id)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -228,7 +228,7 @@ describe('OidcClient', () => {
       try {
         // When
         await oidcClient.deleteAccount(id)
-      } catch (e) {
+      } catch (_e) {
         // Then
         expect.fail(null, null, 'handle test rejected with an error')
       }
@@ -241,7 +241,7 @@ describe('OidcClient', () => {
         // When
         await oidcClient.deleteAccount('idAuth')
         expect.fail(null, null, 'handle test did not reject with an error')
-      } catch (e) {}
+      } catch (_e) {}
     })
   })
 })

@@ -96,9 +96,8 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
     }
 
     try {
-      const resultArchiver = await this.archiveJeuneRepository.archiver(
-        metadonneesArchive
-      )
+      const resultArchiver =
+        await this.archiveJeuneRepository.archiver(metadonneesArchive)
       if (isFailure(resultArchiver)) {
         return resultArchiver
       }

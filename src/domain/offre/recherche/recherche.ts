@@ -21,7 +21,6 @@ export interface Recherche {
 }
 
 export namespace Recherche {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import Suggestion = _Suggestion.Suggestion
 
   export const DISTANCE_PAR_DEFAUT = 10

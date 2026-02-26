@@ -53,9 +53,9 @@ export type InfosActionAMettreAJour = {
 export namespace Action {
   export const ACTIONS_PREDEFINIES: Action.ActionPredefinie[] =
     _ACTIONS_PREDEFINIES
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Commentaire = _Commentaire.Commentaire
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Qualification = _Qualification.Qualification
 
   export type Id = Brand<string, 'IdAction'>

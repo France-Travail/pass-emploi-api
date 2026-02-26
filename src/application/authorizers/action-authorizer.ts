@@ -19,9 +19,8 @@ export class ActionAuthorizer {
     idAction: string,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const conseillerEtJeune = await this.actionRepository.getConseillerEtJeune(
-      idAction
-    )
+    const conseillerEtJeune =
+      await this.actionRepository.getConseillerEtJeune(idAction)
 
     if (utilisateur && conseillerEtJeune) {
       if (

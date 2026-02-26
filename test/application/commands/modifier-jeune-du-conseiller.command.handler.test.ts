@@ -68,9 +68,8 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await modifierJeuneDuConseillerCommandHandler.handle(command)
 
         // Then
         const expected: Jeune = {
@@ -90,9 +89,8 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         }
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await modifierJeuneDuConseillerCommandHandler.handle(command)
 
         // Then
         const expected: Jeune = {
@@ -113,9 +111,8 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           dispositif: Dispositif.PACEA
         }
 
-        const result = await modifierJeuneDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await modifierJeuneDuConseillerCommandHandler.handle(command)
 
         const expected: Jeune = {
           ...jeune,
@@ -133,9 +130,8 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         jeuneRepository.get.withArgs(jeune.id).resolves(undefined)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle(
-          command
-        )
+        const result =
+          await modifierJeuneDuConseillerCommandHandler.handle(command)
 
         // Then
         expect(jeuneRepository.save).not.to.have.been.called()

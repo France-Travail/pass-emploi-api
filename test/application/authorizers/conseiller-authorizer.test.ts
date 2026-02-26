@@ -149,9 +149,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(superviseur.id).resolves(unConseiller())
 
       // When
-      const result = await conseillerAuthorizer.autoriserToutConseiller(
-        superviseur
-      )
+      const result =
+        await conseillerAuthorizer.autoriserToutConseiller(superviseur)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -162,9 +161,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(conseiller.id).resolves(unConseiller())
 
       // When
-      const result = await conseillerAuthorizer.autoriserToutConseiller(
-        conseiller
-      )
+      const result =
+        await conseillerAuthorizer.autoriserToutConseiller(conseiller)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -177,9 +175,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(utilisateur.id).resolves(undefined)
 
       // When
-      const result = await conseillerAuthorizer.autoriserToutConseiller(
-        utilisateur
-      )
+      const result =
+        await conseillerAuthorizer.autoriserToutConseiller(utilisateur)
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
@@ -422,9 +419,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(superviseur.id).resolves(unConseiller())
 
       // When
-      const result = await conseillerAuthorizer.autoriserConseillerSuperviseur(
-        superviseur
-      )
+      const result =
+        await conseillerAuthorizer.autoriserConseillerSuperviseur(superviseur)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -436,9 +432,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(conseiller.id).resolves(unConseiller())
 
       // When
-      const result = await conseillerAuthorizer.autoriserConseillerSuperviseur(
-        conseiller
-      )
+      const result =
+        await conseillerAuthorizer.autoriserConseillerSuperviseur(conseiller)
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
@@ -451,9 +446,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(utilisateur.id).resolves(undefined)
 
       // When
-      const result = await conseillerAuthorizer.autoriserConseillerSuperviseur(
-        utilisateur
-      )
+      const result =
+        await conseillerAuthorizer.autoriserConseillerSuperviseur(utilisateur)
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
@@ -465,9 +459,8 @@ describe('ConseillerAuthorizer', () => {
       conseillerRepository.get.withArgs(jeune.id).resolves(unConseiller())
 
       // When
-      const result = await conseillerAuthorizer.autoriserConseillerSuperviseur(
-        jeune
-      )
+      const result =
+        await conseillerAuthorizer.autoriserConseillerSuperviseur(jeune)
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))

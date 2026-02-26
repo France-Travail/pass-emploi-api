@@ -421,9 +421,8 @@ describe('ArchiveJeuneSqlRepository', () => {
       await archiveJeuneSqlRepository.archiver(archiveRecente)
 
       // When
-      const results = await archiveJeuneSqlRepository.getIdsArchivesBefore(
-        deuxAnsPlusTot
-      )
+      const results =
+        await archiveJeuneSqlRepository.getIdsArchivesBefore(deuxAnsPlusTot)
       // Then
       expect(results).to.deep.equal([])
     })
@@ -434,9 +433,8 @@ describe('ArchiveJeuneSqlRepository', () => {
       await archiveJeuneSqlRepository.archiver(archiveOld2)
 
       // When
-      const results = await archiveJeuneSqlRepository.getIdsArchivesBefore(
-        deuxAnsPlusTot
-      )
+      const results =
+        await archiveJeuneSqlRepository.getIdsArchivesBefore(deuxAnsPlusTot)
       // Then
       expect(results.length).to.equal(2)
     })

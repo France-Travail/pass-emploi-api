@@ -22,7 +22,7 @@ export namespace AnimationCollective {
   export function estCloturee(rendezVous: RendezVous): boolean {
     return Boolean(
       RendezVous.estUnTypeAnimationCollective(rendezVous.type) &&
-        rendezVous.dateCloture
+      rendezVous.dateCloture
     )
   }
 

@@ -125,9 +125,8 @@ describe('GetFavorisAccueilQueryGetter', () => {
       const listeAttendue = [favori, favoriAncienDe1jour, favoriAncienDe4jours]
 
       // When
-      const listeFavorisObtenue = await getFavorisAccueilQueryGetter.handle(
-        query
-      )
+      const listeFavorisObtenue =
+        await getFavorisAccueilQueryGetter.handle(query)
 
       // Then
       expect(listeFavorisObtenue).to.deep.equal(listeAttendue)

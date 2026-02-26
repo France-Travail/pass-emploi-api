@@ -2,11 +2,9 @@ import * as _Favori from './favori/favori'
 import * as _Recherche from './recherche/recherche'
 
 export namespace Offre {
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
   export import Favori = _Favori.Favori
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
+
   export import Recherche = _Recherche.Recherche
-  // eslint-disable-next-line  @typescript-eslint/no-unused-vars
 
   export namespace Emploi {
     export enum Contrat {

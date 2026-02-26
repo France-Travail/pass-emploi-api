@@ -391,9 +391,8 @@ describe('ActionSqlRepository', () => {
       const actualAction = await ActionSqlModel.findByPk(idAction)
       expect(actualAction).to.be.equal(null)
 
-      const actualCommentaire = await CommentaireSqlModel.findByPk(
-        idCommentaire
-      )
+      const actualCommentaire =
+        await CommentaireSqlModel.findByPk(idCommentaire)
       expect(actualCommentaire).to.be.equal(null)
     })
 
