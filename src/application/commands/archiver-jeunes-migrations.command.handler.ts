@@ -10,10 +10,10 @@ import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune } from '../../domain/jeune/jeune'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Migration } from '../../domain/migration'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import PhaseDeMigration = Migration.PhaseDeMigration
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
@@ -37,7 +37,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   constructor(
     private readonly evenementService: EvenementService,
     private readonly authorizeSupport: SupportAuthorizer,
-    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly featureFlipService: Migration.Service,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
     super('ArchiverJeuneCommandHandler')

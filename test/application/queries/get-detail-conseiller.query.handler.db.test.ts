@@ -21,7 +21,7 @@ import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { testConfig } from '../../utils/module-for-testing'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { Migration } from '../../../src/domain/migration'
 import { DateTime } from 'luxon'
 import { Authentification } from '../../../src/domain/authentification'
 
@@ -31,19 +31,19 @@ describe('GetDetailConseillerQueryHandler', () => {
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let conseillerMiloService: StubbedClass<Conseiller.Milo.Service>
   let getDetailConseillerQueryHandler: GetDetailConseillerQueryHandler
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let migrationService: StubbedClass<Migration.Service>
   let sandbox: SinonSandbox
 
   before(() => {
     sandbox = createSandbox()
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     conseillerMiloService = stubClass(Conseiller.Milo.Service)
-    featureFlipService = stubClass(FeatureFlip.Service)
+    migrationService = stubClass(Migration.Service)
 
     getDetailConseillerQueryHandler = new GetDetailConseillerQueryHandler(
       conseillerAuthorizer,
       conseillerMiloService,
-      featureFlipService,
+      migrationService,
       testConfig()
     )
   })
@@ -74,7 +74,7 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
 
-        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
           .withArgs({
             id: idConseiller,
             type: Authentification.Type.CONSEILLER
@@ -117,7 +117,7 @@ describe('GetDetailConseillerQueryHandler', () => {
         await JeuneSqlModel.creer(
           unJeuneDto({ idConseillerInitial: idConseiller })
         )
-        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
           .withArgs({
             id: idConseiller,
             type: Authentification.Type.CONSEILLER
@@ -176,7 +176,7 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
         conseillerMiloService.recupererEtMettreAJourStructure.resolves()
-        featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
           .withArgs({
             id: idConseiller,
             type: Authentification.Type.CONSEILLER

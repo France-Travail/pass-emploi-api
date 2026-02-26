@@ -11,7 +11,7 @@ import { NettoyageJobsStats } from './suivi-job'
 import { Notification } from './notification/notification'
 import Bull from 'bull'
 import { Core } from './core'
-import { FeatureFlip } from './feature-flip'
+import { Migration } from './migration'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -171,7 +171,7 @@ export namespace Planificateur {
 
   export interface ParamsJobNotif {
     structures?: Core.Structure[]
-    phaseDeMigration?: FeatureFlip.PhaseDeMigration
+    phaseDeMigration?: Migration.PhaseDeMigration
     push: boolean
     minutesEntreLesBatchs: number
     batchSize?: number

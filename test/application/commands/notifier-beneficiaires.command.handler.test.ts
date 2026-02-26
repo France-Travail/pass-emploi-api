@@ -12,7 +12,7 @@ import { DateService } from '../../../src/utils/date-service'
 import { Core } from '../../../src/domain/core'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { Migration } from '../../../src/domain/migration'
 
 describe('NotifierBeneficiairesCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -50,7 +50,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           Core.Structure.POLE_EMPLOI_AIJ,
           Core.Structure.POLE_EMPLOI_BRSA
         ],
-        phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
+        phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15
@@ -74,7 +74,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
               Core.Structure.POLE_EMPLOI_AIJ,
               Core.Structure.POLE_EMPLOI_BRSA
             ],
-            phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
+            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
             push: true,
             batchSize: 2000,
             minutesEntreLesBatchs: 15

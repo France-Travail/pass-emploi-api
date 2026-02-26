@@ -15,7 +15,7 @@ import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-m
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { DateTime, WeekdayNumbers } from 'luxon'
 import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Migration } from '../../domain/migration'
 import StatsJobNotif = Planificateur.StatsJobNotif
 import ParamsJobNotif = Planificateur.ParamsJobNotif
 
@@ -32,7 +32,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
-    private readonly featureFlipService: FeatureFlip.Service
+    private readonly migrationService: Migration.Service
   ) {
     super(Planificateur.JobType.NOTIFIER_BENEFICIAIRES, suiviJobService)
   }
@@ -207,7 +207,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     }
     if (params.phaseDeMigration) {
       const idsBeneficiairesMigration =
-        await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
+        await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
           params.phaseDeMigration
         )
       where.id = { [Op.in]: idsBeneficiairesMigration }

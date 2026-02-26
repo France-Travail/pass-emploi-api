@@ -7,7 +7,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Migration } from '../../domain/migration'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { fromSqlToDetailConseillerQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
@@ -32,7 +32,7 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
     private conseillerMiloService: Conseiller.Milo.Service,
-    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly migrationService: Migration.Service,
     private configService: ConfigService
   ) {
     super('GetDetailConseillerQueryHandler')
@@ -77,7 +77,7 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
     } catch {}
 
     const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+      await this.migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
         { id: query.idConseiller, type: Type.CONSEILLER }
       )
 

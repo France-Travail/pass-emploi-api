@@ -15,7 +15,7 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { Core } from '../../../src/domain/core'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { Migration } from '../../../src/domain/migration'
 import JobType = Planificateur.JobType
 
 const idJeune1 = 'j1'
@@ -32,7 +32,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
   let notificationRepository: StubbedClass<Notification.Repository>
   let planificateurRepository: StubbedType<Planificateur.Repository>
   let sandbox: SinonSandbox
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let migrationService: StubbedClass<Migration.Service>
 
   before(async () => {
     const databaseForTesting = getDatabase()
@@ -44,14 +44,14 @@ describe('NotifierBeneficiairesJobHandler', () => {
     dateService.now.returns(maintenant)
     suiviJobService = stubInterface(sandbox)
     planificateurRepository = stubInterface(sandbox)
-    featureFlipService = stubClass(FeatureFlip.Service)
+    migrationService = stubClass(Migration.Service)
 
     handler = new NotifierBeneficiairesJobHandler(
       notificationRepository,
       suiviJobService,
       dateService,
       planificateurRepository,
-      featureFlipService
+      migrationService
     )
   })
 
@@ -217,7 +217,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
 
       const maintenant = uneDatetime()
 
-      featureFlipService.recupererIdsDesBeneficiaireAMigrer.resolves([idJeune1])
+      migrationService.recupererIdsDesBeneficiaireAMigrer.resolves([idJeune1])
 
       const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
         dateExecution: maintenant.toJSDate(),
@@ -227,7 +227,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: "C'est bientôt la fin",
           description: 'Parcours Emploi vous tend la main',
           params: {
-            phaseDeMigration: FeatureFlip.PhaseDeMigration.PHASE_A,
+            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2

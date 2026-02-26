@@ -132,17 +132,4 @@ describe('FeatureFlipSqlRepository', () => {
       expect(conseiller).to.be.undefined()
     })
   })
-
-  describe('getBeneficiairesDeLaFeature', () => {
-    it('renvoie la liste des ids des jeunes des conseillers de rattachement avec le tag migration', async () => {
-      const beneficiaires =
-        await repo.getBeneficiairesDeLaFeatureDuConseillerInitial(
-          FeatureFlip.Tag.MIGRATION_PHASE_A
-        )
-      expect(beneficiaires).to.have.deep.members([
-        { id: 'jeuneMigration' },
-        { id: 'jeune-suivi-conseiller-migration' }
-      ])
-    })
-  })
 })

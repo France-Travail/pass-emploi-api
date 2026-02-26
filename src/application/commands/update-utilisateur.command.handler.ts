@@ -22,7 +22,7 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Migration } from '../../domain/migration'
 import { MailServiceToken } from '../../domain/mail'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
@@ -59,7 +59,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly dateService: DateService,
     @Inject(MailServiceToken)
     private readonly mailBrevoService: MailBrevoService,
-    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly migrationService: Migration.Service,
     @Inject(ArchiveJeuneRepositoryToken)
     private readonly archiverJeuneRepository: ArchiveJeune.Repository
   ) {
@@ -431,7 +431,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   ): Promise<boolean> {
     if (utilisateur.type === Type.SUPPORT) return false
 
-    return await this.featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee(
+    return await this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee(
       {
         id: utilisateur.id,
         type: utilisateur.type

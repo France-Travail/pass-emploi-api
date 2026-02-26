@@ -14,16 +14,16 @@ import { Mail } from '../../../../src/domain/mail'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Authentification } from '../../../../src/domain/authentification'
-import { FeatureFlip } from '../../../../src/domain/feature-flip'
+import { Migration } from '../../../../src/domain/migration'
 import { EvenementService } from '../../../../src/domain/evenement'
 import Service = ArchiveJeune.Service
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import PhaseDeMigration = Migration.PhaseDeMigration
 
 describe('ArchiverJeunesMigrationCommandHandler', () => {
   let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
   let serviceMock: Service
   let authorizeSupport: StubbedClass<SupportAuthorizer>
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let featureFlipService: StubbedClass<Migration.Service>
   let evenementService: StubbedClass<EvenementService>
 
   const maintenant = new Date('2022-03-01T03:24:00Z')
@@ -52,7 +52,7 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
     } as unknown as Service
 
     authorizeSupport = stubClass(SupportAuthorizer)
-    featureFlipService = stubClass(FeatureFlip.Service)
+    featureFlipService = stubClass(Migration.Service)
     evenementService = stubClass(EvenementService)
     archiverJeunesMigrationSupportCommandHandler =
       new ArchiverJeunesMigrationCommandHandler(

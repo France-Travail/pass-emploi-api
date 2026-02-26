@@ -23,7 +23,7 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import { Core, estFranceTravail } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
-import { FeatureFlip } from '../../../../src/domain/feature-flip'
+import { Migration } from '../../../../src/domain/migration'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -38,7 +38,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let getRendezVousJeunePoleEmploiQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getRecherchesSauvegardeesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let getFavorisQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let migrationService: StubbedClass<Migration.Service>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
   let dateService: StubbedClass<DateService>
@@ -51,7 +51,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       GetRecherchesSauvegardeesQueryGetter
     )
     getFavorisQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
-    featureFlipService = stubClass(FeatureFlip.Service)
+    migrationService = stubClass(Migration.Service)
     getRendezVousJeunePoleEmploiQueryGetter = stubClass(
       GetRendezVousJeunePoleEmploiQueryGetter
     )
@@ -69,7 +69,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       getRecherchesSauvegardeesQueryGetter,
       getFavorisQueryGetter,
       getCampagneQueryGetter,
-      featureFlipService,
+      migrationService,
       dateService
     )
   })
@@ -269,7 +269,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('renvoie la date de migration quand elle existe', async () => {
           // Given
-          featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+          migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
             .withArgs({
               id: query.idJeune,
               type: Authentification.Type.JEUNE
@@ -286,7 +286,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
         })
         it('ne renvoie pas de date de migration quand elle est inexistente', async () => {
           // Given
-          featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+          migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
             .withArgs({
               id: query.idJeune,
               type: Authentification.Type.JEUNE
