@@ -22,6 +22,12 @@ export class ConseillerMigration {
   id: string
 }
 
+export interface RebasculementOrphelin {
+  idJeune: string
+  ancienIdConseiller: string
+  nouveauIdConseiller: string
+}
+
 export namespace FeatureFlip {
   export enum PhaseDeMigration {
     PHASE_A = 'PHASE_A',
@@ -89,6 +95,7 @@ export namespace FeatureFlip {
       tags: Tag[],
       idBeneficiaire: string
     ): Promise<Tag | undefined>
+    rebasculerOrphelinsDePhase(tag: Tag): Promise<RebasculementOrphelin[]>
   }
 
   @Injectable()
@@ -137,6 +144,13 @@ export namespace FeatureFlip {
           tag
         )
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
+    }
+
+    async rebasculerOrphelinsDePhase(
+      phase: PhaseDeMigration
+    ): Promise<RebasculementOrphelin[]> {
+      const tag = getTagPourPhase(phase)
+      return this.featureFlipRepository.rebasculerOrphelinsDePhase(tag)
     }
 
     async faitPartieDeLaMigrationEtLaDateEstPassee(

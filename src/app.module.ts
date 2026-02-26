@@ -93,6 +93,7 @@ import { CreerJeunePoleEmploiCommandHandler } from './application/commands/pole-
 import { GenerateDemarchesIACommandHandler } from './application/commands/pole-emploi/generate-demarches-ia.command.handler'
 import { UpdateStatutDemarcheCommandHandler } from './application/commands/pole-emploi/update-demarche.command.handler'
 import { RafraichirSuggestionsCommandHandler } from './application/commands/rafraichir-suggestions.command.handler'
+import { RebasculerJeunesOrphelinsMigrationCommandHandler } from './application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from './application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
@@ -761,6 +762,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     FindAllOffresEmploiQueryGetter,
     FindAllOffresImmersionQueryGetter,
     FindAllOffresServicesCiviqueQueryGetter,
+    RebasculerJeunesOrphelinsMigrationCommandHandler,
     RecupererJeunesDuConseillerCommandHandler,
     ArchiverJeuneCommandHandler,
     ArchiverJeunesMigrationCommandHandler,

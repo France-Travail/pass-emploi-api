@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger'
 import Bull from 'bull'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
+import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
@@ -87,6 +88,7 @@ export class SupportController {
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
     private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
+    private readonly rebasculerJeunesOrphelinsMigrationCommandHandler: RebasculerJeunesOrphelinsMigrationCommandHandler,
     private readonly oidcClient: OidcClient
   ) {}
 
@@ -427,6 +429,35 @@ PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
     const result = await this.archiverJeunesMigrationCommandHandler.handle({
       phaseDeMigration
     })
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Rebasculer les jeunes orphelins vers leur conseiller initial après une migration',
+    description: `
+Identifie les jeunes en transfert temporaire dont le conseiller actuel migre pour la phase indiquée
+mais dont le conseiller initial n'est pas concerné par cette migration, et les remet sous leur
+conseiller initial (récupération définitive).
+
+PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
+`
+  })
+  @Post('rebasculer-jeunes-orphelins-migration/:phaseDeMigration')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async rebasculerJeunesOrphelinsMigration(
+    @Param('phaseDeMigration', new ParseEnumPipe(FeatureFlip.PhaseDeMigration))
+    phaseDeMigration: PhaseDeMigration
+  ): Promise<void> {
+    const result =
+      await this.rebasculerJeunesOrphelinsMigrationCommandHandler.handle({
+        phaseDeMigration
+      })
 
     return handleResult(result)
   }
