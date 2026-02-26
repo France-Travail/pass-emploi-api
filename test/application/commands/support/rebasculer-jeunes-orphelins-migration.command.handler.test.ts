@@ -5,22 +5,25 @@ import {
   RebasculerJeunesOrphelinsMigrationCommandHandler
 } from '../../../../src/application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
-import { FeatureFlip, RebasculementOrphelin } from '../../../../src/domain/feature-flip'
+import {
+  Migration,
+  RebasculementOrphelin
+} from '../../../../src/domain/migration'
 import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import PhaseDeMigration = Migration.PhaseDeMigration
 
 describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
   let handler: RebasculerJeunesOrphelinsMigrationCommandHandler
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let migrationService: StubbedClass<Migration.Service>
   let authorizeSupport: StubbedClass<SupportAuthorizer>
   const sandbox = createSandbox()
 
   beforeEach(() => {
-    featureFlipService = stubClass(FeatureFlip.Service)
+    migrationService = stubClass(Migration.Service)
     authorizeSupport = stubClass(SupportAuthorizer)
     handler = new RebasculerJeunesOrphelinsMigrationCommandHandler(
-      featureFlipService,
+      migrationService,
       authorizeSupport
     )
   })
@@ -62,14 +65,14 @@ describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
       const command: RebasculerJeunesOrphelinsMigrationCommand = {
         phaseDeMigration: PhaseDeMigration.PHASE_B
       }
-      featureFlipService.rebasculerOrphelinsDePhase.resolves(rebasculements)
+      migrationService.rebasculerOrphelinsDePhase.resolves(rebasculements)
 
       // When
       const result = await handler.handle(command)
 
       // Then
       expect(
-        featureFlipService.rebasculerOrphelinsDePhase
+        migrationService.rebasculerOrphelinsDePhase
       ).to.have.been.calledWithExactly(PhaseDeMigration.PHASE_B)
       expect(result).to.deep.equal(emptySuccess())
     })
@@ -79,7 +82,8 @@ describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
       const command: RebasculerJeunesOrphelinsMigrationCommand = {
         phaseDeMigration: PhaseDeMigration.PHASE_B
       }
-      featureFlipService.rebasculerOrphelinsDePhase.resolves(rebasculements)
+      migrationService.rebasculerOrphelinsDePhase.resolves(rebasculements)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const logStub = sandbox.stub((handler as any).logger, 'log')
 
       // When

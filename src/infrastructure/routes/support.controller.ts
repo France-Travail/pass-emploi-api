@@ -65,8 +65,8 @@ import {
   TransfererJeunesPayload,
   UpdateFeatureFlipPayload
 } from './validation/support.inputs'
-import { FeatureFlip } from '../../domain/feature-flip'
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import { Migration } from '../../domain/migration'
+import PhaseDeMigration = Migration.PhaseDeMigration
 
 @Controller('support')
 @ApiTags('Support')
@@ -327,7 +327,7 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
       Core.Structure
     ).join(', ')}
 - \`PhaseDeMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
-      FeatureFlip.PhaseDeMigration
+      Migration.PhaseDeMigration
     ).join(', ')}
 - \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
 - \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
@@ -417,13 +417,13 @@ L'API support pour archiver les jeunes d'une phase de migration
   - Suppression du chat firebase
   - Envoi d'un email au jeune
   
-PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
+PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
  `
   })
   @Post('archiver-jeunes-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async archiverJeuneRegion(
-    @Param('phaseDeMigration', new ParseEnumPipe(FeatureFlip.PhaseDeMigration))
+    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
     phaseDeMigration: PhaseDeMigration
   ): Promise<void> {
     const result = await this.archiverJeunesMigrationCommandHandler.handle({
@@ -445,13 +445,13 @@ Identifie les jeunes en transfert temporaire dont le conseiller actuel migre pou
 mais dont le conseiller initial n'est pas concerné par cette migration, et les remet sous leur
 conseiller initial (récupération définitive).
 
-PhaseDeMigration : ${Object.values(FeatureFlip.PhaseDeMigration).join(', ')}
+PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
 `
   })
   @Post('rebasculer-jeunes-orphelins-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async rebasculerJeunesOrphelinsMigration(
-    @Param('phaseDeMigration', new ParseEnumPipe(FeatureFlip.PhaseDeMigration))
+    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
     phaseDeMigration: PhaseDeMigration
   ): Promise<void> {
     const result =

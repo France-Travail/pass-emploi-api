@@ -17,6 +17,7 @@ import {
 } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
 import { FeatureFlip } from '../../../domain/feature-flip'
+import { Migration } from '../../../domain/migration'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -48,7 +49,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
-    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly migrationService: Migration.Service,
     private readonly dateService: DateService
   ) {
     super('GetAccueilJeunePoleEmploiQueryHandler')
@@ -171,7 +172,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     }
 
     const dateDeMigration =
-      await this.featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+      await this.migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
         utilisateur
       )
 

@@ -1,0 +1,138 @@
+import { MigrationSqlRepository } from '../../../src/infrastructure/repositories/migration.repository.db'
+import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import { FeatureFlipSqlModel } from '../../../src/infrastructure/sequelize/models/feature-flip.sql-model'
+import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
+import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
+import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
+import { expect } from '../../utils'
+import {
+  DatabaseForTesting,
+  getDatabase
+} from '../../utils/database-for-testing'
+import { Core } from '../../../src/domain/core'
+
+describe('MigrationSqlRepository', () => {
+  let databaseForTesting: DatabaseForTesting
+  let repo: MigrationSqlRepository
+
+  before(async () => {
+    databaseForTesting = getDatabase()
+    await databaseForTesting.cleanPG()
+    repo = new MigrationSqlRepository(databaseForTesting.sequelize)
+
+    const conseillerMigrationDto = unConseillerDto({
+      id: 'conseillerMigration',
+      structure: Core.Structure.POLE_EMPLOI,
+      email: 'conseillerMigration@email.com'
+    })
+    const conseillerNonMigrationDto = unConseillerDto({
+      id: 'conseillerNonMigration',
+      email: 'conseillerNonMigration@email.com'
+    })
+
+    const jeuneConseillerMigrationDto = unJeuneDto({
+      id: 'jeuneMigration',
+      idConseiller: 'conseillerMigration',
+      idConseillerInitial: undefined
+    })
+    const jeuneSuiviConseillerMigrationDto = unJeuneDto({
+      id: 'jeune-suivi-conseiller-migration',
+      idConseiller: 'conseillerNonMigration',
+      idConseillerInitial: 'conseillerMigration'
+    })
+    const jeuneConseillerNonMigrationDto = unJeuneDto({
+      id: 'jeuneNonMigration',
+      idConseiller: 'conseillerNonMigration',
+      idConseillerInitial: undefined
+    })
+
+    await ConseillerSqlModel.bulkCreate([
+      conseillerMigrationDto,
+      conseillerNonMigrationDto
+    ])
+    await JeuneSqlModel.bulkCreate([
+      jeuneConseillerMigrationDto,
+      jeuneSuiviConseillerMigrationDto,
+      jeuneConseillerNonMigrationDto
+    ])
+
+    const ffMigration = {
+      featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A,
+      emailConseiller: 'conseillerMigration@email.com'
+    }
+    await FeatureFlipSqlModel.bulkCreate([ffMigration])
+  })
+
+  describe('getBeneficiairesDeLaFeature', () => {
+    it('renvoie la liste des ids des jeunes des conseillers de rattachement avec le tag migration', async () => {
+      const beneficiaires =
+        await repo.getBeneficiairesDeLaFeatureDuConseillerInitial(
+          FeatureFlip.Tag.MIGRATION_PHASE_A
+        )
+      expect(beneficiaires).to.have.deep.members([
+        { id: 'jeuneMigration' },
+        { id: 'jeune-suivi-conseiller-migration' }
+      ])
+    })
+  })
+
+  describe('rebasculerOrphelinsDePhase', () => {
+    before(async () => {
+      await ConseillerSqlModel.create(
+        unConseillerDto({
+          id: 'conseillerPhaseBMigrant',
+          email: 'conseillerPhaseBMigrant@email.com'
+        })
+      )
+      await FeatureFlipSqlModel.create({
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
+        emailConseiller: 'conseillerPhaseBMigrant@email.com'
+      })
+      // Orphelin : conseiller actuel migre PHASE_B, initial (conseillerNonMigration) non
+      await JeuneSqlModel.create(
+        unJeuneDto({
+          id: 'jeuneOrphelin',
+          idConseiller: 'conseillerPhaseBMigrant',
+          idConseillerInitial: 'conseillerNonMigration'
+        })
+      )
+      // Non orphelin : les deux conseillers migrent PHASE_B
+      await ConseillerSqlModel.create(
+        unConseillerDto({
+          id: 'autreConseillerPhaseBMigrant',
+          email: 'autreConseillerPhaseBMigrant@email.com'
+        })
+      )
+      await FeatureFlipSqlModel.create({
+        featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
+        emailConseiller: 'autreConseillerPhaseBMigrant@email.com'
+      })
+      await JeuneSqlModel.create(
+        unJeuneDto({
+          id: 'jeuneNonOrphelin',
+          idConseiller: 'conseillerPhaseBMigrant',
+          idConseillerInitial: 'autreConseillerPhaseBMigrant'
+        })
+      )
+    })
+
+    it('rebasculer uniquement les orphelins vers leur conseiller initial', async () => {
+      const rebasculements = await repo.rebasculerOrphelinsDePhase(
+        FeatureFlip.Tag.MIGRATION_PHASE_B
+      )
+
+      expect(rebasculements).to.have.length(1)
+
+      const jeuneOrphelin = await JeuneSqlModel.findByPk('jeuneOrphelin')
+      expect(jeuneOrphelin!.idConseiller).to.equal('conseillerNonMigration')
+      expect(jeuneOrphelin!.idConseillerInitial).to.be.null()
+
+      const jeuneNonOrphelin = await JeuneSqlModel.findByPk('jeuneNonOrphelin')
+      expect(jeuneNonOrphelin!.idConseiller).to.equal('conseillerPhaseBMigrant')
+      expect(jeuneNonOrphelin!.idConseillerInitial).to.equal(
+        'autreConseillerPhaseBMigrant'
+      )
+    })
+  })
+})

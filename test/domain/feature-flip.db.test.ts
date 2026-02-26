@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config'
 import { FeatureFlip } from '../../src/domain/feature-flip'
+import { Migration } from '../../src/domain/migration'
 import { Core } from '../../src/domain/core'
 import { FeatureFlipSqlRepository } from '../../src/infrastructure/repositories/feature-flip.repository.db'
 import { ConseillerSqlModel } from '../../src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -10,17 +11,19 @@ import { unJeuneDto } from '../fixtures/sql-models/jeune.sql-model'
 import { expect, stubClass } from '../utils'
 import { DatabaseForTesting, getDatabase } from '../utils/database-for-testing'
 import { Authentification } from '../../src/domain/authentification'
-import Type = Authentification.Type
 import { DateTime } from 'luxon'
 import { DateService } from '../../src/utils/date-service'
 import { uneDate } from '../fixtures/date.fixture'
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import { MigrationSqlRepository } from '../../src/infrastructure/repositories/migration.repository.db'
+import Type = Authentification.Type
+import PhaseDeMigration = Migration.PhaseDeMigration
 
-describe('FeatureFlip.Service', () => {
+describe('Migration.Service', () => {
   let databaseForTesting: DatabaseForTesting
+  let migrationSqlRepository: MigrationSqlRepository
   let featureFlipRepository: FeatureFlipSqlRepository
   let configService: ConfigService
-  let service: FeatureFlip.Service
+  let service: Migration.Service
   let dateDeMigrationPhaseA: DateTime
   let dateDeMigrationPhaseB: DateTime
   const dateService = stubClass(DateService)
@@ -113,6 +116,9 @@ describe('FeatureFlip.Service', () => {
     featureFlipRepository = new FeatureFlipSqlRepository(
       databaseForTesting.sequelize
     )
+    migrationSqlRepository = new MigrationSqlRepository(
+      databaseForTesting.sequelize
+    )
 
     configService = {
       get: (key: string) => {
@@ -129,7 +135,8 @@ describe('FeatureFlip.Service', () => {
     dateDeMigrationPhaseA = DateTime.fromISO('2025-11-20').startOf('day')
     dateDeMigrationPhaseB = DateTime.fromISO('2026-02-17').startOf('day')
 
-    service = new FeatureFlip.Service(
+    service = new Migration.Service(
+      migrationSqlRepository,
       featureFlipRepository,
       configService,
       dateService

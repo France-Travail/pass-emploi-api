@@ -254,6 +254,7 @@ import { ChatRepositoryToken } from './domain/chat'
 import { Demarche, DemarcheRepositoryToken } from './domain/demarche'
 import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
 import { FeatureFlip, FeatureFlipRepositoryToken } from './domain/feature-flip'
+import { Migration, MigrationRepositoryToken } from './domain/migration'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import {
   Jeune,
@@ -335,6 +336,7 @@ import { ListeDeDiffusionSqlRepository } from './infrastructure/repositories/con
 import { DemarcheHttpRepository } from './infrastructure/repositories/demarche-http.repository'
 import { EvenementSqlRepository } from './infrastructure/repositories/evenement-sql.repository.db'
 import { FeatureFlipSqlRepository } from './infrastructure/repositories/feature-flip.repository.db'
+import { MigrationSqlRepository } from './infrastructure/repositories/migration.repository.db'
 import { FichierSqlS3Repository } from './infrastructure/repositories/fichier-sql-s3.repository.db'
 import { JeuneConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-configuration-application-sql.repository.db'
 import { JeunePoleEmploiSqlRepository } from './infrastructure/repositories/jeune/jeune-pole-emploi-sql.repository.db'
@@ -486,6 +488,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     SuggestionPoleEmploiService,
     Notification.Service,
     FeatureFlip.Service,
+    Migration.Service,
     ArchiveJeune.Service,
     Agence.Service,
     RendezVous.AnimationCollective.Service,
@@ -522,6 +525,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: FeatureFlipRepositoryToken,
       useClass: FeatureFlipSqlRepository
+    },
+    {
+      provide: MigrationRepositoryToken,
+      useClass: MigrationSqlRepository
     },
     {
       provide: SessionMiloRepositoryToken,

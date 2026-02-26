@@ -17,6 +17,7 @@ import {
 } from 'class-validator'
 import { Core } from '../../../domain/core'
 import { FeatureFlip } from '../../../domain/feature-flip'
+import { Migration } from '../../../domain/migration'
 import { Notification } from '../../../domain/notification/notification'
 
 export class TeleverserCsvPayload {
@@ -144,15 +145,15 @@ export class NotifierBeneficiairesPayload {
   structures?: Core.Structure[]
 
   @ApiPropertyOptional({
-    enum: FeatureFlip.PhaseDeMigration,
+    enum: Migration.PhaseDeMigration,
     description: `Tag de feature flip pour cibler les bénéficiaires de la migration. Valeurs possibles : ${Object.values(
-      FeatureFlip.PhaseDeMigration
+      Migration.PhaseDeMigration
     ).join(', ')}`
   })
   @IsOptional()
   @IsString()
-  @IsEnum(FeatureFlip.PhaseDeMigration)
-  phaseDeMigration?: FeatureFlip.PhaseDeMigration
+  @IsEnum(Migration.PhaseDeMigration)
+  phaseDeMigration?: Migration.PhaseDeMigration
 
   @ApiPropertyOptional()
   @IsOptional()

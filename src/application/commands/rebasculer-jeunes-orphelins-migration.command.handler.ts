@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Migration } from '../../domain/migration'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
-import PhaseDeMigration = FeatureFlip.PhaseDeMigration
+import PhaseDeMigration = Migration.PhaseDeMigration
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
   phaseDeMigration: PhaseDeMigration
@@ -16,7 +16,7 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   void
 > {
   constructor(
-    private readonly featureFlipService: FeatureFlip.Service,
+    private readonly migrationService: Migration.Service,
     private readonly authorizeSupport: SupportAuthorizer
   ) {
     super('RebasculerJeunesOrphelinsMigrationCommandHandler')
@@ -33,7 +33,7 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
     command: RebasculerJeunesOrphelinsMigrationCommand
   ): Promise<Result> {
     const rebasculements =
-      await this.featureFlipService.rebasculerOrphelinsDePhase(
+      await this.migrationService.rebasculerOrphelinsDePhase(
         command.phaseDeMigration
       )
     rebasculements.forEach(

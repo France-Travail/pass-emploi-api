@@ -31,7 +31,7 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { Core } from '../../../src/domain/core'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
+import { Migration } from '../../../src/domain/migration'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
@@ -51,21 +51,21 @@ describe('UpdateUtilisateurCommandHandler', () => {
   }
   const authentificationFactory: Authentification.Factory =
     new Authentification.Factory(idService)
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
+  let migrationService: StubbedClass<Migration.Service>
   let archiverJeuneRepository: StubbedType<ArchiveJeune.Repository>
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
     authentificationRepository = stubInterface(sandbox)
     mailBrevoService = stubClass(MailBrevoService)
-    featureFlipService = stubClass(FeatureFlip.Service)
+    migrationService = stubClass(Migration.Service)
     archiverJeuneRepository = stubInterface(sandbox)
     updateUtilisateurCommandHandler = new UpdateUtilisateurCommandHandler(
       authentificationRepository,
       authentificationFactory,
       dateService,
       mailBrevoService,
-      featureFlipService,
+      migrationService,
       archiverJeuneRepository
     )
   })
@@ -179,7 +179,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
@@ -216,7 +216,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
@@ -742,7 +742,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
@@ -782,7 +782,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
@@ -821,7 +821,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
@@ -866,7 +866,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              featureFlipService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
