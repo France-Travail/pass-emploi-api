@@ -34,7 +34,7 @@ describe('ActionSqlRepository', () => {
 
   let jeune: Jeune
   let actionSqlRepository: ActionSqlRepository
-  let idService: IdService
+  let idService!: IdService
   let dateService: StubbedClass<DateService>
 
   beforeEach(async () => {
