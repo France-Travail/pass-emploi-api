@@ -24,6 +24,7 @@ export namespace Notification {
 
   export enum Type {
     NEW_ACTION = 'NEW_ACTION',
+    NEW_ACTU = 'NEW_ACTU',
     NEW_RENDEZVOUS = 'NEW_RENDEZVOUS',
     RAPPEL_RENDEZVOUS = 'RAPPEL_RENDEZVOUS',
     DELETED_RENDEZVOUS = 'DELETED_RENDEZVOUS',
@@ -451,6 +452,25 @@ export namespace Notification {
       }
     }
 
+    async notifierNouvelleActualite(
+      jeunes: Jeune[],
+      idActu: string
+    ): Promise<void[]> {
+      return Promise.all(
+        jeunes.map(async jeune => {
+          if (jeune.configuration.pushNotificationToken) {
+            const notification = this.creerNotificationNouvelleActualite(
+              jeune.configuration.pushNotificationToken,
+              idActu
+            )
+            return this.notificationRepository.send(notification, jeune.id)
+          } else {
+            this.logMessageEchec(jeune.id)
+          }
+        })
+      )
+    }
+
     async notifierInscriptionSession(
       idSsession: string,
       jeunes: Jeune[]
@@ -543,6 +563,23 @@ export namespace Notification {
           }
         })
       )
+    }
+
+    private creerNotificationNouvelleActualite(
+      token: string,
+      idActu: string
+    ): Notification.Message {
+      return {
+        token,
+        notification: {
+          title: 'Nouvelle actualité',
+          body: 'Vous avez une nouvelle actualité'
+        },
+        data: {
+          type: Type.NEW_ACTU,
+          id: idActu
+        }
+      }
     }
 
     private creerNotificationNouvelleAction(

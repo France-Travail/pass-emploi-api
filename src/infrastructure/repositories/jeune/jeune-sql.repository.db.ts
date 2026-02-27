@@ -139,6 +139,13 @@ export class JeuneSqlRepository implements Jeune.Repository {
     }))
   }
 
+  async findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]> {
+    const jeunesSqlModels = await JeuneSqlModel.findAll({
+      where: { idStructureMilo }
+    })
+    return jeunesSqlModels.map(fromSqlToJeune)
+  }
+
   async findAllJeunesByConseillerInitial(
     idConseiller: string
   ): Promise<Jeune[]> {

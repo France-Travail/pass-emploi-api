@@ -19,6 +19,8 @@ import {
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
+import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { Notification } from '../../../domain/notification/notification'
 
 export interface CreateActualiteMiloCommand extends Command {
   idConseiller: string
@@ -41,7 +43,10 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     private readonly actualiteMiloFactory: ActualiteMilo.Factory,
     private readonly evenementService: EvenementService,
     @Inject(ConseillerRepositoryToken)
-    private readonly conseillerRepository: Conseiller.Repository
+    private readonly conseillerRepository: Conseiller.Repository,
+    @Inject(JeuneRepositoryToken)
+    private readonly jeuneRepository: Jeune.Repository,
+    private readonly notificationService: Notification.Service
   ) {
     super('CreateActualiteMiloCommandHandler')
   }
@@ -78,6 +83,11 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     })
 
     await this.actualiteMiloRepository.save(actualite)
+
+    const jeunes = await this.jeuneRepository.findAllByIdStructureMilo(
+      conseiller.agence.id
+    )
+    this.notificationService.notifierNouvelleActualite(jeunes, actualite.id)
 
     return emptySuccess()
   }

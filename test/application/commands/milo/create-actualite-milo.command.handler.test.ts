@@ -14,19 +14,24 @@ import {
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
+import { Jeune } from 'src/domain/jeune/jeune'
 import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { Conseiller } from 'src/domain/milo/conseiller'
+import { Notification } from 'src/domain/notification/notification'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
+import { unJeune } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 
 describe('CreateActualiteMiloCommandHandler', () => {
   let createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
   let actualiteMiloRepository: StubbedType<ActualiteMilo.Repository>
   let conseillerRepository: StubbedType<Conseiller.Repository>
+  let jeuneRepository: StubbedType<Jeune.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let evenementService: StubbedClass<EvenementService>
+  let notificationService: StubbedClass<Notification.Service>
   const idActualite = 'id-actualite'
   const date = DateTime.fromISO('2024-01-15T10:00:00.000Z')
   const idConseiller = 'conseiller-1'
@@ -36,8 +41,10 @@ describe('CreateActualiteMiloCommandHandler', () => {
     const sandbox: SinonSandbox = createSandbox()
     actualiteMiloRepository = stubInterface(sandbox)
     conseillerRepository = stubInterface(sandbox)
+    jeuneRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     evenementService = stubClass(EvenementService)
+    notificationService = stubClass(Notification.Service)
     const dateService = stubClass(DateService)
     const idService = stubClass(IdService)
     idService.uuid.returns(idActualite)
@@ -48,7 +55,9 @@ describe('CreateActualiteMiloCommandHandler', () => {
       actualiteMiloRepository,
       new ActualiteMilo.Factory(idService, dateService),
       evenementService,
-      conseillerRepository
+      conseillerRepository,
+      jeuneRepository,
+      notificationService
     )
   })
 
@@ -211,6 +220,59 @@ describe('CreateActualiteMiloCommandHandler', () => {
         expect(result.error).to.be.instanceOf(NonTrouveError)
         expect(result.error.message).to.contain('Agence')
       }
+    })
+
+    describe('notification', () => {
+      it('envoie une notification aux jeunes de la structure après création', async () => {
+        // Given
+        const command: CreateActualiteMiloCommand = {
+          idConseiller,
+          prenomNomConseiller: 'Nils Tavernier',
+          titre: 'Titre',
+          contenu: 'Contenu'
+        }
+        conseillerRepository.get.withArgs(idConseiller).resolves({
+          id: idConseiller,
+          agence: { id: idAgence }
+        } as Conseiller)
+        actualiteMiloRepository.save.resolves()
+        const jeunes = [unJeune()]
+        jeuneRepository.findAllByIdStructureMilo
+          .withArgs(idAgence)
+          .resolves(jeunes)
+
+        // When
+        await createActualiteMiloCommandHandler.handle(command)
+
+        // Then
+        expect(
+          notificationService.notifierNouvelleActualite
+        ).to.have.been.calledOnceWithExactly(jeunes, idActualite)
+      })
+
+      it("n'envoie pas de notification si aucun jeune dans la structure", async () => {
+        // Given
+        const command: CreateActualiteMiloCommand = {
+          idConseiller,
+          prenomNomConseiller: 'Nils Tavernier',
+          titre: 'Titre',
+          contenu: 'Contenu'
+        }
+        conseillerRepository.get.withArgs(idConseiller).resolves({
+          id: idConseiller,
+          agence: { id: idAgence }
+        } as Conseiller)
+        actualiteMiloRepository.save.resolves()
+        jeuneRepository.findAllByIdStructureMilo.withArgs(idAgence).resolves([])
+
+        // When
+        await createActualiteMiloCommandHandler.handle(command)
+
+        // Then
+        expect(
+          notificationService.notifierNouvelleActualite
+        ).to.have.been.calledOnceWithExactly([], idActualite)
+      })
     })
   })
 

@@ -147,6 +147,8 @@ export namespace Jeune {
 
     findAllJeunesByConseillerInitial(idConseiller: string): Promise<Jeune[]>
 
+    findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]>
+
     supprimer(idJeune: Jeune.Id): Promise<void>
 
     transferAndSaveAll(

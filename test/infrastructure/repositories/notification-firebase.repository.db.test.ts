@@ -197,6 +197,13 @@ describe('NotificationFirebaseSqlRepository', () => {
         )
       })
 
+      it('envoie un NEW_ACTU pour un NEW_ACTU', async () => {
+        await repository.send(unMessagePush(Notification.Type.NEW_ACTU))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.NEW_ACTU)
+        )
+      })
+
       it('envoie un NEW_MESSAGE pour un NEW_MESSAGE', async () => {
         await repository.send(unMessagePush(Notification.Type.NEW_MESSAGE))
         expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
