@@ -191,7 +191,8 @@ export namespace Jeune {
           messages: true,
           creationActionConseiller: true,
           rendezVousSessions: true,
-          rappelActions: true
+          rappelActions: true,
+          actualitesMilo: true
         },
         idPartenaire: jeuneACreer.idPartenaire,
         configuration: {

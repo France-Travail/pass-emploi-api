@@ -68,5 +68,6 @@ const attributesConfigurationApplication = [
   'notificationsMessages',
   'notificationsCreationActionConseiller',
   'notificationsRendezVousSessions',
-  'notificationsRappelActions'
+  'notificationsRappelActions',
+  'notificationsActualitesMilo'
 ]

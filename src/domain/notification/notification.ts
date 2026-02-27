@@ -463,7 +463,11 @@ export namespace Notification {
               jeune.configuration.pushNotificationToken,
               idActu
             )
-            return this.notificationRepository.send(notification, jeune.id)
+            return this.notificationRepository.send(
+              notification,
+              jeune.id,
+              jeune.preferences.actualitesMilo
+            )
           } else {
             this.logMessageEchec(jeune.id)
           }

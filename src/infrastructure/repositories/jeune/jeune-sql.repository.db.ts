@@ -177,6 +177,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         jeune.preferences.creationActionConseiller,
       notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
       notificationsRappelActions: jeune.preferences.rappelActions,
+      notificationsActualitesMilo: jeune.preferences.actualitesMilo,
       appVersion: jeune.configuration.appVersion ?? null,
       pushNotificationToken: jeune.configuration.pushNotificationToken ?? null,
       dateDerniereActualisationToken:
@@ -229,6 +230,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
           jeune.preferences.creationActionConseiller,
         notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
         notificationsRappelActions: jeune.preferences.rappelActions,
+        notificationsActualitesMilo: jeune.preferences.actualitesMilo,
         dispositif: jeune.dispositif
       }
       await JeuneSqlModel.upsert(jeuneTransfereSQL)

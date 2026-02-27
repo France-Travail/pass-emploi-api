@@ -20,6 +20,7 @@ export interface UpdateJeunePreferencesCommand extends Command {
   creationActionConseiller?: boolean
   rendezVousSessions?: boolean
   rappelActions?: boolean
+  actualitesMilo?: boolean
 }
 
 @Injectable()
@@ -53,7 +54,9 @@ export class UpdateJeunePreferencesCommandHandler extends CommandHandler<
           jeune.preferences.creationActionConseiller,
         rendezVousSessions:
           command.rendezVousSessions ?? jeune.preferences.rendezVousSessions,
-        rappelActions: command.rappelActions ?? jeune.preferences.rappelActions
+        rappelActions: command.rappelActions ?? jeune.preferences.rappelActions,
+        actualitesMilo:
+          command.actualitesMilo ?? jeune.preferences.actualitesMilo
       }
     }
     await this.jeuneRepository.save(jeuneAJour)

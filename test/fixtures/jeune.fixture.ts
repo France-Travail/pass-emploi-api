@@ -118,7 +118,8 @@ export function desPreferencesJeune(
     messages: true,
     creationActionConseiller: true,
     rendezVousSessions: true,
-    rappelActions: true
+    rappelActions: true,
+    actualitesMilo: true
   }
 
   return { ...defaults, ...args }

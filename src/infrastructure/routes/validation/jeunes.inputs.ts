@@ -14,7 +14,6 @@ import {
   ValidateIf
 } from 'class-validator'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
-import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
 
 export class UpdateConfigurationInput {
   @ApiProperty()
@@ -90,6 +89,9 @@ export class UpdateJeunePreferencesPayload {
   @IsOptional()
   @IsBoolean()
   rappelActions?: boolean
+  @IsOptional()
+  @IsBoolean()
+  actuMilo?: boolean
 }
 
 export class UpdateJeunePayload {
@@ -97,13 +99,6 @@ export class UpdateJeunePayload {
   @IsDateString()
   @IsNotEmpty()
   dateSignatureCGU?: string
-}
-
-export class GetRendezVousJeuneQueryParams {
-  @IsOptional()
-  @IsString()
-  @IsEnum(RendezVous.Periode)
-  periode?: RendezVous.Periode
 }
 
 export class GetRendezVousJeuneConseillerQueryParams {

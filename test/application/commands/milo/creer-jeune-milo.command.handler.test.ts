@@ -219,7 +219,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
             messages: true,
             creationActionConseiller: true,
             rendezVousSessions: true,
-            rappelActions: true
+            rappelActions: true,
+            actualitesMilo: true
           },
           idPartenaire,
           configuration: {
@@ -294,7 +295,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
             messages: true,
             creationActionConseiller: true,
             rendezVousSessions: true,
-            rappelActions: true
+            rappelActions: true,
+            actualitesMilo: true
           },
           idPartenaire,
           configuration: {

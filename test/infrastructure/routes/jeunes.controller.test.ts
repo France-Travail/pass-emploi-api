@@ -727,7 +727,8 @@ describe('JeunesController', () => {
       alertesOffres: false,
       messages: false,
       creationActionConseiller: false,
-      rendezVousSessions: false
+      rendezVousSessions: false,
+      actuMilo: false
     }
 
     describe("quand c'est en succès", () => {
@@ -753,7 +754,8 @@ describe('JeunesController', () => {
             messages: false,
             creationActionConseiller: false,
             rendezVousSessions: false,
-            rappelActions: undefined
+            rappelActions: undefined,
+            actualitesMilo: false
           },
           unUtilisateurDecode()
         )
@@ -775,7 +777,8 @@ describe('JeunesController', () => {
           messages: true,
           creationActionConseiller: true,
           rendezVousSessions: true,
-          rappelActions: true
+          rappelActions: true,
+          actualitesMilo: true
         }
         getPreferencesJeuneQueryHandler.execute
           .withArgs(

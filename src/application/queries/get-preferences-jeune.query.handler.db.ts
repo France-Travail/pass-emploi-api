@@ -31,7 +31,8 @@ export class GetPreferencesJeuneQueryHandler extends QueryHandler<
         'notificationsMessages',
         'notificationsCreationActionConseiller',
         'notificationsRendezVousSessions',
-        'notificationsRappelActions'
+        'notificationsRappelActions',
+        'notificationsActualitesMilo'
       ],
       where: {
         id: query.idJeune
@@ -49,7 +50,8 @@ export class GetPreferencesJeuneQueryHandler extends QueryHandler<
       rendezVousSessions: jeuneSqlModel.notificationsRendezVousSessions,
       rappelActions: jeuneSqlModel.notificationsRappelActions,
       creationActionConseiller:
-        jeuneSqlModel.notificationsCreationActionConseiller
+        jeuneSqlModel.notificationsCreationActionConseiller,
+      actualitesMilo: jeuneSqlModel.notificationsActualitesMilo
     })
   }
 

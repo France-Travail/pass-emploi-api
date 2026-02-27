@@ -345,7 +345,8 @@ export class JeunesController {
       creationActionConseiller:
         updateJeunePreferencesPayload.creationActionConseiller,
       rendezVousSessions: updateJeunePreferencesPayload.rendezVousSessions,
-      rappelActions: updateJeunePreferencesPayload.rappelActions
+      rappelActions: updateJeunePreferencesPayload.rappelActions,
+      actualitesMilo: updateJeunePreferencesPayload.actuMilo
     }
     const result = await this.updateJeunePreferencesCommandHandler.execute(
       command,

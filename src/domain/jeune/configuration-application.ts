@@ -20,6 +20,7 @@ export namespace ConfigurationApplication {
     creationActionConseiller: boolean
     rendezVousSessions: boolean
     rappelActions: boolean
+    actualitesMilo: boolean
   }
   export interface AMettreAJour {
     pushNotificationToken?: string

@@ -65,7 +65,8 @@ describe('GetPreferencesJeuneQueryHandler', () => {
         messages: true,
         creationActionConseiller: true,
         rendezVousSessions: true,
-        rappelActions: true
+        rappelActions: true,
+        actualitesMilo: true
       }
       expect(result).to.deep.equal(success(expected))
     })

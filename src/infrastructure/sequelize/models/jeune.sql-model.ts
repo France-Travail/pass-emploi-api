@@ -174,6 +174,12 @@ export class JeuneDto extends Model {
   })
   notificationsRappelActions: boolean
 
+  @Column({
+    field: 'notifications_actualites_milo',
+    type: DataType.BOOLEAN
+  })
+  notificationsActualitesMilo: boolean
+
   @ForeignKey(() => StructureMiloSqlModel)
   @Column({
     field: 'id_structure_milo',

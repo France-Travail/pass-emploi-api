@@ -84,7 +84,8 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           messages: true,
           creationActionConseiller: true,
           rendezVousSessions: true,
-          rappelActions: true
+          rappelActions: true,
+          actualitesMilo: true
         },
         configuration: {
           idJeune: idNouveauJeune

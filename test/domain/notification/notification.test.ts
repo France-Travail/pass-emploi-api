@@ -629,7 +629,7 @@ describe('Notification', () => {
     })
 
     describe('notifierNouvelleActualite', () => {
-      it('notifie les jeunes avec pushNotificationToken', async () => {
+      it('notifie les jeunes avec pushNotificationToken et préférence activée', async () => {
         // Given
         const jeune: Jeune = unJeune()
         const idActu = 'actu-id'
@@ -651,7 +651,37 @@ describe('Notification', () => {
         // Then
         expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
           expectedNotification,
-          jeune.id
+          jeune.id,
+          true
+        )
+      })
+
+      it('notifie dans le centre uniquement si préférence désactivée', async () => {
+        // Given
+        const jeune: Jeune = unJeune({
+          preferences: desPreferencesJeune({ actualitesMilo: false })
+        })
+        const idActu = 'actu-id'
+        const expectedNotification = uneNotification({
+          token: jeune.configuration?.pushNotificationToken,
+          notification: {
+            title: 'Nouvelle actualité',
+            body: 'Vous avez une nouvelle actualité'
+          },
+          data: {
+            type: Notification.Type.NEW_ACTU,
+            id: idActu
+          }
+        })
+
+        // When
+        await notificationService.notifierNouvelleActualite([jeune], idActu)
+
+        // Then
+        expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
+          expectedNotification,
+          jeune.id,
+          false
         )
       })
 

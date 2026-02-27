@@ -96,6 +96,25 @@ describe('UpdateJeunePreferencesCommandHandler', () => {
       expect(jeuneRepository.save).to.have.been.calledWithExactly(jeuneModifie)
       expect(result).to.deep.equal(emptySuccess())
     })
+    it('désactive les notifications actualités MILO', async () => {
+      // Given
+      const jeune = unJeune()
+      const jeuneModifie = unJeune({
+        preferences: desPreferencesJeune({ actualitesMilo: false })
+      })
+      const command: UpdateJeunePreferencesCommand = {
+        idJeune: 'idDeJohn',
+        actualitesMilo: false
+      }
+      jeuneRepository.get.withArgs('idDeJohn').resolves(jeune)
+
+      // When
+      const result = await updateJeunePreferencesCommandHandler.handle(command)
+
+      // Then
+      expect(jeuneRepository.save).to.have.been.calledWithExactly(jeuneModifie)
+      expect(result).to.deep.equal(emptySuccess())
+    })
   })
 
   describe('monitor', () => {

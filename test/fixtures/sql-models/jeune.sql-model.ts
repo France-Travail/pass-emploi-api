@@ -32,6 +32,7 @@ export function unJeuneDto(
     notificationsCreationActionConseiller: true,
     notificationsRendezVousSessions: true,
     notificationsRappelActions: true,
+    notificationsActualitesMilo: true,
     timezone: 'Europe/Paris',
     idStructureMilo: null,
     dateSignatureCGU: null,
