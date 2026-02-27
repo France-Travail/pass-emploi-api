@@ -165,7 +165,7 @@
     "lint-staged": "^16.2.7",
     "mocha": "^11.7.5",
     "nock": "^14.0.10",
-    "npm-check-updates": "^19.2.0",
+    "npm-check-updates": "^19.6.2",
     "nyc": "^18.0.0",
     "prettier": "^3.8.1",
     "redis": "^4.7.1",
