@@ -13,7 +13,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { AntivirusClient } from '../../../src/infrastructure/clients/antivirus-client'
 import { expect } from '../../utils'
-import { testConfig } from '../../utils/module-for-testing'
+import { testConfig } from '../../utils/test-config'
 
 describe('AntivirusClient', () => {
   let antivirusClient: AntivirusClient

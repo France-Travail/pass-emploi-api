@@ -44,7 +44,7 @@ export class AntivirusClient {
 
   async declencherAnalyseAsynchrone(fichier: Fichier): Promise<Result<string>> {
     const body = new FormData()
-    body.append('file', new Blob([fichier.buffer]), fichier.nom)
+    body.append('file', new Blob([new Uint8Array(fichier.buffer)]), fichier.nom)
 
     try {
       const response = await firstValueFrom(

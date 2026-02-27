@@ -33,8 +33,8 @@ describe('JeuneMiloHttpRepository', () => {
   let miloHttpSqlRepository: MiloJeuneHttpSqlRepository
   let miloClient: StubbedClass<MiloClient>
   const jeune = unJeune({ email: 'john@doe.io' })
-  let idService: IdService
-  let dateService: DateService
+  let idService!: IdService
+  let dateService!: DateService
   const conseiller = unConseiller()
 
   before(() => {

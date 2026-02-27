@@ -37,7 +37,7 @@ describe('GetSuiviCetteSemainePoleEmploiQueryHandler', () => {
   })
 
   let getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter
-  let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
+  let jeuneAuthorizer!: StubbedClass<JeuneAuthorizer>
 
   beforeEach(() => {
     sandbox = createSandbox()
