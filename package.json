@@ -152,7 +152,7 @@
     "bull-repl": "^0.29.1",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
-    "chai-exclude": "^2.1.1",
+    "chai-exclude": "^3.0.1",
     "dirty-chai": "^2.0.1",
     "dotenv-cli": "^11.0.0",
     "dotvault": "^0.0.9",
