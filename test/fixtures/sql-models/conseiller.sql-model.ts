@@ -28,3 +28,10 @@ export function unConseillerDto(
 
   return { ...defaults, ...args }
 }
+
+export function unConseillerMiloDto(
+  conseillerDto: AsSql<ConseillerDto>,
+  idStructureMilo: string
+): AsSql<ConseillerDto> {
+  return { ...conseillerDto, idStructureMilo: idStructureMilo }
+}

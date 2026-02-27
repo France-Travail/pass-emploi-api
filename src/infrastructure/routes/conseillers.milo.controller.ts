@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -57,8 +59,15 @@ import {
   QualifierActionsMiloPayload,
   UpdateSessionMiloPayload
 } from './validation/conseillers.milo.inputs'
+import { CreateActualiteMiloPayload } from './validation/actualites.milo.inputs'
+import {
+  CreateActualiteMiloCommand,
+  CreateActualiteMiloCommandHandler
+} from '../../application/commands/milo/create-actualite-milo.command.handler'
+import { GetActualitesMiloConseillerQueryHandler } from '../../application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
+import { ActualitesMiloConseillerQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
 
-@Controller()
+@Controller('conseillers/milo')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Conseillers Milo')
 export class ConseillersMiloController {
@@ -72,13 +81,15 @@ export class ConseillersMiloController {
     private readonly getJeuneMiloByDossierQueryHandler: GetJeuneMiloByDossierQueryHandler,
     private readonly creerJeuneMiloCommandHandler: CreerJeuneMiloCommandHandler,
     private readonly qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler,
-    private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler
+    private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler,
+    private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler,
+    private readonly getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
   ) {}
   @ApiOperation({
     summary: "Récupère le dossier Milo d'un jeune",
     description: 'Autorisé pour un conseiller du jeune'
   })
-  @Get('conseillers/milo/dossiers/:idDossier')
+  @Get('dossiers/:idDossier')
   @ApiResponse({
     type: DossierJeuneMiloQueryModel
   })
@@ -98,7 +109,7 @@ export class ConseillersMiloController {
     summary: 'Récupère un jeune par son idDossier Milo',
     description: 'Autorisé pour un conseiller du jeune'
   })
-  @Get('conseillers/milo/jeunes/:idDossier')
+  @Get('jeunes/:idDossier')
   @ApiResponse({
     type: JeuneQueryModel
   })
@@ -118,7 +129,7 @@ export class ConseillersMiloController {
     summary: 'Crée un jeune Milo',
     description: 'Autorisé pour un conseiller Milo'
   })
-  @Post('conseillers/milo/jeunes')
+  @Post('jeunes')
   async postJeuneMilo(
     @Body() creerJeuneMiloPayload: CreerJeuneMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur,
@@ -147,7 +158,7 @@ export class ConseillersMiloController {
     summary: 'Récupère la liste des sessions de sa structure MILO',
     description: 'Autorisé pour le conseiller Milo'
   })
-  @Get('conseillers/milo/:idConseiller/sessions')
+  @Get(':idConseiller/sessions')
   @ApiResponse({
     type: SessionConseillerMiloQueryModel,
     isArray: true
@@ -181,7 +192,7 @@ export class ConseillersMiloController {
       'Récupère la liste des sessions de sa structure MILO auxquelles participent ses bénéficiaires',
     description: 'Autorisé pour le conseiller Milo'
   })
-  @Get('conseillers/milo/:idConseiller/agenda/sessions')
+  @Get(':idConseiller/agenda/sessions')
   @ApiResponse({
     type: AgendaConseillerMiloSessionListItemQueryModel,
     isArray: true
@@ -210,7 +221,7 @@ export class ConseillersMiloController {
       'Récupère le détail d’une session de la structure MILO du conseiller',
     description: 'Autorisé pour le conseiller Milo'
   })
-  @Get('conseillers/milo/:idConseiller/sessions/:idSession')
+  @Get(':idConseiller/sessions/:idSession')
   @ApiResponse({
     type: DetailSessionConseillerMiloQueryModel
   })
@@ -233,7 +244,7 @@ export class ConseillersMiloController {
       'Permet de clore une session de la structure MILO du conseiller et de faire son émargement.',
     description: 'Autorisé pour le conseiller Milo'
   })
-  @Post('conseillers/milo/:idConseiller/sessions/:idSession/cloturer')
+  @Post(':idConseiller/sessions/:idSession/cloturer')
   async emargerSession(
     @Param('idConseiller') idConseiller: string,
     @Param('idSession') idSession: string,
@@ -261,7 +272,7 @@ export class ConseillersMiloController {
       'Modifie les informations d’une session de la structure MILO du conseiller (visibilité, inscriptions)',
     description: 'Autorisé pour le conseiller Milo'
   })
-  @Patch('conseillers/milo/:idConseiller/sessions/:idSession')
+  @Patch(':idConseiller/sessions/:idSession')
   async updateSession(
     @Param('idConseiller') idConseiller: string,
     @Param('idSession') idSession: string,
@@ -290,7 +301,7 @@ export class ConseillersMiloController {
     summary: 'Qualifie des actions en SNP / non-SNP',
     description: 'Autorisé pour un conseiller Milo'
   })
-  @Post('conseillers/milo/actions/qualifier')
+  @Post('actions/qualifier')
   async qualifierActions(
     @Body() qualifierActionsMiloPayload: QualifierActionsMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
@@ -318,7 +329,7 @@ export class ConseillersMiloController {
   @ApiOperation({
     description: 'Compte des trucs des bénéficiaires du conseiller'
   })
-  @Get('/conseillers/milo/:idConseiller/compteurs-portefeuille')
+  @Get(':idConseiller/compteurs-portefeuille')
   @ApiResponse({
     type: CompteursBeneficiaireQueryModel,
     isArray: true
@@ -343,5 +354,48 @@ export class ConseillersMiloController {
       utilisateur
     )
     return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Crée une actualité pour la structure MILO du conseiller',
+    description: 'Autorisé pour un conseiller MILO de la structure'
+  })
+  @Post(':idConseiller/actualites')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async createActualite(
+    @Param('idConseiller') idConseiller: string,
+    @Body() payload: CreateActualiteMiloPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const command: CreateActualiteMiloCommand = {
+      idConseiller,
+      prenomNomConseiller: `${utilisateur.prenom} ${utilisateur.nom}`,
+      titre: payload.titre,
+      contenu: payload.contenu,
+      titreLien: payload.titreLien,
+      lien: payload.lien
+    }
+
+    const result = await this.createActualiteMiloCommandHandler.execute(
+      command,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les actualités de la structure MILO du conseiller',
+    description: 'Autorisé pour un conseiller MILO de la structure'
+  })
+  @Get(':idConseiller/actualites')
+  async getActualites(
+    @Param('idConseiller') idConseiller: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<ActualitesMiloConseillerQueryModel> {
+    return this.getActualitesMiloConseillerQueryHandler.execute(
+      { idConseiller },
+      utilisateur
+    )
   }
 }
