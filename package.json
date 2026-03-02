@@ -180,7 +180,8 @@
     "yargs": "^18.0.0"
   },
   "resolutions": {
-    "minimatch": ">=9.0.5"
+    "minimatch": ">=9.0.5",
+    "multer": ">=2.1.0"
   },
   "mocha": {
     "require": [
