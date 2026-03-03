@@ -45,6 +45,8 @@ import { RechercheSqlModel } from '../../../src/infrastructure/sequelize/models/
 import { uneRechercheDto } from '../../fixtures/sql-models/recherche.sql-model'
 import { LogModificationRendezVousSqlModel } from '../../../src/infrastructure/sequelize/models/log-modification-rendez-vous-sql.model'
 import { ComptageJeuneSqlModel } from '../../../src/infrastructure/sequelize/models/comptage-jeune.sql-model'
+import { ActualiteMiloSqlModel } from '../../../src/infrastructure/sequelize/models/actualite-milo.sql-model'
+import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 
 let stats: SuiviJob
 
@@ -355,6 +357,44 @@ describe('NettoyerLesDonneesJobHandler', () => {
       }
     ])
 
+    // Given - Actualités Milo
+    await StructureMiloSqlModel.create({
+      id: 'structure-milo-nettoyer',
+      nomOfficiel: 'Structure Test Nettoyer',
+      timezone: 'Europe/Paris'
+    })
+    await ActualiteMiloSqlModel.bulkCreate([
+      {
+        id: 'a1a1a1a1-0000-0000-0000-000000000001',
+        idStructureMilo: 'structure-milo-nettoyer',
+        idConseiller: 'con2',
+        prenomNomConseiller: 'Jean Conseiller',
+        titre: 'Actualité à supprimer',
+        contenu: 'Contenu à supprimer',
+        titreLien: null,
+        lien: null,
+        dateCreation: maintenant.minus({ months: 3, days: 1 }).toJSDate(),
+        dateModification: null,
+        dateSuppression: null
+      },
+      {
+        id: 'a2a2a2a2-0000-0000-0000-000000000002',
+        idStructureMilo: 'structure-milo-nettoyer',
+        idConseiller: 'con2',
+        prenomNomConseiller: 'Jean Conseiller',
+        titre: 'Actualité à garder',
+        contenu: 'Contenu à garder',
+        titreLien: null,
+        lien: null,
+        dateCreation: maintenant
+          .minus({ months: 3 })
+          .plus({ days: 1 })
+          .toJSDate(),
+        dateModification: null,
+        dateSuppression: null
+      }
+    ])
+
     // When
     stats = await nettoyerLesDonneesJobHandler.handle()
   })
@@ -575,6 +615,24 @@ describe('NettoyerLesDonneesJobHandler', () => {
       expect(
         (stats.resultat as { nombreComptageJeuneSupprimes: number })
           .nombreComptageJeuneSupprimes
+      ).to.equal(1)
+    })
+  })
+
+  describe('actualites milo', () => {
+    it('supprime les actualités créées il y a plus de 3 mois', async () => {
+      // Then
+      const actualiteASupprimer = await ActualiteMiloSqlModel.findOne({
+        where: { id: 'a1a1a1a1-0000-0000-0000-000000000001' }
+      })
+      const actualiteAGarder = await ActualiteMiloSqlModel.findOne({
+        where: { id: 'a2a2a2a2-0000-0000-0000-000000000002' }
+      })
+      expect(actualiteASupprimer).to.be.null()
+      expect(actualiteAGarder).not.to.be.null()
+      expect(
+        (stats.resultat as { nombreActualitesMiloSupprimees: number })
+          .nombreActualitesMiloSupprimees
       ).to.equal(1)
     })
   })
