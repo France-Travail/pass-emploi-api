@@ -636,4 +636,50 @@ describe('NettoyerLesDonneesJobHandler', () => {
       ).to.equal(1)
     })
   })
+
+  describe('gestion des erreurs', () => {
+    let statsAvecErreurs: SuiviJob
+    let sandbox2: SinonSandbox
+
+    before(async () => {
+      sandbox2 = createSandbox()
+      sandbox2
+        .stub(ActualiteMiloSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(ComptageJeuneSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(RechercheSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(FavoriOffreEmploiSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(FavoriOffreEngagementSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(FavoriOffreImmersionSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+      sandbox2
+        .stub(NotificationJeuneSqlModel, 'destroy')
+        .rejects(new Error('DB erreur'))
+
+      const handlerAvecErreurs = new NettoyerLesDonneesJobHandler(
+        dateService,
+        suiviJobService,
+        getDatabase().sequelize,
+        authentificationRepository,
+        chatRepository
+      )
+      statsAvecErreurs = await handlerAvecErreurs.handle()
+    })
+
+    after(() => sandbox2.restore())
+
+    it('continue les opérations suivantes et comptabilise les erreurs', () => {
+      expect(statsAvecErreurs.succes).to.equal(true)
+      expect(statsAvecErreurs.nbErreurs).to.equal(7)
+    })
+  })
 })
