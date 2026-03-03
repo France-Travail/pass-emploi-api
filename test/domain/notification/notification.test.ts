@@ -628,6 +628,78 @@ describe('Notification', () => {
       })
     })
 
+    describe('notifierNouvelleActualite', () => {
+      it('notifie les jeunes avec pushNotificationToken et préférence activée', async () => {
+        // Given
+        const jeune: Jeune = unJeune()
+        const idActu = 'actu-id'
+        const expectedNotification = uneNotification({
+          token: jeune.configuration?.pushNotificationToken,
+          notification: {
+            title: 'Nouvelle actualité',
+            body: 'Vous avez une nouvelle actualité'
+          },
+          data: {
+            type: Notification.Type.NEW_ACTU,
+            id: idActu
+          }
+        })
+
+        // When
+        await notificationService.notifierNouvelleActualite([jeune], idActu)
+
+        // Then
+        expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
+          expectedNotification,
+          jeune.id,
+          true
+        )
+      })
+
+      it('notifie dans le centre uniquement si préférence désactivée', async () => {
+        // Given
+        const jeune: Jeune = unJeune({
+          preferences: desPreferencesJeune({ actualitesMilo: false })
+        })
+        const idActu = 'actu-id'
+        const expectedNotification = uneNotification({
+          token: jeune.configuration?.pushNotificationToken,
+          notification: {
+            title: 'Nouvelle actualité',
+            body: 'Vous avez une nouvelle actualité'
+          },
+          data: {
+            type: Notification.Type.NEW_ACTU,
+            id: idActu
+          }
+        })
+
+        // When
+        await notificationService.notifierNouvelleActualite([jeune], idActu)
+
+        // Then
+        expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
+          expectedNotification,
+          jeune.id,
+          false
+        )
+      })
+
+      it('ne notifie pas les jeunes sans pushNotificationToken', async () => {
+        // Given
+        const jeune: Jeune = unJeune({
+          configuration: { idJeune: 'ABCDE', pushNotificationToken: undefined }
+        })
+        const idActu = 'actu-id'
+
+        // When
+        await notificationService.notifierNouvelleActualite([jeune], idActu)
+
+        // Then
+        expect(notificationRepository.send).not.to.have.been.called()
+      })
+    })
+
     describe('notifierDesinscriptionSession', () => {
       it('notifie les jeunes avec pushNotificationToken', async () => {
         // Given

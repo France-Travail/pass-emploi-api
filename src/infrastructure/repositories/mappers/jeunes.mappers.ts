@@ -51,7 +51,8 @@ export function fromSqlToPreferencesJeune(
     creationActionConseiller:
       jeuneSqlModel.notificationsCreationActionConseiller,
     rendezVousSessions: jeuneSqlModel.notificationsRendezVousSessions,
-    rappelActions: jeuneSqlModel.notificationsRappelActions
+    rappelActions: jeuneSqlModel.notificationsRappelActions,
+    actualitesMilo: jeuneSqlModel.notificationsActualitesMilo
   }
 }
 

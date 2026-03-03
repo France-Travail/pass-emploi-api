@@ -235,6 +235,8 @@ export class PreferencesJeuneQueryModel {
   rendezVousSessions: boolean
   @ApiProperty()
   rappelActions: boolean
+  @ApiProperty()
+  actualitesMilo: boolean
 }
 
 export class MotifSuppressionJeuneQueryModel {

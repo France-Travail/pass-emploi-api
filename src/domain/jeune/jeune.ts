@@ -147,6 +147,8 @@ export namespace Jeune {
 
     findAllJeunesByConseillerInitial(idConseiller: string): Promise<Jeune[]>
 
+    findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]>
+
     supprimer(idJeune: Jeune.Id): Promise<void>
 
     transferAndSaveAll(
@@ -189,7 +191,8 @@ export namespace Jeune {
           messages: true,
           creationActionConseiller: true,
           rendezVousSessions: true,
-          rappelActions: true
+          rappelActions: true,
+          actualitesMilo: true
         },
         idPartenaire: jeuneACreer.idPartenaire,
         configuration: {

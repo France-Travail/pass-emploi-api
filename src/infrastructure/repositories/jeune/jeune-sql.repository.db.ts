@@ -139,6 +139,13 @@ export class JeuneSqlRepository implements Jeune.Repository {
     }))
   }
 
+  async findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]> {
+    const jeunesSqlModels = await JeuneSqlModel.findAll({
+      where: { idStructureMilo }
+    })
+    return jeunesSqlModels.map(fromSqlToJeune)
+  }
+
   async findAllJeunesByConseillerInitial(
     idConseiller: string
   ): Promise<Jeune[]> {
@@ -170,6 +177,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         jeune.preferences.creationActionConseiller,
       notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
       notificationsRappelActions: jeune.preferences.rappelActions,
+      notificationsActualitesMilo: jeune.preferences.actualitesMilo,
       appVersion: jeune.configuration.appVersion ?? null,
       pushNotificationToken: jeune.configuration.pushNotificationToken ?? null,
       dateDerniereActualisationToken:
@@ -222,6 +230,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
           jeune.preferences.creationActionConseiller,
         notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
         notificationsRappelActions: jeune.preferences.rappelActions,
+        notificationsActualitesMilo: jeune.preferences.actualitesMilo,
         dispositif: jeune.dispositif
       }
       await JeuneSqlModel.upsert(jeuneTransfereSQL)
