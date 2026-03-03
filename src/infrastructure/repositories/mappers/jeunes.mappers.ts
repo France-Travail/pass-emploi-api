@@ -24,6 +24,11 @@ export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
       ? DateTime.fromJSDate(jeuneSqlModel.dateSignatureCGU)
       : undefined
   }
+  if (jeuneSqlModel.dateDerniereConnexion) {
+    jeune.dateDerniereConnexion = DateTime.fromJSDate(
+      jeuneSqlModel.dateDerniereConnexion
+    )
+  }
   if (jeuneSqlModel.conseiller) {
     jeune.conseiller = {
       id: jeuneSqlModel.conseiller.id,
