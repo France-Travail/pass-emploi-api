@@ -8,7 +8,7 @@ import {
   ValidateIf
 } from 'class-validator'
 
-export class CreateActualiteMiloPayload {
+export class CreateOrUpdateActualiteMiloPayload {
   @ApiProperty({ description: "Titre de l'actualité" })
   @IsString()
   @IsNotEmpty()
