@@ -5713,12 +5713,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dirty-chai@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "dirty-chai@npm:2.0.1"
+"dirty-chai@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "dirty-chai@npm:3.0.0"
   peerDependencies:
-    chai: ">=2.2.1 <5"
-  checksum: 10/b4f3d1ea01cc75ec083e5a5a4b7728b2ab7c4b45651126f8189d36653df0737ac601a473e37f026a37d6aca68d8b965952bc917b50905eba0d008c18eeb85fd8
+    chai: ">= 6.2.0 < 7"
+  checksum: 10/b4df849027406befcb8d7988b1c05f53f285f7c59bef43e6febd2d6c278f8fb2535c0e2eec765e66ab81f25427246ddb2bf52349765dcc692280c4395419f40a
   languageName: node
   linkType: hard
 
@@ -9328,7 +9328,7 @@ __metadata:
     compression: "npm:1.8.1"
     cron-parser: "npm:4.9.0"
     crypto-js: "npm:4.2.0"
-    dirty-chai: "npm:^2.0.1"
+    dirty-chai: "npm:^3.0.0"
     dotenv-cli: "npm:^11.0.0"
     dotvault: "npm:^0.0.9"
     elastic-apm-node: "npm:3.52.2"
