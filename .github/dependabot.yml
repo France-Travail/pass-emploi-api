@@ -14,6 +14,40 @@ updates:
     commit-message:
       prefix: 'chore(deps):'
     groups:
+      # Écosystèmes (prioritaires, couvrent tous les update-types)
+      nestjs:
+        applies-to: version-updates
+        patterns:
+          - "@nestjs/*"
+      aws-sdk:
+        applies-to: version-updates
+        patterns:
+          - "@aws-sdk/*"
+      eslint:
+        applies-to: version-updates
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
+          - "@eslint/*"
+      sequelize:
+        applies-to: version-updates
+        patterns:
+          - "sequelize"
+          - "sequelize-cli"
+          - "sequelize-typescript"
+      testing:
+        applies-to: version-updates
+        patterns:
+          - "jest*"
+          - "@testing-library/*"
+          - "@types/jest*"
+      elastic-apm:
+        applies-to: version-updates
+        patterns:
+          - "@elastic/*"
+          - "elastic-apm-*"
+
       # Production dependencies - patch and minor (auto-merge côté CI)
       prod-minor-patch:
         applies-to: version-updates
@@ -28,7 +62,7 @@ updates:
         update-types:
           - patch
           - minor
-      # Majors : pas de groupe, chaque dépendance a sa propre PR
+      # Autres majors : chaque dépendance a sa propre PR
 
   # ===========================================
   # GitHub Actions
