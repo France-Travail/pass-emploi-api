@@ -9,6 +9,11 @@ import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
+  async get(id: string): Promise<ActualiteMilo | undefined> {
+    const dto = await ActualiteMiloSqlModel.findByPk(id)
+    return dto ? this.mapToDomain(dto) : undefined
+  }
+
   async save(actualite: ActualiteMilo): Promise<void> {
     const dto: AsSql<ActualiteMiloDto> = {
       id: actualite.id,

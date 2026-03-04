@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
@@ -59,11 +60,15 @@ import {
   QualifierActionsMiloPayload,
   UpdateSessionMiloPayload
 } from './validation/conseillers.milo.inputs'
-import { CreateActualiteMiloPayload } from './validation/actualites.milo.inputs'
+import { CreateOrUpdateActualiteMiloPayload } from './validation/actualites.milo.inputs'
 import {
   CreateActualiteMiloCommand,
   CreateActualiteMiloCommandHandler
 } from '../../application/commands/milo/create-actualite-milo.command.handler'
+import {
+  UpdateActualiteMiloCommand,
+  UpdateActualiteMiloCommandHandler
+} from '../../application/commands/milo/update-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from '../../application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { ActualitesMiloConseillerQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
 
@@ -83,6 +88,7 @@ export class ConseillersMiloController {
     private readonly qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler,
     private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler,
     private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler,
+    private readonly updateActualiteMiloCommandHandler: UpdateActualiteMiloCommandHandler,
     private readonly getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
   ) {}
   @ApiOperation({
@@ -364,7 +370,7 @@ export class ConseillersMiloController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async createActualite(
     @Param('idConseiller') idConseiller: string,
-    @Body() payload: CreateActualiteMiloPayload,
+    @Body() payload: CreateOrUpdateActualiteMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<void> {
     const command: CreateActualiteMiloCommand = {
@@ -397,5 +403,34 @@ export class ConseillersMiloController {
       { idConseiller },
       utilisateur
     )
+  }
+
+  @ApiOperation({
+    summary: 'Modifie une actualité de la structure MILO du conseiller',
+    description: "Autorisé pour le conseiller propriétaire de l'actualité"
+  })
+  @Put(':idConseiller/actualites/:idActualite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateActualite(
+    @Param('idConseiller') idConseiller: string,
+    @Param('idActualite') idActualite: string,
+    @Body() payload: CreateOrUpdateActualiteMiloPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const command: UpdateActualiteMiloCommand = {
+      idActualite,
+      idConseiller,
+      titre: payload.titre,
+      contenu: payload.contenu,
+      titreLien: payload.titreLien,
+      lien: payload.lien
+    }
+
+    const result = await this.updateActualiteMiloCommandHandler.execute(
+      command,
+      utilisateur
+    )
+
+    return handleResult(result)
   }
 }
