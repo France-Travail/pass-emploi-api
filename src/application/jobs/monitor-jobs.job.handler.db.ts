@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { parseExpression } from 'cron-parser'
+import { CronExpressionParser } from 'cron-parser'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
@@ -89,11 +89,11 @@ function recupererNombreExecutionsDernieres24h(
     return 0
   }
 
-  const interval = parseExpression(expressionRecherchee)
+  const interval = CronExpressionParser.parse(expressionRecherchee)
 
   return (
-    interval.fields.second.length *
-    interval.fields.minute.length *
-    interval.fields.hour.length
+    interval.fields.second.values.length *
+    interval.fields.minute.values.length *
+    interval.fields.hour.values.length
   )
 }
