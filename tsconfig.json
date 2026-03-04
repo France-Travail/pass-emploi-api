@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es2019",
+    "target": "es2023",
     "outDir": "./dist",
     "baseUrl": "./",
     "sourceMap": true,
@@ -20,7 +20,8 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true,
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "useDefineForClassFields": false
   },
   "ts-node": {
     "files": true,
