@@ -133,7 +133,7 @@
     "@types/compression": "^1.8.1",
     "@types/crypto-js": "^4.2.2",
     "@types/dirty-chai": "^2.0.5",
-    "@types/express": "^4.17.25",
+    "@types/express": "^5.0.6",
     "@types/geojson": "^7946.0.16",
     "@types/lodash.isequal": "^4.5.8",
     "@types/luxon": "^3.7.1",
