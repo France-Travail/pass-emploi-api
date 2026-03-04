@@ -83,7 +83,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1001.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "11.1.15",
-    "@nestjs/config": "2.3.4",
+    "@nestjs/config": "4.0.3",
     "@nestjs/core": "11.1.15",
     "@nestjs/platform-express": "11.1.15",
     "@nestjs/swagger": "11.2.6",
