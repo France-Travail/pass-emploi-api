@@ -1877,19 +1877,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/config@npm:2.3.4":
-  version: 2.3.4
-  resolution: "@nestjs/config@npm:2.3.4"
+"@nestjs/config@npm:4.0.3":
+  version: 4.0.3
+  resolution: "@nestjs/config@npm:4.0.3"
   dependencies:
-    dotenv: "npm:16.1.4"
-    dotenv-expand: "npm:10.0.0"
-    lodash: "npm:4.17.21"
-    uuid: "npm:9.0.0"
+    dotenv: "npm:17.2.3"
+    dotenv-expand: "npm:12.0.3"
+    lodash: "npm:4.17.23"
   peerDependencies:
-    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0
-    reflect-metadata: ^0.1.13
-    rxjs: ^6.0.0 || ^7.2.0
-  checksum: 10/c06d4cfc48761ceba74b11281186040f910f49ff0d6234160388261d7391180628736e076b1c9258f31f8edf8b695e1dd03d2510f91cc24430f28b7d08c03177
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    rxjs: ^7.1.0
+  checksum: 10/f69f37afe51fc3f6c2f52e3e0f083d7ca604ac857847e3046c83baf0dd738699f53147d62e302ac77611381406ef3c1f4d9d66bd77648a670ad630aaaacff87a
   languageName: node
   linkType: hard
 
@@ -5677,14 +5675,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv-expand@npm:10.0.0":
-  version: 10.0.0
-  resolution: "dotenv-expand@npm:10.0.0"
-  checksum: 10/b41eb278bc96b92cbf3037ca5f3d21e8845bf165dc06b6f9a0a03d278c2bd5a01c0cfbb3528ae3a60301ba1a8a9cace30e748c54b460753bc00d4c014b675597
-  languageName: node
-  linkType: hard
-
-"dotenv-expand@npm:^12.0.0":
+"dotenv-expand@npm:12.0.3, dotenv-expand@npm:^12.0.0":
   version: 12.0.3
   resolution: "dotenv-expand@npm:12.0.3"
   dependencies:
@@ -5693,10 +5684,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:16.1.4":
-  version: 16.1.4
-  resolution: "dotenv@npm:16.1.4"
-  checksum: 10/b0caa00283490d1cdb6ad892fcdbc86a6f5e3e0fb5e8da32e599fb3f9fa778095812ae1b936761090416b355fe8724cb47624333a7bd770bb9c667f7d186d8a0
+"dotenv@npm:17.2.3":
+  version: 17.2.3
+  resolution: "dotenv@npm:17.2.3"
+  checksum: 10/f8b78626ebfff6e44420f634773375c9651808b3e1a33df6d4cc19120968eea53e100f59f04ec35f2a20b2beb334b6aba4f24040b2f8ad61773f158ac042a636
   languageName: node
   linkType: hard
 
@@ -8538,13 +8529,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532
-  languageName: node
-  linkType: hard
-
 "lodash@npm:4.17.23, lodash@npm:^4.17.15, lodash@npm:^4.17.21":
   version: 4.17.23
   resolution: "lodash@npm:4.17.23"
@@ -9213,7 +9197,7 @@ __metadata:
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.15"
-    "@nestjs/config": "npm:2.3.4"
+    "@nestjs/config": "npm:4.0.3"
     "@nestjs/core": "npm:11.1.15"
     "@nestjs/platform-express": "npm:11.1.15"
     "@nestjs/schematics": "npm:^11.0.9"
@@ -12415,15 +12399,6 @@ __metadata:
   bin:
     uuid: dist-node/bin/uuid
   checksum: 10/2742b24d1e00257e60612572e4d28679423469998cafbaf1fe9f1482e3edf9c40754b31bfdb3d08d71b29239f227a304588f75210b3b48f2609f0673f1feccef
-  languageName: node
-  linkType: hard
-
-"uuid@npm:9.0.0":
-  version: 9.0.0
-  resolution: "uuid@npm:9.0.0"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/23857699a616d1b48224bc2b8440eae6e57d25463c3a0200e514ba8279dfa3bde7e92ea056122237839cfa32045e57d8f8f4a30e581d720fd72935572853ae2e
   languageName: node
   linkType: hard
 

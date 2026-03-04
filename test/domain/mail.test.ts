@@ -10,7 +10,10 @@ describe('Mail', () => {
     let configService: StubbedClass<ConfigService>
 
     beforeEach(() => {
-      configService = stubClass(ConfigService)
+      configService =
+        stubClass<ConfigService<Record<string | symbol, unknown>>>(
+          ConfigService
+        )
       configService.get.returns({
         templates: {
           conversationsNonLues: '10',
