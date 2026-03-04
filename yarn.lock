@@ -2052,9 +2052,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/testing@npm:^11.1.9":
-  version: 11.1.14
-  resolution: "@nestjs/testing@npm:11.1.14"
+"@nestjs/testing@npm:^11.1.15":
+  version: 11.1.15
+  resolution: "@nestjs/testing@npm:11.1.15"
   dependencies:
     tslib: "npm:2.8.1"
   peerDependencies:
@@ -2067,7 +2067,7 @@ __metadata:
       optional: true
     "@nestjs/platform-express":
       optional: true
-  checksum: 10/70e3b637c28ca7b344af0d7e32160ec0a6b60a11b99b2476954e90328cc19720d3000809aba59456e2a9eea8ec358b98352721ff5dfc379c9acc8780d25c5413
+  checksum: 10/38a35f36e9c361830051ac1f058156b53dcf3b55dcd1ca3e3471ebb1c89dfcf6a3747fd268e673835ebdc2f085fe88c2267c64ba69f95fb1fcb5a6aaa1549a62
   languageName: node
   linkType: hard
 
@@ -8437,9 +8437,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:^16.3.1":
-  version: 16.3.1
-  resolution: "lint-staged@npm:16.3.1"
+"lint-staged@npm:^16.3.2":
+  version: 16.3.2
+  resolution: "lint-staged@npm:16.3.2"
   dependencies:
     commander: "npm:^14.0.3"
     listr2: "npm:^9.0.5"
@@ -8449,7 +8449,7 @@ __metadata:
     yaml: "npm:^2.8.2"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10/4eaebcfcf7cc37c163e3b365da4b35c3403b6e6184039ff0256e2d1765e01aea28a5ffd8726ee4964b10ea6aecd4cbb1790e08964597bafe608bd8126ed4700d
+  checksum: 10/41497d746e625b969a4a80466284ecdb56f55d97832e191ea2f4c3bca2894c468450f8508eebe7c4e293691bd1d1a9a4e1bc7843aba91c28e4fd22bfa9355367
   languageName: node
   linkType: hard
 
@@ -9294,7 +9294,7 @@ __metadata:
     "@nestjs/schematics": "npm:^11.0.9"
     "@nestjs/swagger": "npm:11.2.6"
     "@nestjs/terminus": "npm:11.1.1"
-    "@nestjs/testing": "npm:^11.1.9"
+    "@nestjs/testing": "npm:^11.1.15"
     "@salesforce/ts-sinon": "npm:^1.4.31"
     "@types/bull": "npm:^4.10.4"
     "@types/chai": "npm:^4.3.20"
@@ -9345,7 +9345,7 @@ __metadata:
     ics: "npm:3.8.1"
     joi: "npm:18.0.2"
     jose: "npm:5.10.0"
-    lint-staged: "npm:^16.3.1"
+    lint-staged: "npm:^16.3.2"
     lodash.isequal: "npm:4.5.0"
     luxon: "npm:3.7.2"
     mocha: "npm:^11.7.5"
