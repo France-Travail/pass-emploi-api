@@ -66,7 +66,7 @@ describe('GetPreferencesJeuneQueryHandler', () => {
         creationActionConseiller: true,
         rendezVousSessions: true,
         rappelActions: true,
-        actualitesMilo: true
+        actuMilo: true
       }
       expect(result).to.deep.equal(success(expected))
     })

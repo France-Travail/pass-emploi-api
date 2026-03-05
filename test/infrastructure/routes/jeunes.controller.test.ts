@@ -778,7 +778,7 @@ describe('JeunesController', () => {
           creationActionConseiller: true,
           rendezVousSessions: true,
           rappelActions: true,
-          actualitesMilo: true
+          actuMilo: true
         }
         getPreferencesJeuneQueryHandler.execute
           .withArgs(

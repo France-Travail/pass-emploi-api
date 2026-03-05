@@ -51,7 +51,7 @@ export class GetPreferencesJeuneQueryHandler extends QueryHandler<
       rappelActions: jeuneSqlModel.notificationsRappelActions,
       creationActionConseiller:
         jeuneSqlModel.notificationsCreationActionConseiller,
-      actualitesMilo: jeuneSqlModel.notificationsActualitesMilo
+      actuMilo: jeuneSqlModel.notificationsActualitesMilo
     })
   }
 
