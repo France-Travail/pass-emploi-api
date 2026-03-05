@@ -86,6 +86,8 @@ import { QualifierActionCommandHandler } from './application/commands/milo/quali
 import { QualifierActionsMiloCommandHandler } from './application/commands/milo/qualifier-actions-milo.command.handler'
 import { UpdateSessionMiloCommandHandler } from './application/commands/milo/update-session-milo.command.handler'
 import { CreateActualiteMiloCommandHandler } from './application/commands/milo/create-actualite-milo.command.handler'
+import { UpdateActualiteMiloCommandHandler } from './application/commands/milo/update-actualite-milo.command.handler'
+import { DeleteActualiteMiloCommandHandler } from './application/commands/milo/delete-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from './application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { GetActualitesMiloJeuneQueryHandler } from './application/queries/milo/get-actualites-milo-jeune.query.handler.db'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
@@ -870,6 +872,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateFeatureFlipCommandHandler,
     NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
+    UpdateActualiteMiloCommandHandler,
+    DeleteActualiteMiloCommandHandler,
     GetActualitesMiloConseillerQueryHandler,
     GetActualitesMiloJeuneQueryHandler
   ]

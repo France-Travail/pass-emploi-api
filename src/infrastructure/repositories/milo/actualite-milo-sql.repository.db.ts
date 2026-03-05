@@ -9,6 +9,11 @@ import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
+  async get(id: string): Promise<ActualiteMilo | undefined> {
+    const dto = await ActualiteMiloSqlModel.findByPk(id)
+    return dto ? this.mapToDomain(dto) : undefined
+  }
+
   async save(actualite: ActualiteMilo): Promise<void> {
     const dto: AsSql<ActualiteMiloDto> = {
       id: actualite.id,
@@ -24,6 +29,10 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
       dateSuppression: actualite.dateSuppression?.toJSDate() ?? null
     }
     await ActualiteMiloSqlModel.upsert(dto)
+  }
+
+  async delete(id: string): Promise<void> {
+    await ActualiteMiloSqlModel.destroy({ where: { id } })
   }
 
   async getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]> {

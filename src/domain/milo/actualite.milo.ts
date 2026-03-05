@@ -30,26 +30,38 @@ export namespace ActualiteMilo {
     lien?: string
   }
 
+  export interface InfosModification {
+    titre: string
+    contenu: string
+    titreLien?: string
+    lien?: string
+  }
+
   export interface Repository {
+    get(id: string): Promise<ActualiteMilo | undefined>
     save(actualite: ActualiteMilo): Promise<void>
+    delete(id: string): Promise<void>
     getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]>
   }
 
-  const TITRE_PAR_DEFAUT = 'En savoir plus'
-
   @Injectable()
   export class Factory {
+    private static readonly TITRE_LIEN_PAR_DEFAUT = 'En savoir plus'
+
     constructor(
       private readonly idService: IdService,
       private readonly dateService: DateService
     ) {}
 
+    private static titreLienEffectif(
+      lien?: string,
+      titreLien?: string
+    ): string | undefined {
+      if (lien && !titreLien) return Factory.TITRE_LIEN_PAR_DEFAUT
+      return titreLien
+    }
+
     creer(infosCreation: InfosCreation): ActualiteMilo {
-      const maintenant = this.dateService.now()
-      const titreLien =
-        infosCreation.lien && !infosCreation.titreLien
-          ? TITRE_PAR_DEFAUT
-          : infosCreation.titreLien
       return {
         id: this.idService.uuid(),
         idStructureMilo: infosCreation.idStructureMilo,
@@ -57,11 +69,31 @@ export namespace ActualiteMilo {
         idConseiller: infosCreation.idConseiller,
         titre: infosCreation.titre,
         contenu: infosCreation.contenu,
-        titreLien,
+        titreLien: Factory.titreLienEffectif(
+          infosCreation.lien,
+          infosCreation.titreLien
+        ),
         lien: infosCreation.lien,
-        dateCreation: maintenant,
+        dateCreation: this.dateService.now(),
         dateModification: undefined,
         dateSuppression: undefined
+      }
+    }
+
+    modifier(
+      actualite: ActualiteMilo,
+      infosModification: InfosModification
+    ): ActualiteMilo {
+      return {
+        ...actualite,
+        titre: infosModification.titre,
+        contenu: infosModification.contenu,
+        titreLien: Factory.titreLienEffectif(
+          infosModification.lien,
+          infosModification.titreLien
+        ),
+        lien: infosModification.lien,
+        dateModification: this.dateService.now()
       }
     }
   }
