@@ -15,6 +15,7 @@ import {
   JeuneMilo,
   JeuneMiloRepositoryToken
 } from '../../../domain/milo/jeune.milo'
+import { Evenement, EvenementService } from '../../../domain/evenement'
 
 export interface GetActualitesMiloJeuneQuery {
   idJeune: string
@@ -30,6 +31,7 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
     @Inject(JeuneMiloRepositoryToken)
     private readonly jeuneRepository: JeuneMilo.Repository,
+    private readonly evenementService: EvenementService,
     private readonly jeuneAuthorizer: JeuneAuthorizer
   ) {
     super('GetActualitesMiloJeuneQueryHandler')
@@ -76,7 +78,10 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
     }
   }
 
-  async monitor(): Promise<void> {
-    return
+  async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
+    await this.evenementService.creer(
+      Evenement.Code.ACTUALITE_MILO_CONSULTATION,
+      utilisateur
+    )
   }
 }
