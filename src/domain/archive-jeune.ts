@@ -316,27 +316,32 @@ export namespace ArchiveJeune {
         return failure(new NonTrouveError('Jeune', idJeune))
       }
 
-      const metaDonneesArchive: ArchiveJeune.Metadonnees = {
-        idJeune: idJeune,
-        email: jeune.email,
-        prenomJeune: jeune.firstName,
-        nomJeune: jeune.lastName,
-        structure: jeune.structure,
-        dateCreation: jeune.creationDate.toJSDate(),
-        datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
-        motif: motifSuppression,
-        commentaire: commentaireSuppressionSupport,
-        dateArchivage: this.dateService.nowJs(),
-        dispositif: jeune.dispositif
-      }
+      const estCompteActif =
+        Boolean(jeune.configuration.dateDerniereActualisationToken) &&
+        Boolean(jeune.dateDerniereConnexion)
 
       await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
 
-      try {
-        await this.archiveJeuneRepository.archiver(metaDonneesArchive)
-      } catch (e) {
-        this.logger.warn(`̀Echec lors de l'archivage du jeune ${jeune.id}`, e)
-        return failure(new ArchivageJeuneErreur(jeune.id))
+      if (estCompteActif) {
+        const metaDonneesArchive: ArchiveJeune.Metadonnees = {
+          idJeune: idJeune,
+          email: jeune.email,
+          prenomJeune: jeune.firstName,
+          nomJeune: jeune.lastName,
+          structure: jeune.structure,
+          dateCreation: jeune.creationDate.toJSDate(),
+          datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+          motif: motifSuppression,
+          commentaire: commentaireSuppressionSupport,
+          dateArchivage: this.dateService.nowJs(),
+          dispositif: jeune.dispositif
+        }
+        try {
+          await this.archiveJeuneRepository.archiver(metaDonneesArchive)
+        } catch (e) {
+          this.logger.warn(`̀Echec lors de l'archivage du jeune ${jeune.id}`, e)
+          return failure(new ArchivageJeuneErreur(jeune.id))
+        }
       }
 
       try {
@@ -355,17 +360,19 @@ export namespace ArchiveJeune {
         )
       }
 
-      try {
-        await this.mailService.envoyerEmailJeuneArchive(
-          jeune,
-          motifSuppression,
-          commentaireSuppressionSupport
-        )
-      } catch (e) {
-        this.logger.warn(
-          `̀Echec lors de l'envoi du mail au jeune ${jeune.id}`,
-          e
-        )
+      if (estCompteActif) {
+        try {
+          await this.mailService.envoyerEmailJeuneArchive(
+            jeune,
+            motifSuppression,
+            commentaireSuppressionSupport
+          )
+        } catch (e) {
+          this.logger.warn(
+            `̀Echec lors de l'envoi du mail au jeune ${jeune.id}`,
+            e
+          )
+        }
       }
 
       return emptySuccess()

@@ -39,7 +39,7 @@ export const unUtilisateurJeune = (
     email: 'john.doe@plop.io',
     structure: Core.Structure.MILO,
     roles: [],
-    dateDerniereConnexion: undefined,
+    dateDerniereConnexion: uneDatetime().toJSDate(),
     datePremiereConnexion: undefined
   }
 

@@ -9,7 +9,7 @@ import { createSandbox } from 'sinon'
 import { emptySuccess, failure } from '../../src/building-blocks/types/result'
 import { NonTrouveError } from 'src/building-blocks/types/domain-error'
 import { expect, StubbedClass, stubClass } from 'test/utils'
-import { unJeune } from '../fixtures/jeune.fixture'
+import { uneConfiguration, unJeune } from '../fixtures/jeune.fixture'
 import { Core } from '../../src/domain/core'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
@@ -145,6 +145,40 @@ describe('ArchiveJeuneService', () => {
           motifSuppressionMigration,
           commentaireSuppressionMigration
         )
+      })
+    })
+
+    describe('quand le compte est inactif (dateDerniereConnexion ou dateDerniereActualisationToken null)', () => {
+      it("le supprime sans créer d'archive ni envoyer d'email", async () => {
+        // Given
+        const compteInactif = unJeune({
+          id: idJeune,
+          configuration: uneConfiguration({
+            dateDerniereActualisationToken: undefined
+          })
+        })
+        jeuneRepository.get.withArgs(idJeune).resolves(compteInactif)
+
+        // When
+        const result = await archiverJeuneService.archiver(
+          idJeune,
+          "Pour des raisons techniques nous avons procédé à l'archivage de votre compte.",
+          MotifSuppressionSupport.SUPPORT
+        )
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledWithExactly(idJeune)
+        expect(jeuneRepository.supprimer).to.have.been.calledWithExactly(
+          idJeune
+        )
+        expect(chatRepository.supprimerChat).to.have.been.calledWithExactly(
+          idJeune
+        )
+        expect(archivageJeuneRepository.archiver).not.to.have.been.called()
+        expect(mailService.envoyerEmailJeuneArchive).not.to.have.been.called()
       })
     })
 

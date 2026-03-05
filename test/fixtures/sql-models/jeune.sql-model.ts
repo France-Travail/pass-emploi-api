@@ -2,7 +2,7 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { JeuneDto } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { AsSql } from '../../../src/infrastructure/sequelize/types'
-import { uneDate } from '../date.fixture'
+import { uneDate, uneDatetime } from '../date.fixture'
 
 export function unJeuneDto(
   args: Partial<AsSql<JeuneDto>> = {}
@@ -21,7 +21,7 @@ export function unJeuneDto(
     email: 'john.doe@plop.io',
     structure: Core.Structure.MILO,
     idAuthentification: 'un-id',
-    dateDerniereConnexion: null,
+    dateDerniereConnexion: uneDatetime().toJSDate(),
     idPartenaire: '1234',
     appVersion: '1.8.1',
     installationId: '123456',
