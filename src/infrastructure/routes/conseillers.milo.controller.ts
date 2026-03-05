@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -69,6 +70,10 @@ import {
   UpdateActualiteMiloCommand,
   UpdateActualiteMiloCommandHandler
 } from '../../application/commands/milo/update-actualite-milo.command.handler'
+import {
+  DeleteActualiteMiloCommand,
+  DeleteActualiteMiloCommandHandler
+} from '../../application/commands/milo/delete-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from '../../application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { ActualitesMiloConseillerQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
 
@@ -89,6 +94,7 @@ export class ConseillersMiloController {
     private readonly getCompteursBeneficiaireMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler,
     private readonly createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler,
     private readonly updateActualiteMiloCommandHandler: UpdateActualiteMiloCommandHandler,
+    private readonly deleteActualiteMiloCommandHandler: DeleteActualiteMiloCommandHandler,
     private readonly getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
   ) {}
   @ApiOperation({
@@ -427,6 +433,30 @@ export class ConseillersMiloController {
     }
 
     const result = await this.updateActualiteMiloCommandHandler.execute(
+      command,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Supprime une actualité de la structure MILO du conseiller',
+    description: "Autorisé pour le conseiller propriétaire de l'actualité"
+  })
+  @Delete(':idConseiller/actualites/:idActualite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteActualite(
+    @Param('idConseiller') idConseiller: string,
+    @Param('idActualite') idActualite: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const command: DeleteActualiteMiloCommand = {
+      idActualite,
+      idConseiller
+    }
+
+    const result = await this.deleteActualiteMiloCommandHandler.execute(
       command,
       utilisateur
     )

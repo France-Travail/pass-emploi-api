@@ -31,6 +31,10 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
     await ActualiteMiloSqlModel.upsert(dto)
   }
 
+  async delete(id: string): Promise<void> {
+    await ActualiteMiloSqlModel.destroy({ where: { id } })
+  }
+
   async getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]> {
     const actualites = await ActualiteMiloSqlModel.findAll({
       where: { idStructureMilo },

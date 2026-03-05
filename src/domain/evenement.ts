@@ -173,6 +173,7 @@ export namespace Evenement {
     SUIVI_POLE_EMPLOI = 'SUIVI_POLE_EMPLOI',
     ACTUALITE_MILO_CREEE = 'ACTUALITE_MILO_CREEE',
     ACTUALITE_MILO_MODIFIEE = 'ACTUALITE_MILO_MODIFIEE',
+    ACTUALITE_MILO_SUPPRIMEE = 'ACTUALITE_MILO_SUPPRIMEE',
     ACTUALITE_MILO_CONSULTATION = 'ACTUALITE_MILO_CONSULTATION'
   }
 
@@ -897,6 +898,10 @@ const evenements: {
   [Evenement.Code.ACTUALITE_MILO_MODIFIEE]: {
     categorie: 'Actualite',
     action: 'Modification'
+  },
+  [Evenement.Code.ACTUALITE_MILO_SUPPRIMEE]: {
+    categorie: 'Actualite',
+    action: 'Suppression'
   },
   [Evenement.Code.ACTUALITE_MILO_CONSULTATION]: {
     categorie: 'Actualite',
