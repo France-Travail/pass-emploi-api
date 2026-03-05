@@ -15,6 +15,7 @@ import {
 } from '../../domain/rendez-vous/rendez-vous'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { ActionSqlModel } from '../../infrastructure/sequelize/models/action.sql-model'
+import { ActualiteMiloSqlModel } from '../../infrastructure/sequelize/models/actualite-milo.sql-model'
 import { ArchiveJeuneSqlModel } from '../../infrastructure/sequelize/models/archive-jeune.sql-model'
 import { CacheApiPartenaireSqlModel } from '../../infrastructure/sequelize/models/cache-api-partenaire.sql-model'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
@@ -68,6 +69,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     let nombreHistoriqueRdvSupprimes = -1
     let nombreRecherchesSupprimees = -1
     let nombreComptageJeuneSupprimes = -1
+    let nombreActualitesMiloSupprimees = -1
 
     try {
       const jeunes = await JeuneSqlModel.findAll({
@@ -305,6 +307,15 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
       nbErreurs++
     }
 
+    try {
+      nombreActualitesMiloSupprimees = await ActualiteMiloSqlModel.destroy({
+        where: dateCreationActualiteSuperieureATroisMois(maintenant)
+      })
+    } catch (e) {
+      this.logger.warn(e)
+      nbErreurs++
+    }
+
     return {
       jobType: this.jobType,
       nbErreurs,
@@ -329,7 +340,8 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         nombreNotificationsJeuneSupprimes,
         nombreHistoriqueRdvSupprimes,
         nombreRecherchesSupprimees,
-        nombreComptageJeuneSupprimes
+        nombreComptageJeuneSupprimes,
+        nombreActualitesMiloSupprimees
       }
     }
   }
@@ -420,5 +432,13 @@ function dateConnexionSuperieureA60Jours(maintenant: DateTime): WhereOptions {
 function dateEcheanceSuperieureADeuxAns(maintenant: DateTime): WhereOptions {
   return {
     date_echeance: { [Op.lt]: maintenant.minus({ years: 2 }).toJSDate() }
+  }
+}
+
+function dateCreationActualiteSuperieureATroisMois(
+  maintenant: DateTime
+): WhereOptions {
+  return {
+    dateCreation: { [Op.lt]: maintenant.minus({ months: 3 }).toJSDate() }
   }
 }
