@@ -8,10 +8,8 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { peutVoirLesCampagnes } from '../../domain/core'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetCampagneQueryGetter } from './query-getters/get-campagne.query.getter.db'
-import { CampagneQueryModel } from './query-models/campagne.query-model'
 import { JeuneHomeActionQueryModel } from './query-models/home-jeune.query-model'
 
 export interface GetJeuneHomeActionsQuery extends Query {
@@ -31,17 +29,11 @@ export class GetJeuneHomeActionsQueryHandler extends QueryHandler<
   }
 
   async handle(
-    query: GetJeuneHomeActionsQuery,
-    utilisateur: Authentification.Utilisateur
+    query: GetJeuneHomeActionsQuery
   ): Promise<JeuneHomeActionQueryModel> {
-    const getCampagne = (): Promise<CampagneQueryModel | undefined> =>
-      peutVoirLesCampagnes(utilisateur.structure)
-        ? this.getCampagneQueryGetter.handle(query)
-        : Promise.resolve(undefined)
-
     const [actionsJeuneResult, campagne] = await Promise.all([
       this.recupererActionsDuBeneficiaire(query.idJeune),
-      getCampagne()
+      this.getCampagneQueryGetter.handle(query)
     ])
 
     return {

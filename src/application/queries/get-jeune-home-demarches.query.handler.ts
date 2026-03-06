@@ -3,14 +3,10 @@ import { Cached, Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import {
-  beneficiaireEstFTConnect,
-  peutVoirLesCampagnes
-} from '../../domain/core'
+import { beneficiaireEstFTConnect } from '../../domain/core'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetCampagneQueryGetter } from './query-getters/get-campagne.query.getter.db'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
-import { CampagneQueryModel } from './query-models/campagne.query-model'
 import { JeuneHomeDemarcheQueryModel } from './query-models/home-jeune.query-model'
 
 export interface GetJeuneHomeDemarchesQuery extends Query {
@@ -32,20 +28,14 @@ export class GetJeuneHomeDemarchesQueryHandler extends QueryHandler<
   }
 
   async handle(
-    query: GetJeuneHomeDemarchesQuery,
-    utilisateur: Authentification.Utilisateur
+    query: GetJeuneHomeDemarchesQuery
   ): Promise<Result<Cached<JeuneHomeDemarcheQueryModel>>> {
-    const getCampagne = (): Promise<CampagneQueryModel | undefined> =>
-      peutVoirLesCampagnes(utilisateur.structure)
-        ? this.getCampagneQueryGetter.handle({ idJeune: query.idJeune })
-        : Promise.resolve(undefined)
-
     const [demarches, campagne] = await Promise.all([
       this.getActionsJeunePoleEmploiQueryGetter.handle({
         ...query,
         tri: GetDemarchesQueryGetter.Tri.parSatutEtDateFin
       }),
-      getCampagne()
+      this.getCampagneQueryGetter.handle({ idJeune: query.idJeune })
     ])
 
     if (isFailure(demarches)) {

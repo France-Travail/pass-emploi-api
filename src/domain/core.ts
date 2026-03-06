@@ -81,7 +81,3 @@ export const structuresCampagnes = [
   Core.Structure.CONSEIL_DEPT,
   Core.Structure.AVENIR_PRO
 ]
-
-export function peutVoirLesCampagnes(structure: Core.Structure): boolean {
-  return structuresCampagnes.includes(structure)
-}

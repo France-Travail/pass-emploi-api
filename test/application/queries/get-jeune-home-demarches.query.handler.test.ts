@@ -50,13 +50,10 @@ describe('GetJeuneHomeDemarchesQueryHandler', () => {
           .resolves(campagneQueryModel)
 
         // When
-        const home = await getJeuneHomeDemarchesQueryHandler.handle(
-          {
-            idJeune: 'idJeune',
-            accessToken: 'token'
-          },
-          unUtilisateurJeune()
-        )
+        const home = await getJeuneHomeDemarchesQueryHandler.handle({
+          idJeune: 'idJeune',
+          accessToken: 'token'
+        })
 
         // Then
         expect(home).to.deep.equal(failure(new ErreurHttp("C'est cassé", 400)))
@@ -80,13 +77,10 @@ describe('GetJeuneHomeDemarchesQueryHandler', () => {
 
       it('retourne la campagne et les démarches', async () => {
         // When
-        const home = await getJeuneHomeDemarchesQueryHandler.handle(
-          {
-            idJeune: 'idJeune',
-            accessToken: 'token'
-          },
-          unUtilisateurJeune()
-        )
+        const home = await getJeuneHomeDemarchesQueryHandler.handle({
+          idJeune: 'idJeune',
+          accessToken: 'token'
+        })
 
         // Then
         const data: Cached<JeuneHomeDemarcheQueryModel> = {

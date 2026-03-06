@@ -10,11 +10,7 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import {
-  beneficiaireEstFTConnect,
-  Core,
-  peutVoirLesCampagnes
-} from '../../../domain/core'
+import { beneficiaireEstFTConnect, Core } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
 import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
@@ -104,14 +100,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
           donneesManquantes.push('Favoris')
           return []
         }),
-      peutVoirLesCampagnes(query.structure)
-        ? this.getCampagneQueryGetter
-            .handle({ idJeune: query.idJeune })
-            .catch(e => {
-              this.logger.error(e)
-              return undefined
-            })
-        : Promise.resolve(undefined)
+      this.getCampagneQueryGetter
+        .handle({ idJeune: query.idJeune })
+        .catch(e => {
+          this.logger.error(e)
+          return undefined
+        })
     ])
 
     const donneesManquantes: string[] = []
