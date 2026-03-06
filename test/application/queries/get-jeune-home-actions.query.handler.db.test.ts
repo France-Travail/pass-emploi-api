@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
@@ -10,14 +11,11 @@ import {
   getDatabase
 } from 'test/utils/database-for-testing'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
-import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetCampagneQueryGetter } from '../../../src/application/queries/query-getters/get-campagne.query.getter.db'
-import { Core } from '../../../src/domain/core'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneCampagneQueryModel } from '../../fixtures/campagne.fixture'
 import { uneActionQueryModel } from '../../fixtures/query-models/action.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../utils'
-import Structure = Core.Structure
 
 describe('GetJeuneHomeActionsQueryHandler', () => {
   let getCampagneQueryGetter: StubbedClass<GetCampagneQueryGetter>
@@ -72,10 +70,9 @@ describe('GetJeuneHomeActionsQueryHandler', () => {
 
     it('appelle les actions et la campagne en cours et les retourne', async () => {
       // When
-      const home = await getJeuneHomeActionsQueryHandler.handle(
-        { idJeune: idBeneficiaire },
-        unUtilisateurJeune()
-      )
+      const home = await getJeuneHomeActionsQueryHandler.handle({
+        idJeune: idBeneficiaire
+      })
 
       // Then
       expect(home).to.deep.equal({
@@ -86,10 +83,9 @@ describe('GetJeuneHomeActionsQueryHandler', () => {
 
     it('récupère la campagne en cours pour un bénéficiaire AIJ', async () => {
       // When
-      const home = await getJeuneHomeActionsQueryHandler.handle(
-        { idJeune: idBeneficiaire },
-        unUtilisateurJeune({ structure: Structure.POLE_EMPLOI_AIJ })
-      )
+      const home = await getJeuneHomeActionsQueryHandler.handle({
+        idJeune: idBeneficiaire
+      })
 
       // Then
       expect(home).to.deep.equal({
