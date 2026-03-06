@@ -191,6 +191,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       id: sessionSansInscription.id,
       estVisible: sessionSansInscription.estVisible,
       autoinscription: sessionSansInscription.autoinscription,
+      autodesinscription: sessionSansInscription.autodesinscription,
       idStructureMilo: sessionSansInscription.idStructureMilo,
       dateModification:
         sessionSansInscription.dateModification?.toJSDate() ?? new Date(),
@@ -338,6 +339,7 @@ function dtoToSessionMilo(
     nbPlacesDisponibles: sessionDto.nbPlacesDisponibles ?? undefined,
     estVisible: false,
     autoinscription: false,
+    autodesinscription: false,
     idStructureMilo: structureMilo.id,
     offre: dtoToOffre(offreDto),
     inscriptions: dtoToInscriptions(idSession, listeInscrits, jeunes),
@@ -354,9 +356,18 @@ function dtoToSessionMilo(
       }
     ).endOf('day')
   }
+  if (sessionDto.dateMaxDesinscription) {
+    session.dateMaxDesinscription = DateTime.fromISO(
+      sessionDto.dateMaxDesinscription,
+      {
+        zone: structureMilo.timezone
+      }
+    ).endOf('day')
+  }
   if (sessionSql) {
     session.estVisible = sessionSql.autoinscription || sessionSql.estVisible
     session.autoinscription = sessionSql.autoinscription
+    session.autodesinscription = sessionSql.autodesinscription
     session.dateModification = DateTime.fromJSDate(sessionSql.dateModification)
   }
   if (sessionDto.commentaire) session.commentaire = sessionDto.commentaire

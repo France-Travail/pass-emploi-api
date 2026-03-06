@@ -6,6 +6,7 @@ import { success } from 'src/building-blocks/types/result'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { DateService } from 'src/utils/date-service'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
@@ -26,6 +27,7 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
   let getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter
   let oidcClient: StubbedClass<OidcClient>
   let miloClient: StubbedClass<MiloClient>
+  let dateService: StubbedClass<DateService>
   let sandbox: SinonSandbox
 
   before(async () => {
@@ -35,9 +37,12 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
   beforeEach(async () => {
     oidcClient = stubClass(OidcClient)
     miloClient = stubClass(MiloClient)
+    dateService = stubClass(DateService)
+    dateService.now.returns(DateTime.fromISO('2020-04-01T00:00:00.000Z'))
     getSessionsQueryGetter = new GetSessionsJeuneMiloQueryGetter(
       oidcClient,
-      miloClient
+      miloClient,
+      dateService
     )
   })
 
@@ -320,6 +325,86 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
               dateHeureDebut: '2020-04-08T08:20:00.000Z',
               dateHeureFin: '2020-04-08T08:20:00.000Z',
               inscription: SessionMilo.Inscription.Statut.INSCRIT
+            })
+          ])
+        )
+      })
+    })
+
+    describe('règles dateMaxDesinscription', () => {
+      const idSessionExpiree = 33
+      const idSessionAutodesinscription = 44
+
+      beforeEach(async () => {
+        await SessionMiloSqlModel.create({
+          id: idSessionExpiree,
+          estVisible: true,
+          idStructureMilo: idStructureParis,
+          dateModification: DateTime.now().toJSDate()
+        })
+        await SessionMiloSqlModel.create({
+          id: idSessionAutodesinscription,
+          estVisible: true,
+          autodesinscription: true,
+          idStructureMilo: idStructureParis,
+          dateModification: DateTime.now().toJSDate()
+        })
+      })
+
+      it('exclut les sessions dont dateMaxInscription est dépassée', async () => {
+        // Given
+        const sessionExpiree = {
+          ...uneSessionDto,
+          id: idSessionExpiree,
+          dateHeureDebut: '2020-03-30 10:00:00',
+          dateMaxInscription: '2020-03-28'
+        }
+        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        miloClient.getSessionsParDossierJeune
+          .withArgs(idpToken)
+          .resolves(success([{ session: sessionExpiree, offre: uneOffreDto }]))
+
+        // When
+        const result = await getSessionsQueryGetter.handle(
+          jeuneParis.id,
+          accessToken,
+          { filtrerEstInscrit: false }
+        )
+
+        // Then
+        expect(result).to.deep.equal(success([]))
+      })
+
+      it('passe autodesinscription à false si dateMaxDesinscription est dépassée', async () => {
+        // Given — session sans dateMaxInscription, dateHeureDebut dans le passé (dateHeureDebut - 24h < maintenant)
+        const sessionDepassee = {
+          ...uneSessionDto,
+          id: idSessionAutodesinscription,
+          dateHeureDebut: '2020-03-30 10:00:00',
+          dateHeureFin: '2020-03-30 12:00:00',
+          dateMaxInscription: null
+        }
+        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        miloClient.getSessionsParDossierJeune
+          .withArgs(idpToken)
+          .resolves(success([{ session: sessionDepassee, offre: uneOffreDto }]))
+
+        // When
+        const result = await getSessionsQueryGetter.handle(
+          jeuneParis.id,
+          accessToken,
+          { filtrerEstInscrit: false }
+        )
+
+        // Then
+        expect(result).to.deep.equal(
+          success([
+            uneSessionJeuneMiloQueryModel({
+              id: idSessionAutodesinscription.toString(),
+              dateHeureDebut: '2020-03-30T08:00:00.000Z',
+              dateHeureFin: '2020-03-30T10:00:00.000Z',
+              dateMaxInscription: undefined,
+              autodesinscription: false
             })
           ])
         )

@@ -19,6 +19,7 @@ export const uneSessionConseillerMiloQueryModel: SessionConseillerMiloQueryModel
     nomOffre: 'Une-offre',
     estVisible: false,
     autoinscription: false,
+    autodesinscription: false,
     dateHeureDebut: '2020-04-06T13:20:00.000Z',
     dateHeureFin: '2020-04-08T13:20:00.000Z',
     type: {
@@ -44,6 +45,7 @@ export const uneSessionJeuneMiloQueryModel = (
       label: 'Atelier'
     },
     autoinscription: false,
+    autodesinscription: false,
     dateMaxInscription: '2020-04-07T21:59:59.999Z',
     nbPlacesRestantes: 10
   }
@@ -62,6 +64,7 @@ export const unDetailSessionConseillerMiloQueryModel: DetailSessionConseillerMil
       lieu: 'Un-lieu',
       estVisible: false,
       autoinscription: false,
+      autodesinscription: false,
       nbPlacesDisponibles: 10,
       commentaire: 'Un-commentaire',
       statut: SessionMilo.Statut.A_CLOTURER
@@ -92,8 +95,10 @@ export const unDetailSessionJeuneMiloQueryModel: DetailSessionJeuneMiloQueryMode
     description: 'Une-Desc',
     commentaire: 'Un-commentaire',
     dateMaxInscription: '2020-04-07T10:20:00.000Z',
+    dateMaxDesinscription: '2020-04-07T11:20:00.000Z',
     nbPlacesDisponibles: 10,
-    autoinscription: true
+    autoinscription: true,
+    autodesinscription: true
   }
 
 export const unAgendaConseillerMiloSessionListItemQueryModel = (
@@ -134,7 +139,9 @@ export const uneSessionMilo = (
     commentaire: 'Un-commentaire',
     estVisible: false,
     autoinscription: false,
+    autodesinscription: false,
     dateMaxInscription: DateTime.fromISO('2020-04-07T23:59:59.999Z'),
+    dateMaxDesinscription: DateTime.fromISO('2020-04-07T23:58:59.999Z'),
     debut: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
       zone: 'America/Cayenne'
     }),

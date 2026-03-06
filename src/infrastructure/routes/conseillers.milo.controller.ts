@@ -300,6 +300,7 @@ export class ConseillersMiloController {
       accessToken: accessToken,
       estVisible: updateSessionMiloPayload.estVisible,
       autoinscription: updateSessionMiloPayload.autoinscription,
+      autodesinscription: updateSessionMiloPayload.autodesinscription,
       inscriptions: updateSessionMiloPayload.inscriptions
     }
 

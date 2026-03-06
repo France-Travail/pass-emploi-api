@@ -81,6 +81,12 @@ export class UpdateSessionMiloPayload {
   @ApiProperty()
   @ValidateIf(isDefinedOrOthersAreUndefined)
   @IsDefined({ message: 'Au moins un des champs doit être renseigné' })
+  @IsBoolean()
+  autodesinscription?: boolean
+
+  @ApiProperty()
+  @ValidateIf(isDefinedOrOthersAreUndefined)
+  @IsDefined({ message: 'Au moins un des champs doit être renseigné' })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => InscriptionSessionMiloPayload)

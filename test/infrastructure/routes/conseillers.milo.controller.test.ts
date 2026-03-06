@@ -451,7 +451,8 @@ describe('ConseillersMiloController', () => {
         idSession: idSession,
         accessToken: 'coucou',
         inscriptions: undefined,
-        autoinscription: undefined
+        autoinscription: undefined,
+        autodesinscription: undefined
       }
 
       updateSessionCommandHandler.execute
@@ -483,7 +484,8 @@ describe('ConseillersMiloController', () => {
         idSession: idSession,
         accessToken: 'coucou',
         inscriptions: undefined,
-        estVisible: undefined
+        estVisible: undefined,
+        autodesinscription: undefined
       }
 
       updateSessionCommandHandler.execute
@@ -530,7 +532,8 @@ describe('ConseillersMiloController', () => {
         accessToken: 'coucou',
         inscriptions: listeInscrits,
         estVisible: undefined,
-        autoinscription: undefined
+        autoinscription: undefined,
+        autodesinscription: undefined
       }
 
       updateSessionCommandHandler.execute

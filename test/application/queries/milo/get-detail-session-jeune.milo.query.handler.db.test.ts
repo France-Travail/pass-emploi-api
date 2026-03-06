@@ -91,6 +91,7 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
         id: idSession.toString(),
         estVisible: true,
         autoinscription: true,
+        autodesinscription: true,
         idStructureMilo: structureMilo.id,
         dateModification: new Date(),
         dateCloture: null
@@ -181,7 +182,12 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
           .withArgs(idpToken, query.idSession)
           .resolves(
             success({
-              session: { ...uneSessionDto, id: idSession },
+              session: {
+                ...uneSessionDto,
+                id: idSession,
+                dateMaxInscription: '2020-04-06',
+                dateMaxDesinscription: '2020-04-07'
+              },
               offre: uneOffreDto,
               sessionInstance: { statut: MILO_REFUS_JEUNE }
             })
@@ -198,7 +204,8 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
             inscription: {
               statut: SessionMilo.Inscription.Statut.REFUS_JEUNE
             },
-            dateMaxInscription: '2020-04-08T02:59:59.999Z'
+            dateMaxInscription: '2020-04-07T02:59:59.999Z',
+            dateMaxDesinscription: '2020-04-08T02:59:59.999Z'
           })
         )
       })

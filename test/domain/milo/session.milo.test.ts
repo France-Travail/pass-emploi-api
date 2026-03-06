@@ -222,6 +222,204 @@ describe('SessionMilo', () => {
     }
   })
 
+  describe('estVisibleEffectif', () => {
+    it('retourne true si autoinscription est active, quelle que soit la visibilité', () => {
+      expect(SessionMilo.estVisibleEffectif(false, true)).to.be.true()
+    })
+
+    it('retourne true si la session est explicitement visible sans autoinscription', () => {
+      expect(SessionMilo.estVisibleEffectif(true, false)).to.be.true()
+    })
+
+    it("retourne false si ni la visibilité ni l'autoinscription ne sont actives", () => {
+      expect(SessionMilo.estVisibleEffectif(false, false)).to.be.false()
+    })
+  })
+
+  describe('modifier', () => {
+    const maintenant = DateTime.now()
+
+    it("force estVisible à true quand on active l'autoinscription", () => {
+      // Given
+      const session = uneSessionMilo({
+        estVisible: false,
+        autoinscription: false
+      })
+
+      // When
+      const result = SessionMilo.modifier(session, maintenant, {
+        nouvelleAutoinscription: true
+      })
+
+      // Then
+      expect(result.estVisible).to.be.true()
+      expect(result.autoinscription).to.be.true()
+    })
+
+    it("ne change pas la valeur de estVisible quand on désactive l'autoinscription sans visibilité explicite", () => {
+      // Given
+      const session = uneSessionMilo({
+        estVisible: false,
+        autoinscription: true
+      })
+
+      // When
+      const result = SessionMilo.modifier(session, maintenant, {
+        nouvelleAutoinscription: false
+      })
+
+      // Then
+      expect(result.estVisible).to.be.false()
+      expect(result.autoinscription).to.be.false()
+    })
+
+    it('met à jour estVisible indépendamment quand autoinscription reste inactive', () => {
+      // Given
+      const session = uneSessionMilo({
+        estVisible: false,
+        autoinscription: false
+      })
+
+      // When
+      const result = SessionMilo.modifier(session, maintenant, {
+        nouvelleVisibilite: true
+      })
+
+      // Then
+      expect(result.estVisible).to.be.true()
+      expect(result.autoinscription).to.be.false()
+    })
+
+    it('met à jour dateModification', () => {
+      // Given
+      const session = uneSessionMilo()
+
+      // When
+      const result = SessionMilo.modifier(session, maintenant)
+
+      // Then
+      expect(result.dateModification).to.deep.equal(maintenant)
+    })
+
+    describe('autodesinscription', () => {
+      it('peut être activée si autoinscription est active', () => {
+        // Given
+        const session = uneSessionMilo({
+          autoinscription: true,
+          autodesinscription: false
+        })
+
+        // When
+        const result = SessionMilo.modifier(session, maintenant, {
+          nouvelleAutoinscription: true,
+          nouvelleAutodesinscription: true
+        })
+
+        // Then
+        expect(result.autodesinscription).to.be.true()
+      })
+
+      it("conserve sa valeur quand autoinscription est active et aucune nouvelle valeur n'est fournie", () => {
+        // Given
+        const session = uneSessionMilo({
+          autoinscription: true,
+          autodesinscription: true
+        })
+
+        // When
+        const result = SessionMilo.modifier(session, maintenant, {
+          nouvelleAutoinscription: true
+        })
+
+        // Then
+        expect(result.autodesinscription).to.be.true()
+      })
+
+      it('est automatiquement désactivée si autoinscription est à false', () => {
+        // Given
+        const session = uneSessionMilo({
+          autoinscription: true,
+          autodesinscription: true
+        })
+
+        // When
+        const result = SessionMilo.modifier(session, maintenant, {
+          nouvelleAutoinscription: false,
+          nouvelleAutodesinscription: true
+        })
+
+        // Then
+        expect(result.autodesinscription).to.be.false()
+      })
+    })
+  })
+
+  describe('calculerDateMaxDesinscription', () => {
+    const dateHeureDebut = DateTime.fromISO('2020-04-06T10:00:00.000Z')
+
+    it('retourne dateMaxInscription si elle existe', () => {
+      // Given
+      const dateMaxInscription = DateTime.fromISO('2020-04-05T21:59:59.999Z')
+
+      // When
+      const result = SessionMilo.calculerDateMaxDesinscription(
+        dateHeureDebut,
+        dateMaxInscription
+      )
+
+      // Then
+      expect(result).to.deep.equal(dateMaxInscription)
+    })
+
+    it('retourne dateHeureDebut - 24h si dateMaxInscription est absente', () => {
+      // When
+      const result = SessionMilo.calculerDateMaxDesinscription(dateHeureDebut)
+
+      // Then
+      expect(result).to.deep.equal(DateTime.fromISO('2020-04-05T10:00:00.000Z'))
+    })
+  })
+
+  describe('autodesinscriptionEffectivePourBeneficiaire', () => {
+    const dateMaxDesinscription = DateTime.fromISO('2020-04-05T21:59:59.999Z')
+
+    it('retourne false si autodesinscription est false en config', () => {
+      // When
+      const result = SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
+        false,
+        dateMaxDesinscription,
+        DateTime.fromISO('2020-04-04T00:00:00.000Z')
+      )
+
+      // Then
+      expect(result).to.be.false()
+    })
+
+    it('retourne true si autodesinscription est true et maintenant <= dateMaxDesinscription', () => {
+      // When
+      const result = SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
+        true,
+        dateMaxDesinscription,
+        DateTime.fromISO('2020-04-04T00:00:00.000Z')
+      )
+
+      // Then
+      expect(result).to.be.true()
+    })
+
+    it('retourne false si autodesinscription est true mais dateMaxDesinscription dépassée', () => {
+      // When
+      const result = SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
+        true,
+        dateMaxDesinscription,
+        DateTime.fromISO('2020-04-06T00:00:00.000Z')
+      )
+
+      // Then
+      expect(result).to.be.false()
+    })
+  })
+
   describe('peutInscrireBeneficiaire', () => {
     it('réussi s’il n’y a pas de maximum de places', async () => {
       // When

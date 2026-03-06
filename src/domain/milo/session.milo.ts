@@ -5,10 +5,10 @@ import {
   NombrePlacesInsuffisantError
 } from 'src/building-blocks/types/domain-error'
 import {
-  Result,
   emptySuccess,
   failure,
   isFailure,
+  Result,
   success
 } from 'src/building-blocks/types/result'
 
@@ -23,10 +23,12 @@ export interface SessionMilo {
   lieu: string
   estVisible: boolean
   autoinscription: boolean
+  autodesinscription: boolean
   idStructureMilo: string
   offre: SessionMilo.Offre
   inscriptions: SessionMilo.Inscription[]
   dateMaxInscription?: DateTime
+  dateMaxDesinscription?: DateTime
   nbPlacesDisponibles?: number
   commentaire?: string
   dateModification?: DateTime
@@ -56,12 +58,26 @@ export type InscriptionsATraiter = {
   inscriptionsAModifier: Array<Omit<SessionMilo.Inscription, 'nom' | 'prenom'>>
 }
 
+export type ConfigurationLocale = {
+  estVisible: boolean
+  autoinscription: boolean
+  autodesinscription: boolean
+  dateCloture?: Date
+}
+
 export namespace SessionMilo {
   export enum StatutInstance {
     REALISE = 'Réalisé',
     PRESCRIT = 'Prescrit',
     REFUS_TIERS = 'Refus tiers',
     REFUS_JEUNE = 'Refus jeune'
+  }
+
+  export function estVisibleEffectif(
+    estVisible: boolean,
+    autoinscription: boolean
+  ): boolean {
+    return autoinscription || estVisible
   }
 
   function supprimerInscriptions(
@@ -74,15 +90,27 @@ export namespace SessionMilo {
   export function modifier(
     session: SessionMilo,
     dateModification: DateTime,
-    nouvelleVisibilite?: boolean,
-    nouvelleAutoinscription?: boolean
+    config?: {
+      nouvelleVisibilite?: boolean
+      nouvelleAutoinscription?: boolean
+      nouvelleAutodesinscription?: boolean
+    }
   ): Omit<SessionMilo, 'inscriptions'> {
-    const autoinscription = nouvelleAutoinscription ?? session.autoinscription
+    const autoinscription =
+      config?.nouvelleAutoinscription ?? session.autoinscription
+
+    const autodesinscription = autoinscription
+      ? (config?.nouvelleAutodesinscription ?? session.autodesinscription)
+      : false
 
     return {
       ...supprimerInscriptions(session),
-      estVisible: (autoinscription || nouvelleVisibilite) ?? session.estVisible,
+      estVisible: estVisibleEffectif(
+        config?.nouvelleVisibilite ?? session.estVisible,
+        autoinscription
+      ),
       autoinscription,
+      autodesinscription,
       dateModification
     }
   }
@@ -191,6 +219,21 @@ export namespace SessionMilo {
 
   export function estEmargeeMaisPasClose(statut: Statut): boolean {
     return statut === Statut.EMARGEE
+  }
+
+  export function calculerDateMaxDesinscription(
+    dateHeureDebut: DateTime,
+    dateMaxInscription?: DateTime
+  ): DateTime {
+    return dateMaxInscription ?? dateHeureDebut.minus({ hours: 24 })
+  }
+
+  export function autodesinscriptionEffectivePourBeneficiaire(
+    autodesinscription: boolean,
+    dateMaxDesinscription: DateTime,
+    maintenant: DateTime
+  ): boolean {
+    return autodesinscription && maintenant <= dateMaxDesinscription
   }
 
   export interface Repository {

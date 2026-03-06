@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common'
 import { Command } from 'src/building-blocks/types/command'
 import { CommandHandler } from 'src/building-blocks/types/command-handler'
 import {
-  Result,
   emptySuccess,
-  isFailure
+  isFailure,
+  Result
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { Conseiller } from 'src/domain/milo/conseiller'
@@ -19,8 +19,8 @@ import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { DateService } from '../../../utils/date-service'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import Inscription = SessionMilo.Inscription
 import { Evenement, EvenementService } from '../../../domain/evenement'
+import Inscription = SessionMilo.Inscription
 
 export interface UpdateSessionMiloCommand extends Command {
   idSession: string
@@ -28,6 +28,7 @@ export interface UpdateSessionMiloCommand extends Command {
   accessToken: string
   estVisible?: boolean
   autoinscription?: boolean
+  autodesinscription?: boolean
   inscriptions?: SessionMilo.Modification.Inscription[]
 }
 
@@ -79,8 +80,11 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
     const sessionModifiee = SessionMilo.modifier(
       session,
       this.dateService.now(),
-      command.estVisible,
-      command.autoinscription
+      {
+        nouvelleVisibilite: command.estVisible,
+        nouvelleAutoinscription: command.autoinscription,
+        nouvelleAutodesinscription: command.autodesinscription
+      }
     )
 
     const resultInscriptions = SessionMilo.extraireInscriptionsATraiter(

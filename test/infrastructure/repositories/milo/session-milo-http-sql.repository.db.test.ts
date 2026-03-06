@@ -201,6 +201,9 @@ describe('SessionMiloHttpSqlRepository', () => {
             dateMaxInscription: DateTime.fromISO('2020-04-07', {
               zone: structureConseiller.timezone
             }).endOf('day'),
+            dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
+              zone: structureConseiller.timezone
+            }).endOf('day'),
             inscriptions: [
               {
                 idJeune: 'id-hermione',

@@ -12,7 +12,7 @@ import {
   ConseillerMilo,
   ConseillerMiloRepositoryToken
 } from 'src/domain/milo/conseiller.milo.db'
-import { SessionMilo } from 'src/domain/milo/session.milo'
+import { ConfigurationLocale, SessionMilo } from 'src/domain/milo/session.milo'
 import { PlanificateurService } from 'src/domain/planificateur'
 import { SessionConseillerDetailDto } from 'src/infrastructure/clients/dto/milo.dto'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
@@ -125,11 +125,19 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
       const sessionSqlModel = sessionsSqlModels.find(
         ({ id }) => id === sessionMilo.session.id.toString()
       )
+      const parametrage: ConfigurationLocale | undefined = sessionSqlModel
+        ? {
+            estVisible: sessionSqlModel.estVisible,
+            autoinscription: sessionSqlModel.autoinscription,
+            autodesinscription: sessionSqlModel.autodesinscription,
+            dateCloture: sessionSqlModel.dateCloture ?? undefined
+          }
+        : undefined
       return mapSessionConseillerDtoToQueryModel(
         sessionMilo,
         structureMilo.timezone,
         this.dateService.now(),
-        sessionSqlModel
+        parametrage
       )
     })
   }
