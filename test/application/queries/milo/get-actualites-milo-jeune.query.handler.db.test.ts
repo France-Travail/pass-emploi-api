@@ -118,36 +118,22 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
 
       await ActualiteMiloSqlModel.upsert(actualite2)
 
-      const actualite3 = uneActualiteMilo({
-        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c4d',
-        titre: 'Actualité 3',
-        contenu: 'Contenu 3',
-        dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z'),
-        dateCreation: DateTime.fromISO('2024-01-02T10:00:00.000Z')
-      })
-
-      await ActualiteMiloSqlModel.upsert(actualite3)
-
       // When
       const result = await getActualitesMiloJeuneQueryHandler.handle({
         idJeune
       })
 
       // Then
-      expect(result.actualites).to.have.lengthOf(3)
-
-      expect(result.actualites[2].titre).to.equal('Actualité 1')
-      expect(result.actualites[2].contenu).to.equal('Contenu 1')
-      expect(result.actualites[2].prenomNomConseiller).to.exist()
-      expect(result.actualites[2].dateCreation).to.be.a('string')
-      expect(result.actualites[2].dateSuppression).to.be.undefined()
+      expect(result.actualites).to.have.lengthOf(2)
 
       expect(result.actualites[0].titre).to.equal('Actualité 2')
       expect(result.actualites[0].titreLien).to.equal('Lien 2')
       expect(result.actualites[0].lien).to.equal('https://example.com/2')
 
-      expect(result.actualites[1].titre).to.equal('Actualité 3')
-      expect(result.actualites[1].dateSuppression).to.be.a('string')
+      expect(result.actualites[1].titre).to.equal('Actualité 1')
+      expect(result.actualites[1].contenu).to.equal('Contenu 1')
+      expect(result.actualites[1].prenomNomConseiller).to.exist()
+      expect(result.actualites[1].dateCreation).to.be.a('string')
     })
 
     it("retourne un tableau vide si le jeune n'existe pas", async () => {

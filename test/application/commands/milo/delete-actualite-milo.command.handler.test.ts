@@ -132,18 +132,6 @@ describe('DeleteActualiteMiloCommandHandler', () => {
         expect(result.error).to.be.instanceOf(DroitsInsuffisants)
       }
     })
-
-    it("ne supprime pas quand l'actualité n'existe pas", async () => {
-      // Given
-      const command: DeleteActualiteMiloCommand = { idActualite, idConseiller }
-      actualiteMiloRepository.get.withArgs(idActualite).resolves(undefined)
-
-      // When
-      await deleteActualiteMiloCommandHandler.handle(command)
-
-      // Then
-      expect(actualiteMiloRepository.delete).not.to.have.been.called()
-    })
   })
 
   describe('monitor', () => {

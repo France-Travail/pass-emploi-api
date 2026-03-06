@@ -189,7 +189,7 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result.actualites).to.have.lengthOf(0)
     })
 
-    it('retourne une actualité avec date de suppression', async () => {
+    it('ne retourne pas les actualités soft-supprimées', async () => {
       // Given
       const conseillerMiloDto = unConseillerMiloDto(
         unConseillerDto({
@@ -204,8 +204,6 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       const actualite = uneActualiteMilo({
         idConseiller: idConseiller,
         idStructureMilo: structureMilo.id,
-        titreLien: 'Titre lien',
-        lien: 'https://example.com',
         dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
       })
 
@@ -218,9 +216,7 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       )
 
       // Then
-      expect(result.actualites[0].titreLien).to.equal('Titre lien')
-      expect(result.actualites[0].lien).to.equal('https://example.com')
-      expect(result.actualites[0].dateSuppression).to.be.a('string')
+      expect(result.actualites).to.have.lengthOf(0)
     })
 
     it('gère les champs optionnels undefined', async () => {
