@@ -20,6 +20,8 @@ import { ActualiteMiloSqlRepository } from '../../../../src/infrastructure/repos
 import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
+import { DateService } from '../../../../src/utils/date-service'
+import { uneDatetime } from '../../../fixtures/date.fixture'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
   let getActualitesMiloJeuneQueryHandler: GetActualitesMiloJeuneQueryHandler
@@ -32,12 +34,15 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
   const idStructureMilo = 'structure-milo-1'
   const idStructureMiloAutre = 'structure-milo-2'
   const utilisateur = unUtilisateurJeune({ id: idJeune })
+  const maintenant = uneDatetime()
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
+    const dateService: StubbedClass<DateService> = stubClass(DateService)
+    dateService.now.returns(maintenant)
     sandbox = createSandbox()
 
-    actualiteMiloRepository = new ActualiteMiloSqlRepository()
+    actualiteMiloRepository = new ActualiteMiloSqlRepository(dateService)
     jeuneMiloRepository = stubInterface(sandbox)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 

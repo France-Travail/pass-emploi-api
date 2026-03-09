@@ -400,6 +400,7 @@ export class ConseillersMiloController {
     summary: 'Récupère les actualités de la structure MILO du conseiller',
     description: 'Autorisé pour un conseiller MILO de la structure'
   })
+  @ApiResponse({ type: ActualitesMiloConseillerQueryModel })
   @Get(':idConseiller/actualites')
   async getActualites(
     @Param('idConseiller') idConseiller: string,

@@ -22,6 +22,7 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateService } from '../../../../src/utils/date-service'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import Suggestion = Recherche.Suggestion
+import { uneDatetime } from '../../../fixtures/date.fixture'
 
 describe('GetActualitesMiloConseillerQueryHandler', () => {
   let getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
@@ -30,7 +31,6 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
   let evenementService: EvenementService
   let evenementRepository: StubbedType<Evenement.Repository>
   let suggestionRepository: StubbedType<Suggestion.Repository>
-  let dateService: StubbedClass<DateService>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
 
   const idConseiller = 'conseiller-1'
@@ -43,20 +43,22 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
     id: idConseiller,
     structure: Core.Structure.MILO
   })
+  const maintenant = uneDatetime()
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
 
+    const dateService: StubbedClass<DateService> = stubClass(DateService)
+    dateService.now.returns(maintenant)
     const sandbox = createSandbox()
     evenementRepository = stubInterface(sandbox)
     suggestionRepository = stubInterface(sandbox)
-    dateService = stubClass(DateService)
     evenementService = new EvenementService(
       evenementRepository,
       dateService,
       suggestionRepository
     )
-    actualiteMiloRepository = new ActualiteMiloSqlRepository()
+    actualiteMiloRepository = new ActualiteMiloSqlRepository(dateService)
     conseillerMiloRepository = new ConseillerMiloSqlRepository()
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
 
@@ -178,36 +180,6 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       )
       await StructureMiloSqlModel.create(structureMilo)
       await ConseillerSqlModel.create(conseillerMiloDto)
-
-      // When
-      const result = await getActualitesMiloConseillerQueryHandler.handle(
-        { idConseiller },
-        utilisateur
-      )
-
-      // Then
-      expect(result.actualites).to.have.lengthOf(0)
-    })
-
-    it('ne retourne pas les actualités soft-supprimées', async () => {
-      // Given
-      const conseillerMiloDto = unConseillerMiloDto(
-        unConseillerDto({
-          id: idConseiller,
-          structure: Core.Structure.MILO
-        }),
-        structureMilo.id
-      )
-      await StructureMiloSqlModel.create(structureMilo)
-      await ConseillerSqlModel.create(conseillerMiloDto)
-
-      const actualite = uneActualiteMilo({
-        idConseiller: idConseiller,
-        idStructureMilo: structureMilo.id,
-        dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
-      })
-
-      await ActualiteMiloSqlModel.upsert(actualite)
 
       // When
       const result = await getActualitesMiloConseillerQueryHandler.handle(

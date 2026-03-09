@@ -3,6 +3,7 @@ import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { ActualiteMiloSqlRepository } from 'src/infrastructure/repositories/milo/actualite-milo-sql.repository.db'
 import { ActualiteMiloSqlModel } from 'src/infrastructure/sequelize/models/actualite-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { DateService } from 'src/utils/date-service'
 import { uneActualiteMilo } from '../../../fixtures/actualite-milo.fixture'
 import { expect } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
@@ -13,7 +14,9 @@ describe('ActualiteMiloSqlRepository', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    actualiteMiloSqlRepository = new ActualiteMiloSqlRepository()
+    actualiteMiloSqlRepository = new ActualiteMiloSqlRepository(
+      new DateService()
+    )
 
     // Créer la structure MILO requise (FK)
     await StructureMiloSqlModel.create({
@@ -300,13 +303,14 @@ describe('ActualiteMiloSqlRepository', () => {
       expect(actualites[0].lien).to.equal('https://example.com')
     })
 
-    it('ne retourne pas les actualités soft-supprimées', async () => {
+    it('retourne aussi les actualités soft-supprimées avec leur dateSuppression', async () => {
       // Given
+      const dateSuppression = DateTime.fromISO('2024-03-01T10:00:00.000Z')
       const actualiteActive = uneActualiteMilo({ idStructureMilo })
       const actualiteSupprimee = uneActualiteMilo({
         id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c9d',
         idStructureMilo,
-        dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
+        dateSuppression
       })
 
       await actualiteMiloSqlRepository.save(actualiteActive)
@@ -317,8 +321,13 @@ describe('ActualiteMiloSqlRepository', () => {
         await actualiteMiloSqlRepository.getByStructureMilo(idStructureMilo)
 
       // Then
-      expect(actualites).to.have.lengthOf(1)
-      expect(actualites[0].id).to.equal(actualiteActive.id)
+      expect(actualites).to.have.lengthOf(2)
+      const supprimee = actualites.find(
+        a => a.id === 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c9d'
+      )
+      expect(supprimee!.dateSuppression!.toISO()).to.equal(
+        dateSuppression.toISO()
+      )
     })
 
     it('retourne undefined pour les champs optionnels non définis', async () => {
