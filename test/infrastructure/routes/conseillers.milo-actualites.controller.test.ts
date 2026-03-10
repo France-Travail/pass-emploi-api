@@ -2,6 +2,7 @@ import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
 import { CreateActualiteMiloCommandHandler } from 'src/application/commands/milo/create-actualite-milo.command.handler'
 import { UpdateActualiteMiloCommandHandler } from 'src/application/commands/milo/update-actualite-milo.command.handler'
+import { DeleteActualiteMiloCommandHandler } from 'src/application/commands/milo/delete-actualite-milo.command.handler'
 import {
   DroitsInsuffisants,
   NonTrouveError
@@ -18,6 +19,7 @@ import { getApplicationWithStubbedDependencies } from '../../utils/module-for-te
 describe('ConseillersMiloController - Actualités', () => {
   let createActualiteMiloCommandHandler: StubbedClass<CreateActualiteMiloCommandHandler>
   let updateActualiteMiloCommandHandler: StubbedClass<UpdateActualiteMiloCommandHandler>
+  let deleteActualiteMiloCommandHandler: StubbedClass<DeleteActualiteMiloCommandHandler>
   let app: INestApplication
 
   before(async () => {
@@ -27,6 +29,9 @@ describe('ConseillersMiloController - Actualités', () => {
     )
     updateActualiteMiloCommandHandler = app.get(
       UpdateActualiteMiloCommandHandler
+    )
+    deleteActualiteMiloCommandHandler = app.get(
+      DeleteActualiteMiloCommandHandler
     )
   })
 
@@ -375,7 +380,7 @@ describe('ConseillersMiloController - Actualités', () => {
       expect(response.status).to.equal(HttpStatus.NOT_FOUND)
     })
 
-    it("retourne 403 si le conseiller n'est pas propriétaire de l'actualité", async () => {
+    it("retourne 403 si le conseiller n'est pas propriétaire", async () => {
       // Given
       updateActualiteMiloCommandHandler.execute.resolves(
         failure(new DroitsInsuffisants())
@@ -393,7 +398,76 @@ describe('ConseillersMiloController - Actualités', () => {
 
     ensureUserAuthenticationFailsIfInvalid(
       'put',
-      `/conseillers/milo/conseiller-1/actualites/actualite-1`
+      '/conseillers/milo/conseiller-1/actualites/actualite-1'
+    )
+  })
+
+  describe('DELETE /conseillers/milo/:idConseiller/actualites/:idActualite', () => {
+    const idConseiller = 'conseiller-1'
+    const idActualite = 'actualite-1'
+
+    it("supprime l'actualité et retourne 204", async () => {
+      // Given
+      deleteActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      const response = await request(app.getHttpServer())
+        .delete(`/conseillers/milo/${idConseiller}/actualites/${idActualite}`)
+        .set('authorization', unHeaderAuthorization())
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+    })
+
+    it('appelle le command handler avec les bons paramètres', async () => {
+      // Given
+      deleteActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      const utilisateur = unUtilisateurDecode()
+
+      // When
+      await request(app.getHttpServer())
+        .delete(`/conseillers/milo/${idConseiller}/actualites/${idActualite}`)
+        .set('authorization', unHeaderAuthorization())
+
+      // Then
+      expect(
+        deleteActualiteMiloCommandHandler.execute
+      ).to.have.been.calledWithMatch({ idActualite, idConseiller }, utilisateur)
+    })
+
+    it("retourne 404 si l'actualité n'existe pas", async () => {
+      // Given
+      deleteActualiteMiloCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Actualite', idActualite))
+      )
+
+      // When
+      const response = await request(app.getHttpServer())
+        .delete(`/conseillers/milo/${idConseiller}/actualites/${idActualite}`)
+        .set('authorization', unHeaderAuthorization())
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.NOT_FOUND)
+    })
+
+    it("retourne 403 si le conseiller n'est pas propriétaire", async () => {
+      // Given
+      deleteActualiteMiloCommandHandler.execute.resolves(
+        failure(new DroitsInsuffisants())
+      )
+
+      // When
+      const response = await request(app.getHttpServer())
+        .delete(`/conseillers/milo/${idConseiller}/actualites/${idActualite}`)
+        .set('authorization', unHeaderAuthorization())
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.FORBIDDEN)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'delete',
+      '/conseillers/milo/conseiller-1/actualites/actualite-1'
     )
   })
 })

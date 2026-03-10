@@ -3,6 +3,7 @@ import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { ActualiteMiloSqlRepository } from 'src/infrastructure/repositories/milo/actualite-milo-sql.repository.db'
 import { ActualiteMiloSqlModel } from 'src/infrastructure/sequelize/models/actualite-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { DateService } from 'src/utils/date-service'
 import { uneActualiteMilo } from '../../../fixtures/actualite-milo.fixture'
 import { expect } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
@@ -13,7 +14,9 @@ describe('ActualiteMiloSqlRepository', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    actualiteMiloSqlRepository = new ActualiteMiloSqlRepository()
+    actualiteMiloSqlRepository = new ActualiteMiloSqlRepository(
+      new DateService()
+    )
 
     // Créer la structure MILO requise (FK)
     await StructureMiloSqlModel.create({
@@ -145,6 +148,65 @@ describe('ActualiteMiloSqlRepository', () => {
     })
   })
 
+  describe('get', () => {
+    it("retourne l'actualité quand elle existe et n'est pas supprimée", async () => {
+      // Given
+      const actualite = uneActualiteMilo({ idStructureMilo })
+      await actualiteMiloSqlRepository.save(actualite)
+
+      // When
+      const result = await actualiteMiloSqlRepository.get(actualite.id)
+
+      // Then
+      expect(result).to.exist()
+      expect(result!.id).to.equal(actualite.id)
+    })
+
+    it('retourne undefined quand actualité soft-supprimée', async () => {
+      // Given
+      const actualite = uneActualiteMilo({
+        idStructureMilo,
+        dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
+      })
+      await actualiteMiloSqlRepository.save(actualite)
+
+      // When
+      const result = await actualiteMiloSqlRepository.get(actualite.id)
+
+      // Then
+      expect(result).to.be.undefined()
+    })
+  })
+
+  describe('delete', () => {
+    it("marque l'actualité comme supprimée via dateSuppression", async () => {
+      // Given
+      const actualite = uneActualiteMilo({ idStructureMilo })
+      await actualiteMiloSqlRepository.save(actualite)
+
+      // When
+      await actualiteMiloSqlRepository.delete(actualite.id)
+
+      // Then
+      const dto = await ActualiteMiloSqlModel.findByPk(actualite.id)
+      expect(dto).to.exist()
+      expect(dto!.dateSuppression).to.exist()
+    })
+
+    it("l'actualité supprimée n'est plus retournée par get", async () => {
+      // Given
+      const actualite = uneActualiteMilo({ idStructureMilo })
+      await actualiteMiloSqlRepository.save(actualite)
+      await actualiteMiloSqlRepository.delete(actualite.id)
+
+      // When
+      const result = await actualiteMiloSqlRepository.get(actualite.id)
+
+      // Then
+      expect(result).to.be.undefined()
+    })
+  })
+
   describe('getByStructureMilo', () => {
     it('retourne les actualités triées par date de création croissante', async () => {
       // Given
@@ -227,8 +289,7 @@ describe('ActualiteMiloSqlRepository', () => {
       const actualite = uneActualiteMilo({
         idStructureMilo,
         titreLien: 'Titre du lien',
-        lien: 'https://example.com',
-        dateSuppression: DateTime.fromISO('2024-03-01T10:00:00.000Z')
+        lien: 'https://example.com'
       })
 
       await actualiteMiloSqlRepository.save(actualite)
@@ -240,9 +301,32 @@ describe('ActualiteMiloSqlRepository', () => {
       // Then
       expect(actualites[0].titreLien).to.equal('Titre du lien')
       expect(actualites[0].lien).to.equal('https://example.com')
-      expect(actualites[0].dateSuppression).to.exist()
-      expect(actualites[0].dateSuppression).to.deep.equal(
-        DateTime.fromISO('2024-03-01T10:00:00.000Z')
+    })
+
+    it('retourne aussi les actualités soft-supprimées avec leur dateSuppression', async () => {
+      // Given
+      const dateSuppression = DateTime.fromISO('2024-03-01T10:00:00.000Z')
+      const actualiteActive = uneActualiteMilo({ idStructureMilo })
+      const actualiteSupprimee = uneActualiteMilo({
+        id: 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c9d',
+        idStructureMilo,
+        dateSuppression
+      })
+
+      await actualiteMiloSqlRepository.save(actualiteActive)
+      await actualiteMiloSqlRepository.save(actualiteSupprimee)
+
+      // When
+      const actualites =
+        await actualiteMiloSqlRepository.getByStructureMilo(idStructureMilo)
+
+      // Then
+      expect(actualites).to.have.lengthOf(2)
+      const supprimee = actualites.find(
+        a => a.id === 'f5a2bc3d-4e1f-6a7b-8c9d-0e1f2a3b4c9d'
+      )
+      expect(supprimee!.dateSuppression!.toISO()).to.equal(
+        dateSuppression.toISO()
       )
     })
 

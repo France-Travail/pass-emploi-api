@@ -1,24 +1,44 @@
-export interface ActualiteMiloBaseQueryModel {
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+
+export class ActualiteMiloBaseQueryModel {
+  @ApiProperty()
   titre: string
+
+  @ApiProperty()
   contenu: string
+
+  @ApiPropertyOptional()
   titreLien?: string
+
+  @ApiPropertyOptional()
   lien?: string
+
+  @ApiProperty()
   prenomNomConseiller: string
+
+  @ApiProperty()
   dateCreation: string
+
+  @ApiPropertyOptional()
   dateSuppression?: string
 }
 
-export type ActualiteMiloJeuneQueryModel = ActualiteMiloBaseQueryModel
+export class ActualiteMiloJeuneQueryModel extends ActualiteMiloBaseQueryModel {}
 
-export interface ActualiteMiloConseillerQueryModel extends ActualiteMiloBaseQueryModel {
+export class ActualiteMiloConseillerQueryModel extends ActualiteMiloBaseQueryModel {
+  @ApiProperty()
   id: string
+
+  @ApiProperty()
   proprietaire: boolean
 }
 
-export interface ActualitesMiloJeuneQueryModel {
+export class ActualitesMiloJeuneQueryModel {
+  @ApiProperty({ type: ActualiteMiloJeuneQueryModel, isArray: true })
   actualites: ActualiteMiloJeuneQueryModel[]
 }
 
-export interface ActualitesMiloConseillerQueryModel {
+export class ActualitesMiloConseillerQueryModel {
+  @ApiProperty({ type: ActualiteMiloConseillerQueryModel, isArray: true })
   actualites: ActualiteMiloConseillerQueryModel[]
 }

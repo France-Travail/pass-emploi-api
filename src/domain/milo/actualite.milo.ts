@@ -40,6 +40,7 @@ export namespace ActualiteMilo {
   export interface Repository {
     get(id: string): Promise<ActualiteMilo | undefined>
     save(actualite: ActualiteMilo): Promise<void>
+    delete(id: string): Promise<void>
     getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]>
   }
 
