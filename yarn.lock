@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1005.0":
-  version: 3.1005.0
-  resolution: "@aws-sdk/client-s3@npm:3.1005.0"
+"@aws-sdk/client-s3@npm:^3.1006.0":
+  version: 3.1006.0
+  resolution: "@aws-sdk/client-s3@npm:3.1006.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -224,9 +224,9 @@ __metadata:
     "@smithy/util-retry": "npm:^4.2.11"
     "@smithy/util-stream": "npm:^4.5.17"
     "@smithy/util-utf8": "npm:^4.2.2"
-    "@smithy/util-waiter": "npm:^4.2.11"
+    "@smithy/util-waiter": "npm:^4.2.12"
     tslib: "npm:^2.6.2"
-  checksum: 10/0e57dfa15bf610ff410ab1677adb118091031e8915688ff9376620caba1f073c788422a9f762ddf53828be99591e3ec518d62bc3f550ab8babcb0a04ccb38b7f
+  checksum: 10/c61b8652c87ff628497fb12ef33661475a670c5b2ccfa58e20f21e4895f85fe90cce1a5880bc12e70373d4e82d79579bc7c9bcdee9028c6e175a036c213923e6
   languageName: node
   linkType: hard
 
@@ -599,9 +599,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1005.0":
-  version: 3.1005.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1005.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1006.0":
+  version: 3.1006.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1006.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.7"
     "@aws-sdk/types": "npm:^3.973.5"
@@ -611,7 +611,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.3"
     "@smithy/types": "npm:^4.13.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/7900fbd0b1016f471c656f4681498184130dca29c89cf47d4fe766c0765dfca1578bc653cc43c6859cdbbd9675e6a888fa2b25bdcfd2db851922730ad4636220
+  checksum: 10/54cb3bd0ce1ba2259431dff4ff3009506f80cbb24a765b7ec82ec877308a75c0ea255c5eeb0be672ceab8a9c340a2966e4adee03c8761a3aca05ca65ba9ee2fc
   languageName: node
   linkType: hard
 
@@ -3053,14 +3053,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/util-waiter@npm:^4.2.11":
-  version: 4.2.11
-  resolution: "@smithy/util-waiter@npm:4.2.11"
+"@smithy/util-waiter@npm:^4.2.12":
+  version: 4.2.12
+  resolution: "@smithy/util-waiter@npm:4.2.12"
   dependencies:
     "@smithy/abort-controller": "npm:^4.2.11"
     "@smithy/types": "npm:^4.13.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/b33b552631a06c3b6787a27d4d9df2a32119f084696faad4cf470dcc8d45133926dd87a0d918f08043ac3ee35c946dd6b6cf9836b45751159a91f450b46fa02e
+  checksum: 10/56e9760c4c8b530109a9cbddc7445d1d64769c0ac95e54b3c86e1c65ff571ea16b0b76377549e176baa79b9221a06e4ba0902d38da9ae70569a8bbff50f52335
   languageName: node
   linkType: hard
 
@@ -9180,8 +9180,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1005.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1005.0"
+    "@aws-sdk/client-s3": "npm:^3.1006.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1006.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.16"
