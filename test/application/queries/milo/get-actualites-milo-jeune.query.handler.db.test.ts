@@ -21,6 +21,9 @@ import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { DateService } from '../../../../src/utils/date-service'
+import { Evenement, EvenementService } from '../../../../src/domain/evenement'
+import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
+import Suggestion = Recherche.Suggestion
 import { uneDatetime } from '../../../fixtures/date.fixture'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
@@ -28,6 +31,9 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
   let actualiteMiloRepository: ActualiteMiloSqlRepository
   let jeuneMiloRepository: StubbedType<JeuneMilo.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
+  let evenementService: EvenementService
+  let evenementRepository: StubbedType<Evenement.Repository>
+  let suggestionRepository: StubbedType<Suggestion.Repository>
   let sandbox: sinon.SinonSandbox
 
   const idJeune = 'jeune-milo-1'
@@ -40,15 +46,24 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
     await getDatabase().cleanPG()
     const dateService: StubbedClass<DateService> = stubClass(DateService)
     dateService.now.returns(maintenant)
+    dateService.nowJs.returns(maintenant.toJSDate())
     sandbox = createSandbox()
 
     actualiteMiloRepository = new ActualiteMiloSqlRepository(dateService)
+    evenementRepository = stubInterface(sandbox)
+    suggestionRepository = stubInterface(sandbox)
+    evenementService = new EvenementService(
+      evenementRepository,
+      dateService,
+      suggestionRepository
+    )
     jeuneMiloRepository = stubInterface(sandbox)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 
     getActualitesMiloJeuneQueryHandler = new GetActualitesMiloJeuneQueryHandler(
       actualiteMiloRepository,
       jeuneMiloRepository,
+      evenementService,
       jeuneAuthorizer
     )
 
@@ -240,6 +255,25 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       expect(result.actualites).to.have.lengthOf(1)
       expect(result.actualites[0]).not.to.have.property('id')
       expect(result.actualites[0]).not.to.have.property('proprietaire')
+    })
+  })
+
+  describe('monitor', () => {
+    it("crée un événement d'engagement de consultation d'actualités", async () => {
+      // Given
+      evenementRepository.save.resolves(emptySuccess())
+
+      // When
+      await getActualitesMiloJeuneQueryHandler.monitor(utilisateur)
+
+      // Then
+      expect(evenementRepository.save).to.have.been.calledWithExactly({
+        categorie: 'Actualite',
+        action: 'Consultation',
+        utilisateur,
+        code: Evenement.Code.ACTUALITE_MILO_CONSULTATION,
+        date: maintenant.toJSDate()
+      })
     })
   })
 })
