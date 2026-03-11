@@ -46,6 +46,7 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
     await getDatabase().cleanPG()
     const dateService: StubbedClass<DateService> = stubClass(DateService)
     dateService.now.returns(maintenant)
+    dateService.nowJs.returns(maintenant.toJSDate())
     sandbox = createSandbox()
 
     actualiteMiloRepository = new ActualiteMiloSqlRepository(dateService)
@@ -260,7 +261,6 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
   describe('monitor', () => {
     it("crée un événement d'engagement de consultation d'actualités", async () => {
       // Given
-      const maintenant = new Date('2024-06-01T10:00:00.000Z')
       evenementRepository.save.resolves(emptySuccess())
 
       // When
@@ -272,7 +272,7 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
         action: 'Consultation',
         utilisateur,
         code: Evenement.Code.ACTUALITE_MILO_CONSULTATION,
-        date: maintenant
+        date: maintenant.toJSDate()
       })
     })
   })
