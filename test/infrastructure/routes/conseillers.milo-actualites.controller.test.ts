@@ -188,44 +188,6 @@ describe('ConseillersMiloController - Actualités', () => {
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
     })
 
-    it("retourne 400 si le lien n'est pas une URL valide (http://)", async () => {
-      // Given
-      const payloadInvalide = {
-        titre: 'Titre',
-        contenu: 'Description',
-        titreLien: 'Lien',
-        lien: 'http://'
-      }
-
-      // When
-      const response = await request(app.getHttpServer())
-        .post(`/conseillers/milo/${idConseiller}/actualites`)
-        .set('authorization', unHeaderAuthorization())
-        .send(payloadInvalide)
-
-      // Then
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
-    })
-
-    it("retourne 400 si le lien n'est pas une URL valide (mauvais-lien)", async () => {
-      // Given
-      const payloadInvalide = {
-        titre: 'Titre',
-        contenu: 'Description',
-        titreLien: 'Lien',
-        lien: 'mauvais-lien'
-      }
-
-      // When
-      const response = await request(app.getHttpServer())
-        .post(`/conseillers/milo/${idConseiller}/actualites`)
-        .set('authorization', unHeaderAuthorization())
-        .send(payloadInvalide)
-
-      // Then
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
-    })
-
     it('retourne 400 si le titre du lien est fourni sans lien', async () => {
       // Given
       const payloadInvalide = {

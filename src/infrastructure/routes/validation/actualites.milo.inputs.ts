@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
   MaxLength,
   ValidateIf
 } from 'class-validator'
@@ -35,10 +34,5 @@ export class CreateOrUpdateActualiteMiloPayload {
   })
   @IsString()
   @MaxLength(2000)
-  @IsUrl({
-    require_protocol: true,
-    require_tld: false,
-    protocols: ['http', 'https']
-  })
   lien?: string
 }
