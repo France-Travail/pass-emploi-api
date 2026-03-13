@@ -85,6 +85,39 @@ describe('ConseillersMiloController - Actualités', () => {
       )
     })
 
+    it('appelle le command handler avec un lien sans protocole', async () => {
+      // Given
+      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      const utilisateur = unUtilisateurDecode()
+      const payloadSansProtocole = {
+        titre: 'Nouvelle actualité',
+        contenu: 'Description de actualité',
+        titreLien: 'En savoir plus',
+        lien: 'example.com'
+      }
+
+      // When
+      await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send(payloadSansProtocole)
+
+      // Then
+      expect(
+        createActualiteMiloCommandHandler.execute
+      ).to.have.been.calledWithMatch(
+        {
+          idConseiller,
+          prenomNomConseiller: `${utilisateur.prenom} ${utilisateur.nom}`,
+          titre: payloadSansProtocole.titre,
+          contenu: payloadSansProtocole.contenu,
+          titreLien: payloadSansProtocole.titreLien,
+          lien: payloadSansProtocole.lien
+        },
+        utilisateur
+      )
+    })
+
     it('crée une actualité sans lien optionnel', async () => {
       // Given
       const payloadSansLien = {
@@ -188,6 +221,63 @@ describe('ConseillersMiloController - Actualités', () => {
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
     })
 
+    it('accepte un lien avec protocole https (https://example.com)', async () => {
+      // Given
+      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      const response = await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          titre: 'Titre',
+          contenu: 'Description',
+          titreLien: 'Lien',
+          lien: 'https://example.com'
+        })
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+    })
+
+    it('accepte un lien avec protocole http (http://example.com)', async () => {
+      // Given
+      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      const response = await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          titre: 'Titre',
+          contenu: 'Description',
+          titreLien: 'Lien',
+          lien: 'http://example.com'
+        })
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+    })
+
+    it('accepte un lien sans protocole (example.com)', async () => {
+      // Given
+      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      const response = await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          titre: 'Titre',
+          contenu: 'Description',
+          titreLien: 'Lien',
+          lien: 'example.com'
+        })
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+    })
+
     it("retourne 400 si le lien n'est pas une URL valide (http://)", async () => {
       // Given
       const payloadInvalide = {
@@ -214,6 +304,44 @@ describe('ConseillersMiloController - Actualités', () => {
         contenu: 'Description',
         titreLien: 'Lien',
         lien: 'mauvais-lien'
+      }
+
+      // When
+      const response = await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send(payloadInvalide)
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
+    })
+
+    it('retourne 400 si le lien utilise un protocole non autorisé (tcp://)', async () => {
+      // Given
+      const payloadInvalide = {
+        titre: 'Titre',
+        contenu: 'Description',
+        titreLien: 'Lien',
+        lien: 'tcp://something'
+      }
+
+      // When
+      const response = await request(app.getHttpServer())
+        .post(`/conseillers/milo/${idConseiller}/actualites`)
+        .set('authorization', unHeaderAuthorization())
+        .send(payloadInvalide)
+
+      // Then
+      expect(response.status).to.equal(HttpStatus.BAD_REQUEST)
+    })
+
+    it('retourne 400 si le lien utilise un protocole non autorisé (ftp://)', async () => {
+      // Given
+      const payloadInvalide = {
+        titre: 'Titre',
+        contenu: 'Description',
+        titreLien: 'Lien',
+        lien: 'ftp://example.com'
       }
 
       // When

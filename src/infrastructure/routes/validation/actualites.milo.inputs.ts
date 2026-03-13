@@ -3,7 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   MaxLength,
   ValidateIf
 } from 'class-validator'
@@ -35,10 +35,9 @@ export class CreateOrUpdateActualiteMiloPayload {
   })
   @IsString()
   @MaxLength(2000)
-  @IsUrl({
-    require_protocol: true,
-    require_tld: false,
-    protocols: ['http', 'https']
+  @Matches(/^(https?:\/\/.+|(?!.*:\/\/).+\..+)$/, {
+    message:
+      'Le lien doit être une URL valide (avec ou sans protocole http/https)'
   })
   lien?: string
 }
