@@ -108,7 +108,8 @@ describe('JeuneConfigurationApplicationSqlRepository', () => {
           installationId: 'uneInstallationId',
           instanceId: 'yyy-yy-yyy',
           appVersion: 'uneAppVersion',
-          dateDerniereActualisationToken: uneDatetime().toJSDate()
+          dateDerniereActualisationToken: uneDatetime().toJSDate(),
+          fuseauHoraire: 'Europe/Paris'
         }
         await jeuneConfigurationApplicationSqlRepositorySql.save(
           configurationApplication
@@ -137,7 +138,8 @@ describe('JeuneConfigurationApplicationSqlRepository', () => {
           pushNotificationToken: 'unToken',
           installationId: 'uneInstallationId',
           appVersion: undefined,
-          dateDerniereActualisationToken: uneDatetime().toJSDate()
+          dateDerniereActualisationToken: uneDatetime().toJSDate(),
+          fuseauHoraire: 'Europe/Paris'
         }
         await jeuneConfigurationApplicationSqlRepositorySql.save(
           configurationApplication

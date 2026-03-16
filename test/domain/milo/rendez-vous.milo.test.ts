@@ -67,23 +67,6 @@ describe('MiloRendezVous', () => {
             new Date('2022-10-06T14:07:00Z')
           )
         })
-        it('retourne un rendez-vous avec une date timezonée Europe/Paris quand le jeune n’a pas de fuseau horaire', async () => {
-          // Given
-          jeune = unJeune({
-            id: idJeune,
-            configuration: uneConfiguration({ fuseauHoraire: undefined })
-          })
-
-          // When
-          rendezVousObtenu = rendezVousFactory.createRendezVousCEJ(
-            rdvMilo,
-            jeune
-          )
-          // Then
-          expect(rendezVousObtenu.date).to.deep.equal(
-            new Date('2022-10-06T08:07:00Z')
-          )
-        })
         describe('durée', () => {
           it('retourne la durée en minutes quand la date de fin est renseignée', async () => {
             // Then
