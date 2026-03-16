@@ -171,7 +171,7 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
       idSession,
       beneficiaire.idPartenaire,
       accesMiloBeneficiaire,
-      beneficiaire.configuration.fuseauHoraire ?? 'Europe/Paris'
+      beneficiaire.configuration.fuseauHoraire
     )
     if (isFailure(resultSession)) return resultSession
     const sessionAllegee = resultSession.data

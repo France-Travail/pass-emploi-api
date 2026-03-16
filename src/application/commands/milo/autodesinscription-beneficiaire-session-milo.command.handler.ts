@@ -95,7 +95,7 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
       command.idSession,
       beneficiaire.idPartenaire,
       accesMiloBeneficiaire,
-      beneficiaire.configuration.fuseauHoraire ?? 'Europe/Paris'
+      beneficiaire.configuration.fuseauHoraire
     )
     if (isFailure(resultSession)) return resultSession
     const session = resultSession.data

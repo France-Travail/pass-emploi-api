@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { TIMEZONE_PAR_DEFAUT } from '../../../domain/jeune/configuration-application'
 import { Jeune } from '../../../domain/jeune/jeune'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { fromSqlToPreferencesJeune } from '../mappers/jeunes.mappers'
@@ -48,7 +49,7 @@ function toConfigurationApplication(
     installationId: jeuneSqlModel.installationId ?? undefined,
     instanceId: jeuneSqlModel.instanceId ?? undefined,
     pushNotificationToken: jeuneSqlModel.pushNotificationToken ?? undefined,
-    fuseauHoraire: jeuneSqlModel.timezone ?? undefined,
+    fuseauHoraire: jeuneSqlModel.timezone ?? TIMEZONE_PAR_DEFAUT,
     dateDerniereActualisationToken:
       jeuneSqlModel.dateDerniereActualisationToken ?? undefined,
     preferences: fromSqlToPreferencesJeune(jeuneSqlModel)

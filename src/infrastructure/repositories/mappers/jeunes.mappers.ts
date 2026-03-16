@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { TIMEZONE_PAR_DEFAUT } from '../../../domain/jeune/configuration-application'
 import { Jeune } from '../../../domain/jeune/jeune'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 
@@ -72,6 +73,6 @@ export function toConfigurationApplication(
     dateDerniereActualisationToken:
       jeuneSqlModel.dateDerniereActualisationToken ?? undefined,
     pushNotificationToken: jeuneSqlModel.pushNotificationToken ?? undefined,
-    fuseauHoraire: jeuneSqlModel.timezone ?? undefined
+    fuseauHoraire: jeuneSqlModel.timezone ?? TIMEZONE_PAR_DEFAUT
   }
 }

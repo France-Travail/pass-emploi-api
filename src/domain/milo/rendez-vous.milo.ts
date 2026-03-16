@@ -46,7 +46,7 @@ export namespace RendezVousMilo {
     jeune: JeuneDuRendezVous
   ): DateTime {
     return DateTime.fromFormat(dateString, MILO_DATE_FORMAT, {
-      zone: jeune.configuration.fuseauHoraire ?? 'Europe/Paris'
+      zone: jeune.configuration.fuseauHoraire
     })
   }
 
