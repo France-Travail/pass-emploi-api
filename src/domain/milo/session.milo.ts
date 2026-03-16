@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import {
   BeneficiaireDejaInscritError,
+  DroitsInsuffisants,
   EmargementIncorrect,
   NombrePlacesInsuffisantError
 } from 'src/building-blocks/types/domain-error'
@@ -220,6 +221,25 @@ export namespace SessionMilo {
     return emptySuccess()
   }
 
+  export function peutDesinscrireBeneficiaire(
+    session: SessionMiloBeneficiaire,
+    maintenant: DateTime
+  ): Result {
+    if (!Inscription.estInscrit(session.statutInscription))
+      return failure(new DroitsInsuffisants())
+
+    if (
+      !autodesinscriptionEffectivePourBeneficiaire(
+        session.autodesinscription,
+        session.dateMaxDesinscription,
+        maintenant
+      )
+    )
+      return failure(new DroitsInsuffisants())
+
+    return emptySuccess()
+  }
+
   export function estEmargeeMaisPasClose(statut: Statut): boolean {
     return statut === Statut.EMARGEE
   }
@@ -266,6 +286,12 @@ export namespace SessionMilo {
 
     inscrireBeneficiaire(
       session: { id: string; dateDebut: DateTime },
+      idDossier: string,
+      tokenMiloConseiller: string
+    ): Promise<Result>
+
+    desinscrireBeneficiaire(
+      idSession: string,
       idDossier: string,
       tokenMiloConseiller: string
     ): Promise<Result>

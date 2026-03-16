@@ -24,6 +24,9 @@ export interface MessageIndividuel {
     id: string
     titre: string
   }
+  infoDesinscription?: {
+    motif: string
+  }
 }
 
 export interface MessageRecherche {
@@ -46,6 +49,7 @@ export namespace Chat {
     | 'NOUVEAU_CONSEILLER'
     | 'NOUVEAU_CONSEILLER_TEMPORAIRE'
     | 'AUTO_INSCRIPTION'
+    | 'AUTO_DESINSCRIPTION'
 
   export interface MessageACreer {
     message: string
