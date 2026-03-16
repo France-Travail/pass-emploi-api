@@ -105,7 +105,8 @@ export namespace Planificateur {
     NOTIFIER_CAMPAGNE = 'NOTIFIER_CAMPAGNE',
     NOTIFIER_ACTUALISATION = 'NOTIFIER_ACTUALISATION',
     CLORE_SESSIONS = 'CLORE_SESSIONS',
-    NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES'
+    NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES',
+    NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO'
   }
 
   export interface JobRendezVous {
@@ -175,6 +176,13 @@ export namespace Planificateur {
     push: boolean
     minutesEntreLesBatchs: number
     batchSize?: number
+  }
+
+  export interface JobNotifierNouvelleActualiteMilo {
+    idStructureMilo: string
+    idActualite: string
+    offset?: number
+    nbEnvoyees?: number
   }
 
   export interface JobFake {
