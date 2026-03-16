@@ -4,6 +4,7 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
   emptySuccess,
   failure,
+  isFailure,
   Result
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
@@ -14,10 +15,8 @@ import {
   ActualiteMiloRepositoryToken
 } from '../../../domain/milo/actualite.milo'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import {
-  Conseiller,
-  ConseillerRepositoryToken
-} from '../../../domain/milo/conseiller'
+import { Conseiller } from '../../../domain/milo/conseiller'
+import { ConseillerMiloRepositoryToken } from '../../../domain/milo/conseiller.milo.db'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
@@ -42,8 +41,8 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
     private readonly actualiteMiloFactory: ActualiteMilo.Factory,
     private readonly evenementService: EvenementService,
-    @Inject(ConseillerRepositoryToken)
-    private readonly conseillerRepository: Conseiller.Repository,
+    @Inject(ConseillerMiloRepositoryToken)
+    private readonly conseillerMiloRepository: Conseiller.Milo.Repository,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
     private readonly notificationService: Notification.Service
@@ -63,17 +62,17 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
   }
 
   async handle(command: CreateActualiteMiloCommand): Promise<Result> {
-    const conseiller = await this.conseillerRepository.get(command.idConseiller)
-    if (!conseiller) {
+    const resultConseiller = await this.conseillerMiloRepository.get(
+      command.idConseiller
+    )
+    if (isFailure(resultConseiller)) {
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
     }
 
-    if (conseiller.agence?.id === undefined) {
-      return failure(new NonTrouveError('Agence', conseiller.id))
-    }
+    const conseiller = resultConseiller.data
 
     const actualite = this.actualiteMiloFactory.creer({
-      idStructureMilo: conseiller.agence.id,
+      idStructureMilo: conseiller.structure.id,
       idConseiller: command.idConseiller,
       prenomNomConseiller: command.prenomNomConseiller,
       titre: command.titre,
@@ -85,7 +84,7 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     await this.actualiteMiloRepository.save(actualite)
 
     const jeunes = await this.jeuneRepository.findAllByIdStructureMilo(
-      conseiller.agence.id
+      conseiller.structure.id
     )
     this.notificationService.notifierNouvelleActualite(jeunes, actualite.id)
 
