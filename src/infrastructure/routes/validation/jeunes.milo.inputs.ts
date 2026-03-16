@@ -2,7 +2,9 @@ import {
   IsBoolean,
   IsDateString,
   IsNotEmpty,
-  IsOptional
+  IsOptional,
+  IsString,
+  MaxLength
 } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { transformStringToBoolean } from './utils/transformers'
@@ -42,4 +44,11 @@ export class GetPortefeuilleParams {
   @IsNotEmpty()
   @IsDateString()
   dateFin: string
+}
+
+export class DesinscrireSessionMiloPayload {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(250)
+  motif: string
 }

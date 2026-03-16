@@ -3,10 +3,12 @@ import * as APM from 'elastic-apm-node'
 import { DateTime } from 'luxon'
 import {
   emptySuccess,
+  failure,
   isFailure,
   Result,
   success
 } from 'src/building-blocks/types/result'
+import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
 import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
 import {
   InscriptionsATraiter,
@@ -212,6 +214,44 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     })
 
     return emptySuccess()
+  }
+
+  async desinscrireBeneficiaire(
+    idSession: string,
+    idDossier: string,
+    tokenMiloConseiller: string
+  ): Promise<Result> {
+    const resultInscrits = await this.miloClient.getListeInscritsSession(
+      tokenMiloConseiller,
+      idSession
+    )
+    if (isFailure(resultInscrits)) return resultInscrits
+
+    const inscrit = resultInscrits.data.find(
+      i => i.idDossier.toString() === idDossier
+    )
+    if (!inscrit) return failure(new DroitsInsuffisants())
+
+    const idInstanceSession = inscrit.idInstanceSession.toString()
+
+    supprimerRappelsInstanceSessionMilo(
+      idInstanceSession,
+      this.planificateurService,
+      this.logger,
+      this.apmService
+    )
+
+    return this.miloClient.modifierInscriptionJeunesSession(
+      tokenMiloConseiller,
+      [
+        {
+          idDossier,
+          idInstanceSession,
+          statut: MILO_REFUS_JEUNE,
+          commentaire: "Desinscription en autonomie depuis l'Application du CEJ"
+        }
+      ]
+    )
   }
 
   async inscrireBeneficiaire(
