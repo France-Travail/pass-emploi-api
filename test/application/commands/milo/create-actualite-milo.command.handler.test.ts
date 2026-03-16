@@ -9,14 +9,17 @@ import {
 import { NonTrouveError } from 'src/building-blocks/types/domain-error'
 import {
   emptySuccess,
+  failure,
   isFailure,
-  isSuccess
+  isSuccess,
+  success
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { Jeune } from 'src/domain/jeune/jeune'
 import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { Conseiller } from 'src/domain/milo/conseiller'
+import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
 import { Notification } from 'src/domain/notification/notification'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
@@ -27,7 +30,7 @@ import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 describe('CreateActualiteMiloCommandHandler', () => {
   let createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
   let actualiteMiloRepository: StubbedType<ActualiteMilo.Repository>
-  let conseillerRepository: StubbedType<Conseiller.Repository>
+  let conseillerMiloRepository: StubbedType<Conseiller.Milo.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let evenementService: StubbedClass<EvenementService>
@@ -35,12 +38,17 @@ describe('CreateActualiteMiloCommandHandler', () => {
   const idActualite = 'id-actualite'
   const date = DateTime.fromISO('2024-01-15T10:00:00.000Z')
   const idConseiller = 'conseiller-1'
-  const idAgence = 'agence-1'
+  const idStructureMilo = 'structure-milo-1'
+
+  const unConseillerMilo = (): ConseillerMilo => ({
+    id: idConseiller,
+    structure: { id: idStructureMilo, timezone: 'Europe/Paris' }
+  })
 
   beforeEach(async () => {
     const sandbox: SinonSandbox = createSandbox()
     actualiteMiloRepository = stubInterface(sandbox)
-    conseillerRepository = stubInterface(sandbox)
+    conseillerMiloRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     evenementService = stubClass(EvenementService)
@@ -55,7 +63,7 @@ describe('CreateActualiteMiloCommandHandler', () => {
       actualiteMiloRepository,
       new ActualiteMilo.Factory(idService, dateService),
       evenementService,
-      conseillerRepository,
+      conseillerMiloRepository,
       jeuneRepository,
       notificationService
     )
@@ -100,10 +108,9 @@ describe('CreateActualiteMiloCommandHandler', () => {
         titreLien: 'En savoir plus',
         lien: 'https://example.com'
       }
-      conseillerRepository.get.withArgs(idConseiller).resolves({
-        id: idConseiller,
-        agence: { id: idAgence }
-      } as Conseiller)
+      conseillerMiloRepository.get
+        .withArgs(idConseiller)
+        .resolves(success(unConseillerMilo()))
       actualiteMiloRepository.save.resolves()
 
       // When
@@ -115,7 +122,7 @@ describe('CreateActualiteMiloCommandHandler', () => {
       const savedActualite = actualiteMiloRepository.save.firstCall.args[0]
       expect(savedActualite).to.deep.equal({
         id: idActualite,
-        idStructureMilo: idAgence,
+        idStructureMilo,
         idConseiller,
         prenomNomConseiller: 'Nils Tavernier',
         titre: 'Nouvelle actualité',
@@ -137,10 +144,9 @@ describe('CreateActualiteMiloCommandHandler', () => {
         contenu: 'Description',
         lien: 'https://example.com'
       }
-      conseillerRepository.get.withArgs(idConseiller).resolves({
-        id: idConseiller,
-        agence: { id: idAgence }
-      } as Conseiller)
+      conseillerMiloRepository.get
+        .withArgs(idConseiller)
+        .resolves(success(unConseillerMilo()))
       actualiteMiloRepository.save.resolves()
 
       // When
@@ -161,10 +167,9 @@ describe('CreateActualiteMiloCommandHandler', () => {
         titre: 'Actualité sans lien',
         contenu: 'Description'
       }
-      conseillerRepository.get.withArgs(idConseiller).resolves({
-        id: idConseiller,
-        agence: { id: idAgence }
-      } as Conseiller)
+      conseillerMiloRepository.get
+        .withArgs(idConseiller)
+        .resolves(success(unConseillerMilo()))
       actualiteMiloRepository.save.resolves()
 
       // When
@@ -185,7 +190,9 @@ describe('CreateActualiteMiloCommandHandler', () => {
         titre: 'Titre',
         contenu: 'Contenu'
       }
-      conseillerRepository.get.withArgs(idConseiller).resolves(undefined)
+      conseillerMiloRepository.get
+        .withArgs(idConseiller)
+        .resolves(failure(new NonTrouveError('Conseiller', idConseiller)))
 
       // When
       const result = await createActualiteMiloCommandHandler.handle(command)
@@ -198,30 +205,6 @@ describe('CreateActualiteMiloCommandHandler', () => {
       }
     })
 
-    it("retourne une erreur quand le conseiller n'a pas d'agence", async () => {
-      // Given
-      const command: CreateActualiteMiloCommand = {
-        idConseiller,
-        prenomNomConseiller: 'Nils Tavernier',
-        titre: 'Titre',
-        contenu: 'Contenu'
-      }
-      conseillerRepository.get.withArgs(idConseiller).resolves({
-        id: idConseiller,
-        agence: undefined
-      } as Conseiller)
-
-      // When
-      const result = await createActualiteMiloCommandHandler.handle(command)
-
-      // Then
-      expect(isFailure(result)).to.be.true()
-      if (isFailure(result)) {
-        expect(result.error).to.be.instanceOf(NonTrouveError)
-        expect(result.error.message).to.contain('Agence')
-      }
-    })
-
     describe('notification', () => {
       it('envoie une notification aux jeunes de la structure après création', async () => {
         // Given
@@ -231,14 +214,13 @@ describe('CreateActualiteMiloCommandHandler', () => {
           titre: 'Titre',
           contenu: 'Contenu'
         }
-        conseillerRepository.get.withArgs(idConseiller).resolves({
-          id: idConseiller,
-          agence: { id: idAgence }
-        } as Conseiller)
+        conseillerMiloRepository.get
+          .withArgs(idConseiller)
+          .resolves(success(unConseillerMilo()))
         actualiteMiloRepository.save.resolves()
         const jeunes = [unJeune()]
         jeuneRepository.findAllByIdStructureMilo
-          .withArgs(idAgence)
+          .withArgs(idStructureMilo)
           .resolves(jeunes)
 
         // When
@@ -258,12 +240,13 @@ describe('CreateActualiteMiloCommandHandler', () => {
           titre: 'Titre',
           contenu: 'Contenu'
         }
-        conseillerRepository.get.withArgs(idConseiller).resolves({
-          id: idConseiller,
-          agence: { id: idAgence }
-        } as Conseiller)
+        conseillerMiloRepository.get
+          .withArgs(idConseiller)
+          .resolves(success(unConseillerMilo()))
         actualiteMiloRepository.save.resolves()
-        jeuneRepository.findAllByIdStructureMilo.withArgs(idAgence).resolves([])
+        jeuneRepository.findAllByIdStructureMilo
+          .withArgs(idStructureMilo)
+          .resolves([])
 
         // When
         await createActualiteMiloCommandHandler.handle(command)
