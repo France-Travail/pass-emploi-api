@@ -15,11 +15,16 @@ import {
   ActualiteMiloRepositoryToken
 } from '../../../domain/milo/actualite.milo'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import { Conseiller } from '../../../domain/milo/conseiller'
-import { ConseillerMiloRepositoryToken } from '../../../domain/milo/conseiller.milo.db'
+import {
+  ConseillerMilo,
+  ConseillerMiloRepositoryToken
+} from '../../../domain/milo/conseiller.milo.db'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
-import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
-import { Notification } from '../../../domain/notification/notification'
+import {
+  Planificateur,
+  PlanificateurRepositoryToken
+} from '../../../domain/planificateur'
+import { DateService } from '../../../utils/date-service'
 
 export interface CreateActualiteMiloCommand extends Command {
   idConseiller: string
@@ -42,10 +47,10 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     private readonly actualiteMiloFactory: ActualiteMilo.Factory,
     private readonly evenementService: EvenementService,
     @Inject(ConseillerMiloRepositoryToken)
-    private readonly conseillerMiloRepository: Conseiller.Milo.Repository,
-    @Inject(JeuneRepositoryToken)
-    private readonly jeuneRepository: Jeune.Repository,
-    private readonly notificationService: Notification.Service
+    private readonly conseillerMiloRepository: ConseillerMilo.Repository,
+    @Inject(PlanificateurRepositoryToken)
+    private readonly planificateurRepository: Planificateur.Repository,
+    private readonly dateService: DateService
   ) {
     super('CreateActualiteMiloCommandHandler')
   }
@@ -83,10 +88,16 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
 
     await this.actualiteMiloRepository.save(actualite)
 
-    const jeunes = await this.jeuneRepository.findAllByIdStructureMilo(
-      conseiller.structure.id
+    await this.planificateurRepository.ajouterJob<Planificateur.JobNotifierNouvelleActualiteMilo>(
+      {
+        dateExecution: this.dateService.nowJs(),
+        type: Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO,
+        contenu: {
+          idStructureMilo: conseiller.structure.id,
+          idActualite: actualite.id
+        }
+      }
     )
-    this.notificationService.notifierNouvelleActualite(jeunes, actualite.id)
 
     return emptySuccess()
   }

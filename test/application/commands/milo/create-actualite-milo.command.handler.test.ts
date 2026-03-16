@@ -16,25 +16,22 @@ import {
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
-import { Jeune } from 'src/domain/jeune/jeune'
 import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
-import { Conseiller } from 'src/domain/milo/conseiller'
 import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
-import { Notification } from 'src/domain/notification/notification'
+import { Planificateur } from 'src/domain/planificateur'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
-import { unJeune } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 
 describe('CreateActualiteMiloCommandHandler', () => {
   let createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
   let actualiteMiloRepository: StubbedType<ActualiteMilo.Repository>
-  let conseillerMiloRepository: StubbedType<Conseiller.Milo.Repository>
-  let jeuneRepository: StubbedType<Jeune.Repository>
+  let conseillerMiloRepository: StubbedType<ConseillerMilo.Repository>
+  let planificateurRepository: StubbedType<Planificateur.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let evenementService: StubbedClass<EvenementService>
-  let notificationService: StubbedClass<Notification.Service>
+  let dateService: StubbedClass<DateService>
   const idActualite = 'id-actualite'
   const date = DateTime.fromISO('2024-01-15T10:00:00.000Z')
   const idConseiller = 'conseiller-1'
@@ -49,14 +46,14 @@ describe('CreateActualiteMiloCommandHandler', () => {
     const sandbox: SinonSandbox = createSandbox()
     actualiteMiloRepository = stubInterface(sandbox)
     conseillerMiloRepository = stubInterface(sandbox)
-    jeuneRepository = stubInterface(sandbox)
+    planificateurRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     evenementService = stubClass(EvenementService)
-    notificationService = stubClass(Notification.Service)
-    const dateService = stubClass(DateService)
+    dateService = stubClass(DateService)
     const idService = stubClass(IdService)
     idService.uuid.returns(idActualite)
     dateService.now.returns(date)
+    dateService.nowJs.returns(date.toJSDate())
 
     createActualiteMiloCommandHandler = new CreateActualiteMiloCommandHandler(
       conseillerAuthorizer,
@@ -64,8 +61,8 @@ describe('CreateActualiteMiloCommandHandler', () => {
       new ActualiteMilo.Factory(idService, dateService),
       evenementService,
       conseillerMiloRepository,
-      jeuneRepository,
-      notificationService
+      planificateurRepository,
+      dateService
     )
   })
 
@@ -205,56 +202,31 @@ describe('CreateActualiteMiloCommandHandler', () => {
       }
     })
 
-    describe('notification', () => {
-      it('envoie une notification aux jeunes de la structure après création', async () => {
-        // Given
-        const command: CreateActualiteMiloCommand = {
-          idConseiller,
-          prenomNomConseiller: 'Nils Tavernier',
-          titre: 'Titre',
-          contenu: 'Contenu'
-        }
-        conseillerMiloRepository.get
-          .withArgs(idConseiller)
-          .resolves(success(unConseillerMilo()))
-        actualiteMiloRepository.save.resolves()
-        const jeunes = [unJeune()]
-        jeuneRepository.findAllByIdStructureMilo
-          .withArgs(idStructureMilo)
-          .resolves(jeunes)
+    it('enqueue un job de notification après création', async () => {
+      // Given
+      const command: CreateActualiteMiloCommand = {
+        idConseiller,
+        prenomNomConseiller: 'Nils Tavernier',
+        titre: 'Titre',
+        contenu: 'Contenu'
+      }
+      conseillerMiloRepository.get
+        .withArgs(idConseiller)
+        .resolves(success(unConseillerMilo()))
+      actualiteMiloRepository.save.resolves()
 
-        // When
-        await createActualiteMiloCommandHandler.handle(command)
+      // When
+      await createActualiteMiloCommandHandler.handle(command)
 
-        // Then
-        expect(
-          notificationService.notifierNouvelleActualite
-        ).to.have.been.calledOnceWithExactly(jeunes, idActualite)
-      })
-
-      it("n'envoie pas de notification si aucun jeune dans la structure", async () => {
-        // Given
-        const command: CreateActualiteMiloCommand = {
-          idConseiller,
-          prenomNomConseiller: 'Nils Tavernier',
-          titre: 'Titre',
-          contenu: 'Contenu'
-        }
-        conseillerMiloRepository.get
-          .withArgs(idConseiller)
-          .resolves(success(unConseillerMilo()))
-        actualiteMiloRepository.save.resolves()
-        jeuneRepository.findAllByIdStructureMilo
-          .withArgs(idStructureMilo)
-          .resolves([])
-
-        // When
-        await createActualiteMiloCommandHandler.handle(command)
-
-        // Then
-        expect(
-          notificationService.notifierNouvelleActualite
-        ).to.have.been.calledOnceWithExactly([], idActualite)
+      // Then
+      expect(planificateurRepository.ajouterJob).to.have.been.calledOnce()
+      const jobArgs = planificateurRepository.ajouterJob.firstCall.args[0]
+      expect(jobArgs.type).to.equal(
+        Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO
+      )
+      expect(jobArgs.contenu).to.deep.equal({
+        idStructureMilo,
+        idActualite
       })
     })
   })

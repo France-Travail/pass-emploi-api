@@ -141,6 +141,7 @@ import { NettoyerPiecesJointesJobHandler } from './application/jobs/nettoyer-pie
 import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-0-heures-declarees.job.handler.db'
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
 import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
+import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
 import { NotifierRappelActionJobHandler } from './application/jobs/notifier-rappel-action.job.handler'
@@ -919,7 +920,8 @@ export const JobHandlerProviders = [
   NotifierCampagneJobHandler,
   NotifierActualisationJobHandler,
   Notifier0HeuresDeclareesJobHandler,
-  NotifierBeneficiairesJobHandler
+  NotifierBeneficiairesJobHandler,
+  NotifierNouvelleActualiteMiloJobHandler
 ]
 
 @Module(buildModuleMetadata())
