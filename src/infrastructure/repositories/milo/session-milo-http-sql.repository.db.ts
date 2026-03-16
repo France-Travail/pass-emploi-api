@@ -12,7 +12,7 @@ import {
   InscriptionsATraiter,
   InstanceSessionMilo,
   SessionMilo,
-  SessionMiloAllegeeForBeneficiaire
+  SessionMiloBeneficiaire
 } from 'src/domain/milo/session.milo'
 import {
   PlanificateurService,
@@ -75,28 +75,41 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     idDossier: string,
     tokenMiloBeneficiaire: string,
     timezone: string
-  ): Promise<Result<SessionMiloAllegeeForBeneficiaire>> {
-    const resultSession = await this.miloClient.getDetailSessionJeune(
-      tokenMiloBeneficiaire,
-      idSession,
-      idDossier,
-      timezone
-    )
+  ): Promise<Result<SessionMiloBeneficiaire>> {
+    const [resultSession, sessionSqlModel] = await Promise.all([
+      this.miloClient.getDetailSessionJeune(
+        tokenMiloBeneficiaire,
+        idSession,
+        idDossier,
+        timezone
+      ),
+      SessionMiloSqlModel.findByPk(idSession)
+    ])
     if (isFailure(resultSession)) {
       return resultSession
     }
     const { session, sessionInstance } = resultSession.data
 
+    const debut = DateTime.fromFormat(session.dateHeureDebut, FORMAT_DATETIME_MILO, {
+      zone: timezone
+    })
+    const dateMaxInscriptionDt = session.dateMaxInscription
+      ? DateTime.fromISO(session.dateMaxInscription, { zone: timezone }).endOf('day')
+      : undefined
+
     return success({
       id: idSession,
       nom: session.nom,
-      debut: DateTime.fromFormat(session.dateHeureDebut, FORMAT_DATETIME_MILO, {
-        zone: timezone
-      }),
+      debut,
       nbPlacesDisponibles: session.nbPlacesDisponibles ?? undefined,
       statutInscription: sessionInstance
         ? dtoToStatutInscription(sessionInstance?.statut, idSession, idDossier)
-        : undefined
+        : undefined,
+      autodesinscription: sessionSqlModel?.autodesinscription ?? false,
+      dateMaxDesinscription: SessionMilo.calculerDateMaxDesinscription(
+        debut,
+        dateMaxInscriptionDt
+      )
     })
   }
 

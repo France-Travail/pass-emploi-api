@@ -35,11 +35,14 @@ export interface SessionMilo {
   dateCloture?: DateTime
 }
 
-export type SessionMiloAllegeeForBeneficiaire = Pick<
-  SessionMilo,
-  'id' | 'nom' | 'debut' | 'nbPlacesDisponibles'
-> & {
+export interface SessionMiloBeneficiaire {
+  id: string
+  nom: string
+  debut: DateTime
+  nbPlacesDisponibles?: number
   statutInscription?: SessionMilo.Inscription.Statut
+  autodesinscription: boolean
+  dateMaxDesinscription: DateTime
 }
 
 export interface InstanceSessionMilo {
@@ -206,7 +209,7 @@ export namespace SessionMilo {
   }
 
   export function peutInscrireBeneficiaire(
-    session: SessionMiloAllegeeForBeneficiaire
+    session: SessionMiloBeneficiaire
   ): Result {
     if (Inscription.estInscrit(session.statutInscription))
       return failure(new BeneficiaireDejaInscritError())
@@ -247,7 +250,7 @@ export namespace SessionMilo {
       idDossier: string,
       tokenMiloBeneficiaire: string,
       timezone: string
-    ): Promise<Result<SessionMiloAllegeeForBeneficiaire>>
+    ): Promise<Result<SessionMiloBeneficiaire>>
 
     getForConseiller(
       idSession: string,

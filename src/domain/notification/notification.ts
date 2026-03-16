@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { SessionMiloAllegeeForBeneficiaire } from 'src/domain/milo/session.milo'
+import { SessionMiloBeneficiaire } from 'src/domain/milo/session.milo'
 import { DateService } from '../../utils/date-service'
 import { Action } from '../action/action'
 import { Core, beneficiaireEstFTConnect, estMilo } from '../core'
@@ -500,7 +500,7 @@ export namespace Notification {
     }
 
     async notifierAutoinscriptionSession(
-      session: SessionMiloAllegeeForBeneficiaire,
+      session: SessionMiloBeneficiaire,
       jeune: Jeune
     ): Promise<void> {
       if (
@@ -807,7 +807,7 @@ export namespace Notification {
 
   function creerNotificationAutoinscriptionSession(
     token: string,
-    session: SessionMiloAllegeeForBeneficiaire
+    session: SessionMiloBeneficiaire
   ): Notification.Message {
     const date = session.debut.toFormat("dd/MM/yyyy à HH'h'mm")
 

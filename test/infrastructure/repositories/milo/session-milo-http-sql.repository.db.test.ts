@@ -8,7 +8,7 @@ import {
 } from 'src/building-blocks/types/result'
 import {
   SessionMilo,
-  SessionMiloAllegeeForBeneficiaire
+  SessionMiloBeneficiaire
 } from 'src/domain/milo/session.milo'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { SessionMiloHttpSqlRepository } from 'src/infrastructure/repositories/milo/session-milo-http-sql.repository.db'
@@ -517,7 +517,7 @@ describe('SessionMiloHttpSqlRepository', () => {
       // Then
       expect(isSuccess(result)).to.be.true()
       expect(
-        (result as Success<SessionMiloAllegeeForBeneficiaire>).data
+        (result as Success<SessionMiloBeneficiaire>).data
       ).to.deep.equal({
         id: 'idSession',
         nom: 'Une-session',
