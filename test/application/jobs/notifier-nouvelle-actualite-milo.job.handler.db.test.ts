@@ -7,6 +7,7 @@ import { Planificateur } from 'src/domain/planificateur'
 import { SuiviJob } from 'src/domain/suivi-job'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
+import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { DateService } from 'src/utils/date-service'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
@@ -14,12 +15,14 @@ import {
   unJeuneDto,
   unJeuneMiloDto
 } from '../../fixtures/sql-models/jeune.sql-model'
+import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { createSandbox, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 
 const idStructureMilo = 'structure-1'
 const idActualite = 'actualite-1'
 const maintenant = uneDatetime()
+const BATCH_SIZE_TEST = 2
 
 describe('NotifierNouvelleActualiteMiloJobHandler', () => {
   let handler: NotifierNouvelleActualiteMiloJobHandler
@@ -47,8 +50,12 @@ describe('NotifierNouvelleActualiteMiloJobHandler', () => {
       dateService,
       planificateurRepository
     )
+    handler.batchSize = BATCH_SIZE_TEST
 
-    await ConseillerSqlModel.create(unConseillerDto({ id: 'conseiller-1' }))
+    await StructureMiloSqlModel.create(
+      uneStructureMiloDto({ id: idStructureMilo })
+    )
+    await ConseillerSqlModel.create(unConseillerDto({ id: '1' }))
   })
 
   after(() => {
@@ -165,18 +172,18 @@ describe('NotifierNouvelleActualiteMiloJobHandler', () => {
       expect(notification.data.id).to.equal(idActualite)
     })
 
-    it('programme un job suivant quand le batch est plein (100 jeunes)', async () => {
-      // Given
-      const jeunes = Array.from({ length: 100 }, (_, i) =>
+    it('programme un job suivant quand le batch est plein', async () => {
+      // Given — exactement BATCH_SIZE_TEST (2) jeunes
+      await JeuneSqlModel.bulkCreate([
         unJeuneMiloDto(
-          unJeuneDto({
-            id: `j-batch-${i}`,
-            pushNotificationToken: `token-${i}`
-          }),
+          unJeuneDto({ id: 'j-b1', pushNotificationToken: 'token-b1' }),
+          idStructureMilo
+        ),
+        unJeuneMiloDto(
+          unJeuneDto({ id: 'j-b2', pushNotificationToken: 'token-b2' }),
           idStructureMilo
         )
-      )
-      await JeuneSqlModel.bulkCreate(jeunes)
+      ])
 
       const job = unJob({
         idStructureMilo,
@@ -194,13 +201,14 @@ describe('NotifierNouvelleActualiteMiloJobHandler', () => {
       expect(nextJob.type).to.equal(
         Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO
       )
-      expect(nextJob.contenu?.offset).to.equal(100)
+      expect(nextJob.contenu?.offset).to.equal(BATCH_SIZE_TEST)
+      expect(nextJob.contenu?.nbEnvoyees).to.equal(2)
       expect(nextJob.contenu?.idActualite).to.equal(idActualite)
       expect(nextJob.contenu?.idStructureMilo).to.equal(idStructureMilo)
     })
 
     it('ne programme pas de job suivant quand le batch est incomplet', async () => {
-      // Given
+      // Given — 1 seul jeune (< BATCH_SIZE_TEST)
       await JeuneSqlModel.create(
         unJeuneMiloDto(
           unJeuneDto({ id: 'j6', pushNotificationToken: 'token-j6' }),
@@ -218,19 +226,18 @@ describe('NotifierNouvelleActualiteMiloJobHandler', () => {
     })
 
     it('reprend depuis le bon offset', async () => {
-      // Given
+      // Given — 2 jeunes, on simule un 2e batch avec offset=1 → ne traite que j-o2
       await JeuneSqlModel.bulkCreate([
         unJeuneMiloDto(
-          unJeuneDto({ id: 'j7', pushNotificationToken: 'token-j7' }),
+          unJeuneDto({ id: 'j-o1', pushNotificationToken: 'token-o1' }),
           idStructureMilo
         ),
         unJeuneMiloDto(
-          unJeuneDto({ id: 'j8', pushNotificationToken: 'token-j8' }),
+          unJeuneDto({ id: 'j-o2', pushNotificationToken: 'token-o2' }),
           idStructureMilo
         )
       ])
 
-      // On simule un 2e batch avec offset=1 → ne traite que j8
       const job = unJob({
         idStructureMilo,
         idActualite,
@@ -243,6 +250,7 @@ describe('NotifierNouvelleActualiteMiloJobHandler', () => {
 
       // Then
       expect(notificationRepository.send).to.have.been.calledOnce()
+      expect(notificationRepository.send.firstCall.args[1]).to.equal('j-o2')
       expect(result.resultat).to.deep.equal({
         nbEnvoyees: 2,
         nbErreurs: 0,

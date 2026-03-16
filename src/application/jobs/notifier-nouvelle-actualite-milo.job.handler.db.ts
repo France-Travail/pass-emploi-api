@@ -14,11 +14,12 @@ import { DateService } from '../../utils/date-service'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 
 const MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF = 500
-const BATCH_SIZE = 100
+export const BATCH_SIZE_NOTIF_ACTUALITE_MILO = 100
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO)
 export class NotifierNouvelleActualiteMiloJobHandler extends JobHandler<Planificateur.JobNotifierNouvelleActualiteMilo> {
+  batchSize = BATCH_SIZE_NOTIF_ACTUALITE_MILO
   constructor(
     @Inject(NotificationRepositoryToken)
     private readonly notificationRepository: Notification.Repository,
@@ -53,7 +54,7 @@ export class NotifierNouvelleActualiteMiloJobHandler extends JobHandler<Planific
           'notificationsActualitesMilo'
         ],
         offset,
-        limit: BATCH_SIZE,
+        limit: this.batchSize,
         order: [['id', 'ASC']]
       })
 
@@ -88,7 +89,7 @@ export class NotifierNouvelleActualiteMiloJobHandler extends JobHandler<Planific
         )
       }
 
-      if (jeunes.length === BATCH_SIZE) {
+      if (jeunes.length === this.batchSize) {
         await this.planificateurRepository.ajouterJob<Planificateur.JobNotifierNouvelleActualiteMilo>(
           {
             dateExecution: this.dateService.nowJs(),
@@ -96,7 +97,7 @@ export class NotifierNouvelleActualiteMiloJobHandler extends JobHandler<Planific
             contenu: {
               idStructureMilo,
               idActualite,
-              offset: offset + BATCH_SIZE,
+              offset: offset + this.batchSize,
               nbEnvoyees
             }
           }
