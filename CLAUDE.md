@@ -519,6 +519,15 @@ export class JeuneSqlRepository implements JeuneRepository {
 }
 ```
 
+### Guillemets dans les strings TypeScript
+
+Prettier impose `singleQuote: true`, mais les apostrophes dans le texte cassent le parsing. Règle :
+
+- String **sans apostrophe** → simples guillemets : `'Votre bénéficiaire est inscrit'`
+- String **avec apostrophe** → doubles guillemets : `"Votre bénéficiaire s'est inscrit"`
+
+S'applique partout : code source, fichiers de test, strings dans les `it()`, `describe()`, etc.
+
 ### ESLint (règles importantes)
 
 - `no-console`: error → utiliser le logger NestJS

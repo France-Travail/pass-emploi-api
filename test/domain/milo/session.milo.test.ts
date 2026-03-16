@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import {
   BeneficiaireDejaInscritError,
+  DroitsInsuffisants,
   EmargementIncorrect,
   NombrePlacesInsuffisantError
 } from 'src/building-blocks/types/domain-error'
@@ -471,6 +472,77 @@ describe('SessionMilo', () => {
       expect((result as Failure).error).to.be.an.instanceOf(
         BeneficiaireDejaInscritError
       )
+    })
+  })
+
+  describe('peutDesinscrireBeneficiaire', () => {
+    const maintenant = DateTime.fromISO('2020-04-04T10:00:00.000Z')
+    const dateMaxDesinscription = DateTime.fromISO('2020-04-05T10:00:00.000Z')
+
+    it('réussit si inscrit, autodesinscription active et dans les délais', () => {
+      // When
+      const result = SessionMilo.peutDesinscrireBeneficiaire(
+        uneSessionMiloAllegee({
+          statutInscription: SessionMilo.Inscription.Statut.INSCRIT,
+          autodesinscription: true,
+          dateMaxDesinscription
+        }),
+        maintenant
+      )
+
+      // Then
+      expect(isSuccess(result)).to.be.true()
+    })
+
+    it("échoue si le bénéficiaire n'est pas inscrit", () => {
+      // When
+      const result = SessionMilo.peutDesinscrireBeneficiaire(
+        uneSessionMiloAllegee({
+          statutInscription: undefined,
+          autodesinscription: true,
+          dateMaxDesinscription
+        }),
+        maintenant
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
+    })
+
+    it("échoue si l'autodesinscription est désactivée", () => {
+      // When
+      const result = SessionMilo.peutDesinscrireBeneficiaire(
+        uneSessionMiloAllegee({
+          statutInscription: SessionMilo.Inscription.Statut.INSCRIT,
+          autodesinscription: false,
+          dateMaxDesinscription
+        }),
+        maintenant
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
+    })
+
+    it('échoue si la dateMaxDesinscription est dépassée', () => {
+      // Given
+      const maintenantApres = DateTime.fromISO('2020-04-06T10:00:00.000Z')
+
+      // When
+      const result = SessionMilo.peutDesinscrireBeneficiaire(
+        uneSessionMiloAllegee({
+          statutInscription: SessionMilo.Inscription.Statut.INSCRIT,
+          autodesinscription: true,
+          dateMaxDesinscription
+        }),
+        maintenantApres
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
     })
   })
 })

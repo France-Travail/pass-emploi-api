@@ -92,11 +92,17 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     }
     const { session, sessionInstance } = resultSession.data
 
-    const debut = DateTime.fromFormat(session.dateHeureDebut, FORMAT_DATETIME_MILO, {
-      zone: timezone
-    })
+    const debut = DateTime.fromFormat(
+      session.dateHeureDebut,
+      FORMAT_DATETIME_MILO,
+      {
+        zone: timezone
+      }
+    )
     const dateMaxInscriptionDt = session.dateMaxInscription
-      ? DateTime.fromISO(session.dateMaxInscription, { zone: timezone }).endOf('day')
+      ? DateTime.fromISO(session.dateMaxInscription, { zone: timezone }).endOf(
+          'day'
+        )
       : undefined
 
     return success({

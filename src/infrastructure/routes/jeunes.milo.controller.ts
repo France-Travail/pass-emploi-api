@@ -159,7 +159,7 @@ export class JeunesMiloController {
   }
 
   @ApiOperation({
-    summary: 'Désinscrit un bénéficiaire d'une session',
+    summary: "Désinscrit un bénéficiaire d'une session",
     description: 'Autorisé pour le bénéficiaire Milo'
   })
   @Post('/milo/:idBeneficiaire/sessions/:idSession/desinscrire')

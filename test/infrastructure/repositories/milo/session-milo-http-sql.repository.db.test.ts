@@ -516,9 +516,7 @@ describe('SessionMiloHttpSqlRepository', () => {
 
       // Then
       expect(isSuccess(result)).to.be.true()
-      expect(
-        (result as Success<SessionMiloBeneficiaire>).data
-      ).to.deep.equal({
+      expect((result as Success<SessionMiloBeneficiaire>).data).to.deep.equal({
         id: 'idSession',
         nom: 'Une-session',
         debut: DateTime.fromISO('2020-04-06T10:20:00', {

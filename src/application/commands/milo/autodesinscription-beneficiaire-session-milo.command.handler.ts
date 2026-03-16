@@ -217,7 +217,7 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
     }
 
     const { encryptedText, iv } = this.chatCryptoService.encrypt(
-      'Votre bénéficiaire a annulé sa participation à l'événement suivant'
+      "Votre bénéficiaire a annulé sa participation à l'événement suivant"
     )
     await this.chatRepository.envoyerMessageIndividuel(
       conversation.id,
