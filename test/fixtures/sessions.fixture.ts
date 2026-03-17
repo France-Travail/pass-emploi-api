@@ -201,6 +201,10 @@ export function uneSessionMiloAllegee(
       zone: 'Europe/Paris'
     }),
     nbPlacesDisponibles: undefined,
+    autoinscription: true,
+    dateMaxInscription: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
+      zone: 'Europe/Paris'
+    }),
     autodesinscription: false,
     dateMaxDesinscription: DateTime.fromISO('2020-04-05T13:20:00.000Z', {
       zone: 'Europe/Paris'

@@ -524,6 +524,10 @@ describe('SessionMiloHttpSqlRepository', () => {
         }),
         nbPlacesDisponibles: 10,
         statutInscription: undefined,
+        autoinscription: false,
+        dateMaxInscription: DateTime.fromISO('2020-04-07', {
+          zone: 'Europe/Paris'
+        }).endOf('day'),
         autodesinscription: false,
         dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
           zone: 'Europe/Paris'

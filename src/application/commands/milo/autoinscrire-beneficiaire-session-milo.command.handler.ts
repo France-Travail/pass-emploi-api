@@ -29,6 +29,7 @@ import {
 } from 'src/domain/milo/session.milo'
 import { Notification } from 'src/domain/notification/notification'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
+import { DateService } from 'src/utils/date-service'
 
 export type AutoinscrireBeneficiaireSessionMiloCommand = {
   idSession: string
@@ -56,7 +57,8 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
     private readonly chatRepository: Chat.Repository,
     private readonly chatCryptoService: ChatCryptoService,
     private readonly notificationService: Notification.Service,
-    private readonly evenementService: EvenementService
+    private readonly evenementService: EvenementService,
+    private readonly dateService: DateService
   ) {
     super('InscrireBeneficiaireSessionMiloCommandHandler')
   }
@@ -176,8 +178,10 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
     if (isFailure(resultSession)) return resultSession
     const sessionAllegee = resultSession.data
 
-    const verificationInscription =
-      SessionMilo.peutInscrireBeneficiaire(sessionAllegee)
+    const verificationInscription = SessionMilo.peutInscrireBeneficiaire(
+      sessionAllegee,
+      this.dateService.now()
+    )
     if (isFailure(verificationInscription)) return verificationInscription
 
     const inscription = await this.sessionMiloRepository.inscrireBeneficiaire(

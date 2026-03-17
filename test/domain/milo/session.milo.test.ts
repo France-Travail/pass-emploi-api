@@ -223,20 +223,6 @@ describe('SessionMilo', () => {
     }
   })
 
-  describe('estVisibleEffectif', () => {
-    it('retourne true si autoinscription est active, quelle que soit la visibilité', () => {
-      expect(true || false).to.be.true()
-    })
-
-    it('retourne true si la session est explicitement visible sans autoinscription', () => {
-      expect(false || true).to.be.true()
-    })
-
-    it("retourne false si ni la visibilité ni l'autoinscription ne sont actives", () => {
-      expect(false || false).to.be.false()
-    })
-  })
-
   describe('modifier', () => {
     const maintenant = DateTime.now()
 
@@ -422,10 +408,14 @@ describe('SessionMilo', () => {
   })
 
   describe('peutInscrireBeneficiaire', () => {
+    const maintenant = DateTime.fromISO('2020-04-05T10:00:00.000Z')
+    const dateMaxInscription = DateTime.fromISO('2020-04-06T13:20:00.000Z')
+
     it('réussi s’il n’y a pas de maximum de places', async () => {
       // When
       const result = SessionMilo.peutInscrireBeneficiaire(
-        uneSessionMiloAllegee()
+        uneSessionMiloAllegee({ dateMaxInscription }),
+        maintenant
       )
 
       // Then
@@ -435,21 +425,46 @@ describe('SessionMilo', () => {
     it('réussi s’il reste des places', async () => {
       // When
       const result = SessionMilo.peutInscrireBeneficiaire(
-        uneSessionMiloAllegee({
-          nbPlacesDisponibles: 12
-        })
+        uneSessionMiloAllegee({ nbPlacesDisponibles: 12, dateMaxInscription }),
+        maintenant
       )
 
       // Then
       expect(isSuccess(result)).to.be.true()
     })
 
+    it('échoue si l’autoinscription est désactivée', async () => {
+      // When
+      const result = SessionMilo.peutInscrireBeneficiaire(
+        uneSessionMiloAllegee({ autoinscription: false, dateMaxInscription }),
+        maintenant
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
+    })
+
+    it('échoue si la dateMaxInscription est dépassée', async () => {
+      // Given
+      const maintenantApres = DateTime.fromISO('2020-04-07T10:00:00.000Z')
+
+      // When
+      const result = SessionMilo.peutInscrireBeneficiaire(
+        uneSessionMiloAllegee({ dateMaxInscription }),
+        maintenantApres
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
+    })
+
     it('échoue s’il n’y a plus de place disponible', async () => {
       // When
       const result = SessionMilo.peutInscrireBeneficiaire(
-        uneSessionMiloAllegee({
-          nbPlacesDisponibles: 0
-        })
+        uneSessionMiloAllegee({ nbPlacesDisponibles: 0, dateMaxInscription }),
+        maintenant
       )
 
       // Then
@@ -463,8 +478,10 @@ describe('SessionMilo', () => {
       // When
       const result = SessionMilo.peutInscrireBeneficiaire(
         uneSessionMiloAllegee({
-          statutInscription: SessionMilo.Inscription.Statut.INSCRIT
-        })
+          statutInscription: SessionMilo.Inscription.Statut.INSCRIT,
+          dateMaxInscription
+        }),
+        maintenant
       )
 
       // Then

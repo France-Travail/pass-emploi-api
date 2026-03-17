@@ -42,6 +42,8 @@ export interface SessionMiloBeneficiaire {
   debut: DateTime
   nbPlacesDisponibles?: number
   statutInscription?: SessionMilo.Inscription.Statut
+  autoinscription: boolean
+  dateMaxInscription: DateTime
   autodesinscription: boolean
   dateMaxDesinscription: DateTime
 }
@@ -93,9 +95,13 @@ export namespace SessionMilo {
       nouvelleAutodesinscription?: boolean
     }
   ): Omit<SessionMilo, 'inscriptions'> {
-    const estVisible = config?.nouvelleVisibilite ?? session.estVisible
+    const nouvelleAutoinscription = config?.nouvelleAutoinscription
+    const estVisible =
+      nouvelleAutoinscription === true
+        ? true
+        : (config?.nouvelleVisibilite ?? session.estVisible)
     const autoinscription = estVisible
-      ? (config?.nouvelleAutoinscription ?? session.autoinscription)
+      ? (nouvelleAutoinscription ?? session.autoinscription)
       : false
     const autodesinscription = autoinscription
       ? (config?.nouvelleAutodesinscription ?? session.autodesinscription)
@@ -104,6 +110,7 @@ export namespace SessionMilo {
     return {
       ...supprimerInscriptions(session),
       estVisible,
+      autoinscription,
       autodesinscription,
       dateModification
     }
@@ -200,8 +207,14 @@ export namespace SessionMilo {
   }
 
   export function peutInscrireBeneficiaire(
-    session: SessionMiloBeneficiaire
+    session: SessionMiloBeneficiaire,
+    maintenant: DateTime
   ): Result {
+    if (!session.autoinscription) return failure(new DroitsInsuffisants())
+
+    if (maintenant > session.dateMaxInscription)
+      return failure(new DroitsInsuffisants())
+
     if (Inscription.estInscrit(session.statutInscription))
       return failure(new BeneficiaireDejaInscritError())
 

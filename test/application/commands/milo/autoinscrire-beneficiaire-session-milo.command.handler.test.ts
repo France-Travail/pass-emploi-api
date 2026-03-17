@@ -1,4 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
 import AutoinscrireBeneficiaireSessionMiloCommandHandler, {
   AutoinscrireBeneficiaireSessionMiloCommand
@@ -24,6 +25,7 @@ import { JeuneMilo } from 'src/domain/milo/jeune.milo'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { Notification } from 'src/domain/notification/notification'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
+import { DateService } from 'src/utils/date-service'
 import {
   unUtilisateurConseiller,
   unUtilisateurJeune
@@ -40,6 +42,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
   let chatCryptoService: StubbedClass<ChatCryptoService>
   let notificationService: StubbedClass<Notification.Service>
   let evenementService: StubbedClass<EvenementService>
+  let dateService: StubbedClass<DateService>
   let commandHandler: AutoinscrireBeneficiaireSessionMiloCommandHandler
 
   const beneficiaireMilo: JeuneMilo = {
@@ -65,6 +68,8 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
     chatCryptoService = stubClass(ChatCryptoService)
     notificationService = stubClass(Notification.Service)
     evenementService = stubClass(EvenementService)
+    dateService = stubClass(DateService)
+    dateService.now.returns(DateTime.fromISO('2020-04-05T10:00:00.000Z'))
     commandHandler = new AutoinscrireBeneficiaireSessionMiloCommandHandler(
       beneficiaireMiloRepository,
       authentificationRepository,
@@ -72,7 +77,8 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       chatRepository,
       chatCryptoService,
       notificationService,
-      evenementService
+      evenementService,
+      dateService
     )
   })
 
@@ -225,7 +231,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'token-beneficiaire-milo',
           beneficiaireMilo.configuration.fuseauHoraire
         )
-        .resolves(success({ nbPlacesDisponibles: 0 }))
+        .resolves(success(uneSessionMiloAllegee({ nbPlacesDisponibles: 0 })))
 
       // When
       const result = await commandHandler.handle(

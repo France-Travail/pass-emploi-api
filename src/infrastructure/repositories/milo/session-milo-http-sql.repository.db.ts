@@ -116,8 +116,9 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       statutInscription: sessionInstance
         ? dtoToStatutInscription(sessionInstance?.statut, idSession, idDossier)
         : undefined,
+      autoinscription: sessionSqlModel?.autoinscription ?? false,
+      dateMaxInscription: dateMaxInscription ?? debut,
       autodesinscription: sessionSqlModel?.autodesinscription ?? false,
-      dateMaxInscription,
       dateMaxDesinscription
     })
   }
