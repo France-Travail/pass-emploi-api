@@ -42,3 +42,7 @@ export class ActualitesMiloConseillerQueryModel {
   @ApiProperty({ type: ActualiteMiloConseillerQueryModel, isArray: true })
   actualites: ActualiteMiloConseillerQueryModel[]
 }
+
+export class ActualiteMiloSuppresionCommandResult {
+  dateSuppression: string
+}

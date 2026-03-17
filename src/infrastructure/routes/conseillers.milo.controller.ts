@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   Patch,
   Post,
@@ -75,7 +73,11 @@ import {
   DeleteActualiteMiloCommandHandler
 } from '../../application/commands/milo/delete-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from '../../application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
-import { ActualitesMiloConseillerQueryModel } from '../../application/queries/query-models/actualites-milo.query-model'
+import {
+  ActualiteMiloConseillerQueryModel,
+  ActualiteMiloSuppresionCommandResult,
+  ActualitesMiloConseillerQueryModel
+} from '../../application/queries/query-models/actualites-milo.query-model'
 
 @Controller('conseillers/milo')
 @CustomSwaggerApiOAuth2()
@@ -373,12 +375,14 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller MILO de la structure'
   })
   @Post(':idConseiller/actualites')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({
+    type: ActualiteMiloConseillerQueryModel
+  })
   async createActualite(
     @Param('idConseiller') idConseiller: string,
     @Body() payload: CreateOrUpdateActualiteMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<void> {
+  ): Promise<ActualiteMiloConseillerQueryModel> {
     const command: CreateActualiteMiloCommand = {
       idConseiller,
       prenomNomConseiller: `${utilisateur.prenom} ${utilisateur.nom}`,
@@ -417,13 +421,15 @@ export class ConseillersMiloController {
     description: "Autorisé pour le conseiller propriétaire de l'actualité"
   })
   @Put(':idConseiller/actualites/:idActualite')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({
+    type: ActualiteMiloConseillerQueryModel
+  })
   async updateActualite(
     @Param('idConseiller') idConseiller: string,
     @Param('idActualite') idActualite: string,
     @Body() payload: CreateOrUpdateActualiteMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<void> {
+  ): Promise<ActualiteMiloConseillerQueryModel> {
     const command: UpdateActualiteMiloCommand = {
       idActualite,
       idConseiller,
@@ -446,12 +452,14 @@ export class ConseillersMiloController {
     description: "Autorisé pour le conseiller propriétaire de l'actualité"
   })
   @Delete(':idConseiller/actualites/:idActualite')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({
+    type: ActualiteMiloSuppresionCommandResult
+  })
   async deleteActualite(
     @Param('idConseiller') idConseiller: string,
     @Param('idActualite') idActualite: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<void> {
+  ): Promise<ActualiteMiloSuppresionCommandResult> {
     const command: DeleteActualiteMiloCommand = {
       idActualite,
       idConseiller

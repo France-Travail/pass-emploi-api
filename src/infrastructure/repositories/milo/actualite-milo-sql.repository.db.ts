@@ -34,11 +34,13 @@ export class ActualiteMiloSqlRepository implements ActualiteMilo.Repository {
     await ActualiteMiloSqlModel.upsert(dto)
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<Date> {
+    const dateSuppression = this.dateService.nowJs()
     await ActualiteMiloSqlModel.update(
-      { dateSuppression: this.dateService.nowJs() },
+      { dateSuppression: dateSuppression },
       { where: { id } }
     )
+    return dateSuppression
   }
 
   async getByStructureMilo(idStructureMilo: string): Promise<ActualiteMilo[]> {

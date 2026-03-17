@@ -1,11 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import {
-  emptySuccess,
-  failure,
-  Result
-} from '../../../building-blocks/types/result'
+import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { estMilo } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
@@ -18,6 +14,8 @@ import {
   DroitsInsuffisants,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
+import { ActualiteMiloSuppresionCommandResult } from '../../queries/query-models/actualites-milo.query-model'
+import { DateService } from '../../../utils/date-service'
 
 export interface DeleteActualiteMiloCommand extends Command {
   idActualite: string
@@ -27,7 +25,7 @@ export interface DeleteActualiteMiloCommand extends Command {
 @Injectable()
 export class DeleteActualiteMiloCommandHandler extends CommandHandler<
   DeleteActualiteMiloCommand,
-  void
+  ActualiteMiloSuppresionCommandResult
 > {
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -49,7 +47,9 @@ export class DeleteActualiteMiloCommandHandler extends CommandHandler<
     )
   }
 
-  async handle(command: DeleteActualiteMiloCommand): Promise<Result> {
+  async handle(
+    command: DeleteActualiteMiloCommand
+  ): Promise<Result<ActualiteMiloSuppresionCommandResult>> {
     const actualite = await this.actualiteMiloRepository.get(
       command.idActualite
     )
@@ -61,9 +61,13 @@ export class DeleteActualiteMiloCommandHandler extends CommandHandler<
       return failure(new DroitsInsuffisants())
     }
 
-    await this.actualiteMiloRepository.delete(command.idActualite)
+    const dateSuppression = await this.actualiteMiloRepository.delete(
+      command.idActualite
+    )
 
-    return emptySuccess()
+    return success({
+      dateSuppression: DateService.fromJSDateToISOString(dateSuppression)
+    })
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {

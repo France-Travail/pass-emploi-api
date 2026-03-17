@@ -7,7 +7,7 @@ import {
   DroitsInsuffisants,
   NonTrouveError
 } from 'src/building-blocks/types/domain-error'
-import { emptySuccess, failure } from 'src/building-blocks/types/result'
+import { failure, success } from 'src/building-blocks/types/result'
 import {
   unHeaderAuthorization,
   unUtilisateurDecode
@@ -43,10 +43,22 @@ describe('ConseillersMiloController - Actualités', () => {
       titreLien: 'En savoir plus',
       lien: 'https://example'
     }
+    const unResultatCreation = {
+      id: 'un-id-actualite',
+      titre: payload.titre,
+      contenu: payload.contenu,
+      titreLien: payload.titreLien,
+      lien: payload.lien,
+      prenomNomConseiller: 'John Doe',
+      dateCreation: '2021-01-01T00:00:00.000+01:00',
+      proprietaire: true
+    }
 
-    it('crée une actualité et retourne 204', async () => {
+    it("crée une actualité et retourne 201 avec l'objet créé", async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -55,12 +67,15 @@ describe('ConseillersMiloController - Actualités', () => {
         .send(payload)
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.CREATED)
+      expect(response.body).to.deep.equal(unResultatCreation)
     })
 
     it('appelle le command handler avec les bons paramètres', async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
       const utilisateur = unUtilisateurDecode()
 
       // When
@@ -87,7 +102,9 @@ describe('ConseillersMiloController - Actualités', () => {
 
     it('appelle le command handler avec un lien sans protocole', async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
       const utilisateur = unUtilisateurDecode()
       const payloadSansProtocole = {
         titre: 'Nouvelle actualité',
@@ -124,7 +141,9 @@ describe('ConseillersMiloController - Actualités', () => {
         titre: 'Actualité sans lien',
         contenu: 'Description'
       }
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -133,7 +152,7 @@ describe('ConseillersMiloController - Actualités', () => {
         .send(payloadSansLien)
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.CREATED)
     })
 
     it('retourne 400 si le titre est manquant', async () => {
@@ -223,7 +242,9 @@ describe('ConseillersMiloController - Actualités', () => {
 
     it('accepte un lien avec protocole https (https://example.com)', async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -237,12 +258,14 @@ describe('ConseillersMiloController - Actualités', () => {
         })
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.CREATED)
     })
 
     it('accepte un lien avec protocole http (http://example.com)', async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -256,12 +279,14 @@ describe('ConseillersMiloController - Actualités', () => {
         })
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.CREATED)
     })
 
     it('accepte un lien sans protocole (example.com)', async () => {
       // Given
-      createActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      createActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatCreation)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -275,7 +300,7 @@ describe('ConseillersMiloController - Actualités', () => {
         })
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.CREATED)
     })
 
     it("retourne 400 si le lien n'est pas une URL valide (http://)", async () => {
@@ -403,10 +428,23 @@ describe('ConseillersMiloController - Actualités', () => {
       titreLien: 'En savoir plus',
       lien: 'https://example.com'
     }
+    const unResultatModification = {
+      id: 'un-id-actualite',
+      titre: payload.titre,
+      contenu: payload.contenu,
+      titreLien: payload.titreLien,
+      lien: payload.lien,
+      prenomNomConseiller: 'John Doe',
+      dateCreation: '2021-01-01T00:00:00.000+01:00',
+      dateModification: '2021-01-02T00:00:00.000+01:00',
+      proprietaire: true
+    }
 
-    it("modifie l'actualité et retourne 204", async () => {
+    it("modifie l'actualité et retourne 200 avec l'objet entier", async () => {
       // Given
-      updateActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      updateActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatModification)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -415,12 +453,15 @@ describe('ConseillersMiloController - Actualités', () => {
         .send(payload)
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.OK)
+      expect(response.body).to.deep.equal(unResultatModification)
     })
 
     it('appelle le command handler avec les bons paramètres', async () => {
       // Given
-      updateActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      updateActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatModification)
+      )
       const utilisateur = unUtilisateurDecode()
 
       // When
@@ -447,7 +488,9 @@ describe('ConseillersMiloController - Actualités', () => {
 
     it('accepte un payload sans lien optionnel', async () => {
       // Given
-      updateActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      updateActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatModification)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -456,7 +499,7 @@ describe('ConseillersMiloController - Actualités', () => {
         .send({ titre: 'Titre', contenu: 'Contenu' })
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.OK)
     })
 
     it('retourne 400 si le titre est manquant', async () => {
@@ -534,9 +577,14 @@ describe('ConseillersMiloController - Actualités', () => {
     const idConseiller = 'conseiller-1'
     const idActualite = 'actualite-1'
 
-    it("supprime l'actualité et retourne 204", async () => {
+    it("supprime l'actualité et retourne 200 avec la date de suppression", async () => {
       // Given
-      deleteActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      const unResultatSuppression = {
+        dateSuppression: '2026-03-17T10:00:00.000Z'
+      }
+      deleteActualiteMiloCommandHandler.execute.resolves(
+        success(unResultatSuppression)
+      )
 
       // When
       const response = await request(app.getHttpServer())
@@ -544,12 +592,15 @@ describe('ConseillersMiloController - Actualités', () => {
         .set('authorization', unHeaderAuthorization())
 
       // Then
-      expect(response.status).to.equal(HttpStatus.NO_CONTENT)
+      expect(response.status).to.equal(HttpStatus.OK)
+      expect(response.body).to.deep.equal(unResultatSuppression)
     })
 
     it('appelle le command handler avec les bons paramètres', async () => {
       // Given
-      deleteActualiteMiloCommandHandler.execute.resolves(emptySuccess())
+      deleteActualiteMiloCommandHandler.execute.resolves(
+        success({ dateSuppression: '2026-03-17T10:00:00.000Z' })
+      )
       const utilisateur = unUtilisateurDecode()
 
       // When
