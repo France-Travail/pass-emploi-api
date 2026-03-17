@@ -28,8 +28,8 @@ export interface SessionMilo {
   idStructureMilo: string
   offre: SessionMilo.Offre
   inscriptions: SessionMilo.Inscription[]
-  dateMaxInscription?: DateTime
-  dateMaxDesinscription?: DateTime
+  dateMaxInscription: DateTime
+  dateMaxDesinscription: DateTime
   nbPlacesDisponibles?: number
   commentaire?: string
   dateModification?: DateTime
@@ -77,13 +77,6 @@ export namespace SessionMilo {
     REFUS_JEUNE = 'Refus jeune'
   }
 
-  export function estVisibleEffectif(
-    estVisible: boolean,
-    autoinscription: boolean
-  ): boolean {
-    return autoinscription || estVisible
-  }
-
   function supprimerInscriptions(
     session: SessionMilo
   ): Omit<SessionMilo, 'inscriptions'> {
@@ -100,20 +93,17 @@ export namespace SessionMilo {
       nouvelleAutodesinscription?: boolean
     }
   ): Omit<SessionMilo, 'inscriptions'> {
-    const autoinscription =
-      config?.nouvelleAutoinscription ?? session.autoinscription
-
+    const estVisible = config?.nouvelleVisibilite ?? session.estVisible
+    const autoinscription = estVisible
+      ? (config?.nouvelleAutoinscription ?? session.autoinscription)
+      : false
     const autodesinscription = autoinscription
       ? (config?.nouvelleAutodesinscription ?? session.autodesinscription)
       : false
 
     return {
       ...supprimerInscriptions(session),
-      estVisible: estVisibleEffectif(
-        config?.nouvelleVisibilite ?? session.estVisible,
-        autoinscription
-      ),
-      autoinscription,
+      estVisible,
       autodesinscription,
       dateModification
     }

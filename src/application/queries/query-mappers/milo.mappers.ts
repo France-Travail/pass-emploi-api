@@ -121,19 +121,13 @@ export function mapSessionConseillerDtoToQueryModel(
     .filter(statut => SessionMilo.Inscription.estInscrit(statut))
   const nombreParticipants = participants.length
 
-  const autoinscription = parametrage?.autoinscription ?? false
-  const autodesinscription = parametrage?.autodesinscription ?? false
-
   const queryModel: SessionConseillerMiloQueryModel = {
     id: session.id.toString(),
     nomSession: session.nom,
     nomOffre: offre.nom,
-    estVisible: SessionMilo.estVisibleEffectif(
-      parametrage?.estVisible ?? false,
-      autoinscription
-    ),
-    autoinscription,
-    autodesinscription,
+    estVisible: parametrage?.estVisible ?? false,
+    autoinscription: parametrage?.autoinscription ?? false,
+    autodesinscription: parametrage?.autodesinscription ?? false,
     dateHeureDebut: dateHeureDebut.toISO(),
     dateHeureFin: dateHeureFin.toISO(),
     type: buildSessionTypeQueryModel(offre.type),
@@ -213,12 +207,6 @@ export function mapDetailSessionJeuneDtoToQueryModel(
           beneficiaire.timezone
         )
       : undefined,
-    dateMaxDesinscription: sessionDto.session.dateMaxDesinscription
-      ? dateMaxToISO(
-          sessionDto.session.dateMaxDesinscription,
-          beneficiaire.timezone
-        )
-      : undefined,
     nbPlacesDisponibles: sessionDto.session.nbPlacesDisponibles ?? undefined,
     autoinscription: configuration.autoinscription,
     autodesinscription: configuration.autodesinscription
@@ -245,6 +233,8 @@ export function mapSessionToDetailSessionConseillerQueryModel(
     nom: session.nom,
     dateHeureDebut: session.debut.toUTC().toISO(),
     dateHeureFin: session.fin.toUTC().toISO(),
+    dateMaxInscription: session.dateMaxInscription.toUTC().toISO(),
+    dateMaxDesinscription: session.dateMaxDesinscription.toUTC().toISO(),
     animateur: session.animateur,
     lieu: session.lieu,
     estVisible: session.estVisible,
@@ -258,11 +248,6 @@ export function mapSessionToDetailSessionConseillerQueryModel(
     )
   }
 
-  if (session.dateMaxInscription) {
-    sessionQueryModel.dateMaxInscription = session.dateMaxInscription
-      .toUTC()
-      .toISO()
-  }
   if (session.nbPlacesDisponibles !== undefined)
     sessionQueryModel.nbPlacesDisponibles = session.nbPlacesDisponibles
   if (session.commentaire) sessionQueryModel.commentaire = session.commentaire

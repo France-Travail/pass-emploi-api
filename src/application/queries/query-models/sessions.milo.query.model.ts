@@ -143,8 +143,11 @@ export class DetailSessionConseillerQueryModel {
   @ApiProperty()
   dateHeureFin: string
 
-  @ApiProperty({ required: false })
-  dateMaxInscription?: string
+  @ApiProperty()
+  dateMaxInscription: string
+
+  @ApiProperty()
+  dateMaxDesinscription: string
 
   @ApiProperty()
   animateur: string
@@ -251,9 +254,6 @@ export class DetailSessionJeuneMiloQueryModel {
 
   @ApiProperty({ required: false })
   dateMaxInscription?: string
-
-  @ApiProperty({ required: false })
-  dateMaxDesinscription?: string
 
   @ApiProperty({ required: false })
   nbPlacesDisponibles?: number

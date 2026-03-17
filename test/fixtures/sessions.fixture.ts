@@ -60,6 +60,7 @@ export const unDetailSessionConseillerMiloQueryModel: DetailSessionConseillerMil
       dateHeureDebut: '2020-04-06T13:20:00.000Z',
       dateHeureFin: '2020-04-08T13:20:00.000Z',
       dateMaxInscription: '2020-04-07T23:59:59.999Z',
+      dateMaxDesinscription: '2020-04-07T23:58:59.999Z',
       animateur: 'Un-animateur',
       lieu: 'Un-lieu',
       estVisible: false,
@@ -95,7 +96,6 @@ export const unDetailSessionJeuneMiloQueryModel: DetailSessionJeuneMiloQueryMode
     description: 'Une-Desc',
     commentaire: 'Un-commentaire',
     dateMaxInscription: '2020-04-07T10:20:00.000Z',
-    dateMaxDesinscription: '2020-04-07T11:20:00.000Z',
     nbPlacesDisponibles: 10,
     autoinscription: true,
     autodesinscription: true
