@@ -1,11 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import {
-  emptySuccess,
-  failure,
-  Result
-} from '../../../building-blocks/types/result'
+import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { estMilo } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
@@ -18,6 +14,7 @@ import {
   DroitsInsuffisants,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
+import { ActualiteMiloConseillerQueryModel } from '../../queries/query-models/actualites-milo.query-model'
 
 export interface UpdateActualiteMiloCommand extends Command {
   idActualite: string
@@ -31,7 +28,7 @@ export interface UpdateActualiteMiloCommand extends Command {
 @Injectable()
 export class UpdateActualiteMiloCommandHandler extends CommandHandler<
   UpdateActualiteMiloCommand,
-  void
+  ActualiteMiloConseillerQueryModel
 > {
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -54,7 +51,9 @@ export class UpdateActualiteMiloCommandHandler extends CommandHandler<
     )
   }
 
-  async handle(command: UpdateActualiteMiloCommand): Promise<Result> {
+  async handle(
+    command: UpdateActualiteMiloCommand
+  ): Promise<Result<ActualiteMiloConseillerQueryModel>> {
     const actualite = await this.actualiteMiloRepository.get(
       command.idActualite
     )
@@ -75,7 +74,17 @@ export class UpdateActualiteMiloCommandHandler extends CommandHandler<
 
     await this.actualiteMiloRepository.save(actualiteMiseAJour)
 
-    return emptySuccess()
+    return success({
+      id: actualiteMiseAJour.id,
+      titre: actualiteMiseAJour.titre,
+      contenu: actualiteMiseAJour.contenu,
+      titreLien: actualiteMiseAJour.titreLien,
+      lien: actualiteMiseAJour.lien,
+      prenomNomConseiller: actualiteMiseAJour.prenomNomConseiller,
+      dateCreation: actualiteMiseAJour.dateCreation.toISO(),
+      dateModification: actualiteMiseAJour.dateModification?.toISO(),
+      proprietaire: true
+    })
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {

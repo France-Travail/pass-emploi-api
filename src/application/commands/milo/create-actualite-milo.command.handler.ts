@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
-  emptySuccess,
-  failure,
   isFailure,
-  Result
+  failure,
+  Result,
+  success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { estMilo } from '../../../domain/core'
@@ -25,6 +25,7 @@ import {
   PlanificateurRepositoryToken
 } from '../../../domain/planificateur'
 import { DateService } from '../../../utils/date-service'
+import { ActualiteMiloConseillerQueryModel } from '../../queries/query-models/actualites-milo.query-model'
 
 export interface CreateActualiteMiloCommand extends Command {
   idConseiller: string
@@ -38,7 +39,7 @@ export interface CreateActualiteMiloCommand extends Command {
 @Injectable()
 export class CreateActualiteMiloCommandHandler extends CommandHandler<
   CreateActualiteMiloCommand,
-  void
+  ActualiteMiloConseillerQueryModel
 > {
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -66,7 +67,9 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
     )
   }
 
-  async handle(command: CreateActualiteMiloCommand): Promise<Result> {
+  async handle(
+    command: CreateActualiteMiloCommand
+  ): Promise<Result<ActualiteMiloConseillerQueryModel>> {
     const resultConseiller = await this.conseillerMiloRepository.get(
       command.idConseiller
     )
@@ -99,7 +102,16 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
       }
     )
 
-    return emptySuccess()
+    return success({
+      id: actualite.id,
+      titre: actualite.titre,
+      contenu: actualite.contenu,
+      titreLien: actualite.titreLien,
+      lien: actualite.lien,
+      prenomNomConseiller: actualite.prenomNomConseiller,
+      dateCreation: actualite.dateCreation.toISO(),
+      proprietaire: true
+    })
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
