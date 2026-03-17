@@ -46,7 +46,3 @@ export class ActualitesMiloConseillerQueryModel {
 export class ActualiteMiloSuppresionCommandResult {
   dateSuppression: string
 }
-
-export class ActualiteMiloCreateCommandResult {
-  id: string
-}
