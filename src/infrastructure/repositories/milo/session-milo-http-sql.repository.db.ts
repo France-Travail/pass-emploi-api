@@ -493,7 +493,7 @@ function inscriptionToStatutWithCommentaireAndDateDto(
     case SessionMilo.Inscription.Statut.PRESENT:
       return {
         statut: MILO_PRESENT,
-        dateDebutReelle: dateDebutSession.toISODate()
+        dateDebutReelle: DateTime.now().toISODate()
       }
     default:
       throw new Error('Ça devrait pas arriver')
