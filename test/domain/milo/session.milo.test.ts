@@ -226,7 +226,7 @@ describe('SessionMilo', () => {
   describe('modifier', () => {
     const maintenant = DateTime.now()
 
-    it("force estVisible à true quand on active l'autoinscription", () => {
+    it("désactive l'autoinscription si estVisible est false, même si nouvelleAutoinscription est true", () => {
       // Given
       const session = uneSessionMilo({
         estVisible: false,
@@ -239,8 +239,8 @@ describe('SessionMilo', () => {
       })
 
       // Then
-      expect(result.estVisible).to.be.true()
-      expect(result.autoinscription).to.be.true()
+      expect(result.estVisible).to.be.false()
+      expect(result.autoinscription).to.be.false()
     })
 
     it("ne change pas la valeur de estVisible quand on désactive l'autoinscription sans visibilité explicite", () => {
@@ -292,6 +292,7 @@ describe('SessionMilo', () => {
       it('peut être activée si autoinscription est active', () => {
         // Given
         const session = uneSessionMilo({
+          estVisible: true,
           autoinscription: true,
           autodesinscription: false
         })
@@ -309,6 +310,7 @@ describe('SessionMilo', () => {
       it("conserve sa valeur quand autoinscription est active et aucune nouvelle valeur n'est fournie", () => {
         // Given
         const session = uneSessionMilo({
+          estVisible: true,
           autoinscription: true,
           autodesinscription: true
         })
@@ -325,6 +327,7 @@ describe('SessionMilo', () => {
       it('est automatiquement désactivée si autoinscription est à false', () => {
         // Given
         const session = uneSessionMilo({
+          estVisible: true,
           autoinscription: true,
           autodesinscription: true
         })

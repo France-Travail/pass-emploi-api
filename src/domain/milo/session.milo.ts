@@ -95,18 +95,13 @@ export namespace SessionMilo {
       nouvelleAutodesinscription?: boolean
     }
   ): Omit<SessionMilo, 'inscriptions'> {
-    const nouvelleAutoinscription = config?.nouvelleAutoinscription
-    const estVisible =
-      nouvelleAutoinscription === true
-        ? true
-        : (config?.nouvelleVisibilite ?? session.estVisible)
+    const estVisible = config?.nouvelleVisibilite ?? session.estVisible
     const autoinscription = estVisible
-      ? (nouvelleAutoinscription ?? session.autoinscription)
+      ? (config?.nouvelleAutoinscription ?? session.autoinscription)
       : false
     const autodesinscription = autoinscription
       ? (config?.nouvelleAutodesinscription ?? session.autodesinscription)
       : false
-
     return {
       ...supprimerInscriptions(session),
       estVisible,
