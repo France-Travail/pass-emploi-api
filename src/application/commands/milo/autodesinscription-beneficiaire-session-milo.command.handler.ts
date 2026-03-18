@@ -228,10 +228,8 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
         type: 'AUTO_DESINSCRIPTION',
         infoSession: {
           id: session.id,
-          titre: session.nom
-        },
-        infoDesinscription: {
-          motif
+          titre: session.nom,
+          motifAnnulation: motif
         }
       },
       { sentByBeneficiaire: true }

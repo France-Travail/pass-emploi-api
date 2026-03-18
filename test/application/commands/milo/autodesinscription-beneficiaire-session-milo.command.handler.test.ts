@@ -176,10 +176,8 @@ describe('AutodesinscrireBeneficiaireSessionMiloCommandHandler', () => {
           type: 'AUTO_DESINSCRIPTION',
           infoSession: {
             id: 'id-session',
-            titre: 'Une session'
-          },
-          infoDesinscription: {
-            motif: 'Je ne peux pas venir'
+            titre: 'Une session',
+            motifAnnulation: 'Je ne peux pas venir'
           }
         },
         { sentByBeneficiaire: true }

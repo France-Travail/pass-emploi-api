@@ -23,9 +23,7 @@ export interface MessageIndividuel {
   infoSession?: {
     id: string
     titre: string
-  }
-  infoDesinscription?: {
-    motif: string
+    motifAnnulation?: string
   }
 }
 
