@@ -5,6 +5,7 @@ import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
 import { Core, estMilo } from '../core'
 import * as _ConfigurationApplication from './configuration-application'
+import { TIMEZONE_PAR_DEFAUT } from './configuration-application'
 import * as _PoleEmploi from './jeune.pole-emploi'
 
 export const JeuneRepositoryToken = 'JeuneRepositoryToken'
@@ -197,7 +198,8 @@ export namespace Jeune {
         },
         idPartenaire: jeuneACreer.idPartenaire,
         configuration: {
-          idJeune: id
+          idJeune: id,
+          fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
         dispositif: jeuneACreer.dispositif,
         peutVoirLeComptageDesHeures: jeuneACreer.peutVoirLeCompteurDesHeures

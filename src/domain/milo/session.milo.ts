@@ -1,14 +1,15 @@
 import { DateTime } from 'luxon'
 import {
   BeneficiaireDejaInscritError,
+  DroitsInsuffisants,
   EmargementIncorrect,
   NombrePlacesInsuffisantError
 } from 'src/building-blocks/types/domain-error'
 import {
-  Result,
   emptySuccess,
   failure,
   isFailure,
+  Result,
   success
 } from 'src/building-blocks/types/result'
 
@@ -23,21 +24,28 @@ export interface SessionMilo {
   lieu: string
   estVisible: boolean
   autoinscription: boolean
+  autodesinscription: boolean
   idStructureMilo: string
   offre: SessionMilo.Offre
   inscriptions: SessionMilo.Inscription[]
-  dateMaxInscription?: DateTime
+  dateMaxInscription: DateTime
+  dateMaxDesinscription: DateTime
   nbPlacesDisponibles?: number
   commentaire?: string
   dateModification?: DateTime
   dateCloture?: DateTime
 }
 
-export type SessionMiloAllegeeForBeneficiaire = Pick<
-  SessionMilo,
-  'id' | 'nom' | 'debut' | 'nbPlacesDisponibles'
-> & {
+export interface SessionMiloBeneficiaire {
+  id: string
+  nom: string
+  debut: DateTime
+  nbPlacesDisponibles?: number
   statutInscription?: SessionMilo.Inscription.Statut
+  autoinscription: boolean
+  dateMaxInscription: DateTime
+  autodesinscription: boolean
+  dateMaxDesinscription: DateTime
 }
 
 export interface InstanceSessionMilo {
@@ -54,6 +62,13 @@ export type InscriptionsATraiter = {
     Pick<SessionMilo.Inscription, 'idJeune' | 'idInscription'>
   >
   inscriptionsAModifier: Array<Omit<SessionMilo.Inscription, 'nom' | 'prenom'>>
+}
+
+export type ConfigurationLocale = {
+  estVisible: boolean
+  autoinscription: boolean
+  autodesinscription: boolean
+  dateCloture?: Date
 }
 
 export namespace SessionMilo {
@@ -74,15 +89,24 @@ export namespace SessionMilo {
   export function modifier(
     session: SessionMilo,
     dateModification: DateTime,
-    nouvelleVisibilite?: boolean,
-    nouvelleAutoinscription?: boolean
+    config?: {
+      nouvelleVisibilite?: boolean
+      nouvelleAutoinscription?: boolean
+      nouvelleAutodesinscription?: boolean
+    }
   ): Omit<SessionMilo, 'inscriptions'> {
-    const autoinscription = nouvelleAutoinscription ?? session.autoinscription
-
+    const estVisible = config?.nouvelleVisibilite ?? session.estVisible
+    const autoinscription = estVisible
+      ? (config?.nouvelleAutoinscription ?? session.autoinscription)
+      : false
+    const autodesinscription = autoinscription
+      ? (config?.nouvelleAutodesinscription ?? session.autodesinscription)
+      : false
     return {
       ...supprimerInscriptions(session),
-      estVisible: (autoinscription || nouvelleVisibilite) ?? session.estVisible,
+      estVisible,
       autoinscription,
+      autodesinscription,
       dateModification
     }
   }
@@ -178,8 +202,14 @@ export namespace SessionMilo {
   }
 
   export function peutInscrireBeneficiaire(
-    session: SessionMiloAllegeeForBeneficiaire
+    session: SessionMiloBeneficiaire,
+    maintenant: DateTime
   ): Result {
+    if (!session.autoinscription) return failure(new DroitsInsuffisants())
+
+    if (maintenant > session.dateMaxInscription)
+      return failure(new DroitsInsuffisants())
+
     if (Inscription.estInscrit(session.statutInscription))
       return failure(new BeneficiaireDejaInscritError())
 
@@ -189,8 +219,42 @@ export namespace SessionMilo {
     return emptySuccess()
   }
 
+  export function peutDesinscrireBeneficiaire(
+    session: SessionMiloBeneficiaire,
+    maintenant: DateTime
+  ): Result {
+    if (!Inscription.estInscrit(session.statutInscription))
+      return failure(new DroitsInsuffisants())
+
+    if (
+      !autodesinscriptionEffectivePourBeneficiaire(
+        session.autodesinscription,
+        session.dateMaxDesinscription,
+        maintenant
+      )
+    )
+      return failure(new DroitsInsuffisants())
+
+    return emptySuccess()
+  }
+
   export function estEmargeeMaisPasClose(statut: Statut): boolean {
     return statut === Statut.EMARGEE
+  }
+
+  export function calculerDateMaxDesinscription(
+    dateHeureDebut: DateTime,
+    dateMaxInscription?: DateTime
+  ): DateTime {
+    return dateMaxInscription ?? dateHeureDebut.minus({ hours: 24 })
+  }
+
+  export function autodesinscriptionEffectivePourBeneficiaire(
+    autodesinscription: boolean,
+    dateMaxDesinscription: DateTime,
+    maintenant: DateTime
+  ): boolean {
+    return autodesinscription && maintenant <= dateMaxDesinscription
   }
 
   export interface Repository {
@@ -204,7 +268,7 @@ export namespace SessionMilo {
       idDossier: string,
       tokenMiloBeneficiaire: string,
       timezone: string
-    ): Promise<Result<SessionMiloAllegeeForBeneficiaire>>
+    ): Promise<Result<SessionMiloBeneficiaire>>
 
     getForConseiller(
       idSession: string,
@@ -220,6 +284,12 @@ export namespace SessionMilo {
 
     inscrireBeneficiaire(
       session: { id: string; dateDebut: DateTime },
+      idDossier: string,
+      tokenMiloConseiller: string
+    ): Promise<Result>
+
+    desinscrireBeneficiaire(
+      idSession: string,
       idDossier: string,
       tokenMiloConseiller: string
     ): Promise<Result>

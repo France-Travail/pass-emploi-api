@@ -34,6 +34,7 @@ import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { unDossierMilo } from '../../../fixtures/milo.fixture'
 import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
 import Structure = Core.Structure
+import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
 
 const idPartenaire = 'idDossier'
 
@@ -224,7 +225,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           },
           idPartenaire,
           configuration: {
-            idJeune: 'DFKAL'
+            idJeune: 'DFKAL',
+            fuseauHoraire: TIMEZONE_PAR_DEFAUT
           },
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false
@@ -300,7 +302,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           },
           idPartenaire,
           configuration: {
-            idJeune: 'DFKAL'
+            idJeune: 'DFKAL',
+            fuseauHoraire: TIMEZONE_PAR_DEFAUT
           },
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: true

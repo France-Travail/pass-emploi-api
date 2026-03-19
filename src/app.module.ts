@@ -14,6 +14,7 @@ import { AddCandidatureOffreEmploiCommandHandler } from 'src/application/command
 import { AddCandidatureOffreImmersionCommandHandler } from 'src/application/commands/add-candidature-offre-immersion.command.handler'
 import { AddCandidatureOffreServiceCiviqueCommandHandler } from 'src/application/commands/add-candidature-offre-service-civique.command.handler'
 import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autoinscrire-beneficiaire-session-milo.command.handler'
+import AutodesinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import { EmargerSessionMiloCommandHandler } from 'src/application/commands/milo/emarger-session-milo.command.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
@@ -863,6 +864,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetDemarchesConseillerQueryHandler,
     GetNotificationsJeuneQueryHandler,
     AutoinscrireBeneficiaireSessionMiloCommandHandler,
+    AutodesinscrireBeneficiaireSessionMiloCommandHandler,
     GetComptageJeuneQueryHandler,
     GetComptageJeunesByConseillerQueryHandler,
     GetComptageJeuneQueryGetter,

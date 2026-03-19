@@ -42,6 +42,9 @@ export class SessionConseillerMiloQueryModel {
   autoinscription: boolean
 
   @ApiProperty()
+  autodesinscription: boolean
+
+  @ApiProperty()
   dateHeureDebut: string
 
   @ApiProperty()
@@ -114,6 +117,9 @@ export class SessionJeuneMiloQueryModel {
   @ApiProperty()
   autoinscription: boolean
 
+  @ApiProperty()
+  autodesinscription: boolean
+
   @ApiPropertyOptional()
   dateMaxInscription?: string
 
@@ -137,8 +143,11 @@ export class DetailSessionConseillerQueryModel {
   @ApiProperty()
   dateHeureFin: string
 
-  @ApiProperty({ required: false })
-  dateMaxInscription?: string
+  @ApiProperty()
+  dateMaxInscription: string
+
+  @ApiProperty()
+  dateMaxDesinscription: string
 
   @ApiProperty()
   animateur: string
@@ -151,6 +160,9 @@ export class DetailSessionConseillerQueryModel {
 
   @ApiProperty()
   autoinscription: boolean
+
+  @ApiProperty()
+  autodesinscription: boolean
 
   @ApiProperty({ required: false })
   nbPlacesDisponibles?: number
@@ -227,6 +239,9 @@ export class DetailSessionJeuneMiloQueryModel {
 
   @ApiProperty()
   autoinscription: boolean
+
+  @ApiProperty()
+  autodesinscription: boolean
 
   @ApiProperty({ required: false })
   nomPartenaire?: string

@@ -55,7 +55,8 @@ export const unJeuneSansPushNotificationToken = (
   idPartenaire: '1234',
   structure: Core.Structure.MILO,
   configuration: {
-    idJeune: 'ABCDE'
+    idJeune: 'ABCDE',
+    fuseauHoraire: 'Europe/Paris'
   },
   preferences: desPreferencesJeune(),
   dispositif: Jeune.Dispositif.CEJ

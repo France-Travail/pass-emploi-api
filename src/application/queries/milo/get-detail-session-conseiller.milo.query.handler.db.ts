@@ -30,12 +30,12 @@ export class GetDetailSessionConseillerMiloQueryHandler extends QueryHandler<
 > {
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
-    private conseillerMiloRepository: Conseiller.Milo.Repository,
+    private readonly conseillerMiloRepository: Conseiller.Milo.Repository,
     @Inject(SessionMiloRepositoryToken)
-    private sessionRepository: SessionMilo.Repository,
-    private conseillerAuthorizer: ConseillerAuthorizer,
-    private oidcClient: OidcClient,
-    private dateService: DateService,
+    private readonly sessionRepository: SessionMilo.Repository,
+    private readonly conseillerAuthorizer: ConseillerAuthorizer,
+    private readonly oidcClient: OidcClient,
+    private readonly dateService: DateService,
     private readonly planificateurService: PlanificateurService
   ) {
     super('GetDetailSessionMiloQueryHandler')

@@ -21,6 +21,9 @@ export class SessionMiloDto extends Model {
   @Column({ field: 'autoinscription', type: DataType.BOOLEAN })
   autoinscription: boolean
 
+  @Column({ field: 'autodesinscription', type: DataType.BOOLEAN })
+  autodesinscription: boolean
+
   @Column({
     field: 'date_modification',
     type: DataType.DATE

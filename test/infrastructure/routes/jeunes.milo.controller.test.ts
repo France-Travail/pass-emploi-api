@@ -1,6 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autoinscrire-beneficiaire-session-milo.command.handler'
+import AutodesinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import { GetAccueilJeuneMiloQueryHandler } from 'src/application/queries/milo/get-accueil-jeune-milo.query.handler.db'
 import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-jeune.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
@@ -45,6 +46,7 @@ describe('JeunesMiloController', () => {
   let getSessionsQueryHandler: StubbedClass<GetSessionsJeuneMiloQueryHandler>
   let getDetailSessionQueryHandler: StubbedClass<GetDetailSessionJeuneMiloQueryHandler>
   let autoinscrireBeneficiaireSessionMiloCommandHandler: StubbedClass<AutoinscrireBeneficiaireSessionMiloCommandHandler>
+  let autodesinscriptionBeneficiaireSessionMiloCommandHandler: StubbedClass<AutodesinscrireBeneficiaireSessionMiloCommandHandler>
   let monSuiviQueryHandler: StubbedClass<GetMonSuiviMiloQueryHandler>
   let jwtService: StubbedClass<JwtService>
   let dateService: StubbedClass<DateService>
@@ -61,6 +63,9 @@ describe('JeunesMiloController', () => {
     )
     autoinscrireBeneficiaireSessionMiloCommandHandler = app.get(
       AutoinscrireBeneficiaireSessionMiloCommandHandler
+    )
+    autodesinscriptionBeneficiaireSessionMiloCommandHandler = app.get(
+      AutodesinscrireBeneficiaireSessionMiloCommandHandler
     )
     monSuiviQueryHandler = app.get(GetMonSuiviMiloQueryHandler)
     jwtService = app.get(JwtService)
@@ -250,6 +255,61 @@ describe('JeunesMiloController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'post',
       `/jeunes/milo/id-beneficiaire'/sessions/id-session/inscrire`
+    )
+  })
+
+  describe('POST /jeunes/milo/:idBeneficiaire/sessions/:idSession/desinscrire', () => {
+    const idBeneficiaire = '1'
+    const idSession = 'A'
+    const token = 'token'
+
+    it('désinscrit le bénéficiaire de la session', async () => {
+      autodesinscriptionBeneficiaireSessionMiloCommandHandler.execute
+        .withArgs(
+          {
+            idSession,
+            idBeneficiaire,
+            accessToken: token,
+            motif: 'Je ne peux pas venir'
+          },
+          unUtilisateurDecode()
+        )
+        .resolves(emptySuccess())
+
+      await request(app.getHttpServer())
+        .post(
+          `/jeunes/milo/${idBeneficiaire}/sessions/${idSession}/desinscrire`
+        )
+        .set('authorization', `bearer ${token}`)
+        .send({ motif: 'Je ne peux pas venir' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it('renvoie une erreur quand la désinscription échoue', async () => {
+      autodesinscriptionBeneficiaireSessionMiloCommandHandler.execute
+        .withArgs(
+          {
+            idSession,
+            idBeneficiaire,
+            accessToken: token,
+            motif: 'Je ne peux pas venir'
+          },
+          unUtilisateurDecode()
+        )
+        .resolves(failure(new DroitsInsuffisants()))
+
+      await request(app.getHttpServer())
+        .post(
+          `/jeunes/milo/${idBeneficiaire}/sessions/${idSession}/desinscrire`
+        )
+        .set('authorization', `bearer ${token}`)
+        .send({ motif: 'Je ne peux pas venir' })
+        .expect(HttpStatus.FORBIDDEN)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'post',
+      `/jeunes/milo/id-beneficiaire/sessions/id-session/desinscrire`
     )
   })
 

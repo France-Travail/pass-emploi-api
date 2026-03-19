@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { DateService } from '../../utils/date-service'
 
+export const TIMEZONE_PAR_DEFAUT = 'Europe/Paris'
+
 export interface ConfigurationApplication {
   idJeune: string
   pushNotificationToken?: string
@@ -8,7 +10,7 @@ export interface ConfigurationApplication {
   appVersion?: string
   installationId?: string
   instanceId?: string
-  fuseauHoraire?: string
+  fuseauHoraire: string
   preferences?: ConfigurationApplication.Preferences
 }
 

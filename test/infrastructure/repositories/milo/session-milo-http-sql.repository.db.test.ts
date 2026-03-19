@@ -8,7 +8,7 @@ import {
 } from 'src/building-blocks/types/result'
 import {
   SessionMilo,
-  SessionMiloAllegeeForBeneficiaire
+  SessionMiloBeneficiaire
 } from 'src/domain/milo/session.milo'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { SessionMiloHttpSqlRepository } from 'src/infrastructure/repositories/milo/session-milo-http-sql.repository.db'
@@ -199,6 +199,9 @@ describe('SessionMiloHttpSqlRepository', () => {
         success(
           uneSessionMilo({
             dateMaxInscription: DateTime.fromISO('2020-04-07', {
+              zone: structureConseiller.timezone
+            }).endOf('day'),
+            dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
               zone: structureConseiller.timezone
             }).endOf('day'),
             inscriptions: [
@@ -513,16 +516,22 @@ describe('SessionMiloHttpSqlRepository', () => {
 
       // Then
       expect(isSuccess(result)).to.be.true()
-      expect(
-        (result as Success<SessionMiloAllegeeForBeneficiaire>).data
-      ).to.deep.equal({
+      expect((result as Success<SessionMiloBeneficiaire>).data).to.deep.equal({
         id: 'idSession',
         nom: 'Une-session',
         debut: DateTime.fromISO('2020-04-06T10:20:00', {
           zone: 'Europe/Paris'
         }),
         nbPlacesDisponibles: 10,
-        statutInscription: undefined
+        statutInscription: undefined,
+        autoinscription: false,
+        dateMaxInscription: DateTime.fromISO('2020-04-07', {
+          zone: 'Europe/Paris'
+        }).endOf('day'),
+        autodesinscription: false,
+        dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
+          zone: 'Europe/Paris'
+        }).endOf('day')
       })
     })
   })

@@ -13,6 +13,7 @@ import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { JeuneSqlModel } from '../../../../infrastructure/sequelize/models/jeune.sql-model'
+import { DateService } from '../../../../utils/date-service'
 
 @Injectable()
 export class GetSessionsJeuneMiloQueryGetter {
@@ -20,7 +21,8 @@ export class GetSessionsJeuneMiloQueryGetter {
 
   constructor(
     private readonly oidcClient: OidcClient,
-    private readonly miloClient: MiloClient
+    private readonly miloClient: MiloClient,
+    private readonly dateService: DateService
   ) {
     this.logger = new Logger('GetSessionsJeuneMiloQueryGetter')
   }
@@ -77,18 +79,36 @@ export class GetSessionsJeuneMiloQueryGetter {
         options?.filtrerEstInscrit
       )
 
+    const maintenant = this.dateService.now()
+
+    const sessionsNonExpirees = sessionsDuJeune.filter(sessionDuJeune => {
+      const dateMaxInscription = sessionDuJeune.session.dateMaxInscription
+      if (!dateMaxInscription) return true
+      const dateMax = DateTime.fromISO(dateMaxInscription, {
+        zone: timezoneDeLaStructureDuJeune
+      }).endOf('day')
+      return maintenant <= dateMax
+    })
+
     return success(
-      sessionsDuJeune
-        .map(sessionDuJeune =>
-          mapSessionJeuneDtoToQueryModel(
+      sessionsNonExpirees
+        .map(sessionDuJeune => {
+          const sqlModel = configurationsSessions.find(
+            ({ id }) => id === sessionDuJeune.session.id.toString()
+          )
+          return mapSessionJeuneDtoToQueryModel(
             sessionDuJeune,
             beneficiaire.idPartenaire!,
             timezoneDeLaStructureDuJeune,
-            configurationsSessions.find(
-              ({ id }) => id === sessionDuJeune.session.id.toString()
-            )
+            maintenant,
+            sqlModel
+              ? {
+                  autoinscription: sqlModel.autoinscription,
+                  autodesinscription: sqlModel.autodesinscription
+                }
+              : undefined
           )
-        )
+        })
         .sort(compareSessionsByDebut)
     )
   }

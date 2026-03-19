@@ -9,7 +9,7 @@ import {
 import { OffreTypeCode } from 'src/infrastructure/clients/dto/milo.dto'
 import {
   SessionMilo,
-  SessionMiloAllegeeForBeneficiaire
+  SessionMiloBeneficiaire
 } from '../../src/domain/milo/session.milo'
 
 export const uneSessionConseillerMiloQueryModel: SessionConseillerMiloQueryModel =
@@ -19,6 +19,7 @@ export const uneSessionConseillerMiloQueryModel: SessionConseillerMiloQueryModel
     nomOffre: 'Une-offre',
     estVisible: false,
     autoinscription: false,
+    autodesinscription: false,
     dateHeureDebut: '2020-04-06T13:20:00.000Z',
     dateHeureFin: '2020-04-08T13:20:00.000Z',
     type: {
@@ -44,6 +45,7 @@ export const uneSessionJeuneMiloQueryModel = (
       label: 'Atelier'
     },
     autoinscription: false,
+    autodesinscription: false,
     dateMaxInscription: '2020-04-07T21:59:59.999Z',
     nbPlacesRestantes: 10
   }
@@ -58,10 +60,12 @@ export const unDetailSessionConseillerMiloQueryModel: DetailSessionConseillerMil
       dateHeureDebut: '2020-04-06T13:20:00.000Z',
       dateHeureFin: '2020-04-08T13:20:00.000Z',
       dateMaxInscription: '2020-04-07T23:59:59.999Z',
+      dateMaxDesinscription: '2020-04-07T23:58:59.999Z',
       animateur: 'Un-animateur',
       lieu: 'Un-lieu',
       estVisible: false,
       autoinscription: false,
+      autodesinscription: false,
       nbPlacesDisponibles: 10,
       commentaire: 'Un-commentaire',
       statut: SessionMilo.Statut.A_CLOTURER
@@ -93,7 +97,8 @@ export const unDetailSessionJeuneMiloQueryModel: DetailSessionJeuneMiloQueryMode
     commentaire: 'Un-commentaire',
     dateMaxInscription: '2020-04-07T10:20:00.000Z',
     nbPlacesDisponibles: 10,
-    autoinscription: true
+    autoinscription: true,
+    autodesinscription: true
   }
 
 export const unAgendaConseillerMiloSessionListItemQueryModel = (
@@ -134,7 +139,9 @@ export const uneSessionMilo = (
     commentaire: 'Un-commentaire',
     estVisible: false,
     autoinscription: false,
+    autodesinscription: false,
     dateMaxInscription: DateTime.fromISO('2020-04-07T23:59:59.999Z'),
+    dateMaxDesinscription: DateTime.fromISO('2020-04-07T23:58:59.999Z'),
     debut: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
       zone: 'America/Cayenne'
     }),
@@ -185,15 +192,23 @@ export const uneSessionMilo = (
 }
 
 export function uneSessionMiloAllegee(
-  overrides: Partial<SessionMiloAllegeeForBeneficiaire> = {}
-): SessionMiloAllegeeForBeneficiaire {
-  const defaults: SessionMiloAllegeeForBeneficiaire = {
+  overrides: Partial<SessionMiloBeneficiaire> = {}
+): SessionMiloBeneficiaire {
+  const defaults: SessionMiloBeneficiaire = {
     id: 'id-session',
     nom: 'Une session',
     debut: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
       zone: 'Europe/Paris'
     }),
-    nbPlacesDisponibles: undefined
+    nbPlacesDisponibles: undefined,
+    autoinscription: true,
+    dateMaxInscription: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
+      zone: 'Europe/Paris'
+    }),
+    autodesinscription: false,
+    dateMaxDesinscription: DateTime.fromISO('2020-04-05T13:20:00.000Z', {
+      zone: 'Europe/Paris'
+    })
   }
 
   return { ...defaults, ...overrides }

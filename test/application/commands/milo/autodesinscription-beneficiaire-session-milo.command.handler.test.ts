@@ -1,12 +1,10 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
-import AutoinscrireBeneficiaireSessionMiloCommandHandler, {
-  AutoinscrireBeneficiaireSessionMiloCommand
-} from 'src/application/commands/milo/autoinscrire-beneficiaire-session-milo.command.handler'
+import AutodesinscrireBeneficiaireSessionMiloCommandHandler, {
+  AutodesinscrireBeneficiaireSessionMiloCommand
+} from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import {
   DroitsInsuffisants,
-  NombrePlacesInsuffisantError,
   NonTraitableError,
   NonTrouveError
 } from 'src/building-blocks/types/domain-error'
@@ -20,31 +18,31 @@ import {
 import { Authentification } from 'src/domain/authentification'
 import { Chat } from 'src/domain/chat'
 import { Core } from 'src/domain/core'
-import { EvenementService } from 'src/domain/evenement'
+import { Evenement, EvenementService } from 'src/domain/evenement'
 import { JeuneMilo } from 'src/domain/milo/jeune.milo'
 import { SessionMilo } from 'src/domain/milo/session.milo'
-import { Notification } from 'src/domain/notification/notification'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
 import { DateService } from 'src/utils/date-service'
 import {
   unUtilisateurConseiller,
   unUtilisateurJeune
 } from 'test/fixtures/authentification.fixture'
+import { uneDatetime } from 'test/fixtures/date.fixture'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { uneSessionMiloAllegee } from 'test/fixtures/sessions.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from 'test/utils'
 
-describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
+describe('AutodesinscrireBeneficiaireSessionMiloCommandHandler', () => {
   let beneficiaireMiloRepository: StubbedType<JeuneMilo.Repository>
   let authentificationRepository: StubbedType<Authentification.Repository>
   let sessionMiloRepository: StubbedType<SessionMilo.Repository>
   let chatRepository: StubbedType<Chat.Repository>
   let chatCryptoService: StubbedClass<ChatCryptoService>
-  let notificationService: StubbedClass<Notification.Service>
-  let evenementService: StubbedClass<EvenementService>
   let dateService: StubbedClass<DateService>
-  let commandHandler: AutoinscrireBeneficiaireSessionMiloCommandHandler
+  let evenementService: StubbedClass<EvenementService>
+  let commandHandler: AutodesinscrireBeneficiaireSessionMiloCommandHandler
 
+  const maintenant = uneDatetime()
   const beneficiaireMilo: JeuneMilo = {
     ...unJeune(),
     idStructureMilo: 'id-structure-milo'
@@ -52,11 +50,16 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
   const utilisateurBeneficiaire = unUtilisateurJeune({
     id: beneficiaireMilo.id
   })
-  const session = uneSessionMiloAllegee()
-  const command: AutoinscrireBeneficiaireSessionMiloCommand = {
+  const session = uneSessionMiloAllegee({
+    statutInscription: SessionMilo.Inscription.Statut.INSCRIT,
+    autodesinscription: true,
+    dateMaxDesinscription: maintenant.plus({ days: 1 })
+  })
+  const command: AutodesinscrireBeneficiaireSessionMiloCommand = {
     idSession: 'id-session',
     idBeneficiaire: beneficiaireMilo.id,
-    accessToken: 'accessToken'
+    accessToken: 'accessToken',
+    motif: 'Je ne peux pas venir'
   }
 
   beforeEach(async () => {
@@ -66,19 +69,16 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
     sessionMiloRepository = stubInterface(sandbox)
     chatRepository = stubInterface(sandbox)
     chatCryptoService = stubClass(ChatCryptoService)
-    notificationService = stubClass(Notification.Service)
-    evenementService = stubClass(EvenementService)
     dateService = stubClass(DateService)
-    dateService.now.returns(DateTime.fromISO('2020-04-05T10:00:00.000Z'))
-    commandHandler = new AutoinscrireBeneficiaireSessionMiloCommandHandler(
+    evenementService = stubClass(EvenementService)
+    commandHandler = new AutodesinscrireBeneficiaireSessionMiloCommandHandler(
       beneficiaireMiloRepository,
       authentificationRepository,
       sessionMiloRepository,
       chatRepository,
       chatCryptoService,
-      notificationService,
-      evenementService,
-      dateService
+      dateService,
+      evenementService
     )
   })
 
@@ -96,7 +96,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       expect(aggregate).to.equal(beneficiaireMilo)
     })
 
-    it('renvoie undefined si le bénéficiaire n’existe pas', async () => {
+    it("renvoie undefined si le bénéficiaire n'existe pas", async () => {
       // Given
       beneficiaireMiloRepository.get
         .withArgs(beneficiaireMilo.id)
@@ -126,7 +126,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
           beneficiaireMilo.configuration.fuseauHoraire
         )
         .resolves(success(session))
-      sessionMiloRepository.inscrireBeneficiaire.resolves(emptySuccess())
+      sessionMiloRepository.desinscrireBeneficiaire.resolves(emptySuccess())
       chatRepository.recupererConversationIndividuelle
         .withArgs(beneficiaireMilo.id)
         .resolves({ id: 'id-chat', idBeneficiaire: beneficiaireMilo.id })
@@ -134,9 +134,10 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
         encryptedText: 'ENCRYPTED ' + message,
         iv: 'IV ' + message
       }))
+      dateService.now.returns(maintenant)
     })
 
-    it('inscrit le bénéficiaire en se faisant passer pour le conseiller', async () => {
+    it('désinscrit le bénéficiaire en se faisant passer pour le conseiller', async () => {
       // When
       await commandHandler.handle(
         command,
@@ -146,15 +147,15 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
 
       // Then
       expect(
-        sessionMiloRepository.inscrireBeneficiaire
+        sessionMiloRepository.desinscrireBeneficiaire
       ).to.have.been.calledOnceWithExactly(
-        { id: 'id-session', dateDebut: uneSessionMiloAllegee().debut },
+        'id-session',
         beneficiaireMilo.idPartenaire,
         'token-conseiller-milo'
       )
     })
 
-    it('prévient le conseiller par chat', async () => {
+    it('prévient le conseiller par chat avec le motif', async () => {
       // When
       await commandHandler.handle(
         command,
@@ -169,31 +170,18 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
         'id-chat',
         {
           message:
-            'ENCRYPTED Votre bénéficiaire s’est inscrit à l’événement suivant',
-          iv: 'IV Votre bénéficiaire s’est inscrit à l’événement suivant',
+            "ENCRYPTED Votre bénéficiaire a annulé sa participation à l'événement suivant",
+          iv: "IV Votre bénéficiaire a annulé sa participation à l'événement suivant",
           idConseiller: '1',
-          type: 'AUTO_INSCRIPTION',
+          type: 'AUTO_DESINSCRIPTION',
           infoSession: {
             id: 'id-session',
-            titre: 'Une session'
+            titre: 'Une session',
+            motifAnnulation: 'Je ne peux pas venir'
           }
         },
         { sentByBeneficiaire: true }
       )
-    })
-
-    it('notifie le bénéficiaire', async () => {
-      // When
-      await commandHandler.handle(
-        command,
-        utilisateurBeneficiaire,
-        beneficiaireMilo
-      )
-
-      // Then
-      expect(
-        notificationService.notifierAutoinscriptionSession
-      ).to.have.been.calledOnceWithExactly(session, beneficiaireMilo)
     })
 
     it('vérifie que le bénéficiaire existe', async () => {
@@ -222,8 +210,8 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       expect((result as Failure).error).to.be.an.instanceOf(NonTraitableError)
     })
 
-    it('vérifie que le bénéficiaire peut s’inscrire', async () => {
-      // Given
+    it('vérifie que le bénéficiaire peut se désinscrire', async () => {
+      // Given - session sans autodesinscription
       sessionMiloRepository.getForBeneficiaire
         .withArgs(
           'id-session',
@@ -231,7 +219,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'token-beneficiaire-milo',
           beneficiaireMilo.configuration.fuseauHoraire
         )
-        .resolves(success(uneSessionMiloAllegee({ nbPlacesDisponibles: 0 })))
+        .resolves(success(uneSessionMiloAllegee({ autodesinscription: false })))
 
       // When
       const result = await commandHandler.handle(
@@ -242,12 +230,10 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
 
       // Then
       expect(isFailure(result)).to.be.true()
-      expect((result as Failure).error).to.be.an.instanceOf(
-        NombrePlacesInsuffisantError
-      )
+      expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
     })
 
-    it('vérifie que la conversation existe', async () => {
+    it("ne prévient pas le conseiller si la conversation n'existe pas", async () => {
       // Given
       chatRepository.recupererConversationIndividuelle
         .withArgs(beneficiaireMilo.id)
@@ -266,7 +252,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
   })
 
   describe('.authorize', () => {
-    it('échoue si le bénéficiaire n’existe pas', async () => {
+    it("échoue si le bénéficiaire n'existe pas", async () => {
       // When
       const result = await commandHandler.authorize(
         command,
@@ -279,7 +265,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       expect((result as Failure).error).to.be.an.instanceOf(NonTrouveError)
     })
 
-    it('échoue si l’utilisateur n’est pas un bénéficiaire', async () => {
+    it("échoue si l'utilisateur n'est pas un bénéficiaire", async () => {
       // Given
       const utilisateurConseiller = unUtilisateurConseiller({
         id: beneficiaireMilo.id
@@ -297,14 +283,14 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
     })
 
-    it('échoue si l’utilisateur n’est pas le bénéficiaire', async () => {
+    it("échoue si l'utilisateur n'est pas le bénéficiaire", async () => {
       // Given
-      const utilisateurBeneficiaire = unUtilisateurJeune({ id: 'un-autre-id' })
+      const autreUtilisateur = unUtilisateurJeune({ id: 'un-autre-id' })
 
       // When
       const result = await commandHandler.authorize(
         command,
-        utilisateurBeneficiaire,
+        autreUtilisateur,
         beneficiaireMilo
       )
 
@@ -313,7 +299,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
       expect((result as Failure).error).to.be.an.instanceOf(DroitsInsuffisants)
     })
 
-    it('réussie si l’utilisateur est le bénéficiaire', async () => {
+    it("réussit si l'utilisateur est le bénéficiaire", async () => {
       // When
       const result = await commandHandler.authorize(
         command,
@@ -327,13 +313,13 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
   })
 
   describe('.monitor', () => {
-    it('envoie un événement d’incription', async () => {
+    it('envoie un événement de désinscription', async () => {
       // When
       await commandHandler.monitor(utilisateurBeneficiaire)
 
       // Then
       expect(evenementService.creer).to.have.been.calledOnceWithExactly(
-        'SESSION_AUTOINSCRIPTION',
+        Evenement.Code.SESSION_AUTODESINSCRIPTION,
         utilisateurBeneficiaire
       )
     })

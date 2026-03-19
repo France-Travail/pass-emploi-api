@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -11,6 +12,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { DateTime } from 'luxon'
 import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autoinscrire-beneficiaire-session-milo.command.handler'
+import AutodesinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import { GetAccueilJeuneMiloQueryHandler } from 'src/application/queries/milo/get-accueil-jeune-milo.query.handler.db'
 import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-jeune.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
@@ -34,6 +36,7 @@ import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { MaintenantQueryParams } from './validation/jeunes.inputs'
 import {
+  DesinscrireSessionMiloPayload,
   GetMonSuiviQueryParams,
   GetSessionsJeunesQueryParams
 } from './validation/jeunes.milo.inputs'
@@ -47,6 +50,7 @@ export class JeunesMiloController {
     private readonly getSessionsQueryHandler: GetSessionsJeuneMiloQueryHandler,
     private readonly getDetailSessionQueryHandler: GetDetailSessionJeuneMiloQueryHandler,
     private readonly autoinscrireBeneficiaireSessionMiloCommandHandler: AutoinscrireBeneficiaireSessionMiloCommandHandler,
+    private readonly autodesinscriptionBeneficiaireSessionMiloCommandHandler: AutodesinscrireBeneficiaireSessionMiloCommandHandler,
     private readonly getMonSuiviMiloQueryHandler: GetMonSuiviMiloQueryHandler,
     private readonly getActualitesMiloJeuneQueryHandler: GetActualitesMiloJeuneQueryHandler
   ) {}
@@ -148,6 +152,28 @@ export class JeunesMiloController {
     const result =
       await this.autoinscrireBeneficiaireSessionMiloCommandHandler.execute(
         { idSession, idBeneficiaire, accessToken: accessToken },
+        utilisateur
+      )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: "Désinscrit un bénéficiaire d'une session",
+    description: 'Autorisé pour le bénéficiaire Milo'
+  })
+  @Post('/milo/:idBeneficiaire/sessions/:idSession/desinscrire')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async desinscrireBeneficiaireSession(
+    @Param('idBeneficiaire') idBeneficiaire: string,
+    @Param('idSession') idSession: string,
+    @Body() payload: DesinscrireSessionMiloPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
+  ): Promise<void> {
+    const result =
+      await this.autodesinscriptionBeneficiaireSessionMiloCommandHandler.execute(
+        { idSession, idBeneficiaire, accessToken, motif: payload.motif },
         utilisateur
       )
 

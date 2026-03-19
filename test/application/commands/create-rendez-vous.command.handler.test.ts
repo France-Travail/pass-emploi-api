@@ -265,7 +265,8 @@ describe('CreateRendezVousCommandHandler', () => {
           const jeuneSansPushToken = unJeune({
             configuration: {
               idJeune: unJeune().id,
-              pushNotificationToken: undefined
+              pushNotificationToken: undefined,
+              fuseauHoraire: 'Europe/Paris'
             }
           })
           const command: CreateRendezVousCommand = {

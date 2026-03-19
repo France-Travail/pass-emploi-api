@@ -82,7 +82,10 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
           idDossier: jeune.idPartenaire,
           timezone: timezoneDeLaStructureDuJeune
         },
-        { autoinscription: configurationSession?.autoinscription ?? false }
+        {
+          autoinscription: configurationSession?.autoinscription ?? false,
+          autodesinscription: configurationSession?.autodesinscription ?? false
+        }
       )
     )
   }

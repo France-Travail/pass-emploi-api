@@ -19,6 +19,7 @@ import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { unConseillerDuJeune, unJeune } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, stubClass } from '../../../utils'
 import Structure = Core.Structure
+import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
 
 describe('CreateJeunePoleEmploiCommandHandler', () => {
   let createJeuneCommandHandler: CreerJeunePoleEmploiCommandHandler
@@ -88,7 +89,8 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           actualitesMilo: true
         },
         configuration: {
-          idJeune: idNouveauJeune
+          idJeune: idNouveauJeune,
+          fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
         dispositif: Jeune.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: undefined

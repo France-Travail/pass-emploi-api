@@ -27,22 +27,22 @@ import {
   SessionMiloBeneficiaire,
   SessionMiloRepositoryToken
 } from 'src/domain/milo/session.milo'
-import { Notification } from 'src/domain/notification/notification'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
 import { DateService } from 'src/utils/date-service'
 
-export type AutoinscrireBeneficiaireSessionMiloCommand = {
+export type AutodesinscrireBeneficiaireSessionMiloCommand = {
   idSession: string
   idBeneficiaire: string
   accessToken: string
+  motif: string
 }
 
 type ChampsObligatoire = 'conseiller' | 'idPartenaire'
 type BeneficiaireMilo = Omit<JeuneMilo, ChampsObligatoire> &
   Required<Pick<JeuneMilo, ChampsObligatoire>>
 
-export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends CommandHandler<
-  AutoinscrireBeneficiaireSessionMiloCommand,
+export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extends CommandHandler<
+  AutodesinscrireBeneficiaireSessionMiloCommand,
   void,
   JeuneMilo
 > {
@@ -56,58 +56,76 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
     @Inject(ChatRepositoryToken)
     private readonly chatRepository: Chat.Repository,
     private readonly chatCryptoService: ChatCryptoService,
-    private readonly notificationService: Notification.Service,
-    private readonly evenementService: EvenementService,
-    private readonly dateService: DateService
+    private readonly dateService: DateService,
+    private readonly evenementService: EvenementService
   ) {
-    super('InscrireBeneficiaireSessionMiloCommandHandler')
+    super('AutodesinscrireBeneficiaireSessionMiloCommandHandler')
   }
 
   async getAggregate(
-    command: AutoinscrireBeneficiaireSessionMiloCommand
+    command: AutodesinscrireBeneficiaireSessionMiloCommand
   ): Promise<JeuneMilo | undefined> {
-    const resultBeneficiaire = await this.beneficiaireMiloRepository.get(
+    const result = await this.beneficiaireMiloRepository.get(
       command.idBeneficiaire
     )
-    if (isFailure(resultBeneficiaire)) return undefined
-    return resultBeneficiaire.data
+    if (isFailure(result)) return undefined
+    return result.data
   }
 
   async handle(
-    command: AutoinscrireBeneficiaireSessionMiloCommand,
+    command: AutodesinscrireBeneficiaireSessionMiloCommand,
     _utilisateur: Authentification.Utilisateur,
     aggregate?: JeuneMilo
   ): Promise<Result> {
-    const resultBeneficiaire = await this.recupererBeneficiaire(
+    const resultBeneficiaire = this.recupererBeneficiaire(
       command.idBeneficiaire,
       aggregate
     )
     if (isFailure(resultBeneficiaire)) return resultBeneficiaire
     const beneficiaire = resultBeneficiaire.data
 
-    const resultatInscription = await this.inscrireBeneficiaire(
-      beneficiaire,
-      command.idSession,
-      command.accessToken
+    const resultAccesMilo = await this.recupererAccesMilo(
+      command.accessToken,
+      beneficiaire.conseiller.id
     )
-    if (isFailure(resultatInscription)) return resultatInscription
-    const session = resultatInscription.data
+    if (isFailure(resultAccesMilo)) return resultAccesMilo
+    const { accesMiloBeneficiaire, accesMiloConseiller } = resultAccesMilo.data
+
+    const resultSession = await this.sessionMiloRepository.getForBeneficiaire(
+      command.idSession,
+      beneficiaire.idPartenaire,
+      accesMiloBeneficiaire,
+      beneficiaire.configuration.fuseauHoraire
+    )
+    if (isFailure(resultSession)) return resultSession
+    const session = resultSession.data
+
+    const verificationDesinscription = SessionMilo.peutDesinscrireBeneficiaire(
+      session,
+      this.dateService.now()
+    )
+    if (isFailure(verificationDesinscription)) return verificationDesinscription
+
+    const resultDesinscription =
+      await this.sessionMiloRepository.desinscrireBeneficiaire(
+        command.idSession,
+        beneficiaire.idPartenaire,
+        accesMiloConseiller
+      )
+    if (isFailure(resultDesinscription)) return resultDesinscription
 
     this.envoyerMessageConseiller(
       beneficiaire.id,
       beneficiaire.conseiller.id,
-      session
-    )
-    this.notificationService.notifierAutoinscriptionSession(
       session,
-      beneficiaire
+      command.motif
     )
 
     return emptySuccess()
   }
 
   async authorize(
-    command: AutoinscrireBeneficiaireSessionMiloCommand,
+    command: AutodesinscrireBeneficiaireSessionMiloCommand,
     utilisateur: Authentification.Utilisateur,
     aggregate?: JeuneMilo
   ): Promise<Result> {
@@ -125,15 +143,15 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
     await this.evenementService.creer(
-      Evenement.Code.SESSION_AUTOINSCRIPTION,
+      Evenement.Code.SESSION_AUTODESINSCRIPTION,
       utilisateur
     )
   }
 
-  private async recupererBeneficiaire(
+  private recupererBeneficiaire(
     idBeneficiaire: string,
     aggregate?: JeuneMilo
-  ): Promise<Result<BeneficiaireMilo>> {
+  ): Result<BeneficiaireMilo> {
     if (!aggregate)
       return failure(new NonTrouveError('Bénéficiaire', idBeneficiaire))
 
@@ -155,76 +173,6 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
       conseiller: aggregate.conseiller,
       idPartenaire: aggregate.idPartenaire
     })
-  }
-
-  private async inscrireBeneficiaire(
-    beneficiaire: BeneficiaireMilo,
-    idSession: string,
-    accessToken: string
-  ): Promise<Result<SessionMiloBeneficiaire>> {
-    const resultAccesMilo = await this.recupererAccesMilo(
-      accessToken,
-      beneficiaire.conseiller.id
-    )
-    if (isFailure(resultAccesMilo)) return resultAccesMilo
-    const { accesMiloBeneficiaire, accesMiloConseiller } = resultAccesMilo.data
-
-    const resultSession = await this.sessionMiloRepository.getForBeneficiaire(
-      idSession,
-      beneficiaire.idPartenaire,
-      accesMiloBeneficiaire,
-      beneficiaire.configuration.fuseauHoraire
-    )
-    if (isFailure(resultSession)) return resultSession
-    const sessionAllegee = resultSession.data
-
-    const verificationInscription = SessionMilo.peutInscrireBeneficiaire(
-      sessionAllegee,
-      this.dateService.now()
-    )
-    if (isFailure(verificationInscription)) return verificationInscription
-
-    const inscription = await this.sessionMiloRepository.inscrireBeneficiaire(
-      { id: idSession, dateDebut: sessionAllegee.debut },
-      beneficiaire.idPartenaire,
-      accesMiloConseiller
-    )
-    if (isFailure(inscription)) return inscription
-
-    return success(sessionAllegee)
-  }
-
-  private async envoyerMessageConseiller(
-    idBeneficiaire: string,
-    idConseiller: string,
-    session: SessionMiloBeneficiaire
-  ): Promise<void> {
-    const conversation =
-      await this.chatRepository.recupererConversationIndividuelle(
-        idBeneficiaire
-      )
-    if (!conversation) {
-      this.logger.error({ message: 'Aucune conversation trouvée' })
-      return
-    }
-
-    const { encryptedText, iv } = this.chatCryptoService.encrypt(
-      'Votre bénéficiaire s’est inscrit à l’événement suivant'
-    )
-    await this.chatRepository.envoyerMessageIndividuel(
-      conversation.id,
-      {
-        message: encryptedText,
-        iv,
-        idConseiller: idConseiller,
-        type: 'AUTO_INSCRIPTION',
-        infoSession: {
-          id: session.id,
-          titre: session.nom
-        }
-      },
-      { sentByBeneficiaire: true }
-    )
   }
 
   private async recupererAccesMilo(
@@ -251,5 +199,40 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
       accesMiloBeneficiaire,
       accesMiloConseiller: resultAccesMiloConseiller.data
     })
+  }
+
+  private async envoyerMessageConseiller(
+    idBeneficiaire: string,
+    idConseiller: string,
+    session: SessionMiloBeneficiaire,
+    motif: string
+  ): Promise<void> {
+    const conversation =
+      await this.chatRepository.recupererConversationIndividuelle(
+        idBeneficiaire
+      )
+    if (!conversation) {
+      this.logger.error({ message: 'Aucune conversation trouvée' })
+      return
+    }
+
+    const { encryptedText, iv } = this.chatCryptoService.encrypt(
+      "Votre bénéficiaire a annulé sa participation à l'événement suivant"
+    )
+    await this.chatRepository.envoyerMessageIndividuel(
+      conversation.id,
+      {
+        message: encryptedText,
+        iv,
+        idConseiller,
+        type: 'AUTO_DESINSCRIPTION',
+        infoSession: {
+          id: session.id,
+          titre: session.nom,
+          motifAnnulation: motif
+        }
+      },
+      { sentByBeneficiaire: true }
+    )
   }
 }

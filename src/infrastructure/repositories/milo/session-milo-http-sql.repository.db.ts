@@ -3,16 +3,18 @@ import * as APM from 'elastic-apm-node'
 import { DateTime } from 'luxon'
 import {
   emptySuccess,
+  failure,
   isFailure,
   Result,
   success
 } from 'src/building-blocks/types/result'
+import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
 import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
 import {
   InscriptionsATraiter,
   InstanceSessionMilo,
   SessionMilo,
-  SessionMiloAllegeeForBeneficiaire
+  SessionMiloBeneficiaire
 } from 'src/domain/milo/session.milo'
 import {
   PlanificateurService,
@@ -75,28 +77,49 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     idDossier: string,
     tokenMiloBeneficiaire: string,
     timezone: string
-  ): Promise<Result<SessionMiloAllegeeForBeneficiaire>> {
-    const resultSession = await this.miloClient.getDetailSessionJeune(
-      tokenMiloBeneficiaire,
-      idSession,
-      idDossier,
-      timezone
-    )
+  ): Promise<Result<SessionMiloBeneficiaire>> {
+    const [resultSession, sessionSqlModel] = await Promise.all([
+      this.miloClient.getDetailSessionJeune(
+        tokenMiloBeneficiaire,
+        idSession,
+        idDossier,
+        timezone
+      ),
+      SessionMiloSqlModel.findByPk(idSession)
+    ])
     if (isFailure(resultSession)) {
       return resultSession
     }
     const { session, sessionInstance } = resultSession.data
 
+    const debut = DateTime.fromFormat(
+      session.dateHeureDebut,
+      FORMAT_DATETIME_MILO,
+      {
+        zone: timezone
+      }
+    )
+    const dateMaxInscription = session.dateMaxInscription
+      ? DateTime.fromISO(session.dateMaxInscription, { zone: timezone }).endOf(
+          'day'
+        )
+      : undefined
+    const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+      debut,
+      dateMaxInscription
+    )
     return success({
       id: idSession,
       nom: session.nom,
-      debut: DateTime.fromFormat(session.dateHeureDebut, FORMAT_DATETIME_MILO, {
-        zone: timezone
-      }),
+      debut,
       nbPlacesDisponibles: session.nbPlacesDisponibles ?? undefined,
       statutInscription: sessionInstance
         ? dtoToStatutInscription(sessionInstance?.statut, idSession, idDossier)
-        : undefined
+        : undefined,
+      autoinscription: sessionSqlModel?.autoinscription ?? false,
+      dateMaxInscription: dateMaxInscription ?? debut,
+      autodesinscription: sessionSqlModel?.autodesinscription ?? false,
+      dateMaxDesinscription
     })
   }
 
@@ -191,6 +214,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       id: sessionSansInscription.id,
       estVisible: sessionSansInscription.estVisible,
       autoinscription: sessionSansInscription.autoinscription,
+      autodesinscription: sessionSansInscription.autodesinscription,
       idStructureMilo: sessionSansInscription.idStructureMilo,
       dateModification:
         sessionSansInscription.dateModification?.toJSDate() ?? new Date(),
@@ -198,6 +222,44 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     })
 
     return emptySuccess()
+  }
+
+  async desinscrireBeneficiaire(
+    idSession: string,
+    idDossier: string,
+    tokenMiloConseiller: string
+  ): Promise<Result> {
+    const resultInscrits = await this.miloClient.getListeInscritsSession(
+      tokenMiloConseiller,
+      idSession
+    )
+    if (isFailure(resultInscrits)) return resultInscrits
+
+    const inscrit = resultInscrits.data.find(
+      i => i.idDossier.toString() === idDossier
+    )
+    if (!inscrit) return failure(new DroitsInsuffisants())
+
+    const idInstanceSession = inscrit.idInstanceSession.toString()
+
+    supprimerRappelsInstanceSessionMilo(
+      idInstanceSession,
+      this.planificateurService,
+      this.logger,
+      this.apmService
+    )
+
+    return this.miloClient.modifierInscriptionJeunesSession(
+      tokenMiloConseiller,
+      [
+        {
+          idDossier,
+          idInstanceSession,
+          statut: MILO_REFUS_JEUNE,
+          commentaire: "Desinscription en autonomie depuis l'Application du CEJ"
+        }
+      ]
+    )
   }
 
   async inscrireBeneficiaire(
@@ -322,46 +384,46 @@ function dtoToSessionMilo(
   jeunes: Array<Pick<JeuneSqlModel, 'id' | 'idPartenaire'>>
 ): SessionMilo {
   const idSession = sessionDto.id.toString()
-  const session: SessionMilo = {
+  const debut = DateTime.fromFormat(
+    sessionDto.dateHeureDebut,
+    FORMAT_DATETIME_MILO,
+    { zone: structureMilo.timezone }
+  )
+  const dateMaxInscription = sessionDto.dateMaxInscription
+    ? DateTime.fromISO(sessionDto.dateMaxInscription, {
+        zone: structureMilo.timezone
+      }).endOf('day')
+    : debut
+  const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+    debut,
+    dateMaxInscription
+  )
+  return {
     id: idSession,
     nom: sessionDto.nom,
-    debut: DateTime.fromFormat(
-      sessionDto.dateHeureDebut,
-      FORMAT_DATETIME_MILO,
-      { zone: structureMilo.timezone }
-    ),
+    debut,
     fin: DateTime.fromFormat(sessionDto.dateHeureFin, FORMAT_DATETIME_MILO, {
       zone: structureMilo.timezone
     }),
     animateur: sessionDto.animateur,
     lieu: sessionDto.lieu,
     nbPlacesDisponibles: sessionDto.nbPlacesDisponibles ?? undefined,
-    estVisible: false,
-    autoinscription: false,
+    estVisible: sessionSql?.estVisible ?? false,
+    autoinscription: sessionSql?.autoinscription ?? false,
+    autodesinscription: sessionSql?.autodesinscription ?? false,
     idStructureMilo: structureMilo.id,
     offre: dtoToOffre(offreDto),
     inscriptions: dtoToInscriptions(idSession, listeInscrits, jeunes),
     dateCloture: sessionSql?.dateCloture
-      ? DateTime.fromJSDate(sessionSql?.dateCloture)
-      : undefined
+      ? DateTime.fromJSDate(sessionSql.dateCloture)
+      : undefined,
+    ...(sessionSql
+      ? { dateModification: DateTime.fromJSDate(sessionSql.dateModification) }
+      : {}),
+    commentaire: sessionDto.commentaire ?? undefined,
+    dateMaxInscription,
+    dateMaxDesinscription
   }
-
-  if (sessionDto.dateMaxInscription) {
-    session.dateMaxInscription = DateTime.fromISO(
-      sessionDto.dateMaxInscription,
-      {
-        zone: structureMilo.timezone
-      }
-    ).endOf('day')
-  }
-  if (sessionSql) {
-    session.estVisible = sessionSql.autoinscription || sessionSql.estVisible
-    session.autoinscription = sessionSql.autoinscription
-    session.dateModification = DateTime.fromJSDate(sessionSql.dateModification)
-  }
-  if (sessionDto.commentaire) session.commentaire = sessionDto.commentaire
-
-  return session
 }
 
 function dtoToOffre(offreDto: OffreDto): SessionMilo.Offre {

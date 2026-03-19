@@ -688,7 +688,11 @@ describe('Notification', () => {
       it('ne notifie pas les jeunes sans pushNotificationToken', async () => {
         // Given
         const jeune: Jeune = unJeune({
-          configuration: { idJeune: 'ABCDE', pushNotificationToken: undefined }
+          configuration: {
+            idJeune: 'ABCDE',
+            pushNotificationToken: undefined,
+            fuseauHoraire: 'Europe/Paris'
+          }
         })
         const idActu = 'actu-id'
 
