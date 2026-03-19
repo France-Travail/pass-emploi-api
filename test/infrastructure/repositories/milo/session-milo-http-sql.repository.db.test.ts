@@ -35,7 +35,10 @@ import {
 } from '../../../../src/infrastructure/clients/dto/milo.dto'
 import { uneInstanceSessionMilo } from '../../../fixtures/milo.fixture'
 import { expect, sinon, StubbedClass, stubClass } from '../../../utils'
-import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
+import {
+  DroitsInsuffisants,
+  ErreurMiloHttp
+} from '../../../../src/building-blocks/types/domain-error'
 
 const structureConseiller = {
   id: 'structure-milo',
@@ -118,6 +121,48 @@ describe('SessionMiloHttpSqlRepository', () => {
   describe('.getForConseiller', () => {
     const idSession = 'idSession'
     const tokenMilo = 'token-milo'
+
+    it('retourne une failure quand getDetailSessionConseiller échoue', async () => {
+      // Given
+      miloClient.getDetailSessionConseiller.resolves(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+      miloClient.getListeInscritsSession.resolves(success([]))
+
+      // When
+      const result = await repository.getForConseiller(
+        idSession,
+        structureConseiller,
+        tokenMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+    })
+
+    it('retourne une failure quand getListeInscritsSession échoue', async () => {
+      // Given
+      miloClient.getDetailSessionConseiller.resolves(
+        success(unDetailSessionConseillerDto)
+      )
+      miloClient.getListeInscritsSession.resolves(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+
+      // When
+      const result = await repository.getForConseiller(
+        idSession,
+        structureConseiller,
+        tokenMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+    })
 
     beforeEach(async () => {
       // Given
@@ -229,6 +274,36 @@ describe('SessionMiloHttpSqlRepository', () => {
             ]
           })
         )
+      )
+    })
+
+    it('calcule dateMaxDesinscription à debut - 24h quand dateMaxInscription est absente', async () => {
+      // Given
+      miloClient.getDetailSessionConseiller.resolves(
+        success({
+          session: {
+            ...unDetailSessionConseillerDto.session,
+            dateMaxInscription: null
+          },
+          offre: unDetailSessionConseillerDto.offre
+        })
+      )
+
+      // When
+      const actual = await repository.getForConseiller(
+        idSession,
+        structureConseiller,
+        tokenMilo
+      )
+
+      // Then
+      const debut = DateTime.fromISO('2020-04-06T13:20:00.000Z', {
+        zone: structureConseiller.timezone
+      })
+      const actualSession = (actual as Success<SessionMilo>).data
+      expect(actualSession.dateMaxInscription).to.deep.equal(debut)
+      expect(actualSession.dateMaxDesinscription).to.deep.equal(
+        debut.minus({ hours: 24 })
       )
     })
 
@@ -500,6 +575,50 @@ describe('SessionMiloHttpSqlRepository', () => {
   })
 
   describe('.getForBeneficiaire', () => {
+    it('retourne une failure quand le client Milo échoue', async () => {
+      // Given
+      miloClient.getDetailSessionJeune.resolves(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+
+      // When
+      const result = await repository.getForBeneficiaire(
+        'idSession',
+        'id-dossier',
+        'token-milo',
+        'Europe/Paris'
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+    })
+
+    it("retourne le statut d'inscription quand le bénéficiaire a une instance de session", async () => {
+      // Given
+      miloClient.getDetailSessionJeune.resolves(
+        success({
+          ...unDetailSessionJeuneDto,
+          sessionInstance: { statut: MILO_REFUS_JEUNE }
+        })
+      )
+
+      // When
+      const result = await repository.getForBeneficiaire(
+        'idSession',
+        'id-dossier',
+        'token-milo',
+        'Europe/Paris'
+      )
+
+      // Then
+      expect(isSuccess(result)).to.be.true()
+      expect(
+        (result as Success<SessionMiloBeneficiaire>).data.statutInscription
+      ).to.equal(SessionMilo.Inscription.Statut.REFUS_JEUNE)
+    })
+
     it('récupère le minimum des informations de la session', async () => {
       // Given
       miloClient.getDetailSessionJeune.resolves(
@@ -534,9 +653,140 @@ describe('SessionMiloHttpSqlRepository', () => {
         }).endOf('day')
       })
     })
+
+    it('calcule dateMaxDesinscription à debut - 24h quand dateMaxInscription est absente', async () => {
+      // Given
+      miloClient.getDetailSessionJeune.resolves(
+        success({
+          session: {
+            ...unDetailSessionJeuneDto.session,
+            dateMaxInscription: null
+          },
+          offre: unDetailSessionJeuneDto.offre
+        })
+      )
+
+      // When
+      const result = await repository.getForBeneficiaire(
+        'idSession',
+        'id-dossier',
+        'token-milo',
+        'Europe/Paris'
+      )
+
+      // Then
+      const debut = DateTime.fromISO('2020-04-06T08:20:00.000Z', {
+        zone: 'Europe/Paris'
+      })
+      const actualSession = (result as Success<SessionMiloBeneficiaire>).data
+      expect(actualSession.dateMaxInscription).to.deep.equal(debut)
+      expect(actualSession.dateMaxDesinscription).to.deep.equal(
+        debut.minus({ hours: 24 })
+      )
+    })
+  })
+
+  describe('.desinscrireBeneficiaire', () => {
+    const idSession = 'idSession'
+    const idDossier = '12345'
+    const tokenMilo = 'token-milo'
+
+    it('retourne une failure quand getListeInscritsSession échoue', async () => {
+      // Given
+      miloClient.getListeInscritsSession.resolves(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+
+      // When
+      const result = await repository.desinscrireBeneficiaire(
+        idSession,
+        idDossier,
+        tokenMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+    })
+
+    it("retourne DroitsInsuffisants quand le bénéficiaire n'est pas inscrit", async () => {
+      // Given
+      miloClient.getListeInscritsSession.resolves(
+        success([uneInscriptionSessionMiloDto({ idDossier: 99999 })])
+      )
+
+      // When
+      const result = await repository.desinscrireBeneficiaire(
+        idSession,
+        idDossier,
+        tokenMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+    })
+
+    it('appelle Milo pour désinscrire et supprime les rappels', async () => {
+      // Given
+      const idInstanceSession = '67890'
+      miloClient.getListeInscritsSession.resolves(
+        success([
+          uneInscriptionSessionMiloDto({
+            idDossier: parseInt(idDossier),
+            idInstanceSession: parseInt(idInstanceSession)
+          })
+        ])
+      )
+      miloClient.modifierInscriptionJeunesSession.resolves(emptySuccess())
+
+      // When
+      const result = await repository.desinscrireBeneficiaire(
+        idSession,
+        idDossier,
+        tokenMilo
+      )
+
+      // Then
+      expect(
+        miloClient.modifierInscriptionJeunesSession
+      ).to.have.been.calledOnceWithExactly(tokenMilo, [
+        {
+          idDossier,
+          idInstanceSession,
+          statut: MILO_REFUS_JEUNE,
+          commentaire: "Desinscription en autonomie depuis l'Application du CEJ"
+        }
+      ])
+      expect(
+        planificateurService.supprimerRappelsParId
+      ).to.have.been.calledOnceWithExactly(
+        `instance-session:${idInstanceSession}`
+      )
+      expect(isSuccess(result)).to.be.true()
+    })
   })
 
   describe('.inscrireBeneficiaire', () => {
+    it("retourne une failure quand l'inscription Milo échoue", async () => {
+      // Given
+      miloClient.inscrireJeunesSession.resolves(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+
+      // When
+      const result = await repository.inscrireBeneficiaire(
+        { id: '67890', dateDebut: DateTime.now() },
+        '12345',
+        'token-milo-conseiller'
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurMiloHttp('Erreur Milo', 500))
+      )
+    })
+
     it('inscrit le bénéficiaire à la session', async () => {
       // Given
       const idSession = '67890'

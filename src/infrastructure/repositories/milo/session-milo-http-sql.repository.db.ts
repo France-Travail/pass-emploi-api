@@ -389,14 +389,15 @@ function dtoToSessionMilo(
     FORMAT_DATETIME_MILO,
     { zone: structureMilo.timezone }
   )
-  const dateMaxInscription = sessionDto.dateMaxInscription
+  const miloDateMaxInscription = sessionDto.dateMaxInscription
     ? DateTime.fromISO(sessionDto.dateMaxInscription, {
         zone: structureMilo.timezone
       }).endOf('day')
-    : debut
+    : undefined
+  const dateMaxInscription = miloDateMaxInscription ?? debut
   const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
     debut,
-    dateMaxInscription
+    miloDateMaxInscription
   )
   return {
     id: idSession,

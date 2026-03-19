@@ -19,11 +19,16 @@ import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/struc
 import { DateService } from 'src/utils/date-service'
 import { unUtilisateurConseiller } from 'test/fixtures/authentification.fixture'
 import { unConseillerMilo } from 'test/fixtures/conseiller-milo.fixture'
-import { unDetailSessionConseillerDto } from 'test/fixtures/milo-dto.fixture'
+import {
+  unDetailSessionConseillerDto,
+  uneOffreDto
+} from 'test/fixtures/milo-dto.fixture'
 import { uneSessionConseillerMiloQueryModel } from 'test/fixtures/sessions.fixture'
+import { OffreTypeCode } from 'src/infrastructure/clients/dto/milo.dto'
+import { SessionConseillerMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
-import { testConfig } from '../../../utils/module-for-testing'
+import { testConfig } from '../../../utils/test-config'
 
 describe('GetSessionsConseillerMiloQueryHandler', () => {
   const maintenantEn2023 = DateTime.local(2023)
@@ -230,6 +235,56 @@ describe('GetSessionsConseillerMiloQueryHandler', () => {
           { periode: { debut: maintenantEn2023.minus({ months: 3 }) } }
         )
         expect(result).to.deep.equal(success([]))
+      })
+
+      it('retourne une session de type Information collective', async () => {
+        // Given
+        miloClient.getSessionsConseillerParStructure.resolves(
+          success([
+            {
+              ...unDetailSessionConseillerDto,
+              offre: {
+                ...uneOffreDto,
+                type: OffreTypeCode.COLLECTIVE_INFORMATION
+              }
+            }
+          ])
+        )
+
+        // When
+        const result = await getSessionsQueryHandler.handle(query)
+
+        // Then
+        expect(
+          (result as Success<SessionConseillerMiloQueryModel[]>).data[0].type
+        ).to.deep.equal({
+          code: OffreTypeCode.COLLECTIVE_INFORMATION,
+          label: 'Information collective'
+        })
+      })
+
+      it('ne retourne pas nombreMaxParticipants quand nbPlacesDisponibles est null', async () => {
+        // Given
+        miloClient.getSessionsConseillerParStructure.resolves(
+          success([
+            {
+              ...unDetailSessionConseillerDto,
+              session: {
+                ...unDetailSessionConseillerDto.session,
+                nbPlacesDisponibles: null
+              }
+            }
+          ])
+        )
+
+        // When
+        const result = await getSessionsQueryHandler.handle(query)
+
+        // Then
+        expect(
+          (result as Success<SessionConseillerMiloQueryModel[]>).data[0]
+            .nombreMaxParticipants
+        ).to.be.undefined()
       })
 
       it('déclenche la cloture des sessions émargées', async () => {
