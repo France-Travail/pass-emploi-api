@@ -180,18 +180,30 @@ export function mapDetailSessionJeuneDtoToQueryModel(
   configuration: Pick<
     ConfigurationLocale,
     'autoinscription' | 'autodesinscription'
-  >
+  >,
+  maintenant: DateTime
 ): DetailSessionJeuneMiloQueryModel {
+  const dateHeureDebutDt = dateFromMilo(
+    sessionDto.session.dateHeureDebut,
+    beneficiaire.timezone
+  )
+  const dateMaxInscriptionDt = sessionDto.session.dateMaxInscription
+    ? DateTime.fromISO(sessionDto.session.dateMaxInscription, {
+        zone: beneficiaire.timezone
+      }).endOf('day')
+    : undefined
+  const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+    dateHeureDebutDt,
+    dateMaxInscriptionDt
+  )
+
   const queryModel: DetailSessionJeuneMiloQueryModel = {
     id: sessionDto.session.id.toString(),
     nomSession: sessionDto.session.nom,
     nomOffre: sessionDto.offre.nom,
     theme: sessionDto.offre.theme,
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
-    dateHeureDebut: dateFromMilo(
-      sessionDto.session.dateHeureDebut,
-      beneficiaire.timezone
-    ).toISO(),
+    dateHeureDebut: dateHeureDebutDt.toISO(),
     dateHeureFin: dateFromMilo(
       sessionDto.session.dateHeureFin,
       beneficiaire.timezone
@@ -201,15 +213,14 @@ export function mapDetailSessionJeuneDtoToQueryModel(
     nomPartenaire: sessionDto.offre.nomPartenaire ?? undefined,
     description: sessionDto.offre.description ?? undefined,
     commentaire: sessionDto.session.commentaire ?? undefined,
-    dateMaxInscription: sessionDto.session.dateMaxInscription
-      ? dateMaxToISO(
-          sessionDto.session.dateMaxInscription,
-          beneficiaire.timezone
-        )
-      : undefined,
+    dateMaxInscription: dateMaxInscriptionDt?.toUTC().toISO(),
     nbPlacesDisponibles: sessionDto.session.nbPlacesDisponibles ?? undefined,
     autoinscription: configuration.autoinscription,
-    autodesinscription: configuration.autodesinscription
+    autodesinscription: SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
+      configuration.autodesinscription,
+      dateMaxDesinscription,
+      maintenant
+    )
   }
 
   if (sessionDto.sessionInstance)
