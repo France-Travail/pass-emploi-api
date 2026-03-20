@@ -8,8 +8,6 @@ import {
   ValidateNested,
   IsArray,
   IsEnum,
-  ValidateIf,
-  MaxLength,
   IsEmail
 } from 'class-validator'
 import {
@@ -133,6 +131,11 @@ export class PostImmersionContactBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  locationId: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   prenom: string
 
   @ApiProperty()
@@ -153,9 +156,8 @@ export class PostImmersionContactBody {
   contactMode: ModeContact
 
   @ApiPropertyOptional()
-  @ValidateIf(payload => payload.contactMode === ModeContact.EMAIL)
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(512)
-  message?: string
+  datePreferences?: string
 }

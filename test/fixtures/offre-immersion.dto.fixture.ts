@@ -1,6 +1,6 @@
 import { PartenaireImmersion } from '../../src/infrastructure/repositories/dto/immersion.dto'
 
-export const uneOffreImmersionDtov2 = (): PartenaireImmersion.DtoV2 => ({
+export const uneOffreImmersionDtov3 = (): PartenaireImmersion.DtoV3 => ({
   romeLabel: 'rome',
   nafLabel: 'naf',
   name: 'name',
@@ -23,5 +23,9 @@ export const uneOffreImmersionDtov2 = (): PartenaireImmersion.DtoV2 => ({
   appellations: [
     { appellationLabel: 'Boulanger-Traiteur', appellationCode: 'D1102' }
   ],
-  locationId: 'locationId'
+  locationId: 'locationId',
+  additionalInformation: 'informations complémentaires',
+  website: 'https://exemple.fr',
+  remoteWorkMode: 'ON_SITE',
+  fitForDisabledWorkers: 'yes-declared-only'
 })

@@ -67,7 +67,8 @@ describe('OffresImmersionController', () => {
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: true
+            estVolontaire: true,
+            locationId: ''
           }
         ]
 
@@ -112,7 +113,8 @@ describe('OffresImmersionController', () => {
   })
   describe('GET /offres-immersion/:idOffreImmersion', () => {
     const query: GetDetailOffreImmersionQuery = {
-      idOffreImmersion: '1'
+      idOffreImmersion: '1',
+      locationId: 'un-location-id'
     }
     describe('quand tout va bien', () => {
       it('renvoie la bonne offre recherchée', async () => {
@@ -126,7 +128,8 @@ describe('OffresImmersionController', () => {
           secteurActivite: 'naf',
           ville: 'Paris',
           codeRome: 'rome',
-          siret: 'siret'
+          siret: 'siret',
+          locationId: ''
         }
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
@@ -135,6 +138,7 @@ describe('OffresImmersionController', () => {
         // When
         const result = await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.OK)
@@ -147,11 +151,12 @@ describe('OffresImmersionController', () => {
         // Given
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
-          .resolves(failure(new ErreurHttp('un message d’erreur', 400)))
+          .resolves(failure(new ErreurHttp("un message d'erreur", 400)))
 
         // When
         await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.BAD_REQUEST)
@@ -162,11 +167,12 @@ describe('OffresImmersionController', () => {
         // Given
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
-          .resolves(failure(new ErreurHttp('un message d’erreur', 404)))
+          .resolves(failure(new ErreurHttp("un message d'erreur", 404)))
 
         // When
         await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.NOT_FOUND)
@@ -235,11 +241,11 @@ describe('OffresImmersionController', () => {
         codeRome: 'D1102',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
+        locationId: 'un-location-id',
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'PHONE',
-        message: 'test'
+        contactMode: 'EMAIL'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute
@@ -260,11 +266,11 @@ describe('OffresImmersionController', () => {
         codeRome: 'D1102',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
+        locationId: 'un-location-id',
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'PHONE',
-        message: 'test'
+        contactMode: 'EMAIL'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute.resolves(
@@ -278,28 +284,6 @@ describe('OffresImmersionController', () => {
         .send(payload)
         .expect(HttpStatus.UNAUTHORIZED)
     })
-    it('renvoie une bad request quand le contact est EMAIL et le message vide', async () => {
-      // Given
-      const payload = {
-        idJeune: '1',
-        codeRome: 'D1102',
-        labelRome: 'Boulangerie - viennoiserie',
-        siret: '10226726508419',
-        prenom: 'prenom',
-        nom: 'nom',
-        email: 'test@test.com',
-        contactMode: 'EMAIL',
-        message: ''
-      }
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/jeunes/1/offres-immersion/contact')
-        .set('authorization', unHeaderAuthorization())
-        .send(payload)
-        .expect(HttpStatus.BAD_REQUEST)
-    })
-
     ensureUserAuthenticationFailsIfInvalid(
       'post',
       '/jeunes/1/offres-immersion/contact'

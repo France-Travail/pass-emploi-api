@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { CommandHandler } from 'src/building-blocks/types/command-handler'
-import { Result, failure, isFailure } from 'src/building-blocks/types/result'
+import { Result, failure } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import {
@@ -18,11 +18,12 @@ export interface EnvoyerFormulaireContactImmersionCommand {
   codeRome: string
   labelRome: string
   siret: string
+  locationId: string
   prenom: string
   nom: string
   email: string
   contactMode: string
-  message?: string
+  datePreferences?: string
 }
 
 @Injectable()
@@ -49,9 +50,6 @@ export class EnvoyerFormulaireContactImmersionCommandHandler extends CommandHand
   async handle(
     command: EnvoyerFormulaireContactImmersionCommand
   ): Promise<Result> {
-    const defaultMessage =
-      'Bonjour, Je souhaiterais passer quelques jours dans votre entreprise en immersion professionnelle auprès de vos salariés pour découvrir ce métier. Pourriez-vous me proposer un rendez-vous ? Je pourrais alors vous expliquer directement mon projet.'
-
     const appellationCode = await this.getAppellationCodeFromLabel(
       command.labelRome
     )
@@ -60,24 +58,18 @@ export class EnvoyerFormulaireContactImmersionCommandHandler extends CommandHand
       return failure(new NonTrouveError('Offre Immersion', command.labelRome))
     }
 
-    const offre = await this.immersionClient.getDetailOffre(
-      `${command.siret}/${appellationCode}`
-    )
-    if (isFailure(offre)) {
-      return failure(new NonTrouveError('Offre Immersion', command.labelRome))
-    }
-
     const params: FormulaireImmersionPayload = {
       appellationCode: appellationCode,
       siret: command.siret,
+      locationId: command.locationId,
       potentialBeneficiaryFirstName: command.prenom,
       potentialBeneficiaryLastName: command.nom,
       potentialBeneficiaryEmail: command.email,
       potentialBeneficiaryPhone: '0600000000',
       immersionObjective: "Découvrir un métier ou un secteur d'activité",
       contactMode: PartenaireImmersion.ContactMode.EMAIL,
-      message: command.message ?? defaultMessage,
-      locationId: offre.data.locationId
+      datePreferences: command.datePreferences,
+      kind: 'IF'
     }
 
     return this.immersionClient.envoyerFormulaireImmersion(params)

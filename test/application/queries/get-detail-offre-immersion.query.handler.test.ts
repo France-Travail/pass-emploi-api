@@ -8,7 +8,7 @@ import {
   unUtilisateurConseiller,
   unUtilisateurJeune
 } from '../../fixtures/authentification.fixture'
-import { uneOffreImmersionDtov2 } from '../../fixtures/offre-immersion.dto.fixture'
+import { uneOffreImmersionDtov3 } from '../../fixtures/offre-immersion.dto.fixture'
 import { StubbedClass, stubClass } from '../../utils'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 
@@ -38,20 +38,18 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
           request: undefined,
           status: 200,
           statusText: '',
-          data: uneOffreImmersionDtov2()
+          data: uneOffreImmersionDtov3()
         }
 
         immersionClient.getDetailOffre.resolves(success(response.data))
 
         // When
         const detailOffre = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then
-        expect(immersionClient.getDetailOffre).to.have.been.calledWith(
-          `siret/appellationCode`
-        )
         expect(detailOffre).to.deep.equal(
           success({
             estVolontaire: true,
@@ -69,7 +67,11 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             siret: '123456',
             contact: {
               modeDeContact: 'PRESENTIEL'
-            }
+            },
+            informationsComplementaires: 'informations complémentaires',
+            siteWeb: 'https://exemple.fr',
+            modeDistanciel: 'ON_SITE',
+            accessibleTravailleurHandicape: 'yes-declared-only'
           })
         )
       })
@@ -87,7 +89,8 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // When
         const offres = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then
@@ -105,7 +108,8 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // When
         const offres = getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then

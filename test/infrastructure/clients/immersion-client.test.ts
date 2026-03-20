@@ -15,153 +15,146 @@ describe('ImmersionClient', () => {
 
     immersionClient = new ImmersionClient(httpService, configService)
   })
+
   describe('get', () => {
     it('fait un http get avec les bons paramètres', async () => {
       // Given
-      const resultats = [
-        {
-          id: 'unId',
-          title: 'unTitre',
-          startAt: '2022-02-17T10:00:00.000Z',
-          domain: 'Informatique',
-          city: 'paris'
-        }
-      ]
+      const resultat = { siret: 'siret', name: 'name' }
       nock('https://api.api-immersion.beta.gouv.op')
-        .get('/v2/search/siret/appellationCode')
-        .reply(200, {
-          resultats
-        })
+        .get('/v3/offers/siret/appellationCode/locationId')
+        .reply(200, resultat)
         .isDone()
 
       // When
       const response = await immersionClient.get(
-        'v2/search/siret/appellationCode'
+        'v3/offers/siret/appellationCode/locationId'
       )
 
       // Then
       expect(response.status).to.equal(200)
-      expect(response.data).to.deep.equal({ resultats })
+      expect(response.data).to.deep.equal(resultat)
     })
   })
 
   describe('getOffres', () => {
     it('fait un http get avec les bons paramètres', async () => {
       // Given
-      const location = {
-        lat: 48.502103949334845,
-        lon: 2.13082255225161
-      }
-      const distanceKm = 30
-      const appellationCodes = ['10868']
-
-      const resultat = {
-        data: [
+      const offre = {
+        rome: 'D1102',
+        siret: 'siret',
+        romeLabel: 'romeLabel',
+        name: 'name',
+        nafLabel: 'nafLabel',
+        naf: 'naf',
+        address: {
+          streetNumberAndAddress: 'street',
+          postcode: '75001',
+          city: 'city',
+          departmentCode: '75'
+        },
+        voluntaryToImmersion: true,
+        locationId: 'locationId',
+        position: { lat: 48.5, lon: 2.1 },
+        appellations: [
           {
-            rome: 'mon-rome',
-            siret: 'siret',
-            romeLabel: 'romeLabel',
-            name: 'name',
-            nafLabel: 'nafLabel',
-            address: { city: 'city' },
-            voluntaryToImmersion: true,
-            appellations: [
-              {
-                appellationCode: 'appellationCode',
-                appellationLabel: 'appellationCodeLabel'
-              }
-            ]
+            appellationCode: 'appellationCode',
+            appellationLabel: 'appellationCodeLabel'
           }
-        ],
-        status: 200,
-        statusText: 'OK',
-        request: '',
-        headers: '',
-        config: ''
+        ]
+      }
+      const apiResponse = {
+        data: [offre],
+        pagination: {
+          totalRecords: 1,
+          currentPage: 1,
+          totalPages: 1,
+          numberPerPage: 100
+        }
       }
 
       const params = new URLSearchParams()
-      params.append('distanceKm', distanceKm.toString())
-      params.append('longitude', location.lon.toString())
-      params.append('latitude', location.lat.toString())
-      params.append('appellationCodes[]', appellationCodes[0])
-      params.append('sortedBy', 'date')
-      params.append('voluntaryToImmersion', 'true')
+      params.append('distanceKm', '30')
+      params.append('longitude', '2.13082255225161')
+      params.append('latitude', '48.502103949334845')
+      params.append('rome', 'D1102')
+      params.append('sortBy', 'date')
+      params.append('sortOrder', 'desc')
 
       nock('https://api.api-immersion.beta.gouv.op')
         .get(
-          '/v2/search?distanceKm=30&longitude=2.13082255225161&latitude=48.502103949334845&appellationCodes%5B%5D=10868&sortedBy=date&voluntaryToImmersion=true'
+          '/v3/offers?distanceKm=30&longitude=2.13082255225161&latitude=48.502103949334845&rome=D1102&sortBy=date&sortOrder=desc'
         )
-        .reply(200, resultat)
+        .reply(200, apiResponse)
         .isDone()
 
       // When
       const response = await immersionClient.getOffres(params)
 
       // Then
-      expect(response).to.deep.equal(success(resultat))
+      expect(response).to.deep.equal(success([offre]))
     })
   })
 
   describe('getDetailOffre', () => {
     it('fait un http get avec les bons paramètres', async () => {
       // Given
-
-      const resultat = {
-        data: {
-          rome: 'mon-rome',
-          siret: 'siret',
-          romeLabel: 'romeLabel',
-          name: 'name',
-          nafLabel: 'nafLabel',
-          address: { city: 'city' },
-          voluntaryToImmersion: true,
-          appellations: [
-            {
-              appellationCode: 'appellationCode',
-              appellationLabel: 'appellationCodeLabel'
-            }
-          ]
+      const offre = {
+        rome: 'D1102',
+        siret: 'siret',
+        romeLabel: 'romeLabel',
+        name: 'name',
+        nafLabel: 'nafLabel',
+        naf: 'naf',
+        address: {
+          streetNumberAndAddress: 'street',
+          postcode: '75001',
+          city: 'city',
+          departmentCode: '75'
         },
-        status: 200,
-        statusText: 'OK',
-        request: '',
-        headers: '',
-        config: ''
+        voluntaryToImmersion: true,
+        locationId: 'locationId',
+        position: { lat: 48.5, lon: 2.1 },
+        appellations: [
+          {
+            appellationCode: 'appellationCode',
+            appellationLabel: 'appellationCodeLabel'
+          }
+        ]
       }
 
       nock('https://api.api-immersion.beta.gouv.op')
-        .get('/v2/search/siret/appellationCode')
-        .reply(200, resultat)
+        .get('/v3/offers/siret/appellationCode/locationId')
+        .reply(200, offre)
         .isDone()
 
       // When
       const response = await immersionClient.getDetailOffre(
-        'siret/appellationCode'
+        'siret/appellationCode/locationId'
       )
 
       // Then
-      expect(response).to.deep.equal(success(resultat))
+      expect(response).to.deep.equal(success(offre))
     })
   })
+
   describe('postFormulaireImmersion', () => {
     it('fait un appel en succes', async () => {
       // Given
       const params = {
+        kind: 'IF' as const,
         appellationCode: '11573',
         siret: 'siret',
+        locationId: 'un-location-id',
         potentialBeneficiaryFirstName: 'potentialBeneficiaryFirstName',
         potentialBeneficiaryLastName: 'potentialBeneficiaryLastName',
         potentialBeneficiaryEmail: 'potentialBeneficiaryEmail',
         potentialBeneficiaryPhone: 'non communiqué',
         immersionObjective: "Découvrir un métier ou un secteur d'activité",
-        contactMode: 'EMAIL',
-        message: 'test',
-        locationId: ''
+        contactMode: 'EMAIL'
       }
 
       nock('https://api.api-immersion.beta.gouv.op')
-        .post('/v2/contact-establishment', params)
+        .post('/v3/apply-to-offer', params)
         .reply(200, {})
         .isDone()
 
@@ -174,20 +167,20 @@ describe('ImmersionClient', () => {
     it('fait un appel en echec et renvoie une failure', async () => {
       // Given
       const params = {
+        kind: 'IF' as const,
         appellationCode: '11573',
         siret: 'siret',
+        locationId: 'un-location-id',
         potentialBeneficiaryFirstName: 'potentialBeneficiaryFirstName',
         potentialBeneficiaryLastName: 'potentialBeneficiaryLastName',
         potentialBeneficiaryEmail: 'potentialBeneficiaryEmail',
         potentialBeneficiaryPhone: 'non communiqué',
         immersionObjective: "Découvrir un métier ou un secteur d'activité",
-        contactMode: 'EMAIL',
-        message: 'test',
-        locationId: ''
+        contactMode: 'EMAIL'
       }
 
       nock('https://api.api-immersion.beta.gouv.op')
-        .post('/v2/contact-establishment', params)
+        .post('/v3/apply-to-offer', params)
         .reply(429, {})
         .isDone()
 

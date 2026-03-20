@@ -77,10 +77,12 @@ export class OffresImmersionController {
   })
   async getDetailOffreImmersion(
     @Param('idOffreImmersion') idOffreImmersion: string,
+    @Query('locationId') locationId: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<DetailOffreImmersionQueryModel | undefined> {
     const query: GetDetailOffreImmersionQuery = {
-      idOffreImmersion
+      idOffreImmersion,
+      locationId
     }
     const result = await this.getDetailOffreImmersionQueryHandler.execute(
       query,

@@ -15,6 +15,7 @@ import { Authentification } from '../../domain/authentification'
 
 export interface GetDetailOffreImmersionQuery extends Query {
   idOffreImmersion: string
+  locationId: string
 }
 
 @Injectable()
@@ -23,8 +24,8 @@ export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
   Result<DetailOffreImmersionQueryModel>
 > {
   constructor(
-    private immersionClient: ImmersionClient,
-    private evenementService: EvenementService
+    private readonly immersionClient: ImmersionClient,
+    private readonly evenementService: EvenementService
   ) {
     super('GetDetailOffreImmersionQueryHandler')
   }
@@ -33,7 +34,8 @@ export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
     query: GetDetailOffreImmersionQuery
   ): Promise<Result<DetailOffreImmersionQueryModel>> {
     const paramsRechercheOffreImmersion = buildParamsRechercheImmersion(
-      query.idOffreImmersion
+      query.idOffreImmersion,
+      query.locationId
     )
 
     const response = await this.immersionClient.getDetailOffre(
@@ -61,7 +63,10 @@ export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
   }
 }
 
-function buildParamsRechercheImmersion(idOffreImmersion: string): string {
+function buildParamsRechercheImmersion(
+  idOffreImmersion: string,
+  locationId: string
+): string {
   const [siret, appellationCode] = idOffreImmersion.split('-')
-  return siret + '/' + appellationCode
+  return siret + '/' + appellationCode + '/' + locationId
 }

@@ -26,6 +26,8 @@ export class OffreImmersionQueryModel {
   ville: string
   @ApiProperty()
   estVolontaire: boolean
+  @ApiProperty()
+  locationId: string
 }
 
 export class FavoriOffreImmersionQueryModel {
@@ -64,4 +66,16 @@ export class DetailOffreImmersionQueryModel extends OffreImmersionQueryModel {
     required: false
   })
   contact?: ContactImmersionQueryModel
+
+  @ApiProperty({ required: false })
+  informationsComplementaires?: string
+
+  @ApiProperty({ required: false })
+  siteWeb?: string
+
+  @ApiProperty({ required: false })
+  modeDistanciel?: string
+
+  @ApiProperty({ required: false })
+  accessibleTravailleurHandicape?: string
 }

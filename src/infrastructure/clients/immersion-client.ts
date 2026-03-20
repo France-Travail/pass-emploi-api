@@ -15,6 +15,7 @@ import { PartenaireImmersion } from '../repositories/dto/immersion.dto'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 
 export interface FormulaireImmersionPayload {
+  kind: 'IF'
   appellationCode: string
   siret: string
   potentialBeneficiaryFirstName: string
@@ -23,8 +24,8 @@ export interface FormulaireImmersionPayload {
   contactMode: string
   potentialBeneficiaryPhone: string
   immersionObjective: string
-  locationId: string | null
-  message?: string
+  locationId: string
+  datePreferences?: string
 }
 
 @Injectable()
@@ -44,14 +45,14 @@ export class ImmersionClient {
 
   async getOffres(
     params: URLSearchParams
-  ): Promise<Result<PartenaireImmersion.DtoV2[]>> {
+  ): Promise<Result<PartenaireImmersion.DtoV3[]>> {
     try {
-      const response = await this.get<PartenaireImmersion.DtoV2[]>(
-        'v2/search',
+      const response = await this.get<PartenaireImmersion.SearchResponseV3>(
+        'v3/offers',
         params
       )
 
-      return success(response.data)
+      return success(response.data.data)
     } catch (erreur) {
       if (erreur.response?.status === 401)
         return failure(new ErreurHttp('API Key Immersion invalide', 400))
@@ -66,10 +67,10 @@ export class ImmersionClient {
 
   async getDetailOffre(
     params: string
-  ): Promise<Result<PartenaireImmersion.DtoV2>> {
+  ): Promise<Result<PartenaireImmersion.DtoV3>> {
     try {
-      const response = await this.get<PartenaireImmersion.DtoV2>(
-        `v2/search/${params}`
+      const response = await this.get<PartenaireImmersion.DtoV3>(
+        `v3/offers/${params}`
       )
       return success(response.data)
     } catch (erreur) {
@@ -85,7 +86,7 @@ export class ImmersionClient {
     params: FormulaireImmersionPayload
   ): Promise<Result> {
     try {
-      await this.post('v2/contact-establishment', params)
+      await this.post('v3/apply-to-offer', params)
       return emptySuccess()
     } catch (erreur) {
       return handleAxiosError(
