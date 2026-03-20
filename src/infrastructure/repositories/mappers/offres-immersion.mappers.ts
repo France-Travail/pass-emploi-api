@@ -32,8 +32,7 @@ export function toOffreImmersionQueryModel(
 ): OffreImmersionQueryModel {
   const appellationCode =
     offreImmersionDto.appellations[0]?.appellationCode ?? ''
-  const labelMetier =
-    offreImmersionDto.appellations[0]?.appellationLabel ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     metier: labelMetier,
@@ -51,8 +50,7 @@ export function toDetailOffreImmersionQueryModel(
 ): DetailOffreImmersionQueryModel {
   const appellationCode =
     offreImmersionDto.appellations[0]?.appellationCode ?? ''
-  const labelMetier =
-    offreImmersionDto.appellations[0]?.appellationLabel ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     codeRome: offreImmersionDto.rome,
