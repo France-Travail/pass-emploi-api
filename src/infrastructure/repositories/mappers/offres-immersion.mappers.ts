@@ -30,8 +30,10 @@ export function fromSqlToFavorisOffreImmersion(
 export function toOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV3
 ): OffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier =
+    offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     metier: labelMetier,
@@ -47,8 +49,10 @@ export function toOffreImmersionQueryModel(
 export function toDetailOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV3
 ): DetailOffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier =
+    offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     codeRome: offreImmersionDto.rome,

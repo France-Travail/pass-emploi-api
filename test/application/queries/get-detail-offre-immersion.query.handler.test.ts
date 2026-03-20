@@ -71,7 +71,8 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             informationsComplementaires: 'informations complémentaires',
             siteWeb: 'https://exemple.fr',
             modeDistanciel: 'ON_SITE',
-            accessibleTravailleurHandicape: 'yes-declared-only'
+            accessibleTravailleurHandicape: 'yes-declared-only',
+            locationId: 'locationId'
           })
         )
       })
@@ -84,7 +85,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
         }
 
         immersionClient.getDetailOffre.resolves(
-          failure(new ErreurHttp('un message d’erreur', 400))
+          failure(new ErreurHttp("un message d’erreur", 400))
         )
 
         // When
@@ -95,7 +96,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // Then
         expect(offres).to.deep.equal(
-          failure(new ErreurHttp('un message d’erreur', 400))
+          failure(new ErreurHttp("un message d’erreur", 400))
         )
       })
       it('renvoie une erreur quand une erreur inconnue survient', async () => {
@@ -119,7 +120,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
   })
 
   describe('monitor', () => {
-    it('enregistre l‘évènement pour un conseiller', async () => {
+    it("enregistre l’évènement pour un conseiller", async () => {
       // Given
       const utilisateur = unUtilisateurConseiller()
       // When
@@ -130,7 +131,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
         utilisateur
       )
     })
-    it('n‘enregistre pas l‘évènement pour un jeune', async () => {
+    it("n’enregistre pas l’évènement pour un jeune", async () => {
       // Given
       const utilisateur = unUtilisateurJeune()
       // When

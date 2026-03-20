@@ -9,9 +9,10 @@ import {
   ImmersionClient
 } from 'src/infrastructure/clients/immersion-client'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
-import { PartenaireImmersion } from '../../infrastructure/repositories/dto/immersion.dto'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { PartenaireImmersion } from '../../infrastructure/repositories/dto/immersion.dto'
+import ContactMode = PartenaireImmersion.ContactMode
 
 export interface EnvoyerFormulaireContactImmersionCommand {
   idJeune: string
@@ -32,9 +33,9 @@ export class EnvoyerFormulaireContactImmersionCommandHandler extends CommandHand
   void
 > {
   constructor(
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private immersionClient: ImmersionClient,
-    private evenementService: EvenementService,
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly immersionClient: ImmersionClient,
+    private readonly evenementService: EvenementService,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {
     super('CreateContactImmersionCommandHandler')
@@ -67,7 +68,7 @@ export class EnvoyerFormulaireContactImmersionCommandHandler extends CommandHand
       potentialBeneficiaryEmail: command.email,
       potentialBeneficiaryPhone: '0600000000',
       immersionObjective: "Découvrir un métier ou un secteur d'activité",
-      contactMode: PartenaireImmersion.ContactMode.EMAIL,
+      contactMode: ContactMode.EMAIL,
       datePreferences: command.datePreferences,
       kind: 'IF'
     }
