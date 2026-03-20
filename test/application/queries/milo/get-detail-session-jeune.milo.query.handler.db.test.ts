@@ -10,6 +10,8 @@ import {
 import { failure, success } from 'src/building-blocks/types/result'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
+import { DateService } from 'src/utils/date-service'
+import { DateTime } from 'luxon'
 import {
   SessionMiloDto,
   SessionMiloSqlModel
@@ -43,6 +45,7 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
   let oidcClient: StubbedClass<OidcClient>
   let miloClient: StubbedClass<MiloClient>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
+  let dateService: StubbedClass<DateService>
   let sandbox: SinonSandbox
 
   before(async () => {
@@ -53,10 +56,13 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
     oidcClient = stubClass(OidcClient)
     miloClient = stubClass(MiloClient)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
+    dateService = stubClass(DateService)
+    dateService.now.returns(DateTime.fromISO('2020-04-05T00:00:00.000Z'))
     getDetailSessionQueryHandler = new GetDetailSessionJeuneMiloQueryHandler(
       oidcClient,
       miloClient,
-      jeuneAuthorizer
+      jeuneAuthorizer,
+      dateService
     )
   })
 

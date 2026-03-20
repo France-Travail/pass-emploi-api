@@ -21,6 +21,7 @@ import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
+import { DateService } from 'src/utils/date-service'
 
 export interface GetDetailSessionJeuneMiloQuery extends Query {
   idSession: string
@@ -36,7 +37,8 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
   constructor(
     private readonly oidcClient: OidcClient,
     private readonly miloClient: MiloClient,
-    private readonly jeuneAuthorizer: JeuneAuthorizer
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly dateService: DateService
   ) {
     super('GetDetailSessionJeuneMiloQueryHandler')
   }
@@ -85,7 +87,8 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
         {
           autoinscription: configurationSession?.autoinscription ?? false,
           autodesinscription: configurationSession?.autodesinscription ?? false
-        }
+        },
+        this.dateService.now()
       )
     )
   }

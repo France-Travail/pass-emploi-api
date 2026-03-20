@@ -6,7 +6,12 @@ import { ConseillerAuthorizer } from 'src/application/authorizers/conseiller-aut
 import { GetDetailSessionConseillerMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-conseiller.milo.query.handler.db'
 import { DetailSessionConseillerMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import { ConseillerMiloSansStructure } from 'src/building-blocks/types/domain-error'
-import { failure, Result, success } from 'src/building-blocks/types/result'
+import {
+  failure,
+  Result,
+  Success,
+  success
+} from 'src/building-blocks/types/result'
 import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { PlanificateurService } from 'src/domain/planificateur'
@@ -142,6 +147,30 @@ describe('GetDetailSessionConseillerMiloQueryHandler', () => {
           now,
           sandbox.match.object
         )
+      })
+
+      it('ne retourne pas nbPlacesDisponibles ni commentaire quand absents', async () => {
+        // Given
+        sessionRepository.getForConseiller.resolves(
+          success({
+            ...uneSessionMilo(),
+            nbPlacesDisponibles: undefined,
+            commentaire: undefined,
+            inscriptions: []
+          })
+        )
+        await getDetailSessionMiloQueryHandler.handle(query)
+
+        // When
+        const resultSansOptionnels =
+          await getDetailSessionMiloQueryHandler.handle(query)
+
+        // Then
+        const session = (
+          resultSansOptionnels as Success<DetailSessionConseillerMiloQueryModel>
+        ).data.session
+        expect(session.nbPlacesDisponibles).to.be.undefined()
+        expect(session.commentaire).to.be.undefined()
       })
 
       it('renvoie la session', async () => {
