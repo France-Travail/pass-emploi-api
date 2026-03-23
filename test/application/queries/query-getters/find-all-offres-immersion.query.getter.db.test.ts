@@ -12,6 +12,7 @@ import {
 import { MetierRomeSqlModel } from '../../../../src/infrastructure/sequelize/models/metier-rome.sql-model'
 import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-model'
 import { PartenaireImmersion } from '../../../../src/infrastructure/repositories/dto/immersion.dto'
+import { OffreImmersionQueryModel } from '../../../../src/application/queries/query-models/offres-immersion.query-model'
 
 const uneOffreDto = (
   siret: string,
@@ -35,7 +36,10 @@ const uneOffreDto = (
   appellations: [{ appellationCode, appellationLabel: 'label' }]
 })
 
-const uneOffreQueryModel = (siret: string, appellationCode: string) => ({
+const uneOffreQueryModel = (
+  siret: string,
+  appellationCode: string
+): OffreImmersionQueryModel => ({
   id: `${siret}-${appellationCode}`,
   metier: 'label',
   nomEtablissement: 'name',
