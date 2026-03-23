@@ -14,7 +14,6 @@ export interface SessionDto {
   dateHeureDebut: string
   dateHeureFin: string
   dateMaxInscription: string | null
-  dateMaxDesinscription: string | null
   animateur: string
   lieu: string
   nbPlacesDisponibles: number | null

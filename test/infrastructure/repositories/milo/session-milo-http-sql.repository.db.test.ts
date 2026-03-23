@@ -39,6 +39,7 @@ import {
   DroitsInsuffisants,
   ErreurMiloHttp
 } from '../../../../src/building-blocks/types/domain-error'
+import { DateService } from '../../../../src/utils/date-service'
 
 const structureConseiller = {
   id: 'structure-milo',
@@ -167,7 +168,12 @@ describe('SessionMiloHttpSqlRepository', () => {
     beforeEach(async () => {
       // Given
       miloClient.getDetailSessionConseiller.resolves(
-        success(unDetailSessionConseillerDto)
+        success({
+          ...unDetailSessionConseillerDto,
+          dateHeureDebut: '2020-04-06 10:20:00',
+          dateHeureFin: '2020-04-08 10:20:00',
+          dateMaxInscription: '2020-04-07'
+        })
       )
       miloClient.getListeInscritsSession.resolves(
         success([
@@ -243,12 +249,22 @@ describe('SessionMiloHttpSqlRepository', () => {
       expect(actual).to.deep.equal(
         success(
           uneSessionMilo({
-            dateMaxInscription: DateTime.fromISO('2020-04-07', {
-              zone: structureConseiller.timezone
-            }).endOf('day'),
-            dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
-              zone: structureConseiller.timezone
-            }).endOf('day'),
+            debut: DateTime.fromISO('2020-04-06T13:20:00.000Z', {
+              zone: 'America/Cayenne',
+              setZone: true
+            }),
+            fin: DateTime.fromISO('2020-04-08T13:20:00.000Z', {
+              zone: 'America/Cayenne',
+              setZone: true
+            }),
+            dateMaxInscription: DateService.dateStringToEndOfDayUtc(
+              '2020-04-07',
+              structureConseiller.timezone
+            ),
+            dateMaxDesinscription: DateService.dateStringToEndOfDayUtc(
+              '2020-04-07',
+              structureConseiller.timezone
+            ),
             inscriptions: [
               {
                 idJeune: 'id-hermione',
@@ -283,6 +299,7 @@ describe('SessionMiloHttpSqlRepository', () => {
         success({
           session: {
             ...unDetailSessionConseillerDto.session,
+            dateHeureDebut: '2020-04-06 10:20:00',
             dateMaxInscription: null
           },
           offre: unDetailSessionConseillerDto.offre
@@ -298,12 +315,16 @@ describe('SessionMiloHttpSqlRepository', () => {
 
       // Then
       const debut = DateTime.fromISO('2020-04-06T13:20:00.000Z', {
-        zone: structureConseiller.timezone
+        zone: structureConseiller.timezone,
+        setZone: true
       })
       const actualSession = (actual as Success<SessionMilo>).data
       expect(actualSession.dateMaxInscription).to.deep.equal(debut)
       expect(actualSession.dateMaxDesinscription).to.deep.equal(
-        debut.minus({ hours: 24 })
+        DateTime.fromISO('2020-04-06T02:59:59.999Z', {
+          zone: structureConseiller.timezone,
+          setZone: true
+        })
       )
     })
 
@@ -622,7 +643,12 @@ describe('SessionMiloHttpSqlRepository', () => {
     it('récupère le minimum des informations de la session', async () => {
       // Given
       miloClient.getDetailSessionJeune.resolves(
-        success(unDetailSessionJeuneDto)
+        success({
+          ...unDetailSessionJeuneDto,
+          dateHeureDebut: '2020-04-06 10:20:00',
+          dateHeureFin: '2020-04-08 10:20:00',
+          dateMaxInscription: '2020-04-07'
+        })
       )
 
       // When
@@ -638,19 +664,22 @@ describe('SessionMiloHttpSqlRepository', () => {
       expect((result as Success<SessionMiloBeneficiaire>).data).to.deep.equal({
         id: 'idSession',
         nom: 'Une-session',
-        debut: DateTime.fromISO('2020-04-06T10:20:00', {
-          zone: 'Europe/Paris'
+        debut: DateTime.fromISO('2020-04-06T08:20:00.000Z', {
+          zone: 'Europe/Paris',
+          setZone: true
         }),
         nbPlacesDisponibles: 10,
         statutInscription: undefined,
         autoinscription: false,
-        dateMaxInscription: DateTime.fromISO('2020-04-07', {
-          zone: 'Europe/Paris'
-        }).endOf('day'),
+        dateMaxInscription: DateTime.fromISO('2020-04-07T21:59:59.999Z', {
+          zone: 'Europe/Paris',
+          setZone: true
+        }),
         autodesinscription: false,
-        dateMaxDesinscription: DateTime.fromISO('2020-04-07', {
-          zone: 'Europe/Paris'
-        }).endOf('day')
+        dateMaxDesinscription: DateTime.fromISO('2020-04-07T21:59:59.999Z', {
+          zone: 'Europe/Paris',
+          setZone: true
+        })
       })
     })
 
@@ -660,6 +689,8 @@ describe('SessionMiloHttpSqlRepository', () => {
         success({
           session: {
             ...unDetailSessionJeuneDto.session,
+            dateHeureDebut: '2020-04-06 10:20:00',
+            dateHeureFin: '2020-04-08 10:20:00',
             dateMaxInscription: null
           },
           offre: unDetailSessionJeuneDto.offre
@@ -675,13 +706,18 @@ describe('SessionMiloHttpSqlRepository', () => {
       )
 
       // Then
-      const debut = DateTime.fromISO('2020-04-06T08:20:00.000Z', {
-        zone: 'Europe/Paris'
-      })
       const actualSession = (result as Success<SessionMiloBeneficiaire>).data
-      expect(actualSession.dateMaxInscription).to.deep.equal(debut)
+      expect(actualSession.dateMaxInscription).to.deep.equal(
+        DateTime.fromISO('2020-04-06T08:20:00.000Z', {
+          zone: 'Europe/Paris',
+          setZone: true
+        })
+      )
       expect(actualSession.dateMaxDesinscription).to.deep.equal(
-        debut.minus({ hours: 24 })
+        DateTime.fromISO('2020-04-05T21:59:59.999Z', {
+          zone: 'Europe/Paris',
+          setZone: true
+        })
       )
     })
   })

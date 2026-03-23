@@ -35,8 +35,7 @@ import { MiloClient } from '../../clients/milo/milo-client'
 import { getAPMInstance } from '../../monitoring/apm.init'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { SessionMiloSqlModel } from '../../sequelize/models/session-milo.sql-model'
-
-const FORMAT_DATETIME_MILO = 'yyyy-MM-dd HH:mm:ss'
+import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
@@ -92,19 +91,15 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     }
     const { session, sessionInstance } = resultSession.data
 
-    const debut = DateTime.fromFormat(
-      session.dateHeureDebut,
-      FORMAT_DATETIME_MILO,
-      {
-        zone: timezone
-      }
-    )
+    const debut = DateService.dateFromMilo(session.dateHeureDebut, timezone)
     const dateMaxInscription = session.dateMaxInscription
-      ? DateTime.fromISO(session.dateMaxInscription, { zone: timezone }).endOf(
-          'day'
+      ? DateService.dateStringToEndOfDayUtc(
+          session.dateMaxInscription,
+          timezone
         )
       : undefined
     const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+      timezone,
       debut,
       dateMaxInscription
     )
@@ -384,18 +379,19 @@ function dtoToSessionMilo(
   jeunes: Array<Pick<JeuneSqlModel, 'id' | 'idPartenaire'>>
 ): SessionMilo {
   const idSession = sessionDto.id.toString()
-  const debut = DateTime.fromFormat(
+  const debut = DateService.dateFromMilo(
     sessionDto.dateHeureDebut,
-    FORMAT_DATETIME_MILO,
-    { zone: structureMilo.timezone }
+    structureMilo.timezone
   )
   const miloDateMaxInscription = sessionDto.dateMaxInscription
-    ? DateTime.fromISO(sessionDto.dateMaxInscription, {
-        zone: structureMilo.timezone
-      }).endOf('day')
+    ? DateService.dateStringToEndOfDayUtc(
+        sessionDto.dateMaxInscription,
+        structureMilo.timezone
+      )
     : undefined
   const dateMaxInscription = miloDateMaxInscription ?? debut
   const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+    structureMilo.timezone,
     debut,
     miloDateMaxInscription
   )
@@ -403,9 +399,10 @@ function dtoToSessionMilo(
     id: idSession,
     nom: sessionDto.nom,
     debut,
-    fin: DateTime.fromFormat(sessionDto.dateHeureFin, FORMAT_DATETIME_MILO, {
-      zone: structureMilo.timezone
-    }),
+    fin: DateService.dateFromMilo(
+      sessionDto.dateHeureFin,
+      structureMilo.timezone
+    ),
     animateur: sessionDto.animateur,
     lieu: sessionDto.lieu,
     nbPlacesDisponibles: sessionDto.nbPlacesDisponibles ?? undefined,

@@ -29,7 +29,10 @@ import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/mod
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { MILO_REFUS_JEUNE } from '../../../../src/infrastructure/clients/dto/milo.dto'
+import {
+  MILO_REFUS_JEUNE,
+  SessionDto
+} from '../../../../src/infrastructure/clients/dto/milo.dto'
 
 describe('GetDetailSessionJeuneMiloQueryHandler', () => {
   const idSession = 1
@@ -90,7 +93,7 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
       const structureMilo = {
         id: 'id-structure-milo',
         nomOfficiel: 'Structure Milo',
-        timezone: 'America/Cayenne'
+        timezone: 'Europe/Paris'
       }
       const conseiller = unConseillerDto({ idStructureMilo: structureMilo.id })
       const sessionMilo: AsSql<SessionMiloDto> = {
@@ -156,7 +159,7 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
         await StructureMiloSqlModel.create({
           id: 'paris',
           nomOfficiel: 'Paris',
-          timezone: 'America/Cayenne'
+          timezone: 'Europe/Paris'
         })
         await JeuneSqlModel.create(
           unJeuneDto({
@@ -184,16 +187,18 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
 
       it('renvoie le détail de la session à la timezone de sa structure', async () => {
         // Given
+        const sessionDto: SessionDto = {
+          ...uneSessionDto,
+          id: idSession,
+          dateHeureDebut: '2020-04-06 10:20:00',
+          dateHeureFin: '2020-04-08 10:20:00',
+          dateMaxInscription: '2020-04-06'
+        }
         miloClient.getDetailSessionJeune
           .withArgs(idpToken, query.idSession)
           .resolves(
             success({
-              session: {
-                ...uneSessionDto,
-                id: idSession,
-                dateMaxInscription: '2020-04-06',
-                dateMaxDesinscription: '2020-04-07'
-              },
+              session: sessionDto,
               offre: uneOffreDto,
               sessionInstance: { statut: MILO_REFUS_JEUNE }
             })
@@ -210,7 +215,48 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
             inscription: {
               statut: SessionMilo.Inscription.Statut.REFUS_JEUNE
             },
-            dateMaxInscription: '2020-04-07T02:59:59.999Z'
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z',
+            dateMaxInscription: '2020-04-06T21:59:59.999Z',
+            dateMaxDesinscription: '2020-04-06T21:59:59.999Z'
+          })
+        )
+      })
+
+      it('renvoie la dateMaxDesinscription à la fin de la journée précédent la dateHeureDebut si la dateMaxInscription est null', async () => {
+        // Given
+        const sessionDto: SessionDto = {
+          ...uneSessionDto,
+          id: idSession,
+          dateHeureDebut: '2020-04-06 10:20:00',
+          dateHeureFin: '2020-04-08 10:20:00',
+          dateMaxInscription: null
+        }
+        miloClient.getDetailSessionJeune
+          .withArgs(idpToken, query.idSession)
+          .resolves(
+            success({
+              session: sessionDto,
+              offre: uneOffreDto,
+              sessionInstance: { statut: MILO_REFUS_JEUNE }
+            })
+          )
+
+        // When
+        const result = await getDetailSessionQueryHandler.handle(query)
+
+        // Then
+        expect(result).to.deep.equal(
+          success({
+            ...unDetailSessionJeuneMiloQueryModel,
+            id: query.idSession,
+            inscription: {
+              statut: SessionMilo.Inscription.Statut.REFUS_JEUNE
+            },
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z',
+            dateMaxInscription: undefined,
+            dateMaxDesinscription: '2020-04-05T21:59:59.999Z'
           })
         )
       })

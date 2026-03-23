@@ -347,26 +347,30 @@ describe('SessionMilo', () => {
   describe('calculerDateMaxDesinscription', () => {
     const dateHeureDebut = DateTime.fromISO('2020-04-06T10:00:00.000Z')
 
-    it('retourne dateMaxInscription si elle existe', () => {
+    it('retourne la fin de journée UTC de dateMaxInscription si elle existe', () => {
       // Given
       const dateMaxInscription = DateTime.fromISO('2020-04-05T21:59:59.999Z')
 
       // When
       const result = SessionMilo.calculerDateMaxDesinscription(
+        'Europe/Paris',
         dateHeureDebut,
         dateMaxInscription
       )
 
       // Then
-      expect(result).to.deep.equal(dateMaxInscription)
+      expect(result.toISO()).to.equal('2020-04-05T21:59:59.999Z')
     })
 
-    it('retourne dateHeureDebut - 24h si dateMaxInscription est absente', () => {
+    it('retourne la fin de journée UTC de dateHeureDebut - 24h si dateMaxInscription est absente', () => {
       // When
-      const result = SessionMilo.calculerDateMaxDesinscription(dateHeureDebut)
+      const result = SessionMilo.calculerDateMaxDesinscription(
+        'Europe/Paris',
+        dateHeureDebut
+      )
 
       // Then
-      expect(result).to.deep.equal(DateTime.fromISO('2020-04-05T10:00:00.000Z'))
+      expect(result.toISO()).to.equal('2020-04-05T21:59:59.999Z')
     })
   })
 
