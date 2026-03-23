@@ -2,7 +2,6 @@ import { URLSearchParams } from 'url'
 import { expect } from 'chai'
 import { failure, success } from '../../../../src/building-blocks/types/result'
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
-import { TIMEOUT } from 'dns'
 import { ImmersionClient } from '../../../../src/infrastructure/clients/immersion-client'
 import { FindAllOffresImmersionQueryGetter } from '../../../../src/application/queries/query-getters/find-all-offres-immersion.query.getter.db'
 import { StubbedClass, stubClass } from '../../../utils'
@@ -12,6 +11,46 @@ import {
 } from '../../../utils/database-for-testing'
 import { MetierRomeSqlModel } from '../../../../src/infrastructure/sequelize/models/metier-rome.sql-model'
 import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-model'
+import { PartenaireImmersion } from '../../../../src/infrastructure/repositories/dto/immersion.dto'
+
+const uneOffreDto = (
+  siret: string,
+  appellationCode: string
+): PartenaireImmersion.DtoV3 => ({
+  rome: 'D1102',
+  romeLabel: 'romeLabel',
+  naf: 'naf',
+  nafLabel: 'nafLabel',
+  siret,
+  name: 'name',
+  locationId: 'locationId',
+  voluntaryToImmersion: true,
+  position: { lat: 48.5, lon: 2.1 },
+  address: {
+    streetNumberAndAddress: 'street',
+    postcode: '75001',
+    city: 'city',
+    departmentCode: '75'
+  },
+  appellations: [{ appellationCode, appellationLabel: 'label' }]
+})
+
+const uneOffreQueryModel = (siret: string, appellationCode: string) => ({
+  id: `${siret}-${appellationCode}`,
+  metier: 'label',
+  nomEtablissement: 'name',
+  secteurActivite: 'nafLabel',
+  ville: 'city',
+  estVolontaire: true,
+  locationId: 'locationId'
+})
+
+const baseQuery = {
+  rome: 'D1102',
+  lat: 48.502103949334845,
+  lon: 2.13082255225161,
+  distance: 30
+}
 
 describe('FindAllOffresImmersionQueryGetter', () => {
   let databaseForTesting: DatabaseForTesting
@@ -32,44 +71,41 @@ describe('FindAllOffresImmersionQueryGetter', () => {
   })
 
   describe('handle', () => {
-    describe('quand la requête est correcte', () => {
-      it('construit les params avec appellationCodes[] quand un seul métier', async () => {
+    describe('quand il y a 1 appellation code', () => {
+      it('fait 1 requête avec appellationCodes[]', async () => {
         // Given
         await MetierRomeSqlModel.bulkCreate([
-          unMetierRomeDto({
-            id: 1,
-            code: 'D1102',
-            libelle: 'Boulanger',
-            appellationCode: '11573'
-          })
+          unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' })
         ])
 
-        const query = {
-          rome: 'D1102',
-          lat: 48.502103949334845,
-          lon: 2.13082255225161,
-          distance: 30
-        }
-
         const params = new URLSearchParams()
-        params.append('distanceKm', query.distance.toString())
-        params.append('longitude', query.lon.toString())
-        params.append('latitude', query.lat.toString())
+        params.append('distanceKm', '30')
+        params.append('longitude', baseQuery.lon.toString())
+        params.append('latitude', baseQuery.lat.toString())
         params.append('appellationCodes[]', '11573')
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
 
-        immersionClient.getOffres.resolves(success([]))
+        immersionClient.getOffres.resolves(
+          success([uneOffreDto('siret-1', 'appCode-1')])
+        )
 
         // When
-        await findAllOffresImmersionQueryGetter.handle(query)
+        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffres.getCall(0).args).to.be.deep.equal([
+        expect(immersionClient.getOffres.callCount).to.equal(1)
+        expect(immersionClient.getOffres.getCall(0).args).to.deep.equal([
           params
         ])
+        expect(result).to.deep.equal(
+          success([uneOffreQueryModel('siret-1', 'appCode-1')])
+        )
       })
-      it('construit les params avec appellationCodes quand plusieurs métiers et renvoie les offres', async () => {
+    })
+
+    describe('quand il y a plusieurs appellations codes <= 20', () => {
+      it('fait 1 requête et renvoie les offres', async () => {
         // Given
         await MetierRomeSqlModel.bulkCreate([
           unMetierRomeDto({
@@ -86,111 +122,117 @@ describe('FindAllOffresImmersionQueryGetter', () => {
           })
         ])
 
-        const query = {
-          rome: 'D1102',
-          lat: 48.502103949334845,
-          lon: 2.13082255225161,
-          distance: 30
-        }
-
-        const params = new URLSearchParams()
-        params.append('distanceKm', query.distance.toString())
-        params.append('longitude', query.lon.toString())
-        params.append('latitude', query.lat.toString())
-        params.append('appellationCodes', '22456')
-        params.append('appellationCodes', '11573')
-        params.append('sortBy', 'date')
-        params.append('sortOrder', 'desc')
-
         immersionClient.getOffres.resolves(
           success([
-            {
-              rome: 'mon-rome',
-              siret: 'siret',
-              romeLabel: 'romeLabel',
-              name: 'name',
-              nafLabel: 'nafLabel',
-              naf: 'naf',
-              address: {
-                streetNumberAndAddress: 'street',
-                postcode: '75001',
-                city: 'city',
-                departmentCode: '75'
-              },
-              voluntaryToImmersion: true,
-              locationId: 'locationId',
-              position: { lat: 48.5, lon: 2.1 },
-              appellations: [
-                {
-                  appellationCode: 'appellationCode',
-                  appellationLabel: 'appellationCodeLabel'
-                }
-              ]
-            }
+            uneOffreDto('siret-1', 'appCode-1'),
+            uneOffreDto('siret-2', 'appCode-2')
           ])
         )
 
         // When
-        const offres = await findAllOffresImmersionQueryGetter.handle(query)
+        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffres.getCall(0).args).to.be.deep.equal([
-          params
+        expect(immersionClient.getOffres.callCount).to.equal(1)
+        expect(result).to.deep.equal(
+          success([
+            uneOffreQueryModel('siret-1', 'appCode-1'),
+            uneOffreQueryModel('siret-2', 'appCode-2')
+          ])
+        )
+      })
+    })
+
+    describe('quand il y a plus de 20 appellation codes', () => {
+      it('découpe en chunks de 20, fait plusieurs requêtes et merge les résultats', async () => {
+        // Given
+        const metiers = Array.from({ length: 21 }, (_, i) =>
+          unMetierRomeDto({
+            id: i + 1,
+            code: 'D1102',
+            libelle: `Metier ${i}`,
+            appellationCode: `code-${i}`
+          })
+        )
+        await MetierRomeSqlModel.bulkCreate(metiers)
+
+        immersionClient.getOffres
+          .onFirstCall()
+          .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
+        immersionClient.getOffres
+          .onSecondCall()
+          .resolves(success([uneOffreDto('siret-2', 'appCode-2')]))
+
+        // When
+        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
+
+        // Then
+        expect(immersionClient.getOffres.callCount).to.equal(2)
+        expect(result).to.deep.equal(
+          success([
+            uneOffreQueryModel('siret-1', 'appCode-1'),
+            uneOffreQueryModel('siret-2', 'appCode-2')
+          ])
+        )
+      })
+
+      it("renvoie une failure si l'un des chunks échoue", async () => {
+        // Given
+        const metiers = Array.from({ length: 21 }, (_, i) =>
+          unMetierRomeDto({
+            id: i + 1,
+            code: 'D1102',
+            libelle: `Metier ${i}`,
+            appellationCode: `code-${i}`
+          })
+        )
+        await MetierRomeSqlModel.bulkCreate(metiers)
+
+        const erreur = new ErreurHttp('erreur API', 400)
+        immersionClient.getOffres
+          .onFirstCall()
+          .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
+        immersionClient.getOffres.onSecondCall().resolves(failure(erreur))
+
+        // When
+        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
+
+        // Then
+        expect(result).to.deep.equal(failure(erreur))
+      })
+    })
+
+    describe("quand l'API renvoie une erreur", () => {
+      it('renvoie une failure', async () => {
+        // Given
+        await MetierRomeSqlModel.bulkCreate([
+          unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' })
         ])
-        expect(offres).to.deep.equal(
-          success([
-            {
-              id: 'siret-appellationCode',
-              metier: 'appellationCodeLabel',
-              nomEtablissement: 'name',
-              secteurActivite: 'nafLabel',
-              ville: 'city',
-              estVolontaire: true,
-              locationId: 'locationId'
-            }
-          ])
-        )
-      })
-    })
-    describe('quand la requête est mauvaise', () => {
-      it('renvoie une erreur', async () => {
-        // Given
-        const query = {
-          rome: 'PLOP',
-          lat: 48.502103949334845,
-          lon: 2.13082255225161,
-          distance: 30
-        }
 
         immersionClient.getOffres.resolves(
           failure(new ErreurHttp("un message d'erreur", 404))
         )
 
         // When
-        const offres = await findAllOffresImmersionQueryGetter.handle(query)
+        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(offres).to.deep.equal(
+        expect(result).to.deep.equal(
           failure(new ErreurHttp("un message d'erreur", 404))
         )
       })
-    })
-    describe('quand la requête renvoie une erreur', () => {
-      it('renvoie une erreur', async () => {
+
+      it("renvoie une erreur quand l'appel rejette", async () => {
         // Given
-        const query = {
-          rome: 'PLOP',
-          lat: 48.502103949334845,
-          lon: 2.13082255225161,
-          distance: 30
-        }
+        await MetierRomeSqlModel.bulkCreate([
+          unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' })
+        ])
 
-        const error: Error = new Error(TIMEOUT)
-
+        const error = new Error('Erreur inconnue')
         immersionClient.getOffres.rejects(error)
 
         // When
-        const call = findAllOffresImmersionQueryGetter.handle(query)
+        const call = findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
         await expect(call).to.be.rejectedWith(error)

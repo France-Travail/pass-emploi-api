@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import {
   isFailure,
+  isSuccess,
   Result,
   success
 } from '../../../building-blocks/types/result'
@@ -13,6 +14,8 @@ import { Offre } from '../../../domain/offre/offre'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 
+const APPELLATION_CODES_LIMIT = 20
+
 @Injectable()
 export class FindAllOffresImmersionQueryGetter {
   constructor(
@@ -23,25 +26,37 @@ export class FindAllOffresImmersionQueryGetter {
   async handle(
     query: GetOffresImmersionQuery
   ): Promise<Result<OffreImmersionQueryModel[]>> {
-    const params = await this.queryConstructor(query)
+    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
 
-    const offresImmersion = await this.immersionClient.getOffres(params)
+    const chunks = this.chunkBy(appellationCodeListe, APPELLATION_CODES_LIMIT)
 
-    if (isFailure(offresImmersion)) {
-      return offresImmersion
+    const results = await Promise.all(
+      chunks.map(chunk => {
+        const params = this.buildParams(query, chunk)
+        return this.immersionClient.getOffres(params)
+      })
+    )
+
+    const firstFailure = results.find(isFailure)
+    if (firstFailure) {
+      return firstFailure
     }
 
-    return success(offresImmersion.data.map(toOffreImmersionQueryModel))
+    const offres = results
+      .filter(isSuccess)
+      .flatMap(result => result.data)
+      .map(toOffreImmersionQueryModel)
+
+    return success(offres)
   }
 
-  async queryConstructor(
-    query: GetOffresImmersionQuery
-  ): Promise<URLSearchParams> {
+  buildParams(
+    query: GetOffresImmersionQuery,
+    appellationCodes: string[]
+  ): URLSearchParams {
     const distanceAvecDefault = query.distance
       ? query.distance.toString()
       : Offre.Recherche.DISTANCE_PAR_DEFAUT.toString()
-
-    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
 
     const params = new URLSearchParams()
 
@@ -49,18 +64,22 @@ export class FindAllOffresImmersionQueryGetter {
     params.append('longitude', query.lon.toString())
     params.append('latitude', query.lat.toString())
 
-    if (appellationCodeListe.length === 1) {
-      params.append('appellationCodes[]', appellationCodeListe[0])
-    } else {
-      appellationCodeListe.forEach(appellationCode => {
-        params.append('appellationCodes', appellationCode)
-      })
-    }
+    appellationCodes.forEach(appellationCode => {
+      params.append('appellationCodes[]', appellationCode)
+    })
 
     params.append('sortBy', 'date')
     params.append('sortOrder', 'desc')
 
     return params
+  }
+
+  chunkBy<T>(list: T[], size: number): T[][] {
+    const chunks: T[][] = []
+    for (let i = 0; i < list.length; i += size) {
+      chunks.push(list.slice(i, i + size))
+    }
+    return chunks
   }
 
   async romeToAppellationsCode(codeRome: string): Promise<string[]> {
