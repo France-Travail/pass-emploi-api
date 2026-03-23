@@ -6,22 +6,44 @@ import { TIMEOUT } from 'dns'
 import { ImmersionClient } from '../../../../src/infrastructure/clients/immersion-client'
 import { FindAllOffresImmersionQueryGetter } from '../../../../src/application/queries/query-getters/find-all-offres-immersion.query.getter.db'
 import { StubbedClass, stubClass } from '../../../utils'
+import {
+  DatabaseForTesting,
+  getDatabase
+} from '../../../utils/database-for-testing'
+import { MetierRomeSqlModel } from '../../../../src/infrastructure/sequelize/models/metier-rome.sql-model'
+import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-model'
 
 describe('FindAllOffresImmersionQueryGetter', () => {
+  let databaseForTesting: DatabaseForTesting
   let immersionClient: StubbedClass<ImmersionClient>
   let findAllOffresImmersionQueryGetter: FindAllOffresImmersionQueryGetter
 
-  beforeEach(() => {
+  before(() => {
+    databaseForTesting = getDatabase()
+  })
+
+  beforeEach(async () => {
+    await databaseForTesting.cleanPG()
     immersionClient = stubClass(ImmersionClient)
     findAllOffresImmersionQueryGetter = new FindAllOffresImmersionQueryGetter(
-      immersionClient
+      immersionClient,
+      databaseForTesting.sequelize
     )
   })
 
   describe('handle', () => {
     describe('quand la requête est correcte', () => {
-      it('renvoie les offres', async () => {
+      it('construit les params avec appellationCodes[] quand un seul métier', async () => {
         // Given
+        await MetierRomeSqlModel.bulkCreate([
+          unMetierRomeDto({
+            id: 1,
+            code: 'D1102',
+            libelle: 'Boulanger',
+            appellationCode: '11573'
+          })
+        ])
+
         const query = {
           rome: 'D1102',
           lat: 48.502103949334845,
@@ -33,7 +55,50 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         params.append('distanceKm', query.distance.toString())
         params.append('longitude', query.lon.toString())
         params.append('latitude', query.lat.toString())
-        params.append('rome', query.rome)
+        params.append('appellationCodes[]', '11573')
+        params.append('sortBy', 'date')
+        params.append('sortOrder', 'desc')
+
+        immersionClient.getOffres.resolves(success([]))
+
+        // When
+        await findAllOffresImmersionQueryGetter.handle(query)
+
+        // Then
+        expect(immersionClient.getOffres.getCall(0).args).to.be.deep.equal([
+          params
+        ])
+      })
+      it('construit les params avec appellationCodes quand plusieurs métiers et renvoie les offres', async () => {
+        // Given
+        await MetierRomeSqlModel.bulkCreate([
+          unMetierRomeDto({
+            id: 1,
+            code: 'D1102',
+            libelle: 'Boulanger',
+            appellationCode: '11573'
+          }),
+          unMetierRomeDto({
+            id: 2,
+            code: 'D1102',
+            libelle: 'Pâtissier',
+            appellationCode: '22456'
+          })
+        ])
+
+        const query = {
+          rome: 'D1102',
+          lat: 48.502103949334845,
+          lon: 2.13082255225161,
+          distance: 30
+        }
+
+        const params = new URLSearchParams()
+        params.append('distanceKm', query.distance.toString())
+        params.append('longitude', query.lon.toString())
+        params.append('latitude', query.lat.toString())
+        params.append('appellationCodes', '22456')
+        params.append('appellationCodes', '11573')
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import {
   isFailure,
   Result,
@@ -10,15 +10,20 @@ import { toOffreImmersionQueryModel } from '../../../infrastructure/repositories
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
 import { GetOffresImmersionQuery } from '../get-offres-immersion.query.handler'
 import { Offre } from '../../../domain/offre/offre'
+import { QueryTypes, Sequelize } from 'sequelize'
+import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 
 @Injectable()
 export class FindAllOffresImmersionQueryGetter {
-  constructor(private immersionClient: ImmersionClient) {}
+  constructor(
+    private immersionClient: ImmersionClient,
+    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
+  ) {}
 
   async handle(
     query: GetOffresImmersionQuery
   ): Promise<Result<OffreImmersionQueryModel[]>> {
-    const params = this.queryConstructor(query)
+    const params = await this.queryConstructor(query)
 
     const offresImmersion = await this.immersionClient.getOffres(params)
 
@@ -29,20 +34,49 @@ export class FindAllOffresImmersionQueryGetter {
     return success(offresImmersion.data.map(toOffreImmersionQueryModel))
   }
 
-  queryConstructor(query: GetOffresImmersionQuery): URLSearchParams {
+  async queryConstructor(
+    query: GetOffresImmersionQuery
+  ): Promise<URLSearchParams> {
     const distanceAvecDefault = query.distance
       ? query.distance.toString()
       : Offre.Recherche.DISTANCE_PAR_DEFAUT.toString()
+
+    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
 
     const params = new URLSearchParams()
 
     params.append('distanceKm', distanceAvecDefault)
     params.append('longitude', query.lon.toString())
     params.append('latitude', query.lat.toString())
-    params.append('rome', query.rome)
+
+    if (appellationCodeListe.length === 1) {
+      params.append('appellationCodes[]', appellationCodeListe[0])
+    } else {
+      appellationCodeListe.forEach(appellationCode => {
+        params.append('appellationCodes', appellationCode)
+      })
+    }
+
     params.append('sortBy', 'date')
     params.append('sortOrder', 'desc')
 
     return params
+  }
+
+  async romeToAppellationsCode(codeRome: string): Promise<string[]> {
+    const metiers: Array<{ appellation_code: string }> =
+      await this.sequelize.query(
+        `SELECT appellation_code
+       FROM referentiel_metier_rome
+       WHERE code = ?
+       AND  appellation_code != ''
+       ORDER BY libelle DESC`,
+        {
+          replacements: [codeRome],
+          type: QueryTypes.SELECT
+        }
+      )
+
+    return metiers.map(m => m.appellation_code)
   }
 }
