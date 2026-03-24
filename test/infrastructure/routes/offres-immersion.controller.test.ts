@@ -245,7 +245,8 @@ describe('OffresImmersionController', () => {
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'EMAIL'
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute
@@ -270,7 +271,8 @@ describe('OffresImmersionController', () => {
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'EMAIL'
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute.resolves(
