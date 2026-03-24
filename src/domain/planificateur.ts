@@ -106,7 +106,8 @@ export namespace Planificateur {
     NOTIFIER_ACTUALISATION = 'NOTIFIER_ACTUALISATION',
     CLORE_SESSIONS = 'CLORE_SESSIONS',
     NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES',
-    NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO'
+    NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
+    MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME'
   }
 
   export interface JobRendezVous {
@@ -294,6 +295,11 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     type: Planificateur.JobType.DUMP_ANALYTICS,
     expression: '30 2 * * *',
     description: 'Tous les jours à 2h30. Dump de la DB vers analytics.'
+  },
+  {
+    type: Planificateur.JobType.MAJ_REFERENTIEL_ROME,
+    expression: '0 3 1 * *',
+    description: 'Le 1er de chaque mois à 3h. Mise à jour du référentiel ROME.'
   }
 ]
 

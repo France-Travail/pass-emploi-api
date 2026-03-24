@@ -135,6 +135,7 @@ import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/e
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
 import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
 import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evenements.job.handler'
+import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
 import { MonitorJobsJobHandler } from './application/jobs/monitor-jobs.job.handler.db'
 import { NettoyerLesDonneesJobHandler } from './application/jobs/nettoyer-les-donnees.job.handler.db'
@@ -929,7 +930,8 @@ export const JobHandlerProviders = [
   NotifierActualisationJobHandler,
   Notifier0HeuresDeclareesJobHandler,
   NotifierBeneficiairesJobHandler,
-  NotifierNouvelleActualiteMiloJobHandler
+  NotifierNouvelleActualiteMiloJobHandler,
+  MajReferentielRomeJobHandler
 ]
 
 @Module(buildModuleMetadata())

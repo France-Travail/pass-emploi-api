@@ -258,6 +258,16 @@ export function toEtat(statut: Demarche.Statut): DemarcheDtoEtat {
   }
 }
 
+export interface AppellationRomeDto {
+  code: string
+  libelle: string
+}
+
+export interface MetierRomeApiDto {
+  code: string
+  libelle: string
+}
+
 export interface DocumentPoleEmploiDto {
   titre: string
   nomFichier: string
