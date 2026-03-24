@@ -156,7 +156,6 @@ export class PostImmersionContactBody {
   contactMode: ModeContact
 
   @ApiPropertyOptional()
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
   datePreferences?: string
