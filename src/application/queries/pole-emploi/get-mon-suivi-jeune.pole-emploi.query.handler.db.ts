@@ -11,7 +11,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { beneficiaireEstFTConnect } from '../../../domain/core'
-import { FeatureFlip } from '../../../domain/feature-flip'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 
@@ -20,6 +19,7 @@ export interface GetMonSuiviPoleEmploiQuery extends Query {
   dateDebut: DateTime
   accessToken: string
 }
+const ELIGIBLE_DEMARCHES_IA: boolean = true
 
 @Injectable()
 export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
@@ -29,8 +29,7 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
-    private readonly getDemarchesQueryGetter: GetDemarchesQueryGetter,
-    private readonly featureFlipService: FeatureFlip.Service
+    private readonly getDemarchesQueryGetter: GetDemarchesQueryGetter
   ) {
     super('GetMonSuiviPoleEmploiQueryHandler')
   }
@@ -59,17 +58,11 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
 
     if (isFailure(rdvs) && isFailure(demarches)) return rdvs
 
-    const eligibleDemarchesIA =
-      await this.featureFlipService.laFeatureEstActive(
-        FeatureFlip.Tag.DEMARCHES_IA,
-        { id: query.idJeune, type: Authentification.Type.JEUNE }
-      )
-
     return success({
       queryModel: {
         rendezVous: isFailure(rdvs) ? [] : rdvs.data.queryModel,
         demarches: isFailure(demarches) ? [] : demarches.data.queryModel,
-        eligibleDemarchesIA
+        eligibleDemarchesIA: ELIGIBLE_DEMARCHES_IA
       },
       dateDuCache: recupererLaDateLaPlusAncienne(
         isFailure(rdvs) ? DateTime.now() : rdvs.data.dateDuCache,

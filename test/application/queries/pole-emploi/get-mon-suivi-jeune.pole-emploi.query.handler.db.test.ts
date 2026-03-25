@@ -14,7 +14,6 @@ import {
   success
 } from '../../../../src/building-blocks/types/result'
 import { Core } from '../../../../src/domain/core'
-import { FeatureFlip } from '../../../../src/domain/feature-flip'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -22,13 +21,11 @@ import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vo
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
-import { Authentification } from '../../../../src/domain/authentification'
 import Structure = Core.Structure
 
 describe('GetMonSuiviPoleEmploiQueryHandler', () => {
   let getRendezVousJeuneQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getDemarchesQueryGetter: StubbedClass<GetDemarchesQueryGetter>
-  let featureFlipService: StubbedClass<FeatureFlip.Service>
   let handler: GetMonSuiviPoleEmploiQueryHandler
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
 
@@ -44,14 +41,12 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       GetRendezVousJeunePoleEmploiQueryGetter
     )
     getDemarchesQueryGetter = stubClass(GetDemarchesQueryGetter)
-    featureFlipService = stubClass(FeatureFlip.Service)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
 
     handler = new GetMonSuiviPoleEmploiQueryHandler(
       jeuneAuthorizer,
       getRendezVousJeuneQueryGetter,
-      getDemarchesQueryGetter,
-      featureFlipService
+      getDemarchesQueryGetter
     )
   })
 
@@ -74,12 +69,6 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
           queryModel: [demarche]
         })
       )
-      featureFlipService.laFeatureEstActive
-        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-          id: 'id-jeune',
-          type: Authentification.Type.JEUNE
-        })
-        .resolves(false)
 
       result = await handler.handle({
         idJeune: 'id-jeune',
@@ -102,7 +91,7 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       ).to.deep.equal([rdv])
       expect(
         isSuccess(result) && result.data.queryModel.eligibleDemarchesIA
-      ).to.be.false()
+      ).to.be.true()
     })
 
     it('renvoie les démarches', async () => {
@@ -123,12 +112,6 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       await JeuneSqlModel.create(
         unJeuneDto({ id: 'id-jeune', idConseiller: undefined })
       )
-      featureFlipService.laFeatureEstActive
-        .withArgs(FeatureFlip.Tag.DEMARCHES_IA, {
-          id: 'id-jeune',
-          type: Authentification.Type.JEUNE
-        })
-        .resolves(true)
       getDemarchesQueryGetter.handle.resolves(
         failure(new NonTrouveError('Démarches KO'))
       )
