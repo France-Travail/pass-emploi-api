@@ -18,7 +18,6 @@ export const uneSessionDto: SessionDto = {
   dateHeureDebut: '2020-04-06 10:20:00',
   dateHeureFin: '2020-04-08 10:20:00',
   dateMaxInscription: '2020-04-07',
-  dateMaxDesinscription: '2020-04-07',
   animateur: 'Un-animateur',
   lieu: 'Un-lieu',
   nbPlacesDisponibles: 10,

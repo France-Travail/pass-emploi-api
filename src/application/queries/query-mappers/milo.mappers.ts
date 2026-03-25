@@ -20,12 +20,7 @@ import {
   SessionJeuneMiloQueryModel,
   SessionTypeQueryModel
 } from '../query-models/sessions.milo.query.model'
-
-export const MILO_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss'
-
-function dateMaxToISO(date: string, timezone: string): string {
-  return DateTime.fromISO(date, { zone: timezone }).endOf('day').toUTC().toISO()
-}
+import { DateService } from '../../../utils/date-service'
 
 function buildSessionTypeQueryModel(
   type: OffreTypeCode
@@ -48,14 +43,15 @@ export function mapSessionJeuneDtoToQueryModel(
     'autoinscription' | 'autodesinscription'
   >
 ): SessionJeuneMiloQueryModel {
-  const dateHeureDebutDt = dateFromMilo(
+  const dateHeureDebutDt = DateService.dateFromMilo(
     sessionDto.session.dateHeureDebut,
     timezone
   )
   const dateMaxInscriptionDt = sessionDto.session.dateMaxInscription
-    ? DateTime.fromISO(sessionDto.session.dateMaxInscription, {
-        zone: timezone
-      }).endOf('day')
+    ? DateService.dateStringToEndOfDayUtc(
+        sessionDto.session.dateMaxInscription,
+        timezone
+      )
     : undefined
 
   const queryModel: SessionJeuneMiloQueryModel = {
@@ -63,14 +59,12 @@ export function mapSessionJeuneDtoToQueryModel(
     nomSession: sessionDto.session.nom,
     nomOffre: sessionDto.offre.nom,
     dateHeureDebut: dateHeureDebutDt.toISO(),
-    dateHeureFin: dateFromMilo(
+    dateHeureFin: DateService.dateFromMilo(
       sessionDto.session.dateHeureFin,
       timezone
     ).toISO(),
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
-    dateMaxInscription: sessionDto.session.dateMaxInscription
-      ? dateMaxToISO(sessionDto.session.dateMaxInscription, timezone)
-      : undefined,
+    dateMaxInscription: dateMaxInscriptionDt?.toISO(),
     nbPlacesRestantes: sessionDto.session.nbPlacesDisponibles ?? undefined,
     autoinscription: false,
     autodesinscription: false,
@@ -87,6 +81,7 @@ export function mapSessionJeuneDtoToQueryModel(
 
   if (configuration) {
     const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+      timezone,
       dateHeureDebutDt,
       dateMaxInscriptionDt
     )
@@ -108,8 +103,11 @@ export function mapSessionConseillerDtoToQueryModel(
   maintenant: DateTime,
   parametrage?: ConfigurationLocale
 ): SessionConseillerMiloQueryModel {
-  const dateHeureDebut = dateFromMilo(session.dateHeureDebut, timezone)
-  const dateHeureFin = dateFromMilo(session.dateHeureFin, timezone)
+  const dateHeureDebut = DateService.dateFromMilo(
+    session.dateHeureDebut,
+    timezone
+  )
+  const dateHeureFin = DateService.dateFromMilo(session.dateHeureFin, timezone)
   const dateCloture = parametrage?.dateCloture
     ? DateTime.fromJSDate(parametrage.dateCloture)
     : undefined
@@ -156,11 +154,11 @@ export function mapSessionConseillerDtoToAgendaQueryModel(
     id: sessionDto.session.id.toString(),
     nomSession: sessionDto.session.nom,
     nomOffre: sessionDto.offre.nom,
-    dateHeureDebut: dateFromMilo(
+    dateHeureDebut: DateService.dateFromMilo(
       sessionDto.session.dateHeureDebut,
       timezone
     ).toISO(),
-    dateHeureFin: dateFromMilo(
+    dateHeureFin: DateService.dateFromMilo(
       sessionDto.session.dateHeureFin,
       timezone
     ).toISO(),
@@ -183,16 +181,18 @@ export function mapDetailSessionJeuneDtoToQueryModel(
   >,
   maintenant: DateTime
 ): DetailSessionJeuneMiloQueryModel {
-  const dateHeureDebutDt = dateFromMilo(
+  const dateHeureDebutDt = DateService.dateFromMilo(
     sessionDto.session.dateHeureDebut,
     beneficiaire.timezone
   )
   const dateMaxInscriptionDt = sessionDto.session.dateMaxInscription
-    ? DateTime.fromISO(sessionDto.session.dateMaxInscription, {
-        zone: beneficiaire.timezone
-      }).endOf('day')
+    ? DateService.dateStringToEndOfDayUtc(
+        sessionDto.session.dateMaxInscription,
+        beneficiaire.timezone
+      )
     : undefined
   const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+    beneficiaire.timezone,
     dateHeureDebutDt,
     dateMaxInscriptionDt
   )
@@ -204,7 +204,7 @@ export function mapDetailSessionJeuneDtoToQueryModel(
     theme: sessionDto.offre.theme,
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
     dateHeureDebut: dateHeureDebutDt.toISO(),
-    dateHeureFin: dateFromMilo(
+    dateHeureFin: DateService.dateFromMilo(
       sessionDto.session.dateHeureFin,
       beneficiaire.timezone
     ).toISO(),
@@ -214,6 +214,7 @@ export function mapDetailSessionJeuneDtoToQueryModel(
     description: sessionDto.offre.description ?? undefined,
     commentaire: sessionDto.session.commentaire ?? undefined,
     dateMaxInscription: dateMaxInscriptionDt?.toUTC().toISO(),
+    dateMaxDesinscription: dateMaxDesinscription.toUTC().toISO(),
     nbPlacesDisponibles: sessionDto.session.nbPlacesDisponibles ?? undefined,
     autoinscription: configuration.autoinscription,
     autodesinscription: SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
@@ -296,10 +297,4 @@ export function dtoToStatutInscription(
       )
       return SessionMilo.Inscription.Statut.INSCRIT
   }
-}
-
-function dateFromMilo(dateMilo: string, timezone: string): DateTime {
-  return DateTime.fromFormat(dateMilo, MILO_DATE_FORMAT, {
-    zone: timezone
-  }).toUTC()
 }

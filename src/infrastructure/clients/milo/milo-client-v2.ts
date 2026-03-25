@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { MILO_DATE_FORMAT } from 'src/application/queries/query-mappers/milo.mappers'
 import {
   ErreurHttp,
   ErreurMiloHttp
@@ -304,10 +303,9 @@ export class MiloClientV2 implements MiloClientPort {
       return resultDetail
     }
     const detailSessionDto = resultDetail.data
-    const dateSession = DateTime.fromFormat(
+    const dateSession = DateService.dateFromMilo(
       detailSessionDto.session.dateHeureDebut,
-      MILO_DATE_FORMAT,
-      { zone: timezone }
+      timezone
     )
 
     const resultSessionsParDossier = await this.getSessionsParDossierJeune(

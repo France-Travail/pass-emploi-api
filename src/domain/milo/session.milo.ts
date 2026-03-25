@@ -12,6 +12,7 @@ import {
   Result,
   success
 } from 'src/building-blocks/types/result'
+import { DateService } from '../../utils/date-service'
 
 export const SessionMiloRepositoryToken = 'SessionMilo.Repository'
 
@@ -243,10 +244,14 @@ export namespace SessionMilo {
   }
 
   export function calculerDateMaxDesinscription(
+    timezone: string,
     dateHeureDebut: DateTime,
     dateMaxInscription?: DateTime
   ): DateTime {
-    return dateMaxInscription ?? dateHeureDebut.minus({ hours: 24 })
+    return DateService.dateToEndOfDayUtc(
+      dateMaxInscription ?? dateHeureDebut.minus({ hours: 24 }),
+      timezone
+    )
   }
 
   export function autodesinscriptionEffectivePourBeneficiaire(

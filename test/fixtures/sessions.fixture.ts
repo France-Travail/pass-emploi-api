@@ -96,6 +96,7 @@ export const unDetailSessionJeuneMiloQueryModel: DetailSessionJeuneMiloQueryMode
     description: 'Une-Desc',
     commentaire: 'Un-commentaire',
     dateMaxInscription: '2020-04-07T10:20:00.000Z',
+    dateMaxDesinscription: '2020-04-07T10:20:00.000Z',
     nbPlacesDisponibles: 10,
     autoinscription: true,
     autodesinscription: true

@@ -255,6 +255,9 @@ export class DetailSessionJeuneMiloQueryModel {
   @ApiProperty({ required: false })
   dateMaxInscription?: string
 
+  @ApiProperty()
+  dateMaxDesinscription: string
+
   @ApiProperty({ required: false })
   nbPlacesDisponibles?: number
 

@@ -68,7 +68,8 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
     const sessionVisible2 = {
       ...uneSessionDto,
       id: idSession2,
-      dateHeureDebut: '2020-04-07 10:20:00'
+      dateHeureDebut: '2020-04-07 10:20:00',
+      dateMaxInscription: '2020-04-07'
     }
 
     beforeEach(async () => {
