@@ -21,62 +21,62 @@ describe('FeatureFlipSqlRepository', () => {
     await databaseForTesting.cleanPG()
     repo = new FeatureFlipSqlRepository(databaseForTesting.sequelize)
 
-    const conseillerMigrationDto = unConseillerDto({
-      id: 'conseillerMigration',
+    const conseillerMigrationADto = unConseillerDto({
+      id: 'conseillerMigrationA',
       structure: Core.Structure.POLE_EMPLOI,
-      email: 'conseillerMigration@email.com'
+      email: 'conseillerMigrationA@email.com'
     })
-    const conseillerNonMigrationDto = unConseillerDto({
-      id: 'conseillerNonMigration',
-      email: 'conseillerNonMigration@email.com'
+    const conseillerMigrationBDto = unConseillerDto({
+      id: 'conseillerMigrationB',
+      email: 'conseillerMigrationB@email.com'
     })
 
-    const jeuneConseillerMigrationDto = unJeuneDto({
-      id: 'jeuneMigration',
-      idConseiller: 'conseillerMigration',
+    const jeuneConseillerMigrationADto = unJeuneDto({
+      id: 'jeuneMigrationA',
+      idConseiller: 'conseillerMigrationA',
       idConseillerInitial: undefined
     })
-    const jeuneSuiviConseillerMigrationDto = unJeuneDto({
-      id: 'jeune-suivi-conseiller-migration',
-      idConseiller: 'conseillerNonMigration',
-      idConseillerInitial: 'conseillerMigration'
+    const jeuneSuiviConseillerMigrationBDto = unJeuneDto({
+      id: 'jeune-transfere-conseiller-migration',
+      idConseiller: 'conseillerMigrationB',
+      idConseillerInitial: 'conseillerMigrationA'
     })
-    const jeuneConseillerNonMigrationDto = unJeuneDto({
-      id: 'jeuneNonMigration',
-      idConseiller: 'conseillerNonMigration',
+    const jeuneConseillerMigrationBDto = unJeuneDto({
+      id: 'jeuneMigrationB',
+      idConseiller: 'conseillerMigrationB',
       idConseillerInitial: undefined
     })
 
     await ConseillerSqlModel.bulkCreate([
-      conseillerMigrationDto,
-      conseillerNonMigrationDto
+      conseillerMigrationADto,
+      conseillerMigrationBDto
     ])
     await JeuneSqlModel.bulkCreate([
-      jeuneConseillerMigrationDto,
-      jeuneSuiviConseillerMigrationDto,
-      jeuneConseillerNonMigrationDto
+      jeuneConseillerMigrationADto,
+      jeuneSuiviConseillerMigrationBDto,
+      jeuneConseillerMigrationBDto
     ])
 
-    const ffMigration = {
+    const ffMigrationA = {
       featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A,
-      emailConseiller: 'conseillerMigration@email.com'
+      emailConseiller: 'conseillerMigrationA@email.com'
     }
-    const ffDemarchesIA = {
-      featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-      emailConseiller: 'conseillerNonMigration@email.com'
+    const ffMigrationB = {
+      featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
+      emailConseiller: 'conseillerMigrationB@email.com'
     }
-    await FeatureFlipSqlModel.bulkCreate([ffMigration, ffDemarchesIA])
+    await FeatureFlipSqlModel.bulkCreate([ffMigrationA, ffMigrationB])
   })
 
   describe('getTagSiFeatureActivePourLeConseillerDuJeune', () => {
-    it('renvoie le bénéficiaire si son conseiller a la feature demandée', async () => {
+    it('renvoie le tag si son conseiller a la feature demandée', async () => {
       const beneficiaire =
         await repo.getTagSiFeatureActivePourLeConseillerDuJeune(
           [
             FeatureFlip.Tag.MIGRATION_PHASE_A,
             FeatureFlip.Tag.MIGRATION_PHASE_B
           ],
-          'jeuneMigration'
+          'jeuneMigrationA'
         )
       expect(beneficiaire).to.deep.equal(FeatureFlip.Tag.MIGRATION_PHASE_A)
     })
@@ -88,7 +88,7 @@ describe('FeatureFlipSqlRepository', () => {
             FeatureFlip.Tag.MIGRATION_PHASE_A,
             FeatureFlip.Tag.MIGRATION_PHASE_B
           ],
-          'jeune-suivi-conseiller-migration'
+          'jeune-transfere-conseiller-migration'
         )
       expect(beneficiaire).to.deep.equal(FeatureFlip.Tag.MIGRATION_PHASE_A)
     })
@@ -96,8 +96,8 @@ describe('FeatureFlipSqlRepository', () => {
     it("ne renvoie rien si ni son conseiller, ni son conseiller initial n'ont la feature demandée", async () => {
       const beneficiaire =
         await repo.getTagSiFeatureActivePourLeConseillerDuJeune(
-          [FeatureFlip.Tag.DEMARCHES_IA],
-          'jeuneMigration'
+          [FeatureFlip.Tag.MIGRATION_PHASE_B],
+          'jeuneMigrationA'
         )
       expect(beneficiaire).to.be.undefined()
     })
@@ -119,15 +119,15 @@ describe('FeatureFlipSqlRepository', () => {
     it("renvoie le conseiller si l'email du conseiller est autorisée pour la feature", async () => {
       const conseiller = await repo.getTagSiFeatureActivePourLeConseiller(
         [FeatureFlip.Tag.MIGRATION_PHASE_A, FeatureFlip.Tag.MIGRATION_PHASE_B],
-        'conseillerMigration'
+        'conseillerMigrationA'
       )
       expect(conseiller).to.deep.equal(FeatureFlip.Tag.MIGRATION_PHASE_A)
     })
 
     it("ne renvoie rien si le conseiller n'est pas autorisé pour cette feature", async () => {
       const conseiller = await repo.getTagSiFeatureActivePourLeConseiller(
-        [FeatureFlip.Tag.MIGRATION_PHASE_A, FeatureFlip.Tag.MIGRATION_PHASE_B],
-        'conseillerNonMigration'
+        [FeatureFlip.Tag.MIGRATION_PHASE_A],
+        'conseillerMigrationB'
       )
       expect(conseiller).to.be.undefined()
     })

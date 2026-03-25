@@ -22,11 +22,11 @@ describe('FeatureFlip', () => {
         // Given
         const idConseiller = 'conseiller-1'
         repository.getTagSiFeatureActivePourLeConseiller
-          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idConseiller)
-          .resolves(FeatureFlip.Tag.DEMARCHES_IA)
+          .withArgs([FeatureFlip.Tag.MIGRATION_PHASE_A], idConseiller)
+          .resolves(FeatureFlip.Tag.MIGRATION_PHASE_A)
 
         // When
-        const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
+        const result = await service.laFeatureEstActive(Tag.MIGRATION_PHASE_A, {
           id: idConseiller,
           type: Type.CONSEILLER
         })
@@ -39,11 +39,11 @@ describe('FeatureFlip', () => {
         // Given
         const idConseiller = 'conseiller-1'
         repository.getTagSiFeatureActivePourLeConseiller
-          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idConseiller)
+          .withArgs([FeatureFlip.Tag.MIGRATION_PHASE_A], idConseiller)
           .resolves(undefined)
 
         // When
-        const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
+        const result = await service.laFeatureEstActive(Tag.MIGRATION_PHASE_A, {
           id: idConseiller,
           type: Type.CONSEILLER
         })
@@ -56,11 +56,11 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-1'
         repository.getTagSiFeatureActivePourLeConseillerDuJeune
-          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idJeune)
-          .resolves(FeatureFlip.Tag.DEMARCHES_IA)
+          .withArgs([FeatureFlip.Tag.MIGRATION_PHASE_A], idJeune)
+          .resolves(FeatureFlip.Tag.MIGRATION_PHASE_A)
 
         // When
-        const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
+        const result = await service.laFeatureEstActive(Tag.MIGRATION_PHASE_A, {
           id: idJeune,
           type: Type.JEUNE
         })
@@ -73,11 +73,11 @@ describe('FeatureFlip', () => {
         // Given
         const idJeune = 'jeune-1'
         repository.getTagSiFeatureActivePourLeConseillerDuJeune
-          .withArgs([FeatureFlip.Tag.DEMARCHES_IA], idJeune)
+          .withArgs([FeatureFlip.Tag.MIGRATION_PHASE_A], idJeune)
           .resolves(undefined)
 
         // When
-        const result = await service.laFeatureEstActive(Tag.DEMARCHES_IA, {
+        const result = await service.laFeatureEstActive(Tag.MIGRATION_PHASE_A, {
           id: idJeune,
           type: Type.JEUNE
         })

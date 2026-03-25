@@ -157,14 +157,6 @@ describe('Migration.Service', () => {
       {
         featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B,
         emailConseiller: conseillerMigrant2.email
-      },
-      {
-        featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-        emailConseiller: conseillerNonMigrant.email
-      },
-      {
-        featureTag: FeatureFlip.Tag.DEMARCHES_IA,
-        emailConseiller: conseillerNonMigrant2.email
       }
     ])
 

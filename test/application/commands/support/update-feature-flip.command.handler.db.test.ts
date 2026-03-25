@@ -104,7 +104,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
         },
         {
           emailConseiller: 'c1@email.com',
-          featureTag: FeatureFlip.Tag.DEMARCHES_IA
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B
         }
       ]
       await FeatureFlipSqlModel.bulkCreate(dejaEnBase)
@@ -128,8 +128,8 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       expect(
         restantsEnBase.map(r => `${r.featureTag}:${r.emailConseiller}`)
       ).to.deep.equal([
-        `${FeatureFlip.Tag.DEMARCHES_IA}:c1@email.com`,
-        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c2@email.com`
+        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c2@email.com`,
+        `${FeatureFlip.Tag.MIGRATION_PHASE_B}:c1@email.com`
       ])
     })
   })
@@ -148,7 +148,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
         },
         {
           emailConseiller: 'c0@passemploi.com',
-          featureTag: FeatureFlip.Tag.DEMARCHES_IA
+          featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B
         }
       ]
       await FeatureFlipSqlModel.bulkCreate(dejaEnBase)
@@ -173,8 +173,8 @@ describe('UpdateFeatureFlipCommandHandler', () => {
       expect(
         restants.map(r => `${r.featureTag}:${r.emailConseiller}`)
       ).to.deep.equal([
-        `${FeatureFlip.Tag.DEMARCHES_IA}:c0@passemploi.com`,
-        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c3@passemploi.com`
+        `${FeatureFlip.Tag.MIGRATION_PHASE_A}:c3@passemploi.com`,
+        `${FeatureFlip.Tag.MIGRATION_PHASE_B}:c0@passemploi.com`
       ])
     })
   })
