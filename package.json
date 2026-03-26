@@ -181,7 +181,8 @@
     "minimatch": ">=9.0.5",
     "multer": ">=2.1.0",
     "tar": ">=7.5.11",
-    "fast-xml-parser": ">=5.5.6"
+    "fast-xml-parser": ">=5.5.6",
+    "picomatch": ">=4.0.3"
   },
   "mocha": {
     "require": [
