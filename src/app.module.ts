@@ -91,6 +91,7 @@ import { UpdateActualiteMiloCommandHandler } from './application/commands/milo/u
 import { DeleteActualiteMiloCommandHandler } from './application/commands/milo/delete-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from './application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { GetActualitesMiloJeuneQueryHandler } from './application/queries/milo/get-actualites-milo-jeune.query.handler.db'
+import { ChangerDispositifJeuneCommandHandler } from './application/commands/changer-dispositif-jeune.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
 import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
@@ -798,6 +799,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetPreferencesJeuneQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
     ModifierJeuneDuConseillerCommandHandler,
+    ChangerDispositifJeuneCommandHandler,
     GetFavorisJeuneQueryHandler,
     AddCommentaireActionCommandHandler,
     GetCommentairesActionQueryHandler,

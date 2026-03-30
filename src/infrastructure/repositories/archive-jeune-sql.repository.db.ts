@@ -62,6 +62,29 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     return emptySuccess()
   }
 
+  async archiverSansDonnees(
+    metadonnees: ArchiveJeune.Metadonnees
+  ): Promise<Result> {
+    await ArchiveJeuneSqlModel.creer({
+      idJeune: metadonnees.idJeune,
+      email: metadonnees.email ?? null,
+      prenom: metadonnees.prenomJeune,
+      nom: metadonnees.nomJeune,
+      structure: metadonnees.structure,
+      dispositif: metadonnees.dispositif,
+      idPartenaire: metadonnees.idPartenaire ?? null,
+      dateCreation: metadonnees.dateCreation,
+      datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
+      dateFinAccompagnement: metadonnees.dateFinAccompagnement ?? null,
+      motif: metadonnees.motif,
+      commentaire: metadonnees.commentaire ?? null,
+      dateArchivage: metadonnees.dateArchivage,
+      idStructureMilo: null,
+      donnees: null as unknown as ArchiveJeune
+    })
+    return emptySuccess()
+  }
+
   async delete(idArchive: number): Promise<void> {
     await ArchiveJeuneSqlModel.destroy({
       where: {

@@ -67,6 +67,7 @@ export namespace Evenement {
     CV_PE_TELECHARGE = 'CV_PE_TELECHARGE',
     COMPTE_SUPPRIME = 'COMPTE_SUPPRIME',
     COMPTE_ARCHIVE = 'COMPTE_ARCHIVE',
+    COMPTE_CREE = 'COMPTE_CREE',
     LISTE_DIFFUSION_CREEE = 'LISTE_DIFFUSION_CREEE',
     LISTE_DIFFUSION_MODIFIEE = 'LISTE_DIFFUSION_MODIFIEE',
     LISTE_DIFFUSION_SUPPRIMEE = 'LISTE_DIFFUSION_SUPPRIMEE',
@@ -384,6 +385,10 @@ const evenements: {
   [Evenement.Code.COMPTE_ARCHIVE]: {
     categorie: 'Compte',
     action: 'Archivage'
+  },
+  [Evenement.Code.COMPTE_CREE]: {
+    categorie: 'Compte',
+    action: 'Création'
   },
   [Evenement.Code.LISTE_DIFFUSION_CREEE]: {
     categorie: 'Liste de diffusion',

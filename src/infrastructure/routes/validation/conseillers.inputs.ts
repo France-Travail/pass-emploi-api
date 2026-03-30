@@ -23,6 +23,7 @@ import { TriActionsConseillerV2 } from 'src/application/queries/action/get-actio
 import { TriRendezVous } from 'src/application/queries/rendez-vous/get-rendez-vous-conseiller-pagines.query.handler.db'
 import { Action } from 'src/domain/action/action'
 import { AgenceInput } from 'src/infrastructure/routes/validation/agences.inputs'
+import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { Jeune } from '../../../domain/jeune/jeune'
 import {
   transformStringToArray,
@@ -162,6 +163,22 @@ export class DetailConseillerPayload {
   @IsBoolean()
   @IsOptional()
   notificationsSonores?: boolean
+}
+
+export class ChangerDispositifJeunePayload {
+  @ApiProperty({ enum: [Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA] })
+  @IsEnum(Jeune.Dispositif)
+  @IsIn([Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA])
+  dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
+
+  @ApiProperty({ enum: ArchiveJeune.MotifSuppression })
+  @IsEnum(ArchiveJeune.MotifSuppression)
+  motif: ArchiveJeune.MotifSuppression
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  commentaire?: string
 }
 
 export class UpdateJeuneDuConseillerPayload {
