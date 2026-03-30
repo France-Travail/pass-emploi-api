@@ -8,7 +8,7 @@ import {
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { AccueilJeuneMiloQueryModel } from 'src/application/queries/query-models/jeunes.milo.query-model'
 import {
   JeuneMiloSansIdDossier,
@@ -56,7 +56,7 @@ import {
 describe('GetAccueilJeuneMiloQueryHandler', () => {
   let handler: GetAccueilJeuneMiloQueryHandler
   let databaseForTesting: DatabaseForTesting
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
   let alertesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let favorisAccueilQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
   let getCampagneQueryGetter: StubbedClass<GetCampagneQueryGetter>
@@ -65,7 +65,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
   before(async () => {
     databaseForTesting = getDatabase()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     alertesQueryGetter = stubClass(GetRecherchesSauvegardeesQueryGetter)
     favorisAccueilQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
     getCampagneQueryGetter = stubClass(GetCampagneQueryGetter)

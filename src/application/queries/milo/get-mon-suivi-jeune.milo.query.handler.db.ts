@@ -24,7 +24,7 @@ import { fromSqlToActionQueryModelWithJeune } from '../../../infrastructure/repo
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
 import { fromSqlToRendezVousJeuneQueryModel } from '../query-mappers/rendez-vous-milo.mappers'
-import { GetSessionsJeuneMiloQueryGetter } from '../query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from '../query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { buildError } from '../../../utils/logger.module'
 import { estMilo } from '../../../domain/core'
 import { SessionMilo } from '../../../domain/milo/session.milo'
@@ -42,8 +42,8 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
   Result<GetMonSuiviMiloQueryModel>
 > {
   constructor(
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private sessionsJeuneQueryGetter: GetSessionsJeuneMiloQueryGetter
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly sessionsJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter
   ) {
     super('GetMonSuiviMiloQueryHandler')
   }
@@ -80,9 +80,7 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
           periode: {
             debut: query.dateDebut,
             fin: query.dateFin
-          },
-          pourConseiller: false,
-          filtrerEstInscrit: true
+          }
         })
         .then(result => {
           if (isFailure(result)) {

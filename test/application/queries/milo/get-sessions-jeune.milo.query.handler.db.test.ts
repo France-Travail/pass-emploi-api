@@ -5,7 +5,7 @@ import {
   GetSessionsJeuneMiloQuery,
   GetSessionsJeuneMiloQueryHandler
 } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -34,7 +34,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
   const utilisateur = unUtilisateurJeune()
 
   let getSessionsQueryHandler: GetSessionsJeuneMiloQueryHandler
-  let getSessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let getSessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
   let conseillerAuthorizer: StubbedClass<ConseillerInterStructureMiloAuthorizer>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let sandbox: SinonSandbox
@@ -47,7 +47,9 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
     await getDatabase().cleanPG()
     await ConseillerSqlModel.creer(unConseillerDto())
 
-    getSessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    getSessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     conseillerAuthorizer = stubClass(ConseillerInterStructureMiloAuthorizer)
 

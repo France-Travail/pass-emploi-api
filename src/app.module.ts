@@ -27,7 +27,7 @@ import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/g
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { VerifierEmailBeneficiaireQueryHandler } from 'src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
 import { AntivirusClient } from 'src/infrastructure/clients/antivirus-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -410,6 +410,7 @@ import { RateLimiterService } from './utils/rate-limiter.service'
 import { AdminController } from './infrastructure/routes/admin.controller'
 import { QueueTimeMiddleware } from './infrastructure/middlewares/queue-time.middleware'
 import { MiloClientUtils } from './infrastructure/clients/milo/milo-client-utils'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from './application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -849,7 +850,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetSessionsConseillerMiloQueryHandler,
     GetAgendaSessionsConseillerMiloQueryHandler,
     GetSessionsJeuneMiloQueryHandler,
-    GetSessionsJeuneMiloQueryGetter,
+    GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
+    GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
     GetDetailSessionConseillerMiloQueryHandler,
     GetDetailSessionJeuneMiloQueryHandler,
     UpdateSessionMiloCommandHandler,

@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { ConseillerInterAgenceAuthorizer } from 'src/application/authorizers/conseiller-inter-agence-authorizer'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { ActionQueryModel } from 'src/application/queries/query-models/actions.query-model'
 import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/home-jeune-suivi.query-model'
 import { RendezVousJeuneQueryModel } from 'src/application/queries/query-models/rendez-vous.query-model'
@@ -52,7 +52,7 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
   const utilisateurConseiller = unUtilisateurConseiller()
   const idJeune = utilisateurJeune.id
   let handler: GetJeuneHomeAgendaQueryHandler
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
   const aujourdhuiDimanche = '2022-08-14T12:00:00Z'
@@ -62,7 +62,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     conseillerAgenceAuthorizer = stubClass(ConseillerInterAgenceAuthorizer)
     handler = new GetJeuneHomeAgendaQueryHandler(

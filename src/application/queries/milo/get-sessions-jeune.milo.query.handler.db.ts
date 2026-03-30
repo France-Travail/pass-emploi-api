@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import {
   JeuneMiloSansIdDossier,
@@ -15,6 +15,7 @@ import { estMilo } from 'src/domain/core'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerInterStructureMiloAuthorizer } from '../../authorizers/conseiller-inter-structure-milo-authorizer'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from '../query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 
 export interface GetSessionsJeuneMiloQuery extends Query {
   idJeune: string
@@ -30,7 +31,8 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
   Result<SessionJeuneMiloQueryModel[]>
 > {
   constructor(
-    private readonly getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
+    private readonly getSessionsPourLeJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
+    private readonly getSessionsAuxquellesLeJeuneEstInscritQueryGetter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly conseillerStructureMiloAuthorizer: ConseillerInterStructureMiloAuthorizer
   ) {
@@ -52,18 +54,28 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
       return failure(new JeuneMiloSansIdDossier(query.idJeune))
     }
 
-    return this.getSessionsQueryGetter.handle(
-      query.idJeune,
-      query.accessToken,
-      {
-        periode: {
-          debut: query.dateDebut,
-          fin: query.dateFin
-        },
-        pourConseiller: Authentification.estConseiller(utilisateur.type),
-        filtrerEstInscrit: query.filtrerEstInscrit
-      }
-    )
+    const pourConseiller = Authentification.estConseiller(utilisateur.type)
+    return pourConseiller
+      ? this.getSessionsAuxquellesLeJeuneEstInscritQueryGetter.handle(
+          query.idJeune,
+          query.accessToken,
+          {
+            periode: {
+              debut: query.dateDebut,
+              fin: query.dateFin
+            }
+          }
+        )
+      : this.getSessionsPourLeJeuneQueryGetter.handle(
+          query.idJeune,
+          query.accessToken,
+          {
+            periode: {
+              debut: query.dateDebut,
+              fin: query.dateFin
+            }
+          }
+        )
   }
 
   async authorize(

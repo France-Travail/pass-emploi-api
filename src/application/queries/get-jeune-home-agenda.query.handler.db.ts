@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
 import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import {
@@ -32,6 +30,7 @@ import { ActionQueryModel } from './query-models/actions.query-model'
 import { JeuneHomeAgendaQueryModel } from './query-models/home-jeune-suivi.query-model'
 import { RendezVousJeuneQueryModel } from './query-models/rendez-vous.query-model'
 import { SessionJeuneMiloQueryModel } from './query-models/sessions.milo.query.model'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from './query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import estConseiller = Authentification.estConseiller
 
 export interface GetJeuneHomeAgendaQuery extends Query {
@@ -46,10 +45,9 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
   Result<JeuneHomeAgendaQueryModel>
 > {
   constructor(
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private getSessionsJeuneQueryGetter: GetSessionsJeuneMiloQueryGetter,
-    private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer,
-    private configuration: ConfigService
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly getSessionsJeuneQueryGetter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
+    private readonly conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
   ) {
     super('GetJeuneHomeAgendaQueryHandler')
   }
@@ -106,9 +104,7 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
               periode: {
                 debut: lundiDernier,
                 fin: dimancheEnHuit
-              },
-              pourConseiller: Authentification.estConseiller(utilisateur.type),
-              filtrerEstInscrit: true
+              }
             }
           )
         if (isFailure(sessionsQueryModels)) {

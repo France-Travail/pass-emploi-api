@@ -5,7 +5,7 @@ import {
   GetMonSuiviMiloQuery,
   GetMonSuiviMiloQueryHandler
 } from '../../../../src/application/queries/milo/get-mon-suivi-jeune.milo.query.handler.db'
-import { GetSessionsJeuneMiloQueryGetter } from '../../../../src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from '../../../../src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
 import { ActionQueryModel } from '../../../../src/application/queries/query-models/actions.query-model'
 import { GetMonSuiviMiloQueryModel } from '../../../../src/application/queries/query-models/jeunes.milo.query-model'
 import { RendezVousJeuneQueryModel } from '../../../../src/application/queries/query-models/rendez-vous.query-model'
@@ -51,7 +51,7 @@ import { getDatabase } from '../../../utils/database-for-testing'
 describe('GetMonSuiviMiloQueryHandler', () => {
   let handler: GetMonSuiviMiloQueryHandler
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
 
   const dateDebut = DateTime.fromISO('2024-01-14T12:00:00Z', { setZone: true })
   const dateFin = DateTime.fromISO('2024-02-14T12:00:00Z', { setZone: true })
@@ -59,7 +59,9 @@ describe('GetMonSuiviMiloQueryHandler', () => {
   beforeEach(async () => {
     await getDatabase().cleanPG()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     handler = new GetMonSuiviMiloQueryHandler(
       jeuneAuthorizer,
       sessionsQueryGetter
