@@ -297,7 +297,7 @@ export class ConseillersController {
         idJeune,
         dispositif: payload.dispositif,
         motif: payload.motif,
-        commentaire: payload.commentaire
+        dateFinAccompagnement: payload.dateFinAccompagnement
       },
       utilisateur
     )

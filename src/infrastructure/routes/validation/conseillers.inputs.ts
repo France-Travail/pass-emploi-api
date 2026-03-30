@@ -176,9 +176,8 @@ export class ChangerDispositifJeunePayload {
   motif: ArchiveJeune.MotifSuppression
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  commentaire?: string
+  @IsDate()
+  dateFinAccompagnement: Date
 }
 
 export class UpdateJeuneDuConseillerPayload {

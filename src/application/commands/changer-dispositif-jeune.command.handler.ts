@@ -17,12 +17,13 @@ import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { DateTime } from 'luxon'
 
 export interface ChangerDispositifJeuneCommand extends Command {
   idJeune: string
   dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
   motif: ArchiveJeune.MotifSuppression
-  commentaire?: string
+  dateFinAccompagnement: Date
 }
 
 @Injectable()
@@ -80,19 +81,18 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
         motif: command.motif,
-        commentaire: command.commentaire,
-        dateArchivage: this.dateService.nowJs()
+        dateArchivage: this.dateService.nowJs(),
+        dateFinAccompagnement: command.dateFinAccompagnement
       }
       const resultArchive =
         await this.archiveJeuneRepository.archiverSansDonnees(metadonnees)
       if (isFailure(resultArchive)) return resultArchive
     }
 
-    const maintenant = this.dateService.now()
     const jeuneMisAJour = Jeune.reinitialiserPourChangementDispositif(
       jeune,
       command.dispositif,
-      maintenant
+      DateTime.fromJSDate(command.dateFinAccompagnement)
     )
     await this.jeuneRepository.save(jeuneMisAJour)
     await this.jeuneRepository.reinitialiserDatePremiereConnexion(jeune.id)
