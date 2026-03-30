@@ -88,7 +88,7 @@ describe('MiloRendezVous', () => {
         })
       })
       describe("quand c'est un rendez vous individuel", () => {
-        beforeEach(() => {
+        it('retourne un rendez-vous avec le type ENTRETIEN INDIVIDUEL ', async () => {
           // Given
           rdvMilo = unRendezVousMilo({
             dateHeureDebut: dateStringRendezVousDebut,
@@ -100,8 +100,7 @@ describe('MiloRendezVous', () => {
             rdvMilo,
             jeune
           )
-        })
-        it('retourne un rendez-vous avec le type ENTRETIEN INDIVIDUEL ', async () => {
+
           // Then
           const expected: RendezVous = {
             id: uuid,
@@ -127,6 +126,90 @@ describe('MiloRendezVous', () => {
             createur: { id: '', nom: '', prenom: '' },
             adresse: undefined,
             annule: false
+          }
+          expect(rendezVousObtenu).to.deep.equal(expected)
+        })
+        it('retourne un rendez-vous annulé quand le statut et Annulé', async () => {
+          // Given
+          rdvMilo = unRendezVousMilo({
+            dateHeureDebut: dateStringRendezVousDebut,
+            dateHeureFin: dateStringRendezVousFin,
+            statut: RendezVousMilo.Statut.RDV_ANNULE
+          })
+
+          // When
+          rendezVousObtenu = rendezVousFactory.createRendezVousCEJ(
+            rdvMilo,
+            jeune
+          )
+
+          // Then
+          const expected: RendezVous = {
+            id: uuid,
+            source: RendezVous.Source.MILO,
+            titre: rdvMilo.titre,
+            sousTitre: '',
+            date: new Date('2022-10-06T14:07:00Z'),
+            duree: 96,
+            jeunes: [
+              unJeuneDuRendezVous({
+                id: idJeune,
+                configuration
+              })
+            ],
+            type: CodeTypeRendezVous.RENDEZ_VOUS_MILO,
+            presenceConseiller: true,
+            modalite: rdvMilo.modalite,
+            commentaire: rdvMilo.commentaire,
+            informationsPartenaire: {
+              type: 'RENDEZ_VOUS',
+              id: rdvMilo.id
+            },
+            createur: { id: '', nom: '', prenom: '' },
+            adresse: undefined,
+            annule: true
+          }
+          expect(rendezVousObtenu).to.deep.equal(expected)
+        })
+        it('retourne un rendez-vous annulé quand le statut et Reporté', async () => {
+          // Given
+          rdvMilo = unRendezVousMilo({
+            dateHeureDebut: dateStringRendezVousDebut,
+            dateHeureFin: dateStringRendezVousFin,
+            statut: RendezVousMilo.Statut.RDV_REPORTE
+          })
+
+          // When
+          rendezVousObtenu = rendezVousFactory.createRendezVousCEJ(
+            rdvMilo,
+            jeune
+          )
+
+          // Then
+          const expected: RendezVous = {
+            id: uuid,
+            source: RendezVous.Source.MILO,
+            titre: rdvMilo.titre,
+            sousTitre: '',
+            date: new Date('2022-10-06T14:07:00Z'),
+            duree: 96,
+            jeunes: [
+              unJeuneDuRendezVous({
+                id: idJeune,
+                configuration
+              })
+            ],
+            type: CodeTypeRendezVous.RENDEZ_VOUS_MILO,
+            presenceConseiller: true,
+            modalite: rdvMilo.modalite,
+            commentaire: rdvMilo.commentaire,
+            informationsPartenaire: {
+              type: 'RENDEZ_VOUS',
+              id: rdvMilo.id
+            },
+            createur: { id: '', nom: '', prenom: '' },
+            adresse: undefined,
+            annule: true
           }
           expect(rendezVousObtenu).to.deep.equal(expected)
         })
@@ -188,6 +271,10 @@ describe('MiloRendezVous', () => {
           id: idJeune,
           configuration
         })
+      })
+
+      it('retourne un rendez-vous avec le type ENTRETIEN INDIVIDUEL ', async () => {
+        // Given
         rendezVousPassEmploi = unRendezVous({
           id: 'un-id-pass-emploi-quoi',
           jeunes: [jeune]
@@ -205,8 +292,7 @@ describe('MiloRendezVous', () => {
           rendezVousPassEmploi,
           rdvMilo
         )
-      })
-      it('retourne un rendez-vous avec le type ENTRETIEN INDIVIDUEL ', async () => {
+
         // Then
         const expected: RendezVous = {
           ...rendezVousPassEmploi,
@@ -230,6 +316,53 @@ describe('MiloRendezVous', () => {
           adresse: undefined
         }
         expect(rendezVousObtenu).to.deep.equal(expected)
+      })
+
+      it('retourne un rendez-vous annulé quand le statut et Annulé', async () => {
+        // Given
+        rendezVousPassEmploi = unRendezVous({
+          id: 'un-id-pass-emploi-quoi',
+          jeunes: [jeune],
+          annule: false
+        })
+        idService.uuid.returns('de82d1fe-875c-11ed-a1eb-0242ac120002')
+        rdvMilo = unRendezVousMilo({
+          dateHeureDebut: dateStringRendezVousDebut,
+          dateHeureFin: dateStringRendezVousFin,
+          statut: RendezVousMilo.Statut.RDV_ANNULE
+        })
+
+        // When
+        rendezVousObtenu = rendezVousFactory.updateRendezVousCEJ(
+          rendezVousPassEmploi,
+          rdvMilo
+        )
+
+        expect(rendezVousObtenu.annule).to.be.true()
+      })
+      it('retourne un rendez-vous annulé quand le statut et Reporté', async () => {
+        // Given
+        rendezVousPassEmploi = unRendezVous({
+          id: 'un-id-pass-emploi-quoi',
+          jeunes: [jeune],
+          annule: false
+        })
+
+        idService.uuid.returns('de82d1fe-875c-11ed-a1eb-0242ac120002')
+        rdvMilo = unRendezVousMilo({
+          dateHeureDebut: dateStringRendezVousDebut,
+          dateHeureFin: dateStringRendezVousFin,
+          statut: RendezVousMilo.Statut.RDV_REPORTE
+        })
+
+        // When
+        rendezVousObtenu = rendezVousFactory.updateRendezVousCEJ(
+          rendezVousPassEmploi,
+          rdvMilo
+        )
+
+        // Then
+        expect(rendezVousObtenu.annule).to.be.true()
       })
     })
   })
