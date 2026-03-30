@@ -288,7 +288,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
       })
     })
 
-    describe('règles dateMaxDesinscription', () => {
+    describe('règles pour dateMaxDesinscription', () => {
       const idSessionAutodesinscription = 55
 
       beforeEach(async () => {
