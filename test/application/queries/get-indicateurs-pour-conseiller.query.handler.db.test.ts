@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import { Core } from 'src/domain/core'
 import { FavoriOffreEmploiSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-engagement.sql-model'
@@ -38,7 +38,7 @@ import Statut = Action.Statut
 describe('GetIndicateursPourConseillerQueryHandler', () => {
   let sandbox: sinon.SinonSandbox
   let getIndicateursPourConseillerQueryHandler: GetIndicateursPourConseillerQueryHandler
-  let getSessionsJeuneMiloQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
+  let getSessionsJeuneMiloQueryGetter: StubbedClass<GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter>
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
   let dateService: StubbedClass<DateService>
 
@@ -53,7 +53,7 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
     dateService = stubClass(DateService)
     conseillerAgenceAuthorizer = stubClass(ConseillerInterAgenceAuthorizer)
     getSessionsJeuneMiloQueryGetter = stubClassSandbox(
-      GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
+      GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
       sandbox
     )
 

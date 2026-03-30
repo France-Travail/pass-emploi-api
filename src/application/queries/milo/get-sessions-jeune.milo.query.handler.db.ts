@@ -22,7 +22,6 @@ export interface GetSessionsJeuneMiloQuery extends Query {
   accessToken: string
   dateDebut?: DateTime
   dateFin?: DateTime
-  filtrerEstInscrit?: boolean
 }
 
 @Injectable()

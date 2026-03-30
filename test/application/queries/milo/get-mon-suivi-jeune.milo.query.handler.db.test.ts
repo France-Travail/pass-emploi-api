@@ -176,9 +176,7 @@ describe('GetMonSuiviMiloQueryHandler', () => {
               periode: {
                 debut: dateDebut,
                 fin: dateFin
-              },
-              pourConseiller: false,
-              filtrerEstInscrit: true
+              }
             })
             .resolves(
               success([
@@ -270,9 +268,7 @@ describe('GetMonSuiviMiloQueryHandler', () => {
             periode: {
               debut: dateDebut,
               fin: dateFin
-            },
-            pourConseiller: false,
-            filtrerEstInscrit: true
+            }
           })
           .resolves(failure(new ErreurHttp('Ressource Milo introuvable', 404)))
         // When
@@ -296,9 +292,7 @@ describe('GetMonSuiviMiloQueryHandler', () => {
             periode: {
               debut: dateDebut,
               fin: dateFin
-            },
-            pourConseiller: false,
-            filtrerEstInscrit: true
+            }
           })
           .throws(
             new UnauthorizedException({

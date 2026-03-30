@@ -6,6 +6,7 @@ import {
   GetSessionsJeuneMiloQueryHandler
 } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -34,7 +35,8 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
   const utilisateur = unUtilisateurJeune()
 
   let getSessionsQueryHandler: GetSessionsJeuneMiloQueryHandler
-  let getSessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
+  let getSessionsPourLeJeuneQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
+  let getSessionsInscritQueryGetter: StubbedClass<GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter>
   let conseillerAuthorizer: StubbedClass<ConseillerInterStructureMiloAuthorizer>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let sandbox: SinonSandbox
@@ -47,14 +49,18 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
     await getDatabase().cleanPG()
     await ConseillerSqlModel.creer(unConseillerDto())
 
-    getSessionsQueryGetter = stubClass(
+    getSessionsPourLeJeuneQueryGetter = stubClass(
       GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
+    getSessionsInscritQueryGetter = stubClass(
+      GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter
     )
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     conseillerAuthorizer = stubClass(ConseillerInterStructureMiloAuthorizer)
 
     getSessionsQueryHandler = new GetSessionsJeuneMiloQueryHandler(
-      getSessionsQueryGetter,
+      getSessionsPourLeJeuneQueryGetter,
+      getSessionsInscritQueryGetter,
       jeuneAuthorizer,
       conseillerAuthorizer
     )
@@ -66,10 +72,8 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
 
   describe('authorize', () => {
     it('autorise un jeune Milo', () => {
-      // When
       getSessionsQueryHandler.authorize(query, utilisateur)
 
-      // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         'idJeune',
         utilisateur,
@@ -77,14 +81,11 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
       )
     })
 
-    it('autorise le conseiller d’un jeune Milo', () => {
-      // Given
+    it("autorise le conseiller d'un jeune Milo", () => {
       const utilisateurConseiller = unUtilisateurConseiller()
 
-      // When
       getSessionsQueryHandler.authorize(query, utilisateurConseiller)
 
-      // Then
       expect(
         conseillerAuthorizer.autoriserConseillerAvecLaMemeStructureQueLeJeune
       ).to.have.been.calledWithExactly('idJeune', utilisateurConseiller)
@@ -93,11 +94,9 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
 
   describe('handle', () => {
     describe("quand le jeune n'existe pas", () => {
-      it('renvoie une failure ', async () => {
-        // When
+      it('renvoie une failure', async () => {
         const result = await getSessionsQueryHandler.handle(query, utilisateur)
 
-        // Then
         expect(result).to.deep.equal(
           failure(new NonTrouveError('Jeune', query.idJeune))
         )
@@ -105,8 +104,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
     })
 
     describe('quand le jeune existe sans ID partenaire', () => {
-      it('renvoie une failure ', async () => {
-        // Given
+      it('renvoie une failure', async () => {
         await JeuneSqlModel.creer({
           ...unJeuneDto({
             id: 'idJeune',
@@ -116,19 +114,16 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
           idPartenaire: null
         })
 
-        // When
         const result = await getSessionsQueryHandler.handle(query, utilisateur)
 
-        // Then
         expect(result).to.deep.equal(
           failure(new JeuneMiloSansIdDossier(query.idJeune))
         )
       })
     })
 
-    describe('quand le query getter renvoie une failure', () => {
-      it('renvoie la même failure ', async () => {
-        // Given
+    describe('quand le jeune existe', () => {
+      beforeEach(async () => {
         await JeuneSqlModel.creer(
           unJeuneDto({
             id: 'idJeune',
@@ -137,136 +132,51 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
             instanceId: 'instanceId'
           })
         )
+      })
 
+      it("utilise le getter sessions visibles quand c'est un jeune", async () => {
+        const unSuccess = success([uneSessionJeuneMiloQueryModel()])
+        getSessionsPourLeJeuneQueryGetter.handle
+          .withArgs('idJeune', 'token')
+          .resolves(unSuccess)
+
+        const result = await getSessionsQueryHandler.handle(query, utilisateur)
+
+        expect(result).to.deep.equal(unSuccess)
+        expect(getSessionsInscritQueryGetter.handle).not.to.have.been.called()
+      })
+
+      it("utilise le getter sessions inscrites quand c'est un conseiller", async () => {
+        const utilisateurConseiller = unUtilisateurConseiller()
+        const unSuccess = success([
+          uneSessionJeuneMiloQueryModel({
+            inscription: SessionMilo.Inscription.Statut.INSCRIT
+          })
+        ])
+        getSessionsInscritQueryGetter.handle
+          .withArgs('idJeune', 'token')
+          .resolves(unSuccess)
+
+        const result = await getSessionsQueryHandler.handle(
+          query,
+          utilisateurConseiller
+        )
+
+        expect(result).to.deep.equal(unSuccess)
+        expect(
+          getSessionsPourLeJeuneQueryGetter.handle
+        ).not.to.have.been.called()
+      })
+
+      it('renvoie la failure du getter', async () => {
         const uneFailure = failure(new NonTrouveError('Jeune', query.idJeune))
-        getSessionsQueryGetter.handle
+        getSessionsPourLeJeuneQueryGetter.handle
           .withArgs('idJeune', 'token')
           .resolves(uneFailure)
 
-        // When
         const result = await getSessionsQueryHandler.handle(query, utilisateur)
 
-        // Then
         expect(result).to.deep.equal(uneFailure)
-      })
-    })
-
-    describe('quand le query getter renvoie un success', () => {
-      describe('quand on ne passe pas de filtre en query param', () => {
-        it('renvoie le même success', async () => {
-          // Given
-          await JeuneSqlModel.creer(
-            unJeuneDto({
-              id: 'idJeune',
-              idPartenaire: 'idDossier',
-              structure: Core.Structure.MILO,
-              instanceId: 'instanceId'
-            })
-          )
-
-          const unSuccess = success([uneSessionJeuneMiloQueryModel()])
-          getSessionsQueryGetter.handle
-            .withArgs('idJeune', 'token')
-            .resolves(unSuccess)
-
-          // When
-          const result = await getSessionsQueryHandler.handle(
-            query,
-            utilisateur
-          )
-
-          // Then
-          expect(result).to.deep.equal(unSuccess)
-        })
-      })
-
-      describe('quand on passe un filtre pour ne récupérer que les sessions ou le jeune est inscrit', () => {
-        it('renvoie le même success', async () => {
-          const queryAvecFiltre = {
-            idJeune: 'idJeune',
-            accessToken: 'token',
-            filtrerEstInscrit: true
-          }
-
-          // Given
-          await JeuneSqlModel.creer(
-            unJeuneDto({
-              id: 'idJeune',
-              idPartenaire: 'idDossier',
-              structure: Core.Structure.MILO,
-              instanceId: 'instanceId'
-            })
-          )
-
-          const unSuccess = success([
-            uneSessionJeuneMiloQueryModel({
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            })
-          ])
-          getSessionsQueryGetter.handle
-            .withArgs('idJeune', 'token', {
-              periode: {
-                debut: undefined,
-                fin: undefined
-              },
-              filtrerEstInscrit: true,
-              pourConseiller: false
-            })
-            .resolves(unSuccess)
-
-          // When
-          const result = await getSessionsQueryHandler.handle(
-            queryAvecFiltre,
-            utilisateur
-          )
-
-          // Then
-          expect(result).to.deep.equal(unSuccess)
-        })
-      })
-
-      describe('permet au conseiller de récupérer les sessions du jeune', () => {
-        it('renvoie le même success', async () => {
-          const queryAvecFiltre = {
-            idJeune: 'idJeune',
-            accessToken: 'token'
-          }
-
-          // Given
-          await JeuneSqlModel.creer(
-            unJeuneDto({
-              id: 'idJeune',
-              idPartenaire: 'idDossier',
-              structure: Core.Structure.MILO,
-              instanceId: 'instanceId'
-            })
-          )
-
-          const unSuccess = success([
-            uneSessionJeuneMiloQueryModel({
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            })
-          ])
-          getSessionsQueryGetter.handle
-            .withArgs('idJeune', 'token', {
-              periode: {
-                debut: undefined,
-                fin: undefined
-              },
-              filtrerEstInscrit: undefined,
-              pourConseiller: true
-            })
-            .resolves(unSuccess)
-
-          // When
-          const result = await getSessionsQueryHandler.handle(
-            queryAvecFiltre,
-            unUtilisateurConseiller()
-          )
-
-          // Then
-          expect(result).to.deep.equal(unSuccess)
-        })
       })
     })
   })

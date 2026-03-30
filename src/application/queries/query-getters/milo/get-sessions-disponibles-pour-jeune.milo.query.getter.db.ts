@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { mapSessionJeuneDtoToQueryModel } from 'src/application/queries/query-mappers/milo.mappers'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
@@ -10,22 +9,16 @@ import {
 } from 'src/infrastructure/clients/dto/milo.dto'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
-import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
-import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
-import { JeuneSqlModel } from '../../../../infrastructure/sequelize/models/jeune.sql-model'
+import { SessionsMiloFetcher } from './sessions-milo.fetcher'
 import { DateService } from '../../../../utils/date-service'
 
 @Injectable()
 export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
-  private readonly logger: Logger
-
   constructor(
     private readonly oidcClient: OidcClient,
     private readonly miloClient: MiloClient,
-    private readonly dateService: DateService
-  ) {
-    this.logger = new Logger('GetSessionsJeuneMiloQueryGetter')
-  }
+    private readonly fetcher: SessionsMiloFetcher
+  ) {}
 
   async handle(
     idJeune: string,
@@ -34,83 +27,58 @@ export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
       periode?: { debut?: DateTime; fin?: DateTime }
     }
   ): Promise<Result<SessionJeuneMiloQueryModel[]>> {
-    const beneficiaire = await JeuneSqlModel.findByPk(idJeune, {
-      include: [{ model: StructureMiloSqlModel, required: true }]
-    })
-    if (!beneficiaire?.idPartenaire || !beneficiaire.structureMilo)
-      return success([])
-    const timezoneDeLaStructureDuJeune = beneficiaire.structureMilo.timezone
-
-    const sessionGetter = this.getSessionsJeune.bind(this)
-    const resultSessionMiloClient = await sessionGetter(
-      accessToken,
-      beneficiaire.idPartenaire,
-      options?.periode
+    const result = await this.fetcher.fetch(idJeune, idPartenaire =>
+      this.getSessionsJeune(accessToken, idPartenaire, options?.periode)
     )
 
-    if (isFailure(resultSessionMiloClient)) {
-      this.logger.log(
-        `Sessions venant de l'API en erreur : ${resultSessionMiloClient.error}`
-      )
-      return resultSessionMiloClient
-    }
+    if (result === null) return success([])
+    if (isFailure(result)) return result
 
-    const sessionsDuJeuneVenantDeLAPI = resultSessionMiloClient.data
-    this.logger.log(
-      `${sessionsDuJeuneVenantDeLAPI.length} Sessions venant de l'API`
+    const {
+      beneficiaire,
+      timezoneDeLaStructureDuJeune,
+      sessionsDuJeuneVenantDeLAPI,
+      configurationsSessions,
+      maintenant
+    } = result.data
+
+    const sessionsInscrites = sessionsDuJeuneVenantDeLAPI.filter(
+      ({ sessionInstance }) => aEteInscrit(sessionInstance)
     )
 
-    const configurationsSessions = await SessionMiloSqlModel.findAll({
-      where: {
-        id: sessionsDuJeuneVenantDeLAPI.map(({ session }) =>
-          session.id.toString()
+    const idsSessionsVisibles = new Set(
+      configurationsSessions
+        .filter(({ estVisible }) => estVisible)
+        .map(({ id }) => id)
+    )
+    const sessionsVisiblesNonExpirees = sessionsDuJeuneVenantDeLAPI.filter(
+      session => {
+        if (!idsSessionsVisibles.has(session.session.id.toString()))
+          return false
+        const dateMaxInscription = session.session.dateMaxInscription
+        if (!dateMaxInscription) return true
+
+        const dateMax = DateService.dateStringToEndOfDayUtc(
+          dateMaxInscription,
+          timezoneDeLaStructureDuJeune
         )
+        return maintenant <= dateMax
       }
-    })
-
-    const sessionsAuxquellesLeJeuneEstInscrit =
-      recupererSessionsAuxquellesLeJeuneEstInscrit(sessionsDuJeuneVenantDeLAPI)
-    const sessionsVisiblesPourLeJeune =
-      await recupererSessionsVisiblesPourLeJeune(
-        sessionsDuJeuneVenantDeLAPI,
-        configurationsSessions
-      )
-    const sessionsDuJeune = concatSessionsVisiblesSansDoublon(
-      sessionsAuxquellesLeJeuneEstInscrit,
-      sessionsVisiblesPourLeJeune
     )
 
-    const maintenant = this.dateService.now()
-
-    const sessionsNonExpirees = sessionsDuJeune.filter(sessionDuJeune => {
-      const dateMaxInscription = sessionDuJeune.session.dateMaxInscription
-      if (!dateMaxInscription) return true
-      const dateMax = DateTime.fromISO(dateMaxInscription, {
-        zone: timezoneDeLaStructureDuJeune
-      }).endOf('day')
-      return maintenant <= dateMax
-    })
+    const sessionsDuJeune = concatSessionsSansDoublon(
+      sessionsInscrites,
+      sessionsVisiblesNonExpirees
+    )
 
     return success(
-      sessionsNonExpirees
-        .map(sessionDuJeune => {
-          const sqlModel = configurationsSessions.find(
-            ({ id }) => id === sessionDuJeune.session.id.toString()
-          )
-          return mapSessionJeuneDtoToQueryModel(
-            sessionDuJeune,
-            beneficiaire.idPartenaire!,
-            timezoneDeLaStructureDuJeune,
-            maintenant,
-            sqlModel
-              ? {
-                  autoinscription: sqlModel.autoinscription,
-                  autodesinscription: sqlModel.autodesinscription
-                }
-              : undefined
-          )
-        })
-        .sort(compareSessionsByDebut)
+      this.fetcher.mapAndSort(
+        sessionsDuJeune,
+        beneficiaire,
+        timezoneDeLaStructureDuJeune,
+        configurationsSessions,
+        maintenant
+      )
     )
   }
 
@@ -132,53 +100,18 @@ export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
   }
 }
 
-function recupererSessionsAuxquellesLeJeuneEstInscrit(
-  sessions: SessionParDossierJeuneDto[]
+function concatSessionsSansDoublon(
+  sessionsInscrites: SessionParDossierJeuneDto[],
+  sessionsVisibles: SessionParDossierJeuneDto[]
 ): SessionParDossierJeuneDto[] {
-  return sessions.filter(({ sessionInstance }) => aEteInscrit(sessionInstance))
-}
-
-async function recupererSessionsVisiblesPourLeJeune(
-  sessions: SessionParDossierJeuneDto[],
-  configurationsSessions: SessionMiloSqlModel[]
-): Promise<SessionParDossierJeuneDto[]> {
-  const idsSessionsVisibles = new Set(
-    configurationsSessions
-      .filter(({ estVisible }) => estVisible)
-      .map(({ id }) => id)
+  const sessions = [...sessionsInscrites]
+  const idsInscrits = new Set(
+    sessionsInscrites.map(({ session }) => session.id)
   )
-
-  return sessions.filter(session =>
-    idsSessionsVisibles.has(session.session.id.toString())
-  )
-}
-
-function concatSessionsVisiblesSansDoublon(
-  sessionsAuxquellesLeJeuneEstInscrit: SessionParDossierJeuneDto[],
-  sessionsVisiblesPourLeJeune: SessionParDossierJeuneDto[]
-): SessionParDossierJeuneDto[] {
-  const sessions = [...sessionsAuxquellesLeJeuneEstInscrit]
-
-  sessionsVisiblesPourLeJeune.forEach(sessionVisible => {
-    if (
-      sessionsAuxquellesLeJeuneEstInscrit.find(
-        sessionInscrit =>
-          sessionInscrit.session.id === sessionVisible.session.id
-      )
-    )
-      return
-
-    sessions.push(sessionVisible)
+  sessionsVisibles.forEach(sessionVisible => {
+    if (!idsInscrits.has(sessionVisible.session.id)) {
+      sessions.push(sessionVisible)
+    }
   })
-
   return sessions
-}
-
-function compareSessionsByDebut(
-  session1: SessionJeuneMiloQueryModel,
-  session2: SessionJeuneMiloQueryModel
-): number {
-  const date1 = DateTime.fromISO(session1.dateHeureDebut)
-  const date2 = DateTime.fromISO(session2.dateHeureDebut)
-  return date1.toMillis() - date2.toMillis()
 }

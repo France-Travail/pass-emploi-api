@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { describe } from 'mocha'
 import { createSandbox, SinonSandbox } from 'sinon'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { SessionsMiloFetcher } from 'src/application/queries/query-getters/milo/sessions-milo.fetcher'
 import { success } from 'src/building-blocks/types/result'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -23,7 +24,7 @@ import { uneSessionJeuneMiloQueryModel } from '../../../../fixtures/sessions.fix
 import { unConseillerDto } from '../../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../../fixtures/sql-models/jeune.sql-model'
 
-describe('GetSessionsJeuneMiloQueryGetter', () => {
+describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
   let getSessionsQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter
   let oidcClient: StubbedClass<OidcClient>
   let miloClient: StubbedClass<MiloClient>
@@ -39,10 +40,11 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
     miloClient = stubClass(MiloClient)
     dateService = stubClass(DateService)
     dateService.now.returns(DateTime.fromISO('2020-04-01T00:00:00.000Z'))
+    const fetcher = new SessionsMiloFetcher(dateService)
     getSessionsQueryGetter = new GetSessionsVisiblesPourLeJeuneMiloQueryGetter(
       oidcClient,
       miloClient,
-      dateService
+      fetcher
     )
   })
 
@@ -109,56 +111,74 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
       })
     })
 
-    describe("quand c'est un conseiller", () => {
-      it('récupère les sessions du jeune pour un conseiller', async () => {
-        //Given
-        oidcClient.exchangeTokenConseillerMilo
-          .withArgs(accessToken)
-          .resolves(idpToken)
-        miloClient.getSessionsParDossierJeunePourConseiller
-          .withArgs(idpToken, jeuneParis.idPartenaire)
-          .resolves(success([]))
+    it("renvoie tableau vide quand le jeune n'a pas de structure", async () => {
+      const idJeuneSansStructure = 'sans-struct'
+      await JeuneSqlModel.create(
+        unJeuneDto({ id: idJeuneSansStructure, idStructureMilo: null })
+      )
 
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          jeuneParis.id,
-          accessToken,
-          { pourConseiller: true }
-        )
+      const result = await getSessionsQueryGetter.handle(
+        idJeuneSansStructure,
+        accessToken
+      )
 
-        // Then
-        expect(result).to.deep.equal(success([]))
-        expect(
-          oidcClient.exchangeTokenConseillerMilo
-        ).to.have.been.calledOnceWithExactly(accessToken)
-      })
+      expect(result).to.deep.equal(success([]))
+      expect(oidcClient.exchangeTokenJeune).not.to.have.been.called()
     })
 
-    describe("quand c'est un jeune", () => {
-      it("renvoie tableau vide quand le jeune n'a pas de structure", async () => {
-        //Given
-        const idJeuneSansStructure = 'sans-struct'
-        await JeuneSqlModel.create(
-          unJeuneDto({ id: idJeuneSansStructure, idStructureMilo: null })
-        )
+    it('renvoie sessions visibles non inscrites + sessions inscrites même non visibles, triées, sans doublons', async () => {
+      oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+      miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
+        success([
+          {
+            session: sessionNonVisible,
+            offre: uneOffreDto,
+            sessionInstance: { statut: MILO_INSCRIT }
+          },
+          {
+            session: sessionVisible1,
+            offre: uneOffreDto,
+            sessionInstance: { statut: MILO_INSCRIT }
+          },
+          {
+            session: sessionVisible2,
+            offre: uneOffreDto
+          }
+        ])
+      )
 
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          idJeuneSansStructure,
-          accessToken
-        )
+      const result = await getSessionsQueryGetter.handle(
+        jeuneParis.id,
+        accessToken
+      )
 
-        // Then
-        expect(result).to.deep.equal(success([]))
-        expect(oidcClient.exchangeTokenJeune).not.to.have.been.called()
-      })
+      expect(result).to.deep.equal(
+        success([
+          uneSessionJeuneMiloQueryModel({
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z',
+            inscription: SessionMilo.Inscription.Statut.INSCRIT
+          }),
+          uneSessionJeuneMiloQueryModel({
+            id: idSession2.toString(),
+            dateHeureDebut: '2020-04-07T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z'
+          }),
+          uneSessionJeuneMiloQueryModel({
+            id: idSession1.toString(),
+            dateHeureDebut: '2020-04-08T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z',
+            inscription: SessionMilo.Inscription.Statut.INSCRIT
+          })
+        ])
+      )
     })
 
-    describe('quand filtreEstInscrit false', () => {
-      it('renvoie les sessions visible avec jeune non inscrit', async () => {
-        //Given
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
-        miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
+    it('applique la bonne timezone', async () => {
+      oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+      miloClient.getSessionsParDossierJeune
+        .withArgs(idpToken, jeuneCayenne.idPartenaire)
+        .resolves(
           success([
             {
               session: sessionNonVisible,
@@ -175,166 +195,27 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
             }
           ])
         )
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          jeuneParis.id,
-          accessToken,
-          { filtrerEstInscrit: false }
-        )
-        // Then
-        expect(result).to.deep.equal(
-          success([
-            uneSessionJeuneMiloQueryModel({
-              id: idSession2.toString(),
-              dateHeureDebut: '2020-04-07T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z'
-            })
-          ])
-        )
-      })
-      it('applique la bonne timezone', async () => {
-        //Given
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
-        miloClient.getSessionsParDossierJeune
-          .withArgs(idpToken, jeuneCayenne.idPartenaire)
-          .resolves(
-            success([
-              {
-                session: sessionNonVisible,
-                offre: uneOffreDto
-              },
-              {
-                session: sessionVisible1,
-                offre: uneOffreDto,
-                sessionInstance: { statut: MILO_INSCRIT }
-              },
-              {
-                session: sessionVisible2,
-                offre: uneOffreDto
-              }
-            ])
-          )
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          jeuneCayenne.id,
-          accessToken,
-          { filtrerEstInscrit: false }
-        )
-        // Then
-        expect(result).to.deep.equal(
-          success([
-            uneSessionJeuneMiloQueryModel({
-              id: idSession2.toString(),
-              dateHeureDebut: '2020-04-07T13:20:00.000Z',
-              dateHeureFin: '2020-04-08T13:20:00.000Z',
-              dateMaxInscription: '2020-04-08T02:59:59.999Z'
-            })
-          ])
-        )
-      })
+
+      const result = await getSessionsQueryGetter.handle(
+        jeuneCayenne.id,
+        accessToken
+      )
+
+      expect(result).to.deep.equal(
+        success([
+          uneSessionJeuneMiloQueryModel({
+            id: idSession2.toString(),
+            dateHeureDebut: '2020-04-07T13:20:00.000Z',
+            dateHeureFin: '2020-04-08T13:20:00.000Z',
+            dateMaxInscription: '2020-04-08T02:59:59.999Z'
+          })
+        ])
+      )
     })
 
-    describe('quand filtreEstInscrit true', () => {
-      it('renvoie toutes les sessions avec jeune inscrit', async () => {
-        //Given
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
-        miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
-          success([
-            {
-              session: sessionNonVisible,
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_INSCRIT }
-            },
-            {
-              session: sessionVisible1,
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_INSCRIT }
-            },
-            {
-              session: sessionVisible2,
-              offre: uneOffreDto
-            }
-          ])
-        )
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          jeuneParis.id,
-          accessToken,
-          { filtrerEstInscrit: true }
-        )
-        // Then
-        expect(result).to.deep.equal(
-          success([
-            uneSessionJeuneMiloQueryModel({
-              dateHeureDebut: '2020-04-06T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z',
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            }),
-            uneSessionJeuneMiloQueryModel({
-              id: idSession1.toString(),
-              dateHeureDebut: '2020-04-08T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z',
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            })
-          ])
-        )
-      })
-    })
-
-    describe('quand filtreEstInscrit vide', () => {
-      it('renvoie toutes les sessions avec jeune inscrit + toutes sessions visible avec jeune non inscrit + retire doublons + trie par date', async () => {
-        //Given
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
-        miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
-          success([
-            {
-              session: sessionNonVisible,
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_INSCRIT }
-            },
-            {
-              session: sessionVisible1,
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_INSCRIT }
-            },
-            {
-              session: sessionVisible2,
-              offre: uneOffreDto
-            }
-          ])
-        )
-        // When
-        const result = await getSessionsQueryGetter.handle(
-          jeuneParis.id,
-          accessToken
-        )
-        // Then
-        expect(result).to.deep.equal(
-          success([
-            uneSessionJeuneMiloQueryModel({
-              dateHeureDebut: '2020-04-06T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z',
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            }),
-            uneSessionJeuneMiloQueryModel({
-              id: idSession2.toString(),
-              dateHeureDebut: '2020-04-07T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z'
-            }),
-            uneSessionJeuneMiloQueryModel({
-              id: idSession1.toString(),
-              dateHeureDebut: '2020-04-08T08:20:00.000Z',
-              dateHeureFin: '2020-04-08T08:20:00.000Z',
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
-            })
-          ])
-        )
-      })
-    })
-
-    describe('règles dateMaxDesinscription', () => {
+    describe('règles dateMaxInscription', () => {
       const idSessionExpiree = 33
-      const idSessionAutodesinscription = 44
+      const idSessionInscrite = 44
 
       beforeEach(async () => {
         await SessionMiloSqlModel.create({
@@ -344,16 +225,14 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
           dateModification: DateTime.now().toJSDate()
         })
         await SessionMiloSqlModel.create({
-          id: idSessionAutodesinscription,
+          id: idSessionInscrite,
           estVisible: true,
-          autodesinscription: true,
           idStructureMilo: idStructureParis,
           dateModification: DateTime.now().toJSDate()
         })
       })
 
-      it('exclut les sessions dont dateMaxInscription est dépassée', async () => {
-        // Given
+      it('exclut les sessions visibles non inscrites dont dateMaxInscription est dépassée', async () => {
         const sessionExpiree = {
           ...uneSessionDto,
           id: idSessionExpiree,
@@ -365,19 +244,64 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
           .withArgs(idpToken)
           .resolves(success([{ session: sessionExpiree, offre: uneOffreDto }]))
 
-        // When
         const result = await getSessionsQueryGetter.handle(
           jeuneParis.id,
-          accessToken,
-          { filtrerEstInscrit: false }
+          accessToken
         )
 
-        // Then
         expect(result).to.deep.equal(success([]))
       })
 
+      it('affiche les sessions inscrites même si dateMaxInscription est dépassée', async () => {
+        const sessionExpireeInscrite = {
+          ...uneSessionDto,
+          id: idSessionInscrite,
+          dateHeureDebut: '2020-03-30 10:00:00',
+          dateMaxInscription: '2020-03-28'
+        }
+        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
+          success([
+            {
+              session: sessionExpireeInscrite,
+              offre: uneOffreDto,
+              sessionInstance: { statut: MILO_INSCRIT }
+            }
+          ])
+        )
+
+        const result = await getSessionsQueryGetter.handle(
+          jeuneParis.id,
+          accessToken
+        )
+
+        expect(result).to.deep.equal(
+          success([
+            uneSessionJeuneMiloQueryModel({
+              id: idSessionInscrite.toString(),
+              dateHeureDebut: '2020-03-30T08:00:00.000Z',
+              dateHeureFin: '2020-04-08T08:20:00.000Z',
+              inscription: SessionMilo.Inscription.Statut.INSCRIT
+            })
+          ])
+        )
+      })
+    })
+
+    describe('règles dateMaxDesinscription', () => {
+      const idSessionAutodesinscription = 55
+
+      beforeEach(async () => {
+        await SessionMiloSqlModel.create({
+          id: idSessionAutodesinscription,
+          estVisible: true,
+          autodesinscription: true,
+          idStructureMilo: idStructureParis,
+          dateModification: DateTime.now().toJSDate()
+        })
+      })
+
       it('passe autodesinscription à false si dateMaxDesinscription est dépassée', async () => {
-        // Given — session sans dateMaxInscription, dateHeureDebut dans le passé (dateHeureDebut - 24h < maintenant)
         const sessionDepassee = {
           ...uneSessionDto,
           id: idSessionAutodesinscription,
@@ -390,14 +314,11 @@ describe('GetSessionsJeuneMiloQueryGetter', () => {
           .withArgs(idpToken)
           .resolves(success([{ session: sessionDepassee, offre: uneOffreDto }]))
 
-        // When
         const result = await getSessionsQueryGetter.handle(
           jeuneParis.id,
-          accessToken,
-          { filtrerEstInscrit: false }
+          accessToken
         )
 
-        // Then
         expect(result).to.deep.equal(
           success([
             uneSessionJeuneMiloQueryModel({

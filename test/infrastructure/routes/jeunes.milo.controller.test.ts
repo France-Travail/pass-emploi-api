@@ -141,8 +141,7 @@ describe('JeunesMiloController', () => {
             idJeune,
             accessToken: token,
             dateDebut: undefined,
-            dateFin: undefined,
-            filtrerEstInscrit: undefined
+            dateFin: undefined
           },
           unUtilisateurDecode()
         )
@@ -162,8 +161,7 @@ describe('JeunesMiloController', () => {
             idJeune,
             accessToken: token,
             dateDebut: undefined,
-            dateFin: undefined,
-            filtrerEstInscrit: undefined
+            dateFin: undefined
           },
           unUtilisateurDecode()
         )
