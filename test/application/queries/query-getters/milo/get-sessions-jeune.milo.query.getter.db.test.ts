@@ -62,17 +62,6 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
     const idSession1 = 11
     const idSession2 = 22
     const sessionNonVisible = uneSessionDto
-    const sessionVisible1 = {
-      ...uneSessionDto,
-      id: idSession1,
-      dateHeureDebut: '2020-04-08 10:20:00'
-    }
-    const sessionVisible2 = {
-      ...uneSessionDto,
-      id: idSession2,
-      dateHeureDebut: '2020-04-07 10:20:00',
-      dateMaxInscription: '2020-04-07'
-    }
 
     beforeEach(async () => {
       await getDatabase().cleanPG()
@@ -128,6 +117,18 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
     it('renvoie sessions visibles non inscrites + sessions inscrites même non visibles, triées, sans doublons', async () => {
       oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+
+      const sessionVisible1 = {
+        ...uneSessionDto,
+        id: idSession1,
+        dateHeureDebut: '2020-04-08 10:20:00'
+      }
+      const sessionVisible2 = {
+        ...uneSessionDto,
+        id: idSession2,
+        dateHeureDebut: '2020-04-07 10:20:00',
+        dateMaxInscription: '2020-04-07'
+      }
       miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
         success([
           {
@@ -176,6 +177,14 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
     it('applique la bonne timezone', async () => {
       oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+
+      const sessionVisible1 = {
+        ...uneSessionDto,
+        id: idSession1,
+        dateHeureDebut: '2020-04-08 10:20:00',
+        dateHeureFin: '2020-04-08 11:20:00',
+        dateMaxInscription: '2020-04-07'
+      }
       miloClient.getSessionsParDossierJeune
         .withArgs(idpToken, jeuneCayenne.idPartenaire)
         .resolves(
@@ -186,11 +195,6 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
             },
             {
               session: sessionVisible1,
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_INSCRIT }
-            },
-            {
-              session: sessionVisible2,
               offre: uneOffreDto
             }
           ])
@@ -204,9 +208,9 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
       expect(result).to.deep.equal(
         success([
           uneSessionJeuneMiloQueryModel({
-            id: idSession2.toString(),
-            dateHeureDebut: '2020-04-07T13:20:00.000Z',
-            dateHeureFin: '2020-04-08T13:20:00.000Z',
+            id: idSession1.toString(),
+            dateHeureDebut: '2020-04-08T13:20:00.000Z',
+            dateHeureFin: '2020-04-08T14:20:00.000Z',
             dateMaxInscription: '2020-04-08T02:59:59.999Z'
           })
         ])
@@ -281,7 +285,8 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
               id: idSessionInscrite.toString(),
               dateHeureDebut: '2020-03-30T08:00:00.000Z',
               dateHeureFin: '2020-04-08T08:20:00.000Z',
-              inscription: SessionMilo.Inscription.Statut.INSCRIT
+              inscription: SessionMilo.Inscription.Statut.INSCRIT,
+              dateMaxInscription: '2020-03-28T22:59:59.999Z'
             })
           ])
         )

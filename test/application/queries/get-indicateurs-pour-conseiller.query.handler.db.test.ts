@@ -291,9 +291,7 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
         expect(
           getSessionsJeuneMiloQueryGetter.handle
         ).to.have.been.calledOnceWithExactly('id-jeune', 'token', {
-          periode: { debut: dateDebut, fin: dateFin },
-          filtrerEstInscrit: true,
-          pourConseiller: true
+          periode: { debut: dateDebut, fin: dateFin }
         })
         expect(
           isSuccess(response) && response.data.rendezVous.planifies

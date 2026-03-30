@@ -7,6 +7,8 @@ import { success } from 'src/building-blocks/types/result'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import {
   MILO_INSCRIT,
+  MILO_PRESENT,
+  MILO_REFUS_JEUNE,
   MILO_REFUS_TIERS
 } from 'src/infrastructure/clients/dto/milo.dto'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
@@ -62,6 +64,9 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
     const jeune = unJeune({ id: 'paris' })
     const idSessionInscrite = 11
     const idSessionNonInscrite = 22
+    const idSessionRefusJeune = 33
+    const idSessionRefusTiers = 44
+    const idSessionPresent = 55
 
     beforeEach(async () => {
       await getDatabase().cleanPG()
@@ -119,7 +124,7 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
       expect(oidcClient.exchangeTokenJeune).not.to.have.been.called()
     })
 
-    it('renvoie uniquement les sessions auxquelles le jeune est inscrit', async () => {
+    it('renvoie uniquement les sessions auxquelles le jeune est inscrit, présent ou en refus jeune', async () => {
       oidcClient.exchangeTokenConseillerMilo
         .withArgs(accessToken)
         .resolves(idpToken)
@@ -128,13 +133,33 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         .resolves(
           success([
             {
-              session: { ...uneSessionDto, id: idSessionInscrite },
+              session: {
+                ...uneSessionDto,
+                id: idSessionInscrite,
+                dateHeureDebut: '2020-04-06 10:20:00',
+                dateHeureFin: '2020-04-08 10:20:00'
+              },
               offre: uneOffreDto,
               sessionInstance: { statut: MILO_INSCRIT }
             },
             {
               session: { ...uneSessionDto, id: idSessionNonInscrite },
               offre: uneOffreDto
+            },
+            {
+              session: { ...uneSessionDto, id: idSessionRefusJeune },
+              offre: uneOffreDto,
+              sessionInstance: { statut: MILO_REFUS_JEUNE }
+            },
+            {
+              session: { ...uneSessionDto, id: idSessionRefusTiers },
+              offre: uneOffreDto,
+              sessionInstance: { statut: MILO_REFUS_TIERS }
+            },
+            {
+              session: { ...uneSessionDto, id: idSessionPresent },
+              offre: uneOffreDto,
+              sessionInstance: { statut: MILO_PRESENT }
             }
           ])
         )
@@ -145,7 +170,21 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         success([
           uneSessionJeuneMiloQueryModel({
             id: idSessionInscrite.toString(),
-            inscription: SessionMilo.Inscription.Statut.INSCRIT
+            inscription: SessionMilo.Inscription.Statut.INSCRIT,
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z'
+          }),
+          uneSessionJeuneMiloQueryModel({
+            id: idSessionRefusJeune.toString(),
+            inscription: SessionMilo.Inscription.Statut.REFUS_JEUNE,
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z'
+          }),
+          uneSessionJeuneMiloQueryModel({
+            id: idSessionPresent.toString(),
+            inscription: SessionMilo.Inscription.Statut.PRESENT,
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z'
           })
         ])
       )
@@ -155,7 +194,9 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
       const sessionExpireeInscrite = {
         ...uneSessionDto,
         id: idSessionInscrite,
-        dateMaxInscription: '2020-03-01'
+        dateMaxInscription: '2020-03-01',
+        dateHeureDebut: '2020-04-06 10:20:00',
+        dateHeureFin: '2020-04-08 10:20:00'
       }
       oidcClient.exchangeTokenConseillerMilo
         .withArgs(accessToken)
@@ -179,35 +220,9 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
           uneSessionJeuneMiloQueryModel({
             id: idSessionInscrite.toString(),
             inscription: SessionMilo.Inscription.Statut.INSCRIT,
-            dateMaxInscription: '2020-03-01T22:59:59.999Z'
-          })
-        ])
-      )
-    })
-
-    it("renvoie aussi les sessions dont le jeune s'est désinscrit (REFUS_TIERS)", async () => {
-      oidcClient.exchangeTokenConseillerMilo
-        .withArgs(accessToken)
-        .resolves(idpToken)
-      miloClient.getSessionsParDossierJeunePourConseiller
-        .withArgs(idpToken)
-        .resolves(
-          success([
-            {
-              session: { ...uneSessionDto, id: idSessionInscrite },
-              offre: uneOffreDto,
-              sessionInstance: { statut: MILO_REFUS_TIERS }
-            }
-          ])
-        )
-
-      const result = await getter.handle(jeune.id, accessToken)
-
-      expect(result).to.deep.equal(
-        success([
-          uneSessionJeuneMiloQueryModel({
-            id: idSessionInscrite.toString(),
-            inscription: SessionMilo.Inscription.Statut.REFUS_TIERS
+            dateMaxInscription: '2020-03-01T22:59:59.999Z',
+            dateHeureDebut: '2020-04-06T08:20:00.000Z',
+            dateHeureFin: '2020-04-08T08:20:00.000Z'
           })
         ])
       )
