@@ -12,6 +12,9 @@ export namespace Authentification {
     CONSEILLER = 'CONSEILLER',
     SUPPORT = 'SUPPORT'
   }
+  export type JeuneOuConseiller =
+    | Authentification.Type.JEUNE
+    | Authentification.Type.CONSEILLER
 
   export enum Role {
     SUPERVISEUR = 'SUPERVISEUR'

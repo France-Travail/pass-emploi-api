@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import { estMilo } from 'src/domain/core'
 import { FavoriOffreEmploiSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
@@ -18,6 +17,7 @@ import { RendezVousSqlModel } from '../../infrastructure/sequelize/models/rendez
 import { DateService } from '../../utils/date-service'
 import { ConseillerInterAgenceAuthorizer } from '../authorizers/conseiller-inter-agence-authorizer'
 import { IndicateursPourConseillerQueryModel } from './query-models/indicateurs-pour-conseiller.query-model'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from './query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 
 export interface GetIndicateursPourConseillerQuery extends Query {
   idConseiller: string
@@ -33,9 +33,9 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
   Result<IndicateursPourConseillerQueryModel>
 > {
   constructor(
-    private dateService: DateService,
-    private getSessionsJeuneMiloQueryGetter: GetSessionsJeuneMiloQueryGetter,
-    private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
+    private readonly dateService: DateService,
+    private readonly getSessionsJeuneMiloQueryGetter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
+    private readonly conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
   ) {
     super('GetIndicateursPourConseillerQueryHandler')
   }
@@ -102,12 +102,9 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
     const sessionsJeuneAEteInscrit =
       await this.getSessionsJeuneMiloQueryGetter.handle(
         query.idJeune,
+        Authentification.Type.CONSEILLER,
         query.accessToken,
-        {
-          periode: { debut, fin },
-          filtrerEstInscrit: true,
-          pourConseiller: true
-        }
+        { debut, fin }
       )
 
     if (isFailure(sessionsJeuneAEteInscrit)) return []

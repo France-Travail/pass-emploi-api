@@ -50,6 +50,13 @@ export namespace RendezVousMilo {
     })
   }
 
+  function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
+    return (
+      rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE ||
+      rendezVousMilo.statut === RendezVousMilo.Statut.RDV_REPORTE
+    )
+  }
+
   @Injectable()
   export class Factory {
     constructor(private idService: IdService) {}
@@ -82,7 +89,7 @@ export namespace RendezVousMilo {
           id: rendezVousMilo.id,
           type: EvenementMilo.ObjetEvenement.RENDEZ_VOUS
         },
-        annule: false
+        annule: estAnnule(rendezVousMilo)
       }
     }
 
@@ -105,7 +112,7 @@ export namespace RendezVousMilo {
         jeunes: rendezVousCEJ.jeunes.map(jeune =>
           this.mapPresenceToJeuneDuRendezVous(jeune, rendezVousMilo.statut)
         ),
-        annule: rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE
+        annule: estAnnule(rendezVousMilo)
       }
     }
 

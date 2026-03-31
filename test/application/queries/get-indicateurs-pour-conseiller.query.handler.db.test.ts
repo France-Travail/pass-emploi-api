@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import { Core } from 'src/domain/core'
 import { FavoriOffreEmploiSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-engagement.sql-model'
@@ -38,7 +38,7 @@ import Statut = Action.Statut
 describe('GetIndicateursPourConseillerQueryHandler', () => {
   let sandbox: sinon.SinonSandbox
   let getIndicateursPourConseillerQueryHandler: GetIndicateursPourConseillerQueryHandler
-  let getSessionsJeuneMiloQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let getSessionsJeuneMiloQueryGetter: StubbedClass<GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter>
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
   let dateService: StubbedClass<DateService>
 
@@ -53,7 +53,7 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
     dateService = stubClass(DateService)
     conseillerAgenceAuthorizer = stubClass(ConseillerInterAgenceAuthorizer)
     getSessionsJeuneMiloQueryGetter = stubClassSandbox(
-      GetSessionsJeuneMiloQueryGetter,
+      GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
       sandbox
     )
 
@@ -290,11 +290,12 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
         // Then
         expect(
           getSessionsJeuneMiloQueryGetter.handle
-        ).to.have.been.calledOnceWithExactly('id-jeune', 'token', {
-          periode: { debut: dateDebut, fin: dateFin },
-          filtrerEstInscrit: true,
-          pourConseiller: true
-        })
+        ).to.have.been.calledOnceWithExactly(
+          'id-jeune',
+          'CONSEILLER',
+          'token',
+          { debut: dateDebut, fin: dateFin }
+        )
         expect(
           isSuccess(response) && response.data.rendezVous.planifies
         ).to.deep.equal(3)

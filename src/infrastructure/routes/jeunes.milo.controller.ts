@@ -106,8 +106,7 @@ export class JeunesMiloController {
         ),
         dateFin: DateService.fromStringToLocaleDateTime(
           getSessionsJeunesQueryParams.dateFin
-        ),
-        filtrerEstInscrit: getSessionsJeunesQueryParams.filtrerEstInscrit
+        )
       },
       utilisateur
     )

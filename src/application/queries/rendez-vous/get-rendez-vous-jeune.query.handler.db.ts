@@ -24,7 +24,9 @@ export class GetRendezVousJeuneQueryHandler extends QueryHandler<
   GetRendezVousJeuneQuery,
   Result<RendezVousJeuneQueryModel[]>
 > {
-  constructor(private conseillerAuthorizer: ConseillerInterAgenceAuthorizer) {
+  constructor(
+    private readonly conseillerAuthorizer: ConseillerInterAgenceAuthorizer
+  ) {
     super('GetRendezVousJeuneQueryHandler')
   }
 

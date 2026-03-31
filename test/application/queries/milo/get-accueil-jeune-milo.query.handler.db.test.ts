@@ -8,7 +8,7 @@ import {
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { AccueilJeuneMiloQueryModel } from 'src/application/queries/query-models/jeunes.milo.query-model'
 import {
   JeuneMiloSansIdDossier,
@@ -48,6 +48,7 @@ import { unConseillerDto } from 'test/fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from 'test/fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from 'test/fixtures/sql-models/rendez-vous.sql-model'
 import { expect, StubbedClass, stubClass } from 'test/utils'
+import { Authentification } from '../../../../src/domain/authentification'
 import {
   DatabaseForTesting,
   getDatabase
@@ -56,7 +57,7 @@ import {
 describe('GetAccueilJeuneMiloQueryHandler', () => {
   let handler: GetAccueilJeuneMiloQueryHandler
   let databaseForTesting: DatabaseForTesting
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
   let alertesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let favorisAccueilQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
   let getCampagneQueryGetter: StubbedClass<GetCampagneQueryGetter>
@@ -65,7 +66,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
   before(async () => {
     databaseForTesting = getDatabase()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     alertesQueryGetter = stubClass(GetRecherchesSauvegardeesQueryGetter)
     favorisAccueilQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
     getCampagneQueryGetter = stubClass(GetCampagneQueryGetter)
@@ -115,11 +118,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
       )
 
       sessionsQueryGetter.handle
-        .withArgs(accueilQuery.idJeune, token, {
-          periode: {
-            debut: maintenant,
-            fin: DateTime.fromISO(datePlus30Jours)
-          }
+        .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+          debut: maintenant,
+          fin: DateTime.fromISO(datePlus30Jours)
         })
         .resolves(success([]))
     })
@@ -200,12 +201,15 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
         it('sans les sessions si le GetSessionsJeuneMiloQueryGetter renvoie une failure', async () => {
           // Given
           sessionsQueryGetter.handle
-            .withArgs(accueilQuery.idJeune, token, {
-              periode: {
+            .withArgs(
+              accueilQuery.idJeune,
+              Authentification.Type.JEUNE,
+              token,
+              {
                 debut: maintenant,
                 fin: DateTime.fromISO(datePlus30Jours)
               }
-            })
+            )
             .resolves(
               failure(new NonTrouveError('Jeune', accueilQuery.idJeune))
             )
@@ -222,12 +226,15 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
         it('sans les sessions si le jeune n’en a pas où il est inscrit dans la semaine', async () => {
           // Given
           sessionsQueryGetter.handle
-            .withArgs(accueilQuery.idJeune, token, {
-              periode: {
+            .withArgs(
+              accueilQuery.idJeune,
+              Authentification.Type.JEUNE,
+              token,
+              {
                 debut: maintenant,
                 fin: DateTime.fromISO(datePlus30Jours)
               }
-            })
+            )
             .resolves(success([]))
 
           // When
@@ -256,12 +263,15 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
             })
 
           sessionsQueryGetter.handle
-            .withArgs(accueilQuery.idJeune, token, {
-              periode: {
+            .withArgs(
+              accueilQuery.idJeune,
+              Authentification.Type.JEUNE,
+              token,
+              {
                 debut: maintenant,
                 fin: DateTime.fromISO(datePlus30Jours)
               }
-            })
+            )
             .resolves(
               success([
                 sessionAvecInscriptionCetteSemaine,
@@ -370,11 +380,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
-          .withArgs(accueilQuery.idJeune, token, {
-            periode: {
-              debut: maintenant,
-              fin: DateTime.fromISO(datePlus30Jours)
-            }
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
           })
           .resolves(
             success([
@@ -396,11 +404,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
       it('à undefined s’il n’y en a pas', async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(accueilQuery.idJeune, token, {
-            periode: {
-              debut: maintenant,
-              fin: DateTime.fromISO(datePlus30Jours)
-            }
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
           })
           .resolves(success([]))
 
@@ -546,11 +552,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
           dateHeureDebut: maintenant.plus({ days: 5 }).toISODate()
         })
         sessionsQueryGetter.handle
-          .withArgs(accueilQuery.idJeune, token, {
-            periode: {
-              debut: maintenant,
-              fin: DateTime.fromISO(datePlus30Jours)
-            }
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
           })
           .resolves(
             success([
@@ -578,11 +582,9 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
       it('vide s’il n’y en a pas', async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(accueilQuery.idJeune, token, {
-            periode: {
-              debut: maintenant,
-              fin: DateTime.fromISO(datePlus30Jours)
-            }
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
           })
           .resolves(success([]))
 

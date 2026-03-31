@@ -6,7 +6,7 @@ import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -50,7 +50,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 > {
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    private readonly getSessionsQueryGetter: GetSessionsJeuneMiloQueryGetter,
+    private readonly getSessionsQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
     private readonly getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private readonly getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
     private readonly getCampagneQueryGetter: GetCampagneQueryGetter,
@@ -361,10 +361,9 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       try {
         const sessionsQueryModels = await this.getSessionsQueryGetter.handle(
           query.idJeune,
+          Authentification.Type.JEUNE,
           query.accessToken,
-          {
-            periode: { debut: maintenant, fin: datePlus30Jours }
-          }
+          { debut: maintenant, fin: datePlus30Jours }
         )
         if (isSuccess(sessionsQueryModels)) {
           sessionsInscrit = sessionsQueryModels.data.filter(session =>

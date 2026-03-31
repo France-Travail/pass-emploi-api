@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { ConseillerInterAgenceAuthorizer } from 'src/application/authorizers/conseiller-inter-agence-authorizer'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
-import { GetSessionsJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import { ActionQueryModel } from 'src/application/queries/query-models/actions.query-model'
 import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/home-jeune-suivi.query-model'
 import { RendezVousJeuneQueryModel } from 'src/application/queries/query-models/rendez-vous.query-model'
@@ -41,7 +41,7 @@ import { unRendezVousDto } from 'test/fixtures/sql-models/rendez-vous.sql-model'
 import { uneStructureMiloDto } from 'test/fixtures/sql-models/structureMilo.sql-model'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
-import { testConfig } from 'test/utils/module-for-testing'
+import { Authentification } from '../../../src/domain/authentification'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -52,7 +52,7 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
   const utilisateurConseiller = unUtilisateurConseiller()
   const idJeune = utilisateurJeune.id
   let handler: GetJeuneHomeAgendaQueryHandler
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
   const aujourdhuiDimanche = '2022-08-14T12:00:00Z'
@@ -62,14 +62,15 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter
+    )
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     conseillerAgenceAuthorizer = stubClass(ConseillerInterAgenceAuthorizer)
     handler = new GetJeuneHomeAgendaQueryHandler(
       jeuneAuthorizer,
       sessionsQueryGetter,
-      conseillerAgenceAuthorizer,
-      testConfig()
+      conseillerAgenceAuthorizer
     )
     await ConseillerSqlModel.creer(unConseillerDto())
     await JeuneSqlModel.creer(jeuneDto)
@@ -87,13 +88,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
     const dimancheEnHuitString = '2022-08-21T23:59:59.999Z'
     beforeEach(async () => {
       sessionsQueryGetter.handle
-        .withArgs(idJeune, accessToken, {
-          periode: {
-            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-          },
-          pourConseiller: false,
-          filtrerEstInscrit: true
+        .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+          debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+          fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
         })
         .resolves(success([]))
     })
@@ -146,13 +143,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           '2022-08-29T00:00:00-07:00'
         ])
       sessionsQueryGetter.handle
-        .withArgs(idJeune, accessToken, {
-          periode: {
-            debut: DateTime.fromISO(_lundiDernier, { setZone: true }),
-            fin: DateTime.fromISO(_dimancheEnHuit, { setZone: true })
-          },
-          pourConseiller: false,
-          filtrerEstInscrit: true
+        .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+          debut: DateTime.fromISO(_lundiDernier, { setZone: true }),
+          fin: DateTime.fromISO(_dimancheEnHuit, { setZone: true })
         })
         .resolves(success([]))
 
@@ -295,11 +288,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
       it('renvoie un tableau vide si le jeune n’est inscrit à aucune session sur la période', async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            }
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(success([]))
 
@@ -326,13 +317,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            },
-            pourConseiller: false,
-            filtrerEstInscrit: true
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(
             success([
@@ -366,13 +353,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            },
-            pourConseiller: true,
-            filtrerEstInscrit: true
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(
             success([

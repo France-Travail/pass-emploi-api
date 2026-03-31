@@ -5,7 +5,7 @@ import {
   GetMonSuiviMiloQuery,
   GetMonSuiviMiloQueryHandler
 } from '../../../../src/application/queries/milo/get-mon-suivi-jeune.milo.query.handler.db'
-import { GetSessionsJeuneMiloQueryGetter } from '../../../../src/application/queries/query-getters/milo/get-sessions-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from '../../../../src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { ActionQueryModel } from '../../../../src/application/queries/query-models/actions.query-model'
 import { GetMonSuiviMiloQueryModel } from '../../../../src/application/queries/query-models/jeunes.milo.query-model'
 import { RendezVousJeuneQueryModel } from '../../../../src/application/queries/query-models/rendez-vous.query-model'
@@ -47,11 +47,12 @@ import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
+import { Authentification } from '../../../../src/domain/authentification'
 
 describe('GetMonSuiviMiloQueryHandler', () => {
   let handler: GetMonSuiviMiloQueryHandler
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let sessionsQueryGetter: StubbedClass<GetSessionsJeuneMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesPourLeJeuneMiloQueryGetter>
 
   const dateDebut = DateTime.fromISO('2024-01-14T12:00:00Z', { setZone: true })
   const dateFin = DateTime.fromISO('2024-02-14T12:00:00Z', { setZone: true })
@@ -59,7 +60,9 @@ describe('GetMonSuiviMiloQueryHandler', () => {
   beforeEach(async () => {
     await getDatabase().cleanPG()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    sessionsQueryGetter = stubClass(GetSessionsJeuneMiloQueryGetter)
+    sessionsQueryGetter = stubClass(
+      GetSessionsVisiblesPourLeJeuneMiloQueryGetter
+    )
     handler = new GetMonSuiviMiloQueryHandler(
       jeuneAuthorizer,
       sessionsQueryGetter
@@ -170,14 +173,15 @@ describe('GetMonSuiviMiloQueryHandler', () => {
           })
 
           sessionsQueryGetter.handle
-            .withArgs(jeuneDto.id, query.accessToken, {
-              periode: {
+            .withArgs(
+              jeuneDto.id,
+              Authentification.Type.JEUNE,
+              query.accessToken,
+              {
                 debut: dateDebut,
                 fin: dateFin
-              },
-              pourConseiller: false,
-              filtrerEstInscrit: true
-            })
+              }
+            )
             .resolves(
               success([
                 sessionAvecInscriptionAJPlus1,
@@ -264,14 +268,15 @@ describe('GetMonSuiviMiloQueryHandler', () => {
       beforeEach(async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(jeuneDto.id, query.accessToken, {
-            periode: {
+          .withArgs(
+            jeuneDto.id,
+            Authentification.Type.JEUNE,
+            query.accessToken,
+            {
               debut: dateDebut,
               fin: dateFin
-            },
-            pourConseiller: false,
-            filtrerEstInscrit: true
-          })
+            }
+          )
           .resolves(failure(new ErreurHttp('Ressource Milo introuvable', 404)))
         // When
         result = await handler.handle(query, utilisateurJeune)
@@ -290,14 +295,15 @@ describe('GetMonSuiviMiloQueryHandler', () => {
       it("renvoie l'erreur", async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(jeuneDto.id, query.accessToken, {
-            periode: {
+          .withArgs(
+            jeuneDto.id,
+            Authentification.Type.JEUNE,
+            query.accessToken,
+            {
               debut: dateDebut,
               fin: dateFin
-            },
-            pourConseiller: false,
-            filtrerEstInscrit: true
-          })
+            }
+          )
           .throws(
             new UnauthorizedException({
               statusCode: 401,
