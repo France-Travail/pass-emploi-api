@@ -102,10 +102,9 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
     const sessionsJeuneAEteInscrit =
       await this.getSessionsJeuneMiloQueryGetter.handle(
         query.idJeune,
+        Authentification.Type.CONSEILLER,
         query.accessToken,
-        {
-          periode: { debut, fin }
-        }
+        { debut, fin }
       )
 
     if (isFailure(sessionsJeuneAEteInscrit)) return []

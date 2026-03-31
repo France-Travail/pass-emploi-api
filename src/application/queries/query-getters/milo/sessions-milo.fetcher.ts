@@ -8,6 +8,12 @@ import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { JeuneSqlModel } from '../../../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../../../utils/date-service'
+import { OidcClient } from '../../../../infrastructure/clients/oidc-client.db'
+import { MiloClient } from '../../../../infrastructure/clients/milo/milo-client'
+import { Authentification } from '../../../../domain/authentification'
+import { Core } from '../../../../domain/core'
+import JeuneOuConseiller = Authentification.JeuneOuConseiller
+import Type = Authentification.Type
 
 export interface SessionsFetchResult {
   beneficiaire: JeuneSqlModel
@@ -21,27 +27,33 @@ export interface SessionsFetchResult {
 export class SessionsMiloFetcher {
   private readonly logger: Logger
 
-  constructor(private readonly dateService: DateService) {
+  constructor(
+    private readonly dateService: DateService,
+    private readonly oidcClient: OidcClient,
+    private readonly miloClient: MiloClient
+  ) {
     this.logger = new Logger('SessionsMiloFetcher')
   }
 
   async fetch(
     idJeune: string,
-    apiCall: (
-      idPartenaire: string
-    ) => Promise<Result<SessionParDossierJeuneDto[]>>
+    utilisateur: JeuneOuConseiller,
+    accessToken: string,
+    periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionsFetchResult> | null> {
     const beneficiaire = await JeuneSqlModel.findByPk(idJeune, {
       include: [{ model: StructureMiloSqlModel, required: true }]
     })
     if (!beneficiaire?.idPartenaire || !beneficiaire.structureMilo) return null
 
-    const resultSessionMiloClient = await apiCall(beneficiaire.idPartenaire)
+    const resultSessionMiloClient = await this.getSessions(
+      utilisateur,
+      accessToken,
+      beneficiaire.idPartenaire,
+      periode
+    )
 
     if (isFailure(resultSessionMiloClient)) {
-      this.logger.log(
-        `Sessions venant de l'API en erreur : ${resultSessionMiloClient.error}`
-      )
       return resultSessionMiloClient
     }
 
@@ -65,6 +77,36 @@ export class SessionsMiloFetcher {
       configurationsSessions,
       maintenant: this.dateService.now()
     })
+  }
+
+  private async getSessions(
+    utilisateur: JeuneOuConseiller,
+    accessToken: string,
+    idPartenaire: string,
+    periode?: { debut?: DateTime; fin?: DateTime }
+  ): Promise<Result<SessionParDossierJeuneDto[]>> {
+    switch (utilisateur) {
+      case Type.JEUNE: {
+        const idpToken = await this.oidcClient.exchangeTokenJeune(
+          accessToken,
+          Core.Structure.MILO
+        )
+        return this.miloClient.getSessionsParDossierJeune(
+          idpToken,
+          idPartenaire,
+          periode
+        )
+      }
+      case Authentification.Type.CONSEILLER: {
+        const idpToken =
+          await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
+        return this.miloClient.getSessionsParDossierJeunePourConseiller(
+          idpToken,
+          idPartenaire,
+          periode
+        )
+      }
+    }
   }
 
   mapAndSort(

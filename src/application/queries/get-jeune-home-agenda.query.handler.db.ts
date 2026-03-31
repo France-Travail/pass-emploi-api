@@ -99,12 +99,11 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
         const sessionsQueryModels =
           await this.getSessionsJeuneQueryGetter.handle(
             query.idJeune,
+            Authentification.Type.JEUNE,
             query.accessToken,
             {
-              periode: {
-                debut: lundiDernier,
-                fin: dimancheEnHuit
-              }
+              debut: lundiDernier,
+              fin: dimancheEnHuit
             }
           )
         if (isFailure(sessionsQueryModels)) {

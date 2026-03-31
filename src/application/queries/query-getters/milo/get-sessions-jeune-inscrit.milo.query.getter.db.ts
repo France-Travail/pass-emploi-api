@@ -2,35 +2,26 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
-import {
-  aEteInscrit,
-  SessionParDossierJeuneDto
-} from 'src/infrastructure/clients/dto/milo.dto'
-import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
-import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
+import { aEteInscrit } from 'src/infrastructure/clients/dto/milo.dto'
 import { SessionsMiloFetcher } from './sessions-milo.fetcher'
+import { Authentification } from '../../../../domain/authentification'
+import JeuneOuConseiller = Authentification.JeuneOuConseiller
 
 @Injectable()
 export class GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter {
-  constructor(
-    private readonly oidcClient: OidcClient,
-    private readonly miloClient: MiloClient,
-    private readonly fetcher: SessionsMiloFetcher
-  ) {}
+  constructor(private readonly fetcher: SessionsMiloFetcher) {}
 
   async handle(
     idJeune: string,
+    utilisateur: JeuneOuConseiller,
     accessToken: string,
-    options?: {
-      periode?: { debut?: DateTime; fin?: DateTime }
-    }
+    periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionJeuneMiloQueryModel[]>> {
-    const result = await this.fetcher.fetch(idJeune, idPartenaire =>
-      this.getSessionsJeunePourConseiller(
-        accessToken,
-        idPartenaire,
-        options?.periode
-      )
+    const result = await this.fetcher.fetch(
+      idJeune,
+      utilisateur,
+      accessToken,
+      periode
     )
 
     if (result === null) return success([])
@@ -56,21 +47,6 @@ export class GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter {
         configurationsSessions,
         maintenant
       )
-    )
-  }
-
-  private async getSessionsJeunePourConseiller(
-    accessToken: string,
-    idPartenaire: string,
-    periode?: { debut?: DateTime; fin?: DateTime }
-  ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    const idpToken =
-      await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
-
-    return this.miloClient.getSessionsParDossierJeunePourConseiller(
-      idpToken,
-      idPartenaire,
-      periode
     )
   }
 }

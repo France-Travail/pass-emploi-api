@@ -41,6 +41,7 @@ import { unRendezVousDto } from 'test/fixtures/sql-models/rendez-vous.sql-model'
 import { uneStructureMiloDto } from 'test/fixtures/sql-models/structureMilo.sql-model'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
+import { Authentification } from '../../../src/domain/authentification'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -87,11 +88,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
     const dimancheEnHuitString = '2022-08-21T23:59:59.999Z'
     beforeEach(async () => {
       sessionsQueryGetter.handle
-        .withArgs(idJeune, accessToken, {
-          periode: {
-            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-          }
+        .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+          debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+          fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
         })
         .resolves(success([]))
     })
@@ -144,11 +143,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           '2022-08-29T00:00:00-07:00'
         ])
       sessionsQueryGetter.handle
-        .withArgs(idJeune, accessToken, {
-          periode: {
-            debut: DateTime.fromISO(_lundiDernier, { setZone: true }),
-            fin: DateTime.fromISO(_dimancheEnHuit, { setZone: true })
-          }
+        .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+          debut: DateTime.fromISO(_lundiDernier, { setZone: true }),
+          fin: DateTime.fromISO(_dimancheEnHuit, { setZone: true })
         })
         .resolves(success([]))
 
@@ -291,11 +288,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
       it('renvoie un tableau vide si le jeune n’est inscrit à aucune session sur la période', async () => {
         // Given
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            }
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(success([]))
 
@@ -322,11 +317,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            }
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(
             success([
@@ -360,11 +353,9 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
-          .withArgs(idJeune, accessToken, {
-            periode: {
-              debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
-              fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
-            }
+          .withArgs(idJeune, Authentification.Type.JEUNE, accessToken, {
+            debut: DateTime.fromISO(lundiDernierString, { setZone: true }),
+            fin: DateTime.fromISO(dimancheEnHuitString, { setZone: true })
           })
           .resolves(
             success([

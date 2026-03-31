@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
-import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
 import {
   JeuneMiloSansIdDossier,
@@ -57,22 +57,20 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
     return pourConseiller
       ? this.getSessionsAuxquellesLeJeuneEstInscritQueryGetter.handle(
           query.idJeune,
+          Authentification.Type.CONSEILLER,
           query.accessToken,
           {
-            periode: {
-              debut: query.dateDebut,
-              fin: query.dateFin
-            }
+            debut: query.dateDebut,
+            fin: query.dateFin
           }
         )
       : this.getSessionsPourLeJeuneQueryGetter.handle(
           query.idJeune,
+          Authentification.Type.JEUNE,
           query.accessToken,
           {
-            periode: {
-              debut: query.dateDebut,
-              fin: query.dateFin
-            }
+            debut: query.dateDebut,
+            fin: query.dateFin
           }
         )
   }

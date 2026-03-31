@@ -290,9 +290,12 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
         // Then
         expect(
           getSessionsJeuneMiloQueryGetter.handle
-        ).to.have.been.calledOnceWithExactly('id-jeune', 'token', {
-          periode: { debut: dateDebut, fin: dateFin }
-        })
+        ).to.have.been.calledOnceWithExactly(
+          'id-jeune',
+          'CONSEILLER',
+          'token',
+          { debut: dateDebut, fin: dateFin }
+        )
         expect(
           isSuccess(response) && response.data.rendezVous.planifies
         ).to.deep.equal(3)

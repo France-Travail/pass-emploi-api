@@ -14,6 +14,7 @@ import {
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { Authentification } from 'src/domain/authentification'
 import { DateService } from 'src/utils/date-service'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
@@ -45,12 +46,8 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
     miloClient = stubClass(MiloClient)
     dateService = stubClass(DateService)
     dateService.now.returns(DateTime.fromISO('2020-04-01T00:00:00.000Z'))
-    const fetcher = new SessionsMiloFetcher(dateService)
-    getter = new GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter(
-      oidcClient,
-      miloClient,
-      fetcher
-    )
+    const fetcher = new SessionsMiloFetcher(dateService, oidcClient, miloClient)
+    getter = new GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter(fetcher)
   })
 
   after(() => {
@@ -102,7 +99,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         unJeuneDto({ id: idJeuneSansStructure, idStructureMilo: null })
       )
 
-      const result = await getter.handle(idJeuneSansStructure, accessToken)
+      const result = await getter.handle(
+        idJeuneSansStructure,
+        Authentification.Type.CONSEILLER,
+        accessToken
+      )
 
       expect(result).to.deep.equal(success([]))
       expect(oidcClient.exchangeTokenConseillerMilo).not.to.have.been.called()
@@ -116,7 +117,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         .withArgs(idpToken, jeune.idPartenaire)
         .resolves(success([]))
 
-      await getter.handle(jeune.id, accessToken)
+      await getter.handle(
+        jeune.id,
+        Authentification.Type.CONSEILLER,
+        accessToken
+      )
 
       expect(
         oidcClient.exchangeTokenConseillerMilo
@@ -164,7 +169,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
           ])
         )
 
-      const result = await getter.handle(jeune.id, accessToken)
+      const result = await getter.handle(
+        jeune.id,
+        Authentification.Type.CONSEILLER,
+        accessToken
+      )
 
       expect(result).to.deep.equal(
         success([
@@ -213,7 +222,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
           ])
         )
 
-      const result = await getter.handle(jeune.id, accessToken)
+      const result = await getter.handle(
+        jeune.id,
+        Authentification.Type.CONSEILLER,
+        accessToken
+      )
 
       expect(result).to.deep.equal(
         success([
@@ -237,7 +250,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         .withArgs(idpToken)
         .resolves({ _isSuccess: false, error: erreur } as never)
 
-      const result = await getter.handle(jeune.id, accessToken)
+      const result = await getter.handle(
+        jeune.id,
+        Authentification.Type.CONSEILLER,
+        accessToken
+      )
 
       expect(result).to.deep.equal({ _isSuccess: false, error: erreur })
     })

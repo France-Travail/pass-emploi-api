@@ -1,12 +1,13 @@
 import { DateTime } from 'luxon'
 import { describe } from 'mocha'
 import { createSandbox, SinonSandbox } from 'sinon'
-import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { SessionsMiloFetcher } from 'src/application/queries/query-getters/milo/sessions-milo.fetcher'
 import { success } from 'src/building-blocks/types/result'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { Authentification } from 'src/domain/authentification'
 import { DateService } from 'src/utils/date-service'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
@@ -40,10 +41,8 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
     miloClient = stubClass(MiloClient)
     dateService = stubClass(DateService)
     dateService.now.returns(DateTime.fromISO('2020-04-01T00:00:00.000Z'))
-    const fetcher = new SessionsMiloFetcher(dateService)
+    const fetcher = new SessionsMiloFetcher(dateService, oidcClient, miloClient)
     getSessionsQueryGetter = new GetSessionsVisiblesPourLeJeuneMiloQueryGetter(
-      oidcClient,
-      miloClient,
       fetcher
     )
   })
@@ -108,6 +107,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
       const result = await getSessionsQueryGetter.handle(
         idJeuneSansStructure,
+        Authentification.Type.JEUNE,
         accessToken
       )
 
@@ -150,6 +150,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
       const result = await getSessionsQueryGetter.handle(
         jeuneParis.id,
+        Authentification.Type.JEUNE,
         accessToken
       )
 
@@ -202,6 +203,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
       const result = await getSessionsQueryGetter.handle(
         jeuneCayenne.id,
+        Authentification.Type.JEUNE,
         accessToken
       )
 
@@ -250,6 +252,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
         const result = await getSessionsQueryGetter.handle(
           jeuneParis.id,
+          Authentification.Type.JEUNE,
           accessToken
         )
 
@@ -276,6 +279,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
         const result = await getSessionsQueryGetter.handle(
           jeuneParis.id,
+          Authentification.Type.JEUNE,
           accessToken
         )
 
@@ -321,6 +325,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
 
         const result = await getSessionsQueryGetter.handle(
           jeuneParis.id,
+          Authentification.Type.JEUNE,
           accessToken
         )
 

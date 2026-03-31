@@ -5,7 +5,7 @@ import {
   GetSessionsJeuneMiloQuery,
   GetSessionsJeuneMiloQueryHandler
 } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
-import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-disponibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
@@ -19,6 +19,7 @@ import {
 import { uneSessionJeuneMiloQueryModel } from 'test/fixtures/sessions.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { ConseillerInterStructureMiloAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-structure-milo-authorizer'
+import { Authentification } from '../../../../src/domain/authentification'
 import { Core } from '../../../../src/domain/core'
 import { SessionMilo } from '../../../../src/domain/milo/session.milo'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -137,7 +138,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
       it("utilise le getter sessions visibles quand c'est un jeune", async () => {
         const unSuccess = success([uneSessionJeuneMiloQueryModel()])
         getSessionsPourLeJeuneQueryGetter.handle
-          .withArgs('idJeune', 'token')
+          .withArgs('idJeune', Authentification.Type.JEUNE, 'token')
           .resolves(unSuccess)
 
         const result = await getSessionsQueryHandler.handle(query, utilisateur)
@@ -154,7 +155,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
           })
         ])
         getSessionsInscritQueryGetter.handle
-          .withArgs('idJeune', 'token')
+          .withArgs('idJeune', Authentification.Type.CONSEILLER, 'token')
           .resolves(unSuccess)
 
         const result = await getSessionsQueryHandler.handle(
@@ -171,7 +172,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
       it('renvoie la failure du getter', async () => {
         const uneFailure = failure(new NonTrouveError('Jeune', query.idJeune))
         getSessionsPourLeJeuneQueryGetter.handle
-          .withArgs('idJeune', 'token')
+          .withArgs('idJeune', Authentification.Type.JEUNE, 'token')
           .resolves(uneFailure)
 
         const result = await getSessionsQueryHandler.handle(query, utilisateur)
