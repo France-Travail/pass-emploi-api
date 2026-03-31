@@ -175,8 +175,9 @@ export class ChangerDispositifJeunePayload {
   @IsEnum(ArchiveJeune.MotifSuppression)
   motif: ArchiveJeune.MotifSuppression
 
-  @ApiPropertyOptional()
+  @ApiProperty()
   @IsDate()
+  @Transform(({ value }) => new Date(value))
   dateFinAccompagnement: Date
 }
 
