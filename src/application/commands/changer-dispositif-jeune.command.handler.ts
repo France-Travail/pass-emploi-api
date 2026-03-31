@@ -105,12 +105,14 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
     _command: ChangerDispositifJeuneCommand,
     jeune: Jeune
   ): Promise<void> {
+    const evenements = [
+      this.evenementService.creer(Evenement.Code.COMPTE_CREE, utilisateur)
+    ]
     if (jeune.isActivated) {
-      await this.evenementService.creer(
-        Evenement.Code.COMPTE_ARCHIVE,
-        utilisateur
+      evenements.push(
+        this.evenementService.creer(Evenement.Code.COMPTE_ARCHIVE, utilisateur)
       )
     }
-    await this.evenementService.creer(Evenement.Code.COMPTE_CREE, utilisateur)
+    await Promise.all(evenements)
   }
 }

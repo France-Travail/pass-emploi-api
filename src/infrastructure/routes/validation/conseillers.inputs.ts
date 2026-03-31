@@ -167,7 +167,6 @@ export class DetailConseillerPayload {
 
 export class ChangerDispositifJeunePayload {
   @ApiProperty({ enum: [Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA] })
-  @IsEnum(Jeune.Dispositif)
   @IsIn([Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA])
   dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
 

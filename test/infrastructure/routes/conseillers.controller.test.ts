@@ -1,4 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
+import {
+  ChangerDispositifJeuneCommand,
+  ChangerDispositifJeuneCommandHandler
+} from 'src/application/commands/changer-dispositif-jeune.command.handler'
 import { DeleteConseillerCommandHandler } from 'src/application/commands/conseiller/delete-conseiller.command.handler'
 import {
   ModifierConseillerCommand,
@@ -26,6 +30,8 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
+import { ArchiveJeune } from 'src/domain/archive-jeune'
+import { Jeune } from 'src/domain/jeune/jeune'
 import { EnvoyerNotificationsPayload } from 'src/infrastructure/routes/validation/conseillers.inputs'
 import * as request from 'supertest'
 import { uneAgence } from 'test/fixtures/agence.fixture'
@@ -60,6 +66,7 @@ describe('ConseillersController', () => {
   let getRendezVousJeuneQueryHandler: StubbedClass<GetRendezVousJeuneQueryHandler>
   let getComptageJeunesByConseillerQueryHandler: StubbedClass<GetComptageJeunesByConseillerQueryHandler>
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
+  let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
 
   let app: INestApplication
 
@@ -94,6 +101,9 @@ describe('ConseillersController', () => {
     )
     envoyerEmailActivationCommandHandler = app.get(
       EnvoyerEmailActivationCommandHandler
+    )
+    changerDispositifJeuneCommandHandler = app.get(
+      ChangerDispositifJeuneCommandHandler
     )
   })
 
@@ -773,6 +783,54 @@ describe('ConseillersController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'get',
       '/conseillers/1/jeunes/1/rendezvous'
+    )
+  })
+
+  describe('POST /conseillers/:idConseiller/jeunes/:idJeune/changer-dispositif', () => {
+    const idConseiller = 'id-conseiller'
+    const idJeune = 'id-jeune'
+    const payload = {
+      dispositif: Jeune.Dispositif.PACEA,
+      motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
+      dateFinAccompagnement: '2026-03-01T00:00:00.000Z'
+    }
+
+    it('change le dispositif et retourne 204', async () => {
+      // Given
+      const command: ChangerDispositifJeuneCommand = {
+        idJeune,
+        dispositif: Jeune.Dispositif.PACEA,
+        motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
+        dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
+      }
+      changerDispositifJeuneCommandHandler.execute
+        .withArgs(command, unUtilisateurDecode())
+        .resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it('retourne 400 quand le payload est invalide', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send({ dispositif: 'INVALIDE', motif: 'INVALIDE' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'post',
+      `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
     )
   })
 })

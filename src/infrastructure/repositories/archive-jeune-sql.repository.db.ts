@@ -41,23 +41,11 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       }
     })
 
-    await ArchiveJeuneSqlModel.creer({
-      idJeune: metadonnees.idJeune,
-      email: metadonnees.email ?? null,
-      prenom: metadonnees.prenomJeune,
-      nom: metadonnees.nomJeune,
-      structure: metadonnees.structure,
-      dispositif: metadonnees.dispositif,
-      idPartenaire: metadonnees.idPartenaire ?? null,
-      dateCreation: metadonnees.dateCreation,
-      datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
-      dateFinAccompagnement: metadonnees.dateFinAccompagnement ?? null,
-      motif: metadonnees.motif,
-      commentaire: metadonnees.commentaire ?? null,
-      dateArchivage: metadonnees.dateArchivage,
-      idStructureMilo: archiveResult.data.idStructureMilo,
-      donnees: archiveResult.data.donnees
-    })
+    await this.creerLigne(
+      metadonnees,
+      archiveResult.data.idStructureMilo,
+      archiveResult.data.donnees
+    )
 
     return emptySuccess()
   }
@@ -65,6 +53,15 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   async archiverSansDonnees(
     metadonnees: ArchiveJeune.Metadonnees
   ): Promise<Result> {
+    await this.creerLigne(metadonnees, null, null)
+    return emptySuccess()
+  }
+
+  private async creerLigne(
+    metadonnees: ArchiveJeune.Metadonnees,
+    idStructureMilo: string | null,
+    donnees: ArchiveJeune | null
+  ): Promise<void> {
     await ArchiveJeuneSqlModel.creer({
       idJeune: metadonnees.idJeune,
       email: metadonnees.email ?? null,
@@ -79,10 +76,9 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       motif: metadonnees.motif,
       commentaire: metadonnees.commentaire ?? null,
       dateArchivage: metadonnees.dateArchivage,
-      idStructureMilo: null,
-      donnees: null as unknown as ArchiveJeune
+      idStructureMilo,
+      donnees
     })
-    return emptySuccess()
   }
 
   async delete(idArchive: number): Promise<void> {

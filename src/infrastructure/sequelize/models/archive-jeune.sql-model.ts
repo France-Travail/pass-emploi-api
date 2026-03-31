@@ -100,7 +100,7 @@ export class ArchiveJeuneDto extends Model {
   dateArchivage: Date
 
   @Column({ field: 'donnees', type: DataType.JSONB })
-  donnees: ArchiveJeune
+  donnees: ArchiveJeune | null
 }
 
 @Table({

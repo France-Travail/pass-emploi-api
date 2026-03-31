@@ -17,7 +17,7 @@ import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
-import { uneAutreDate, uneDate, uneDatetime } from '../../fixtures/date.fixture'
+import { uneAutreDate, uneDate } from '../../fixtures/date.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
 
@@ -89,6 +89,19 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
 
   describe('handle', () => {
     describe('quand le jeune est activé', () => {
+      it("retourne l'erreur si l'archivage échoue", async () => {
+        // Given
+        const erreur = failure(new NonTrouveError('Jeune', jeune.id))
+        archiveJeuneRepository.archiverSansDonnees.resolves(erreur)
+
+        // When
+        const result = await handler.handle(command, utilisateur, jeune)
+
+        // Then
+        expect(result).to.deep.equal(erreur)
+        expect(jeuneRepository.save).not.to.have.been.called()
+      })
+
       it('archive les métadonnées, réinitialise le compte et bascule le dispositif', async () => {
         // Given
         archiveJeuneRepository.archiverSansDonnees.resolves(emptySuccess())
@@ -155,8 +168,9 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
         )
 
         // Then
-        expect(archiveJeuneRepository.archiverSansDonnees).not.to.have.been
-          .called()
+        expect(
+          archiveJeuneRepository.archiverSansDonnees
+        ).not.to.have.been.called()
 
         const jeuneAttendu: Jeune = {
           ...jeuneNonActive,
@@ -182,7 +196,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   })
 
   describe('monitor', () => {
-    it("émet COMPTE_ARCHIVE et COMPTE_CREE quand le jeune était activé", async () => {
+    it('émet COMPTE_ARCHIVE et COMPTE_CREE quand le jeune était activé', async () => {
       // When
       await handler.monitor(utilisateur, command, jeune)
 

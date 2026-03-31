@@ -112,17 +112,17 @@ export namespace Jeune {
   export function reinitialiserPourChangementDispositif(
     jeune: Jeune,
     dispositif: Dispositif,
-    maintenant: DateTime
+    dateFinAccompagnement: DateTime
   ): Jeune {
     const jeuneAvecNouveauDispositif = mettreAJourDispositif(jeune, dispositif)
     return {
       ...jeuneAvecNouveauDispositif,
-      creationDate: maintenant,
+      creationDate: dateFinAccompagnement,
       datePremiereConnexion: undefined,
       isActivated: false,
       configuration: {
         ...jeune.configuration,
-        dateDerniereActualisationToken: maintenant.toJSDate()
+        dateDerniereActualisationToken: dateFinAccompagnement.toJSDate()
       }
     }
   }
