@@ -58,6 +58,7 @@
     "tasks:notifier-rendez-vous-pe": "IS_WEB=false TASK_NAME=NOTIFIER_RENDEZVOUS_PE node dist/main",
     "tasks:monitorer-jobs": "IS_WEB=false TASK_NAME=MONITORER_JOBS node dist/main",
     "tasks:suivre-events-milo": "IS_WEB=false TASK_NAME=SUIVRE_FILE_EVENEMENTS_MILO node dist/main",
+    "tasks:maj-referentiel-rome": "IS_WEB=false TASK_NAME=MAJ_REFERENTIEL_ROME node dist/main",
     "tasks:dump-analytics": "IS_WEB=false TASK_NAME=DUMP_ANALYTICS node dist/main",
     "tasks:charger-evenements": "IS_WEB=false TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS node dist/main",
     "tasks:enrichir-evenements": "IS_WEB=false TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS node dist/main",
