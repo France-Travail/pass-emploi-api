@@ -137,7 +137,8 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
           isActivated: false,
           configuration: {
             ...jeune.configuration,
-            dateDerniereActualisationToken: dateFinAccompagnement
+            pushNotificationToken: undefined,
+            dateDerniereActualisationToken: undefined
           }
         }
         expect(jeuneRepository.save).to.have.been.calledOnceWithExactly(
@@ -181,7 +182,8 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
           isActivated: false,
           configuration: {
             ...jeuneNonActive.configuration,
-            dateDerniereActualisationToken: dateFinAccompagnement
+            pushNotificationToken: undefined,
+            dateDerniereActualisationToken: undefined
           }
         }
         expect(jeuneRepository.save).to.have.been.calledOnceWithExactly(

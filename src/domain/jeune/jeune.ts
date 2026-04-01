@@ -122,7 +122,8 @@ export namespace Jeune {
       isActivated: false,
       configuration: {
         ...jeune.configuration,
-        dateDerniereActualisationToken: dateFinAccompagnement.toJSDate()
+        pushNotificationToken: undefined,
+        dateDerniereActualisationToken: undefined
       }
     }
   }
