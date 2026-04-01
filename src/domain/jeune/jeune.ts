@@ -109,6 +109,25 @@ export namespace Jeune {
     }
   }
 
+  export function reinitialiserPourChangementDispositif(
+    jeune: Jeune,
+    dispositif: Dispositif,
+    dateFinAccompagnement: DateTime
+  ): Jeune {
+    const jeuneAvecNouveauDispositif = mettreAJourDispositif(jeune, dispositif)
+    return {
+      ...jeuneAvecNouveauDispositif,
+      creationDate: dateFinAccompagnement,
+      datePremiereConnexion: undefined,
+      isActivated: false,
+      configuration: {
+        ...jeune.configuration,
+        pushNotificationToken: undefined,
+        dateDerniereActualisationToken: undefined
+      }
+    }
+  }
+
   export function mettreAJourPeutVoirComptageDesHeures(
     jeune: Jeune,
     peutVoirLeComptageDesHeures: boolean
@@ -162,6 +181,8 @@ export namespace Jeune {
     ): Promise<void>
 
     saveAllJeuneTransferes(jeunes: Jeune[]): Promise<void>
+
+    reinitialiserDatePremiereConnexion(idJeune: string): Promise<void>
   }
 
   @Injectable()

@@ -192,6 +192,13 @@ export class JeuneSqlRepository implements Jeune.Repository {
     await JeuneSqlModel.upsert(jeuneDto)
   }
 
+  async reinitialiserDatePremiereConnexion(idJeune: string): Promise<void> {
+    await JeuneSqlModel.update(
+      { datePremiereConnexion: null },
+      { where: { id: idJeune } }
+    )
+  }
+
   async supprimer(jeune: Jeune.Id): Promise<void> {
     await JeuneSqlModel.supprimer(jeune)
   }

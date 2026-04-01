@@ -24,6 +24,7 @@ import {
   CreateListeDeDiffusionCommandHandler
 } from '../../application/commands/create-liste-de-diffusion.command.handler'
 import { EnvoyerEmailActivationCommandHandler } from '../../application/commands/milo/envoyer-email-activation.command.handler'
+import { ChangerDispositifJeuneCommandHandler } from '../../application/commands/changer-dispositif-jeune.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from '../../application/commands/modifier-jeune-du-conseiller.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from '../../application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import {
@@ -56,6 +57,7 @@ import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import {
+  ChangerDispositifJeunePayload,
   CreateListeDeDiffusionPayload,
   DetailConseillerPayload,
   EnvoyerNotificationsPayload,
@@ -85,7 +87,8 @@ export class ConseillersController {
     private readonly getDemarchesConseillerQueryHandler: GetDemarchesConseillerQueryHandler,
     private readonly getRendezVousJeuneQueryHandler: GetRendezVousJeuneQueryHandler,
     private readonly sendNotificationsNouveauxMessages: SendNotificationsNouveauxMessagesCommandHandler,
-    private readonly envoyerEmailActivationCommandHandler: EnvoyerEmailActivationCommandHandler
+    private readonly envoyerEmailActivationCommandHandler: EnvoyerEmailActivationCommandHandler,
+    private readonly changerDispositifJeuneCommandHandler: ChangerDispositifJeuneCommandHandler
   ) {}
 
   @ApiOperation({
@@ -272,6 +275,32 @@ export class ConseillersController {
       utilisateur
     )
 
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: "Change le dispositif d'un bénéficiaire avec transition",
+    description:
+      'Archive les métadonnées du compte si activé, réinitialise les dates, et bascule le dispositif. Autorisé pour le conseiller du bénéficiaire.'
+  })
+  @Post(':idConseiller/jeunes/:idJeune/changer-dispositif')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBody({ type: ChangerDispositifJeunePayload })
+  async changerDispositifJeune(
+    @Param('idConseiller') _idConseiller: string,
+    @Param('idJeune') idJeune: string,
+    @Body() payload: ChangerDispositifJeunePayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result = await this.changerDispositifJeuneCommandHandler.execute(
+      {
+        idJeune,
+        dispositif: payload.dispositif,
+        motif: payload.motif,
+        dateFinAccompagnement: payload.dateFinAccompagnement
+      },
+      utilisateur
+    )
     return handleResult(result)
   }
 

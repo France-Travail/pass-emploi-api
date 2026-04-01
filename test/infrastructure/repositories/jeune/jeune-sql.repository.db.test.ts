@@ -175,6 +175,31 @@ describe('JeuneSqlRepository', () => {
     })
   })
 
+  describe('reinitialiserDatePremiereConnexion', () => {
+    it('met datePremiereConnexion à null', async () => {
+      // Given
+      const conseillerDto = unConseillerDto({
+        structure: Core.Structure.POLE_EMPLOI
+      })
+      await ConseillerSqlModel.creer(conseillerDto)
+      const idJeune = 'test-reinitialiser-connexion'
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id: idJeune,
+          idConseiller: conseillerDto.id,
+          datePremiereConnexion: new Date('2021-11-11T08:03:30.000Z')
+        })
+      )
+
+      // When
+      await jeuneSqlRepository.reinitialiserDatePremiereConnexion(idJeune)
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.datePremiereConnexion).to.be.null()
+    })
+  })
+
   describe('save', () => {
     beforeEach(async () => {
       // Given

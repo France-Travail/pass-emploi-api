@@ -2,7 +2,10 @@ import { DateTime } from 'luxon'
 import { uneArchiveJeuneMetadonnees } from 'test/fixtures/archiveJeune.fixture'
 import { uneDatetime, uneDatetimeLocale } from 'test/fixtures/date.fixture'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import { failure } from '../../../src/building-blocks/types/result'
+import {
+  emptySuccess,
+  failure
+} from '../../../src/building-blocks/types/result'
 import { Action } from '../../../src/domain/action/action'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -234,7 +237,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde le dernier conseiller', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.dernierConseiller).to.deep.equal({
+      expect(archiveJeuneSql!.donnees!.dernierConseiller).to.deep.equal({
         nom: 'Tavernier',
         prenom: 'Nils'
       })
@@ -242,7 +245,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it("génère l'historique des conseillers", () => {
       // Then
-      expect(archiveJeuneSql!.donnees.historiqueConseillers).to.deep.equal([
+      expect(archiveJeuneSql!.donnees!.historiqueConseillers).to.deep.equal([
         {
           conseillerCible: {
             nom: 'Tavernier',
@@ -259,7 +262,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde les actions', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.actions).to.deep.equal([
+      expect(archiveJeuneSql!.donnees!.actions).to.deep.equal([
         {
           description: "Description de l'action",
           contenu: "Contenu de l'action",
@@ -281,7 +284,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde les rendez vous', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.rendezVous).to.deep.equal([
+      expect(archiveJeuneSql!.donnees!.rendezVous).to.deep.equal([
         {
           commentaire: 'commentaire',
           date: '2021-11-11T08:03:30.000Z',
@@ -297,7 +300,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde les favoris', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.favoris).to.deep.equal({
+      expect(archiveJeuneSql!.donnees!.favoris).to.deep.equal({
         offresEmploi: [
           {
             alternance: false,
@@ -337,7 +340,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde les recherches', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.recherches).to.deep.equal([
+      expect(archiveJeuneSql!.donnees!.recherches).to.deep.equal([
         {
           criteres: {
             distance: 15,
@@ -360,7 +363,7 @@ describe('ArchiveJeuneSqlRepository', () => {
 
     it('sauvegarde les messages', () => {
       // Then
-      expect(archiveJeuneSql!.donnees.messages).to.deep.equal([])
+      expect(archiveJeuneSql!.donnees!.messages).to.deep.equal([])
     })
   })
 
@@ -487,6 +490,58 @@ describe('ArchiveJeuneSqlRepository', () => {
           MotifSuppressionSupport.MIGRATION
         )
       ).to.be.false()
+    })
+  })
+
+  describe('archiverSansDonnees', () => {
+    beforeEach(async () => {
+      await ConseillerSqlModel.upsert(secondConseillerDto)
+      await JeuneSqlModel.upsert(jeuneDto)
+    })
+
+    it('crée une ligne dans archive_jeune sans données', async () => {
+      // Given
+      const metadonnees = uneArchiveJeuneMetadonnees({
+        idJeune: jeuneDto.id,
+        motif: MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
+        nomJeune: jeuneDto.nom,
+        prenomJeune: jeuneDto.prenom,
+        structure: jeuneDto.structure,
+        dispositif: jeuneDto.dispositif,
+        email: jeuneDto.email!,
+        dateCreation: new Date('2022-01-05T09:23:00Z'),
+        datePremiereConnexion: new Date('2022-01-06T09:23:00Z'),
+        dateFinAccompagnement: new Date('2022-07-01T09:23:00Z'),
+        dateArchivage: new Date('2022-07-05T09:23:00Z')
+      })
+
+      // When
+      const result =
+        await archiveJeuneSqlRepository.archiverSansDonnees(metadonnees)
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(result).to.deep.equal(emptySuccess())
+      expect(archiveSql).not.to.be.null()
+      expect(archiveSql!.idJeune).to.equal(jeuneDto.id)
+      expect(archiveSql!.motif).to.equal(
+        MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT
+      )
+      expect(archiveSql!.donnees).to.deep.equal({
+        rendezVous: [],
+        actions: [],
+        favoris: {
+          offresEmploi: [],
+          offresImmersions: [],
+          offresServiceCivique: []
+        },
+        recherches: [],
+        dernierConseiller: { nom: '', prenom: '' },
+        historiqueConseillers: [],
+        messages: []
+      })
     })
   })
 })

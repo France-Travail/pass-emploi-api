@@ -41,6 +41,40 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       }
     })
 
+    await this.creerLigne(
+      metadonnees,
+      archiveResult.data.idStructureMilo,
+      archiveResult.data.donnees
+    )
+
+    return emptySuccess()
+  }
+
+  async archiverSansDonnees(
+    metadonnees: ArchiveJeune.Metadonnees
+  ): Promise<Result> {
+    const donneesVides: ArchiveJeune = {
+      rendezVous: [],
+      actions: [],
+      favoris: {
+        offresEmploi: [],
+        offresImmersions: [],
+        offresServiceCivique: []
+      },
+      recherches: [],
+      dernierConseiller: { nom: '', prenom: '' },
+      historiqueConseillers: [],
+      messages: []
+    }
+    await this.creerLigne(metadonnees, null, donneesVides)
+    return emptySuccess()
+  }
+
+  private async creerLigne(
+    metadonnees: ArchiveJeune.Metadonnees,
+    idStructureMilo: string | null,
+    donnees: ArchiveJeune | null
+  ): Promise<void> {
     await ArchiveJeuneSqlModel.creer({
       idJeune: metadonnees.idJeune,
       email: metadonnees.email ?? null,
@@ -55,11 +89,9 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       motif: metadonnees.motif,
       commentaire: metadonnees.commentaire ?? null,
       dateArchivage: metadonnees.dateArchivage,
-      idStructureMilo: archiveResult.data.idStructureMilo,
-      donnees: archiveResult.data.donnees
+      idStructureMilo,
+      donnees
     })
-
-    return emptySuccess()
   }
 
   async delete(idArchive: number): Promise<void> {
