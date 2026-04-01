@@ -53,7 +53,20 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   async archiverSansDonnees(
     metadonnees: ArchiveJeune.Metadonnees
   ): Promise<Result> {
-    await this.creerLigne(metadonnees, null, null)
+    const donneesVides: ArchiveJeune = {
+      rendezVous: [],
+      actions: [],
+      favoris: {
+        offresEmploi: [],
+        offresImmersions: [],
+        offresServiceCivique: []
+      },
+      recherches: [],
+      dernierConseiller: { nom: '', prenom: '' },
+      historiqueConseillers: [],
+      messages: []
+    }
+    await this.creerLigne(metadonnees, null, donneesVides)
     return emptySuccess()
   }
 

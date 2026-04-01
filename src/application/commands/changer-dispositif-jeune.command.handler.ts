@@ -95,6 +95,7 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
       DateTime.fromJSDate(command.dateFinAccompagnement)
     )
     await this.jeuneRepository.save(jeuneMisAJour)
+    //TODO à supprimer avec la refacto du save jeune milo
     await this.jeuneRepository.reinitialiserDatePremiereConnexion(jeune.id)
 
     return emptySuccess()
