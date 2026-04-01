@@ -529,8 +529,19 @@ describe('ArchiveJeuneSqlRepository', () => {
       expect(archiveSql!.motif).to.equal(
         MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT
       )
-
-      expect(archiveSql!.donnees).to.be.null()
+      expect(archiveSql!.donnees).to.deep.equal({
+        rendezVous: [],
+        actions: [],
+        favoris: {
+          offresEmploi: [],
+          offresImmersions: [],
+          offresServiceCivique: []
+        },
+        recherches: [],
+        dernierConseiller: { nom: '', prenom: '' },
+        historiqueConseillers: [],
+        messages: []
+      })
     })
   })
 })
