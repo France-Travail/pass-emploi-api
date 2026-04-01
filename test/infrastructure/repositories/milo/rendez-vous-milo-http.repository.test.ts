@@ -6,6 +6,7 @@ import { RendezVousMilo } from '../../../../src/domain/milo/rendez-vous.milo'
 import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { RendezVousMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/rendez-vous-milo-http.repository'
 import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
+import Statut = RendezVousMilo.Statut
 
 describe('RendezVousMiloHttpRepository', () => {
   let repository: RendezVousMiloHttpRepository
@@ -51,7 +52,8 @@ describe('RendezVousMiloHttpRepository', () => {
         const expected: RendezVousMilo = unRendezVousMilo({
           id: idObjet.toString(),
           idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString(),
-          adresse: 'new'
+          adresse: 'new',
+          statut: Statut.RDV_PLANIFIE
         })
         expect(resultat).to.deep.equal(expected)
         expect(miloClient.getRendezVous).to.have.been.calledOnceWithExactly(

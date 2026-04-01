@@ -22,7 +22,7 @@ export interface RendezVousMilo {
   commentaire?: string
   modalite?: string
   adresse?: string
-  statut: string
+  statut: RendezVousMilo.Statut
 }
 
 export namespace RendezVousMilo {
@@ -50,7 +50,7 @@ export namespace RendezVousMilo {
     })
   }
 
-  function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
+  export function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
     return (
       rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE ||
       rendezVousMilo.statut === RendezVousMilo.Statut.RDV_REPORTE
@@ -153,9 +153,9 @@ export namespace RendezVousMilo {
 
     private calculerPresence(statut: string): boolean | undefined {
       switch (statut) {
-        case 'Présent':
+        case Statut.RDV_PRESENT:
           return true
-        case 'Absent':
+        case Statut.RDV_ABSENT:
           return false
         default:
           return undefined

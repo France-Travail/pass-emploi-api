@@ -34,7 +34,7 @@ export class RendezVousMiloHttpRepository implements RendezVousMilo.Repository {
       idPartenaireBeneficiaire: result.data.idDossier.toString(),
       commentaire: result.data.commentaire,
       adresse: result.data.lieu,
-      statut: result.data.statut
+      statut: result.data.statut as RendezVousMilo.Statut
     }
   }
 }
