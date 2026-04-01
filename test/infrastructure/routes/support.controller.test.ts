@@ -565,11 +565,11 @@ describe('SupportController', () => {
       it('renvoie 204', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
           emailsConseillersAjout: ['test']
         }
         const command = {
-          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
           emailsConseillersAjout: ['test'],
           supprimerExistants: undefined
         }
@@ -586,12 +586,12 @@ describe('SupportController', () => {
       it('renvoie 204 avec supprimerExistants à false', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
           emailsConseillersAjout: ['test'],
           supprimerExistants: false
         }
         const command = {
-          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
           emailsConseillersAjout: ['test'],
           supprimerExistants: false
         }
@@ -608,7 +608,7 @@ describe('SupportController', () => {
       it('renvoie 400 qd supprimerExistants est autre que true', async () => {
         // Given
         const payload = {
-          tagFeature: FeatureFlip.Tag.DEMARCHES_IA,
+          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
           emailsConseillersAjout: ['test'],
           supprimerExistants: 'true'
         }

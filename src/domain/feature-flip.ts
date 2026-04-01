@@ -5,7 +5,6 @@ export const FeatureFlipRepositoryToken = 'FeatureFlipRepositoryToken'
 
 export namespace FeatureFlip {
   export enum Tag {
-    DEMARCHES_IA = 'DEMARCHES_IA',
     MIGRATION_PHASE_A = 'MIGRATION_PHASE_A',
     MIGRATION_PHASE_B = 'MIGRATION_PHASE_B',
     MIGRATION_PHASE_TEST = 'MIGRATION_PHASE_TEST'
