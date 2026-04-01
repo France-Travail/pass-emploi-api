@@ -239,26 +239,22 @@ export namespace Notification {
 
       switch (typeNotification) {
         case Type.NEW_RENDEZVOUS:
-          notification = this.creerNotificationNouveauRdv(token, rendezVous.id)
+          notification = this.creerNotificationNouveauRdvMilo(token, rendezVous)
           break
         case Type.UPDATED_RENDEZVOUS:
-          notification = this.creerNotificationRendezVousMisAJour(
+          notification = this.creerNotificationRendezVousMisAJourMilo(
             token,
-            rendezVous.id
+            rendezVous
           )
           break
         case Type.DELETED_RENDEZVOUS:
-          notification = this.creerNotificationRdvSupprime(
+          notification = this.creerNotificationRdvSupprimeMilo(
             token,
-            rendezVous.date
+            rendezVous
           )
           break
         case Type.CANCELED_RENDEZVOUS:
-          notification = this.creerNotificationRdvAnnule(
-            token,
-            rendezVous.date,
-            rendezVous.id
-          )
+          notification = this.creerNotificationRdvAnnuleMilo(token, rendezVous)
           break
       }
 
@@ -277,14 +273,14 @@ export namespace Notification {
 
       switch (typeNotification) {
         case Type.NEW_RENDEZVOUS:
-          notification = this.creerNotificationNouveauRdv(
+          notification = this.creerNotificationNouveauRdvPoleEmploi(
             token,
             idRendezVous!,
             message
           )
           break
         case Type.UPDATED_RENDEZVOUS:
-          notification = this.creerNotificationRendezVousMisAJour(
+          notification = this.creerNotificationRendezVousMisAJourPoleEmploi(
             token,
             idRendezVous!,
             message
@@ -621,16 +617,16 @@ export namespace Notification {
       }
     }
 
-    private creerNotificationNouveauRdv(
+    private creerNotificationNouveauRdvPoleEmploi(
       token: string,
       idRdv: string,
-      message?: string
+      message: string
     ): Notification.Message {
       return {
         token,
         notification: {
           title: 'Nouveau rendez-vous',
-          body: message ?? 'Votre conseiller a programmé un nouveau rendez-vous'
+          body: message
         },
         data: {
           type: Type.NEW_RENDEZVOUS,
@@ -639,55 +635,19 @@ export namespace Notification {
       }
     }
 
-    private creerNotificationRendezVousMisAJour(
+    private creerNotificationRendezVousMisAJourPoleEmploi(
       token: string,
       idRdv: string,
-      message?: string
+      message: string
     ): Notification.Message {
       return {
         token,
         notification: {
           title: 'Rendez-vous modifié',
-          body: message ?? 'Votre rendez-vous a été modifié'
+          body: message
         },
         data: {
           type: Type.NEW_RENDEZVOUS,
-          id: idRdv
-        }
-      }
-    }
-
-    private creerNotificationRdvSupprime(
-      token: string,
-      date: Date
-    ): Notification.Message {
-      const formattedDate = DateTime.fromJSDate(date).toFormat('dd/MM')
-      return {
-        token,
-        notification: {
-          title: 'Rendez-vous supprimé',
-          body: `Votre rendez-vous du ${formattedDate} est supprimé`
-        },
-        data: {
-          type: Type.DELETED_RENDEZVOUS
-        }
-      }
-    }
-
-    private creerNotificationRdvAnnule(
-      token: string,
-      date: Date,
-      idRdv: string
-    ): Notification.Message {
-      const formattedDate = DateTime.fromJSDate(date).toFormat('dd/MM')
-      return {
-        token,
-        notification: {
-          title: 'Rendez-vous annulé',
-          body: `Votre rendez-vous du ${formattedDate} est annulé`
-        },
-        data: {
-          type: Type.CANCELED_RENDEZVOUS,
           id: idRdv
         }
       }
@@ -707,6 +667,79 @@ export namespace Notification {
           type: Type.DELETED_RENDEZVOUS
         }
       }
+    }
+
+    private creerNotificationNouveauRdvMilo(
+      token: string,
+      rendezVous: RendezVous,
+      message?: string
+    ): Notification.Message {
+      return {
+        token,
+        notification: {
+          title: 'Nouveau rendez-vous',
+          body:
+            message ??
+            `Votre conseiller a programmé un nouveau rendez-vous le ${this.dateFormatJourMois(rendezVous.date)} : ${rendezVous.titre}`
+        },
+        data: {
+          type: Type.NEW_RENDEZVOUS,
+          id: rendezVous.id
+        }
+      }
+    }
+
+    private creerNotificationRendezVousMisAJourMilo(
+      token: string,
+      rendezVous: RendezVous
+    ): Notification.Message {
+      return {
+        token,
+        notification: {
+          title: 'Rendez-vous modifié',
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} a été modifié : ${rendezVous.titre}`
+        },
+        data: {
+          type: Type.NEW_RENDEZVOUS,
+          id: rendezVous.id
+        }
+      }
+    }
+
+    private creerNotificationRdvSupprimeMilo(
+      token: string,
+      rendezVous: RendezVous
+    ): Notification.Message {
+      return {
+        token,
+        notification: {
+          title: 'Rendez-vous supprimé',
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est supprimé : ${rendezVous.titre}`
+        },
+        data: {
+          type: Type.DELETED_RENDEZVOUS
+        }
+      }
+    }
+
+    private creerNotificationRdvAnnuleMilo(
+      token: string,
+      rendezVous: RendezVous
+    ): Notification.Message {
+      return {
+        token,
+        notification: {
+          title: 'Rendez-vous annulé',
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est annulé : ${rendezVous.titre}`
+        },
+        data: {
+          type: Type.CANCELED_RENDEZVOUS,
+          id: rendezVous.id
+        }
+      }
+    }
+    private dateFormatJourMois(date: Date): string {
+      return DateTime.fromJSDate(date).toFormat('dd/MM')
     }
 
     private creerNotificationNouveauMessage(

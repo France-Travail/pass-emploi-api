@@ -37,14 +37,16 @@ describe('Notification', () => {
       it('notifie les jeunes avec pushNotificationToken du nouveau rdv', async () => {
         // Given
         const rdv = unRendezVous({
-          jeunes: [unJeune(), unJeuneSansPushNotificationToken()]
+          jeunes: [unJeune(), unJeuneSansPushNotificationToken()],
+          date: new Date('2021-11-11T08:03:30.000Z'),
+          titre: 'rdv'
         })
         const typeNotification = Notification.Type.NEW_RENDEZVOUS
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
             title: 'Nouveau rendez-vous',
-            body: 'Votre conseiller a programmé un nouveau rendez-vous'
+            body: 'Votre conseiller a programmé un nouveau rendez-vous le 11/11 : rdv'
           },
           data: {
             type: typeNotification,
@@ -64,14 +66,16 @@ describe('Notification', () => {
       it('notifie les jeunes avec pushNotificationToken du rdv modifié', async () => {
         // Given
         const rdv = unRendezVous({
-          jeunes: [unJeune(), unJeuneSansPushNotificationToken()]
+          jeunes: [unJeune(), unJeuneSansPushNotificationToken()],
+          date: new Date('2021-11-11T08:03:30.000Z'),
+          titre: 'rdv'
         })
         const typeNotification = Notification.Type.UPDATED_RENDEZVOUS
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
             title: 'Rendez-vous modifié',
-            body: 'Votre rendez-vous a été modifié'
+            body: 'Votre rendez-vous du 11/11 a été modifié : rdv'
           },
           data: {
             type: Notification.Type.NEW_RENDEZVOUS,
@@ -91,14 +95,16 @@ describe('Notification', () => {
       it('notifie les jeunes avec pushNotificationToken du rdv supprimé', async () => {
         // Given
         const rdv = unRendezVous({
-          jeunes: [unJeune(), unJeuneSansPushNotificationToken()]
+          jeunes: [unJeune(), unJeuneSansPushNotificationToken()],
+          date: new Date('2021-11-11T08:03:30.000Z'),
+          titre: 'rdv'
         })
         const typeNotification = Notification.Type.DELETED_RENDEZVOUS
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
             title: 'Rendez-vous supprimé',
-            body: `Votre rendez-vous du 11/11 est supprimé`
+            body: `Votre rendez-vous du 11/11 est supprimé : rdv`
           },
           data: {
             type: typeNotification
@@ -117,14 +123,16 @@ describe('Notification', () => {
       it('notifie les jeunes avec pushNotificationToken du rdv annulé', async () => {
         // Given
         const rdv = unRendezVous({
-          jeunes: [unJeune(), unJeuneSansPushNotificationToken()]
+          jeunes: [unJeune(), unJeuneSansPushNotificationToken()],
+          date: new Date('2021-11-11T08:03:30.000Z'),
+          titre: 'rdv'
         })
         const typeNotification = Notification.Type.CANCELED_RENDEZVOUS
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
             title: 'Rendez-vous annulé',
-            body: `Votre rendez-vous du 11/11 est annulé`
+            body: `Votre rendez-vous du 11/11 est annulé : rdv`
           },
           data: {
             type: typeNotification,
@@ -150,14 +158,16 @@ describe('Notification', () => {
             unJeune({
               preferences: desPreferencesJeune({ rendezVousSessions: false })
             })
-          ]
+          ],
+          date: new Date('2021-11-11T08:03:30.000Z'),
+          titre: 'rdv'
         })
         const typeNotification = Notification.Type.NEW_RENDEZVOUS
         const expectedNotification = uneNotification({
           token: rdv.jeunes[0].configuration?.pushNotificationToken,
           notification: {
             title: 'Nouveau rendez-vous',
-            body: 'Votre conseiller a programmé un nouveau rendez-vous'
+            body: 'Votre conseiller a programmé un nouveau rendez-vous le 11/11 : rdv'
           },
           data: {
             type: typeNotification,
