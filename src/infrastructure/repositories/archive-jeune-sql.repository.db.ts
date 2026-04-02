@@ -53,6 +53,9 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   async archiverSansDonnees(
     metadonnees: ArchiveJeune.Metadonnees
   ): Promise<Result> {
+    const jeuneSqlModel = await JeuneSqlModel.findByPk(metadonnees.idJeune, {
+      attributes: ['idStructureMilo']
+    })
     const donneesVides: ArchiveJeune = {
       rendezVous: [],
       actions: [],
@@ -66,14 +69,18 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       historiqueConseillers: [],
       messages: []
     }
-    await this.creerLigne(metadonnees, null, donneesVides)
+    await this.creerLigne(
+      metadonnees,
+      jeuneSqlModel?.idStructureMilo ?? null,
+      donneesVides
+    )
     return emptySuccess()
   }
 
   private async creerLigne(
     metadonnees: ArchiveJeune.Metadonnees,
     idStructureMilo: string | null,
-    donnees: ArchiveJeune | null
+    donnees: ArchiveJeune
   ): Promise<void> {
     await ArchiveJeuneSqlModel.creer({
       idJeune: metadonnees.idJeune,
@@ -89,8 +96,8 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       motif: metadonnees.motif,
       commentaire: metadonnees.commentaire ?? null,
       dateArchivage: metadonnees.dateArchivage,
-      idStructureMilo,
-      donnees
+      idStructureMilo: idStructureMilo ?? null,
+      donnees: donnees
     })
   }
 

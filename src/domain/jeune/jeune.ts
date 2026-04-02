@@ -118,12 +118,8 @@ export namespace Jeune {
     return {
       ...jeuneAvecNouveauDispositif,
       creationDate: dateFinAccompagnement,
-      datePremiereConnexion: undefined,
-      isActivated: false,
       configuration: {
-        ...jeune.configuration,
-        pushNotificationToken: undefined,
-        dateDerniereActualisationToken: undefined
+        ...jeune.configuration
       }
     }
   }
