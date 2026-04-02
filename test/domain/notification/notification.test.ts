@@ -560,8 +560,8 @@ describe('Notification', () => {
         const expectedNotification = uneNotification({
           token: jeune.configuration?.pushNotificationToken,
           notification: {
-            title: 'Nouveau rendez-vous',
-            body: 'Votre conseiller a programmé un nouveau rendez-vous'
+            title: 'Nouvel atelier',
+            body: 'Votre conseiller a programmé un nouvel atelier le 15/01 : étude des antilopes'
           },
           data: {
             type: Notification.Type.DETAIL_SESSION_MILO,
@@ -570,7 +570,12 @@ describe('Notification', () => {
         })
 
         // When
-        await notificationService.notifierInscriptionSession(idSession, [jeune])
+        await notificationService.notifierInscriptionSession(
+          idSession,
+          'étude des antilopes',
+          '2026-01-15 10:00:00',
+          [jeune]
+        )
 
         // Then
         expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
@@ -594,7 +599,7 @@ describe('Notification', () => {
           token: jeune.configuration?.pushNotificationToken,
           notification: {
             title: 'Inscription confirmée',
-            body: 'Votre inscription à l’événement Une session le 06/04/2020 à 15h20 a bien été prise en compte.'
+            body: "Votre inscription à l'atelier Une session le 06/04/2020 à 15h20 a bien été prise en compte."
           },
           data: {
             type: Notification.Type.DETAIL_SESSION_MILO,
@@ -616,8 +621,8 @@ describe('Notification', () => {
         const expectedNotification = uneNotification({
           token: jeune.configuration?.pushNotificationToken,
           notification: {
-            title: 'Rendez-vous modifié',
-            body: 'Votre rendez-vous a été modifié'
+            title: 'Atelier modifié',
+            body: 'Votre atelier du 14/07 a été modifié : foot de rue'
           },
           data: {
             type: Notification.Type.DETAIL_SESSION_MILO,
@@ -626,9 +631,12 @@ describe('Notification', () => {
         })
 
         // When
-        await notificationService.notifierModificationSession(idSession, [
-          jeune
-        ])
+        await notificationService.notifierModificationSession(
+          idSession,
+          'foot de rue',
+          '2026-07-14 18:30:00',
+          [jeune]
+        )
 
         // Then
         expect(notificationRepository.send).to.have.been.calledOnceWithExactly(
@@ -719,14 +727,11 @@ describe('Notification', () => {
         // Given
         const jeune: Jeune = unJeune()
         const idSession = 'session-id'
-        const dateSession = DateTime.fromISO('2020-04-06T13:20:00.000Z', {
-          zone: 'America/Cayenne'
-        })
         const expectedNotification = uneNotification({
           token: jeune.configuration?.pushNotificationToken,
           notification: {
-            title: 'Rendez-vous supprimé',
-            body: 'Votre rendez-vous du 06/04 est supprimé'
+            title: 'Atelier supprimé',
+            body: 'Votre atelier du 06/04 est supprimé : vacances à la plage'
           },
           data: {
             type: Notification.Type.DELETED_SESSION_MILO,
@@ -737,7 +742,8 @@ describe('Notification', () => {
         // When
         await notificationService.notifierDesinscriptionSession(
           idSession,
-          dateSession,
+          'vacances à la plage',
+          '2020-04-06 13:20:00',
           [jeune]
         )
 

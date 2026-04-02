@@ -471,7 +471,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     if (notifierRdvMilo) {
       const dateSession = RendezVousMilo.timezonerDateMilo(
         instanceSessionMilo.dateHeureDebut,
-        jeune
+        jeune.configuration.fuseauHoraire
       )
       const dansLeFutur = DateService.isGreater(dateSession, maintenant)
       const statutNotifiable =
@@ -490,6 +490,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
           case 'create':
             this.notificationService.notifierInscriptionSession(
               instanceSessionMilo.idSession,
+              instanceSessionMilo.nom,
+              instanceSessionMilo.dateHeureDebut,
               [jeune]
             )
             planifierRappelsInstanceSessionMilo(
@@ -502,6 +504,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
           case 'update':
             this.notificationService.notifierModificationSession(
               instanceSessionMilo.idSession,
+              instanceSessionMilo.nom,
+              instanceSessionMilo.dateHeureDebut,
               [jeune]
             )
             planifierRappelsInstanceSessionMilo(
@@ -514,7 +518,8 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
           case 'delete':
             this.notificationService.notifierDesinscriptionSession(
               instanceSessionMilo.idSession,
-              dateSession,
+              instanceSessionMilo.nom,
+              instanceSessionMilo.dateHeureDebut,
               [jeune]
             )
             break
@@ -551,7 +556,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     const dans2Ans = this.dateService.now().plus({ year: 2 })
     const dateRdv = RendezVousMilo.timezonerDateMilo(
       rendezVousOuInstanceSessionMILO.dateHeureDebut,
-      jeune
+      jeune.configuration.fuseauHoraire
     )
     return (
       DateService.isGreater(dateRdv, ilYa1An) &&

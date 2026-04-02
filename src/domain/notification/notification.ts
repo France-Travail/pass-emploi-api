@@ -3,11 +3,12 @@ import { DateTime } from 'luxon'
 import { SessionMiloBeneficiaire } from 'src/domain/milo/session.milo'
 import { DateService } from '../../utils/date-service'
 import { Action } from '../action/action'
-import { Core, beneficiaireEstFTConnect, estMilo } from '../core'
+import { beneficiaireEstFTConnect, Core, estMilo } from '../core'
 import { Jeune } from '../jeune/jeune'
 import { Recherche } from '../offre/recherche/recherche'
 import { RendezVous } from '../rendez-vous/rendez-vous'
 import * as _PoleEmploi from './notification.pole-emploi'
+import { RendezVousMilo } from '../milo/rendez-vous.milo'
 
 export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 
@@ -472,7 +473,9 @@ export namespace Notification {
     }
 
     async notifierInscriptionSession(
-      idSsession: string,
+      idSession: string,
+      nomSession: string,
+      dateSession: string,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -483,7 +486,12 @@ export namespace Notification {
           ) {
             const notification = creerNotificationInscriptionSession(
               jeune.configuration.pushNotificationToken,
-              idSsession
+              idSession,
+              nomSession,
+              RendezVousMilo.timezonerDateMilo(
+                dateSession,
+                jeune.configuration.fuseauHoraire
+              )
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -505,7 +513,9 @@ export namespace Notification {
       ) {
         const notification = creerNotificationAutoinscriptionSession(
           jeune.configuration.pushNotificationToken,
-          session
+          session.id,
+          session.nom,
+          session.debut
         )
         if (notification) {
           return this.notificationRepository.send(notification, jeune.id)
@@ -516,7 +526,9 @@ export namespace Notification {
     }
 
     async notifierModificationSession(
-      idSsession: string,
+      idSession: string,
+      nomSession: string,
+      dateSession: string,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -527,7 +539,12 @@ export namespace Notification {
           ) {
             const notification = creerNotificationModificationSession(
               jeune.configuration?.pushNotificationToken,
-              idSsession
+              idSession,
+              nomSession,
+              RendezVousMilo.timezonerDateMilo(
+                dateSession,
+                jeune.configuration.fuseauHoraire
+              )
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -540,8 +557,9 @@ export namespace Notification {
     }
 
     async notifierDesinscriptionSession(
-      idSsession: string,
-      dateSession: DateTime,
+      idSession: string,
+      nomSession: string,
+      dateSession: string,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -552,8 +570,12 @@ export namespace Notification {
           ) {
             const notification = creerNotificationDesinscriptionSession(
               jeune.configuration?.pushNotificationToken,
-              idSsession,
-              dateSession
+              idSession,
+              nomSession,
+              RendezVousMilo.timezonerDateMilo(
+                dateSession,
+                jeune.configuration.fuseauHoraire
+              )
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -828,13 +850,15 @@ export namespace Notification {
 
   function creerNotificationInscriptionSession(
     token: string,
-    idSession: string
+    idSession: string,
+    nomSession: string,
+    dateSession: DateTime
   ): Notification.Message {
     return {
       token,
       notification: {
-        title: 'Nouveau rendez-vous',
-        body: 'Votre conseiller a programmé un nouveau rendez-vous'
+        title: 'Nouvel atelier',
+        body: `Votre conseiller a programmé un nouvel atelier le ${dateSession.toFormat('dd/MM')} : ${nomSession}`
       },
       data: {
         type: Type.DETAIL_SESSION_MILO,
@@ -845,32 +869,36 @@ export namespace Notification {
 
   function creerNotificationAutoinscriptionSession(
     token: string,
-    session: SessionMiloBeneficiaire
+    idSession: string,
+    nomSession: string,
+    dateSession: DateTime
   ): Notification.Message {
-    const date = session.debut.toFormat("dd/MM/yyyy à HH'h'mm")
+    const date = dateSession.toFormat("dd/MM/yyyy à HH'h'mm")
 
     return {
       token,
       notification: {
         title: 'Inscription confirmée',
-        body: `Votre inscription à l’événement ${session.nom} le ${date} a bien été prise en compte.`
+        body: `Votre inscription à l'atelier ${nomSession} le ${date} a bien été prise en compte.`
       },
       data: {
         type: Type.DETAIL_SESSION_MILO,
-        id: session.id
+        id: idSession
       }
     }
   }
 
   function creerNotificationModificationSession(
     token: string,
-    idSession: string
+    idSession: string,
+    nomSession: string,
+    dateSession: DateTime
   ): Notification.Message {
     return {
       token,
       notification: {
-        title: 'Rendez-vous modifié',
-        body: 'Votre rendez-vous a été modifié'
+        title: 'Atelier modifié',
+        body: `Votre atelier du ${dateSession.toFormat('dd/MM')} a été modifié : ${nomSession}`
       },
       data: {
         type: Type.DETAIL_SESSION_MILO,
@@ -882,14 +910,14 @@ export namespace Notification {
   function creerNotificationDesinscriptionSession(
     token: string,
     idSession: string,
-    date: DateTime
+    nomSession: string,
+    dateSession: DateTime
   ): Notification.Message {
-    const formattedDate = date.toFormat('dd/MM')
     return {
       token,
       notification: {
-        title: 'Rendez-vous supprimé',
-        body: `Votre rendez-vous du ${formattedDate} est supprimé`
+        title: 'Atelier supprimé',
+        body: `Votre atelier du ${dateSession.toFormat('dd/MM')} est supprimé : ${nomSession}`
       },
       data: {
         type: Type.DELETED_SESSION_MILO,

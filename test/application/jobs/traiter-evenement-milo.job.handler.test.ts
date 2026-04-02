@@ -598,7 +598,12 @@ describe('TraiterEvenementMiloJobHandler', () => {
             })
             expect(
               notificationService.notifierInscriptionSession
-            ).to.have.been.calledOnceWithExactly(instance.idSession, [jeune])
+            ).to.have.been.calledOnceWithExactly(
+              instance.idSession,
+              instance.nom,
+              instance.dateHeureDebut,
+              [jeune]
+            )
             expect(
               planificateurService.planifierRappelsInstanceSessionMilo
             ).to.have.been.calledOnceWithExactly({
@@ -607,7 +612,8 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idSession: instance.idSession,
               dateDebut: RendezVousMilo.timezonerDateMilo(
                 instance.dateHeureDebut,
-                jeune
+
+                jeune.configuration.fuseauHoraire
               )
             })
           })
@@ -658,7 +664,9 @@ describe('TraiterEvenementMiloJobHandler', () => {
             SessionMilo.StatutInstance.REFUS_TIERS
           ].forEach(statut => {
             it(`notifie désinscription et supprime les rappels quand statut ${statut}`, async () => {
-              const instance = uneInstanceSessionMilo({ statut })
+              const instance = uneInstanceSessionMilo({
+                statut
+              })
               sessionMiloRepository.findInstanceSession
                 .withArgs(evenement.idObjet, evenement.idPartenaireBeneficiaire)
                 .resolves(instance)
@@ -680,10 +688,8 @@ describe('TraiterEvenementMiloJobHandler', () => {
                 notificationService.notifierDesinscriptionSession
               ).to.have.been.calledOnceWithExactly(
                 instance.idSession,
-                RendezVousMilo.timezonerDateMilo(
-                  instance.dateHeureDebut,
-                  jeune
-                ),
+                instance.nom,
+                instance.dateHeureDebut,
                 [jeune]
               )
             })
@@ -711,7 +717,12 @@ describe('TraiterEvenementMiloJobHandler', () => {
             )
             expect(
               notificationService.notifierModificationSession
-            ).to.have.been.calledOnceWithExactly(instance.idSession, [jeune])
+            ).to.have.been.calledOnceWithExactly(
+              instance.idSession,
+              instance.nom,
+              instance.dateHeureDebut,
+              [jeune]
+            )
             expect(
               planificateurService.planifierRappelsInstanceSessionMilo
             ).to.have.been.calledOnceWithExactly({
@@ -720,7 +731,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idSession: instance.idSession,
               dateDebut: RendezVousMilo.timezonerDateMilo(
                 instance.dateHeureDebut,
-                jeune
+                jeune.configuration.fuseauHoraire
               )
             })
           })
@@ -802,7 +813,8 @@ describe('TraiterEvenementMiloJobHandler', () => {
               notificationService.notifierDesinscriptionSession
             ).to.have.been.calledOnceWithExactly(
               instance.idSession,
-              RendezVousMilo.timezonerDateMilo(instance.dateHeureDebut, jeune),
+              instance.nom,
+              instance.dateHeureDebut,
               [jeune]
             )
           })

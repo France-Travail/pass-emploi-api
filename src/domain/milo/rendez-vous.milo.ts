@@ -43,10 +43,10 @@ export namespace RendezVousMilo {
 
   export function timezonerDateMilo(
     dateString: string,
-    jeune: JeuneDuRendezVous
+    timezone: string
   ): DateTime {
     return DateTime.fromFormat(dateString, MILO_DATE_FORMAT, {
-      zone: jeune.configuration.fuseauHoraire
+      zone: timezone
     })
   }
 
@@ -122,13 +122,13 @@ export namespace RendezVousMilo {
     ): { dateTimeDebut: DateTime; duree: number } {
       const dateTimeDebut = timezonerDateMilo(
         rendezVousMilo.dateHeureDebut,
-        jeune
+        jeune.configuration.fuseauHoraire
       )
       let duree = 0
       if (rendezVousMilo.dateHeureFin) {
         const dateTimeFin = timezonerDateMilo(
           rendezVousMilo.dateHeureFin,
-          jeune
+          jeune.configuration.fuseauHoraire
         )
         duree = dateTimeFin.diff(dateTimeDebut, 'minutes').get('minutes')
       }
