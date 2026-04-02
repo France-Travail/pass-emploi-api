@@ -15,10 +15,7 @@ import {
   Planificateur,
   PlanificateurService
 } from '../../../src/domain/planificateur'
-import {
-  CodeTypeRendezVous,
-  RendezVous
-} from '../../../src/domain/rendez-vous/rendez-vous'
+import { RendezVous } from '../../../src/domain/rendez-vous/rendez-vous'
 import { SuiviJob } from '../../../src/domain/suivi-job'
 import { DateService } from '../../../src/utils/date-service'
 import { uneDate, uneDatetime } from '../../fixtures/date.fixture'
@@ -486,7 +483,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
           })
 
           describe('quand le RDV CEJ existe', () => {
-            it('supprime le RDV CEJ et notifie quand le RDV MILO existe', async () => {
+            it('supprime le RDV CEJ et notifie', async () => {
               const rdvCEJ = unRendezVous()
               rendezVousRepository.getByIdPartenaire
                 .withArgs(evenement.idObjet, evenement.objet)
@@ -514,35 +511,6 @@ describe('TraiterEvenementMiloJobHandler', () => {
                 rdvCEJ,
                 Notification.Type.DELETED_RENDEZVOUS
               )
-            })
-
-            it("supprime le RDV CEJ sans notifier quand le RDV MILO n'existe pas", async () => {
-              const rdvCEJ = unRendezVous({
-                type: CodeTypeRendezVous.RENDEZ_VOUS_MILO
-              })
-              rendezVousRepository.getByIdPartenaire
-                .withArgs(evenement.idObjet, evenement.objet)
-                .returns(rdvCEJ)
-              miloRendezVousRepository.findRendezVousByEvenement
-                .withArgs(evenement)
-                .resolves(undefined)
-
-              const result = await handler.handle(unJob(evenement))
-
-              expect(result.resultat).to.deep.equal({
-                traitement: Traitement.RENDEZ_VOUS_SUPPRIME,
-                idJeune: jeune.id,
-                idObjet: rdvCEJ.id
-              })
-              expect(
-                rendezVousRepository.delete
-              ).to.have.been.calledOnceWithExactly(rdvCEJ.id)
-              expect(
-                planificateurService.supprimerRappelsParId
-              ).to.have.been.calledOnceWithExactly(rdvCEJ.id)
-              expect(
-                notificationService.notifierLesJeunesDuRdv
-              ).not.to.have.been.called()
             })
           })
         })

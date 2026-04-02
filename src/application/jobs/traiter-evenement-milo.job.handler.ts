@@ -124,7 +124,6 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             return this.handleDeleteRDV(
               resultJeune.data,
               maintenant,
-              rendezVousMILO,
               rendezVousCEJExistant,
               notifierRdvMilo
             )
@@ -238,7 +237,6 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       return this.handleDeleteRDV(
         jeune,
         maintenant,
-        rendezVousMilo,
         rendezVousCEJExistant,
         notifierRdvMilo
       )
@@ -295,7 +293,6 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
   private async handleDeleteRDV(
     jeune: JeuneMilo,
     maintenant: DateTime,
-    rendezVousMILO?: RendezVousMilo,
     rendezVousCEJExistant?: RendezVous,
     notifierRdvMilo?: boolean
   ): Promise<SuiviJob> {
@@ -314,15 +311,12 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       this.logger,
       this.apmService
     )
-
-    if (rendezVousMILO) {
-      this.notifierRDV(
-        rendezVousCEJExistant,
-        maintenant,
-        Notification.Type.DELETED_RENDEZVOUS,
-        notifierRdvMilo
-      )
-    }
+    this.notifierRDV(
+      rendezVousCEJExistant,
+      maintenant,
+      Notification.Type.DELETED_RENDEZVOUS,
+      notifierRdvMilo
+    )
 
     return this.buildSuiviJob(
       maintenant,
