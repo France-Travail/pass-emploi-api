@@ -132,21 +132,14 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
           ...jeune,
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false,
-          creationDate: DateTime.fromJSDate(dateFinAccompagnement),
-          datePremiereConnexion: undefined,
-          isActivated: false,
-          configuration: {
-            ...jeune.configuration,
-            pushNotificationToken: undefined,
-            dateDerniereActualisationToken: undefined
-          }
+          creationDate: DateTime.fromJSDate(dateFinAccompagnement)
         }
         expect(jeuneRepository.save).to.have.been.calledOnceWithExactly(
           jeuneAttendu
         )
         expect(
           jeuneRepository.reinitialiserDatePremiereConnexion
-        ).to.have.been.calledOnceWithExactly(jeune.id)
+        ).not.to.have.been.called()
         expect(result).to.deep.equal(emptySuccess())
       })
     })
@@ -177,21 +170,14 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
           ...jeuneNonActive,
           dispositif: Jeune.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false,
-          creationDate: DateTime.fromJSDate(dateFinAccompagnement),
-          datePremiereConnexion: undefined,
-          isActivated: false,
-          configuration: {
-            ...jeuneNonActive.configuration,
-            pushNotificationToken: undefined,
-            dateDerniereActualisationToken: undefined
-          }
+          creationDate: DateTime.fromJSDate(dateFinAccompagnement)
         }
         expect(jeuneRepository.save).to.have.been.calledOnceWithExactly(
           jeuneAttendu
         )
         expect(
           jeuneRepository.reinitialiserDatePremiereConnexion
-        ).to.have.been.calledOnceWithExactly(jeuneNonActive.id)
+        ).not.to.have.been.called()
         expect(result).to.deep.equal(emptySuccess())
       })
     })
