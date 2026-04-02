@@ -680,7 +680,7 @@ export namespace Notification {
           title: 'Nouveau rendez-vous',
           body:
             message ??
-            `Votre conseiller a programmé un nouveau rendez-vous le ${this.dateFormatJourMois(rendezVous.date)} : ${rendezVous.titre}`
+            `Votre conseiller a programmé un nouveau rendez-vous le ${this.dateFormatJourMois(rendezVous.date)} : ${this.tronquerTitre(rendezVous.titre)}`
         },
         data: {
           type: Type.NEW_RENDEZVOUS,
@@ -697,7 +697,7 @@ export namespace Notification {
         token,
         notification: {
           title: 'Rendez-vous modifié',
-          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} a été modifié : ${rendezVous.titre}`
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} a été modifié : ${this.tronquerTitre(rendezVous.titre)}`
         },
         data: {
           type: Type.NEW_RENDEZVOUS,
@@ -714,7 +714,7 @@ export namespace Notification {
         token,
         notification: {
           title: 'Rendez-vous supprimé',
-          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est supprimé : ${rendezVous.titre}`
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est supprimé : ${this.tronquerTitre(rendezVous.titre)}`
         },
         data: {
           type: Type.DELETED_RENDEZVOUS
@@ -730,7 +730,7 @@ export namespace Notification {
         token,
         notification: {
           title: 'Rendez-vous annulé',
-          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est annulé : ${rendezVous.titre}`
+          body: `Votre rendez-vous du ${this.dateFormatJourMois(rendezVous.date)} est annulé : ${this.tronquerTitre(rendezVous.titre)}`
         },
         data: {
           type: Type.CANCELED_RENDEZVOUS,
@@ -738,8 +738,13 @@ export namespace Notification {
         }
       }
     }
+
     private dateFormatJourMois(date: Date): string {
       return DateTime.fromJSDate(date).toFormat('dd/MM')
+    }
+
+    private tronquerTitre(titre: string): string {
+      return titre.length > 50 ? titre.substring(0, 50) + '...' : titre
     }
 
     private creerNotificationNouveauMessage(
