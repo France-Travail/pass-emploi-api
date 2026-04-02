@@ -529,6 +529,7 @@ describe('ArchiveJeuneSqlRepository', () => {
       expect(archiveSql!.motif).to.equal(
         MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT
       )
+      expect(archiveSql!.idStructureMilo).to.be.null()
       expect(archiveSql!.donnees).to.deep.equal({
         rendezVous: [],
         actions: [],
@@ -542,6 +543,34 @@ describe('ArchiveJeuneSqlRepository', () => {
         historiqueConseillers: [],
         messages: []
       })
+    })
+
+    it('archive idStructureMilo du jeune', async () => {
+      // Given
+      await StructureMiloSqlModel.create(
+        uneStructureMiloDto({ id: idStructureMilo })
+      )
+      await JeuneSqlModel.upsert({ ...jeuneDto, idStructureMilo })
+      const metadonnees = uneArchiveJeuneMetadonnees({
+        idJeune: jeuneDto.id,
+        motif: MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
+        nomJeune: jeuneDto.nom,
+        prenomJeune: jeuneDto.prenom,
+        structure: jeuneDto.structure,
+        dispositif: jeuneDto.dispositif,
+        email: jeuneDto.email!,
+        dateCreation: new Date('2022-01-05T09:23:00Z'),
+        dateArchivage: new Date('2022-07-05T09:23:00Z')
+      })
+
+      // When
+      await archiveJeuneSqlRepository.archiverSansDonnees(metadonnees)
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(archiveSql!.idStructureMilo).to.equal(idStructureMilo)
     })
   })
 })
