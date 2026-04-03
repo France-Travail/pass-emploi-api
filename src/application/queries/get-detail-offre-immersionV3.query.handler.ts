@@ -1,42 +1,44 @@
 import { Injectable } from '@nestjs/common'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
-import { DetailOffreImmersionQueryModel } from './query-models/offres-immersion.query-model'
+import { DetailOffreImmersionQueryModelV3 } from './query-models/offres-immersion.query-model'
 import {
   emptySuccess,
   isFailure,
   Result,
   success
 } from '../../building-blocks/types/result'
-import { toDetailOffreImmersionQueryModel } from '../../infrastructure/repositories/mappers/offres-immersion.mappers'
+import { toDetailOffreImmersionQueryModelV3 } from '../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../infrastructure/clients/immersion-client'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Authentification } from '../../domain/authentification'
 
-export interface GetDetailOffreImmersionQuery extends Query {
+export interface GetDetailOffreImmersionQueryV3 extends Query {
   idOffreImmersion: string
+  locationId: string
 }
 
 @Injectable()
-export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
-  GetDetailOffreImmersionQuery,
-  Result<DetailOffreImmersionQueryModel>
+export class GetDetailOffreImmersionQueryHandlerV3 extends QueryHandler<
+  GetDetailOffreImmersionQueryV3,
+  Result<DetailOffreImmersionQueryModelV3>
 > {
   constructor(
-    private immersionClient: ImmersionClient,
-    private evenementService: EvenementService
+    private readonly immersionClient: ImmersionClient,
+    private readonly evenementService: EvenementService
   ) {
     super('GetDetailOffreImmersionQueryHandler')
   }
 
   async handle(
-    query: GetDetailOffreImmersionQuery
-  ): Promise<Result<DetailOffreImmersionQueryModel>> {
+    query: GetDetailOffreImmersionQueryV3
+  ): Promise<Result<DetailOffreImmersionQueryModelV3>> {
     const paramsRechercheOffreImmersion = buildParamsRechercheImmersion(
-      query.idOffreImmersion
+      query.idOffreImmersion,
+      query.locationId
     )
 
-    const response = await this.immersionClient.getDetailOffre(
+    const response = await this.immersionClient.getDetailOffreV3(
       paramsRechercheOffreImmersion
     )
 
@@ -44,7 +46,7 @@ export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
       return response
     }
 
-    return success(toDetailOffreImmersionQueryModel(response.data))
+    return success(toDetailOffreImmersionQueryModelV3(response.data))
   }
 
   async authorize(): Promise<Result> {
@@ -61,7 +63,10 @@ export class GetDetailOffreImmersionQueryHandler extends QueryHandler<
   }
 }
 
-function buildParamsRechercheImmersion(idOffreImmersion: string): string {
+function buildParamsRechercheImmersion(
+  idOffreImmersion: string,
+  locationId: string
+): string {
   const [siret, appellationCode] = idOffreImmersion.split('-')
-  return siret + '/' + appellationCode
+  return siret + '/' + appellationCode + '/' + locationId
 }

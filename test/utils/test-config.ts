@@ -74,7 +74,8 @@ export const testConfig = (): ConfigService => {
     },
     immersion: {
       url: 'https://api.api-immersion.beta.gouv.op',
-      apiKey: 'apiKey'
+      apiKey: 'apiKey',
+      apiKeyV3: 'apiKeyV3'
     },
     cje: {
       apiUrl: 'https://cje.com/api',

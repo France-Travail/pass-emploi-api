@@ -8,7 +8,9 @@ import {
   ValidateNested,
   IsArray,
   IsEnum,
-  IsEmail
+  IsEmail,
+  MaxLength,
+  ValidateIf
 } from 'class-validator'
 import {
   transformStringToFloat,
@@ -131,7 +133,59 @@ export class PostImmersionContactBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  prenom: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nom: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string
+
+  @ApiProperty({ enum: ModeContact })
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(ModeContact)
+  contactMode: ModeContact
+
+  @ApiPropertyOptional()
+  @ValidateIf(payload => payload.contactMode === ModeContact.EMAIL)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(512)
+  message?: string
+}
+
+export class PostImmersionContactBodyV3 {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  codeRome: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  labelRome: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  siret: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   locationId: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  numeroTelephone?: string
 
   @ApiProperty()
   @IsString()

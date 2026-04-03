@@ -8,12 +8,13 @@ import {
   unUtilisateurConseiller,
   unUtilisateurJeune
 } from '../../fixtures/authentification.fixture'
-import { uneOffreImmersionDtov2 } from '../../fixtures/offre-immersion.dto.fixture'
+import { uneOffreImmersionDtov3 } from '../../fixtures/offre-immersion.dto.fixture'
 import { StubbedClass, stubClass } from '../../utils'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
+import { GetDetailOffreImmersionQueryHandlerV3 } from '../../../src/application/queries/get-detail-offre-immersionV3.query.handler'
 
 describe('GetDetailOffreImmersionQueryHandler', () => {
-  let getDetailOffreImmersionQueryHandler: GetDetailOffreImmersionQueryHandler
+  let getDetailOffreImmersionQueryHandler: GetDetailOffreImmersionQueryHandlerV3
   let immersionClient: StubbedClass<ImmersionClient>
   let evenementService: StubbedClass<EvenementService>
 
@@ -21,7 +22,10 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
     immersionClient = stubClass(ImmersionClient)
     evenementService = stubClass(EvenementService)
     getDetailOffreImmersionQueryHandler =
-      new GetDetailOffreImmersionQueryHandler(immersionClient, evenementService)
+      new GetDetailOffreImmersionQueryHandlerV3(
+        immersionClient,
+        evenementService
+      )
   })
 
   describe('handle', () => {
@@ -38,20 +42,18 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
           request: undefined,
           status: 200,
           statusText: '',
-          data: uneOffreImmersionDtov2()
+          data: uneOffreImmersionDtov3()
         }
 
         immersionClient.getDetailOffre.resolves(success(response.data))
 
         // When
         const detailOffre = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then
-        expect(immersionClient.getDetailOffre).to.have.been.calledWith(
-          `siret/appellationCode`
-        )
         expect(detailOffre).to.deep.equal(
           success({
             estVolontaire: true,
@@ -69,7 +71,12 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             siret: '123456',
             contact: {
               modeDeContact: 'PRESENTIEL'
-            }
+            },
+            informationsComplementaires: 'informations complémentaires',
+            siteWeb: 'https://exemple.fr',
+            modeDistanciel: 'ON_SITE',
+            accessibleTravailleurHandicape: 'yes-declared-only',
+            locationId: 'locationId'
           })
         )
       })
@@ -87,7 +94,8 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // When
         const offres = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then
@@ -105,7 +113,8 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // When
         const offres = getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion
+          idOffreImmersion: query.idOffreImmersion,
+          locationId: ''
         })
 
         // Then
@@ -115,7 +124,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
   })
 
   describe('monitor', () => {
-    it('enregistre l‘évènement pour un conseiller', async () => {
+    it('enregistre l’évènement pour un conseiller', async () => {
       // Given
       const utilisateur = unUtilisateurConseiller()
       // When
@@ -126,7 +135,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
         utilisateur
       )
     })
-    it('n‘enregistre pas l‘évènement pour un jeune', async () => {
+    it('n’enregistre pas l’évènement pour un jeune', async () => {
       // Given
       const utilisateur = unUtilisateurJeune()
       // When

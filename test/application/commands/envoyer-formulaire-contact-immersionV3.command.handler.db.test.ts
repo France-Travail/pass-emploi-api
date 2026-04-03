@@ -1,12 +1,4 @@
-import {
-  EnvoyerFormulaireContactImmersionCommand,
-  EnvoyerFormulaireContactImmersionCommandHandler
-} from 'src/application/commands/envoyer-formulaire-contact-immersion.command.handler.db'
-import {
-  emptySuccess,
-  failure,
-  success
-} from 'src/building-blocks/types/result'
+import { emptySuccess, failure } from 'src/building-blocks/types/result'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ImmersionClient } from 'src/infrastructure/clients/immersion-client'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
@@ -19,12 +11,15 @@ import {
 import { unMetierRomeDto } from '../../fixtures/sql-models/metier-rome.sql-model'
 import { MetierRomeSqlModel } from '../../../src/infrastructure/sequelize/models/metier-rome.sql-model'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
-import { uneOffreImmersionDtov2 } from '../../fixtures/offre-immersion.dto.fixture'
+import {
+  EnvoyerFormulaireContactImmersionCommandHandlerV3,
+  EnvoyerFormulaireContactImmersionCommandV3
+} from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
 
 describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
   let databaseForTesting: DatabaseForTesting
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandler
+  let envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandlerV3
   let immersionClient: StubbedClass<ImmersionClient>
   let evenementService: StubbedClass<EvenementService>
 
@@ -38,7 +33,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
     immersionClient = stubClass(ImmersionClient)
     evenementService = stubClass(EvenementService)
     envoyerFormulaireContactImmersionCommandHandler =
-      new EnvoyerFormulaireContactImmersionCommandHandler(
+      new EnvoyerFormulaireContactImmersionCommandHandlerV3(
         jeuneAuthorizer,
         immersionClient,
         evenementService,
@@ -60,21 +55,19 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         ]
 
         await MetierRomeSqlModel.bulkCreate(metiers)
-        const command: EnvoyerFormulaireContactImmersionCommand = {
+        const command: EnvoyerFormulaireContactImmersionCommandV3 = {
           idJeune: 'idJeune',
           codeRome: 'D1102',
           labelRome: 'Boulanger',
           siret: 'siret',
+          locationId: 'un-location-id',
           prenom: 'prenom',
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          message: 'test'
+          periodeVoulue: 'dans le mois qui vient'
         }
 
-        immersionClient.getDetailOffre
-          .withArgs('siret/11573')
-          .resolves(success(uneOffreImmersionDtov2()))
         immersionClient.envoyerFormulaireImmersion.resolves(emptySuccess())
 
         // When
@@ -84,16 +77,17 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         expect(
           immersionClient.envoyerFormulaireImmersion
         ).to.have.been.calledOnceWithExactly({
+          kind: 'IF',
           appellationCode: '11573',
           siret: command.siret,
+          locationId: command.locationId,
           potentialBeneficiaryFirstName: command.prenom,
           potentialBeneficiaryLastName: command.nom,
           potentialBeneficiaryEmail: command.email,
           potentialBeneficiaryPhone: '0600000000',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode,
-          message: command.message,
-          locationId: 'locationId'
+          periodeVoulue: command.periodeVoulue
         })
       })
     })
@@ -110,7 +104,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         ]
 
         await MetierRomeSqlModel.bulkCreate(metiers)
-        const command: EnvoyerFormulaireContactImmersionCommand = {
+        const command: EnvoyerFormulaireContactImmersionCommandV3 = {
           idJeune: 'idJeune',
           codeRome: 'D1102',
           labelRome: 'Un label rome qui n’existe pas',
@@ -119,7 +113,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          message: 'test'
+          locationId: ''
         }
 
         immersionClient.envoyerFormulaireImmersion.resolves(emptySuccess())
@@ -144,7 +138,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
   describe('authorize', () => {
     it('authorize le jeune', async () => {
       // Given
-      const command: EnvoyerFormulaireContactImmersionCommand = {
+      const command: EnvoyerFormulaireContactImmersionCommandV3 = {
         idJeune: 'idJeune',
         codeRome: 'codeRome',
         labelRome: 'labelRome',
@@ -153,7 +147,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         nom: 'nom',
         email: 'email',
         contactMode: 'EMAIL',
-        message: 'message'
+        locationId: ''
       }
 
       const utilisateur = unUtilisateurJeune()

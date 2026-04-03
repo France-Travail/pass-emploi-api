@@ -22,7 +22,9 @@ import {
 } from '../../application/queries/get-offres-immersion.query.handler'
 import {
   DetailOffreImmersionQueryModel,
-  OffreImmersionQueryModel
+  DetailOffreImmersionQueryModelV3,
+  OffreImmersionQueryModel,
+  OffreImmersionQueryModelV3
 } from '../../application/queries/query-models/offres-immersion.query-model'
 import { Authentification } from '../../domain/authentification'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
@@ -33,8 +35,15 @@ import { handleResult } from './result.handler'
 import {
   GetOffresImmersionQueryParams,
   NouvellesOffresImmersions,
-  PostImmersionContactBody
+  PostImmersionContactBody,
+  PostImmersionContactBodyV3
 } from './validation/offres-immersion.inputs'
+import {
+  GetDetailOffreImmersionQueryHandlerV3,
+  GetDetailOffreImmersionQueryV3
+} from '../../application/queries/get-detail-offre-immersionV3.query.handler'
+import { EnvoyerFormulaireContactImmersionCommandHandlerV3 } from '../../application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
+import { GetOffresImmersionQueryHandlerV3 } from '../../application/queries/get-offres-immersionV3.query.handler'
 
 @Controller()
 @CustomSwaggerApiOAuth2()
@@ -42,9 +51,12 @@ import {
 export class OffresImmersionController {
   constructor(
     private readonly getDetailOffreImmersionQueryHandler: GetDetailOffreImmersionQueryHandler,
+    private readonly getDetailOffreImmersionQueryHandlerV3: GetDetailOffreImmersionQueryHandlerV3,
     private readonly getOffresImmersionQueryHandler: GetOffresImmersionQueryHandler,
+    private readonly getOffresImmersionQueryHandlerV3: GetOffresImmersionQueryHandlerV3,
     private readonly notifierNouvellesImmersionsCommandHandler: NotifierNouvellesImmersionsCommandHandler,
-    private readonly envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandler
+    private readonly envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandler,
+    private readonly envoyerFormulaireContactImmersionCommandHandlerV3: EnvoyerFormulaireContactImmersionCommandHandlerV3
   ) {}
 
   @Get('offres-immersion')
@@ -71,20 +83,63 @@ export class OffresImmersionController {
     return handleResult(result)
   }
 
+  @Get('offres-immersionV3')
+  @ApiResponse({
+    type: OffreImmersionQueryModelV3,
+    isArray: true
+  })
+  async getOffresImmersionV3(
+    @Query() getOffresImmersionQueryParams: GetOffresImmersionQueryParams,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<OffreImmersionQueryModelV3[]> {
+    const query: GetOffresImmersionQuery = {
+      rome: getOffresImmersionQueryParams.rome,
+      lat: getOffresImmersionQueryParams.lat,
+      lon: getOffresImmersionQueryParams.lon,
+      distance: getOffresImmersionQueryParams.distance
+    }
+
+    const result = await this.getOffresImmersionQueryHandlerV3.execute(
+      query,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
   @Get('offres-immersion/:idOffreImmersion')
   @ApiResponse({
     type: DetailOffreImmersionQueryModel
   })
   async getDetailOffreImmersion(
     @Param('idOffreImmersion') idOffreImmersion: string,
-    @Query('locationId') locationId: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<DetailOffreImmersionQueryModel | undefined> {
     const query: GetDetailOffreImmersionQuery = {
+      idOffreImmersion
+    }
+    const result = await this.getDetailOffreImmersionQueryHandler.execute(
+      query,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Get('offres-immersion/:idOffreImmersionV3')
+  @ApiResponse({
+    type: DetailOffreImmersionQueryModel
+  })
+  async getDetailOffreImmersionV3(
+    @Param('idOffreImmersion') idOffreImmersion: string,
+    @Query('locationId') locationId: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<DetailOffreImmersionQueryModelV3 | undefined> {
+    const query: GetDetailOffreImmersionQueryV3 = {
       idOffreImmersion,
       locationId
     }
-    const result = await this.getDetailOffreImmersionQueryHandler.execute(
+    const result = await this.getDetailOffreImmersionQueryHandlerV3.execute(
       query,
       utilisateur
     )
@@ -118,7 +173,29 @@ export class OffresImmersionController {
   ): Promise<void> {
     const result =
       await this.envoyerFormulaireContactImmersionCommandHandler.execute(
-        { idJeune, ...postImmersionContactBody },
+        {
+          idJeune,
+          ...postImmersionContactBody
+        },
+        utilisateur
+      )
+
+    return handleResult(result)
+  }
+
+  @Post('jeunes/:idJeune/offres-immersion/contactV3')
+  async postFormulaireImmersionV3(
+    @Param('idJeune') idJeune: string,
+    @Body() postImmersionContactBody: PostImmersionContactBodyV3,
+    @Utilisateur()
+    utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result =
+      await this.envoyerFormulaireContactImmersionCommandHandlerV3.execute(
+        {
+          idJeune,
+          ...postImmersionContactBody
+        },
         utilisateur
       )
 

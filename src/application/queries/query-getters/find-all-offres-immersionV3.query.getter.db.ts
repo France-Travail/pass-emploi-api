@@ -1,20 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common'
 import {
   isFailure,
+  isSuccess,
   Result,
   success
 } from '../../../building-blocks/types/result'
-import { OffreImmersionQueryModel } from '../query-models/offres-immersion.query-model'
+import { OffreImmersionQueryModelV3 } from '../query-models/offres-immersion.query-model'
 import { URLSearchParams } from 'url'
-import { toOffreImmersionQueryModel } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
+import { toOffreImmersionQueryModelV3 } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
 import { GetOffresImmersionQuery } from '../get-offres-immersion.query.handler'
 import { Offre } from '../../../domain/offre/offre'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 
+const APPELLATION_CODES_LIMIT = 20
+
 @Injectable()
-export class FindAllOffresImmersionQueryGetter {
+export class FindAllOffresImmersionQueryGetterV3 {
   constructor(
     private immersionClient: ImmersionClient,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
@@ -22,39 +25,61 @@ export class FindAllOffresImmersionQueryGetter {
 
   async handle(
     query: GetOffresImmersionQuery
-  ): Promise<Result<OffreImmersionQueryModel[]>> {
-    const params = await this.queryConstructor(query)
+  ): Promise<Result<OffreImmersionQueryModelV3[]>> {
+    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
 
-    const offresImmersion = await this.immersionClient.getOffres(params)
+    const chunks = this.chunkBy(appellationCodeListe, APPELLATION_CODES_LIMIT)
 
-    if (isFailure(offresImmersion)) {
-      return offresImmersion
+    const results = await Promise.all(
+      chunks.map(chunk => {
+        const params = this.buildParams(query, chunk)
+        return this.immersionClient.getOffresV3(params)
+      })
+    )
+
+    const firstFailure = results.find(isFailure)
+    if (firstFailure) {
+      return firstFailure
     }
 
-    return success(offresImmersion.data.map(toOffreImmersionQueryModel))
+    const offres = results
+      .filter(isSuccess)
+      .flatMap(result => result.data)
+      .map(toOffreImmersionQueryModelV3)
+
+    return success(offres)
   }
 
-  async queryConstructor(
-    query: GetOffresImmersionQuery
-  ): Promise<URLSearchParams> {
+  buildParams(
+    query: GetOffresImmersionQuery,
+    appellationCodes: string[]
+  ): URLSearchParams {
     const distanceAvecDefault = query.distance
       ? query.distance.toString()
       : Offre.Recherche.DISTANCE_PAR_DEFAUT.toString()
 
     const params = new URLSearchParams()
 
-    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
-
     params.append('distanceKm', distanceAvecDefault)
     params.append('longitude', query.lon.toString())
     params.append('latitude', query.lat.toString())
-    appellationCodeListe.forEach(appellationCode => {
+
+    appellationCodes.forEach(appellationCode => {
       params.append('appellationCodes[]', appellationCode)
     })
-    params.append('sortedBy', 'date')
-    params.append('voluntaryToImmersion', 'true')
+
+    params.append('sortBy', 'date')
+    params.append('sortOrder', 'desc')
 
     return params
+  }
+
+  chunkBy<T>(list: T[], size: number): T[][] {
+    const chunks: T[][] = []
+    for (let i = 0; i < list.length; i += size) {
+      chunks.push(list.slice(i, i + size))
+    }
+    return chunks
   }
 
   async romeToAppellationsCode(codeRome: string): Promise<string[]> {
@@ -71,8 +96,6 @@ export class FindAllOffresImmersionQueryGetter {
         }
       )
 
-    const appellationCodeListe: string[] = metiers.map(m => m.appellation_code)
-
-    return appellationCodeListe
+    return metiers.map(m => m.appellation_code)
   }
 }

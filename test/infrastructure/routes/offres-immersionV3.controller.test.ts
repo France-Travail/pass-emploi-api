@@ -1,21 +1,13 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
-import { EnvoyerFormulaireContactImmersionCommandHandler } from '../../../src/application/commands/envoyer-formulaire-contact-immersion.command.handler.db'
 import {
   NotifierNouvellesImmersionsCommand,
   NotifierNouvellesImmersionsCommandHandler
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
+import { GetOffresImmersionQuery } from '../../../src/application/queries/get-offres-immersion.query.handler'
 import {
-  GetDetailOffreImmersionQuery,
-  GetDetailOffreImmersionQueryHandler
-} from '../../../src/application/queries/get-detail-offre-immersion.query.handler'
-import {
-  GetOffresImmersionQuery,
-  GetOffresImmersionQueryHandler
-} from '../../../src/application/queries/get-offres-immersion.query.handler'
-import {
-  DetailOffreImmersionQueryModel,
-  OffreImmersionQueryModel
+  DetailOffreImmersionQueryModelV3,
+  OffreImmersionQueryModelV3
 } from '../../../src/application/queries/query-models/offres-immersion.query-model'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 
@@ -28,25 +20,31 @@ import { unHeaderAuthorization } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect } from '../../utils'
 import { ensureUserAuthenticationFailsIfInvalid } from '../../utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
+import { GetOffresImmersionQueryHandlerV3 } from '../../../src/application/queries/get-offres-immersionV3.query.handler'
+import {
+  GetDetailOffreImmersionQueryHandlerV3,
+  GetDetailOffreImmersionQueryV3
+} from '../../../src/application/queries/get-detail-offre-immersionV3.query.handler'
+import { EnvoyerFormulaireContactImmersionCommandHandlerV3 } from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
 
 describe('OffresImmersionController', () => {
-  let getOffresImmersionQueryHandler: StubbedClass<GetOffresImmersionQueryHandler>
-  let getDetailOffreImmersionQueryHandler: StubbedClass<GetDetailOffreImmersionQueryHandler>
+  let getOffresImmersionQueryHandler: StubbedClass<GetOffresImmersionQueryHandlerV3>
+  let getDetailOffreImmersionQueryHandler: StubbedClass<GetDetailOffreImmersionQueryHandlerV3>
   let notifierNouvellesImmersionsCommandHandler: StubbedClass<NotifierNouvellesImmersionsCommandHandler>
-  let envoyerFormulaireContactImmersionCommandHandler: StubbedClass<EnvoyerFormulaireContactImmersionCommandHandler>
+  let envoyerFormulaireContactImmersionCommandHandler: StubbedClass<EnvoyerFormulaireContactImmersionCommandHandlerV3>
   let app: INestApplication
 
   before(async () => {
     app = await getApplicationWithStubbedDependencies()
-    getOffresImmersionQueryHandler = app.get(GetOffresImmersionQueryHandler)
+    getOffresImmersionQueryHandler = app.get(GetOffresImmersionQueryHandlerV3)
     getDetailOffreImmersionQueryHandler = app.get(
-      GetDetailOffreImmersionQueryHandler
+      GetDetailOffreImmersionQueryHandlerV3
     )
     notifierNouvellesImmersionsCommandHandler = app.get(
       NotifierNouvellesImmersionsCommandHandler
     )
     envoyerFormulaireContactImmersionCommandHandler = app.get(
-      EnvoyerFormulaireContactImmersionCommandHandler
+      EnvoyerFormulaireContactImmersionCommandHandlerV3
     )
   })
 
@@ -60,14 +58,15 @@ describe('OffresImmersionController', () => {
           lon: 2.13082255225161
         }
 
-        const offresImmersionQueryModel: OffreImmersionQueryModel[] = [
+        const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
           {
             id: '1',
             metier: 'Boulanger',
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: true
+            estVolontaire: true,
+            locationId: ''
           }
         ]
 
@@ -111,23 +110,26 @@ describe('OffresImmersionController', () => {
     ensureUserAuthenticationFailsIfInvalid('get', '/offres-immersion')
   })
   describe('GET /offres-immersion/:idOffreImmersion', () => {
-    const query: GetDetailOffreImmersionQuery = {
-      idOffreImmersion: '1'
+    const query: GetDetailOffreImmersionQueryV3 = {
+      idOffreImmersion: '1',
+      locationId: 'un-location-id'
     }
     describe('quand tout va bien', () => {
       it('renvoie la bonne offre recherchée', async () => {
         // Given
-        const detailOffreImmersionQueryModel: DetailOffreImmersionQueryModel = {
-          adresse: 'addresse',
-          estVolontaire: true,
-          id: '1',
-          metier: 'rome',
-          nomEtablissement: 'name',
-          secteurActivite: 'naf',
-          ville: 'Paris',
-          codeRome: 'rome',
-          siret: 'siret'
-        }
+        const detailOffreImmersionQueryModel: DetailOffreImmersionQueryModelV3 =
+          {
+            adresse: 'addresse',
+            estVolontaire: true,
+            id: '1',
+            metier: 'rome',
+            nomEtablissement: 'name',
+            secteurActivite: 'naf',
+            ville: 'Paris',
+            codeRome: 'rome',
+            siret: 'siret',
+            locationId: ''
+          }
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
           .resolves(success(detailOffreImmersionQueryModel))
@@ -135,6 +137,7 @@ describe('OffresImmersionController', () => {
         // When
         const result = await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.OK)
@@ -147,11 +150,12 @@ describe('OffresImmersionController', () => {
         // Given
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
-          .resolves(failure(new ErreurHttp('un message d’erreur', 400)))
+          .resolves(failure(new ErreurHttp("un message d'erreur", 400)))
 
         // When
         await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.BAD_REQUEST)
@@ -162,11 +166,12 @@ describe('OffresImmersionController', () => {
         // Given
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
-          .resolves(failure(new ErreurHttp('un message d’erreur', 404)))
+          .resolves(failure(new ErreurHttp("un message d'erreur", 404)))
 
         // When
         await request(app.getHttpServer())
           .get(`/offres-immersion/${query.idOffreImmersion}`)
+          .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.NOT_FOUND)
@@ -235,11 +240,12 @@ describe('OffresImmersionController', () => {
         codeRome: 'D1102',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
+        locationId: 'un-location-id',
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'PHONE',
-        message: 'test'
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute
@@ -260,11 +266,12 @@ describe('OffresImmersionController', () => {
         codeRome: 'D1102',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
+        locationId: 'un-location-id',
         prenom: 'prenom',
         nom: 'nom',
         email: 'test@test.com',
-        contactMode: 'PHONE',
-        message: 'test'
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute.resolves(
@@ -278,28 +285,6 @@ describe('OffresImmersionController', () => {
         .send(payload)
         .expect(HttpStatus.UNAUTHORIZED)
     })
-    it('renvoie une bad request quand le contact est EMAIL et le message vide', async () => {
-      // Given
-      const payload = {
-        idJeune: '1',
-        codeRome: 'D1102',
-        labelRome: 'Boulangerie - viennoiserie',
-        siret: '10226726508419',
-        prenom: 'prenom',
-        nom: 'nom',
-        email: 'test@test.com',
-        contactMode: 'EMAIL',
-        message: ''
-      }
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/jeunes/1/offres-immersion/contact')
-        .set('authorization', unHeaderAuthorization())
-        .send(payload)
-        .expect(HttpStatus.BAD_REQUEST)
-    })
-
     ensureUserAuthenticationFailsIfInvalid(
       'post',
       '/jeunes/1/offres-immersion/contact'

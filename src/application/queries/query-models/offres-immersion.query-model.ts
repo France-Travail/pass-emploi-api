@@ -26,6 +26,21 @@ export class OffreImmersionQueryModel {
   ville: string
   @ApiProperty()
   estVolontaire: boolean
+}
+
+export class OffreImmersionQueryModelV3 {
+  @ApiProperty()
+  id: string
+  @ApiProperty()
+  metier: string
+  @ApiProperty()
+  nomEtablissement: string
+  @ApiProperty()
+  secteurActivite: string
+  @ApiProperty()
+  ville: string
+  @ApiProperty()
+  estVolontaire: boolean
   @ApiProperty()
   locationId: string
 }
@@ -47,6 +62,28 @@ export class FavoriOffreImmersionQueryModel {
 }
 
 export class DetailOffreImmersionQueryModel extends OffreImmersionQueryModel {
+  @ApiProperty()
+  codeRome: string
+
+  @ApiProperty()
+  siret: string
+
+  @ApiProperty()
+  adresse: string
+
+  @ApiProperty({
+    required: false,
+    type: LocalisationQueryModel
+  })
+  localisation?: LocalisationQueryModel
+
+  @ApiProperty({
+    required: false
+  })
+  contact?: ContactImmersionQueryModel
+}
+
+export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3 {
   @ApiProperty()
   codeRome: string
 
