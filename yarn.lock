@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1022.0":
-  version: 3.1022.0
-  resolution: "@aws-sdk/client-s3@npm:3.1022.0"
+"@aws-sdk/client-s3@npm:^3.1023.0":
+  version: 3.1023.0
+  resolution: "@aws-sdk/client-s3@npm:3.1023.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -226,7 +226,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.2"
     "@smithy/util-waiter": "npm:^4.2.14"
     tslib: "npm:^2.6.2"
-  checksum: 10/2636e14e01a583c98a953a9690cb13e2555bd855b3e4f9f7eb514c4deb5ef4455fe42e6ebc1b1724e3dc1fd4df23186f76ae8795dc07dd150d6bafbcd5cba785
+  checksum: 10/3e38284c0c7f7ec4ca3475d8e1a91ab59a2dcb5102b83f0875df358413c392c3f951fa22849eb0be24b8a410ddb50ba635228e58112ce132cf1160324d9d1d5f
   languageName: node
   linkType: hard
 
@@ -599,9 +599,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1022.0":
-  version: 3.1022.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1022.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1023.0":
+  version: 3.1023.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1023.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.15"
     "@aws-sdk/types": "npm:^3.973.6"
@@ -611,7 +611,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.8"
     "@smithy/types": "npm:^4.13.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/2a1b8e0410ef6914599030273c645d5b5a9a85093023c9723f0c71968b0b621ef4f183fed7c2b0a65d2a0133f0eb5ed3f6f677f7bba0d89b61522345e7eea28c
+  checksum: 10/964e5a9e24db58c32f351efb823a52fbe93b504d026649965c994c466cf25d08f6f785d4440ae74dbee645f8a85a3cfc1fa4b6bdce92ad2f98b68fd6d859d9e6
   languageName: node
   linkType: hard
 
@@ -6909,10 +6909,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fuse.js@npm:7.1.0":
-  version: 7.1.0
-  resolution: "fuse.js@npm:7.1.0"
-  checksum: 10/9f9105e54372897a46cb3e04074f0db5bd0a428320d4618276a57e6142d7502235a556f05cf87aa3c5d6d9c6fdfa06b901b78379c48aa0951672ccbc4a1bfe70
+"fuse.js@npm:7.2.0":
+  version: 7.2.0
+  resolution: "fuse.js@npm:7.2.0"
+  checksum: 10/42030979980782549448ab85ce9010bb9636cc48322794002d7f2a6eab3c17e91edf80ddb4bc4ce34bf41743cce1226ae5cff735486369ef6d6ff6a5e0e6306f
   languageName: node
   linkType: hard
 
@@ -9140,8 +9140,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1022.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1022.0"
+    "@aws-sdk/client-s3": "npm:^3.1023.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1023.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.17"
@@ -9194,7 +9194,7 @@ __metadata:
     eslint-plugin-mocha: "npm:^11.2.0"
     eslint-plugin-prettier: "npm:^5.5.5"
     firebase-admin: "npm:^13.7.0"
-    fuse.js: "npm:7.1.0"
+    fuse.js: "npm:7.2.0"
     geojson: "npm:0.5.0"
     helmet: "npm:8.1.0"
     husky: "npm:^9.1.7"
