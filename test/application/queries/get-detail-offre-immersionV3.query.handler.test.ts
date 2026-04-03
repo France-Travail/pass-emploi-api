@@ -44,7 +44,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
           data: uneOffreImmersionDtov3()
         }
 
-        immersionClient.getDetailOffre.resolves(success(response.data))
+        immersionClient.getDetailOffreV3.resolves(success(response.data))
 
         // When
         const detailOffre = await getDetailOffreImmersionQueryHandler.handle({
@@ -87,7 +87,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
           idOffreImmersion: 'id'
         }
 
-        immersionClient.getDetailOffre.resolves(
+        immersionClient.getDetailOffreV3.resolves(
           failure(new ErreurHttp('un message d’erreur', 400))
         )
 
@@ -108,7 +108,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
           idOffreImmersion: 'id'
         }
         const error = new Error('Erreur inconnue')
-        immersionClient.getDetailOffre.rejects(error)
+        immersionClient.getDetailOffreV3.rejects(error)
 
         // When
         const offres = getDetailOffreImmersionQueryHandler.handle({

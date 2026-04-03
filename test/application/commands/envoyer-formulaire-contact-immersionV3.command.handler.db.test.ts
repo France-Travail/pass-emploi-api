@@ -15,6 +15,8 @@ import {
   EnvoyerFormulaireContactImmersionCommandHandlerV3,
   EnvoyerFormulaireContactImmersionCommandV3
 } from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
+import { PartenaireImmersion } from '../../../src/infrastructure/repositories/dto/immersion.dto'
+import ContactMode = PartenaireImmersion.ContactMode
 
 describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -86,7 +88,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryEmail: command.email,
           potentialBeneficiaryPhone: '0600000000',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
-          contactMode: command.contactMode,
+          contactMode: command.contactMode as ContactMode,
           periodeVoulue: command.periodeVoulue
         })
       })

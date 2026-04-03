@@ -62,9 +62,12 @@ export function uneActionQueryModel(
     id: 'd2e48a82-c664-455a-b3a5-bb0465a72022',
     comment: "Description de l'action",
     content: "Contenu de l'action",
-    dateCreation: DateTime.fromISO('2021-11-11T08:03:30.000Z').toISO(),
+    dateCreation: DateTime.fromISO('2021-11-11T08:03:30.000+00:00', {
+      setZone: true
+    }).toISO(),
     dateDerniereActualisation: DateTime.fromISO(
-      '2021-11-11T08:03:30.000Z'
+      '2021-11-11T08:03:30.000+00:00',
+      { setZone: true }
     ).toISO(),
     creator: 'Nils Tavernier',
     jeune: {
@@ -75,19 +78,21 @@ export function uneActionQueryModel(
       dispositif: 'CEJ'
     },
     creatorType: Action.TypeCreateur.CONSEILLER,
-    dateEcheance: DateTime.fromISO('2021-11-11T08:03:30.000Z').toISO(),
+    dateEcheance: DateTime.fromISO('2021-11-11T08:03:30.000+00:00', {
+      setZone: true
+    }).toISO(),
     dateFinReelle: undefined,
     status: Action.Statut.PAS_COMMENCEE,
     etat: Action.Qualification.Etat.NON_QUALIFIABLE,
     qualification: undefined,
     // deprecated
-    creationDate: DateTime.fromISO('2021-11-11T08:03:30.000Z').toFormat(
-      'EEE, d MMM yyyy HH:mm:ss z'
-    ),
+    creationDate: DateTime.fromISO('2021-11-11T08:03:30.000+00:00', {
+      setZone: true
+    }).toFormat('EEE, d MMM yyyy HH:mm:ss z'),
     // deprecated
-    lastUpdate: DateTime.fromISO('2021-11-11T08:03:30.000Z').toFormat(
-      'EEE, d MMM yyyy HH:mm:ss z'
-    )
+    lastUpdate: DateTime.fromISO('2021-11-11T08:03:30.000+00:00', {
+      setZone: true
+    }).toFormat('EEE, d MMM yyyy HH:mm:ss z')
   }
 
   return { ...defaults, ...args }

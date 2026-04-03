@@ -179,16 +179,17 @@ describe('ActionsController', () => {
           .resolves(uneActionQueryModel({ id: idAction }))
 
         // When - Then
+        const dateRef = DateTime.fromISO('2021-11-11T08:03:30.000+00:00', {
+          setZone: true
+        })
         const actionJson = {
           comment: "Description de l'action",
           content: "Contenu de l'action",
-          dateCreation: '2021-11-11T08:03:30.000+00:00',
-          creationDate: DateTime.fromISO('2021-11-11T08:03:30.000Z').toFormat(
-            'EEE, d MMM yyyy HH:mm:ss z'
-          ),
+          dateCreation: dateRef.toISO(),
+          creationDate: dateRef.toFormat('EEE, d MMM yyyy HH:mm:ss z'),
           creator: 'Nils Tavernier',
           creatorType: 'conseiller',
-          dateEcheance: '2021-11-11T08:03:30.000+00:00',
+          dateEcheance: dateRef.toISO(),
           etat: 'NON_QUALIFIABLE',
           id: '13c11b33-751c-4e1b-a49d-1b5a473ba159',
           jeune: {
@@ -198,10 +199,8 @@ describe('ActionsController', () => {
             lastName: 'Doe',
             dispositif: 'CEJ'
           },
-          dateDerniereActualisation: '2021-11-11T08:03:30.000+00:00',
-          lastUpdate: DateTime.fromISO('2021-11-11T08:03:30.000Z').toFormat(
-            'EEE, d MMM yyyy HH:mm:ss z'
-          ),
+          dateDerniereActualisation: dateRef.toISO(),
+          lastUpdate: dateRef.toFormat('EEE, d MMM yyyy HH:mm:ss z'),
           status: 'not_started'
         }
         await request(app.getHttpServer())
