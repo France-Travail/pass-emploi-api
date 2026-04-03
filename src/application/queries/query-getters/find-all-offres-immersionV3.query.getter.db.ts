@@ -74,8 +74,8 @@ export class FindAllOffresImmersionQueryGetterV3 {
     return params
   }
 
-  chunkBy<T>(list: T[], size: number): T[][] {
-    const chunks: T[][] = []
+  chunkBy(list: string[], size: number): string[][] {
+    const chunks: string[][] = []
     for (let i = 0; i < list.length; i += size) {
       chunks.push(list.slice(i, i + size))
     }

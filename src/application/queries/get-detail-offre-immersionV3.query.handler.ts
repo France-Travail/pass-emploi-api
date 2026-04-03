@@ -68,5 +68,11 @@ function buildParamsRechercheImmersion(
   locationId: string
 ): string {
   const [siret, appellationCode] = idOffreImmersion.split('-')
-  return siret + '/' + appellationCode + '/' + locationId
+  return (
+    encodeURIComponent(siret) +
+    '/' +
+    encodeURIComponent(appellationCode) +
+    '/' +
+    encodeURIComponent(locationId)
+  )
 }
