@@ -1,6 +1,5 @@
 import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
 import { expect } from 'chai'
-import { GetDetailOffreImmersionQueryHandler } from '../../../src/application/queries/get-detail-offre-immersion.query.handler'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { ImmersionClient } from '../../../src/infrastructure/clients/immersion-client'

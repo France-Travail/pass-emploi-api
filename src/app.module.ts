@@ -80,6 +80,7 @@ import { DeleteListeDeDiffusionCommandHandler } from './application/commands/del
 import { DeleteRechercheCommandHandler } from './application/commands/delete-recherche.command.handler'
 import { DeleteRendezVousCommandHandler } from './application/commands/delete-rendez-vous.command.handler.db'
 import { EnvoyerFormulaireContactImmersionCommandHandler } from './application/commands/envoyer-formulaire-contact-immersion.command.handler.db'
+import { EnvoyerFormulaireContactImmersionCommandHandlerV3 } from './application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
 import { EnvoyerMessageGroupeCommandHandler } from './application/commands/envoyer-message-groupe.command.handler'
 import { CreerJeuneMiloCommandHandler } from './application/commands/milo/creer-jeune-milo.command.handler'
 import { EnvoyerEmailActivationCommandHandler } from './application/commands/milo/envoyer-email-activation.command.handler'
@@ -184,6 +185,7 @@ import { GetDetailJeuneQueryHandler } from './application/queries/get-detail-jeu
 import { GetDetailListeDeDiffusionQueryHandler } from './application/queries/get-detail-liste-de-diffusion.query.handler.db'
 import { GetDetailOffreEmploiQueryHandler } from './application/queries/get-detail-offre-emploi.query.handler'
 import { GetDetailOffreImmersionQueryHandler } from './application/queries/get-detail-offre-immersion.query.handler'
+import { GetDetailOffreImmersionQueryHandlerV3 } from './application/queries/get-detail-offre-immersionV3.query.handler'
 import { GetDetailOffreServiceCiviqueQueryHandler } from './application/queries/get-detail-offre-service-civique.query.handler'
 import { GetDiagorienteMetiersFavorisQueryHandler } from './application/queries/get-diagoriente-metiers-favoris.query.handler'
 import { GetDiagorienteUrlsQueryHandler } from './application/queries/get-diagoriente-urls.query.handler'
@@ -207,6 +209,7 @@ import { GetMotifsSuppressionJeuneQueryHandler } from './application/queries/get
 import { GetNotificationsJeuneQueryHandler } from './application/queries/get-notifications-jeune.query.handler.db'
 import { GetOffresEmploiQueryHandler } from './application/queries/get-offres-emploi.query.handler'
 import { GetOffresImmersionQueryHandler } from './application/queries/get-offres-immersion.query.handler'
+import { GetOffresImmersionQueryHandlerV3 } from './application/queries/get-offres-immersionV3.query.handler'
 import { GetOffresServicesCiviqueQueryHandler } from './application/queries/get-offres-services-civique.query.handler'
 import { GetPreferencesJeuneQueryHandler } from './application/queries/get-preferences-jeune.query.handler.db'
 import { GetRecherchesQueryHandler } from './application/queries/get-recherches.query.handler.db'
@@ -728,7 +731,9 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetFavorisOffresImmersionJeuneQueryHandler,
     GetOffresEmploiQueryHandler,
     GetOffresImmersionQueryHandler,
+    GetOffresImmersionQueryHandlerV3,
     GetDetailOffreImmersionQueryHandler,
+    GetDetailOffreImmersionQueryHandlerV3,
     GetDetailOffreEmploiQueryHandler,
     GetDetailConseillerQueryHandler,
     GetJeunesByConseillerQueryHandler,
@@ -822,6 +827,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     CreateSuggestionConseillerServiceCiviqueCommandHandler,
     CreateSuggestionConseillerImmersionCommandHandler,
     EnvoyerFormulaireContactImmersionCommandHandler,
+    EnvoyerFormulaireContactImmersionCommandHandlerV3,
     GetActionsPredefiniesQueryHandler,
     GetAnimationsCollectivesQueryHandler,
     GetAnimationsCollectivesV2QueryHandler,

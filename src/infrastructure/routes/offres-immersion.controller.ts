@@ -126,9 +126,9 @@ export class OffresImmersionController {
     return handleResult(result)
   }
 
-  @Get('offres-immersion/:idOffreImmersionV3')
+  @Get('offres-immersionV3/:idOffreImmersion')
   @ApiResponse({
-    type: DetailOffreImmersionQueryModel
+    type: DetailOffreImmersionQueryModelV3
   })
   async getDetailOffreImmersionV3(
     @Param('idOffreImmersion') idOffreImmersion: string,
