@@ -103,7 +103,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           },
           situations: undefined,
           estAArchiver: false,
-          urlDossier: 'https://milo.com/1234/acces-externe'
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese'
         })
         expect(actual).to.deep.equal(success(expected))
       })
@@ -135,7 +135,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           },
           situations: undefined,
           dateFinCEJ: DateService.fromJSDateToISOString(uneDate()),
-          urlDossier: 'https://milo.com/1234/acces-externe',
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese',
           estAArchiver: false
         })
         expect(actual).to.deep.equal(success(expected))
@@ -176,7 +176,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           },
           situations: [{ etat: 'EN_COURS', categorie: 'Emploi' }],
           estAArchiver: false,
-          urlDossier: 'https://milo.com/1234/acces-externe'
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese'
         })
         expect(actual).to.deep.equal(success(expected))
       })
@@ -201,7 +201,7 @@ describe('GetDetailJeuneQueryHandler', () => {
             expect(result._isSuccess).to.be.true()
             if (isSuccess(result)) {
               expect(result.data.urlDossier).to.equal(
-                'https://milo.com/123/acces-externe'
+                'https://milo.com/interface/dossier/123/synthese'
               )
               expect(result.data.estAArchiver).to.equal(true)
             }
@@ -296,7 +296,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           },
           situations: undefined,
           estAArchiver: false,
-          urlDossier: 'https://milo.com/1234/acces-externe'
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese'
         })
         expect(actual).to.deep.equal(success(expected))
       })
@@ -337,7 +337,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           isReaffectationTemporaire: true,
           situations: undefined,
           estAArchiver: false,
-          urlDossier: 'https://milo.com/1234/acces-externe'
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese'
         })
         expect(actual).to.deep.equal(success(expected))
       })
@@ -404,7 +404,7 @@ describe('GetDetailJeuneQueryHandler', () => {
           },
           situations: undefined,
           estAArchiver: false,
-          urlDossier: 'https://milo.com/1234/acces-externe'
+          urlDossier: 'https://milo.com/interface/dossier/1234/synthese'
         })
         expect(actual).to.deep.equal(success(expected))
       })

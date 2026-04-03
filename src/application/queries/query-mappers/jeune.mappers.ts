@@ -52,7 +52,7 @@ export function fromSqlToDetailJeuneQueryModel(
     idPartenaire: jeuneSqlModel.idPartenaire ?? undefined,
     urlDossier:
       optionsMilo?.baseUrlDossier && jeuneSqlModel.idPartenaire
-        ? `${optionsMilo.baseUrlDossier}/${jeuneSqlModel.idPartenaire}/acces-externe`
+        ? `${optionsMilo.baseUrlDossier}/interface/dossier/${jeuneSqlModel.idPartenaire}/synthese`
         : undefined,
     estAArchiver: optionsMilo?.estAArchiver,
     dateSignatureCGU: jeuneSqlModel.dateSignatureCGU?.toISOString(),
