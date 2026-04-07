@@ -3,7 +3,6 @@ import { expect } from 'chai'
 import { failure, success } from '../../../../src/building-blocks/types/result'
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
 import { ImmersionClient } from '../../../../src/infrastructure/clients/immersion-client'
-import { FindAllOffresImmersionQueryGetter } from '../../../../src/application/queries/query-getters/find-all-offres-immersion.query.getter.db'
 import { StubbedClass, stubClass } from '../../../utils'
 import {
   DatabaseForTesting,
@@ -13,6 +12,7 @@ import { MetierRomeSqlModel } from '../../../../src/infrastructure/sequelize/mod
 import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-model'
 import { PartenaireImmersion } from '../../../../src/infrastructure/repositories/dto/immersion.dto'
 import { OffreImmersionQueryModelV3 } from '../../../../src/application/queries/query-models/offres-immersion.query-model'
+import { FindAllOffresImmersionQueryGetterV3 } from '../../../../src/application/queries/query-getters/find-all-offres-immersionV3.query.getter.db'
 
 const uneOffreDto = (
   siret: string,
@@ -59,7 +59,7 @@ const baseQuery = {
 describe('FindAllOffresImmersionQueryGetter', () => {
   let databaseForTesting: DatabaseForTesting
   let immersionClient: StubbedClass<ImmersionClient>
-  let findAllOffresImmersionQueryGetter: FindAllOffresImmersionQueryGetter
+  let findAllOffresImmersionQueryGetter: FindAllOffresImmersionQueryGetterV3
 
   before(() => {
     databaseForTesting = getDatabase()
@@ -68,7 +68,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
     immersionClient = stubClass(ImmersionClient)
-    findAllOffresImmersionQueryGetter = new FindAllOffresImmersionQueryGetter(
+    findAllOffresImmersionQueryGetter = new FindAllOffresImmersionQueryGetterV3(
       immersionClient,
       databaseForTesting.sequelize
     )
@@ -90,7 +90,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
 
-        immersionClient.getOffres.resolves(
+        immersionClient.getOffresV3.resolves(
           success([uneOffreDto('siret-1', 'appCode-1')])
         )
 
@@ -98,8 +98,8 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffres.callCount).to.equal(1)
-        expect(immersionClient.getOffres.getCall(0).args).to.deep.equal([
+        expect(immersionClient.getOffresV3.callCount).to.equal(1)
+        expect(immersionClient.getOffresV3.getCall(0).args).to.deep.equal([
           params
         ])
         expect(result).to.deep.equal(
@@ -126,7 +126,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
           })
         ])
 
-        immersionClient.getOffres.resolves(
+        immersionClient.getOffresV3.resolves(
           success([
             uneOffreDto('siret-1', 'appCode-1'),
             uneOffreDto('siret-2', 'appCode-2')
@@ -137,7 +137,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffres.callCount).to.equal(1)
+        expect(immersionClient.getOffresV3.callCount).to.equal(1)
         expect(result).to.deep.equal(
           success([
             uneOffreQueryModel('siret-1', 'appCode-1'),
@@ -160,10 +160,10 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         )
         await MetierRomeSqlModel.bulkCreate(metiers)
 
-        immersionClient.getOffres
+        immersionClient.getOffresV3
           .onFirstCall()
           .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
-        immersionClient.getOffres
+        immersionClient.getOffresV3
           .onSecondCall()
           .resolves(success([uneOffreDto('siret-2', 'appCode-2')]))
 
@@ -171,7 +171,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffres.callCount).to.equal(2)
+        expect(immersionClient.getOffresV3.callCount).to.equal(2)
         expect(result).to.deep.equal(
           success([
             uneOffreQueryModel('siret-1', 'appCode-1'),
@@ -193,10 +193,10 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         await MetierRomeSqlModel.bulkCreate(metiers)
 
         const erreur = new ErreurHttp('erreur API', 400)
-        immersionClient.getOffres
+        immersionClient.getOffresV3
           .onFirstCall()
           .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
-        immersionClient.getOffres.onSecondCall().resolves(failure(erreur))
+        immersionClient.getOffresV3.onSecondCall().resolves(failure(erreur))
 
         // When
         const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
@@ -213,7 +213,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
           unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' })
         ])
 
-        immersionClient.getOffres.resolves(
+        immersionClient.getOffresV3.resolves(
           failure(new ErreurHttp("un message d'erreur", 404))
         )
 
@@ -233,7 +233,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         ])
 
         const error = new Error('Erreur inconnue')
-        immersionClient.getOffres.rejects(error)
+        immersionClient.getOffresV3.rejects(error)
 
         // When
         const call = findAllOffresImmersionQueryGetter.handle(baseQuery)
