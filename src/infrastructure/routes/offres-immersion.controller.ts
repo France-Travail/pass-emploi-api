@@ -83,7 +83,7 @@ export class OffresImmersionController {
     return handleResult(result)
   }
 
-  @Get('offres-immersionV3')
+  @Get('v3/offres-immersion')
   @ApiResponse({
     type: OffreImmersionQueryModelV3,
     isArray: true
@@ -126,7 +126,7 @@ export class OffresImmersionController {
     return handleResult(result)
   }
 
-  @Get('offres-immersionV3/:idOffreImmersion')
+  @Get('v3/offres-immersion/:idOffreImmersion')
   @ApiResponse({
     type: DetailOffreImmersionQueryModelV3
   })
@@ -183,7 +183,7 @@ export class OffresImmersionController {
     return handleResult(result)
   }
 
-  @Post('jeunes/:idJeune/offres-immersion/contactV3')
+  @Post('v3/jeunes/:idJeune/offres-immersion/contact')
   async postFormulaireImmersionV3(
     @Param('idJeune') idJeune: string,
     @Body() postImmersionContactBody: PostImmersionContactBodyV3,

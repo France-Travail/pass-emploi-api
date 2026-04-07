@@ -48,7 +48,7 @@ describe('OffresImmersionController', () => {
     )
   })
 
-  describe('GET /offres-immersionV3', () => {
+  describe('GET /v3/offres-immersion', () => {
     describe('quand tout va bien', () => {
       it("fait appel à l'API Immersion avec les bons paramètres", async () => {
         // Given
@@ -76,7 +76,7 @@ describe('OffresImmersionController', () => {
 
         // When
         const result = await request(app.getHttpServer())
-          .get('/offres-immersionV3')
+          .get('/v3/offres-immersion')
           .set('authorization', unHeaderAuthorization())
           .query(getOffresImmersionQuery)
           // Then
@@ -100,16 +100,16 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get('/offres-immersionV3')
+          .get('/v3/offres-immersion')
           .set('authorization', unHeaderAuthorization())
           .query(getOffresImmersionQuery)
           // Then
           .expect(HttpStatus.BAD_REQUEST)
       })
     })
-    ensureUserAuthenticationFailsIfInvalid('get', '/offres-immersionV3')
+    ensureUserAuthenticationFailsIfInvalid('get', '/v3/offres-immersion')
   })
-  describe('GET /offres-immersionV3/:idOffreImmersion', () => {
+  describe('GET /v3/offres-immersion/:idOffreImmersion', () => {
     const query: GetDetailOffreImmersionQueryV3 = {
       idOffreImmersion: '1',
       locationId: 'un-location-id'
@@ -136,7 +136,7 @@ describe('OffresImmersionController', () => {
 
         // When
         const result = await request(app.getHttpServer())
-          .get(`/offres-immersionV3/${query.idOffreImmersion}`)
+          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
           .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
@@ -154,7 +154,7 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get(`/offres-immersionV3/${query.idOffreImmersion}`)
+          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
           .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
@@ -170,14 +170,14 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get(`/offres-immersionV3/${query.idOffreImmersion}`)
+          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
           .query({ locationId: query.locationId })
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.NOT_FOUND)
       })
     })
-    ensureUserAuthenticationFailsIfInvalid('get', '/offres-immersionV3/1')
+    ensureUserAuthenticationFailsIfInvalid('get', '/v3/offres-immersion/1')
   })
   describe('POST /offres-immersion', () => {
     // Given
@@ -232,7 +232,7 @@ describe('OffresImmersionController', () => {
     })
   })
 
-  describe('POST /jeunes/:idJeune/offres-immersion/contactV3', () => {
+  describe('POST /v3/jeunes/:idJeune/offres-immersion/contact', () => {
     it('renvoie un code de succes quand la commande est en succes', async () => {
       // Given
       const payload = {
@@ -254,7 +254,7 @@ describe('OffresImmersionController', () => {
 
       // When - Then
       await request(app.getHttpServer())
-        .post('/jeunes/1/offres-immersion/contactV3')
+        .post('/v3/jeunes/1/offres-immersion/contact')
         .set('authorization', unHeaderAuthorization())
         .send(payload)
         .expect(HttpStatus.CREATED)
@@ -280,14 +280,14 @@ describe('OffresImmersionController', () => {
 
       // When - Then
       await request(app.getHttpServer())
-        .post('/jeunes/1/offres-immersion/contactV3')
+        .post('/v3/jeunes/1/offres-immersion/contact')
         .set('authorization', unHeaderAuthorization())
         .send(payload)
         .expect(HttpStatus.UNAUTHORIZED)
     })
     ensureUserAuthenticationFailsIfInvalid(
       'post',
-      '/jeunes/1/offres-immersion/contactV3'
+      '/v3/jeunes/1/offres-immersion/contact'
     )
   })
 })
