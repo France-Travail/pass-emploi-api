@@ -93,6 +93,7 @@ export class DateService {
   }
 
   static dateFromMilo(dateMilo: string, timezone: string): DateTime {
+    // todo: timezonerDateMilo
     return DateTime.fromFormat(dateMilo, MILO_DATE_FORMAT, {
       zone: timezone
     }).toUTC()

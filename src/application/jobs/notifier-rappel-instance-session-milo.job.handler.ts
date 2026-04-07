@@ -65,7 +65,7 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Plan
           if (resultJeune.data.configuration?.pushNotificationToken) {
             const dateTimezonee = RendezVousMilo.timezonerDateMilo(
               instance.dateHeureDebut,
-              resultJeune.data
+              resultJeune.data.configuration.fuseauHoraire
             )
 
             const notification =

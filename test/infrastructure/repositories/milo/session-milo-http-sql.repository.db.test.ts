@@ -94,7 +94,8 @@ describe('SessionMiloHttpSqlRepository', () => {
           idDossier: idDossier,
           statut: 'Prescrit',
           dateHeureDebut: '2020-10-06 10:00:00',
-          idSession: '123456'
+          idSession: '123456',
+          nom: 'je suis un titre mais en fait le nom'
         })
         expect(resultat).to.deep.equal(expected)
       })

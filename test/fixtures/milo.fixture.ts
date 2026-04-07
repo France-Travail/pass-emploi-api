@@ -5,7 +5,6 @@ import { EvenementMiloDto } from 'src/infrastructure/repositories/dto/milo.dto'
 import { RendezVousMilo } from '../../src/domain/milo/rendez-vous.milo'
 import { EvenementMilo } from '../../src/domain/milo/evenement.milo'
 import { InstanceSessionMilo } from '../../src/domain/milo/session.milo'
-import { Jeune } from '../../src/domain/jeune/jeune'
 
 export const unDossierMilo = (
   args: Partial<JeuneMilo.Dossier> = {}
@@ -120,14 +119,8 @@ export const uneInstanceSessionMilo = (
     dateHeureDebut: '2020-10-06 10:00:00',
     idSession: '12345',
     idDossier: '5045180',
-    statut: 'Prescrit'
+    statut: 'Prescrit',
+    nom: 'Session pour CV'
   }
   return { ...defaults, ...args }
-}
-
-export const unJeuneMilo = (
-  jeune: Jeune,
-  idStructureMilo: string
-): JeuneMilo => {
-  return { ...jeune, idStructureMilo }
 }

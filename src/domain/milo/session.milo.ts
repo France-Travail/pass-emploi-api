@@ -55,6 +55,7 @@ export interface InstanceSessionMilo {
   dateHeureDebut: string
   idDossier: string
   statut: string
+  nom: string
 }
 
 export type InscriptionsATraiter = {

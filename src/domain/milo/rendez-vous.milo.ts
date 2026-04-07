@@ -22,7 +22,7 @@ export interface RendezVousMilo {
   commentaire?: string
   modalite?: string
   adresse?: string
-  statut: string
+  statut: RendezVousMilo.Statut
 }
 
 export namespace RendezVousMilo {
@@ -43,14 +43,14 @@ export namespace RendezVousMilo {
 
   export function timezonerDateMilo(
     dateString: string,
-    jeune: JeuneDuRendezVous
+    timezone: string
   ): DateTime {
     return DateTime.fromFormat(dateString, MILO_DATE_FORMAT, {
-      zone: jeune.configuration.fuseauHoraire
+      zone: timezone
     })
   }
 
-  function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
+  export function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
     return (
       rendezVousMilo.statut === RendezVousMilo.Statut.RDV_ANNULE ||
       rendezVousMilo.statut === RendezVousMilo.Statut.RDV_REPORTE
@@ -122,13 +122,13 @@ export namespace RendezVousMilo {
     ): { dateTimeDebut: DateTime; duree: number } {
       const dateTimeDebut = timezonerDateMilo(
         rendezVousMilo.dateHeureDebut,
-        jeune
+        jeune.configuration.fuseauHoraire
       )
       let duree = 0
       if (rendezVousMilo.dateHeureFin) {
         const dateTimeFin = timezonerDateMilo(
           rendezVousMilo.dateHeureFin,
-          jeune
+          jeune.configuration.fuseauHoraire
         )
         duree = dateTimeFin.diff(dateTimeDebut, 'minutes').get('minutes')
       }
@@ -153,9 +153,9 @@ export namespace RendezVousMilo {
 
     private calculerPresence(statut: string): boolean | undefined {
       switch (statut) {
-        case 'Présent':
+        case Statut.RDV_PRESENT:
           return true
-        case 'Absent':
+        case Statut.RDV_ABSENT:
           return false
         default:
           return undefined

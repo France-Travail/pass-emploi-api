@@ -67,7 +67,8 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       dateHeureDebut: result.data.dateHeureDebut,
       idSession: result.data.idSession,
       idDossier: result.data.idDossier,
-      statut: result.data.statut
+      statut: result.data.statut,
+      nom: result.data.nom
     }
   }
 

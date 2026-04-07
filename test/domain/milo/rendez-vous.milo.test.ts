@@ -12,6 +12,7 @@ import {
   unRendezVous
 } from '../../fixtures/rendez-vous.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
+import Statut = RendezVousMilo.Statut
 
 describe('MiloRendezVous', () => {
   describe('Factory', () => {
@@ -284,7 +285,7 @@ describe('MiloRendezVous', () => {
         rdvMilo = unRendezVousMilo({
           dateHeureDebut: dateStringRendezVousDebut,
           dateHeureFin: dateStringRendezVousFin,
-          statut: 'Absent'
+          statut: Statut.RDV_ABSENT
         })
 
         // When
