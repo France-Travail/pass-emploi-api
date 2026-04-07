@@ -224,6 +224,7 @@ import { GetFavorisAccueilQueryGetter } from './application/queries/query-getter
 import { GetRecherchesSauvegardeesQueryGetter } from './application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { FindAllOffresEmploiQueryGetter } from './application/queries/query-getters/find-all-offres-emploi.query.getter'
 import { FindAllOffresImmersionQueryGetter } from './application/queries/query-getters/find-all-offres-immersion.query.getter.db'
+import { FindAllOffresImmersionQueryGetterV3 } from './application/queries/query-getters/find-all-offres-immersionV3.query.getter.db'
 import { FindAllOffresServicesCiviqueQueryGetter } from './application/queries/query-getters/find-all-offres-services-civique.query.getter'
 import { GetCampagneQueryGetter } from './application/queries/query-getters/get-campagne.query.getter.db'
 import { GetComptageJeuneQueryGetter } from './application/queries/query-getters/get-comptage-jeune.query.getter'
@@ -794,6 +795,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     FichierAuthorizer,
     FindAllOffresEmploiQueryGetter,
     FindAllOffresImmersionQueryGetter,
+    FindAllOffresImmersionQueryGetterV3,
     FindAllOffresServicesCiviqueQueryGetter,
     RebasculerJeunesOrphelinsMigrationCommandHandler,
     RecupererJeunesDuConseillerCommandHandler,

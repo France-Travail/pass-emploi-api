@@ -153,7 +153,7 @@ export class ImmersionClient {
   }
 
   async envoyerFormulaireImmersionV3(
-    params: FormulaireImmersionPayload
+    params: FormulaireImmersionPayloadV3
   ): Promise<Result> {
     try {
       await this.postV3('v3/apply-to-offer', params)

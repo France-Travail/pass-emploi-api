@@ -67,17 +67,19 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          periodeVoulue: 'dans le mois qui vient'
+          periodeVoulue: 'dans le mois qui vient',
+          message:
+            'Bonjour, Je souhaiterais passer quelques jours dans votre entreprise en immersion professionnelle auprès de vos salariés pour découvrir ce métier. Pourriez-vous me proposer un rendez-vous ? Je pourrais alors vous expliquer directement mon projet.'
         }
 
-        immersionClient.envoyerFormulaireImmersion.resolves(emptySuccess())
+        immersionClient.envoyerFormulaireImmersionV3.resolves(emptySuccess())
 
         // When
         await envoyerFormulaireContactImmersionCommandHandler.handle(command)
 
         // Then
         expect(
-          immersionClient.envoyerFormulaireImmersion
+          immersionClient.envoyerFormulaireImmersionV3
         ).to.have.been.calledOnceWithExactly({
           kind: 'IF',
           appellationCode: '11573',
@@ -89,7 +91,8 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryPhone: '0600000000',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
-          periodeVoulue: command.periodeVoulue
+          datePreferences: command.periodeVoulue,
+          experienceAdditionalInformation: command.message
         })
       })
     })
