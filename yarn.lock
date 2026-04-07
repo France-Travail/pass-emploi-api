@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1024.0":
-  version: 3.1024.0
-  resolution: "@aws-sdk/client-s3@npm:3.1024.0"
+"@aws-sdk/client-s3@npm:^3.1025.0":
+  version: 3.1025.0
+  resolution: "@aws-sdk/client-s3@npm:3.1025.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -226,7 +226,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.2"
     "@smithy/util-waiter": "npm:^4.2.14"
     tslib: "npm:^2.6.2"
-  checksum: 10/e4a30124680c6b6e50c870e1c8b4797e6ed76a210132f7a3b33d481a41b3c198174c251d96479559f7a74dbd9fa94d0bf15bad4cc94dd99bf0fe04a652fc2a2b
+  checksum: 10/62ff74476c84d41969f06d4c922741efb20fc8dcb5565422f486fbcec46035856079473abb852026a71d9f0f50b6947e863decef119043e8c945a4196df76360
   languageName: node
   linkType: hard
 
@@ -599,9 +599,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1024.0":
-  version: 3.1024.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1024.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1025.0":
+  version: 3.1025.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1025.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.15"
     "@aws-sdk/types": "npm:^3.973.6"
@@ -611,7 +611,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.8"
     "@smithy/types": "npm:^4.13.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/96409c7a489acfff4545cb38aaa812d3b494d7bb1c5bb18d34f2c55759443ba4c346661c5363c32f1913d4bfef072b57d6af144df4f2b7380af151b234a1ec9d
+  checksum: 10/28755d1b567a0fa8355cb61ba1ce29a79c58115a6da39c19ef5d9bd341f51360fea177fa8c65c1161b4db07839146bfb943dd04f747f39ccb1033b0e2fa27fd6
   languageName: node
   linkType: hard
 
@@ -9140,8 +9140,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1024.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1024.0"
+    "@aws-sdk/client-s3": "npm:^3.1025.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1025.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.18"
