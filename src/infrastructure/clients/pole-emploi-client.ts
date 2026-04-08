@@ -29,7 +29,11 @@ import {
   OffresEmploiDtoWithTotal,
   TypeRDVPE
 } from '../repositories/dto/pole-emploi.dto'
-import { DemarcheIADto } from './dto/pole-emploi.dto'
+import {
+  AppellationRomeDto,
+  DemarcheIADto,
+  MetierRomeApiDto
+} from './dto/pole-emploi.dto'
 import { handleAxiosError } from './utils/axios-error-handler'
 
 @Injectable()
@@ -206,6 +210,38 @@ export class PoleEmploiClient {
         )
       }
     })
+  }
+
+  async getAppellationsRome(): Promise<Result<AppellationRomeDto[]>> {
+    try {
+      const result = await this.getWithRetry<AppellationRomeDto[]>(
+        'rome-metiers/v1/metiers/appellation'
+      )
+      if (isFailure(result)) return result
+      return success(result.data.data ?? [])
+    } catch (e) {
+      return handleAxiosError(
+        e,
+        this.logger,
+        'La récupération des appellations ROME a échoué'
+      )
+    }
+  }
+
+  async getMetiersRomeApi(): Promise<Result<MetierRomeApiDto[]>> {
+    try {
+      const result = await this.getWithRetry<MetierRomeApiDto[]>(
+        'rome-metiers/v1/metiers/metier'
+      )
+      if (isFailure(result)) return result
+      return success(result.data.data ?? [])
+    } catch (e) {
+      return handleAxiosError(
+        e,
+        this.logger,
+        'La récupération des métiers ROME a échoué'
+      )
+    }
   }
 
   async generateDemarchesIA(contenu: string): Promise<Result<DemarcheIADto[]>> {
