@@ -207,7 +207,7 @@ export class FirebaseClient {
       lastMessageSentAt: Timestamp.fromMillis(maintenant.toMillis()),
       lastMessageSentBy: sentBy,
       newConseillerMessageCount: newConseillerMessageCount + 1,
-      seenByConseiller: sentBy === SENT_BY_CONSEILLER
+      ...(sentByBeneficiaire && { seenByConseiller: false })
     }
     const firebaseMessage: FirebaseMessage = {
       content: message.message,
