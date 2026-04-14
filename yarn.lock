@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1029.0":
-  version: 3.1029.0
-  resolution: "@aws-sdk/client-s3@npm:3.1029.0"
+"@aws-sdk/client-s3@npm:^3.1030.0":
+  version: 3.1030.0
+  resolution: "@aws-sdk/client-s3@npm:3.1030.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -226,7 +226,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.2"
     "@smithy/util-waiter": "npm:^4.2.15"
     tslib: "npm:^2.6.2"
-  checksum: 10/2142cd2fead8553116200cd0577b2f4fd6f9e6aeaf8ccf5b45a83a3d9832d597856f7833ba4eb2170d8cd5f9877c427b7c49901353204688b37b2ea3ebf5a78f
+  checksum: 10/20dd050e2b259c76be5e9cf4dc883af7fa881a16eeaded2e521020cb8d39ff58cc989a4967b2f69f0d27ab1b89fb03b35dbb6e1ab96d10dc7ee8be367d088f51
   languageName: node
   linkType: hard
 
@@ -599,9 +599,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1029.0":
-  version: 3.1029.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1029.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1030.0":
+  version: 3.1030.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1030.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.16"
     "@aws-sdk/types": "npm:^3.973.7"
@@ -611,7 +611,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.9"
     "@smithy/types": "npm:^4.14.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/979770706a3e82ac0be57444eb1d294e4420cd7a7dc804c388769935dcbc50ee55630994eb1ae6fc862d1fd2e0bf013d15d33cde1fc74bb80af0702e89c84cf6
+  checksum: 10/a6ec4c529252270a5928fdb01b47d8755d190f9bc4e65ae09df3d1e7e4dfffc562a78f87e71ab1a638499a36217fdf34e59d4ae5555ff8b0a3d16ad1589948d8
   languageName: node
   linkType: hard
 
@@ -1856,9 +1856,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/common@npm:11.1.18":
-  version: 11.1.18
-  resolution: "@nestjs/common@npm:11.1.18"
+"@nestjs/common@npm:11.1.19":
+  version: 11.1.19
+  resolution: "@nestjs/common@npm:11.1.19"
   dependencies:
     file-type: "npm:21.3.4"
     iterare: "npm:1.2.1"
@@ -1875,7 +1875,7 @@ __metadata:
       optional: true
     class-validator:
       optional: true
-  checksum: 10/94901d434bd049c2baff822fcd705b3ea5e7d2038b398b2619a8f79fd5dac4e969a30595147553b6c0580e92e15f7e3252a6feb9eabf4c42bab6cf373339cf06
+  checksum: 10/e402d0c859efc9d1547a5cd0edd3a0d2b485fcc55147071b4472e530afc4efa112b7cc4982eb85f34aa4e57fa62c0cbba368f16366d3144d83b2149fe0b4891c
   languageName: node
   linkType: hard
 
@@ -1893,9 +1893,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/core@npm:11.1.18":
-  version: 11.1.18
-  resolution: "@nestjs/core@npm:11.1.18"
+"@nestjs/core@npm:11.1.19":
+  version: 11.1.19
+  resolution: "@nestjs/core@npm:11.1.19"
   dependencies:
     "@nuxt/opencollective": "npm:0.4.1"
     fast-safe-stringify: "npm:2.1.1"
@@ -1917,7 +1917,7 @@ __metadata:
       optional: true
     "@nestjs/websockets":
       optional: true
-  checksum: 10/522775660e9111df51294d82ac1ab63ea6b7ebc1edbb45a79c6471cdf33205bd1bb4f6058d284c5ab7b480e25c4da71763a89595112cb6d958786f6f76c87a1e
+  checksum: 10/be0d9b8221867afa0f93eb0e45ea750a48e9c4e0225331889b0ca6b1ceb4d1292096146442e9c55e1775777c23a8fc66d9c07c82ca1f53fff16f1913ecd51165
   languageName: node
   linkType: hard
 
@@ -1938,9 +1938,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/platform-express@npm:11.1.18":
-  version: 11.1.18
-  resolution: "@nestjs/platform-express@npm:11.1.18"
+"@nestjs/platform-express@npm:11.1.19":
+  version: 11.1.19
+  resolution: "@nestjs/platform-express@npm:11.1.19"
   dependencies:
     cors: "npm:2.8.6"
     express: "npm:5.2.1"
@@ -1950,7 +1950,7 @@ __metadata:
   peerDependencies:
     "@nestjs/common": ^11.0.0
     "@nestjs/core": ^11.0.0
-  checksum: 10/ad3ec517d9880a86a4456f65b888046dd9b139118be96d3ad67387f3ae980795e5605b5216d5c5822fff833ae88962385b69522fdbe9a7b97a4090f43889f018
+  checksum: 10/3ffa037b02c6c356f42b9bcfcf8495ccb2403f9f678896577fa9ed79c825f4b6a8ae08d52d58d8fce1666a99790186c6ca3024a7ce078f3b03994d998dd8b8b9
   languageName: node
   linkType: hard
 
@@ -9160,14 +9160,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1029.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1029.0"
+    "@aws-sdk/client-s3": "npm:^3.1030.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1030.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
-    "@nestjs/common": "npm:11.1.18"
+    "@nestjs/common": "npm:11.1.19"
     "@nestjs/config": "npm:4.0.4"
-    "@nestjs/core": "npm:11.1.18"
-    "@nestjs/platform-express": "npm:11.1.18"
+    "@nestjs/core": "npm:11.1.19"
+    "@nestjs/platform-express": "npm:11.1.19"
     "@nestjs/schematics": "npm:^11.0.9"
     "@nestjs/swagger": "npm:11.2.7"
     "@nestjs/terminus": "npm:11.1.1"
