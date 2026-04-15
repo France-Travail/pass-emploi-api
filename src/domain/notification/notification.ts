@@ -145,10 +145,10 @@ export namespace Notification {
       return
     }
 
-    let body = 'Vous avez une session demain'
+    let body = 'Vous avez un atelier demain'
 
     if (sessionDansPlusDUnJour) {
-      body = 'Vous avez une session dans une semaine'
+      body = 'Vous avez un atelier dans une semaine'
       if (sessionDansMoinsDUneSemaine) {
         return
       }
@@ -157,7 +157,7 @@ export namespace Notification {
     return {
       token,
       notification: {
-        title: 'Rappel session',
+        title: 'Rappel atelier',
         body
       },
       data: {

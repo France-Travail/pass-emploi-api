@@ -115,8 +115,8 @@ describe('handler', () => {
       expect(notificationRepository.send).to.have.been.calledWith({
         token: 'token',
         notification: {
-          title: 'Rappel session',
-          body: 'Vous avez une session demain'
+          title: 'Rappel atelier',
+          body: 'Vous avez un atelier demain'
         },
         data: {
           type: 'DETAIL_SESSION_MILO',
@@ -150,8 +150,8 @@ describe('handler', () => {
         {
           token: 'token',
           notification: {
-            title: 'Rappel session',
-            body: 'Vous avez une session dans une semaine'
+            title: 'Rappel atelier',
+            body: 'Vous avez un atelier dans une semaine'
           },
           data: {
             type: 'DETAIL_SESSION_MILO',
