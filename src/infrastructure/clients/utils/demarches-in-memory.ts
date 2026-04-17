@@ -185,6 +185,20 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
       {
         codePourquoi: 'P03',
         libellePourquoi: 'Mes candidatures',
+        codeQuoi: 'Q13',
+        libelleQuoi:
+          "Participer à un salon ou un forum pour rechercher des offres d'emploi",
+        commentObligatoire: true,
+        comment: [
+          {
+            code: 'C13.02',
+            label: 'En présentiel'
+          }
+        ]
+      },
+      {
+        codePourquoi: 'P03',
+        libellePourquoi: 'Mes candidatures',
         codeQuoi: 'Q14',
         libelleQuoi: "Réponse à des offres d'emploi",
         commentObligatoire: false,
@@ -332,15 +346,6 @@ export const catalogueDemarchesInMemory: ThematiqueQueryModel[] = [
             label: 'Par un autre moyen'
           }
         ]
-      },
-      {
-        codePourquoi: 'P04',
-        libellePourquoi: "Mes entretiens d'embauche",
-        codeQuoi: 'Q21',
-        libelleQuoi:
-          "Réalisation d'une mise en situation professionnelle dans une entreprise",
-        commentObligatoire: false,
-        comment: []
       }
     ]
   },
