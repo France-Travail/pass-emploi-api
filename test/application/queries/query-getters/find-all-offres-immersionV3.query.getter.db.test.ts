@@ -40,13 +40,15 @@ const uneOffreQueryModel = (
   siret: string,
   appellationCode: string
 ): OffreImmersionQueryModelV3 => ({
-  id: `${siret}-${appellationCode}`,
+  siret,
   metier: 'label',
   nomEtablissement: 'name',
   secteurActivite: 'nafLabel',
   ville: 'city',
   estVolontaire: true,
-  locationId: 'locationId'
+  locationId: 'locationId',
+  appellationCode,
+  codeRome: 'D1102'
 })
 
 const baseQuery = {

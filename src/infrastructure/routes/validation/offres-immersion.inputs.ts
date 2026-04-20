@@ -49,6 +49,38 @@ export class GetOffresImmersionQueryParams implements GetOffresImmersionQuery {
   distance?: number
 }
 
+export class GetOffresImmersionQueryParamsV3 {
+  @ApiPropertyOptional()
+  @ValidateIf(o => !o.appellationCode)
+  @IsString()
+  @IsNotEmpty()
+  rome?: string
+
+  @ApiPropertyOptional()
+  @ValidateIf(o => !o.rome)
+  @IsString()
+  @IsNotEmpty()
+  appellationCode?: string
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  @Transform(params => transformStringToFloat(params, 'lat'))
+  lat: number
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  @Transform(params => transformStringToFloat(params, 'lon'))
+  lon: number
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Transform(params => transformStringToInteger(params, 'distance'))
+  distance?: number
+}
+
 export class GetOffresImmersionQueryBody {
   @ApiProperty()
   @IsString()
@@ -164,7 +196,7 @@ export class PostImmersionContactBodyV3 {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  codeRome: string
+  appellationCode: string
 
   @ApiProperty()
   @IsString()

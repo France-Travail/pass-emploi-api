@@ -46,7 +46,6 @@ export interface FormulaireImmersionPayloadV3 {
 export class ImmersionClient {
   private readonly apiUrl: string
   private readonly immersionApiKey: string
-  private readonly immersionApiKeyV3: string
   private logger: Logger
 
   constructor(
@@ -55,7 +54,6 @@ export class ImmersionClient {
   ) {
     this.apiUrl = this.configService.get('immersion').url
     this.immersionApiKey = this.configService.get('immersion').apiKey
-    this.immersionApiKeyV3 = this.configService.get('immersion').apiKeyV3
     this.logger = new Logger('ImmersionClient')
   }
 
@@ -201,7 +199,7 @@ export class ImmersionClient {
     return firstValueFrom(
       this.httpService.post<T>(`${this.apiUrl}/${suffixUrl}`, params, {
         headers: {
-          Authorization: this.immersionApiKeyV3
+          Authorization: this.immersionApiKey
         }
       })
     )
@@ -215,7 +213,7 @@ export class ImmersionClient {
       this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
         params,
         headers: {
-          Authorization: this.immersionApiKeyV3
+          Authorization: this.immersionApiKey
         }
       })
     )

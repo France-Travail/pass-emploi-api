@@ -31,10 +31,6 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
     describe('quand la requête est correcte', () => {
       it("renvoie le détail d'une offre", async () => {
         // Given
-        const query = {
-          idOffreImmersion: 'siret-appellationCode'
-        }
-
         const response: AxiosResponse = {
           config: undefined,
           headers: undefined,
@@ -48,15 +44,15 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
 
         // When
         const detailOffre = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion,
-          locationId: ''
+          siret: '123456',
+          appellationCode: 'D1102',
+          locationId: 'locationId'
         })
 
         // Then
         expect(detailOffre).to.deep.equal(
           success({
             estVolontaire: true,
-            id: '123456-D1102',
             localisation: {
               latitude: 42,
               longitude: 2
@@ -66,8 +62,9 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             secteurActivite: 'naf',
             ville: 'city',
             adresse: 'street post code city',
-            codeRome: 'D1102',
             siret: '123456',
+            appellationCode: 'D1102',
+            codeRome: 'D1102',
             contact: {
               modeDeContact: 'PRESENTIEL'
             },
@@ -81,38 +78,31 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
       })
     })
     describe('quand la requête est mauvaise', () => {
-      it('return la failur', async () => {
-        // Given
-        const query = {
-          idOffreImmersion: 'id'
-        }
-
+      it('return la failure', async () => {
         immersionClient.getDetailOffreV3.resolves(
-          failure(new ErreurHttp('un message d’erreur', 400))
+          failure(new ErreurHttp("un message d'erreur", 400))
         )
 
         // When
         const offres = await getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion,
+          siret: 'siret',
+          appellationCode: 'code',
           locationId: ''
         })
 
         // Then
         expect(offres).to.deep.equal(
-          failure(new ErreurHttp('un message d’erreur', 400))
+          failure(new ErreurHttp("un message d'erreur", 400))
         )
       })
       it('renvoie une erreur quand une erreur inconnue survient', async () => {
-        // Given
-        const query = {
-          idOffreImmersion: 'id'
-        }
         const error = new Error('Erreur inconnue')
         immersionClient.getDetailOffreV3.rejects(error)
 
         // When
         const offres = getDetailOffreImmersionQueryHandler.handle({
-          idOffreImmersion: query.idOffreImmersion,
+          siret: 'siret',
+          appellationCode: 'code',
           locationId: ''
         })
 
@@ -123,7 +113,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
   })
 
   describe('monitor', () => {
-    it('enregistre l’évènement pour un conseiller', async () => {
+    it("enregistre l'évènement pour un conseiller", async () => {
       // Given
       const utilisateur = unUtilisateurConseiller()
       // When
@@ -134,7 +124,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
         utilisateur
       )
     })
-    it('n’enregistre pas l’évènement pour un jeune', async () => {
+    it("n'enregistre pas l'évènement pour un jeune", async () => {
       // Given
       const utilisateur = unUtilisateurJeune()
       // When

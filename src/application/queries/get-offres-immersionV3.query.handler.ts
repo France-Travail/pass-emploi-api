@@ -8,7 +8,8 @@ import { OffreImmersionQueryModelV3 } from './query-models/offres-immersion.quer
 import { FindAllOffresImmersionQueryGetterV3 } from './query-getters/find-all-offres-immersionV3.query.getter.db'
 
 export interface GetOffresImmersionQueryV3 extends Query {
-  rome: string
+  rome?: string
+  appellationCode?: string
   lat: number
   lon: number
   distance?: number

@@ -51,8 +51,8 @@ export class FindAllOffresImmersionQueryGetter {
     appellationCodeListe.forEach(appellationCode => {
       params.append('appellationCodes[]', appellationCode)
     })
-    params.append('sortedBy', 'date')
-    params.append('voluntaryToImmersion', 'true')
+    params.append('sortBy', 'date')
+    params.append('sortOrder', 'desc')
 
     return params
   }

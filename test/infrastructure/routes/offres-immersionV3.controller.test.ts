@@ -60,13 +60,15 @@ describe('OffresImmersionController', () => {
 
         const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
           {
-            id: '1',
+            siret: '12345',
             metier: 'Boulanger',
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
             estVolontaire: true,
-            locationId: ''
+            locationId: 'loc-1',
+            appellationCode: 'D1102',
+            codeRome: 'D1102'
           }
         ]
 
@@ -109,11 +111,14 @@ describe('OffresImmersionController', () => {
     })
     ensureUserAuthenticationFailsIfInvalid('get', '/v3/offres-immersion')
   })
-  describe('GET /v3/offres-immersion/:idOffreImmersion', () => {
+  describe('GET /v3/offres-immersion/:siret/:appellationCode/:locationId', () => {
     const query: GetDetailOffreImmersionQueryV3 = {
-      idOffreImmersion: '1',
+      siret: 'un-siret',
+      appellationCode: 'un-appellation-code',
       locationId: 'un-location-id'
     }
+    const path = `/v3/offres-immersion/${query.siret}/${query.appellationCode}/${query.locationId}`
+
     describe('quand tout va bien', () => {
       it('renvoie la bonne offre recherchée', async () => {
         // Given
@@ -121,14 +126,14 @@ describe('OffresImmersionController', () => {
           {
             adresse: 'addresse',
             estVolontaire: true,
-            id: '1',
+            siret: 'siret',
             metier: 'rome',
             nomEtablissement: 'name',
             secteurActivite: 'naf',
             ville: 'Paris',
-            codeRome: 'rome',
-            siret: 'siret',
-            locationId: ''
+            locationId: 'un-location-id',
+            appellationCode: 'code',
+            codeRome: 'D1102'
           }
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)
@@ -136,8 +141,7 @@ describe('OffresImmersionController', () => {
 
         // When
         const result = await request(app.getHttpServer())
-          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
-          .query({ locationId: query.locationId })
+          .get(path)
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.OK)
@@ -154,8 +158,7 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
-          .query({ locationId: query.locationId })
+          .get(path)
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.BAD_REQUEST)
@@ -170,14 +173,16 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get(`/v3/offres-immersion/${query.idOffreImmersion}`)
-          .query({ locationId: query.locationId })
+          .get(path)
           .set('authorization', unHeaderAuthorization())
           // Then
           .expect(HttpStatus.NOT_FOUND)
       })
     })
-    ensureUserAuthenticationFailsIfInvalid('get', '/v3/offres-immersion/1')
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/v3/offres-immersion/siret/code/location'
+    )
   })
   describe('POST /offres-immersion', () => {
     // Given
@@ -232,12 +237,12 @@ describe('OffresImmersionController', () => {
     })
   })
 
-  describe('POST /v3/jeunes/:idJeune/offres-immersion/contact', () => {
+  describe('POST /jeunes/:idJeune/offres-immersion/v3/contact', () => {
     it('renvoie un code de succes quand la commande est en succes', async () => {
       // Given
       const payload = {
         idJeune: '1',
-        codeRome: 'D1102',
+        appellationCode: '11573',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
         locationId: 'un-location-id',
@@ -254,7 +259,7 @@ describe('OffresImmersionController', () => {
 
       // When - Then
       await request(app.getHttpServer())
-        .post('/v3/jeunes/1/offres-immersion/contact')
+        .post('/jeunes/1/offres-immersion/v3/contact')
         .set('authorization', unHeaderAuthorization())
         .send(payload)
         .expect(HttpStatus.CREATED)
@@ -263,7 +268,7 @@ describe('OffresImmersionController', () => {
       // Given
       const payload = {
         idJeune: '1',
-        codeRome: 'D1102',
+        appellationCode: '11573',
         labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
         locationId: 'un-location-id',
@@ -280,14 +285,14 @@ describe('OffresImmersionController', () => {
 
       // When - Then
       await request(app.getHttpServer())
-        .post('/v3/jeunes/1/offres-immersion/contact')
+        .post('/jeunes/1/offres-immersion/v3/contact')
         .set('authorization', unHeaderAuthorization())
         .send(payload)
         .expect(HttpStatus.UNAUTHORIZED)
     })
     ensureUserAuthenticationFailsIfInvalid(
       'post',
-      '/v3/jeunes/1/offres-immersion/contact'
+      '/jeunes/1/offres-immersion/v3/contact'
     )
   })
 })

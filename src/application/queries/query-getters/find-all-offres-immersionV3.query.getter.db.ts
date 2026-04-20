@@ -9,7 +9,7 @@ import { OffreImmersionQueryModelV3 } from '../query-models/offres-immersion.que
 import { URLSearchParams } from 'url'
 import { toOffreImmersionQueryModelV3 } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
-import { GetOffresImmersionQuery } from '../get-offres-immersion.query.handler'
+import { GetOffresImmersionQueryV3 } from '../get-offres-immersionV3.query.handler'
 import { Offre } from '../../../domain/offre/offre'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
@@ -24,9 +24,11 @@ export class FindAllOffresImmersionQueryGetterV3 {
   ) {}
 
   async handle(
-    query: GetOffresImmersionQuery
+    query: GetOffresImmersionQueryV3
   ): Promise<Result<OffreImmersionQueryModelV3[]>> {
-    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
+    const appellationCodeListe = query.appellationCode
+      ? [query.appellationCode]
+      : await this.romeToAppellationsCode(query.rome!)
 
     const chunks = this.chunkBy(appellationCodeListe, APPELLATION_CODES_LIMIT)
 
@@ -51,7 +53,7 @@ export class FindAllOffresImmersionQueryGetterV3 {
   }
 
   buildParams(
-    query: GetOffresImmersionQuery,
+    query: GetOffresImmersionQueryV3,
     appellationCodes: string[]
   ): URLSearchParams {
     const distanceAvecDefault = query.distance

@@ -14,7 +14,8 @@ import { Evenement, EvenementService } from '../../domain/evenement'
 import { Authentification } from '../../domain/authentification'
 
 export interface GetDetailOffreImmersionQueryV3 extends Query {
-  idOffreImmersion: string
+  siret: string
+  appellationCode: string
   locationId: string
 }
 
@@ -34,7 +35,8 @@ export class GetDetailOffreImmersionQueryHandlerV3 extends QueryHandler<
     query: GetDetailOffreImmersionQueryV3
   ): Promise<Result<DetailOffreImmersionQueryModelV3>> {
     const paramsRechercheOffreImmersion = buildParamsRechercheImmersion(
-      query.idOffreImmersion,
+      query.siret,
+      query.appellationCode,
       query.locationId
     )
 
@@ -64,10 +66,10 @@ export class GetDetailOffreImmersionQueryHandlerV3 extends QueryHandler<
 }
 
 function buildParamsRechercheImmersion(
-  idOffreImmersion: string,
+  siret: string,
+  appellationCode: string,
   locationId: string
 ): string {
-  const [siret, appellationCode] = idOffreImmersion.split('-')
   return (
     encodeURIComponent(siret) +
     '/' +

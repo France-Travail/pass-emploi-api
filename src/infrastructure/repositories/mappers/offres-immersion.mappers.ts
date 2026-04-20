@@ -36,14 +36,16 @@ export function toOffreImmersionQueryModelV3(
     offreImmersionDto.appellations[0]?.appellationCode ?? ''
   const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
-    id: `${offreImmersionDto.siret}-${appellationCode}`,
+    siret: offreImmersionDto.siret,
     metier: labelMetier,
     nomEtablissement:
       offreImmersionDto.customizedName ?? offreImmersionDto.name,
     secteurActivite: offreImmersionDto.nafLabel,
     ville: offreImmersionDto.address.city,
     estVolontaire: offreImmersionDto.voluntaryToImmersion,
-    locationId: offreImmersionDto.locationId
+    locationId: offreImmersionDto.locationId,
+    appellationCode,
+    codeRome: offreImmersionDto.rome
   }
 }
 
@@ -54,8 +56,6 @@ export function toDetailOffreImmersionQueryModelV3(
     offreImmersionDto.appellations[0]?.appellationCode ?? ''
   const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
-    id: `${offreImmersionDto.siret}-${appellationCode}`,
-    codeRome: offreImmersionDto.rome,
     siret: offreImmersionDto.siret,
     metier: labelMetier,
     nomEtablissement:
@@ -70,15 +70,18 @@ export function toDetailOffreImmersionQueryModelV3(
     siteWeb: offreImmersionDto.website,
     modeDistanciel: offreImmersionDto.remoteWorkMode,
     accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers,
-    locationId: offreImmersionDto.locationId
+    locationId: offreImmersionDto.locationId,
+    appellationCode,
+    codeRome: offreImmersionDto.rome
   }
 }
 
 export function toOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV2
 ): OffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     metier: labelMetier,
@@ -92,8 +95,9 @@ export function toOffreImmersionQueryModel(
 export function toDetailOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV2
 ): DetailOffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     codeRome: offreImmersionDto.rome,

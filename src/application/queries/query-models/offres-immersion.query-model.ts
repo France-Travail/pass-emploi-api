@@ -30,7 +30,7 @@ export class OffreImmersionQueryModel {
 
 export class OffreImmersionQueryModelV3 {
   @ApiProperty()
-  id: string
+  siret: string
   @ApiProperty()
   metier: string
   @ApiProperty()
@@ -43,6 +43,10 @@ export class OffreImmersionQueryModelV3 {
   estVolontaire: boolean
   @ApiProperty()
   locationId: string
+  @ApiProperty()
+  appellationCode: string
+  @ApiProperty({ required: false })
+  codeRome?: string
 }
 
 export class FavoriOffreImmersionQueryModel {
@@ -85,9 +89,6 @@ export class DetailOffreImmersionQueryModel extends OffreImmersionQueryModel {
 
 export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3 {
   @ApiProperty()
-  codeRome: string
-
-  @ApiProperty()
   siret: string
 
   @ApiProperty()
@@ -115,4 +116,10 @@ export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3
 
   @ApiProperty({ required: false })
   accessibleTravailleurHandicape?: string
+
+  @ApiProperty()
+  appellationCode: string
+
+  @ApiProperty()
+  locationId: string
 }
