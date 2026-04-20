@@ -48,7 +48,7 @@ describe('OffresImmersionController', () => {
     )
   })
 
-  describe('GET /v3/offres-immersion', () => {
+  describe('GET /offres-immersion/v3', () => {
     describe('quand tout va bien', () => {
       it("fait appel à l'API Immersion avec les bons paramètres", async () => {
         // Given
@@ -78,7 +78,7 @@ describe('OffresImmersionController', () => {
 
         // When
         const result = await request(app.getHttpServer())
-          .get('/v3/offres-immersion')
+          .get('/offres-immersion/v3')
           .set('authorization', unHeaderAuthorization())
           .query(getOffresImmersionQuery)
           // Then
@@ -102,22 +102,22 @@ describe('OffresImmersionController', () => {
 
         // When
         await request(app.getHttpServer())
-          .get('/v3/offres-immersion')
+          .get('/offres-immersion/v3')
           .set('authorization', unHeaderAuthorization())
           .query(getOffresImmersionQuery)
           // Then
           .expect(HttpStatus.BAD_REQUEST)
       })
     })
-    ensureUserAuthenticationFailsIfInvalid('get', '/v3/offres-immersion')
+    ensureUserAuthenticationFailsIfInvalid('get', '/offres-immersion/v3')
   })
-  describe('GET /v3/offres-immersion/:siret/:appellationCode/:locationId', () => {
+  describe('GET /offres-immersion/v3/:siret/:appellationCode/:locationId', () => {
     const query: GetDetailOffreImmersionQueryV3 = {
       siret: 'un-siret',
       appellationCode: 'un-appellation-code',
       locationId: 'un-location-id'
     }
-    const path = `/v3/offres-immersion/${query.siret}/${query.appellationCode}/${query.locationId}`
+    const path = `/offres-immersion/v3/${query.siret}/${query.appellationCode}/${query.locationId}`
 
     describe('quand tout va bien', () => {
       it('renvoie la bonne offre recherchée', async () => {
@@ -181,7 +181,7 @@ describe('OffresImmersionController', () => {
     })
     ensureUserAuthenticationFailsIfInvalid(
       'get',
-      '/v3/offres-immersion/siret/code/location'
+      '/offres-immersion/v3/siret/code/location'
     )
   })
   describe('POST /offres-immersion', () => {
