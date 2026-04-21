@@ -26,7 +26,7 @@ describe('ImmersionClient', () => {
         .isDone()
 
       // When
-      const response = await immersionClient.getV3(
+      const response = await immersionClient.get(
         'v3/offers/siret/appellationCode/locationId'
       )
 

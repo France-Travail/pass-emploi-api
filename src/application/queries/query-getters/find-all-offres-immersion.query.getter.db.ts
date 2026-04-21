@@ -5,7 +5,7 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { OffreImmersionQueryModel } from '../query-models/offres-immersion.query-model'
-import { URLSearchParams } from 'url'
+import { URLSearchParams } from 'node:url'
 import { toOffreImmersionQueryModel } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
 import { GetOffresImmersionQuery } from '../get-offres-immersion.query.handler'

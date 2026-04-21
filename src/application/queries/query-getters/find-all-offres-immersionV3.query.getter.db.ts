@@ -6,7 +6,7 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { OffreImmersionQueryModelV3 } from '../query-models/offres-immersion.query-model'
-import { URLSearchParams } from 'url'
+import { URLSearchParams } from 'node:url'
 import { toOffreImmersionQueryModelV3 } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
 import { GetOffresImmersionQueryV3 } from '../get-offres-immersionV3.query.handler'
@@ -19,7 +19,7 @@ const APPELLATION_CODES_LIMIT = 20
 @Injectable()
 export class FindAllOffresImmersionQueryGetterV3 {
   constructor(
-    private immersionClient: ImmersionClient,
+    private readonly immersionClient: ImmersionClient,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 

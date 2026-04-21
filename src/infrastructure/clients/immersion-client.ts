@@ -115,7 +115,7 @@ export class ImmersionClient {
     params: URLSearchParams
   ): Promise<Result<PartenaireImmersion.SearchResponseV3>> {
     try {
-      const response = await this.getV3<PartenaireImmersion.SearchResponseV3>(
+      const response = await this.get<PartenaireImmersion.SearchResponseV3>(
         'v3/offers',
         params
       )
@@ -137,7 +137,7 @@ export class ImmersionClient {
     params: string
   ): Promise<Result<PartenaireImmersion.DtoV3>> {
     try {
-      const response = await this.getV3<PartenaireImmersion.DtoV3>(
+      const response = await this.get<PartenaireImmersion.DtoV3>(
         `v3/offers/${params}`
       )
       return success(response.data)
@@ -154,7 +154,7 @@ export class ImmersionClient {
     params: FormulaireImmersionPayloadV3
   ): Promise<Result> {
     try {
-      await this.postV3('v3/apply-to-offer', params)
+      await this.post('v3/apply-to-offer', params)
       return emptySuccess()
     } catch (erreur) {
       return handleAxiosError(
@@ -179,33 +179,6 @@ export class ImmersionClient {
   }
 
   async get<T>(
-    suffixUrl: string,
-    params?: URLSearchParams
-  ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
-        params,
-        headers: {
-          Authorization: this.immersionApiKey
-        }
-      })
-    )
-  }
-
-  private async postV3<T>(
-    suffixUrl: string,
-    params: unknown
-  ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.post<T>(`${this.apiUrl}/${suffixUrl}`, params, {
-        headers: {
-          Authorization: this.immersionApiKey
-        }
-      })
-    )
-  }
-
-  async getV3<T>(
     suffixUrl: string,
     params?: URLSearchParams
   ): Promise<AxiosResponse<T>> {
