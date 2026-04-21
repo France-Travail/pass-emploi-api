@@ -98,8 +98,7 @@ export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3
   @ApiProperty({ required: false })
   siteWeb?: string
   @ApiProperty({
-    required: false,
     enum: Offre.Immersion.ImmersionModeDistanciel
   })
-  modeDistanciel?: Offre.Immersion.ImmersionModeDistanciel
+  modeDistanciel: Offre.Immersion.ImmersionModeDistanciel
 }

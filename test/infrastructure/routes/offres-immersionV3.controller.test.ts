@@ -132,7 +132,8 @@ describe('OffresImmersionController', () => {
             ville: 'Paris',
             locationId: 'un-location-id',
             appellationCode: 'code',
-            contact: { modeDeContact: MethodeDeContact.EMAIL }
+            contact: { modeDeContact: MethodeDeContact.EMAIL },
+            modeDistanciel: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE
           }
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)

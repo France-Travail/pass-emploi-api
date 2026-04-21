@@ -13,6 +13,7 @@ import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-mo
 import { PartenaireImmersion } from '../../../../src/infrastructure/repositories/dto/immersion.dto'
 import { OffreImmersionQueryModelV3 } from '../../../../src/application/queries/query-models/offres-immersion.query-model'
 import { FindAllOffresImmersionQueryGetterV3 } from '../../../../src/application/queries/query-getters/find-all-offres-immersionV3.query.getter.db'
+import { Offre } from '../../../../src/domain/offre/offre'
 
 const uneOffreDto = (
   siret: string,
@@ -33,7 +34,8 @@ const uneOffreDto = (
     city: 'city',
     departmentCode: '75'
   },
-  appellations: [{ appellationCode, appellationLabel: 'label' }]
+  appellations: [{ appellationCode, appellationLabel: 'label' }],
+  remoteWorkMode: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE
 })
 
 const uneOffreQueryModel = (

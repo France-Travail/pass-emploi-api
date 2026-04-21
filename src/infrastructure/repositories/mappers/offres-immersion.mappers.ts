@@ -87,9 +87,7 @@ export function toDetailOffreImmersionQueryModelV3(
     contact: buildContactV3(offreImmersionDto),
     informationsComplementaires: offreImmersionDto.additionalInformation,
     siteWeb: offreImmersionDto.website,
-    modeDistanciel: offreImmersionDto.remoteWorkMode
-      ? fromRemoteWorkMode[offreImmersionDto.remoteWorkMode]
-      : undefined,
+    modeDistanciel: fromRemoteWorkMode[offreImmersionDto.remoteWorkMode],
     accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
       ? fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
       : undefined,

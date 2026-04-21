@@ -51,7 +51,7 @@ export namespace PartenaireImmersion {
     }>
     additionalInformation?: string
     website?: string
-    remoteWorkMode?: string
+    remoteWorkMode: string
     fitForDisabledWorkers?: string
     isAvailable?: boolean
     isSearchable?: boolean
