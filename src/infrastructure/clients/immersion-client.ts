@@ -116,7 +116,7 @@ export class ImmersionClient {
   ): Promise<Result<PartenaireImmersion.DtoV3[]>> {
     try {
       const response = await this.getV3<PartenaireImmersion.SearchResponseV3>(
-        'offers',
+        'v3/offers',
         params
       )
 
@@ -138,7 +138,7 @@ export class ImmersionClient {
   ): Promise<Result<PartenaireImmersion.DtoV3>> {
     try {
       const response = await this.getV3<PartenaireImmersion.DtoV3>(
-        `offers/${params}`
+        `v3/offers/${params}`
       )
       return success(response.data)
     } catch (erreur) {
@@ -154,7 +154,7 @@ export class ImmersionClient {
     params: FormulaireImmersionPayloadV3
   ): Promise<Result> {
     try {
-      await this.postV3('apply-to-offer', params)
+      await this.postV3('v3/apply-to-offer', params)
       return emptySuccess()
     } catch (erreur) {
       return handleAxiosError(
