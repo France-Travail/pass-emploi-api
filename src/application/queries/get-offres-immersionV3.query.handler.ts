@@ -13,6 +13,8 @@ export interface GetOffresImmersionQueryV3 extends Query {
   lat: number
   lon: number
   distance?: number
+  currentPage: number
+  numberPerPage: number
 }
 
 @Injectable()

@@ -79,6 +79,16 @@ export class GetOffresImmersionQueryParamsV3 {
   @IsOptional()
   @Transform(params => transformStringToInteger(params, 'distance'))
   distance?: number
+
+  @ApiProperty()
+  @IsNumber()
+  @Transform(params => transformStringToInteger(params, 'page'))
+  page: number
+
+  @ApiProperty()
+  @IsNumber()
+  @Transform(params => transformStringToInteger(params, 'limit'))
+  limit: number
 }
 
 export class GetOffresImmersionQueryBody {

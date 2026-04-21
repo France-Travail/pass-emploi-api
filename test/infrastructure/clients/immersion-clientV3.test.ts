@@ -91,7 +91,7 @@ describe('ImmersionClient', () => {
       const response = await immersionClient.getOffresV3(params)
 
       // Then
-      expect(response).to.deep.equal(success([offre]))
+      expect(response).to.deep.equal(success(apiResponse))
     })
   })
 

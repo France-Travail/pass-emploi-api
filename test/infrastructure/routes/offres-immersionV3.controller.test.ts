@@ -4,7 +4,6 @@ import {
   NotifierNouvellesImmersionsCommand,
   NotifierNouvellesImmersionsCommandHandler
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
-import { GetOffresImmersionQuery } from '../../../src/application/queries/get-offres-immersion.query.handler'
 import {
   DetailOffreImmersionQueryModelV3,
   OffreImmersionQueryModelV3
@@ -54,10 +53,12 @@ describe('OffresImmersionController', () => {
     describe('quand tout va bien', () => {
       it("fait appel à l'API Immersion avec les bons paramètres", async () => {
         // Given
-        const getOffresImmersionQuery: GetOffresImmersionQuery = {
+        const getOffresImmersionQuery = {
           rome: 'D1102',
           lat: 48.502103949334845,
-          lon: 2.13082255225161
+          lon: 2.13082255225161,
+          page: 1,
+          limit: 10
         }
 
         const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
@@ -90,10 +91,12 @@ describe('OffresImmersionController', () => {
     describe('quand la requête est mauvaise', () => {
       it("renvoie un message d'erreur", async () => {
         // Given
-        const getOffresImmersionQuery: GetOffresImmersionQuery = {
+        const getOffresImmersionQuery = {
           rome: 'D1102',
           lat: 48.502103949334845,
-          lon: 2.13082255225161
+          lon: 2.13082255225161,
+          page: 1,
+          limit: 10
         }
 
         getOffresImmersionQueryHandler.execute.resolves(

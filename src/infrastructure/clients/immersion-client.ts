@@ -113,14 +113,14 @@ export class ImmersionClient {
 
   async getOffresV3(
     params: URLSearchParams
-  ): Promise<Result<PartenaireImmersion.DtoV3[]>> {
+  ): Promise<Result<PartenaireImmersion.SearchResponseV3>> {
     try {
       const response = await this.getV3<PartenaireImmersion.SearchResponseV3>(
         'v3/offers',
         params
       )
 
-      return success(response.data.data)
+      return success(response.data)
     } catch (erreur) {
       if (erreur.response?.status === 401)
         return failure(new ErreurHttp('API Key Immersion invalide', 400))

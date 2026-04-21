@@ -38,6 +38,19 @@ const uneOffreDto = (
   remoteWorkMode: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE
 })
 
+const uneOffreDtoWithPagination = (
+  siret: string,
+  appellationCode: string
+): PartenaireImmersion.SearchResponseV3 => ({
+  data: [uneOffreDto(siret, appellationCode)],
+  pagination: {
+    totalRecords: 1,
+    currentPage: 1,
+    totalPages: 1,
+    numberPerPage: 10
+  }
+})
+
 const uneOffreQueryModel = (
   siret: string,
   appellationCode: string
@@ -55,7 +68,9 @@ const baseQuery = {
   rome: 'D1102',
   lat: 48.502103949334845,
   lon: 2.13082255225161,
-  distance: 30
+  distance: 30,
+  currentPage: 1,
+  numberPerPage: 10
 }
 
 describe('FindAllOffresImmersionQueryGetter', () => {
@@ -91,9 +106,11 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         params.append('appellationCodes[]', '11573')
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
+        params.append('currentPage', baseQuery.currentPage.toString())
+        params.append('numberPerPage', baseQuery.numberPerPage.toString())
 
         immersionClient.getOffresV3.resolves(
-          success([uneOffreDto('siret-1', 'appCode-1')])
+          success(uneOffreDtoWithPagination('siret-1', 'appCode-1'))
         )
 
         // When
@@ -129,10 +146,18 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         ])
 
         immersionClient.getOffresV3.resolves(
-          success([
-            uneOffreDto('siret-1', 'appCode-1'),
-            uneOffreDto('siret-2', 'appCode-2')
-          ])
+          success({
+            data: [
+              uneOffreDto('siret-1', 'appCode-1'),
+              uneOffreDto('siret-2', 'appCode-2')
+            ],
+            pagination: {
+              totalRecords: 2,
+              currentPage: 1,
+              totalPages: 1,
+              numberPerPage: 10
+            }
+          })
         )
 
         // When
@@ -164,10 +189,10 @@ describe('FindAllOffresImmersionQueryGetter', () => {
 
         immersionClient.getOffresV3
           .onFirstCall()
-          .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
+          .resolves(success(uneOffreDtoWithPagination('siret-1', 'appCode-1')))
         immersionClient.getOffresV3
           .onSecondCall()
-          .resolves(success([uneOffreDto('siret-2', 'appCode-2')]))
+          .resolves(success(uneOffreDtoWithPagination('siret-2', 'appCode-2')))
 
         // When
         const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
@@ -197,7 +222,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         const erreur = new ErreurHttp('erreur API', 400)
         immersionClient.getOffresV3
           .onFirstCall()
-          .resolves(success([uneOffreDto('siret-1', 'appCode-1')]))
+          .resolves(success(uneOffreDtoWithPagination('siret-1', 'appCode-1')))
         immersionClient.getOffresV3.onSecondCall().resolves(failure(erreur))
 
         // When

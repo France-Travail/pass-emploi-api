@@ -101,7 +101,9 @@ export class OffresImmersionController {
       appellationCode: getOffresImmersionQueryParams.appellationCode,
       lat: getOffresImmersionQueryParams.lat,
       lon: getOffresImmersionQueryParams.lon,
-      distance: getOffresImmersionQueryParams.distance
+      distance: getOffresImmersionQueryParams.distance,
+      currentPage: getOffresImmersionQueryParams.page,
+      numberPerPage: getOffresImmersionQueryParams.limit
     }
 
     const result = await this.getOffresImmersionQueryHandlerV3.execute(

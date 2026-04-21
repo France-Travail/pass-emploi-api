@@ -46,7 +46,7 @@ export class FindAllOffresImmersionQueryGetterV3 {
 
     const offres = results
       .filter(isSuccess)
-      .flatMap(result => result.data)
+      .flatMap(result => result.data.data)
       .map(toOffreImmersionQueryModelV3)
 
     return success(offres)
@@ -72,6 +72,8 @@ export class FindAllOffresImmersionQueryGetterV3 {
 
     params.append('sortBy', 'date')
     params.append('sortOrder', 'desc')
+    params.append('currentPage', query.currentPage.toString())
+    params.append('numberPerPage', query.numberPerPage.toString())
 
     return params
   }

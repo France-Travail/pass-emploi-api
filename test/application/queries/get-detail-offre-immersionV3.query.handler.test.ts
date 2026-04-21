@@ -52,11 +52,6 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
         // Then
         expect(detailOffre).to.deep.equal(
           success({
-            estVolontaire: true,
-            localisation: {
-              latitude: 42,
-              longitude: 2
-            },
             metier: 'Boulanger-Traiteur',
             nomEtablissement: 'name',
             secteurActivite: 'naf',
@@ -64,7 +59,6 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             adresse: 'street post code city',
             siret: '123456',
             appellationCode: 'D1102',
-            codeRome: 'D1102',
             contact: {
               modeDeContact: 'PRESENTIEL'
             },

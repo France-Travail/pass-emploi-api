@@ -41,7 +41,9 @@ describe('GetOffresImmersionQueryHandler', () => {
           rome: 'D1102',
           lat: 48.502103949334845,
           lon: 2.13082255225161,
-          distance: 15
+          distance: 15,
+          currentPage: 1,
+          numberPerPage: 10
         }
         const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
           {
@@ -72,7 +74,9 @@ describe('GetOffresImmersionQueryHandler', () => {
         const query: GetOffresImmersionQueryV3 = {
           rome: 'D1102',
           lat: 48.502103949334845,
-          lon: 2.13082255225161
+          lon: 2.13082255225161,
+          currentPage: 1,
+          numberPerPage: 10
         }
         const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
           {
@@ -103,7 +107,9 @@ describe('GetOffresImmersionQueryHandler', () => {
         const query: GetOffresImmersionQueryV3 = {
           appellationCode: '11573',
           lat: 48.502103949334845,
-          lon: 2.13082255225161
+          lon: 2.13082255225161,
+          currentPage: 1,
+          numberPerPage: 10
         }
         const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
           {
