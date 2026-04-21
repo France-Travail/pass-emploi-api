@@ -59,9 +59,7 @@ describe('GetDetailOffreImmersionQueryHandler', () => {
             adresse: 'street post code city',
             siret: '123456',
             appellationCode: 'D1102',
-            contact: {
-              modeDeContact: 'PRESENTIEL'
-            },
+            contact: 'PRESENTIEL',
             informationsComplementaires: 'informations complémentaires',
             siteWeb: 'https://exemple.fr',
             modeDistanciel: 'ON_SITE',
