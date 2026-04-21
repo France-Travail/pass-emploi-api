@@ -5,14 +5,6 @@ export class ContactImmersionQueryModel {
   @ApiProperty()
   modeDeContact: Offre.Immersion.MethodeDeContact
 }
-export class ModeDistancielImmersionQueryModel {
-  @ApiProperty()
-  modeDistanciel: Offre.Immersion.ImmersionModeDistanciel
-}
-export class AccessibleTravailleurHandicapeImmersionQueryModel {
-  @ApiProperty()
-  accessibleTravailleurHandicape: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
-}
 
 export class LocalisationQueryModel {
   @ApiProperty()
@@ -40,6 +32,10 @@ export class OffreImmersionQueryModelV3 {
   @ApiProperty()
   siret: string
   @ApiProperty()
+  appellationCode: string
+  @ApiProperty()
+  locationId: string
+  @ApiProperty()
   metier: string
   @ApiProperty()
   nomEtablissement: string
@@ -47,10 +43,11 @@ export class OffreImmersionQueryModelV3 {
   secteurActivite: string
   @ApiProperty()
   ville: string
-  @ApiProperty()
-  locationId: string
-  @ApiProperty()
-  appellationCode: string
+  @ApiProperty({
+    required: false,
+    enum: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
+  })
+  accessibleTravailleurHandicape?: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
 }
 
 export class FavoriOffreImmersionQueryModel {
@@ -104,10 +101,5 @@ export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3
     required: false,
     enum: Offre.Immersion.ImmersionModeDistanciel
   })
-  modeDistanciel?: ModeDistancielImmersionQueryModel
-  @ApiProperty({
-    required: false,
-    enum: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
-  })
-  accessibleTravailleurHandicape?: AccessibleTravailleurHandicapeImmersionQueryModel
+  modeDistanciel?: Offre.Immersion.ImmersionModeDistanciel
 }

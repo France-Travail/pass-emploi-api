@@ -63,7 +63,10 @@ export function toOffreImmersionQueryModelV3(
     secteurActivite: offreImmersionDto.nafLabel,
     ville: offreImmersionDto.address.city,
     locationId: offreImmersionDto.locationId,
-    appellationCode
+    appellationCode,
+    accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
+      ? fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
+      : undefined
   }
 }
 
@@ -85,13 +88,10 @@ export function toDetailOffreImmersionQueryModelV3(
     informationsComplementaires: offreImmersionDto.additionalInformation,
     siteWeb: offreImmersionDto.website,
     modeDistanciel: offreImmersionDto.remoteWorkMode
-      ? { modeDistanciel: fromRemoteWorkMode[offreImmersionDto.remoteWorkMode] }
+      ? fromRemoteWorkMode[offreImmersionDto.remoteWorkMode]
       : undefined,
     accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
-      ? {
-          accessibleTravailleurHandicape:
-            fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
-        }
+      ? fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
       : undefined,
     locationId: offreImmersionDto.locationId,
     appellationCode
