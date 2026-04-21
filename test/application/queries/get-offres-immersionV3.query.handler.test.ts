@@ -50,10 +50,8 @@ describe('GetOffresImmersionQueryHandler', () => {
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: false,
             locationId: 'loc-1',
-            appellationCode: 'D1102',
-            codeRome: 'D1102'
+            appellationCode: 'D1102'
           }
         ]
         findAllOffresImmersionQueryGetter.handle
@@ -83,10 +81,8 @@ describe('GetOffresImmersionQueryHandler', () => {
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: true,
             locationId: 'loc-1',
-            appellationCode: 'D1102',
-            codeRome: 'D1102'
+            appellationCode: 'D1102'
           }
         ]
         findAllOffresImmersionQueryGetter.handle
@@ -116,10 +112,8 @@ describe('GetOffresImmersionQueryHandler', () => {
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: true,
             locationId: 'loc-1',
-            appellationCode: '11573',
-            codeRome: 'D1102'
+            appellationCode: '11573'
           }
         ]
         findAllOffresImmersionQueryGetter.handle

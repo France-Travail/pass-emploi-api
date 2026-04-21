@@ -45,10 +45,8 @@ const uneOffreQueryModel = (
   nomEtablissement: 'name',
   secteurActivite: 'nafLabel',
   ville: 'city',
-  estVolontaire: true,
   locationId: 'locationId',
-  appellationCode,
-  codeRome: 'D1102'
+  appellationCode
 })
 
 const baseQuery = {

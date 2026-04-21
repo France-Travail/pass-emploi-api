@@ -17,6 +17,26 @@ const fromContactMode = {
   IN_PERSON: Offre.Immersion.MethodeDeContact.PRESENTIEL
 }
 
+const fromRemoteWorkMode: Record<
+  string,
+  Offre.Immersion.ImmersionModeDistanciel
+> = {
+  FULL_REMOTE: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE,
+  HYBRID: Offre.Immersion.ImmersionModeDistanciel.HYBRID,
+  ON_SITE: Offre.Immersion.ImmersionModeDistanciel.ON_SITE
+}
+
+const fromFitForDisabledWorkers: Record<
+  string,
+  Offre.Immersion.ImmersionAccessibleTravailleurHandicape
+> = {
+  'yes-ft-certified':
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED,
+  'yes-declared-only':
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_DECLARED_ONLY,
+  no: Offre.Immersion.ImmersionAccessibleTravailleurHandicape.NO
+}
+
 export function fromSqlToFavorisOffreImmersion(
   offreImmersionFavoriSql: FavoriOffreImmersionSqlModel
 ): Offre.Favori.Immersion {
@@ -42,10 +62,8 @@ export function toOffreImmersionQueryModelV3(
       offreImmersionDto.customizedName ?? offreImmersionDto.name,
     secteurActivite: offreImmersionDto.nafLabel,
     ville: offreImmersionDto.address.city,
-    estVolontaire: offreImmersionDto.voluntaryToImmersion,
     locationId: offreImmersionDto.locationId,
-    appellationCode,
-    codeRome: offreImmersionDto.rome
+    appellationCode
   }
 }
 
@@ -63,16 +81,20 @@ export function toDetailOffreImmersionQueryModelV3(
     secteurActivite: offreImmersionDto.nafLabel,
     ville: offreImmersionDto.address.city,
     adresse: buildAdresseV3(offreImmersionDto),
-    estVolontaire: offreImmersionDto.voluntaryToImmersion,
-    localisation: buildLocalisationV3(offreImmersionDto),
     contact: buildContactV3(offreImmersionDto),
     informationsComplementaires: offreImmersionDto.additionalInformation,
     siteWeb: offreImmersionDto.website,
-    modeDistanciel: offreImmersionDto.remoteWorkMode,
-    accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers,
+    modeDistanciel: offreImmersionDto.remoteWorkMode
+      ? { modeDistanciel: fromRemoteWorkMode[offreImmersionDto.remoteWorkMode] }
+      : undefined,
+    accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
+      ? {
+          accessibleTravailleurHandicape:
+            fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
+        }
+      : undefined,
     locationId: offreImmersionDto.locationId,
-    appellationCode,
-    codeRome: offreImmersionDto.rome
+    appellationCode
   }
 }
 
@@ -143,21 +165,9 @@ export function buildAdresse(
   return streetNumberAndAddress + ' ' + postcode + ' ' + city
 }
 
-export function buildLocalisationV3(
-  offreImmpersionDto: PartenaireImmersion.DtoV3
-): LocalisationQueryModel | undefined {
-  if (!offreImmpersionDto.position) {
-    return undefined
-  }
-  return {
-    latitude: offreImmpersionDto.position.lat,
-    longitude: offreImmpersionDto.position.lon
-  }
-}
-
 export function buildContactV3(
   offreImmpersionDto: PartenaireImmersion.DtoV3
-): ContactImmersionQueryModel | undefined {
+): ContactImmersionQueryModel {
   return {
     modeDeContact: offreImmpersionDto.contactMode
       ? fromContactMode[offreImmpersionDto.contactMode]

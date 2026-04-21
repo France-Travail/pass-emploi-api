@@ -26,6 +26,8 @@ import {
   GetDetailOffreImmersionQueryV3
 } from '../../../src/application/queries/get-detail-offre-immersionV3.query.handler'
 import { EnvoyerFormulaireContactImmersionCommandHandlerV3 } from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
+import { Offre } from '../../../src/domain/offre/offre'
+import MethodeDeContact = Offre.Immersion.MethodeDeContact
 
 describe('OffresImmersionController', () => {
   let getOffresImmersionQueryHandler: StubbedClass<GetOffresImmersionQueryHandlerV3>
@@ -65,10 +67,8 @@ describe('OffresImmersionController', () => {
             nomEtablissement: 'Boulangerie',
             secteurActivite: 'Restauration',
             ville: 'Paris',
-            estVolontaire: true,
             locationId: 'loc-1',
-            appellationCode: 'D1102',
-            codeRome: 'D1102'
+            appellationCode: 'D1102'
           }
         ]
 
@@ -125,7 +125,6 @@ describe('OffresImmersionController', () => {
         const detailOffreImmersionQueryModel: DetailOffreImmersionQueryModelV3 =
           {
             adresse: 'addresse',
-            estVolontaire: true,
             siret: 'siret',
             metier: 'rome',
             nomEtablissement: 'name',
@@ -133,7 +132,7 @@ describe('OffresImmersionController', () => {
             ville: 'Paris',
             locationId: 'un-location-id',
             appellationCode: 'code',
-            codeRome: 'D1102'
+            contact: { modeDeContact: MethodeDeContact.EMAIL }
           }
         getDetailOffreImmersionQueryHandler.execute
           .withArgs(query)

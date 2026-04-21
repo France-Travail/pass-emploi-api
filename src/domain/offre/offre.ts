@@ -32,6 +32,16 @@ export namespace Offre {
       TELEPHONE = 'TELEPHONE',
       PRESENTIEL = 'PRESENTIEL'
     }
+    export enum ImmersionModeDistanciel {
+      FULL_REMOTE = 'FULL_REMOTE',
+      HYBRID = 'HYBRID',
+      ON_SITE = 'ON_SITE'
+    }
+    export enum ImmersionAccessibleTravailleurHandicape {
+      YES_FT_CERTIFIED = 'yes-ft-certified',
+      YES_DECLARED_ONLY = 'yes-declared-only',
+      NO = 'no'
+    }
   }
 
   export namespace ServiceCivique {

@@ -5,6 +5,14 @@ export class ContactImmersionQueryModel {
   @ApiProperty()
   modeDeContact: Offre.Immersion.MethodeDeContact
 }
+export class ModeDistancielImmersionQueryModel {
+  @ApiProperty()
+  modeDistanciel: Offre.Immersion.ImmersionModeDistanciel
+}
+export class AccessibleTravailleurHandicapeImmersionQueryModel {
+  @ApiProperty()
+  accessibleTravailleurHandicape: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
+}
 
 export class LocalisationQueryModel {
   @ApiProperty()
@@ -40,13 +48,9 @@ export class OffreImmersionQueryModelV3 {
   @ApiProperty()
   ville: string
   @ApiProperty()
-  estVolontaire: boolean
-  @ApiProperty()
   locationId: string
   @ApiProperty()
   appellationCode: string
-  @ApiProperty({ required: false })
-  codeRome?: string
 }
 
 export class FavoriOffreImmersionQueryModel {
@@ -89,37 +93,21 @@ export class DetailOffreImmersionQueryModel extends OffreImmersionQueryModel {
 
 export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3 {
   @ApiProperty()
-  siret: string
-
-  @ApiProperty()
   adresse: string
-
-  @ApiProperty({
-    required: false,
-    type: LocalisationQueryModel
-  })
-  localisation?: LocalisationQueryModel
-
-  @ApiProperty({
-    required: false
-  })
-  contact?: ContactImmersionQueryModel
-
+  @ApiProperty({ enum: Offre.Immersion.MethodeDeContact })
+  contact: ContactImmersionQueryModel
   @ApiProperty({ required: false })
   informationsComplementaires?: string
-
   @ApiProperty({ required: false })
   siteWeb?: string
-
-  @ApiProperty({ required: false })
-  modeDistanciel?: string
-
-  @ApiProperty({ required: false })
-  accessibleTravailleurHandicape?: string
-
-  @ApiProperty()
-  appellationCode: string
-
-  @ApiProperty()
-  locationId: string
+  @ApiProperty({
+    required: false,
+    enum: Offre.Immersion.ImmersionModeDistanciel
+  })
+  modeDistanciel?: ModeDistancielImmersionQueryModel
+  @ApiProperty({
+    required: false,
+    enum: Offre.Immersion.ImmersionAccessibleTravailleurHandicape
+  })
+  accessibleTravailleurHandicape?: AccessibleTravailleurHandicapeImmersionQueryModel
 }
