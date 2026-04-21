@@ -165,12 +165,10 @@ export function buildAdresse(
 
 export function buildContactV3(
   offreImmpersionDto: PartenaireImmersion.DtoV3
-): ContactImmersionQueryModel {
-  return {
-    modeDeContact: offreImmpersionDto.contactMode
-      ? fromContactMode[offreImmpersionDto.contactMode]
-      : Offre.Immersion.MethodeDeContact.INCONNU
-  }
+): Offre.Immersion.MethodeDeContact {
+  return offreImmpersionDto.contactMode
+    ? fromContactMode[offreImmpersionDto.contactMode]
+    : Offre.Immersion.MethodeDeContact.INCONNU
 }
 
 export function buildAdresseV3(

@@ -92,7 +92,7 @@ export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3
   @ApiProperty()
   adresse: string
   @ApiProperty({ enum: Offre.Immersion.MethodeDeContact })
-  contact: ContactImmersionQueryModel
+  contact: Offre.Immersion.MethodeDeContact
   @ApiProperty({ required: false })
   informationsComplementaires?: string
   @ApiProperty({ required: false })
