@@ -14,15 +14,14 @@ import ContactMode = PartenaireImmersion.ContactMode
 export interface EnvoyerFormulaireContactImmersionCommandV3 {
   idJeune: string
   appellationCode: string
-  labelRome: string
   siret: string
   locationId: string
   prenom: string
   nom: string
   email: string
-  numeroTelephone?: string
+  numeroTelephone: string
   contactMode: string
-  periodeVoulue?: string
+  datePreferences: string
   resumeLink?: string
   experienceAdditionalInformation?: string
 }
@@ -60,10 +59,10 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
       potentialBeneficiaryPhone: command.numeroTelephone ?? '0600000000',
       immersionObjective: "Découvrir un métier ou un secteur d'activité",
       contactMode: command.contactMode as ContactMode,
-      datePreferences: command.periodeVoulue,
+      datePreferences: command.datePreferences,
       kind: 'IF',
       experienceAdditionalInformation: command.experienceAdditionalInformation,
-      resumeLink: command.resumeLink
+      potentialBeneficiaryResumeLink: command.resumeLink
     }
 
     return this.immersionClient.envoyerFormulaireImmersionV3(params)

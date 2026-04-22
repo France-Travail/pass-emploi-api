@@ -37,14 +37,14 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         const command: EnvoyerFormulaireContactImmersionCommandV3 = {
           idJeune: 'idJeune',
           appellationCode: '11573',
-          labelRome: 'Boulanger',
           siret: 'siret',
           locationId: 'un-location-id',
           prenom: 'prenom',
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          periodeVoulue: 'dans le mois qui vient'
+          numeroTelephone: '0606060606',
+          datePreferences: 'dans le mois qui vient'
         }
 
         immersionClient.envoyerFormulaireImmersionV3.resolves(emptySuccess())
@@ -66,7 +66,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryPhone: '0600000000',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
-          datePreferences: command.periodeVoulue,
+          datePreferences: command.datePreferences,
           experienceAdditionalInformation: undefined,
           resumeLink: undefined
         })
@@ -77,14 +77,14 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         const command: EnvoyerFormulaireContactImmersionCommandV3 = {
           idJeune: 'idJeune',
           appellationCode: '11573',
-          labelRome: 'Boulanger',
           siret: 'siret',
           locationId: 'un-location-id',
           prenom: 'prenom',
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          periodeVoulue: 'dans le mois qui vient',
+          datePreferences: 'dans le mois qui vient',
+          numeroTelephone: '0606060606',
           experienceAdditionalInformation:
             "J'ai déjà travaillé dans ce secteur",
           resumeLink: 'https://mon-cv.fr/cv.pdf'
@@ -109,7 +109,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryPhone: '0600000000',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
-          datePreferences: command.periodeVoulue,
+          datePreferences: command.datePreferences,
           experienceAdditionalInformation:
             command.experienceAdditionalInformation,
           resumeLink: command.resumeLink
@@ -122,13 +122,14 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         const command: EnvoyerFormulaireContactImmersionCommandV3 = {
           idJeune: 'idJeune',
           appellationCode: '11573',
-          labelRome: 'Boulanger',
           siret: 'siret',
           prenom: 'prenom',
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          locationId: ''
+          locationId: '',
+          numeroTelephone: '0606060606',
+          datePreferences: 'dans le mois qui vient'
         }
 
         immersionClient.envoyerFormulaireImmersionV3.resolves(
@@ -151,13 +152,14 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
       const command: EnvoyerFormulaireContactImmersionCommandV3 = {
         idJeune: 'idJeune',
         appellationCode: '11573',
-        labelRome: 'labelRome',
         siret: 'siret',
         prenom: 'prenom',
         nom: 'nom',
         email: 'email',
         contactMode: 'EMAIL',
-        locationId: ''
+        locationId: '',
+        numeroTelephone: '0606060606',
+        datePreferences: 'Dès que possible'
       }
 
       const utilisateur = unUtilisateurJeune()

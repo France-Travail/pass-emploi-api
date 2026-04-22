@@ -248,11 +248,11 @@ describe('OffresImmersionController', () => {
       const payload = {
         idJeune: '1',
         appellationCode: '11573',
-        labelRome: 'Boulangerie - viennoiserie',
         siret: '10226726508419',
         locationId: 'un-location-id',
         prenom: 'prenom',
         nom: 'nom',
+        numeroTelephone: '0606060606',
         email: 'test@test.com',
         contactMode: 'EMAIL',
         datePreferences: 'lundi matin'
@@ -282,7 +282,8 @@ describe('OffresImmersionController', () => {
         contactMode: 'EMAIL',
         datePreferences: 'lundi matin',
         experienceAdditionalInformation: "J'ai déjà travaillé dans ce secteur",
-        resumeLink: 'https://mon-cv.fr/cv.pdf'
+        resumeLink: 'https://mon-cv.fr/cv.pdf',
+        numeroTelephone: '0606060606'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute.resolves(
@@ -350,7 +351,8 @@ describe('OffresImmersionController', () => {
         nom: 'nom',
         email: 'test@test.com',
         contactMode: 'EMAIL',
-        datePreferences: 'lundi matin'
+        datePreferences: 'lundi matin',
+        numeroTelephone: '0606060606'
       }
 
       envoyerFormulaireContactImmersionCommandHandler.execute.resolves(

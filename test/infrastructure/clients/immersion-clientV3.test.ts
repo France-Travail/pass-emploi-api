@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios'
 import { expect } from 'chai'
 import * as nock from 'nock'
-import { testConfig } from '../../utils/module-for-testing'
+import { testConfig } from '../../utils/test-config'
 import { ImmersionClient } from '../../../src/infrastructure/clients/immersion-client'
 import { URLSearchParams } from 'url'
 import { success } from '../../../src/building-blocks/types/result'
@@ -151,7 +151,9 @@ describe('ImmersionClient', () => {
         potentialBeneficiaryPhone: 'non communiqué',
         immersionObjective: "Découvrir un métier ou un secteur d'activité",
         contactMode: 'EMAIL',
-        experienceAdditionalInformation: 'test'
+        experienceAdditionalInformation: 'test',
+        numeroTelephone: '0606060606',
+        datePreferences: 'Dès que possible'
       }
 
       nock('https://api.api-immersion.beta.gouv.op')
@@ -179,7 +181,9 @@ describe('ImmersionClient', () => {
         potentialBeneficiaryPhone: 'non communiqué',
         immersionObjective: "Découvrir un métier ou un secteur d'activité",
         contactMode: 'EMAIL',
-        experienceAdditionalInformation: 'test'
+        experienceAdditionalInformation: 'test',
+        numeroTelephone: '0606060606',
+        datePreferences: 'Dès que possible'
       }
 
       nock('https://api.api-immersion.beta.gouv.op')

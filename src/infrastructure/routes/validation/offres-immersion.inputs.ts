@@ -10,7 +10,9 @@ import {
   IsEnum,
   IsEmail,
   MaxLength,
-  ValidateIf
+  ValidateIf,
+  Matches,
+  IsPhoneNumber
 } from 'class-validator'
 import {
   transformStringToFloat,
@@ -60,6 +62,7 @@ export class GetOffresImmersionQueryParamsV3 {
   @ValidateIf(o => !o.rome)
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{5}\d?$/)
   appellationCode?: string
 
   @ApiProperty()
@@ -203,43 +206,51 @@ export class PostImmersionContactBody {
 }
 
 export class PostImmersionContactBodyV3 {
-  @ApiProperty()
+  @ApiProperty({
+    example: '11573'
+  })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{5}\d?$/)
   appellationCode: string
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '12345678901234'
+  })
   @IsString()
   @IsNotEmpty()
-  labelRome: string
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @Matches(/^(?:\s*\d){14}\s*$/)
   siret: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(36)
   locationId: string
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '0606060606'
+  })
   @IsString()
   @IsNotEmpty()
-  @IsOptional()
-  numeroTelephone?: string
+  @IsPhoneNumber('FR')
+  numeroTelephone: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   prenom: string
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   nom: string
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'user@example.fr'
+  })
   @IsString()
   @IsNotEmpty()
   @IsEmail()
@@ -251,20 +262,27 @@ export class PostImmersionContactBodyV3 {
   @IsEnum(ModeContact)
   contactMode: ModeContact
 
-  @ApiPropertyOptional()
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  datePreferences?: string
+  @MaxLength(6000)
+  datePreferences: string
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   @IsNotEmpty()
+  @MaxLength(1024)
   experienceAdditionalInformation?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: 'https://www.linkedin.com/in/user-example-5797a891/'
+  })
   @IsString()
   @IsOptional()
   @IsNotEmpty()
+  @Matches(/^https?:\/\/.+?$/, {
+    message: 'Le lien doit être une URL valide'
+  })
   resumeLink?: string
 }

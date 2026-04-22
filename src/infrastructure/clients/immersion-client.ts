@@ -28,19 +28,19 @@ export interface FormulaireImmersionPayload {
 }
 
 export interface FormulaireImmersionPayloadV3 {
-  kind: 'IF'
   appellationCode: string
   siret: string
   potentialBeneficiaryFirstName: string
   potentialBeneficiaryLastName: string
   potentialBeneficiaryEmail: string
-  contactMode: string
-  potentialBeneficiaryPhone: string
-  immersionObjective: string
   locationId: string
+  potentialBeneficiaryPhone: string
+  datePreferences: string
+  contactMode: string
+  kind: 'IF'
+  immersionObjective: string
   experienceAdditionalInformation?: string
-  datePreferences?: string
-  resumeLink?: string
+  potentialBeneficiaryResumeLink?: string
 }
 
 @Injectable()
