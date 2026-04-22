@@ -125,8 +125,8 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         params.append('appellationCodes[]', '11573')
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
-        params.append('currentPage', '1')
-        params.append('numberPerPage', '10')
+        params.append('page', '1')
+        params.append('perPage', '10')
 
         immersionClient.getOffresV3.resolves(
           success(

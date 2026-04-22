@@ -60,8 +60,8 @@ export class FindAllOffresImmersionQueryGetterV3 {
 
     params.append('sortBy', 'date')
     params.append('sortOrder', 'desc')
-    params.append('currentPage', query.currentPage.toString())
-    params.append('numberPerPage', query.numberPerPage.toString())
+    params.append('page', query.currentPage.toString())
+    params.append('perPage', query.numberPerPage.toString())
 
     return params
   }
