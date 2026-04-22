@@ -453,7 +453,7 @@ describe('PoleEmploiClient', () => {
   })
 
   describe('getMetiersRomeApi', () => {
-    it('retourne la liste des métiers', async () => {
+    it('retourne la liste des métiers avec leurs appellations', async () => {
       // Given
       poleEmploiClient.inMemoryToken = {
         token: 'test-token',
@@ -461,9 +461,20 @@ describe('PoleEmploiClient', () => {
       }
       nock('https://api.peio.pe-qvr.fr/partenaire')
         .get('/rome-metiers/v1/metiers/metier')
+        .query({ champs: 'appellations(code,libelle),code,libelle' })
         .reply(200, [
-          { code: 'M1833', libelle: 'Ingénieur / Ingénieure sécurité web' },
-          { code: 'M1856', libelle: 'Expert / Experte en cybersécurité' }
+          {
+            code: 'M1833',
+            libelle: 'Ingénieur / Ingénieure sécurité web',
+            appellations: [
+              { code: '38468', libelle: 'Expert / Experte en cybersécurité' }
+            ]
+          },
+          {
+            code: 'M1856',
+            libelle: 'Architecte en sécurité des systèmes',
+            appellations: []
+          }
         ])
         .isDone()
 
@@ -473,8 +484,18 @@ describe('PoleEmploiClient', () => {
       // Then
       expect(result).to.deep.equal(
         success([
-          { code: 'M1833', libelle: 'Ingénieur / Ingénieure sécurité web' },
-          { code: 'M1856', libelle: 'Expert / Experte en cybersécurité' }
+          {
+            code: 'M1833',
+            libelle: 'Ingénieur / Ingénieure sécurité web',
+            appellations: [
+              { code: '38468', libelle: 'Expert / Experte en cybersécurité' }
+            ]
+          },
+          {
+            code: 'M1856',
+            libelle: 'Architecte en sécurité des systèmes',
+            appellations: []
+          }
         ])
       )
     })
@@ -487,6 +508,7 @@ describe('PoleEmploiClient', () => {
       }
       nock('https://api.peio.pe-qvr.fr/partenaire')
         .get('/rome-metiers/v1/metiers/metier')
+        .query({ champs: 'appellations(code,libelle),code,libelle' })
         .reply(404)
         .isDone()
 
