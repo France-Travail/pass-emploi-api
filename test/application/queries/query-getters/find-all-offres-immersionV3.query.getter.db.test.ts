@@ -35,7 +35,9 @@ const uneOffreDto = (
     departmentCode: '75'
   },
   appellations: [{ appellationCode, appellationLabel: 'label' }],
-  remoteWorkMode: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE
+  remoteWorkMode: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE,
+  fitForDisabledWorkers:
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED
 })
 
 const uneOffreDtoWithPagination = (
@@ -61,7 +63,9 @@ const uneOffreQueryModel = (
   secteurActivite: 'nafLabel',
   ville: 'city',
   locationId: 'locationId',
-  appellationCode
+  appellationCode,
+  accessibleTravailleurHandicape:
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED
 })
 
 const baseQuery = {
