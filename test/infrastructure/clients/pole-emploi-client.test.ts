@@ -451,65 +451,6 @@ describe('PoleEmploiClient', () => {
       expect(evenementEmploi).to.deep.equal(success({ id: 123 }))
     })
   })
-  describe('getAppellationsRome', () => {
-    it('retourne la liste des appellations', async () => {
-      // Given
-      poleEmploiClient.inMemoryToken = {
-        token: 'test-token',
-        tokenDate: uneDatetimeDeMaintenant.minus({ minutes: 20 })
-      }
-      nock('https://api.peio.pe-qvr.fr/partenaire')
-        .get('/rome-metiers/v1/metiers/appellation')
-        .reply(200, [
-          {
-            code: '10438',
-            libelle: "Agent / Agente de destruction d'insectes"
-          },
-          {
-            code: '10439',
-            libelle: "Agent / Agente de développement d'habitat social"
-          }
-        ])
-        .isDone()
-
-      // When
-      const result = await poleEmploiClient.getAppellationsRome()
-
-      // Then
-      expect(result).to.deep.equal(
-        success([
-          {
-            code: '10438',
-            libelle: "Agent / Agente de destruction d'insectes"
-          },
-          {
-            code: '10439',
-            libelle: "Agent / Agente de développement d'habitat social"
-          }
-        ])
-      )
-    })
-
-    it("retourne une erreur quand l'API échoue", async () => {
-      // Given
-      poleEmploiClient.inMemoryToken = {
-        token: 'test-token',
-        tokenDate: uneDatetimeDeMaintenant.minus({ minutes: 20 })
-      }
-      nock('https://api.peio.pe-qvr.fr/partenaire')
-        .get('/rome-metiers/v1/metiers/appellation')
-        .reply(404)
-        .isDone()
-
-      // When
-      const result = await poleEmploiClient.getAppellationsRome()
-
-      // Then
-      expect(result).to.deep.equal(
-        failure(new ErreurHttp('Erreur API POLE EMPLOI', 404))
-      )
-    })
-  })
 
   describe('getMetiersRomeApi', () => {
     it('retourne la liste des métiers', async () => {

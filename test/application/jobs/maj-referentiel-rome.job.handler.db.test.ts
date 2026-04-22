@@ -42,24 +42,29 @@ describe('MajReferentielRomeJobHandler', () => {
   })
 
   describe('handle', () => {
-    describe('quand les deux APIs répondent avec succès', () => {
+    describe("quand l'API répond avec succès", () => {
       it('remplace toutes les entrées de la table et retourne le nombre de métiers mis à jour', async () => {
         // Given
         await MetierRomeSqlModel.create(unMetierRomeDto({ id: 1 }))
 
-        poleEmploiClient.getAppellationsRome.resolves(
-          success([
-            {
-              code: '10438',
-              libelle: "Agent / Agente de destruction d'insectes"
-            },
-            { code: '10439', libelle: 'Brasseur / Brasseuse de bière' }
-          ])
-        )
         poleEmploiClient.getMetiersRomeApi.resolves(
           success([
-            { code: 'A1413', libelle: 'Brasseur / Brasseuse de bière' },
-            { code: 'A1414', libelle: 'Horticulteur / Horticultrice' }
+            {
+              code: 'A1413',
+              libelle: 'Brasseur / Brasseuse de bière',
+              appellations: [
+                { code: '10439', libelle: 'Brasseur / Brasseuse de bière' },
+                {
+                  code: '10438',
+                  libelle: "Agent / Agente de destruction d'insectes"
+                }
+              ]
+            },
+            {
+              code: 'A1414',
+              libelle: 'Horticulteur / Horticultrice',
+              appellations: []
+            }
           ])
         )
 
@@ -68,33 +73,42 @@ describe('MajReferentielRomeJobHandler', () => {
 
         // Then
         expect(result.succes).to.be.true()
-        expect(result.resultat).to.deep.equal({ nbMetiersMaj: 3 })
+        expect(result.resultat).to.deep.equal({ nbMetiersMaj: 4 })
 
         const enregistres = await MetierRomeSqlModel.findAll({
           order: [['id', 'ASC']]
         })
-        expect(enregistres).to.have.length(3)
+        expect(enregistres).to.have.length(4)
 
         expect(enregistres[0].code).to.equal('A1413')
         expect(enregistres[0].libelle).to.equal('Brasseur / Brasseuse de bière')
-        expect(enregistres[0].appellationCode).to.equal('10439')
+        expect(enregistres[0].appellationCode).to.equal(null)
 
-        expect(enregistres[1].code).to.equal('A1414')
-        expect(enregistres[1].libelle).to.equal('Horticulteur / Horticultrice')
-        expect(enregistres[1].appellationCode).to.equal(null)
+        expect(enregistres[1].code).to.equal('A1413')
+        expect(enregistres[1].libelle).to.equal('Brasseur / Brasseuse de bière')
+        expect(enregistres[1].appellationCode).to.equal('10439')
 
-        expect(enregistres[2].code).to.equal('10438')
+        expect(enregistres[2].code).to.equal('A1413')
         expect(enregistres[2].libelle).to.equal(
           "Agent / Agente de destruction d'insectes"
         )
         expect(enregistres[2].appellationCode).to.equal('10438')
+
+        expect(enregistres[3].code).to.equal('A1414')
+        expect(enregistres[3].libelle).to.equal('Horticulteur / Horticultrice')
+        expect(enregistres[3].appellationCode).to.equal(null)
       })
 
       it('nettoie libelle_sanitized en retirant les accents', async () => {
         // Given
-        poleEmploiClient.getAppellationsRome.resolves(success([]))
         poleEmploiClient.getMetiersRomeApi.resolves(
-          success([{ code: 'A1414', libelle: 'Horticulteur / Horticultrice' }])
+          success([
+            {
+              code: 'A1414',
+              libelle: 'Horticulteur / Horticultrice',
+              appellations: []
+            }
+          ])
         )
 
         // When
@@ -108,42 +122,11 @@ describe('MajReferentielRomeJobHandler', () => {
       })
     })
 
-    describe("quand l'API appellations échoue", () => {
-      it('retourne succes false sans modifier la table', async () => {
-        // Given
-        await MetierRomeSqlModel.create(unMetierRomeDto({ id: 1 }))
-
-        poleEmploiClient.getAppellationsRome.resolves(
-          failure(new ErreurHttp('Erreur API', 500))
-        )
-        poleEmploiClient.getMetiersRomeApi.resolves(
-          success([{ code: 'A1413', libelle: 'Brasseur / Brasseuse de bière' }])
-        )
-
-        // When
-        const result = await handler.handle(unJob)
-
-        // Then
-        expect(result.succes).to.equal(false)
-        expect(result.nbErreurs).to.equal(1)
-        const count = await MetierRomeSqlModel.count()
-        expect(count).to.equal(1)
-      })
-    })
-
     describe("quand l'API métiers échoue", () => {
       it('retourne succes false sans modifier la table', async () => {
         // Given
         await MetierRomeSqlModel.create(unMetierRomeDto({ id: 1 }))
 
-        poleEmploiClient.getAppellationsRome.resolves(
-          success([
-            {
-              code: '10438',
-              libelle: "Agent / Agente de destruction d'insectes"
-            }
-          ])
-        )
         poleEmploiClient.getMetiersRomeApi.resolves(
           failure(new ErreurHttp('Erreur API', 500))
         )
