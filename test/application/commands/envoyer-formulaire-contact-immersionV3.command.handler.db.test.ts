@@ -44,9 +44,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           nom: 'nom',
           email: 'test@test.com',
           contactMode: 'EMAIL',
-          periodeVoulue: 'dans le mois qui vient',
-          message:
-            'Bonjour, Je souhaiterais passer quelques jours dans votre entreprise en immersion professionnelle auprès de vos salariés pour découvrir ce métier. Pourriez-vous me proposer un rendez-vous ? Je pourrais alors vous expliquer directement mon projet.'
+          periodeVoulue: 'dans le mois qui vient'
         }
 
         immersionClient.envoyerFormulaireImmersionV3.resolves(emptySuccess())
@@ -69,7 +67,52 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
           datePreferences: command.periodeVoulue,
-          experienceAdditionalInformation: command.message
+          experienceAdditionalInformation: undefined,
+          resumeLink: undefined
+        })
+      })
+
+      it('transmet experienceAdditionalInformation et resumeLink quand fournis', async () => {
+        // Given
+        const command: EnvoyerFormulaireContactImmersionCommandV3 = {
+          idJeune: 'idJeune',
+          appellationCode: '11573',
+          labelRome: 'Boulanger',
+          siret: 'siret',
+          locationId: 'un-location-id',
+          prenom: 'prenom',
+          nom: 'nom',
+          email: 'test@test.com',
+          contactMode: 'EMAIL',
+          periodeVoulue: 'dans le mois qui vient',
+          experienceAdditionalInformation:
+            "J'ai déjà travaillé dans ce secteur",
+          resumeLink: 'https://mon-cv.fr/cv.pdf'
+        }
+
+        immersionClient.envoyerFormulaireImmersionV3.resolves(emptySuccess())
+
+        // When
+        await envoyerFormulaireContactImmersionCommandHandler.handle(command)
+
+        // Then
+        expect(
+          immersionClient.envoyerFormulaireImmersionV3
+        ).to.have.been.calledOnceWithExactly({
+          kind: 'IF',
+          appellationCode: command.appellationCode,
+          siret: command.siret,
+          locationId: command.locationId,
+          potentialBeneficiaryFirstName: command.prenom,
+          potentialBeneficiaryLastName: command.nom,
+          potentialBeneficiaryEmail: command.email,
+          potentialBeneficiaryPhone: '0600000000',
+          immersionObjective: "Découvrir un métier ou un secteur d'activité",
+          contactMode: command.contactMode as ContactMode,
+          datePreferences: command.periodeVoulue,
+          experienceAdditionalInformation:
+            command.experienceAdditionalInformation,
+          resumeLink: command.resumeLink
         })
       })
     })

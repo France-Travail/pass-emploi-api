@@ -22,8 +22,9 @@ export interface EnvoyerFormulaireContactImmersionCommandV3 {
   email: string
   numeroTelephone?: string
   contactMode: string
-  message?: string
   periodeVoulue?: string
+  resumeLink?: string
+  experienceAdditionalInformation?: string
 }
 
 @Injectable()
@@ -49,9 +50,6 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
   async handle(
     command: EnvoyerFormulaireContactImmersionCommandV3
   ): Promise<Result> {
-    const defaultMessage =
-      'Bonjour, Je souhaiterais passer quelques jours dans votre entreprise en immersion professionnelle auprès de vos salariés pour découvrir ce métier. Pourriez-vous me proposer un rendez-vous ? Je pourrais alors vous expliquer directement mon projet.'
-
     const params: FormulaireImmersionPayloadV3 = {
       appellationCode: command.appellationCode,
       siret: command.siret,
@@ -64,7 +62,8 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
       contactMode: command.contactMode as ContactMode,
       datePreferences: command.periodeVoulue,
       kind: 'IF',
-      experienceAdditionalInformation: command.message ?? defaultMessage
+      experienceAdditionalInformation: command.experienceAdditionalInformation,
+      resumeLink: command.resumeLink
     }
 
     return this.immersionClient.envoyerFormulaireImmersionV3(params)

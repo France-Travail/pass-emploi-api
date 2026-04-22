@@ -267,6 +267,75 @@ describe('OffresImmersionController', () => {
         .send(payload)
         .expect(HttpStatus.CREATED)
     })
+    it('accepte et transmet experienceAdditionalInformation et resumeLink', async () => {
+      // Given
+      const payload = {
+        appellationCode: '11573',
+        labelRome: 'Boulangerie - viennoiserie',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin',
+        experienceAdditionalInformation: "J'ai déjà travaillé dans ce secteur",
+        resumeLink: 'https://mon-cv.fr/cv.pdf'
+      }
+
+      envoyerFormulaireContactImmersionCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.CREATED)
+    })
+    it('renvoie 400 quand experienceAdditionalInformation est une string vide', async () => {
+      // Given
+      const payload = {
+        appellationCode: '11573',
+        labelRome: 'Boulangerie - viennoiserie',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        experienceAdditionalInformation: ''
+      }
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+    it('renvoie 400 quand resumeLink est une string vide', async () => {
+      // Given
+      const payload = {
+        appellationCode: '11573',
+        labelRome: 'Boulangerie - viennoiserie',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        resumeLink: ''
+      }
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.BAD_REQUEST)
+    })
     it("renvoie le bon code d'erreur quand la commande est en failure", async () => {
       // Given
       const payload = {

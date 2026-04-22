@@ -255,4 +255,16 @@ export class PostImmersionContactBodyV3 {
   @IsString()
   @IsNotEmpty()
   datePreferences?: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  experienceAdditionalInformation?: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  resumeLink?: string
 }

@@ -38,8 +38,9 @@ export interface FormulaireImmersionPayloadV3 {
   potentialBeneficiaryPhone: string
   immersionObjective: string
   locationId: string
-  experienceAdditionalInformation: string
+  experienceAdditionalInformation?: string
   datePreferences?: string
+  resumeLink?: string
 }
 
 @Injectable()
