@@ -88,6 +88,13 @@ export class DetailOffreImmersionQueryModel extends OffreImmersionQueryModel {
   contact?: ContactImmersionQueryModel
 }
 
+export class ResultatRechercheOffresImmersionQueryModelV3 {
+  @ApiProperty({ type: OffreImmersionQueryModelV3, isArray: true })
+  offres: OffreImmersionQueryModelV3[]
+  @ApiProperty()
+  nombrePagesResultat: number
+}
+
 export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3 {
   @ApiProperty()
   adresse: string

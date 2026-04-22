@@ -11,7 +11,10 @@ import {
 import { MetierRomeSqlModel } from '../../../../src/infrastructure/sequelize/models/metier-rome.sql-model'
 import { unMetierRomeDto } from '../../../fixtures/sql-models/metier-rome.sql-model'
 import { PartenaireImmersion } from '../../../../src/infrastructure/repositories/dto/immersion.dto'
-import { OffreImmersionQueryModelV3 } from '../../../../src/application/queries/query-models/offres-immersion.query-model'
+import {
+  OffreImmersionQueryModelV3,
+  ResultatRechercheOffresImmersionQueryModelV3
+} from '../../../../src/application/queries/query-models/offres-immersion.query-model'
 import { FindAllOffresImmersionQueryGetterV3 } from '../../../../src/application/queries/query-getters/find-all-offres-immersionV3.query.getter.db'
 import { Offre } from '../../../../src/domain/offre/offre'
 
@@ -40,15 +43,15 @@ const uneOffreDto = (
     Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED
 })
 
-const uneOffreDtoWithPagination = (
-  siret: string,
-  appellationCode: string
+const uneReponseAvecPagination = (
+  offres: PartenaireImmersion.DtoV3[],
+  totalPages = 1
 ): PartenaireImmersion.SearchResponseV3 => ({
-  data: [uneOffreDto(siret, appellationCode)],
+  data: offres,
   pagination: {
-    totalRecords: 1,
+    totalRecords: offres.length,
     currentPage: 1,
-    totalPages: 1,
+    totalPages,
     numberPerPage: 10
   }
 })
@@ -66,6 +69,14 @@ const uneOffreQueryModel = (
   appellationCode,
   accessibleTravailleurHandicape:
     Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED
+})
+
+const unResultat = (
+  offres: OffreImmersionQueryModelV3[],
+  nombrePagesResultat: number
+): ResultatRechercheOffresImmersionQueryModelV3 => ({
+  offres,
+  nombrePagesResultat
 })
 
 const baseQuery = {
@@ -96,12 +107,14 @@ describe('FindAllOffresImmersionQueryGetter', () => {
   })
 
   describe('handle', () => {
-    describe('quand il y a 1 appellation code', () => {
-      it('fait 1 requête avec appellationCodes[]', async () => {
+    describe('quand appellationCode est fourni directement', () => {
+      it('fait 1 requête avec cet appellationCode et délègue la pagination à Immersion', async () => {
         // Given
-        await MetierRomeSqlModel.bulkCreate([
-          unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' })
-        ])
+        const query = {
+          ...baseQuery,
+          rome: undefined,
+          appellationCode: '11573'
+        }
 
         const params = new URLSearchParams()
         params.append('distanceKm', '30')
@@ -110,15 +123,17 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         params.append('appellationCodes[]', '11573')
         params.append('sortBy', 'date')
         params.append('sortOrder', 'desc')
-        params.append('currentPage', baseQuery.currentPage.toString())
-        params.append('numberPerPage', baseQuery.numberPerPage.toString())
+        params.append('currentPage', '1')
+        params.append('numberPerPage', '10')
 
         immersionClient.getOffresV3.resolves(
-          success(uneOffreDtoWithPagination('siret-1', 'appCode-1'))
+          success(
+            uneReponseAvecPagination([uneOffreDto('siret-1', '11573')], 3)
+          )
         )
 
         // When
-        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
+        const result = await findAllOffresImmersionQueryGetter.handle(query)
 
         // Then
         expect(immersionClient.getOffresV3.callCount).to.equal(1)
@@ -126,42 +141,29 @@ describe('FindAllOffresImmersionQueryGetter', () => {
           params
         ])
         expect(result).to.deep.equal(
-          success([uneOffreQueryModel('siret-1', 'appCode-1')])
+          success(unResultat([uneOffreQueryModel('siret-1', '11573')], 3))
         )
       })
     })
 
-    describe('quand il y a plusieurs appellations codes <= 20', () => {
-      it('fait 1 requête et renvoie les offres', async () => {
+    describe('quand rome est fourni', () => {
+      it('résout les appellationCodes depuis la DB et fait 1 requête avec tous', async () => {
         // Given
         await MetierRomeSqlModel.bulkCreate([
-          unMetierRomeDto({
-            id: 1,
-            code: 'D1102',
-            libelle: 'Boulanger',
-            appellationCode: '11573'
-          }),
-          unMetierRomeDto({
-            id: 2,
-            code: 'D1102',
-            libelle: 'Pâtissier',
-            appellationCode: '22456'
-          })
+          unMetierRomeDto({ id: 1, code: 'D1102', appellationCode: '11573' }),
+          unMetierRomeDto({ id: 2, code: 'D1102', appellationCode: '22456' })
         ])
 
         immersionClient.getOffresV3.resolves(
-          success({
-            data: [
-              uneOffreDto('siret-1', 'appCode-1'),
-              uneOffreDto('siret-2', 'appCode-2')
-            ],
-            pagination: {
-              totalRecords: 2,
-              currentPage: 1,
-              totalPages: 1,
-              numberPerPage: 10
-            }
-          })
+          success(
+            uneReponseAvecPagination(
+              [
+                uneOffreDto('siret-1', 'appCode-1'),
+                uneOffreDto('siret-2', 'appCode-2')
+              ],
+              1
+            )
+          )
         )
 
         // When
@@ -170,70 +172,43 @@ describe('FindAllOffresImmersionQueryGetter', () => {
         // Then
         expect(immersionClient.getOffresV3.callCount).to.equal(1)
         expect(result).to.deep.equal(
-          success([
-            uneOffreQueryModel('siret-1', 'appCode-1'),
-            uneOffreQueryModel('siret-2', 'appCode-2')
-          ])
+          success(
+            unResultat(
+              [
+                uneOffreQueryModel('siret-1', 'appCode-1'),
+                uneOffreQueryModel('siret-2', 'appCode-2')
+              ],
+              1
+            )
+          )
         )
       })
-    })
 
-    describe('quand il y a plus de 20 appellation codes', () => {
-      it('découpe en chunks de 20, fait plusieurs requêtes et merge les résultats', async () => {
+      it('envoie bien tous les appellationCodes dans la requête, même plus de 20', async () => {
         // Given
         const metiers = Array.from({ length: 21 }, (_, i) =>
           unMetierRomeDto({
             id: i + 1,
             code: 'D1102',
-            libelle: `Metier ${i}`,
             appellationCode: `code-${i}`
           })
         )
         await MetierRomeSqlModel.bulkCreate(metiers)
 
-        immersionClient.getOffresV3
-          .onFirstCall()
-          .resolves(success(uneOffreDtoWithPagination('siret-1', 'appCode-1')))
-        immersionClient.getOffresV3
-          .onSecondCall()
-          .resolves(success(uneOffreDtoWithPagination('siret-2', 'appCode-2')))
+        immersionClient.getOffresV3.resolves(
+          success(
+            uneReponseAvecPagination([uneOffreDto('siret-1', 'code-0')], 1)
+          )
+        )
 
         // When
-        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
+        await findAllOffresImmersionQueryGetter.handle(baseQuery)
 
         // Then
-        expect(immersionClient.getOffresV3.callCount).to.equal(2)
-        expect(result).to.deep.equal(
-          success([
-            uneOffreQueryModel('siret-1', 'appCode-1'),
-            uneOffreQueryModel('siret-2', 'appCode-2')
-          ])
-        )
-      })
-
-      it("renvoie une failure si l'un des chunks échoue", async () => {
-        // Given
-        const metiers = Array.from({ length: 21 }, (_, i) =>
-          unMetierRomeDto({
-            id: i + 1,
-            code: 'D1102',
-            libelle: `Metier ${i}`,
-            appellationCode: `code-${i}`
-          })
-        )
-        await MetierRomeSqlModel.bulkCreate(metiers)
-
-        const erreur = new ErreurHttp('erreur API', 400)
-        immersionClient.getOffresV3
-          .onFirstCall()
-          .resolves(success(uneOffreDtoWithPagination('siret-1', 'appCode-1')))
-        immersionClient.getOffresV3.onSecondCall().resolves(failure(erreur))
-
-        // When
-        const result = await findAllOffresImmersionQueryGetter.handle(baseQuery)
-
-        // Then
-        expect(result).to.deep.equal(failure(erreur))
+        expect(immersionClient.getOffresV3.callCount).to.equal(1)
+        const appelParams: URLSearchParams =
+          immersionClient.getOffresV3.getCall(0).args[0]
+        expect(appelParams.getAll('appellationCodes[]')).to.have.length(21)
       })
     })
 

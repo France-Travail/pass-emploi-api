@@ -6,7 +6,7 @@ import {
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
 import {
   DetailOffreImmersionQueryModelV3,
-  OffreImmersionQueryModelV3
+  ResultatRechercheOffresImmersionQueryModelV3
 } from '../../../src/application/queries/query-models/offres-immersion.query-model'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 
@@ -61,21 +61,22 @@ describe('OffresImmersionController', () => {
           limit: 10
         }
 
-        const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
-          {
-            siret: '12345',
-            metier: 'Boulanger',
-            nomEtablissement: 'Boulangerie',
-            secteurActivite: 'Restauration',
-            ville: 'Paris',
-            locationId: 'loc-1',
-            appellationCode: 'D1102'
-          }
-        ]
+        const resultat: ResultatRechercheOffresImmersionQueryModelV3 = {
+          offres: [
+            {
+              siret: '12345',
+              metier: 'Boulanger',
+              nomEtablissement: 'Boulangerie',
+              secteurActivite: 'Restauration',
+              ville: 'Paris',
+              locationId: 'loc-1',
+              appellationCode: 'D1102'
+            }
+          ],
+          nombrePagesResultat: 3
+        }
 
-        getOffresImmersionQueryHandler.execute.resolves(
-          success(offresImmersionQueryModel)
-        )
+        getOffresImmersionQueryHandler.execute.resolves(success(resultat))
 
         // When
         const result = await request(app.getHttpServer())
@@ -85,7 +86,7 @@ describe('OffresImmersionController', () => {
           // Then
           .expect(HttpStatus.OK)
 
-        expect(result.body).to.deep.equal(offresImmersionQueryModel)
+        expect(result.body).to.deep.equal(resultat)
       })
     })
     describe('quand la requête est mauvaise', () => {

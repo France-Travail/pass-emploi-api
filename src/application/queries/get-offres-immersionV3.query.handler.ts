@@ -4,7 +4,7 @@ import { Evenement, EvenementService } from '../../domain/evenement'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
-import { OffreImmersionQueryModelV3 } from './query-models/offres-immersion.query-model'
+import { ResultatRechercheOffresImmersionQueryModelV3 } from './query-models/offres-immersion.query-model'
 import { FindAllOffresImmersionQueryGetterV3 } from './query-getters/find-all-offres-immersionV3.query.getter.db'
 
 export interface GetOffresImmersionQueryV3 extends Query {
@@ -20,7 +20,7 @@ export interface GetOffresImmersionQueryV3 extends Query {
 @Injectable()
 export class GetOffresImmersionQueryHandlerV3 extends QueryHandler<
   GetOffresImmersionQueryV3,
-  Result<OffreImmersionQueryModelV3[]>
+  Result<ResultatRechercheOffresImmersionQueryModelV3>
 > {
   constructor(
     private readonly findAllOffresImmersionQueryGetterV3: FindAllOffresImmersionQueryGetterV3,
@@ -31,7 +31,7 @@ export class GetOffresImmersionQueryHandlerV3 extends QueryHandler<
 
   async handle(
     query: GetOffresImmersionQueryV3
-  ): Promise<Result<OffreImmersionQueryModelV3[]>> {
+  ): Promise<Result<ResultatRechercheOffresImmersionQueryModelV3>> {
     return this.findAllOffresImmersionQueryGetterV3.handle(query)
   }
   async authorize(): Promise<Result> {

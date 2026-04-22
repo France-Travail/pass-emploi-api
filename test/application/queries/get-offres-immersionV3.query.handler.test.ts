@@ -1,6 +1,6 @@
 import { SinonSandbox } from 'sinon'
 import { Evenement, EvenementService } from 'src/domain/evenement'
-import { OffreImmersionQueryModelV3 } from '../../../src/application/queries/query-models/offres-immersion.query-model'
+import { ResultatRechercheOffresImmersionQueryModelV3 } from '../../../src/application/queries/query-models/offres-immersion.query-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { success } from '../../../src/building-blocks/types/result'
@@ -45,26 +45,29 @@ describe('GetOffresImmersionQueryHandler', () => {
           currentPage: 1,
           numberPerPage: 10
         }
-        const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
-          {
-            siret: '12345',
-            metier: 'Boulanger',
-            nomEtablissement: 'Boulangerie',
-            secteurActivite: 'Restauration',
-            ville: 'Paris',
-            locationId: 'loc-1',
-            appellationCode: 'D1102'
-          }
-        ]
+        const resultat: ResultatRechercheOffresImmersionQueryModelV3 = {
+          offres: [
+            {
+              siret: '12345',
+              metier: 'Boulanger',
+              nomEtablissement: 'Boulangerie',
+              secteurActivite: 'Restauration',
+              ville: 'Paris',
+              locationId: 'loc-1',
+              appellationCode: 'D1102'
+            }
+          ],
+          nombrePagesResultat: 1
+        }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)
-          .resolves(success(offresImmersionQueryModel))
+          .resolves(success(resultat))
 
         // When
         const result = await getOffresImmersionQueryHandler.handle(query)
 
         // Then
-        expect(result).to.deep.equal(success(offresImmersionQueryModel))
+        expect(result).to.deep.equal(success(resultat))
       })
     })
 
@@ -78,26 +81,29 @@ describe('GetOffresImmersionQueryHandler', () => {
           currentPage: 1,
           numberPerPage: 10
         }
-        const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
-          {
-            siret: '12345',
-            metier: 'Boulanger',
-            nomEtablissement: 'Boulangerie',
-            secteurActivite: 'Restauration',
-            ville: 'Paris',
-            locationId: 'loc-1',
-            appellationCode: 'D1102'
-          }
-        ]
+        const resultat: ResultatRechercheOffresImmersionQueryModelV3 = {
+          offres: [
+            {
+              siret: '12345',
+              metier: 'Boulanger',
+              nomEtablissement: 'Boulangerie',
+              secteurActivite: 'Restauration',
+              ville: 'Paris',
+              locationId: 'loc-1',
+              appellationCode: 'D1102'
+            }
+          ],
+          nombrePagesResultat: 1
+        }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)
-          .resolves(success(offresImmersionQueryModel))
+          .resolves(success(resultat))
 
         // When
         const result = await getOffresImmersionQueryHandler.handle(query)
 
         // Then
-        expect(result).to.deep.equal(success(offresImmersionQueryModel))
+        expect(result).to.deep.equal(success(resultat))
       })
     })
 
@@ -111,26 +117,29 @@ describe('GetOffresImmersionQueryHandler', () => {
           currentPage: 1,
           numberPerPage: 10
         }
-        const offresImmersionQueryModel: OffreImmersionQueryModelV3[] = [
-          {
-            siret: '12345',
-            metier: 'Boulanger',
-            nomEtablissement: 'Boulangerie',
-            secteurActivite: 'Restauration',
-            ville: 'Paris',
-            locationId: 'loc-1',
-            appellationCode: '11573'
-          }
-        ]
+        const resultat: ResultatRechercheOffresImmersionQueryModelV3 = {
+          offres: [
+            {
+              siret: '12345',
+              metier: 'Boulanger',
+              nomEtablissement: 'Boulangerie',
+              secteurActivite: 'Restauration',
+              ville: 'Paris',
+              locationId: 'loc-1',
+              appellationCode: '11573'
+            }
+          ],
+          nombrePagesResultat: 1
+        }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)
-          .resolves(success(offresImmersionQueryModel))
+          .resolves(success(resultat))
 
         // When
         const result = await getOffresImmersionQueryHandler.handle(query)
 
         // Then
-        expect(result).to.deep.equal(success(offresImmersionQueryModel))
+        expect(result).to.deep.equal(success(resultat))
       })
     })
   })

@@ -24,7 +24,7 @@ import {
   DetailOffreImmersionQueryModel,
   DetailOffreImmersionQueryModelV3,
   OffreImmersionQueryModel,
-  OffreImmersionQueryModelV3
+  ResultatRechercheOffresImmersionQueryModelV3
 } from '../../application/queries/query-models/offres-immersion.query-model'
 import { Authentification } from '../../domain/authentification'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
@@ -89,13 +89,12 @@ export class OffresImmersionController {
 
   @Get('offres-immersion/v3')
   @ApiResponse({
-    type: OffreImmersionQueryModelV3,
-    isArray: true
+    type: ResultatRechercheOffresImmersionQueryModelV3
   })
   async getOffresImmersionV3(
     @Query() getOffresImmersionQueryParams: GetOffresImmersionQueryParamsV3,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<OffreImmersionQueryModelV3[]> {
+  ): Promise<ResultatRechercheOffresImmersionQueryModelV3> {
     const query: GetOffresImmersionQueryV3 = {
       rome: getOffresImmersionQueryParams.rome,
       appellationCode: getOffresImmersionQueryParams.appellationCode,
