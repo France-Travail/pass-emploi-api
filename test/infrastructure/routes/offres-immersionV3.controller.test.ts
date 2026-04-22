@@ -73,7 +73,8 @@ describe('OffresImmersionController', () => {
               appellationCode: 'D1102'
             }
           ],
-          nombrePagesResultat: 3
+          nombrePages: 3,
+          nombreTotal: 30
         }
 
         getOffresImmersionQueryHandler.execute.resolves(success(resultat))

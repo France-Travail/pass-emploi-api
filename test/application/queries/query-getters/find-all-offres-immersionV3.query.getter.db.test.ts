@@ -73,10 +73,12 @@ const uneOffreQueryModel = (
 
 const unResultat = (
   offres: OffreImmersionQueryModelV3[],
-  nombrePagesResultat: number
+  nombrePages: number,
+  nombreTotal: number
 ): ResultatRechercheOffresImmersionQueryModelV3 => ({
   offres,
-  nombrePagesResultat
+  nombrePages,
+  nombreTotal
 })
 
 const baseQuery = {
@@ -141,7 +143,7 @@ describe('FindAllOffresImmersionQueryGetter', () => {
           params
         ])
         expect(result).to.deep.equal(
-          success(unResultat([uneOffreQueryModel('siret-1', '11573')], 3))
+          success(unResultat([uneOffreQueryModel('siret-1', '11573')], 3, 1))
         )
       })
     })
@@ -178,7 +180,8 @@ describe('FindAllOffresImmersionQueryGetter', () => {
                 uneOffreQueryModel('siret-1', 'appCode-1'),
                 uneOffreQueryModel('siret-2', 'appCode-2')
               ],
-              1
+              1,
+              2
             )
           )
         )

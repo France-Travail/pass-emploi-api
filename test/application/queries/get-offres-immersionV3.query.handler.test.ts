@@ -57,7 +57,8 @@ describe('GetOffresImmersionQueryHandler', () => {
               appellationCode: 'D1102'
             }
           ],
-          nombrePagesResultat: 1
+          nombrePages: 1,
+          nombreTotal: 1
         }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)
@@ -93,7 +94,8 @@ describe('GetOffresImmersionQueryHandler', () => {
               appellationCode: 'D1102'
             }
           ],
-          nombrePagesResultat: 1
+          nombrePages: 1,
+          nombreTotal: 1
         }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)
@@ -129,7 +131,8 @@ describe('GetOffresImmersionQueryHandler', () => {
               appellationCode: '11573'
             }
           ],
-          nombrePagesResultat: 1
+          nombrePages: 1,
+          nombreTotal: 1
         }
         findAllOffresImmersionQueryGetter.handle
           .withArgs(query)

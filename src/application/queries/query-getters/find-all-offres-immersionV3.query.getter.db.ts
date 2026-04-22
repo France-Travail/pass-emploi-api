@@ -35,7 +35,8 @@ export class FindAllOffresImmersionQueryGetterV3 {
 
     return success({
       offres: result.data.data.map(toOffreImmersionQueryModelV3),
-      nombrePagesResultat: result.data.pagination.totalPages
+      nombrePages: result.data.pagination.totalPages,
+      nombreTotal: result.data.pagination.totalRecords
     })
   }
 

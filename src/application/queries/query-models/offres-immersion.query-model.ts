@@ -92,7 +92,9 @@ export class ResultatRechercheOffresImmersionQueryModelV3 {
   @ApiProperty({ type: OffreImmersionQueryModelV3, isArray: true })
   offres: OffreImmersionQueryModelV3[]
   @ApiProperty()
-  nombrePagesResultat: number
+  nombrePages: number
+  @ApiProperty()
+  nombreTotal: number
 }
 
 export class DetailOffreImmersionQueryModelV3 extends OffreImmersionQueryModelV3 {
