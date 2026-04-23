@@ -233,7 +233,7 @@ export class PostImmersionContactBodyV3 {
   })
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('FR')
+  @IsPhoneNumber()
   numeroTelephone: string
 
   @ApiProperty()
