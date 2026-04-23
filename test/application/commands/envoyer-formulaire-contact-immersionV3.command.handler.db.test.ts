@@ -63,12 +63,12 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryFirstName: command.prenom,
           potentialBeneficiaryLastName: command.nom,
           potentialBeneficiaryEmail: command.email,
-          potentialBeneficiaryPhone: '0600000000',
+          potentialBeneficiaryPhone: '0606060606',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
           datePreferences: command.datePreferences,
           experienceAdditionalInformation: undefined,
-          resumeLink: undefined
+          potentialBeneficiaryResumeLink: undefined
         })
       })
 
@@ -106,13 +106,13 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           potentialBeneficiaryFirstName: command.prenom,
           potentialBeneficiaryLastName: command.nom,
           potentialBeneficiaryEmail: command.email,
-          potentialBeneficiaryPhone: '0600000000',
+          potentialBeneficiaryPhone: '0606060606',
           immersionObjective: "Découvrir un métier ou un secteur d'activité",
           contactMode: command.contactMode as ContactMode,
           datePreferences: command.datePreferences,
           experienceAdditionalInformation:
             command.experienceAdditionalInformation,
-          resumeLink: command.resumeLink
+          potentialBeneficiaryResumeLink: command.resumeLink
         })
       })
     })
