@@ -269,6 +269,34 @@ describe('OffresImmersionController', () => {
         .send(payload)
         .expect(HttpStatus.CREATED)
     })
+
+    it('accepte un numéro de téléphone au format +33', async () => {
+      // Given
+      const payload = {
+        idJeune: '1',
+        appellationCode: '11573',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        numeroTelephone: '+33606060606',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
+      }
+
+      envoyerFormulaireContactImmersionCommandHandler.execute
+        .withArgs(payload)
+        .resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.CREATED)
+    })
+
     it('accepte et transmet experienceAdditionalInformation et resumeLink', async () => {
       // Given
       const payload = {
