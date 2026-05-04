@@ -4,32 +4,35 @@ import { Evenement, EvenementService } from '../../domain/evenement'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
-import { OffreImmersionQueryModel } from './query-models/offres-immersion.query-model'
-import { FindAllOffresImmersionQueryGetter } from './query-getters/find-all-offres-immersion.query.getter.db'
+import { ResultatRechercheOffresImmersionQueryModelV3 } from './query-models/offres-immersion.query-model'
+import { FindAllOffresImmersionQueryGetterV3 } from './query-getters/find-all-offres-immersionV3.query.getter.db'
 
-export interface GetOffresImmersionQuery extends Query {
-  rome: string
+export interface GetOffresImmersionQueryV3 extends Query {
+  rome?: string
+  appellationCode?: string
   lat: number
   lon: number
   distance?: number
+  currentPage: number
+  numberPerPage: number
 }
 
 @Injectable()
-export class GetOffresImmersionQueryHandler extends QueryHandler<
-  GetOffresImmersionQuery,
-  Result<OffreImmersionQueryModel[]>
+export class GetOffresImmersionQueryHandlerV3 extends QueryHandler<
+  GetOffresImmersionQueryV3,
+  Result<ResultatRechercheOffresImmersionQueryModelV3>
 > {
   constructor(
-    private readonly findAllOffresImmersionQueryGetter: FindAllOffresImmersionQueryGetter,
+    private readonly findAllOffresImmersionQueryGetterV3: FindAllOffresImmersionQueryGetterV3,
     private readonly evenementService: EvenementService
   ) {
     super('GetOffresImmersionQueryHandler')
   }
 
   async handle(
-    query: GetOffresImmersionQuery
-  ): Promise<Result<OffreImmersionQueryModel[]>> {
-    return this.findAllOffresImmersionQueryGetter.handle(query)
+    query: GetOffresImmersionQueryV3
+  ): Promise<Result<ResultatRechercheOffresImmersionQueryModelV3>> {
+    return this.findAllOffresImmersionQueryGetterV3.handle(query)
   }
   async authorize(): Promise<Result> {
     return emptySuccess()

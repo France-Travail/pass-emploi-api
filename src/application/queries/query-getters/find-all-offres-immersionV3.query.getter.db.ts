@@ -4,55 +4,64 @@ import {
   Result,
   success
 } from '../../../building-blocks/types/result'
-import { OffreImmersionQueryModel } from '../query-models/offres-immersion.query-model'
+import { ResultatRechercheOffresImmersionQueryModelV3 } from '../query-models/offres-immersion.query-model'
 import { URLSearchParams } from 'node:url'
-import { toOffreImmersionQueryModel } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
+import { toOffreImmersionQueryModelV3 } from '../../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../../infrastructure/clients/immersion-client'
-import { GetOffresImmersionQuery } from '../get-offres-immersion.query.handler'
+import { GetOffresImmersionQueryV3 } from '../get-offres-immersionV3.query.handler'
 import { Offre } from '../../../domain/offre/offre'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 
 @Injectable()
-export class FindAllOffresImmersionQueryGetter {
+export class FindAllOffresImmersionQueryGetterV3 {
   constructor(
-    private immersionClient: ImmersionClient,
+    private readonly immersionClient: ImmersionClient,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
   async handle(
-    query: GetOffresImmersionQuery
-  ): Promise<Result<OffreImmersionQueryModel[]>> {
-    const params = await this.queryConstructor(query)
+    query: GetOffresImmersionQueryV3
+  ): Promise<Result<ResultatRechercheOffresImmersionQueryModelV3>> {
+    const appellationCodes = query.appellationCode
+      ? [query.appellationCode]
+      : await this.romeToAppellationsCode(query.rome!)
 
-    const offresImmersion = await this.immersionClient.getOffres(params)
+    const result = await this.immersionClient.getOffresV3(
+      this.buildParams(query, appellationCodes)
+    )
 
-    if (isFailure(offresImmersion)) {
-      return offresImmersion
-    }
+    if (isFailure(result)) return result
 
-    return success(offresImmersion.data.map(toOffreImmersionQueryModel))
+    return success({
+      offres: result.data.data.map(toOffreImmersionQueryModelV3),
+      nombrePages: result.data.pagination.totalPages,
+      nombreTotal: result.data.pagination.totalRecords
+    })
   }
 
-  async queryConstructor(
-    query: GetOffresImmersionQuery
-  ): Promise<URLSearchParams> {
+  buildParams(
+    query: GetOffresImmersionQueryV3,
+    appellationCodes: string[]
+  ): URLSearchParams {
     const distanceAvecDefault = query.distance
       ? query.distance.toString()
       : Offre.Recherche.DISTANCE_PAR_DEFAUT.toString()
 
     const params = new URLSearchParams()
 
-    const appellationCodeListe = await this.romeToAppellationsCode(query.rome)
-
     params.append('distanceKm', distanceAvecDefault)
     params.append('longitude', query.lon.toString())
     params.append('latitude', query.lat.toString())
-    appellationCodeListe.forEach(appellationCode => {
+
+    appellationCodes.forEach(appellationCode => {
       params.append('appellationCodes[]', appellationCode)
     })
+
     params.append('sortBy', 'date')
     params.append('sortOrder', 'desc')
+    params.append('page', query.currentPage.toString())
+    params.append('perPage', query.numberPerPage.toString())
 
     return params
   }
@@ -71,8 +80,6 @@ export class FindAllOffresImmersionQueryGetter {
         }
       )
 
-    const appellationCodeListe: string[] = metiers.map(m => m.appellation_code)
-
-    return appellationCodeListe
+    return metiers.map(m => m.appellation_code)
   }
 }

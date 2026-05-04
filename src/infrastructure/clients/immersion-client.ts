@@ -27,6 +27,22 @@ export interface FormulaireImmersionPayload {
   message?: string
 }
 
+export interface FormulaireImmersionPayloadV3 {
+  appellationCode: string
+  siret: string
+  potentialBeneficiaryFirstName: string
+  potentialBeneficiaryLastName: string
+  potentialBeneficiaryEmail: string
+  locationId: string
+  potentialBeneficiaryPhone: string
+  datePreferences: string
+  contactMode: string
+  kind: 'IF'
+  immersionObjective: string
+  experienceAdditionalInformation?: string
+  potentialBeneficiaryResumeLink?: string
+}
+
 @Injectable()
 export class ImmersionClient {
   private readonly apiUrl: string
@@ -86,6 +102,60 @@ export class ImmersionClient {
   ): Promise<Result> {
     try {
       await this.post('v2/contact-establishment', params)
+      return emptySuccess()
+    } catch (erreur) {
+      return handleAxiosError(
+        erreur,
+        this.logger,
+        `L'envoi du formulaire immersion a échoué`
+      )
+    }
+  }
+
+  async getOffresV3(
+    params: URLSearchParams
+  ): Promise<Result<PartenaireImmersion.SearchResponseV3>> {
+    try {
+      const response = await this.get<PartenaireImmersion.SearchResponseV3>(
+        'v3/offers',
+        params
+      )
+
+      return success(response.data)
+    } catch (erreur) {
+      if (erreur.response?.status === 401)
+        return failure(new ErreurHttp('API Key Immersion invalide', 400))
+
+      return handleAxiosError(
+        erreur,
+        this.logger,
+        'ERROR API getOffres immersion'
+      )
+    }
+  }
+
+  async getDetailOffreV3(
+    params: string
+  ): Promise<Result<PartenaireImmersion.DtoV3>> {
+    try {
+      const response = await this.get<PartenaireImmersion.DtoV3>(
+        `v3/offers/${params}`
+      )
+      return success(response.data)
+    } catch (erreur) {
+      return handleAxiosError(
+        erreur,
+        this.logger,
+        'ERROR API getDetail immersion'
+      )
+    }
+  }
+
+  async envoyerFormulaireImmersionV3(
+    params: FormulaireImmersionPayloadV3
+  ): Promise<Result> {
+    try {
+      await this.post('v3/apply-to-offer', params)
       return emptySuccess()
     } catch (erreur) {
       return handleAxiosError(

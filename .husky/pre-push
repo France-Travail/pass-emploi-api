@@ -1,0 +1,15 @@
+echo "⏳ Vérification du lint..."
+yarn lint
+if [ $? -ne 0 ]; then
+  echo "❌ Lint échoué — push annulé"
+  exit 1
+fi
+echo "✅ Lint OK"
+
+echo "⏳ Vérification TypeScript..."
+yarn tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript échoué — push annulé"
+  exit 1
+fi
+echo "✅ TypeScript OK"

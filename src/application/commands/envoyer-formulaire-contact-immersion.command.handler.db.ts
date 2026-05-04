@@ -94,8 +94,8 @@ export class EnvoyerFormulaireContactImmersionCommandHandler extends CommandHand
     const metiers: Array<{ appellation_code: string }> =
       await this.sequelize.query(
         `SELECT appellation_code
-       FROM "referentiel_metier_rome"
-       WHERE libelle = ?`,
+         FROM "referentiel_metier_rome"
+         WHERE libelle = ?`,
         {
           replacements: [label],
           type: QueryTypes.SELECT

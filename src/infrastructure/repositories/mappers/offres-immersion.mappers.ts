@@ -1,8 +1,10 @@
 import {
   ContactImmersionQueryModel,
   DetailOffreImmersionQueryModel,
+  DetailOffreImmersionQueryModelV3,
   LocalisationQueryModel,
-  OffreImmersionQueryModel
+  OffreImmersionQueryModel,
+  OffreImmersionQueryModelV3
 } from '../../../application/queries/query-models/offres-immersion.query-model'
 import { Offre } from '../../../domain/offre/offre'
 import { FavoriOffreImmersionSqlModel } from '../../sequelize/models/favori-offre-immersion.sql-model'
@@ -13,6 +15,26 @@ const fromContactMode = {
   EMAIL: Offre.Immersion.MethodeDeContact.EMAIL,
   PHONE: Offre.Immersion.MethodeDeContact.TELEPHONE,
   IN_PERSON: Offre.Immersion.MethodeDeContact.PRESENTIEL
+}
+
+const fromRemoteWorkMode: Record<
+  string,
+  Offre.Immersion.ImmersionModeDistanciel
+> = {
+  FULL_REMOTE: Offre.Immersion.ImmersionModeDistanciel.FULL_REMOTE,
+  HYBRID: Offre.Immersion.ImmersionModeDistanciel.HYBRID,
+  ON_SITE: Offre.Immersion.ImmersionModeDistanciel.ON_SITE
+}
+
+const fromFitForDisabledWorkers: Record<
+  string,
+  Offre.Immersion.ImmersionAccessibleTravailleurHandicape
+> = {
+  'yes-ft-certified':
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_FT_CERTIFIED,
+  'yes-declared-only':
+    Offre.Immersion.ImmersionAccessibleTravailleurHandicape.YES_DECLARED_ONLY,
+  no: Offre.Immersion.ImmersionAccessibleTravailleurHandicape.NO
 }
 
 export function fromSqlToFavorisOffreImmersion(
@@ -27,11 +49,59 @@ export function fromSqlToFavorisOffreImmersion(
   }
 }
 
+export function toOffreImmersionQueryModelV3(
+  offreImmersionDto: PartenaireImmersion.DtoV3
+): OffreImmersionQueryModelV3 {
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
+  return {
+    siret: offreImmersionDto.siret,
+    metier: labelMetier,
+    nomEtablissement:
+      offreImmersionDto.customizedName ?? offreImmersionDto.name,
+    secteurActivite: offreImmersionDto.nafLabel,
+    ville: offreImmersionDto.address.city,
+    locationId: offreImmersionDto.locationId,
+    appellationCode,
+    accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
+      ? fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
+      : undefined
+  }
+}
+
+export function toDetailOffreImmersionQueryModelV3(
+  offreImmersionDto: PartenaireImmersion.DtoV3
+): DetailOffreImmersionQueryModelV3 {
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
+  return {
+    siret: offreImmersionDto.siret,
+    metier: labelMetier,
+    nomEtablissement:
+      offreImmersionDto.customizedName ?? offreImmersionDto.name,
+    secteurActivite: offreImmersionDto.nafLabel,
+    ville: offreImmersionDto.address.city,
+    adresse: buildAdresseV3(offreImmersionDto),
+    contact: buildContactV3(offreImmersionDto),
+    informationsComplementaires: offreImmersionDto.additionalInformation,
+    siteWeb: offreImmersionDto.website,
+    modeDistanciel: fromRemoteWorkMode[offreImmersionDto.remoteWorkMode],
+    accessibleTravailleurHandicape: offreImmersionDto.fitForDisabledWorkers
+      ? fromFitForDisabledWorkers[offreImmersionDto.fitForDisabledWorkers]
+      : undefined,
+    locationId: offreImmersionDto.locationId,
+    appellationCode
+  }
+}
+
 export function toOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV2
 ): OffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     metier: labelMetier,
@@ -45,8 +115,9 @@ export function toOffreImmersionQueryModel(
 export function toDetailOffreImmersionQueryModel(
   offreImmersionDto: PartenaireImmersion.DtoV2
 ): DetailOffreImmersionQueryModel {
-  const appellationCode = offreImmersionDto.appellations[0].appellationCode
-  const labelMetier = offreImmersionDto.appellations[0].appellationLabel
+  const appellationCode =
+    offreImmersionDto.appellations[0]?.appellationCode ?? ''
+  const labelMetier = offreImmersionDto.appellations[0]?.appellationLabel ?? ''
   return {
     id: `${offreImmersionDto.siret}-${appellationCode}`,
     codeRome: offreImmersionDto.rome,
@@ -86,6 +157,22 @@ export function buildContact(
 
 export function buildAdresse(
   offreImmpersionDto: PartenaireImmersion.DtoV2
+): string {
+  const { streetNumberAndAddress, postcode, city } = offreImmpersionDto.address
+
+  return streetNumberAndAddress + ' ' + postcode + ' ' + city
+}
+
+export function buildContactV3(
+  offreImmpersionDto: PartenaireImmersion.DtoV3
+): Offre.Immersion.MethodeDeContact {
+  return offreImmpersionDto.contactMode
+    ? fromContactMode[offreImmpersionDto.contactMode]
+    : Offre.Immersion.MethodeDeContact.INCONNU
+}
+
+export function buildAdresseV3(
+  offreImmpersionDto: PartenaireImmersion.DtoV3
 ): string {
   const { streetNumberAndAddress, postcode, city } = offreImmpersionDto.address
 
