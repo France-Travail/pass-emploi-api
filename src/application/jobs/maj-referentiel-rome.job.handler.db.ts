@@ -32,28 +32,15 @@ export class MajReferentielRomeJobHandler extends JobHandler<void> {
     let succes = true
 
     try {
-      const [appellationsResult, metiersResult] = await Promise.all([
-        this.poleEmploiClient.getAppellationsRome(),
-        this.poleEmploiClient.getMetiersRomeApi()
-      ])
+      const metiersResult = await this.poleEmploiClient.getMetiersRomeApi()
 
-      if (isFailure(appellationsResult)) {
-        throw new Error(
-          `Récupération appellations ROME échouée : ${appellationsResult.error.message}`
-        )
-      }
       if (isFailure(metiersResult)) {
         throw new Error(
           `Récupération métiers ROME échouée : ${metiersResult.error.message}`
         )
       }
 
-      const appellations = appellationsResult.data
       const metiers = metiersResult.data
-
-      const appellationsByLibelle = new Map(
-        appellations.map(a => [a.libelle, a])
-      )
 
       const entries: Array<{
         code: string
@@ -63,25 +50,20 @@ export class MajReferentielRomeJobHandler extends JobHandler<void> {
       }> = []
 
       for (const metier of metiers) {
-        const matchingAppellation = appellationsByLibelle.get(metier.libelle)
         entries.push({
           code: metier.code,
           libelle: metier.libelle,
           libelleSanitized: enleverLesAccents(metier.libelle),
-          appellationCode: matchingAppellation?.code ?? null
+          appellationCode: null
         })
-        if (matchingAppellation) {
-          appellationsByLibelle.delete(metier.libelle)
+        for (const appellation of metier.appellations) {
+          entries.push({
+            code: metier.code,
+            libelle: appellation.libelle,
+            libelleSanitized: enleverLesAccents(appellation.libelle),
+            appellationCode: appellation.code
+          })
         }
-      }
-
-      for (const appellation of appellationsByLibelle.values()) {
-        entries.push({
-          code: appellation.code,
-          libelle: appellation.libelle,
-          libelleSanitized: enleverLesAccents(appellation.libelle),
-          appellationCode: appellation.code
-        })
       }
 
       await this.sequelize.transaction(async t => {
