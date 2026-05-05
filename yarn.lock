@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1041.0":
-  version: 3.1041.0
-  resolution: "@aws-sdk/client-s3@npm:3.1041.0"
+"@aws-sdk/client-s3@npm:^3.1042.0":
+  version: 3.1042.0
+  resolution: "@aws-sdk/client-s3@npm:3.1042.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -226,7 +226,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.2"
     "@smithy/util-waiter": "npm:^4.3.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/b69317395810dd2afe1ff7b8f749fcce93745bc1031c5be82b3833f98e7abf227176b022f15530c3c1fd1af6787a2dc92e99cdc0837d856b49fff91158eb75bd
+  checksum: 10/69bf9d5bd169343d30c6b692723ea0a4beef843bd28ae1897940a76936901f8c16fc2d50cad6385ed53af65935b42e92a450d2d293c77791f7ce5140d35e075e
   languageName: node
   linkType: hard
 
@@ -601,9 +601,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1041.0":
-  version: 3.1041.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1041.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1042.0":
+  version: 3.1042.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1042.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.25"
     "@aws-sdk/types": "npm:^3.973.8"
@@ -613,7 +613,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.13"
     "@smithy/types": "npm:^4.14.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/b8e9ce831421091c75eaa23456dc952257e3ba82011b604d35bc7ac85aa602158a65adcf01aa6c10cd0729f748eb3d52fd24cbd50c39dba500ee92221d99f5d0
+  checksum: 10/e4ed1ba3b22e0fe85d17571f6996499779cf2d0dd6dfd106bb015800816636c9370403717ac216c7459d2ebc4bb36177f11fed60291b240d6f6a5841a5dd4f35
   languageName: node
   linkType: hard
 
@@ -8055,9 +8055,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"joi@npm:18.1.2":
-  version: 18.1.2
-  resolution: "joi@npm:18.1.2"
+"joi@npm:18.2.1":
+  version: 18.2.1
+  resolution: "joi@npm:18.2.1"
   dependencies:
     "@hapi/address": "npm:^5.1.1"
     "@hapi/formula": "npm:^3.0.2"
@@ -8066,7 +8066,7 @@ __metadata:
     "@hapi/tlds": "npm:^1.1.1"
     "@hapi/topo": "npm:^6.0.2"
     "@standard-schema/spec": "npm:^1.1.0"
-  checksum: 10/a045c12e1f2326406ad004af09545cb037d153eac8c4c76ada8a671a0c4abccc051e31ea72b4b78d5cf5bce01ed287ae3db3182944278746f45e75142030f9e6
+  checksum: 10/1525745571b0b0c60fdb51a8cb6f2e5717241b04314872259f68e10ea729e456d2d4883812013fc03913b03eb2b6cbca9d40d144bbd29e7b02fb57797edb0357
   languageName: node
   linkType: hard
 
@@ -9170,8 +9170,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1041.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1041.0"
+    "@aws-sdk/client-s3": "npm:^3.1042.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1042.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.16"
     "@nestjs/common": "npm:11.1.19"
@@ -9229,7 +9229,7 @@ __metadata:
     helmet: "npm:8.1.0"
     husky: "npm:^9.1.7"
     ics: "npm:3.12.0"
-    joi: "npm:18.1.2"
+    joi: "npm:18.2.1"
     jose: "npm:6.2.3"
     lint-staged: "npm:^16.3.2"
     lodash.isequal: "npm:4.5.0"
