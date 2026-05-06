@@ -60,6 +60,18 @@ graph LR
 | `POST` | `/jeunes/:idJeune/action` | Créer une nouvelle action |
 | `GET` | `/jeunes/:idJeune/home/agenda` | Récupérer l'agenda (page d'accueil) |
 
+### Actions — détail et gestion
+
+Ces routes utilisent l'ID de l'action directement et sont accessibles aussi bien par le jeune que par son conseiller.
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| `GET` | `/actions/:idAction` | Récupérer le détail d'une action |
+| `PUT` | `/actions/:idAction` | Mettre à jour une action |
+| `DELETE` | `/actions/:idAction` | Supprimer une action |
+| `GET` | `/actions/:idAction/commentaires` | Lister les commentaires d'une action |
+| `POST` | `/actions/:idAction/commentaires` | Ajouter un commentaire à une action |
+
 ### Favoris & Offres
 
 | Méthode | Endpoint | Description |
