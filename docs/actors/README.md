@@ -100,26 +100,31 @@ graph LR
 mindmap
   root((pass-emploi-api))
     Jeune
-      /jeunes/:id
-      /jeunes/:id/actions
-      /jeunes/:id/favoris/**
-      /jeunes/:id/recherches/**
-      /jeunes/:id/rendezvous/**
-      /jeunes/milo/:id/**
-      /jeunes/:id/pole-emploi/**
+      /jeunes/:idJeune
+      /jeunes/:idJeune/actions
+      /jeunes/:idJeune/favoris/**
+      /jeunes/:idJeune/recherches/**
+      /jeunes/:idJeune/rendezvous/**
+      /jeunes/:idJeune/milo/accueil
+      /jeunes/milo/:idJeune/**
+      /jeunes/:idJeune/pole-emploi/**
     Conseiller
-      /conseillers/:id
-      /conseillers/:id/jeunes/**
-      /conseillers/:id/rendezvous/**
-      /conseillers/milo/:id/**
+      /conseillers/:idConseiller
+      /conseillers/:idConseiller/jeunes/**
+      /conseillers/:idConseiller/rendezvous/**
+      /conseillers/milo/:idConseiller/**
       /conseillers/pole-emploi/**
-      /conseillers/:id/listes-de-diffusion
+      /conseillers/:idConseiller/listes-de-diffusion
+    Superviseur
+      /conseillers/:idConseiller/jeunes
+      /conseillers/milo/:idConseiller/sessions/**
+      /structures-milo/:idStructure/jeunes
     Admin
       /admin/chat/:idJeune
     Routes partagées
-      /actions/:id/**
-      /rendezvous/:id/**
-      /listes-de-diffusion/:id
+      /actions/:idAction/**
+      /rendezvous/:idRendezVous/**
+      /listes-de-diffusion/:idListe
     Public
       /offres-emploi/**
       /offres-immersion/**
