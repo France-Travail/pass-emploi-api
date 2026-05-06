@@ -7,23 +7,23 @@ export enum ContextKey {
   UTILISATEUR = 'UTILISATEUR'
 }
 
+const asyncLocalStorage = new AsyncLocalStorage<ContextData>()
+
+export function getContextValue<T>(key: ContextKey): T | undefined {
+  return asyncLocalStorage.getStore()?.get(key) as T | undefined
+}
+
 @Injectable()
 export class Context {
-  private asyncLocalStorage: AsyncLocalStorage<ContextData>
-
-  constructor() {
-    this.asyncLocalStorage = new AsyncLocalStorage()
-  }
-
   start(): void {
-    this.asyncLocalStorage.enterWith(new Map<ContextKey, unknown>())
+    asyncLocalStorage.enterWith(new Map<ContextKey, unknown>())
   }
 
   get<T>(key: ContextKey): T | undefined {
-    return this.asyncLocalStorage.getStore()?.get(key) as T
+    return getContextValue<T>(key)
   }
 
   set(key: ContextKey, value: unknown): void {
-    this.asyncLocalStorage.getStore()?.set(key, value)
+    asyncLocalStorage.getStore()?.set(key, value)
   }
 }
