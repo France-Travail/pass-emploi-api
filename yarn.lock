@@ -167,9 +167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1044.0":
-  version: 3.1044.0
-  resolution: "@aws-sdk/client-s3@npm:3.1044.0"
+"@aws-sdk/client-s3@npm:^3.1045.0":
+  version: 3.1045.0
+  resolution: "@aws-sdk/client-s3@npm:3.1045.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:5.2.0"
     "@aws-crypto/sha256-browser": "npm:5.2.0"
@@ -226,7 +226,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.2"
     "@smithy/util-waiter": "npm:^4.3.0"
     tslib: "npm:^2.6.2"
-  checksum: 10/20292b00d4f8146b3cf0002f8aaf77b00942ee7e237acadd0e489b4b64c1e2af3130ad3f2e36a5d7c25b1ceb0171ac4eb5d599faaf7dd75ae97b2cf40b285808
+  checksum: 10/082c7b1ce288c696e0bdd0338721500b29c3fde713aa31c5d3611281338d59147b602849d7599c1daebe7757e484dc0f2b8c6b2ab04ab5b02dcc6619a1f9fbae
   languageName: node
   linkType: hard
 
@@ -601,9 +601,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1044.0":
-  version: 3.1044.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1044.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1045.0":
+  version: 3.1045.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1045.0"
   dependencies:
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.25"
     "@aws-sdk/types": "npm:^3.973.8"
@@ -613,7 +613,7 @@ __metadata:
     "@smithy/smithy-client": "npm:^4.12.13"
     "@smithy/types": "npm:^4.14.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/55bd7f93b6563bc78718afa3dfa434c60fb240753aea41d0172800d1c1219db9bfbe46dc5a148a1fdc28ecb426f0174bdcb4a54148061b85e1472575defe42ed
+  checksum: 10/fcee2a3218dd159ba4c937183dcc05d50b98f97196040e742d75ce34d441c7cbbaa7fc312bbe0a7043dd9c3c8a12215ee94f8463e1591ec398f29a303a47f743
   languageName: node
   linkType: hard
 
@@ -6728,9 +6728,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"firebase-admin@npm:^13.8.0":
-  version: 13.8.0
-  resolution: "firebase-admin@npm:13.8.0"
+"firebase-admin@npm:^13.9.0":
+  version: 13.9.0
+  resolution: "firebase-admin@npm:13.9.0"
   dependencies:
     "@fastify/busboy": "npm:^3.0.0"
     "@firebase/database-compat": "npm:^2.0.0"
@@ -6749,7 +6749,7 @@ __metadata:
       optional: true
     "@google-cloud/storage":
       optional: true
-  checksum: 10/b9064c7be1f505f06b4506c2a8c744cc78b06285f83910df178d740dbed99e2cb0df907eb0cf8ac2da66eec265b0787ffb465038672b0083457ce1cdb29fae0e
+  checksum: 10/9336d541a92fac24db5fedd33a7c159e6ddb540f67c39a6eee11f7b866f5d7ac5b87c71c684f2bf74e1aed671cca171f8e8fc8824d13cb8ffbc38289b78bd04b
   languageName: node
   linkType: hard
 
@@ -9210,8 +9210,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1044.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1044.0"
+    "@aws-sdk/client-s3": "npm:^3.1045.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1045.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.21"
     "@nestjs/common": "npm:11.1.19"
@@ -9263,7 +9263,7 @@ __metadata:
     eslint-plugin-chai-friendly: "npm:^1.2.0"
     eslint-plugin-mocha: "npm:^11.2.0"
     eslint-plugin-prettier: "npm:^5.5.5"
-    firebase-admin: "npm:^13.8.0"
+    firebase-admin: "npm:^13.9.0"
     fuse.js: "npm:7.3.0"
     geojson: "npm:0.5.0"
     helmet: "npm:8.1.0"
