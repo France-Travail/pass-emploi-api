@@ -3448,12 +3448,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^25.6.0":
-  version: 25.6.0
-  resolution: "@types/node@npm:25.6.0"
+"@types/node@npm:^25.6.2":
+  version: 25.6.2
+  resolution: "@types/node@npm:25.6.2"
   dependencies:
     undici-types: "npm:~7.19.0"
-  checksum: 10/99b18690a4be55904cbf8f6a6ac8eed5ec5b8d791fdd8ee2ae598b46c0fa9b83cda7b70dd7f00dbfb18189dcfc67648fdc7fdd3fcced2619a5a6453d9aec107d
+  checksum: 10/a8afba633f651c80ba3c77d711f1b9bde9cd85ba79f5031af18aa9f0f872e9348cc9e1048fd1b0092cb903f028a4ce505a11dac1205e6efff8b0224de3612028
   languageName: node
   linkType: hard
 
@@ -9234,7 +9234,7 @@ __metadata:
     "@types/luxon": "npm:^3.7.1"
     "@types/mocha": "npm:^10.0.10"
     "@types/multer": "npm:^2.0.0"
-    "@types/node": "npm:^25.6.0"
+    "@types/node": "npm:^25.6.2"
     "@types/pg-copy-streams": "npm:^1.2.5"
     "@types/pino-multi-stream": "npm:^5.1.6"
     "@types/sinon": "npm:^17.0.4"
@@ -9276,7 +9276,7 @@ __metadata:
     luxon: "npm:3.7.2"
     mocha: "npm:^11.7.5"
     nestjs-pino: "npm:4.6.1"
-    nock: "npm:^14.0.14"
+    nock: "npm:^14.0.15"
     npm-check-updates: "npm:^19.6.3"
     nyc: "npm:^18.0.0"
     openid-client: "npm:5.7.1"
@@ -9349,14 +9349,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:^14.0.14":
-  version: 14.0.14
-  resolution: "nock@npm:14.0.14"
+"nock@npm:^14.0.15":
+  version: 14.0.15
+  resolution: "nock@npm:14.0.15"
   dependencies:
     "@mswjs/interceptors": "npm:^0.41.0"
     json-stringify-safe: "npm:^5.0.1"
     propagate: "npm:^2.0.0"
-  checksum: 10/8408c1bd40cdea64f5b236813c713880f413c487589bff175cfc6089c135119c716a48cb93b6d1c1b51e7ef3a4870fc9e2ee7260435f33c4e951c06a2349bc58
+  checksum: 10/e51737b43e51dc642e339f36c2125b18ef262492d4b8ba5ca0aaeff983fc29c42a02aeb5e19b80940f7dbde59a413ae7298ef1f6c11fe6d7dbe54d7f3a558d83
   languageName: node
   linkType: hard
 
