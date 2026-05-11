@@ -17,6 +17,7 @@ graph LR
     AD -.->|API Key| AUTH[ApiKeyAuthGuard]
     AUTH -.->|valide| AD
 ```
+<img src="../diagrammes/admin-chat-consultation-capacity-flow.svg">
 
 ---
 
@@ -50,3 +51,5 @@ sequenceDiagram
     H-->>API: ChatSecretsQueryModel
     API-->>Tool: 200 { token, ... }
 ```
+<img src="../diagrammes/admin-chat-consultation-sequence-flow.svg">
+

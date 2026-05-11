@@ -37,6 +37,7 @@ graph TD
     J -.->|inscrit à| D1
     J -.->|inscrit à| D2
 ```
+<img src="../diagrammes/relation-beetwen-actors.svg">
 
 ---
 
@@ -61,7 +62,7 @@ sequenceDiagram
 
     note over API: Les services internes utilisent<br/>une API Key à la place du JWT
 ```
-
+<img src="../diagrammes/authentification-flow.svg">
 ---
 
 ## Diagramme 3 — Matrice acteurs × domaines
@@ -91,7 +92,7 @@ graph LR
 
     AD[Admin] --> CHAT[Chat jeunes]
 ```
-
+<img src="../diagrammes/actor-x-domain.svg">
 ---
 
 ## Diagramme 4 — Mindmap des routes principales
@@ -132,7 +133,7 @@ mindmap
       /referentiels/**
 
 ```
-
+<img src="../diagrammes/mindmap-road.svg">
 ---
 
 ## Navigation

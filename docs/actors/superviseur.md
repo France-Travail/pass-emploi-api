@@ -72,3 +72,4 @@ sequenceDiagram
     H-->>API: SessionsQueryModel[]
     API-->>Web: 200 [{ id, titre, dateDebut, ... }]
 ```
+<img src="../diagrammes/supervisor-sequence-flux.svg">

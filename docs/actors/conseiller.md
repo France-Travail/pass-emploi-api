@@ -34,7 +34,7 @@ graph LR
     ML --> DOS[Dossiers MILO]
     ML --> CJ_M[Créer jeune MILO]
 ```
-
+<img src="../diagrammes/conseiller-capacity-flow.svg">
 ---
 
 ## Routes
@@ -164,3 +164,5 @@ sequenceDiagram
     H-->>API: success(action)
     API-->>Web: 201 { id, titre, statut, ... }
 ```
+
+<img src="../diagrammes/conseiller-create-action-sequence-flow.svg">

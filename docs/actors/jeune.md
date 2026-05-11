@@ -34,7 +34,7 @@ graph LR
     ML --> ACC_M[Accueil MILO]
     ML --> SUV_M[Mon suivi MILO]
 ```
-
+<img src="../diagrammes/jeune-capacity-flow.svg">
 ---
 
 ## Routes
@@ -162,3 +162,4 @@ sequenceDiagram
     H-->>API: MonSuiviQueryModel
     API-->>App: 200 { actions, rendezVous, sessions }
 ```
+<img src="../diagrammes/jeune-follow-my-report-sequence-flow.svg">
