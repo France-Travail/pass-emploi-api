@@ -21,6 +21,7 @@ import { IJwtService, JwtService } from 'src/infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from 'src/infrastructure/auth/oidc.auth-guard'
 import { FirebaseClient } from 'src/infrastructure/clients/firebase-client'
 import { DateService } from 'src/utils/date-service'
+import { configureLoggerModule } from 'src/utils/logger.module'
 import { unJwtPayloadValide } from '../fixtures/authentification.fixture'
 import { uneDatetime } from '../fixtures/date.fixture'
 import { FakeController } from '../infrastructure/auth/fake.controller'
@@ -35,7 +36,12 @@ export function buildTestingModuleForHttpTesting(
 ): TestingModuleBuilder {
   const moduleMetadata = buildModuleMetadata()
   return Test.createTestingModule({
-    imports: [HttpModule, ConfigModule.forRoot(), TerminusModule],
+    imports: [
+      HttpModule,
+      ConfigModule.forRoot(),
+      TerminusModule,
+      configureLoggerModule()
+    ],
     providers: stubProviders(sandbox),
     controllers: [...moduleMetadata.controllers!, FakeController]
   })
@@ -43,7 +49,12 @@ export function buildTestingModuleForHttpTesting(
 export function buildTestingModuleForEndToEndTesting(): TestingModuleBuilder {
   const moduleMetadata = buildModuleMetadata()
   return Test.createTestingModule({
-    imports: [HttpModule, ConfigModule.forRoot(), TerminusModule],
+    imports: [
+      HttpModule,
+      ConfigModule.forRoot(),
+      TerminusModule,
+      configureLoggerModule()
+    ],
     providers: [...moduleMetadata.providers!],
     controllers: [...moduleMetadata.controllers!, FakeController]
   })

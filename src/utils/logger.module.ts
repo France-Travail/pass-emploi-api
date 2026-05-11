@@ -2,6 +2,7 @@ import { DynamicModule } from '@nestjs/common'
 import { Request } from 'express'
 import { IncomingMessage } from 'node:http'
 import { LoggerModule } from 'nestjs-pino'
+import pino, { Logger as PinoInstance } from 'pino'
 import { ReqId } from 'pino-http'
 import { v4 as uuidV4 } from 'uuid'
 import { ContextKey, getContextValue } from '../building-blocks/context'
@@ -31,17 +32,50 @@ const pickHeaders = (
       )
   )
 
-export const pinoHttpOptions = {
+export const pinoSerializers = {
+  req: (req: {
+    id: string
+    method: string
+    url: string
+    query: Record<string, unknown>
+    headers: Record<string, string | string[] | undefined>
+  }): Record<string, unknown> => ({
+    id: req.id,
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    headers: pickHeaders(req.headers, REQ_HEADERS_WHITELIST)
+  }),
+  res: (res: { statusCode: number }): { statusCode: number } => ({
+    statusCode: res.statusCode
+  }),
+  // Serializer universel : ne garde que les champs ECS error.*, drop tout le
+  // reste (notamment err.config.{headers,data,params}, err.response.data,
+  // err.request._currentRequest, err.config.transitional, agent.sockets, etc.
+  // d'AxiosError qui polluent ES et fuitent Bearer/api-keys/PII).
+  err: (err: Error & { code?: string }): Record<string, unknown> => ({
+    type: err.name,
+    message: err.message,
+    stack_trace: err.stack,
+    ...(err.code && { code: err.code })
+  })
+}
+
+// Instance pino partagée : utilisée par pino-http ET par le code applicatif
+// (handlers CQRS via `rootLogger.info(obj, action)`). Garantit la même config
+// (redact, mixin user/trace.id, serializers) sur tous les logs.
+export const rootLogger: PinoInstance = pino({
   level: process.env.LOG_LEVEL || 'info',
-  autoLogging: {
-    ignore: (req: IncomingMessage): boolean =>
-      req.url?.endsWith('/health') ?? false
-  },
   redact: [
     'req.headers.authorization',
     'req.headers.cookie',
     'req.headers["x-api-key"]',
-    'err.config.headers["X-Gravitee-Api-Key"]'
+    'err.config.headers.Authorization',
+    'err.config.headers.authorization',
+    'err.config.headers["X-Gravitee-Api-Key"]',
+    'err.config.data',
+    'err.config.params',
+    'err.response.data'
   ],
   mixin: (): Record<string, unknown> => {
     const apmTraceIds = getAPMInstance().currentTraceIds
@@ -70,6 +104,15 @@ export const pinoHttpOptions = {
     level(label: string): object {
       return { level: label }
     }
+  },
+  serializers: pinoSerializers
+})
+
+export const pinoHttpOptions = {
+  logger: rootLogger,
+  autoLogging: {
+    ignore: (req: IncomingMessage): boolean =>
+      req.url?.endsWith('/health') ?? false
   },
   genReqId: (request: Request): ReqId =>
     request.header('X-Request-ID') ?? uuidV4(),
@@ -100,25 +143,7 @@ export const pinoHttpOptions = {
   ): Record<string, unknown> => ({
     ...val,
     event: { action: 'request_failed', outcome: 'failure' }
-  }),
-  serializers: {
-    req: (req: {
-      id: string
-      method: string
-      url: string
-      query: Record<string, unknown>
-      headers: Record<string, string | string[] | undefined>
-    }): Record<string, unknown> => ({
-      id: req.id,
-      method: req.method,
-      url: req.url,
-      query: req.query,
-      headers: pickHeaders(req.headers, REQ_HEADERS_WHITELIST)
-    }),
-    res: (res: { statusCode: number }): { statusCode: number } => ({
-      statusCode: res.statusCode
-    })
-  }
+  })
 }
 
 export const configureLoggerModule = (): DynamicModule => {

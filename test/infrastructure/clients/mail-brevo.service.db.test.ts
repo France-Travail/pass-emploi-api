@@ -1,5 +1,5 @@
-import { HttpService } from '@nestjs/axios'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import axios from 'axios'
 import * as fs from 'fs'
 import * as nock from 'nock'
 import * as path from 'path'
@@ -10,11 +10,12 @@ import { MailDataDto } from '../../../src/domain/mail'
 import { RendezVous } from '../../../src/domain/rendez-vous/rendez-vous'
 import { InvitationIcsClient } from '../../../src/infrastructure/clients/invitation-ics.client'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { unRendezVous } from '../../fixtures/rendez-vous.fixture'
-import { createSandbox, expect } from '../../utils'
+import { createSandbox, expect, stubClass } from '../../utils'
 import {
   DatabaseForTesting,
   getDatabase
@@ -36,13 +37,14 @@ describe('MailBrevoService', () => {
     const sandbox: SinonSandbox = createSandbox()
     rendezVousRepository = stubInterface(sandbox)
     await databaseForTesting.cleanPG()
-    const httpService = new HttpService()
     invitationIcsClient = new InvitationIcsClient(config)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
     mailBrevoService = new MailBrevoService(
       invitationIcsClient,
-      httpService,
       config,
-      rendezVousRepository
+      rendezVousRepository,
+      externalApiLogger
     )
   })
 

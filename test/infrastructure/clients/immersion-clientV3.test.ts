@@ -1,19 +1,21 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { expect } from 'chai'
 import * as nock from 'nock'
 import { testConfig } from '../../utils/test-config'
 import { ImmersionClient } from '../../../src/infrastructure/clients/immersion-client'
 import { URLSearchParams } from 'url'
 import { success } from '../../../src/building-blocks/types/result'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
+import { stubClass } from '../../utils'
 
 describe('ImmersionClient', () => {
   let immersionClient: ImmersionClient
   const configService = testConfig()
 
   beforeEach(() => {
-    const httpService = new HttpService()
-
-    immersionClient = new ImmersionClient(httpService, configService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    immersionClient = new ImmersionClient(configService, externalApiLogger)
   })
 
   describe('get', () => {

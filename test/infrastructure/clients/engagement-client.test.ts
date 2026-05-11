@@ -1,17 +1,20 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { expect } from 'chai'
 import * as nock from 'nock'
 import { testConfig } from '../../utils/module-for-testing'
 import { EngagementClient } from '../../../src/infrastructure/clients/engagement-client'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
+import { stubClass } from '../../utils'
 
 describe('EngagementClient', () => {
   let engagementClient: EngagementClient
   const configService = testConfig()
 
   beforeEach(() => {
-    const httpService = new HttpService()
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
 
-    engagementClient = new EngagementClient(httpService, configService)
+    engagementClient = new EngagementClient(configService, externalApiLogger)
   })
   describe('get', () => {
     it('fait un http get avec les bons paramètres', async () => {

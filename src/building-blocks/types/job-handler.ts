@@ -3,7 +3,7 @@ import * as APM from 'elastic-apm-node'
 import { Planificateur } from '../../domain/planificateur'
 import { estJobSuivi, estNotifiable, SuiviJob } from '../../domain/suivi-job'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { LogEvent, LogEventKey } from './log.event'
+import { rootLogger } from '../../utils/logger.module'
 import JobType = Planificateur.JobType
 
 /**
@@ -25,6 +25,7 @@ export abstract class JobHandler<TContenu = void> {
   async execute(
     job?: Planificateur.Job<TContenu>
   ): Promise<SuiviJob | undefined> {
+    const startNs = process.hrtime.bigint()
     try {
       if (!job) {
         return undefined
@@ -39,26 +40,37 @@ export abstract class JobHandler<TContenu = void> {
         this.suiviJobService.notifierResultatJob(suiviJob)
       }
 
-      this.logAfter(suiviJob)
+      this.logExecution(startNs, suiviJob, undefined)
       return suiviJob
     } catch (e) {
       this.apmService.captureError(e)
-      this.logAfter(e)
+      this.logExecution(startNs, undefined, e)
       throw e
     }
   }
 
   abstract handle(job: Planificateur.Job<TContenu>): Promise<SuiviJob>
 
-  protected logAfter(
-    result: SuiviJob,
-    command?: Planificateur.Job<TContenu>
+  private logExecution(
+    startNs: bigint,
+    suiviJob: SuiviJob | undefined,
+    error: Error | undefined
   ): void {
-    const event = new LogEvent(LogEventKey.JOB_EVENT, {
-      handler: this.jobType,
-      command: command,
-      result: result
-    })
-    this.logger.log(event)
+    const outcome =
+      error || (suiviJob && !suiviJob.succes) ? 'failure' : 'success'
+    const level = outcome === 'failure' ? 'error' : 'info'
+
+    rootLogger[level](
+      {
+        context: this.jobType,
+        event: {
+          action: 'handler_executed',
+          outcome,
+          duration: Number(process.hrtime.bigint() - startNs)
+        },
+        ...(error && { err: error })
+      },
+      'handler_executed'
+    )
   }
 }

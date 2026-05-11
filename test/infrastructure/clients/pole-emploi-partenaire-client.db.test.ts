@@ -1,4 +1,4 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import * as nock from 'nock'
 import { Op } from 'sequelize'
 import { Context, ContextKey } from 'src/building-blocks/context'
@@ -16,6 +16,7 @@ import { Core } from '../../../src/domain/core'
 import { Demarche } from '../../../src/domain/demarche'
 import { DocumentPoleEmploiDto } from '../../../src/infrastructure/clients/dto/pole-emploi.dto'
 import { PoleEmploiPartenaireClient } from '../../../src/infrastructure/clients/pole-emploi-partenaire-client.db'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 import {
   CacheApiPartenaireDto,
   CacheApiPartenaireSqlModel
@@ -53,12 +54,13 @@ describe('PoleEmploiPartenaireClient', () => {
     context = stubClass(Context)
     context.get.withArgs(ContextKey.UTILISATEUR).returns(utilisateurJeunePE)
 
-    const httpService = new HttpService()
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
     poleEmploiPartenaireClient = new PoleEmploiPartenaireClient(
-      httpService,
       configService,
       context,
-      databaseForTesting.sequelize
+      databaseForTesting.sequelize,
+      externalApiLogger
     )
   })
 

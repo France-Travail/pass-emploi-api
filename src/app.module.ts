@@ -410,6 +410,7 @@ import { SupportController } from './infrastructure/routes/support.controller'
 import { databaseProviders } from './infrastructure/sequelize/providers'
 import { ChatCryptoService } from './utils/chat-crypto-service'
 import { DateService } from './utils/date-service'
+import { ExternalApiLoggerService } from './utils/external-api-logger.service'
 import { IdService } from './utils/id-service'
 import { configureLoggerModule } from './utils/logger.module'
 import { RateLimiterService } from './utils/rate-limiter.service'
@@ -483,6 +484,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     IdService,
     DateService,
     ChatCryptoService,
+    ExternalApiLoggerService,
     RateLimiterService,
     PoleEmploiClient,
     MiloClient,

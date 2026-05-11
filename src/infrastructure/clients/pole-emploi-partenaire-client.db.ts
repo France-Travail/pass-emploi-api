@@ -1,13 +1,12 @@
-import { HttpService } from '@nestjs/axios'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { AxiosResponse } from 'axios'
 import * as https from 'https'
 import { DateTime } from 'luxon'
-import { firstValueFrom } from 'rxjs'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { v4 as uuidV4 } from 'uuid'
 import { Context, ContextKey } from '../../building-blocks/context'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { Result, failure, success } from '../../building-blocks/types/result'
 import {
@@ -18,7 +17,6 @@ import {
 } from '../../building-blocks/types/result-api'
 import { Authentification } from '../../domain/authentification'
 import { Demarche } from '../../domain/demarche'
-import { buildError } from '../../utils/logger.module'
 import { getAPMInstance } from '../monitoring/apm.init'
 import { suggestionsPEInMemory } from '../repositories/dto/pole-emploi.in-memory.dto'
 import { CacheApiPartenaireSqlModel } from '../sequelize/models/cache-api-partenaire.sql-model'
@@ -32,6 +30,7 @@ import {
   ThematiqueDto,
   toEtat
 } from './dto/pole-emploi.dto'
+import { ExternalApiClient } from './external-api-client'
 import { handleAxiosError } from './utils/axios-error-handler'
 
 const ORIGINE = 'INDIVIDU'
@@ -76,16 +75,20 @@ interface PoleEmploiPartenaireClientI {
 }
 
 @Injectable()
-export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
+export class PoleEmploiPartenaireClient
+  extends ExternalApiClient
+  implements PoleEmploiPartenaireClientI
+{
   private readonly apiUrl: string
   private logger: Logger
 
   constructor(
-    private httpService: HttpService,
     private configService: ConfigService,
     private context: Context,
-    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
+    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
+    externalApiLogger: ExternalApiLoggerService
   ) {
+    super('PoleEmploiPartenaireClient', externalApiLogger)
     this.logger = new Logger('PoleEmploiPartenaireClient')
     this.apiUrl = this.configService.get('poleEmploi').url
   }
@@ -110,8 +113,7 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
       }
 
       return response
-    } catch (e) {
-      this.logger.error(e)
+    } catch (_e) {
       return successApi([])
     }
   }
@@ -201,11 +203,7 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
       )
       return success(isSuccessApi(result) && result.data ? result.data : [])
     } catch (e) {
-      return handleAxiosError(
-        e,
-        this.logger,
-        'La récupération des documents a échoué'
-      )
+      return handleAxiosError(e, 'La récupération des documents a échoué')
     }
   }
 
@@ -232,7 +230,6 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
       )
       return success(demarcheDto.data)
     } catch (e) {
-      this.logger.error(e)
       if (e.response?.data && e.response?.status) {
         const erreur = new ErreurHttp(e.response.data, e.response.status)
         return failure(erreur)
@@ -264,7 +261,6 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
       )
       return success(demarcheDto.data)
     } catch (e) {
-      this.logger.error(e)
       if (e.response?.data && e.response?.status) {
         const erreur = new ErreurHttp(e.response.data, e.response.status)
         return failure(erreur)
@@ -294,7 +290,6 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
     } catch (e) {
       return handleAxiosError(
         e,
-        this.logger,
         `La récupération du catalogue de démarche a échoué`
       )
     }
@@ -305,18 +300,14 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
     tokenDuJeune: string,
     params?: URLSearchParams
   ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
-        params,
-        headers: { Authorization: `Bearer ${tokenDuJeune}` },
-        httpsAgent:
-          this.configService.get('environment') !== 'prod'
-            ? new https.Agent({
-                rejectUnauthorized: false
-              })
-            : undefined
-      })
-    )
+    return this.axios.get<T>(`${this.apiUrl}/${suffixUrl}`, {
+      params,
+      headers: { Authorization: `Bearer ${tokenDuJeune}` },
+      httpsAgent:
+        this.configService.get('environment') !== 'prod'
+          ? new https.Agent({ rejectUnauthorized: false })
+          : undefined
+    })
   }
   private async getWithRetry<T>(
     suffixUrl: string,
@@ -333,8 +324,6 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
     return this.get<T>(suffixUrl, tokenDuJeune, params)
       .then(res => res)
       .catch(e => {
-        this.logger.error(e)
-
         const estLePremierRetry = secondesAAttendre === undefined
         if (
           e.response?.status === 429 &&
@@ -390,7 +379,6 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
       if (e.response) {
         return failureApi(new ErreurHttp(e.response.data, e.response.status))
       }
-      this.logger.error(buildError('Erreur GET WITH CACHE FT', e))
       throw e
     }
   }
@@ -400,17 +388,13 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
     tokenDuJeune: string,
     body: object
   ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.put<T>(`${this.apiUrl}/${suffixUrl}`, body, {
-        headers: { Authorization: `Bearer ${tokenDuJeune}` },
-        httpsAgent:
-          this.configService.get('environment') !== 'prod'
-            ? new https.Agent({
-                rejectUnauthorized: false
-              })
-            : undefined
-      })
-    )
+    return this.axios.put<T>(`${this.apiUrl}/${suffixUrl}`, body, {
+      headers: { Authorization: `Bearer ${tokenDuJeune}` },
+      httpsAgent:
+        this.configService.get('environment') !== 'prod'
+          ? new https.Agent({ rejectUnauthorized: false })
+          : undefined
+    })
   }
 
   private post<T>(
@@ -418,20 +402,16 @@ export class PoleEmploiPartenaireClient implements PoleEmploiPartenaireClientI {
     tokenDuJeune: string,
     body: object
   ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.post<T>(`${this.apiUrl}/${suffixUrl}`, body, {
-        headers: {
-          Authorization: `Bearer ${tokenDuJeune}`,
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        httpsAgent:
-          this.configService.get('environment') !== 'prod'
-            ? new https.Agent({
-                rejectUnauthorized: false
-              })
-            : undefined
-      })
-    )
+    return this.axios.post<T>(`${this.apiUrl}/${suffixUrl}`, body, {
+      headers: {
+        Authorization: `Bearer ${tokenDuJeune}`,
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      httpsAgent:
+        this.configService.get('environment') !== 'prod'
+          ? new https.Agent({ rejectUnauthorized: false })
+          : undefined
+    })
   }
 
   private async sauvegarderLeRetourEnCache<T>(

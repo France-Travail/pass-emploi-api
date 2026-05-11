@@ -1,29 +1,20 @@
-import { Logger } from '@nestjs/common'
-import { AxiosError } from '@nestjs/terminus/dist/errors/axios.error'
+import { AxiosError } from 'axios'
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
 import { failure } from '../../../../src/building-blocks/types/result'
 import { handleAxiosError } from '../../../../src/infrastructure/clients/utils/axios-error-handler'
 import { expect } from '../../../utils'
 
 describe('handleAxiosError', () => {
-  const logger = new Logger('handleAxiosError')
-
   describe("quand c'est une erreur Axios", () => {
     describe("quand c'est un `status` qu'on gère", () => {
       it('retourne une ErreurHttp', async () => {
         // Given
         const error = {
-          response: {
-            status: 429
-          }
+          response: { status: 429 }
         } as AxiosError
 
         // When
-        const result = handleAxiosError(
-          error,
-          logger,
-          "un message si c'est Axios"
-        )
+        const result = handleAxiosError(error, "un message si c'est Axios")
 
         // Then
         expect(result).to.deep.equal(
@@ -35,18 +26,12 @@ describe('handleAxiosError', () => {
       it('throw une failure', async () => {
         // Given
         const error = {
-          response: {
-            status: 503
-          }
+          response: { status: 503 }
         } as AxiosError
 
         try {
           // When
-          handleAxiosError(
-            error as AxiosError,
-            logger,
-            "un message si c'est Axios"
-          )
+          handleAxiosError(error, "un message si c'est Axios")
           expect.fail(null, null, 'handle test did not reject with an error')
         } catch (e) {
           // Then
@@ -62,11 +47,7 @@ describe('handleAxiosError', () => {
 
       try {
         // When
-        handleAxiosError(
-          error as AxiosError,
-          logger,
-          "un message si c'est Axios"
-        )
+        handleAxiosError(error as AxiosError, "un message si c'est Axios")
         expect.fail(null, null, 'handle test did not reject with an error')
       } catch (e) {
         // Then

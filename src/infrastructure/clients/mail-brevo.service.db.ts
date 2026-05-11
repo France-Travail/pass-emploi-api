@@ -1,7 +1,5 @@
-import { HttpService } from '@nestjs/axios'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Core, estPassEmploi } from '../../domain/core'
@@ -13,12 +11,17 @@ import {
   RendezVous,
   RendezVousRepositoryToken
 } from '../../domain/rendez-vous/rendez-vous'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
+import { ExternalApiClient } from './external-api-client'
 import { InvitationIcsClient } from './invitation-ics.client'
 
 export type ICS = string
 
 @Injectable()
-export class MailBrevoService implements Mail.Service {
+export class MailBrevoService
+  extends ExternalApiClient
+  implements Mail.Service
+{
   private readonly brevoUrl: string
   private readonly apiKey: string
   private templates: {
@@ -38,31 +41,30 @@ export class MailBrevoService implements Mail.Service {
 
   constructor(
     private invitationIcsClient: InvitationIcsClient,
-    private httpService: HttpService,
-    private configService: ConfigService,
+    configService: ConfigService,
     @Inject(RendezVousRepositoryToken)
-    private readonly rendezVousRepository: RendezVous.Repository
+    private readonly rendezVousRepository: RendezVous.Repository,
+    externalApiLogger: ExternalApiLoggerService
   ) {
-    this.brevoUrl = this.configService.get('brevo').url
-    this.apiKey = this.configService.get('brevo').apiKey
-    this.templates = this.configService.get('brevo').templates
-    this.frontendUrl = this.configService.get('frontEndUrl') ?? ''
+    super('BrevoClient', externalApiLogger)
+    this.brevoUrl = configService.get('brevo').url
+    this.apiKey = configService.get('brevo').apiKey
+    this.templates = configService.get('brevo').templates
+    this.frontendUrl = configService.get('frontEndUrl') ?? ''
     this.logger = new Logger('MailBrevoService')
   }
 
   async envoyer(data: MailDataDto): Promise<void> {
     try {
-      await firstValueFrom(
-        this.httpService.post(`${this.brevoUrl}/v3/smtp/email`, data, {
-          headers: {
-            'api-key': `${this.apiKey}`,
-            accept: 'application/json',
-            'content-type': 'application/json'
-          }
-        })
-      )
-    } catch (e) {
-      this.logger.error(e)
+      await this.axios.post(`${this.brevoUrl}/v3/smtp/email`, data, {
+        headers: {
+          'api-key': `${this.apiKey}`,
+          accept: 'application/json',
+          'content-type': 'application/json'
+        }
+      })
+    } catch (_e) {
+      // erreur déjà loguée par l'intercepteur external-api-logger
     }
   }
 
@@ -207,19 +209,13 @@ export class MailBrevoService implements Mail.Service {
         jsonBody: contactsDTO
       }
       try {
-        await firstValueFrom(
-          this.httpService.post(
-            `${this.brevoUrl}/v3/contacts/import`,
-            payload,
-            {
-              headers: {
-                'api-key': `${this.apiKey}`,
-                accept: 'application/json',
-                'content-type': 'application/json'
-              }
-            }
-          )
-        )
+        await this.axios.post(`${this.brevoUrl}/v3/contacts/import`, payload, {
+          headers: {
+            'api-key': `${this.apiKey}`,
+            accept: 'application/json',
+            'content-type': 'application/json'
+          }
+        })
       } catch (e) {
         if (e.name === 'AxiosError') {
           if (e.config) {

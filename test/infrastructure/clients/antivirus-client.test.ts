@@ -1,4 +1,4 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import * as nock from 'nock'
 import { unFichier } from 'test/fixtures/fichier.fixture'
 import {
@@ -12,7 +12,8 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { AntivirusClient } from '../../../src/infrastructure/clients/antivirus-client'
-import { expect } from '../../utils'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
+import { expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/test-config'
 
 describe('AntivirusClient', () => {
@@ -22,8 +23,9 @@ describe('AntivirusClient', () => {
   const fichier = unFichier()
 
   beforeEach(async () => {
-    const httpService = new HttpService()
-    antivirusClient = new AntivirusClient(httpService, configService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    antivirusClient = new AntivirusClient(configService, externalApiLogger)
   })
 
   describe('declencherAnalyseAsynchrone', () => {
