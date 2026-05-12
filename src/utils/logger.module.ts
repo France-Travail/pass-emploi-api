@@ -120,9 +120,8 @@ export const pinoHttpOptions = {
     _req: IncomingMessage,
     res: { statusCode: number },
     err?: Error
-  ): 'info' | 'warn' | 'error' => {
+  ): 'info' | 'error' => {
     if (err || res.statusCode >= 500) return 'error'
-    if (res.statusCode >= 400) return 'warn'
     return 'info'
   },
   customSuccessMessage: (): string => 'request_completed',

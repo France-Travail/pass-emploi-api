@@ -16,9 +16,9 @@ describe('logger.module — pinoHttpOptions', () => {
         pinoHttpOptions.customLogLevel(req, { statusCode: 200 }, new Error('x'))
       ).to.equal('error')
     })
-    it('4xx → warn', () => {
+    it('4xx → info (la requête est traitée correctement, l\'erreur vient du client)', () => {
       expect(pinoHttpOptions.customLogLevel(req, { statusCode: 401 })).to.equal(
-        'warn'
+        'info'
       )
     })
     it('2xx/3xx → info', () => {
