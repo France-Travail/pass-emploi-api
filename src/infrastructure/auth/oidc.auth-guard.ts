@@ -2,16 +2,15 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  Logger,
   UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { UserObject } from 'elastic-apm-node'
 import { Request } from 'express'
 import { JWTPayload } from 'jose'
-import { LogEvent, LogEventKey } from '../../building-blocks/types/log.event'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
+import { rootLogger } from '../../utils/logger.module'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 import {
   OIDC_QUERY_TOKEN,
@@ -22,14 +21,10 @@ import { JwtService } from './jwt.service'
 
 @Injectable()
 export class OidcAuthGuard implements CanActivate {
-  private readonly logger: Logger
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector
-  ) {
-    this.logger = new Logger('OidcAuthGuard')
-  }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (this.isPublic(context) || this.isSkipOidcAuth(context)) {
@@ -75,13 +70,28 @@ export class OidcAuthGuard implements CanActivate {
         email: utilisateur.email
       }
       getAPMInstance().setUserContext(userAPM)
-      const event = new LogEvent(LogEventKey.USER_API_CALL, {
-        user: utilisateur
-      })
-      this.logger.log(event)
+      rootLogger.info(
+        {
+          context: 'OidcAuthGuard',
+          event: { action: 'auth_succeeded', outcome: 'success' },
+          user: {
+            id: utilisateur.id,
+            type: utilisateur.type,
+            structure: utilisateur.structure
+          }
+        },
+        'auth_succeeded'
+      )
       return true
     } catch (error) {
-      this.logger.error(error)
+      rootLogger.error(
+        {
+          context: 'OidcAuthGuard',
+          event: { action: 'auth_failed', outcome: 'failure' },
+          err: error
+        },
+        'auth_failed'
+      )
       throw new UnauthorizedException()
     }
   }
