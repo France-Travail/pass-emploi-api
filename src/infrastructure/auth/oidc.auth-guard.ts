@@ -74,6 +74,8 @@ export class OidcAuthGuard implements CanActivate {
         {
           context: 'OidcAuthGuard',
           event: { action: 'auth_succeeded', outcome: 'success' },
+          http: { request: { id: req.id, method: req.method } },
+          url: { path: req.url },
           user: {
             id: utilisateur.id,
             type: utilisateur.type,
@@ -88,6 +90,8 @@ export class OidcAuthGuard implements CanActivate {
         {
           context: 'OidcAuthGuard',
           event: { action: 'auth_failed', outcome: 'failure' },
+          http: { request: { id: req.id, method: req.method } },
+          url: { path: req.url },
           err: error
         },
         'auth_failed'

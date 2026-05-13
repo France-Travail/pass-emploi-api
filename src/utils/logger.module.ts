@@ -121,18 +121,21 @@ export const pinoHttpOptions = {
     res: { statusCode: number },
     err?: Error
   ): 'info' | 'error' => {
-    if (err || res.statusCode >= 500) return 'error'
+    if (err || !res.statusCode || res.statusCode >= 500) return 'error'
     return 'info'
   },
   customSuccessMessage: (): string => 'request_completed',
   customErrorMessage: (): string => 'request_failed',
   customSuccessObject: (
     _req: IncomingMessage,
-    _res: unknown,
+    res: { statusCode: number },
     val: Record<string, unknown>
   ): Record<string, unknown> => ({
     ...val,
-    event: { action: 'request_completed', outcome: 'success' }
+    event: {
+      action: 'request_completed',
+      outcome: !res.statusCode || res.statusCode >= 400 ? 'failure' : 'success'
+    }
   }),
   customErrorObject: (
     _req: IncomingMessage,

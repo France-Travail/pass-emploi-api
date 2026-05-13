@@ -16,7 +16,7 @@ describe('logger.module — pinoHttpOptions', () => {
         pinoHttpOptions.customLogLevel(req, { statusCode: 200 }, new Error('x'))
       ).to.equal('error')
     })
-    it('4xx → info (la requête est traitée correctement, l\'erreur vient du client)', () => {
+    it("4xx → info (la requête est traitée correctement, l'erreur vient du client)", () => {
       expect(pinoHttpOptions.customLogLevel(req, { statusCode: 401 })).to.equal(
         'info'
       )
@@ -26,12 +26,12 @@ describe('logger.module — pinoHttpOptions', () => {
         'info'
       )
     })
-    it('aborted (statusCode null) → info', () => {
+    it('aborted (statusCode null) → error', () => {
       expect(
         pinoHttpOptions.customLogLevel(req, {
           statusCode: null as unknown as number
         })
-      ).to.equal('info')
+      ).to.equal('error')
     })
   })
 
@@ -47,11 +47,35 @@ describe('logger.module — pinoHttpOptions', () => {
   })
 
   describe('customSuccessObject / customErrorObject', () => {
-    it('success injecte event.action=request_completed et outcome=success', () => {
-      const result = pinoHttpOptions.customSuccessObject(req, {}, { foo: 1 })
+    it('2xx injecte outcome=success', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: 200 },
+        { foo: 1 }
+      )
       expect(result).to.deep.include({
         foo: 1,
         event: { action: 'request_completed', outcome: 'success' }
+      })
+    })
+    it('4xx injecte outcome=failure (erreur client, log.level reste info)', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: 404 },
+        { foo: 1 }
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'failure' }
+      })
+    })
+    it('aborted (statusCode null) injecte outcome=failure', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: null as unknown as number },
+        { foo: 1 }
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'failure' }
       })
     })
     it('error injecte event.action=request_failed et outcome=failure', () => {

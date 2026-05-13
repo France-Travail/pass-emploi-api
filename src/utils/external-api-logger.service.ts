@@ -4,7 +4,7 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig
 } from 'axios'
-import { PinoLogger } from 'nestjs-pino'
+import { rootLogger } from './logger.module'
 
 interface AxiosMetadata {
   startTimeNs: bigint
@@ -22,8 +22,6 @@ type Emit = (
 
 @Injectable()
 export class ExternalApiLoggerService {
-  constructor(private readonly pinoLogger: PinoLogger) {}
-
   /**
    * Crée une instance Axios dédiée, déjà instrumentée pour émettre un log ECS
    * par appel sortant sous le nom `target`. À utiliser via ExternalApiClient.
@@ -31,7 +29,7 @@ export class ExternalApiLoggerService {
   createAxios(target: string): AxiosInstance {
     const instance = axios.create()
     attachExternalApiLogger(instance, (level, obj, msg) => {
-      this.pinoLogger.logger[level]({ ...obj, context: target }, msg)
+      rootLogger[level]({ ...obj, context: target }, msg)
     })
     return instance
   }
