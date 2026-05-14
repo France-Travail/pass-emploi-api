@@ -1962,9 +1962,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/testing@npm:^11.1.19":
-  version: 11.1.19
-  resolution: "@nestjs/testing@npm:11.1.19"
+"@nestjs/testing@npm:^11.1.20":
+  version: 11.1.20
+  resolution: "@nestjs/testing@npm:11.1.20"
   dependencies:
     tslib: "npm:2.8.1"
   peerDependencies:
@@ -1977,7 +1977,7 @@ __metadata:
       optional: true
     "@nestjs/platform-express":
       optional: true
-  checksum: 10/2589270c477cae7119158398b0d2d75f32fab44ba7dc79433cf8410d905d09e2c6175d4de378af11996247e638d7236ca7ab87ce457da2f58f71c8a6350fcfeb
+  checksum: 10/bcd0edae6f75c85494a7faf37b1b567472fd22e6fc7e861911d97bf22f2d5421aa951e11ef35ad91be7401c66cba80429e4ce770addbe30539ed815fcd506070
   languageName: node
   linkType: hard
 
@@ -8605,7 +8605,7 @@ __metadata:
     "@nestjs/schematics": "npm:^11.1.0"
     "@nestjs/swagger": "npm:11.4.2"
     "@nestjs/terminus": "npm:11.1.1"
-    "@nestjs/testing": "npm:^11.1.19"
+    "@nestjs/testing": "npm:^11.1.20"
     "@salesforce/ts-sinon": "npm:^1.4.34"
     "@types/chai": "npm:^4.3.20"
     "@types/chai-as-promised": "npm:^8.0.2"
