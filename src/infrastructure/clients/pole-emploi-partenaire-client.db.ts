@@ -97,8 +97,6 @@ export class PoleEmploiPartenaireClient
     tokenDuJeune: string,
     idJeune?: string
   ): Promise<ResultApi<DemarcheDto[]>> {
-    this.logger.log('recuperation des demarches du jeune')
-
     try {
       const response = await this.getWithCache<DemarcheDto[]>(
         `${DEMARCHES_URL}?range=0-99`,
@@ -137,7 +135,6 @@ export class PoleEmploiPartenaireClient
     tokenDuJeune: string,
     dateDebut: DateTime
   ): Promise<ResultApi<RendezVousPoleEmploiDto[]>> {
-    this.logger.log('recuperation des rendez-vous passés du jeune')
     const params = new URLSearchParams()
     params.append('dateDebut', dateDebut.toUTC().toISO())
 
@@ -158,11 +155,6 @@ export class PoleEmploiPartenaireClient
     tokenDuJeune: string,
     dateRechercheRendezVous: DateTime
   ): Promise<ResultApi<PrestationDto[]>> {
-    this.logger.log(
-      `recuperation des prestations du jeune à partir de la date du ${dateRechercheRendezVous.toFormat(
-        'yyyy-MM-dd'
-      )}`
-    )
     const params = new URLSearchParams()
     params.append('dateRecherche', dateRechercheRendezVous.toISODate())
 

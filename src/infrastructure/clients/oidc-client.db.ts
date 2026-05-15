@@ -79,10 +79,6 @@ export class OidcClient extends ExternalApiClient {
       const result: TokenExchangeResponse = (
         await this.axios.post(url, query, { headers })
       ).data
-      this.logger.log({
-        message: 'Token exchange success',
-        expires_in: result.expires_in
-      })
       return result.access_token
     } catch (e) {
       let message

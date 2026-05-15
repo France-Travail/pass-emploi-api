@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Context, ContextKey } from 'src/building-blocks/context'
@@ -27,7 +27,6 @@ import { QueryTypes, Sequelize } from 'sequelize'
 export class MiloClient implements MiloClientPort {
   private readonly apiV2Enabled: boolean
   private readonly emailsConseillersV2: string[]
-  private readonly logger: Logger
 
   constructor(
     private readonly configService: ConfigService,
@@ -39,7 +38,6 @@ export class MiloClient implements MiloClientPort {
     this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
     this.emailsConseillersV2 =
       this.configService.get('milo').emailsConseillersV2
-    this.logger = new Logger('MiloClient')
   }
 
   /* ************ */
@@ -256,13 +254,7 @@ export class MiloClient implements MiloClientPort {
       useV2 = false
     }
 
-    this.logger.log(
-      `Détermination du client Milo pour ${utilisateur?.type} - ${utilisateur?.email}`
-    )
-
-    const miloClient = useV2 ? this.miloClientV2 : this.miloClientV1
-    this.logger.log(`Sélection du client ${miloClient.constructor.name}`)
-    return miloClient
+    return useV2 ? this.miloClientV2 : this.miloClientV1
   }
 
   private estUnConseillerBetaTesteur(

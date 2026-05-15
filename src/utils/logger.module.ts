@@ -89,6 +89,8 @@ export const rootLogger: PinoInstance = pino({
       ContextKey.UTILISATEUR
     )
 
+    const httpRequestId = getContextValue<string>(ContextKey.HTTP_REQUEST_ID)
+
     return {
       ...currentTraceIds,
       ...(utilisateur && {
@@ -97,6 +99,9 @@ export const rootLogger: PinoInstance = pino({
           type: utilisateur.type,
           structure: utilisateur.structure
         }
+      }),
+      ...(httpRequestId && {
+        http: { request: { id: httpRequestId } }
       })
     }
   },

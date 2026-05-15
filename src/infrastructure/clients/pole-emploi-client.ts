@@ -356,8 +356,6 @@ export class PoleEmploiClient extends ExternalApiClient {
   }
 
   private async generateToken(): Promise<string> {
-    this.logger.log('Attempting to get an access token for Pole Emploi API')
-
     const poleEmploiConfiguration = this.configService.get('poleEmploi')
 
     const params = new URLSearchParams()
@@ -375,10 +373,6 @@ export class PoleEmploiClient extends ExternalApiClient {
     const token = reponse.data.access_token
     const SECONDS_BEFORE_EXPIRY = 30
     this.tokenExpiryInSeconds = reponse.data.expires_in - SECONDS_BEFORE_EXPIRY
-
-    this.logger.log(
-      'An access token for Pole Emploi API has been retrieved successfully'
-    )
 
     return token
   }
@@ -402,9 +396,6 @@ export class PoleEmploiClient extends ExternalApiClient {
     const SECONDS_BEFORE_EXPIRY = 30
     this.tokenExpiryInSeconds = reponse.data.expires_in - SECONDS_BEFORE_EXPIRY
 
-    this.logger.log(
-      'An access token for Pole Emploi API has been retrieved successfully'
-    )
     return token
   }
 

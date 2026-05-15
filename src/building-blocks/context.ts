@@ -4,7 +4,8 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 export type ContextData = Map<ContextKey, unknown>
 
 export enum ContextKey {
-  UTILISATEUR = 'UTILISATEUR'
+  UTILISATEUR = 'UTILISATEUR',
+  HTTP_REQUEST_ID = 'HTTP_REQUEST_ID'
 }
 
 const asyncLocalStorage = new AsyncLocalStorage<ContextData>()
