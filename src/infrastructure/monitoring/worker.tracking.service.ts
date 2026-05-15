@@ -5,30 +5,23 @@ let workerTrackingServiceInstance: WorkerTrackingService
 
 export interface JobTracking {
   name?: string
-  currentTraceIds: { transaction?: { id: string } }
+  jobRunId?: string
 }
 
 export class WorkerTrackingService {
   private asyncLocalStorage = new AsyncLocalStorage()
 
   getCurrentJobTracking(): JobTracking {
-    const emptyStore = {
-      currentTraceIds: {}
-    }
-    const jobTracking: JobTracking =
-      this.asyncLocalStorage.getStore() as JobTracking
-    return jobTracking ?? emptyStore
+    const jobTracking: JobTracking | undefined =
+      this.asyncLocalStorage.getStore() as JobTracking | undefined
+    return jobTracking ?? {}
   }
 
-  startJobTracking(name: string): void {
-    const currentTraceIds = {
-      transaction: { id: uuidV4() }
-    }
-    const jobTracking: JobTracking = {
-      name,
-      currentTraceIds
-    }
+  startJobTracking(name: string): string {
+    const jobRunId = uuidV4()
+    const jobTracking: JobTracking = { name, jobRunId }
     this.asyncLocalStorage.enterWith(jobTracking)
+    return jobRunId
   }
 }
 

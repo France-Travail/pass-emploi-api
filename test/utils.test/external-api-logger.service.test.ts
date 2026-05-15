@@ -45,12 +45,12 @@ describe('attachExternalApiLogger', () => {
         path: '/foo/bar',
         domain: 'api.example.com'
       })
-      expect(obj.err).to.equal(undefined)
+      expect(obj.error).to.equal(undefined)
     })
   })
 
   describe('appel sortant failure 4xx', () => {
-    it('emit error avec outcome=failure et err propagé', async () => {
+    it('emit error ECS avec error.* et http.response.body.content', async () => {
       const instance = axios.create()
       const axiosError = Object.assign(new Error('boom'), {
         name: 'AxiosError',
@@ -58,7 +58,7 @@ describe('attachExternalApiLogger', () => {
         response: {
           status: 401,
           statusText: 'Unauthorized',
-          data: {},
+          data: { code: 'INVALID_TOKEN', message: 'token expiré' },
           headers: {},
           config: {
             method: 'get',
@@ -91,14 +91,61 @@ describe('attachExternalApiLogger', () => {
       })
       expect(obj.http).to.deep.equal({
         request: { method: 'GET' },
-        response: { status_code: 401 }
+        response: {
+          status_code: 401,
+          body: { content: '{"code":"INVALID_TOKEN","message":"token expiré"}' }
+        }
       })
-      expect(obj.err).to.equal(axiosError)
+      expect(obj.error).to.deep.include({
+        type: 'AxiosError',
+        message: 'boom'
+      })
+      expect((obj.error as { stack_trace?: string }).stack_trace).to.be.a(
+        'string'
+      )
+    })
+
+    it('tronque le body de réponse au-delà de la limite', async () => {
+      const instance = axios.create()
+      const longBody = 'x'.repeat(5000)
+      const axiosError = Object.assign(new Error('boom'), {
+        name: 'AxiosError',
+        isAxiosError: true,
+        response: {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: longBody,
+          headers: {},
+          config: { method: 'get', url: 'https://api.example.com/big' }
+        },
+        config: {
+          method: 'get',
+          url: 'https://api.example.com/big',
+          headers: {}
+        },
+        toJSON: (): Record<string, unknown> => ({})
+      }) as unknown as AxiosError
+      instance.defaults.adapter = sinon.stub().rejects(axiosError)
+
+      attachExternalApiLogger(instance, emit)
+
+      try {
+        await instance.get('https://api.example.com/big')
+      } catch {
+        // attendu
+      }
+
+      const [, obj] = emit.firstCall.args
+      const body = (
+        obj.http as { response: { body: { content: string } } }
+      ).response.body.content
+      expect(body.endsWith('...[truncated]')).to.equal(true)
+      expect(body.length).to.equal(4096 + '...[truncated]'.length)
     })
   })
 
   describe('appel sortant network failure (sans response)', () => {
-    it('emit error sans http.response.status_code', async () => {
+    it('emit error.* ECS sans http.response', async () => {
       const instance = axios.create()
       const netError = Object.assign(new Error('ENOTFOUND'), {
         name: 'AxiosError',
@@ -127,6 +174,10 @@ describe('attachExternalApiLogger', () => {
       expect(obj.url).to.deep.equal({
         path: '/x',
         domain: 'nope.invalid'
+      })
+      expect(obj.error).to.deep.include({
+        type: 'AxiosError',
+        message: 'ENOTFOUND'
       })
     })
   })

@@ -61,10 +61,40 @@ export const pinoSerializers = {
   })
 }
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+// Deep merge utilisé comme mixinMergeStrategy pino : sans ça pino fait un
+// shallow merge entre mixin et payload du log, ce qui écrase intégralement
+// les blocs ECS nested (ex: http.request.id du mixin perdu sur les logs
+// external_api_call qui posent http.request.method côté payload).
+const deepMerge = (
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> => {
+  for (const key of Object.keys(source)) {
+    const sourceValue = source[key]
+    const targetValue = target[key]
+    if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
+      target[key] = deepMerge({ ...targetValue }, sourceValue)
+    } else {
+      target[key] = sourceValue
+    }
+  }
+  return target
+}
+
 // Instance pino partagée : utilisée par pino-http ET par le code applicatif
 // (handlers CQRS via `rootLogger.info(obj, action)`). Garantit la même config
 // (redact, mixin user/trace.id, serializers) sur tous les logs.
-export const rootLogger: PinoInstance = pino({
+const mixinMergeStrategy = (
+  mergeObject: Record<string, unknown>,
+  mixinObject: Record<string, unknown>
+): Record<string, unknown> => deepMerge({ ...mixinObject }, mergeObject)
+
+// `mixinMergeStrategy` est supporté par pino runtime (cf node_modules/pino/lib/proto.js)
+// mais absent de @types/pino → cast pour passer TS.
+const pinoOptions = {
   level: process.env.LOG_LEVEL || 'info',
   redact: [
     'req.headers.authorization',
@@ -79,11 +109,6 @@ export const rootLogger: PinoInstance = pino({
   ],
   mixin: (): Record<string, unknown> => {
     const apmTraceIds = getAPMInstance().currentTraceIds
-    const currentTraceIds =
-      Object.keys(apmTraceIds).length > 0
-        ? apmTraceIds
-        : (getWorkerTrackingServiceInstance().getCurrentJobTracking()
-            ?.currentTraceIds ?? {})
 
     const utilisateur = getContextValue<Authentification.Utilisateur>(
       ContextKey.UTILISATEUR
@@ -91,8 +116,11 @@ export const rootLogger: PinoInstance = pino({
 
     const httpRequestId = getContextValue<string>(ContextKey.HTTP_REQUEST_ID)
 
+    const jobRunId =
+      getWorkerTrackingServiceInstance().getCurrentJobTracking().jobRunId
+
     return {
-      ...currentTraceIds,
+      ...apmTraceIds,
       ...(utilisateur && {
         user: {
           id: utilisateur.id,
@@ -102,6 +130,9 @@ export const rootLogger: PinoInstance = pino({
       }),
       ...(httpRequestId && {
         http: { request: { id: httpRequestId } }
+      }),
+      ...(jobRunId && {
+        labels: { job_run_id: jobRunId }
       })
     }
   },
@@ -110,8 +141,13 @@ export const rootLogger: PinoInstance = pino({
       return { level: label }
     }
   },
-  serializers: pinoSerializers
-})
+  serializers: pinoSerializers,
+  mixinMergeStrategy
+}
+
+export const rootLogger: PinoInstance = pino(
+  pinoOptions as unknown as Parameters<typeof pino>[0]
+)
 
 export const pinoHttpOptions = {
   logger: rootLogger,
@@ -171,4 +207,27 @@ export function buildError(message: string, error: Error): LogError {
     message,
     err: error
   }
+}
+
+// Conversion d'une erreur vers le format ECS error.{type,message,stack_trace}.
+// Gère trois shapes : Error JS (handlers job/exception), DomainError
+// (Result.failure code/message), valeur inconnue.
+export function toEcsError(error: unknown): Record<string, unknown> {
+  if (error instanceof Error) {
+    return {
+      type: error.name,
+      message: error.message,
+      ...(error.stack && { stack_trace: error.stack })
+    }
+  }
+  if (
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    'message' in error
+  ) {
+    const e = error as { code: unknown; message: unknown }
+    return { type: String(e.code), message: String(e.message) }
+  }
+  return { type: 'Unknown', message: String(error) }
 }

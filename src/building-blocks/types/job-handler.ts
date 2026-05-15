@@ -3,7 +3,7 @@ import * as APM from 'elastic-apm-node'
 import { Planificateur } from '../../domain/planificateur'
 import { estJobSuivi, estNotifiable, SuiviJob } from '../../domain/suivi-job'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { rootLogger } from '../../utils/logger.module'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 import JobType = Planificateur.JobType
 
 /**
@@ -68,7 +68,8 @@ export abstract class JobHandler<TContenu = void> {
           outcome,
           duration: Number(process.hrtime.bigint() - startNs)
         },
-        ...(error && { err: error })
+        labels: { job_type: this.jobType },
+        ...(error && { error: toEcsError(error) })
       },
       'handler_executed'
     )

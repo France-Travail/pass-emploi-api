@@ -67,6 +67,8 @@ export function attachExternalApiLogger(
   )
 }
 
+const RESPONSE_BODY_MAX_LENGTH = 4096
+
 function logCall(
   emit: Emit,
   config: ConfigWithMetadata | undefined,
@@ -80,6 +82,17 @@ function logCall(
   const { path, domain } = parseUrl(config)
   const isFailure = !!err || (!!statusCode && statusCode >= 400)
 
+  const responseBodyContent = serializeResponseBody(err?.response?.data)
+  const responsePayload =
+    statusCode !== undefined || responseBodyContent !== undefined
+      ? {
+          ...(statusCode !== undefined && { status_code: statusCode }),
+          ...(responseBodyContent !== undefined && {
+            body: { content: responseBodyContent }
+          })
+        }
+      : undefined
+
   const obj: Record<string, unknown> = {
     event: {
       action: 'external_api_call',
@@ -88,18 +101,39 @@ function logCall(
     },
     http: {
       request: { method: config?.method?.toUpperCase() },
-      ...(statusCode !== undefined && {
-        response: { status_code: statusCode }
-      })
+      ...(responsePayload && { response: responsePayload })
     },
     url: {
       ...(path && { path }),
       ...(domain && { domain })
     },
-    ...(err && { err })
+    ...(err && {
+      error: {
+        type: err.name,
+        message: err.message,
+        ...(err.stack && { stack_trace: err.stack })
+      }
+    })
   }
 
   emit(isFailure ? 'error' : 'info', obj, 'external_api_call')
+}
+
+function serializeResponseBody(data: unknown): string | undefined {
+  if (data === undefined || data === null) return undefined
+  const str = typeof data === 'string' ? data : safeStringify(data)
+  if (str === undefined) return undefined
+  return str.length > RESPONSE_BODY_MAX_LENGTH
+    ? str.slice(0, RESPONSE_BODY_MAX_LENGTH) + '...[truncated]'
+    : str
+}
+
+function safeStringify(value: unknown): string | undefined {
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return undefined
+  }
 }
 
 function parseUrl(config: ConfigWithMetadata | undefined): {

@@ -2,23 +2,14 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
-  Logger,
   NestInterceptor
 } from '@nestjs/common'
-import * as APM from 'elastic-apm-node'
 import { Observable } from 'rxjs'
 import { Context, ContextKey } from '../../building-blocks/context'
-import { getAPMInstance } from '../monitoring/apm.init'
 
 @Injectable()
 export class ContextInterceptor implements NestInterceptor {
-  private logger: Logger
-  private apmService: APM.Agent
-
-  constructor(private context: Context) {
-    this.apmService = getAPMInstance()
-    this.logger = new Logger('ContextInterceptor')
-  }
+  constructor(private readonly context: Context) {}
 
   intercept(
     executionContext: ExecutionContext,

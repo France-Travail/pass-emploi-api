@@ -223,7 +223,10 @@ export class PoleEmploiPartenaireClient
       return success(demarcheDto.data)
     } catch (e) {
       if (e.response?.data && e.response?.status) {
-        const erreur = new ErreurHttp(e.response.data, e.response.status)
+        const erreur = new ErreurHttp(
+          JSON.stringify(e.response.data),
+          e.response.status
+        )
         return failure(erreur)
       }
       throw e
@@ -254,7 +257,10 @@ export class PoleEmploiPartenaireClient
       return success(demarcheDto.data)
     } catch (e) {
       if (e.response?.data && e.response?.status) {
-        const erreur = new ErreurHttp(e.response.data, e.response.status)
+        const erreur = new ErreurHttp(
+          JSON.stringify(e.response.data),
+          e.response.status
+        )
         return failure(erreur)
       }
       throw e
@@ -323,7 +329,6 @@ export class PoleEmploiPartenaireClient
           e.response?.headers &&
           e.response?.headers['retry-after']
         ) {
-          this.logger.log('Retry de la requête')
           return this.getWithRetry<T>(
             suffixUrl,
             tokenDuJeune,
@@ -369,7 +374,12 @@ export class PoleEmploiPartenaireClient
       }
 
       if (e.response) {
-        return failureApi(new ErreurHttp(e.response.data, e.response.status))
+        return failureApi(
+          new ErreurHttp(
+            JSON.stringify(e.response.data),
+            e.response.status
+          )
+        )
       }
       throw e
     }

@@ -297,7 +297,6 @@ export class PoleEmploiClient extends ExternalApiClient {
           e.response?.headers &&
           e.response?.headers['retry-after']
         ) {
-          this.logger.log('Retry de la requête')
           return this.getWithRetry<T>(
             suffixUrl,
             params,
