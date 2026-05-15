@@ -1962,9 +1962,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/testing@npm:^11.1.20":
-  version: 11.1.20
-  resolution: "@nestjs/testing@npm:11.1.20"
+"@nestjs/testing@npm:^11.1.21":
+  version: 11.1.21
+  resolution: "@nestjs/testing@npm:11.1.21"
   dependencies:
     tslib: "npm:2.8.1"
   peerDependencies:
@@ -1977,7 +1977,7 @@ __metadata:
       optional: true
     "@nestjs/platform-express":
       optional: true
-  checksum: 10/bcd0edae6f75c85494a7faf37b1b567472fd22e6fc7e861911d97bf22f2d5421aa951e11ef35ad91be7401c66cba80429e4ce770addbe30539ed815fcd506070
+  checksum: 10/aba539f6ff60512b673b243e12692480a0f673e73bbb24741447be7d43c2c04150173f5d7b3d721526d637be8a8106a7a62c9a7fdfc4bfc50a005afd01579167
   languageName: node
   linkType: hard
 
@@ -2831,12 +2831,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^25.7.0":
-  version: 25.7.0
-  resolution: "@types/node@npm:25.7.0"
+"@types/node@npm:^25.8.0":
+  version: 25.8.0
+  resolution: "@types/node@npm:25.8.0"
   dependencies:
-    undici-types: "npm:~7.21.0"
-  checksum: 10/1b11c865ea517ab90af870c2f58c100804e3dd8dc25a62b5e5af3aea12ad015f9faf513664babc7e0c755bb1c0744649b2ff19b7b434c1648ad8057f2dc6c71a
+    undici-types: "npm:>=7.24.0 <7.24.7"
+  checksum: 10/1b1eb14c4f5294ff12de0c668c0ed786b377e2e878fe4c9f84e5219d06d0e2fbf9ea7d7a95077360d2ed1329f56e7a94afc65768fe9f3afdb6c95977f89eb2e2
   languageName: node
   linkType: hard
 
@@ -8605,7 +8605,7 @@ __metadata:
     "@nestjs/schematics": "npm:^11.1.0"
     "@nestjs/swagger": "npm:11.4.2"
     "@nestjs/terminus": "npm:11.1.1"
-    "@nestjs/testing": "npm:^11.1.20"
+    "@nestjs/testing": "npm:^11.1.21"
     "@salesforce/ts-sinon": "npm:^1.4.34"
     "@types/chai": "npm:^4.3.20"
     "@types/chai-as-promised": "npm:^8.0.2"
@@ -8618,7 +8618,7 @@ __metadata:
     "@types/luxon": "npm:^3.7.1"
     "@types/mocha": "npm:^10.0.10"
     "@types/multer": "npm:^2.0.0"
-    "@types/node": "npm:^25.7.0"
+    "@types/node": "npm:^25.8.0"
     "@types/pg-copy-streams": "npm:^1.2.5"
     "@types/pino-multi-stream": "npm:^5.1.6"
     "@types/sinon": "npm:^17.0.4"
@@ -11667,17 +11667,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici-types@npm:>=7.24.0 <7.24.7":
+  version: 7.24.6
+  resolution: "undici-types@npm:7.24.6"
+  checksum: 10/defc9538b952e3c15b8526596c591f7c1f0c7605ad27a2b7feddbea7ef2e3003f3eda2cdb051a3cb1a2185e3893100fd9cb925c799db99d48131ea63b5233d10
+  languageName: node
+  linkType: hard
+
 "undici-types@npm:~7.18.0":
   version: 7.18.2
   resolution: "undici-types@npm:7.18.2"
   checksum: 10/e61a5918f624d68420c3ca9d301e9f15b61cba6e97be39fe2ce266dd6151e4afe424d679372638826cb506be33952774e0424141200111a9857e464216c009af
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~7.21.0":
-  version: 7.21.0
-  resolution: "undici-types@npm:7.21.0"
-  checksum: 10/e38c0efbeaeabeb84f5d8a49d127fcae1626af09785b04fde4915e8312b47c5f81106c61e655cb63c59e429522460a313183168913e55b485a36e06d67689798
   languageName: node
   linkType: hard
 

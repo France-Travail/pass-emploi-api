@@ -126,7 +126,7 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
-    "@nestjs/testing": "^11.1.20",
+    "@nestjs/testing": "^11.1.21",
     "@salesforce/ts-sinon": "^1.4.34",
     "@types/chai": "^4.3.20",
     "@types/chai-as-promised": "^8.0.2",
@@ -139,7 +139,7 @@
     "@types/luxon": "^3.7.1",
     "@types/mocha": "^10.0.10",
     "@types/multer": "^2.0.0",
-    "@types/node": "^25.7.0",
+    "@types/node": "^25.8.0",
     "@types/pg-copy-streams": "^1.2.5",
     "@types/pino-multi-stream": "^5.1.6",
     "@types/sinon": "^17.0.4",
