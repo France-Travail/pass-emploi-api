@@ -231,3 +231,31 @@ export function toEcsError(error: unknown): Record<string, unknown> {
   }
   return { type: 'Unknown', message: String(error) }
 }
+
+// Émet le log `handler_executed` partagé par les 3 base classes CQRS
+// (command/query/job). Centralise le format ECS : outcome, level, duration,
+// optionnellement error et champs additionnels (ex: labels.job_type).
+export function logHandlerExecuted(params: {
+  context: string
+  startNs: bigint
+  error?: unknown
+  failed?: boolean
+  extra?: Record<string, unknown>
+}): void {
+  const { context, startNs, error, failed, extra } = params
+  const isFailure = error !== undefined || failed === true
+  const level: 'info' | 'error' = isFailure ? 'error' : 'info'
+  rootLogger[level](
+    {
+      context,
+      event: {
+        action: 'handler_executed',
+        outcome: isFailure ? 'failure' : 'success',
+        duration: Number(process.hrtime.bigint() - startNs)
+      },
+      ...(extra ?? {}),
+      ...(error !== undefined && { error: toEcsError(error) })
+    },
+    'handler_executed'
+  )
+}

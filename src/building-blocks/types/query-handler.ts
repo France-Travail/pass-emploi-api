@@ -2,7 +2,7 @@ import { ForbiddenException, Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { rootLogger, toEcsError } from '../../utils/logger.module'
+import { logHandlerExecuted } from '../../utils/logger.module'
 import { Query } from './query'
 import { failure, isFailure, Result } from './result'
 
@@ -74,20 +74,6 @@ export abstract class QueryHandler<Q extends Query | void, R> {
       failureResult && isFailure(failureResult)
         ? failureResult.error
         : undefined
-    const outcome = error ? 'failure' : 'success'
-    const level = error ? 'error' : 'info'
-
-    rootLogger[level](
-      {
-        context: this.queryHandlerName,
-        event: {
-          action: 'handler_executed',
-          outcome,
-          duration: Number(process.hrtime.bigint() - startNs)
-        },
-        ...(error && { error: toEcsError(error) })
-      },
-      'handler_executed'
-    )
+    logHandlerExecuted({ context: this.queryHandlerName, startNs, error })
   }
 }

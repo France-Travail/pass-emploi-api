@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { rootLogger, toEcsError } from '../../utils/logger.module'
+import { logHandlerExecuted } from '../../utils/logger.module'
 import { failure, isFailure, isSuccess, Result } from './result'
 
 /**
@@ -84,21 +84,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
   ): Promise<void>
 
   private logExecution(startNs: bigint, result: Result<Data>): void {
-    const outcome = isSuccess(result) ? 'success' : 'failure'
     const error = isFailure(result) ? result.error : undefined
-    const level = outcome === 'failure' ? 'error' : 'info'
-
-    rootLogger[level](
-      {
-        context: this.commandName,
-        event: {
-          action: 'handler_executed',
-          outcome,
-          duration: Number(process.hrtime.bigint() - startNs)
-        },
-        ...(error && { error: toEcsError(error) })
-      },
-      'handler_executed'
-    )
+    logHandlerExecuted({ context: this.commandName, startNs, error })
   }
 }
