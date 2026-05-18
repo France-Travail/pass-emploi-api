@@ -419,7 +419,6 @@ import { QueueTimeMiddleware } from './infrastructure/middlewares/queue-time.mid
 import { MiloClientUtils } from './infrastructure/clients/milo/milo-client-utils'
 import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from './application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
 import { SessionsMiloFetcher } from './application/queries/query-getters/milo/sessions-milo.fetcher'
-import { DebugController } from './infrastructure/routes/debug.controller'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
   imports: [
@@ -471,8 +470,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     SupportController,
     AdminController,
     ConfigController,
-    HealthController,
-    DebugController
+    HealthController
   ],
   providers: [
     ...buildQueryCommandsProviders(),

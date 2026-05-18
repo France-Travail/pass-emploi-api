@@ -375,10 +375,7 @@ export class PoleEmploiPartenaireClient
 
       if (e.response) {
         return failureApi(
-          new ErreurHttp(
-            JSON.stringify(e.response.data),
-            e.response.status
-          )
+          new ErreurHttp(JSON.stringify(e.response.data), e.response.status)
         )
       }
       throw e

@@ -136,9 +136,8 @@ describe('attachExternalApiLogger', () => {
       }
 
       const [, obj] = emit.firstCall.args
-      const body = (
-        obj.http as { response: { body: { content: string } } }
-      ).response.body.content
+      const body = (obj.http as { response: { body: { content: string } } })
+        .response.body.content
       expect(body.endsWith('...[truncated]')).to.equal(true)
       expect(body.length).to.equal(4096 + '...[truncated]'.length)
     })
