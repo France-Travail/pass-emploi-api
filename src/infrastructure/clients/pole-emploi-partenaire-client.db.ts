@@ -224,7 +224,9 @@ export class PoleEmploiPartenaireClient
     } catch (e) {
       if (e.response?.data && e.response?.status) {
         const erreur = new ErreurHttp(
-          JSON.stringify(e.response.data),
+          typeof e.response.data === 'string'
+            ? e.response.data
+            : JSON.stringify(e.response.data),
           e.response.status
         )
         return failure(erreur)
@@ -258,7 +260,9 @@ export class PoleEmploiPartenaireClient
     } catch (e) {
       if (e.response?.data && e.response?.status) {
         const erreur = new ErreurHttp(
-          JSON.stringify(e.response.data),
+          typeof e.response.data === 'string'
+            ? e.response.data
+            : JSON.stringify(e.response.data),
           e.response.status
         )
         return failure(erreur)
@@ -375,7 +379,12 @@ export class PoleEmploiPartenaireClient
 
       if (e.response) {
         return failureApi(
-          new ErreurHttp(JSON.stringify(e.response.data), e.response.status)
+          new ErreurHttp(
+            typeof e.response.data === 'string'
+              ? e.response.data
+              : JSON.stringify(e.response.data),
+            e.response.status
+          )
         )
       }
       throw e
