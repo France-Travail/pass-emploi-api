@@ -1,10 +1,11 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { DateTime } from 'luxon'
 import * as nock from 'nock'
 import { ErreurHttp } from 'src/building-blocks/types/domain-error'
 import { failure, isSuccess, success } from 'src/building-blocks/types/result'
 import { PoleEmploiClient } from 'src/infrastructure/clients/pole-emploi-client'
 import { DateService } from 'src/utils/date-service'
+import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
 import { RateLimiterService } from 'src/utils/rate-limiter.service'
 import { desNotificationsDunJeunePoleEmploi } from 'test/fixtures/notification.fixture'
 import {
@@ -21,16 +22,17 @@ describe('PoleEmploiClient', () => {
   const rateLimiterService = new RateLimiterService(configService)
 
   beforeEach(() => {
-    const httpService = new HttpService()
-
     const dateService = stubClass(DateService)
     dateService.now.returns(uneDatetimeDeMaintenant)
 
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+
     poleEmploiClient = new PoleEmploiClient(
-      httpService,
       configService,
       dateService,
-      rateLimiterService
+      rateLimiterService,
+      externalApiLogger
     )
   })
   describe('getToken', () => {

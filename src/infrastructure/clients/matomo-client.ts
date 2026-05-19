@@ -1,31 +1,29 @@
-import { HttpService } from '@nestjs/axios'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as APM from 'elastic-apm-node'
-import { firstValueFrom } from 'rxjs'
-import { buildError } from '../../utils/logger.module'
-import { getAPMInstance } from '../monitoring/apm.init'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { RateLimiterService } from '../../utils/rate-limiter.service'
+import { getAPMInstance } from '../monitoring/apm.init'
 import { NotificationRepository } from '../repositories/notification-firebase.repository.db'
+import { ExternalApiClient } from './external-api-client'
 
 @Injectable()
-export class MatomoClient {
+export class MatomoClient extends ExternalApiClient {
   private readonly url: string
   private readonly siteId: string
   private readonly isActive: boolean
-  private readonly logger: Logger
   private apmService: APM.Agent
 
   constructor(
-    private httpService: HttpService,
-    private configService: ConfigService,
-    private rateLimiterService: RateLimiterService
+    configService: ConfigService,
+    private rateLimiterService: RateLimiterService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
-    this.logger = new Logger('MatomoClient')
+    super('MatomoClient', externalApiLogger)
     this.apmService = getAPMInstance()
-    this.url = this.configService.get('matomo').url
-    this.siteId = this.configService.get('matomo').siteId
-    this.isActive = this.configService.get('features').envoyerStatsMatomo
+    this.url = configService.get('matomo').url
+    this.siteId = configService.get('matomo').siteId
+    this.isActive = configService.get('features').envoyerStatsMatomo
   }
 
   async trackEventPushNotificationEnvoyee(
@@ -38,19 +36,16 @@ export class MatomoClient {
 
       await this.rateLimiterService.matomoRateLimiter.attendreLaProchaineDisponibilite()
       try {
-        await firstValueFrom(
-          this.httpService.post(this.url, null, {
-            params: {
-              idsite: this.siteId,
-              rec: 1,
-              e_c: categorieEvent,
-              e_a: actionEvent,
-              e_n: nomEvent
-            }
-          })
-        )
+        await this.axios.post(this.url, null, {
+          params: {
+            idsite: this.siteId,
+            rec: 1,
+            e_c: categorieEvent,
+            e_a: actionEvent,
+            e_n: nomEvent
+          }
+        })
       } catch (e) {
-        this.logger.error(buildError(`Erreur POST Matomo`, e))
         this.apmService.captureError(e)
       }
     }

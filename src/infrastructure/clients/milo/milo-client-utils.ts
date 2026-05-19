@@ -1,8 +1,7 @@
-import { HttpService } from '@nestjs/axios'
-import { HttpStatus, Injectable, Logger } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { AxiosError } from 'axios'
 import * as APM from 'elastic-apm-node'
-import { firstValueFrom } from 'rxjs'
 import { ErreurMiloHttp } from 'src/building-blocks/types/domain-error'
 import {
   Failure,
@@ -10,9 +9,9 @@ import {
   Result,
   success
 } from 'src/building-blocks/types/result'
+import { ExternalApiLoggerService } from '../../../utils/external-api-logger.service'
+import { ExternalApiClient } from '../external-api-client'
 import { getAPMInstance } from '../../monitoring/apm.init'
-import { AxiosError } from '@nestjs/terminus/dist/errors/axios.error'
-import { buildError } from '../../../utils/logger.module'
 
 const OPERATEUR_CEJ = 'APPLICATION_CEJ'
 
@@ -34,18 +33,17 @@ interface MiloRequest {
 }
 
 @Injectable()
-export class MiloClientUtils {
+export class MiloClientUtils extends ExternalApiClient {
   private readonly apiUrl: string
-  private readonly logger: Logger
   private readonly apmService: APM.Agent
 
   constructor(
-    private readonly httpService: HttpService,
-    private readonly configService: ConfigService
+    configService: ConfigService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
-    this.logger = new Logger('MiloClientUtils')
+    super('MiloClient', externalApiLogger)
     this.apmService = getAPMInstance()
-    this.apiUrl = this.configService.get('milo').url
+    this.apiUrl = configService.get('milo').url
   }
 
   async get<T>({
@@ -64,17 +62,11 @@ export class MiloClientUtils {
       operateur // todo: supprimer après migration
     })
 
-    this.logRequest('GET', fullUrl, headers, params)
-
     try {
-      const response = await firstValueFrom(
-        this.httpService.get<T>(fullUrl, {
-          params,
-          headers
-        })
-      )
-
-      this.logResponse('GET', fullUrl, response.status, response.data)
+      const response = await this.axios.get<T>(fullUrl, {
+        params,
+        headers
+      })
 
       if (!response.data) {
         return failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
@@ -103,16 +95,10 @@ export class MiloClientUtils {
       operateur // todo: supprimer après migration
     })
 
-    this.logRequest('PUT', fullUrl, headers, undefined, payload)
-
     try {
-      const response = await firstValueFrom(
-        this.httpService.put<T>(fullUrl, payload, {
-          headers
-        })
-      )
-
-      this.logResponse('PUT', fullUrl, response.status, response.data)
+      const response = await this.axios.put<T>(fullUrl, payload, {
+        headers
+      })
 
       return success(response?.data)
     } catch (e) {
@@ -137,16 +123,11 @@ export class MiloClientUtils {
       accept,
       operateur // todo: supprimer après migration
     })
-    this.logRequest('POST', fullUrl, headers, undefined, payload)
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.post<T>(fullUrl, payload, {
-          headers
-        })
-      )
-
-      this.logResponse('POST', fullUrl, response.status, response.data)
+      const response = await this.axios.post<T>(fullUrl, payload, {
+        headers
+      })
 
       return success(response?.data)
     } catch (e) {
@@ -170,14 +151,8 @@ export class MiloClientUtils {
       operateur // todo: supprimer après migration
     })
 
-    this.logRequest('DELETE', fullUrl, headers)
-
     try {
-      const response = await firstValueFrom(
-        this.httpService.delete(fullUrl, { headers })
-      )
-
-      this.logResponse('DELETE', fullUrl, response.status, response.data)
+      const response = await this.axios.delete(fullUrl, { headers })
 
       return success(response.data)
     } catch (e) {
@@ -186,66 +161,21 @@ export class MiloClientUtils {
     }
   }
 
-  private logRequest(
-    method: string,
-    url: string,
-    headers: Record<string, string>,
-    params?: URLSearchParams,
-    body?: unknown
-  ): void {
-    const logData: Record<string, unknown> = {
-      method,
-      url,
-      headers
-    }
-
-    if (params) {
-      logData.queryParams = params.toString()
-    }
-
-    if (body !== undefined) {
-      logData.body = typeof body === 'string' ? body : JSON.stringify(body)
-    }
-
-    this.logger.debug(`Requête API Milo: ${JSON.stringify(logData)}`)
-  }
-
-  private logResponse(
-    method: string,
-    url: string,
-    status: number,
-    data: unknown
-  ): void {
-    const responsePreview =
-      typeof data === 'string'
-        ? data.substring(0, 500)
-        : JSON.stringify(data).substring(0, 500)
-
-    this.logger.debug(
-      `Réponse API Milo: ${JSON.stringify({
-        method,
-        url,
-        status,
-        responsePreview:
-          responsePreview + (responsePreview.length === 500 ? '...' : '')
-      })}`
-    )
-  }
-
   handleAxiosError(error: AxiosError, message: string): Failure {
-    this.logger.error(buildError(message, error))
-
     const MIN_STATUS = HttpStatus.BAD_REQUEST
     const MAX_STATUS = HttpStatus.INTERNAL_SERVER_ERROR
-    if (
-      error.response?.status >= MIN_STATUS &&
-      error.response?.status < MAX_STATUS
-    ) {
+    const status = error.response?.status
+    if (status !== undefined && status >= MIN_STATUS && status < MAX_STATUS) {
+      const data = (error.response?.data ?? {}) as {
+        message?: string
+        code?: string
+        'id-keycloak'?: string
+      }
       const erreurHttp = new ErreurMiloHttp(
-        error.response?.data?.message ?? message,
-        error.response?.status,
-        error.response?.data.code,
-        error.response?.data['id-keycloak']
+        data.message ?? message,
+        status,
+        data.code,
+        data['id-keycloak']
       )
       return failure(erreurHttp)
     }

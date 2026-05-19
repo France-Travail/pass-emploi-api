@@ -1,9 +1,7 @@
-import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { AxiosResponse } from 'axios'
 import * as CryptoJS from 'crypto-js'
-import { firstValueFrom } from 'rxjs'
 import { TypeUrlDiagoriente } from '../../application/queries/get-diagoriente-urls.query.handler'
 import { CompteDiagorienteInvalideError } from '../../building-blocks/types/domain-error'
 import {
@@ -12,6 +10,8 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
+import { ExternalApiClient } from './external-api-client'
 import { handleAxiosError } from './utils/axios-error-handler'
 
 const mapTypeUrlToRedirect: Record<TypeUrlDiagoriente, string> = {
@@ -25,17 +25,18 @@ type UserInfo = {
 }
 
 @Injectable()
-export class DiagorienteClient {
+export class DiagorienteClient extends ExternalApiClient {
   private readonly apiUrl: string
   private readonly diagorienteClientId: string
   private readonly diagorienteClientSecret: string
   private logger: Logger
 
   constructor(
-    private httpService: HttpService,
-    private configService: ConfigService
+    configService: ConfigService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
-    const configDiagoriente = this.configService.get('diagoriente')
+    super('DiagorienteClient', externalApiLogger)
+    const configDiagoriente = configService.get('diagoriente')
     this.apiUrl = configDiagoriente.url
     this.diagorienteClientId = configDiagoriente.clientId
     this.diagorienteClientSecret = configDiagoriente.clientSecret
@@ -63,7 +64,6 @@ export class DiagorienteClient {
       if (e.config) e.config.data = 'REDACTED'
       return handleAxiosError(
         e,
-        this.logger,
         "La récupération de l'url Diagoriente a échoué"
       )
     }
@@ -87,11 +87,7 @@ export class DiagorienteClient {
       return emptySuccess()
     } catch (e) {
       if (e.config) e.config.data = 'REDACTED'
-      return handleAxiosError(
-        e,
-        this.logger,
-        'La création du compte Diagoriente a échoué'
-      )
+      return handleAxiosError(e, 'La création du compte Diagoriente a échoué')
     }
   }
 
@@ -114,16 +110,13 @@ export class DiagorienteClient {
       if (e.config) e.config.data = 'REDACTED'
       return handleAxiosError(
         e,
-        this.logger,
         'La récupération des métiers favoris Diagoriente a échoué'
       )
     }
   }
 
   private async post<T>(body: unknown): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.post<T>(this.apiUrl + '/graphql', body)
-    )
+    return this.axios.post<T>(this.apiUrl + '/graphql', body)
   }
 }
 

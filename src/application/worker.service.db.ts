@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, Type } from '@nestjs/common'
+import { Inject, Injectable, Type } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import * as apm from 'elastic-apm-node'
 import { JobHandlerProviders } from '../app.module'
@@ -13,12 +13,14 @@ import {
   WorkerTrackingService,
   getWorkerTrackingServiceInstance
 } from '../infrastructure/monitoring/worker.tracking.service'
+import { rootLogger, toEcsError } from '../utils/logger.module'
+
+const LOGGER_CONTEXT = 'WorkerService'
 
 @Injectable()
 export class WorkerService {
   private apmService: apm.Agent
   private workerTrackingService: WorkerTrackingService
-  private readonly logger: Logger = new Logger('WorkerService')
 
   constructor(
     @Inject(PlanificateurRepositoryToken)
@@ -37,12 +39,16 @@ export class WorkerService {
     const jobName = `JOB-${job.type}`
     this.workerTrackingService.startJobTracking(jobName)
     const transaction = this.apmService.startTransaction(jobName, 'worker')
-    const startTime = new Date().getMilliseconds()
+    const startTimeNs = process.hrtime.bigint()
     let success = true
-    this.logger.log({
-      job,
-      state: 'started'
-    })
+    rootLogger.info(
+      {
+        context: LOGGER_CONTEXT,
+        event: { action: 'job_started' },
+        labels: { job_type: job.type }
+      },
+      'job_started'
+    )
     let suivi: SuiviJob | undefined
     try {
       const jobHandlerType = getJobHandlerTypeByJobType(job)
@@ -51,19 +57,44 @@ export class WorkerService {
           this.moduleRef.get<JobHandler<unknown>>(jobHandlerType)
         suivi = await jobhandler.execute(job)
       } else {
-        this.logger.error(`Pas de job handler trouvé pour le type: ${job.type}`)
         success = false
+        rootLogger.error(
+          {
+            context: LOGGER_CONTEXT,
+            event: {
+              action: 'job_handler_not_found',
+              outcome: 'failure'
+            },
+            labels: { job_type: job.type }
+          },
+          'job_handler_not_found'
+        )
       }
     } catch (e) {
       success = false
-      this.logger.error(e)
+      rootLogger.error(
+        {
+          context: LOGGER_CONTEXT,
+          event: { action: 'job_crashed', outcome: 'failure' },
+          labels: { job_type: job.type },
+          error: toEcsError(e)
+        },
+        'job_crashed'
+      )
     } finally {
-      this.logger.log({
-        job,
-        state: 'terminated',
-        success,
-        duration: new Date().getMilliseconds() - startTime
-      })
+      const durationNs = Number(process.hrtime.bigint() - startTimeNs)
+      rootLogger[success ? 'info' : 'error'](
+        {
+          context: LOGGER_CONTEXT,
+          event: {
+            action: 'job_completed',
+            outcome: success ? 'success' : 'failure',
+            duration: durationNs
+          },
+          labels: { job_type: job.type }
+        },
+        'job_completed'
+      )
       if (transaction && !success) {
         transaction.result = 'error'
         transaction.end('failure')

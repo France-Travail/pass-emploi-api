@@ -1,9 +1,7 @@
-import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { AxiosResponse } from 'axios'
 import { DateTime } from 'luxon'
-import { firstValueFrom } from 'rxjs'
 import {
   ErreurHttp,
   NonTrouveError
@@ -29,11 +27,13 @@ import {
   OffresEmploiDtoWithTotal,
   TypeRDVPE
 } from '../repositories/dto/pole-emploi.dto'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { DemarcheIADto, MetierRomeApiDto } from './dto/pole-emploi.dto'
+import { ExternalApiClient } from './external-api-client'
 import { handleAxiosError } from './utils/axios-error-handler'
 
 @Injectable()
-export class PoleEmploiClient {
+export class PoleEmploiClient extends ExternalApiClient {
   inMemoryToken: {
     token: string | undefined
     tokenDate: DateTime | undefined
@@ -43,11 +43,12 @@ export class PoleEmploiClient {
   private logger: Logger
 
   constructor(
-    private httpService: HttpService,
     private configService: ConfigService,
     private dateService: DateService,
-    private rateLimiterService: RateLimiterService
+    private rateLimiterService: RateLimiterService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
+    super('PoleEmploiClient', externalApiLogger)
     this.logger = new Logger('PoleEmploiClient')
     this.inMemoryToken = { token: undefined, tokenDate: undefined }
     this.apiUrl = this.configService.get('poleEmploi').url
@@ -96,7 +97,6 @@ export class PoleEmploiClient {
     } catch (e) {
       return handleAxiosError(
         e,
-        this.logger,
         'La récupération des évènements emploi a échoué'
       )
     }
@@ -121,7 +121,6 @@ export class PoleEmploiClient {
     } catch (e) {
       return handleAxiosError(
         e,
-        this.logger,
         `La récupération de l'évènement emploi ${idEvenement} a échoué`
       )
     }
@@ -220,11 +219,7 @@ export class PoleEmploiClient {
       if (isFailure(result)) return result
       return success(result.data.data ?? [])
     } catch (e) {
-      return handleAxiosError(
-        e,
-        this.logger,
-        'La récupération des métiers ROME a échoué'
-      )
+      return handleAxiosError(e, 'La récupération des métiers ROME a échoué')
     }
   }
 
@@ -232,20 +227,13 @@ export class PoleEmploiClient {
     const token = await this.getToken()
     const body = { content: contenu }
     try {
-      const response = await firstValueFrom(
-        this.httpService.post<DemarcheIADto[]>(
-          `${this.apiUrl}/categorisation-demarches/v1/demarches`,
-          body,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        )
+      const response = await this.axios.post<DemarcheIADto[]>(
+        `${this.apiUrl}/categorisation-demarches/v1/demarches`,
+        body,
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       return success(response.data)
     } catch (e) {
-      this.logger.error(
-        buildError('Erreur lors de la génération des démarches IA', e)
-      )
       try {
         if (
           this.configService.get('environment') === 'development' ||
@@ -261,25 +249,15 @@ export class PoleEmploiClient {
             configProdFT.loginUrl
           ) {
             const token = await this.getTokenProd()
-            const response = await firstValueFrom(
-              this.httpService.post<DemarcheIADto[]>(
-                `${configProdFT.apiUrl}/categorisation-demarches/v1/demarches`,
-                body,
-                {
-                  headers: { Authorization: `Bearer ${token}` }
-                }
-              )
+            const response = await this.axios.post<DemarcheIADto[]>(
+              `${configProdFT.apiUrl}/categorisation-demarches/v1/demarches`,
+              body,
+              { headers: { Authorization: `Bearer ${token}` } }
             )
             return success(response.data)
           }
         }
       } catch (e) {
-        this.logger.error(
-          buildError(
-            'Erreur lors de la génération des démarches IA prod direct',
-            e
-          )
-        )
         return failure(
           new ErreurHttp(
             e.response?.data?.message ??
@@ -312,8 +290,6 @@ export class PoleEmploiClient {
     return this.get<T>(suffixUrl, params)
       .then(res => success(res))
       .catch(e => {
-        this.logger.error(e)
-
         const estLePremierRetry = secondesAAttendre === undefined
         if (
           e.response?.status === 429 &&
@@ -321,7 +297,6 @@ export class PoleEmploiClient {
           e.response?.headers &&
           e.response?.headers['retry-after']
         ) {
-          this.logger.log('Retry de la requête')
           return this.getWithRetry<T>(
             suffixUrl,
             params,
@@ -345,12 +320,10 @@ export class PoleEmploiClient {
     params?: unknown
   ): Promise<AxiosResponse<T>> {
     const token = await this.getToken()
-    return firstValueFrom(
-      this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
-        params,
-        headers: { Authorization: `Bearer ${token}` }
-      })
-    )
+    return this.axios.get<T>(`${this.apiUrl}/${suffixUrl}`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` }
+    })
   }
 
   private async post<T>(
@@ -359,15 +332,13 @@ export class PoleEmploiClient {
     params?: URLSearchParams
   ): Promise<AxiosResponse<T>> {
     const token = await this.getToken()
-    return firstValueFrom(
-      this.httpService.post<T>(`${this.apiUrl}/${suffixUrl}`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        params
-      })
-    )
+    return this.axios.post<T>(`${this.apiUrl}/${suffixUrl}`, body, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      params
+    })
   }
 
   async getToken(): Promise<string> {
@@ -384,8 +355,6 @@ export class PoleEmploiClient {
   }
 
   private async generateToken(): Promise<string> {
-    this.logger.log('Attempting to get an access token for Pole Emploi API')
-
     const poleEmploiConfiguration = this.configService.get('poleEmploi')
 
     const params = new URLSearchParams()
@@ -396,21 +365,13 @@ export class PoleEmploiClient {
 
     const loginUrl = `${poleEmploiConfiguration.loginUrl}?realm=%2Fpartenaire`
 
-    const reponse = await firstValueFrom(
-      this.httpService.post(loginUrl, params, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
-    )
+    const reponse = await this.axios.post(loginUrl, params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
 
     const token = reponse.data.access_token
     const SECONDS_BEFORE_EXPIRY = 30
     this.tokenExpiryInSeconds = reponse.data.expires_in - SECONDS_BEFORE_EXPIRY
-
-    this.logger.log(
-      'An access token for Pole Emploi API has been retrieved successfully'
-    )
 
     return token
   }
@@ -426,21 +387,14 @@ export class PoleEmploiClient {
 
     const loginUrl = `${configProdFT.loginUrl}?realm=%2Fpartenaire`
 
-    const reponse = await firstValueFrom(
-      this.httpService.post(loginUrl, params, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
-    )
+    const reponse = await this.axios.post(loginUrl, params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
 
     const token = reponse.data.access_token
     const SECONDS_BEFORE_EXPIRY = 30
     this.tokenExpiryInSeconds = reponse.data.expires_in - SECONDS_BEFORE_EXPIRY
 
-    this.logger.log(
-      'An access token for Pole Emploi API has been retrieved successfully'
-    )
     return token
   }
 

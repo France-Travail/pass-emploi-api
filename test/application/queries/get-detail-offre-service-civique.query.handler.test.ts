@@ -41,8 +41,8 @@ describe('GetDetailServiceCiviqueQuery', () => {
       serviceCiviqueClient.get.resolves({
         status: 200,
         statusText: 'OK',
-        headers: '',
-        config: '',
+        headers: {},
+        config: {} as never,
         data: {
           ok: true,
           data: uneOffreServiceCiviqueDto()

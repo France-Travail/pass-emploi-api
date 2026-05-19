@@ -1,9 +1,7 @@
-import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosRequestConfig } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { AxiosRequestConfig } from 'axios'
 import * as https from 'node:https'
-import { firstValueFrom } from 'rxjs'
 import {
   AnalyseAntivirusEchouee,
   AnalyseAntivirusPasTerminee,
@@ -17,17 +15,20 @@ import {
 } from 'src/building-blocks/types/result'
 import { Fichier } from 'src/domain/fichier'
 import { handleAxiosError } from 'src/infrastructure/clients/utils/axios-error-handler'
+import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
+import { ExternalApiClient } from './external-api-client'
 
 @Injectable()
-export class AntivirusClient {
+export class AntivirusClient extends ExternalApiClient {
   private readonly logger: Logger
   private readonly apiUrl: string
   private readonly requestConfig: AxiosRequestConfig
 
   constructor(
-    private readonly httpService: HttpService,
-    configService: ConfigService
+    configService: ConfigService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
+    super('AntivirusClient', externalApiLogger)
     this.logger = new Logger('AntivirusClient')
 
     const config = configService.get('jecliqueoupas')
@@ -47,12 +48,10 @@ export class AntivirusClient {
     body.append('file', new Blob([new Uint8Array(fichier.buffer)]), fichier.nom)
 
     try {
-      const response = await firstValueFrom(
-        this.httpService.post<AnalyseSoumiseDto>(
-          this.apiUrl + '/submit',
-          body,
-          this.requestConfig
-        )
+      const response = await this.axios.post<AnalyseSoumiseDto>(
+        this.apiUrl + '/submit',
+        body,
+        this.requestConfig
       )
       const data = response.data
       const idAnalyse = data.status ? data.uuid || data.id : undefined
@@ -70,7 +69,6 @@ export class AntivirusClient {
       if (e.config) e.config.data = 'REDACTED'
       return handleAxiosError(
         e,
-        this.logger,
         "L'analyse du fichier par l'antivirus a échoué"
       )
     }
@@ -78,12 +76,10 @@ export class AntivirusClient {
 
   async recupererResultatAnalyse(idAnalyse: string): Promise<Result> {
     try {
-      const response = await firstValueFrom(
-        this.httpService.get<{ done: boolean; is_malware: boolean }>(
-          this.apiUrl + '/results/' + idAnalyse,
-          this.requestConfig
-        )
-      )
+      const response = await this.axios.get<{
+        done: boolean
+        is_malware: boolean
+      }>(this.apiUrl + '/results/' + idAnalyse, this.requestConfig)
       const data = response.data
       if (!data.done) return failure(new AnalyseAntivirusPasTerminee())
       if (!data.is_malware) return emptySuccess()
@@ -92,7 +88,6 @@ export class AntivirusClient {
       if (e.config) e.config.data = 'REDACTED'
       return handleAxiosError(
         e,
-        this.logger,
         'La récupération de l’analyse du fichier a échoué'
       )
     }

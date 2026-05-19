@@ -77,9 +77,6 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
 
   async subscribe(handle: Planificateur.Handler<unknown>): Promise<void> {
     this.queue.process(async jobRedis => {
-      this.logger.log(
-        `Execution du job ${jobRedis.id} de type ${jobRedis.data.type}`
-      )
       const job: Planificateur.Job<unknown> = {
         dateExecution: jobRedis.data.date,
         type: jobRedis.data.type,

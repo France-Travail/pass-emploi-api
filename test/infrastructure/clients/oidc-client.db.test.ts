@@ -1,8 +1,9 @@
-import { HttpService } from '@nestjs/axios'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
+import axios from 'axios'
 import * as nock from 'nock'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
-import { expect } from '../../utils'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
+import { expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
@@ -18,8 +19,9 @@ describe('OidcClient', () => {
   const clientSecret = configService.get('oidc').clientSecret
 
   beforeEach(async () => {
-    const httpService = new HttpService()
-    oidcClient = new OidcClient(configService, httpService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    oidcClient = new OidcClient(configService, externalApiLogger)
   })
 
   describe('deleteUserByIdUser', () => {

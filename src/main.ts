@@ -22,7 +22,8 @@ import { useSwagger } from './infrastructure/middlewares/swagger.middleware'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    bufferLogs: true
+    bufferLogs: true,
+    logger: ['error', 'warn']
   })
   const appConfig = app.get<ConfigService>(ConfigService)
   const port = appConfig.get('port')

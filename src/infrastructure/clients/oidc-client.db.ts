@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios'
 import {
   Injectable,
   Logger,
@@ -7,16 +6,16 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
-import { firstValueFrom } from 'rxjs'
+import { AxiosResponse } from 'axios'
 import { Authentification } from 'src/domain/authentification'
 import { beneficiaireEstFTConnect, Core, estMilo } from 'src/domain/core'
-import { buildError } from 'src/utils/logger.module'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
+import { ExternalApiClient } from './external-api-client'
 
 @Injectable()
-export class OidcClient {
+export class OidcClient extends ExternalApiClient {
   private logger: Logger
   private issuerUrl: string
   private clientId: string
@@ -24,8 +23,9 @@ export class OidcClient {
 
   constructor(
     private configService: ConfigService,
-    private httpService: HttpService
+    externalApiLogger: ExternalApiLoggerService
   ) {
+    super('OidcClient', externalApiLogger)
     this.logger = new Logger('OidcClient')
     this.issuerUrl = this.configService.get('oidc').issuerUrl
     this.clientId = this.configService.get('oidc').clientId
@@ -77,15 +77,10 @@ export class OidcClient {
 
     try {
       const result: TokenExchangeResponse = (
-        await firstValueFrom(this.httpService.post(url, query, { headers }))
+        await this.axios.post(url, query, { headers })
       ).data
-      this.logger.log({
-        message: 'Token exchange success',
-        expires_in: result.expires_in
-      })
       return result.access_token
     } catch (e) {
-      this.logger.error(buildError('erreur lors du token exchange', e))
       let message
       if (e.code === 'ECONNABORTED' || e.status >= '500') {
         message = 'token_exchange_error'
@@ -119,30 +114,20 @@ export class OidcClient {
     }
 
     try {
-      const reponseGet: AxiosResponse<UserResponse[]> = await firstValueFrom(
-        this.httpService.get(url, {
-          params,
-          headers
-        })
+      const reponseGet: AxiosResponse<UserResponse[]> = await this.axios.get(
+        url,
+        { params, headers }
       )
 
       const userIdAuth = reponseGet.data[0]?.id
 
       if (userIdAuth) {
-        await firstValueFrom(
-          this.httpService.delete(`${url}/${userIdAuth}`, { headers })
-        )
+        await this.axios.delete(`${url}/${userIdAuth}`, { headers })
         this.logger.log(`utilisateur ${idUserCEJ} supprimé`)
       } else {
         this.logger.log(`utilisateur ${idUserCEJ} n'existe pas`)
       }
     } catch (e) {
-      this.logger.error(
-        buildError(
-          `erreur lors de la suppression de l'utilisateur ${idUserCEJ}`,
-          e
-        )
-      )
       if (e.response?.status !== 404) {
         throw new RuntimeException(e)
       }
@@ -169,16 +154,8 @@ export class OidcClient {
       throw new NotFoundException('User to delete not found')
     }
     try {
-      await firstValueFrom(
-        this.httpService.delete(`${url}/${idAuth}`, { headers })
-      )
+      await this.axios.delete(`${url}/${idAuth}`, { headers })
     } catch (e) {
-      this.logger.error(
-        buildError(
-          `erreur lors de la suppression de l'utilisateur ${idUser}`,
-          e
-        )
-      )
       throw e
     }
   }
@@ -194,14 +171,11 @@ export class OidcClient {
 
     try {
       const result: TokenResponse = (
-        await firstValueFrom(
-          this.httpService.post(url, new URLSearchParams(payload), { headers })
-        )
+        await this.axios.post(url, new URLSearchParams(payload), { headers })
       ).data
 
       return result.access_token
     } catch (e) {
-      this.logger.error(buildError("erreur lors de l'obtention du token", e))
       throw new RuntimeException(e)
     }
   }

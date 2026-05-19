@@ -2,16 +2,8 @@ import { Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { LogEvent, LogEventKey } from './log.event'
-import {
-  Failure,
-  failure,
-  isFailure,
-  isSuccess,
-  Result,
-  Success,
-  success
-} from './result'
+import { logHandlerExecuted } from '../../utils/logger.module'
+import { failure, isFailure, isSuccess, Result } from './result'
 
 /**
  * Implémente la logique nécessaire à la réalisation de la commande envoyée au système.
@@ -34,6 +26,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
     command?: Command,
     utilisateur?: Authentification.Utilisateur
   ): Promise<Result<Data>> {
+    const startNs = process.hrtime.bigint()
     try {
       const aggregate = await this.getAggregate(command, utilisateur)
 
@@ -43,6 +36,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
         aggregate
       )
       if (isFailure(authorizerResult)) {
+        this.logExecution(startNs, authorizerResult)
         return authorizerResult
       }
 
@@ -54,11 +48,11 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
           this.logger.error(error)
         })
       }
-      this.logAfter(result, command, utilisateur)
+      this.logExecution(startNs, result)
 
       return result
     } catch (e) {
-      this.logAfter(failure(e), command, utilisateur)
+      this.logExecution(startNs, failure(e))
       throw e
     }
   }
@@ -89,55 +83,8 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
     aggregate?: Aggregat
   ): Promise<void>
 
-  protected logAfter(
-    result: Result<Data>,
-    command?: Command,
-    utilisateur?: Authentification.Utilisateur
-  ): void {
-    const resultPourLog = construireResultPourLog(result)
-    const commandSanitized = nettoyerLaCommand(command)
-
-    const event = new LogEvent(LogEventKey.COMMAND_EVENT, {
-      handler: this.commandName,
-      command: commandSanitized,
-      result: resultPourLog,
-      utilisateur
-    })
-    this.logger.log(event)
+  private logExecution(startNs: bigint, result: Result<Data>): void {
+    const error = isFailure(result) ? result.error : undefined
+    logHandlerExecuted({ context: this.commandName, startNs, error })
   }
-}
-
-function construireResultPourLog<T>(
-  result: Success<T> | Failure
-): Result<unknown> {
-  if (isSuccess(result)) {
-    return typeof result.data === 'object'
-      ? result
-      : success({
-          value: result.data
-        })
-  }
-  return result
-}
-
-function nettoyerLaCommand<C>(command: C | undefined): C | undefined {
-  const commandSanitized = {
-    ...command
-  }
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  if (commandSanitized && commandSanitized.fichier) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    commandSanitized.fichier = {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      ...commandSanitized.fichier,
-      buffer: undefined
-    }
-  }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return commandSanitized
 }

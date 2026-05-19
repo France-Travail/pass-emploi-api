@@ -1,4 +1,4 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import * as nock from 'nock'
 import { TypeUrlDiagoriente } from '../../../src/application/queries/get-diagoriente-urls.query.handler'
 import {
@@ -11,9 +11,10 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { DiagorienteClient } from '../../../src/infrastructure/clients/diagoriente-client'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 import { unJeune } from '../../fixtures/jeune.fixture'
-import { expect } from '../../utils'
-import { testConfig } from '../../utils/module-for-testing'
+import { expect, stubClass } from '../../utils'
+import { testConfig } from '../../utils/test-config'
 
 describe('DiagorienteClient', () => {
   let diagorienteClient: DiagorienteClient
@@ -22,8 +23,9 @@ describe('DiagorienteClient', () => {
   const jeune = unJeune()
 
   beforeEach(async () => {
-    const httpService = new HttpService()
-    diagorienteClient = new DiagorienteClient(httpService, configService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    diagorienteClient = new DiagorienteClient(configService, externalApiLogger)
   })
 
   describe('getUrl', () => {

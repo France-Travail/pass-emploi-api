@@ -44,8 +44,8 @@ describe('FindAllOffresServicesCiviqueQueryGetter', () => {
         serviceCiviqueClient.get.resolves({
           status: 200,
           statusText: 'OK',
-          headers: '',
-          config: '',
+          headers: {},
+          config: {} as never,
           data: {
             total: 1,
             hits: [uneOffreServiceCiviqueDto()]
@@ -106,8 +106,8 @@ describe('FindAllOffresServicesCiviqueQueryGetter', () => {
         serviceCiviqueClient.get.resolves({
           status: 200,
           statusText: 'OK',
-          headers: '',
-          config: '',
+          headers: {},
+          config: {} as never,
           data: {
             total: 1,
             hits: [uneOffreServiceCiviqueDto()]

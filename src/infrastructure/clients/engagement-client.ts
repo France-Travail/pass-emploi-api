@@ -1,33 +1,30 @@
-import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
-import { AxiosResponse } from '@nestjs/terminus/dist/health-indicator/http/axios.interfaces'
+import { AxiosResponse } from 'axios'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
+import { ExternalApiClient } from './external-api-client'
 
 @Injectable()
-export class EngagementClient {
+export class EngagementClient extends ExternalApiClient {
   private readonly apiUrl: string
   private readonly apiKey: string
 
   constructor(
-    private httpService: HttpService,
-    private configService: ConfigService
+    configService: ConfigService,
+    externalApiLogger: ExternalApiLoggerService
   ) {
-    this.apiUrl = this.configService.get('serviceCivique').url
-    this.apiKey = this.configService.get('serviceCivique').apiKey
+    super('ServiceCiviqueClient', externalApiLogger)
+    this.apiUrl = configService.get('serviceCivique').url
+    this.apiKey = configService.get('serviceCivique').apiKey
   }
 
   async get<T>(
     suffixUrl: string,
     params?: URLSearchParams
   ): Promise<AxiosResponse<T>> {
-    return firstValueFrom(
-      this.httpService.get<T>(`${this.apiUrl}/${suffixUrl}`, {
-        headers: {
-          apikey: this.apiKey
-        },
-        params
-      })
-    )
+    return this.axios.get<T>(`${this.apiUrl}/${suffixUrl}`, {
+      headers: { apikey: this.apiKey },
+      params
+    })
   }
 }

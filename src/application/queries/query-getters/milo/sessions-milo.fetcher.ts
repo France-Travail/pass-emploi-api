@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { mapSessionJeuneDtoToQueryModel } from 'src/application/queries/query-mappers/milo.mappers'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
@@ -25,15 +25,11 @@ export interface SessionsFetchResult {
 
 @Injectable()
 export class SessionsMiloFetcher {
-  private readonly logger: Logger
-
   constructor(
     private readonly dateService: DateService,
     private readonly oidcClient: OidcClient,
     private readonly miloClient: MiloClient
-  ) {
-    this.logger = new Logger('SessionsMiloFetcher')
-  }
+  ) {}
 
   async fetch(
     idJeune: string,
@@ -58,9 +54,6 @@ export class SessionsMiloFetcher {
     }
 
     const sessionsDuJeuneVenantDeLAPI = resultSessionMiloClient.data
-    this.logger.log(
-      `${sessionsDuJeuneVenantDeLAPI.length} Sessions venant de l'API`
-    )
 
     const configurationsSessions = await SessionMiloSqlModel.findAll({
       where: {

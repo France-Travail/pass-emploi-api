@@ -1,10 +1,10 @@
 import { ForbiddenException, Logger } from '@nestjs/common'
-import { Authentification } from '../../domain/authentification'
-import { LogEvent, LogEventKey } from './log.event'
-import { Query } from './query'
-import { emptySuccess, failure, isFailure, Result } from './result'
-import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import * as APM from 'elastic-apm-node'
+import { Authentification } from '../../domain/authentification'
+import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
+import { logHandlerExecuted } from '../../utils/logger.module'
+import { Query } from './query'
+import { failure, isFailure, Result } from './result'
 
 /**
  * Implémente la logique liée à la query envoyée au système.
@@ -27,9 +27,11 @@ export abstract class QueryHandler<Q extends Query | void, R> {
     query: Q,
     utilisateur?: Authentification.Utilisateur
   ): Promise<R> {
+    const startNs = process.hrtime.bigint()
     try {
       const authorizedResult = await this.authorize(query, utilisateur)
       if (isFailure(authorizedResult)) {
+        this.logExecution(startNs, authorizedResult)
         throw new ForbiddenException(authorizedResult.error.message)
       }
 
@@ -40,10 +42,10 @@ export abstract class QueryHandler<Q extends Query | void, R> {
         this.logger.error(error)
       })
 
-      this.logAfter(query, emptySuccess(), utilisateur)
+      this.logExecution(startNs, undefined)
       return result
     } catch (e) {
-      this.logAfter(query, failure(e), utilisateur)
+      this.logExecution(startNs, failure(e))
       throw e
     }
   }
@@ -64,24 +66,14 @@ export abstract class QueryHandler<Q extends Query | void, R> {
     result?: R
   ): Promise<void>
 
-  protected logAfter(
-    query: Q,
-    result: Result,
-    utilisateur?: Authentification.Utilisateur
+  private logExecution(
+    startNs: bigint,
+    failureResult: Result | undefined
   ): void {
-    /* eslint-disable @typescript-eslint/ban-ts-comment */
-    // @ts-ignore
-    if (query.accessToken) {
-      /* eslint-disable @typescript-eslint/ban-ts-comment */
-      // @ts-ignore
-      query.accessToken = '[REDACTED]'
-    }
-    const event = new LogEvent(LogEventKey.QUERY_EVENT, {
-      handler: this.queryHandlerName,
-      query,
-      result,
-      utilisateur
-    })
-    this.logger.log(event)
+    const error =
+      failureResult && isFailure(failureResult)
+        ? failureResult.error
+        : undefined
+    logHandlerExecuted({ context: this.queryHandlerName, startNs, error })
   }
 }

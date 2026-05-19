@@ -1,4 +1,4 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { expect } from 'chai'
 import { DateTime } from 'luxon'
 import * as nock from 'nock'
@@ -43,6 +43,7 @@ import { DateService } from '../../../src/utils/date-service'
 import { StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { MiloClientUtils } from '../../../src/infrastructure/clients/milo/milo-client-utils'
+import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 
 initializeAPMAgent()
 
@@ -54,8 +55,12 @@ describe('MiloClientV1', () => {
   const MILO_BASE_URL = 'https://milo.com'
 
   beforeEach(() => {
-    const httpService = new HttpService()
-    const miloClientUtils = new MiloClientUtils(httpService, configService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    const miloClientUtils = new MiloClientUtils(
+      configService,
+      externalApiLogger
+    )
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
     miloClient = new MiloClientV1(
