@@ -183,10 +183,12 @@
     "multer": ">=2.1.0",
     "tar": ">=7.5.11",
     "fast-xml-parser": ">=5.5.6",
+    "fast-xml-builder": ">=1.1.7",
     "picomatch": ">=4.0.3",
     "node-forge": ">=1.4.0",
     "path-to-regexp": ">=8.4.0",
-    "lodash": ">=4.18.0"
+    "lodash": ">=4.18.0",
+    "protobufjs": "^7.5.6"
   },
   "mocha": {
     "require": [
