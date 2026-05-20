@@ -79,7 +79,8 @@ function logCall(
     ? Number(process.hrtime.bigint() - config.metadata.startTimeNs)
     : undefined
 
-  const { path, domain } = parseUrl(config)
+  const { path, domain, search } = parseUrl(config)
+  const query = serializeQuery(config, search)
   const isFailure = !!err || (!!statusCode && statusCode >= 400)
 
   const responseBodyContent = serializeResponseBody(err?.response?.data)
@@ -105,7 +106,8 @@ function logCall(
     },
     url: {
       ...(path && { path }),
-      ...(domain && { domain })
+      ...(domain && { domain }),
+      ...(query && { query })
     },
     ...(err && {
       error: {
@@ -116,7 +118,10 @@ function logCall(
     })
   }
 
-  emit(isFailure ? 'error' : 'info', obj, 'external_api_call')
+  const isCrash =
+    (!!statusCode && statusCode >= 500) ||
+    (!!err && statusCode === undefined) // erreur réseau : pas de réponse
+  emit(isCrash ? 'error' : 'info', obj, 'external_api_call')
 }
 
 function serializeResponseBody(data: unknown): string | undefined {
@@ -139,12 +144,61 @@ function safeStringify(value: unknown): string | undefined {
 function parseUrl(config: ConfigWithMetadata | undefined): {
   path?: string
   domain?: string
+  search?: string
 } {
   if (!config?.url) return {}
   try {
     const url = new URL(config.url, config.baseURL)
-    return { path: url.pathname, domain: url.hostname }
+    return { path: url.pathname, domain: url.hostname, search: url.search }
   } catch {
     return { path: config.url }
   }
+}
+
+// Clés de params masquées avant log : un secret passé en query string
+// échapperait à la redaction par clé du rootLogger (url.query = une string).
+const QUERY_PARAM_DENYLIST = [
+  'token',
+  'access_token',
+  'api_key',
+  'apikey',
+  'key',
+  'code',
+  'password',
+  'secret'
+]
+
+// Reconstruit la query string envoyée au partenaire (ECS url.query), depuis
+// la query de l'URL et/ou les `config.params` axios passés séparément.
+function serializeQuery(
+  config: ConfigWithMetadata | undefined,
+  search: string | undefined
+): string | undefined {
+  const entries: Array<[string, string]> = []
+
+  if (search) {
+    new URLSearchParams(search).forEach((value, key) =>
+      entries.push([key, value])
+    )
+  }
+
+  const params = config?.params
+  if (params instanceof URLSearchParams) {
+    params.forEach((value, key) => entries.push([key, value]))
+  } else if (params && typeof params === 'object') {
+    for (const [key, value] of Object.entries(params)) {
+      entries.push([key, String(value)])
+    }
+  }
+
+  if (entries.length === 0) return undefined
+
+  const redacted = new URLSearchParams()
+  for (const [key, value] of entries) {
+    redacted.append(
+      key,
+      QUERY_PARAM_DENYLIST.includes(key.toLowerCase()) ? '[Redacted]' : value
+    )
+  }
+  return redacted.toString()
 }

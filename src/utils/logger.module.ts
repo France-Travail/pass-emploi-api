@@ -244,7 +244,7 @@ export function logHandlerExecuted(params: {
 }): void {
   const { context, startNs, error, failed, extra } = params
   const isFailure = error !== undefined || failed === true
-  const level: 'info' | 'error' = isFailure ? 'error' : 'info'
+  const level: 'info' | 'error' = error instanceof Error ? 'error' : 'info'
   rootLogger[level](
     {
       context,

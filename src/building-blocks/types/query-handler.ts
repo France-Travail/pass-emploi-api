@@ -4,7 +4,7 @@ import { Authentification } from '../../domain/authentification'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import { logHandlerExecuted } from '../../utils/logger.module'
 import { Query } from './query'
-import { failure, isFailure, Result } from './result'
+import { failure, Failure, isFailure, Result } from './result'
 
 /**
  * Implémente la logique liée à la query envoyée au système.
@@ -42,7 +42,7 @@ export abstract class QueryHandler<Q extends Query | void, R> {
         this.logger.error(error)
       })
 
-      this.logExecution(startNs, undefined)
+      this.logExecution(startNs, result)
       return result
     } catch (e) {
       this.logExecution(startNs, failure(e))
@@ -66,13 +66,16 @@ export abstract class QueryHandler<Q extends Query | void, R> {
     result?: R
   ): Promise<void>
 
-  private logExecution(
-    startNs: bigint,
-    failureResult: Result | undefined
-  ): void {
+  // `result` peut être un Result<...> (cas le plus courant) ou un query model
+  // brut selon le handler. On détecte la forme Result à l'exécution pour
+  // remonter l'échec : sans ça, une query qui retourne `failure()` proprement
+  // (sans throw) serait loggée `outcome: success`.
+  private logExecution(startNs: bigint, result: unknown): void {
+    const estResult =
+      !!result && typeof result === 'object' && '_isSuccess' in result
     const error =
-      failureResult && isFailure(failureResult)
-        ? failureResult.error
+      estResult && isFailure(result as Result)
+        ? (result as Failure).error
         : undefined
     logHandlerExecuted({ context: this.queryHandlerName, startNs, error })
   }
