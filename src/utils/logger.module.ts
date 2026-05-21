@@ -149,6 +149,111 @@ export const rootLogger: PinoInstance = pino(
   pinoOptions as unknown as Parameters<typeof pino>[0]
 )
 
+// --- Redaction & sérialisation des bodies -------------------------------
+// Redaction unique partagée par toute la sérialisation de données free-form
+// (bodies entrants, body/query sortants). La redaction par chemin de pino
+// (option `redact`) ne couvre que des chemins fixes connus ; elle ne descend
+// pas récursivement dans un payload de forme arbitraire, d'où ce helper.
+
+// Une clé est sensible si son nom (insensible à la casse) contient un de ces
+// fragments : couvre toutes les variantes sans les énumérer (subject_token,
+// access_token, client_secret...). Volontairement pas `code`/`key` : ils
+// collisionnent avec des champs métier (code d'une démarche...).
+const SENSITIVE_KEY_PATTERNS = [
+  'password',
+  'pwd',
+  'token',
+  'secret',
+  'authorization',
+  'bearer',
+  'api_key',
+  'apikey',
+  'credential'
+]
+
+export const isSensitiveKey = (key: string): boolean => {
+  const lower = key.toLowerCase()
+  return SENSITIVE_KEY_PATTERNS.some(pattern => lower.includes(pattern))
+}
+
+const BODY_MAX_LENGTH = 4096
+
+const truncateBody = (str: string): string =>
+  str.length > BODY_MAX_LENGTH
+    ? str.slice(0, BODY_MAX_LENGTH) + '...[truncated]'
+    : str
+
+// Masque récursivement les valeurs des clés sensibles (secrets/credentials).
+// La PII "ordinaire" n'est pas masquable par clé : assumée, d'où le logging
+// sur échec uniquement.
+const redactDeep = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(redactDeep)
+  if (isPlainObject(value)) {
+    const out: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value)) {
+      out[key] = isSensitiveKey(key) ? '[Redacted]' : redactDeep(val)
+    }
+    return out
+  }
+  return value
+}
+
+// Sérialise un body de requête pour le log : JSON, form-urlencoded ou
+// URLSearchParams, clés sensibles masquées, tronqué. undefined si vide.
+export const serializeBodyForLog = (value: unknown): string | undefined => {
+  if (value === undefined || value === null) return undefined
+  if (Buffer.isBuffer(value)) return '[binary]'
+  if (
+    typeof value === 'object' &&
+    typeof (value as { pipe?: unknown }).pipe === 'function'
+  ) {
+    return '[stream]'
+  }
+
+  if (value instanceof URLSearchParams) {
+    const redacted = new URLSearchParams()
+    let empty = true
+    value.forEach((v, k) => {
+      empty = false
+      redacted.append(k, isSensitiveKey(k) ? '[Redacted]' : v)
+    })
+    return empty ? undefined : truncateBody(redacted.toString())
+  }
+
+  if (typeof value === 'string') {
+    if (value.length === 0) return undefined
+    try {
+      return serializeBodyForLog(JSON.parse(value))
+    } catch {
+      if (/^[\w.%+-]+=[^&\s]*(&[\w.%+-]+=[^&\s]*)*$/.test(value)) {
+        return serializeBodyForLog(new URLSearchParams(value))
+      }
+      return truncateBody(value)
+    }
+  }
+
+  if (Array.isArray(value) || isPlainObject(value)) {
+    const isEmpty = Array.isArray(value)
+      ? value.length === 0
+      : Object.keys(value).length === 0
+    if (isEmpty) return undefined
+    try {
+      return truncateBody(JSON.stringify(redactDeep(value)))
+    } catch {
+      return undefined
+    }
+  }
+
+  return truncateBody(String(value))
+}
+
+// Fragment ECS http.request.body.content, vide si pas de body.
+const requestBodyFragment = (req: IncomingMessage): Record<string, unknown> => {
+  const content = serializeBodyForLog((req as { body?: unknown }).body)
+  return content ? { http: { request: { body: { content } } } } : {}
+}
+// ------------------------------------------------------------------------
+
 export const pinoHttpOptions = {
   logger: rootLogger,
   autoLogging: {
@@ -168,24 +273,27 @@ export const pinoHttpOptions = {
   customSuccessMessage: (): string => 'request_completed',
   customErrorMessage: (): string => 'request_failed',
   customSuccessObject: (
-    _req: IncomingMessage,
+    req: IncomingMessage,
     res: { statusCode: number },
     val: Record<string, unknown>
-  ): Record<string, unknown> => ({
-    ...val,
-    event: {
-      action: 'request_completed',
-      outcome: !res.statusCode || res.statusCode >= 400 ? 'failure' : 'success'
-    }
-  }),
+  ): Record<string, unknown> => {
+    const outcome =
+      !res.statusCode || res.statusCode >= 400 ? 'failure' : 'success'
+    const log = { ...val, event: { action: 'request_completed', outcome } }
+    // body sur échec (4xx inclus) ; sur succès seulement si LOG_LEVEL=debug
+    const includeBody =
+      outcome === 'failure' || rootLogger.isLevelEnabled('debug')
+    return includeBody ? { ...log, ...requestBodyFragment(req) } : log
+  },
   customErrorObject: (
-    _req: IncomingMessage,
+    req: IncomingMessage,
     _res: unknown,
     _err: Error,
     val: Record<string, unknown>
   ): Record<string, unknown> => ({
     ...val,
-    event: { action: 'request_failed', outcome: 'failure' }
+    event: { action: 'request_failed', outcome: 'failure' },
+    ...requestBodyFragment(req)
   })
 }
 

@@ -50,7 +50,7 @@ describe('attachExternalApiLogger', () => {
   })
 
   describe('appel sortant failure 4xx', () => {
-    it('emit error ECS avec error.* et http.response.body.content', async () => {
+    it('emit info (échec géré) ECS avec error.* et http.response.body.content', async () => {
       const instance = axios.create()
       const axiosError = Object.assign(new Error('boom'), {
         name: 'AxiosError',
@@ -84,7 +84,8 @@ describe('attachExternalApiLogger', () => {
 
       expect(emit.calledOnce).to.equal(true)
       const [level, obj] = emit.firstCall.args
-      expect(level).to.equal('error')
+      // 4xx = échec géré → info/failure (5xx + réseau → error, cf. isCrash)
+      expect(level).to.equal('info')
       expect(obj.event).to.deep.include({
         action: 'external_api_call',
         outcome: 'failure'

@@ -4,7 +4,11 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig
 } from 'axios'
-import { rootLogger } from './logger.module'
+import {
+  rootLogger,
+  serializeBodyForLog,
+  isSensitiveKey
+} from './logger.module'
 
 interface AxiosMetadata {
   startTimeNs: bigint
@@ -55,25 +59,25 @@ export function attachExternalApiLogger(
         emit,
         response.config as ConfigWithMetadata,
         response.status,
-        undefined
+        undefined,
+        response.data
       )
       return response
     },
     (error: AxiosError) => {
       const config = error.config as ConfigWithMetadata | undefined
-      logCall(emit, config, error.response?.status, error)
+      logCall(emit, config, error.response?.status, error, error.response?.data)
       return Promise.reject(error)
     }
   )
 }
 
-const RESPONSE_BODY_MAX_LENGTH = 4096
-
 function logCall(
   emit: Emit,
   config: ConfigWithMetadata | undefined,
   statusCode: number | undefined,
-  err: AxiosError | undefined
+  err: AxiosError | undefined,
+  responseData: unknown
 ): void {
   const durationNs = config?.metadata
     ? Number(process.hrtime.bigint() - config.metadata.startTimeNs)
@@ -83,7 +87,16 @@ function logCall(
   const query = serializeQuery(config, search)
   const isFailure = !!err || (!!statusCode && statusCode >= 400)
 
-  const responseBodyContent = serializeResponseBody(err?.response?.data)
+  // Bodies request + response : sur échec, toujours ; sur succès, seulement
+  // si LOG_LEVEL=debug (inspecter / rejouer un appel partenaire en dev).
+  const includeBodies = isFailure || rootLogger.isLevelEnabled('debug')
+  const requestBodyContent = includeBodies
+    ? serializeBodyForLog(config?.data)
+    : undefined
+  const responseBodyContent = includeBodies
+    ? serializeBodyForLog(responseData)
+    : undefined
+
   const responsePayload =
     statusCode !== undefined || responseBodyContent !== undefined
       ? {
@@ -101,7 +114,12 @@ function logCall(
       ...(durationNs !== undefined && { duration: durationNs })
     },
     http: {
-      request: { method: config?.method?.toUpperCase() },
+      request: {
+        method: config?.method?.toUpperCase(),
+        ...(requestBodyContent !== undefined && {
+          body: { content: requestBodyContent }
+        })
+      },
       ...(responsePayload && { response: responsePayload })
     },
     url: {
@@ -119,26 +137,8 @@ function logCall(
   }
 
   const isCrash =
-    (!!statusCode && statusCode >= 500) ||
-    (!!err && statusCode === undefined) // erreur réseau : pas de réponse
+    (!!statusCode && statusCode >= 500) || (!!err && statusCode === undefined) // erreur réseau : pas de réponse
   emit(isCrash ? 'error' : 'info', obj, 'external_api_call')
-}
-
-function serializeResponseBody(data: unknown): string | undefined {
-  if (data === undefined || data === null) return undefined
-  const str = typeof data === 'string' ? data : safeStringify(data)
-  if (str === undefined) return undefined
-  return str.length > RESPONSE_BODY_MAX_LENGTH
-    ? str.slice(0, RESPONSE_BODY_MAX_LENGTH) + '...[truncated]'
-    : str
-}
-
-function safeStringify(value: unknown): string | undefined {
-  try {
-    return JSON.stringify(value)
-  } catch {
-    return undefined
-  }
 }
 
 function parseUrl(config: ConfigWithMetadata | undefined): {
@@ -154,19 +154,6 @@ function parseUrl(config: ConfigWithMetadata | undefined): {
     return { path: config.url }
   }
 }
-
-// Clés de params masquées avant log : un secret passé en query string
-// échapperait à la redaction par clé du rootLogger (url.query = une string).
-const QUERY_PARAM_DENYLIST = [
-  'token',
-  'access_token',
-  'api_key',
-  'apikey',
-  'key',
-  'code',
-  'password',
-  'secret'
-]
 
 // Reconstruit la query string envoyée au partenaire (ECS url.query), depuis
 // la query de l'URL et/ou les `config.params` axios passés séparément.
@@ -195,10 +182,7 @@ function serializeQuery(
 
   const redacted = new URLSearchParams()
   for (const [key, value] of entries) {
-    redacted.append(
-      key,
-      QUERY_PARAM_DENYLIST.includes(key.toLowerCase()) ? '[Redacted]' : value
-    )
+    redacted.append(key, isSensitiveKey(key) ? '[Redacted]' : value)
   }
   return redacted.toString()
 }
