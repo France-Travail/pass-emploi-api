@@ -7,7 +7,6 @@ import { DateTime } from 'luxon'
 import { GetOffresEmploiQuery } from '../../../../application/queries/get-offres-emploi.query.handler'
 import { CommuneSqlModel } from '../../../sequelize/models/commune.sql-model'
 import { SequelizeInjectionToken } from '../../../sequelize/providers'
-import { GetOffresImmersionQuery } from '../../../../application/queries/get-offres-immersion.query.handler'
 import { GetServicesCiviqueQuery } from '../../../../application/queries/get-offres-services-civique.query.handler'
 import { Offre } from '../../../../domain/offre/offre'
 
@@ -60,7 +59,7 @@ export class RechercheSqlRepository implements Recherche.Repository {
         }
         break
       case Recherche.Type.OFFRES_IMMERSION:
-        criteres = recherche.criteres as GetOffresImmersionQuery
+        criteres = recherche.criteres as Recherche.Immersion
         distance = criteres.distance ?? Offre.Recherche.DISTANCE_PAR_DEFAUT
         longitude = criteres.lon
         latitude = criteres.lat
@@ -143,7 +142,7 @@ export class RechercheSqlRepository implements Recherche.Repository {
   }
 
   async trouverLesRecherchesImmersions(
-    criteres: GetOffresImmersionQuery,
+    criteres: Recherche.Immersion,
     limit: number,
     offset: number
   ): Promise<Recherche[]> {
@@ -184,7 +183,7 @@ export class RechercheSqlRepository implements Recherche.Repository {
       titre: rechercheSql.titre,
       metier: rechercheSql.metier ?? undefined,
       localisation: rechercheSql.localisation ?? undefined,
-      criteres: rechercheSql.criteres as GetOffresImmersionQuery,
+      criteres: rechercheSql.criteres as Recherche.Immersion,
       etat: rechercheSql.etatDerniereRecherche,
       dateDerniereRecherche: DateTime.fromJSDate(
         rechercheSql.dateDerniereRecherche

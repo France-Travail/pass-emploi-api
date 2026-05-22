@@ -11,7 +11,6 @@ import {
   geometrieNice,
   uneRecherche
 } from 'test/fixtures/recherche.fixture'
-import { GetOffresImmersionQuery } from '../../../../../src/application/queries/get-offres-immersion.query.handler'
 import { RechercheSqlRepository } from '../../../../../src/infrastructure/repositories/offre/recherche/recherche-sql.repository.db'
 import { ConseillerSqlModel } from '../../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -334,7 +333,7 @@ describe('RechercheSqlRepository', () => {
 
       it('retourne la recherche de charpentier', async () => {
         // When
-        const criteresASaintJeanCapFerrat: GetOffresImmersionQuery = {
+        const criteresASaintJeanCapFerrat: Recherche.Immersion = {
           rome: 'charpentier',
           lat: 43.681503002546734,
           lon: 7.330287995125166
@@ -360,7 +359,7 @@ describe('RechercheSqlRepository', () => {
           await rechercheSqlRepository.save(recherche)
         }
 
-        const criteresASaintJeanCapFerrat: GetOffresImmersionQuery = {
+        const criteresASaintJeanCapFerrat: Recherche.Immersion = {
           rome: 'charpentier',
           lat: 43.681503002546734,
           lon: 7.330287995125166

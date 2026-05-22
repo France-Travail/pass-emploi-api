@@ -4,7 +4,6 @@ import {
   NotifierNouvellesImmersionsCommand,
   NotifierNouvellesImmersionsCommandHandler
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
-import { GetOffresImmersionQuery } from '../../../src/application/queries/get-offres-immersion.query.handler'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -44,7 +43,7 @@ describe('NotifierNouvellesImmersionsCommandHandler', () => {
         // Given
         command = uneNouvelleImmersionCommand()
 
-        const criteres: GetOffresImmersionQuery = {
+        const criteres: Recherche.Immersion = {
           rome: command.immersions[0].rome,
           lat: command.immersions[0].location!.lat,
           lon: command.immersions[0].location!.lon
@@ -71,7 +70,7 @@ describe('NotifierNouvellesImmersionsCommandHandler', () => {
     })
     describe('quand il y a plusieurs pages qui correspondent', () => {
       let command: NotifierNouvellesImmersionsCommand
-      let criteres: GetOffresImmersionQuery
+      let criteres: Recherche.Immersion
 
       beforeEach(() => {
         // Given

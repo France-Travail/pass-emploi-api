@@ -16,7 +16,6 @@ import {
   RecherchesRepositoryToken
 } from '../../domain/offre/recherche/recherche'
 import { DateService } from '../../utils/date-service'
-import { GetOffresImmersionQuery } from '../queries/get-offres-immersion.query.handler'
 
 export interface NotifierNouvellesImmersionsCommand extends Command {
   immersions: Array<{
@@ -59,7 +58,7 @@ export class NotifierNouvellesImmersionsCommandHandler extends CommandHandler<
 
     for (const immersion of command.immersions) {
       if (immersion.location) {
-        const query: GetOffresImmersionQuery = {
+        const query: Recherche.Immersion = {
           rome: immersion.rome,
           lat: immersion.location.lat,
           lon: immersion.location.lon

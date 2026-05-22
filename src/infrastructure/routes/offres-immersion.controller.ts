@@ -10,20 +10,9 @@ import {
   UseGuards
 } from '@nestjs/common'
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger'
-import { EnvoyerFormulaireContactImmersionCommandHandler } from '../../application/commands/envoyer-formulaire-contact-immersion.command.handler.db'
 import { NotifierNouvellesImmersionsCommandHandler } from '../../application/commands/notifier-nouvelles-immersions.command.handler'
 import {
-  GetDetailOffreImmersionQuery,
-  GetDetailOffreImmersionQueryHandler
-} from '../../application/queries/get-detail-offre-immersion.query.handler'
-import {
-  GetOffresImmersionQuery,
-  GetOffresImmersionQueryHandler
-} from '../../application/queries/get-offres-immersion.query.handler'
-import {
-  DetailOffreImmersionQueryModel,
   DetailOffreImmersionQueryModelV3,
-  OffreImmersionQueryModel,
   ResultatRechercheOffresImmersionQueryModelV3
 } from '../../application/queries/query-models/offres-immersion.query-model'
 import { Authentification } from '../../domain/authentification'
@@ -33,10 +22,8 @@ import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import {
-  GetOffresImmersionQueryParams,
   GetOffresImmersionQueryParamsV3,
   NouvellesOffresImmersions,
-  PostImmersionContactBody,
   PostImmersionContactBodyV3
 } from './validation/offres-immersion.inputs'
 import {
@@ -54,38 +41,11 @@ import {
 @ApiTags("Offres d'immersion")
 export class OffresImmersionController {
   constructor(
-    private readonly getDetailOffreImmersionQueryHandler: GetDetailOffreImmersionQueryHandler,
     private readonly getDetailOffreImmersionQueryHandlerV3: GetDetailOffreImmersionQueryHandlerV3,
-    private readonly getOffresImmersionQueryHandler: GetOffresImmersionQueryHandler,
     private readonly getOffresImmersionQueryHandlerV3: GetOffresImmersionQueryHandlerV3,
     private readonly notifierNouvellesImmersionsCommandHandler: NotifierNouvellesImmersionsCommandHandler,
-    private readonly envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandler,
     private readonly envoyerFormulaireContactImmersionCommandHandlerV3: EnvoyerFormulaireContactImmersionCommandHandlerV3
   ) {}
-
-  @Get('offres-immersion')
-  @ApiResponse({
-    type: OffreImmersionQueryModel,
-    isArray: true
-  })
-  async getOffresImmersion(
-    @Query() getOffresImmersionQueryParams: GetOffresImmersionQueryParams,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<OffreImmersionQueryModel[]> {
-    const query: GetOffresImmersionQuery = {
-      rome: getOffresImmersionQueryParams.rome,
-      lat: getOffresImmersionQueryParams.lat,
-      lon: getOffresImmersionQueryParams.lon,
-      distance: getOffresImmersionQueryParams.distance
-    }
-
-    const result = await this.getOffresImmersionQueryHandler.execute(
-      query,
-      utilisateur
-    )
-
-    return handleResult(result)
-  }
 
   @Get('offres-immersion/v3')
   @ApiResponse({
@@ -106,25 +66,6 @@ export class OffresImmersionController {
     }
 
     const result = await this.getOffresImmersionQueryHandlerV3.execute(
-      query,
-      utilisateur
-    )
-
-    return handleResult(result)
-  }
-
-  @Get('offres-immersion/:idOffreImmersion')
-  @ApiResponse({
-    type: DetailOffreImmersionQueryModel
-  })
-  async getDetailOffreImmersion(
-    @Param('idOffreImmersion') idOffreImmersion: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<DetailOffreImmersionQueryModel | undefined> {
-    const query: GetDetailOffreImmersionQuery = {
-      idOffreImmersion
-    }
-    const result = await this.getDetailOffreImmersionQueryHandler.execute(
       query,
       utilisateur
     )
@@ -170,25 +111,6 @@ export class OffresImmersionController {
     this.notifierNouvellesImmersionsCommandHandler.execute({
       immersions: nouvellesImmersions.immersions
     })
-  }
-
-  @Post('jeunes/:idJeune/offres-immersion/contact')
-  async postFormulaireImmersion(
-    @Param('idJeune') idJeune: string,
-    @Body() postImmersionContactBody: PostImmersionContactBody,
-    @Utilisateur()
-    utilisateur: Authentification.Utilisateur
-  ): Promise<void> {
-    const result =
-      await this.envoyerFormulaireContactImmersionCommandHandler.execute(
-        {
-          idJeune,
-          ...postImmersionContactBody
-        },
-        utilisateur
-      )
-
-    return handleResult(result)
   }
 
   @Post('jeunes/:idJeune/offres-immersion/v3/contact')
