@@ -1,22 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { QueryHandler } from '../../../building-blocks/types/query-handler'
+import { isFailure, Result } from '../../../building-blocks/types/result'
+import { Authentification } from '../../../domain/authentification'
 import {
   ActualiteMilo,
   ActualiteMiloRepositoryToken
 } from '../../../domain/milo/actualite.milo'
-import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
-import { QueryHandler } from '../../../building-blocks/types/query-handler'
-import { Authentification } from '../../../domain/authentification'
-import { isFailure, Result } from '../../../building-blocks/types/result'
-import {
-  ActualiteMiloJeuneQueryModel,
-  ActualitesMiloJeuneQueryModel
-} from '../query-models/actualites-milo.query-model'
 import {
   JeuneMilo,
   JeuneMiloRepositoryToken
 } from '../../../domain/milo/jeune.milo'
-import { Evenement, EvenementService } from '../../../domain/evenement'
-
+import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
+import {
+  ActualiteMiloJeuneQueryModel,
+  ActualitesMiloJeuneQueryModel
+} from '../query-models/actualites-milo.query-model'
 export interface GetActualitesMiloJeuneQuery {
   idJeune: string
 }
@@ -31,7 +29,6 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
     private readonly actualiteMiloRepository: ActualiteMilo.Repository,
     @Inject(JeuneMiloRepositoryToken)
     private readonly jeuneRepository: JeuneMilo.Repository,
-    private readonly evenementService: EvenementService,
     private readonly jeuneAuthorizer: JeuneAuthorizer
   ) {
     super('GetActualitesMiloJeuneQueryHandler')
@@ -78,10 +75,7 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
     }
   }
 
-  async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
-    await this.evenementService.creer(
-      Evenement.Code.ACTUALITE_MILO_CONSULTATION,
-      utilisateur
-    )
+  async monitor(): Promise<void> {
+    return
   }
 }
