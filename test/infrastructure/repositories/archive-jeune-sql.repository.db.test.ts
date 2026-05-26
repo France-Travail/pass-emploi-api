@@ -367,6 +367,37 @@ describe('ArchiveJeuneSqlRepository', () => {
     })
   })
 
+  describe('.findById(idArchive)', () => {
+    beforeEach(async () => {
+      await ConseillerSqlModel.upsert(secondConseillerDto)
+      await JeuneSqlModel.upsert(jeuneDto)
+      await archiveJeuneSqlRepository.archiver(
+        uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+      )
+    })
+
+    it("retourne true quand l'archive existe", async () => {
+      // Given
+      const archive = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+
+      // When
+      const result = await archiveJeuneSqlRepository.findById(archive!.id)
+
+      // Then
+      expect(result).to.be.true()
+    })
+
+    it("retourne false quand l'archive n'existe pas", async () => {
+      // When
+      const result = await archiveJeuneSqlRepository.findById(0)
+
+      // Then
+      expect(result).to.be.false()
+    })
+  })
+
   describe('.delete(idArchive)', () => {
     beforeEach(async () => {
       await ConseillerSqlModel.upsert(secondConseillerDto)

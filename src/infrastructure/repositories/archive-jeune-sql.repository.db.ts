@@ -101,6 +101,13 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     })
   }
 
+  async findById(idArchive: number): Promise<boolean> {
+    const archive = await ArchiveJeuneSqlModel.findByPk(idArchive, {
+      attributes: ['id']
+    })
+    return !!archive
+  }
+
   async delete(idArchive: number): Promise<void> {
     await ArchiveJeuneSqlModel.destroy({
       where: {

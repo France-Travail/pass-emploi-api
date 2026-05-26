@@ -5,6 +5,7 @@ import {
   NotifierBeneficiairesCommandHandler
 } from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
+import { SupprimerArchiveJeuneCommandHandler } from '../../../src/application/commands/support/supprimer-archive-jeune.command.handler'
 import {
   CreerSuperviseursCommand,
   CreerSuperviseursCommandHandler
@@ -39,6 +40,7 @@ import { OidcClient } from '../../../src/infrastructure/clients/oidc-client.db'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
+  let supprimerArchiveJeuneCommandHandler: StubbedClass<SupprimerArchiveJeuneCommandHandler>
   let updateAgenceCommandHandler: StubbedClass<UpdateAgenceConseillerCommandHandler>
   let fusionnerAgencesCommandHandler: StubbedClass<FusionnerAgencesCommandHandler>
   let creerSuperviseursCommandHandler: StubbedClass<CreerSuperviseursCommandHandler>
@@ -53,6 +55,9 @@ describe('SupportController', () => {
     app = await getApplicationWithStubbedDependencies()
     archiverJeuneSupportCommandHandler = app.get(
       ArchiverJeuneSupportCommandHandler
+    )
+    supprimerArchiveJeuneCommandHandler = app.get(
+      SupprimerArchiveJeuneCommandHandler
     )
     updateAgenceCommandHandler = app.get(UpdateAgenceConseillerCommandHandler)
     fusionnerAgencesCommandHandler = app.get(FusionnerAgencesCommandHandler)
@@ -618,6 +623,56 @@ describe('SupportController', () => {
           .send(payload)
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+  })
+
+  describe('DELETE /support/archives-jeune/:idArchive', () => {
+    describe('quand la commande est en succès', () => {
+      it('retourne un 200', async () => {
+        // Given
+        supprimerArchiveJeuneCommandHandler.execute.resolves(emptySuccess())
+
+        // When
+        await request(app.getHttpServer())
+          .delete('/support/archives-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          // Then
+          .expect(HttpStatus.OK)
+
+        expect(
+          supprimerArchiveJeuneCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          { idArchive: 42 },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+    })
+
+    describe("quand l'archive n'est pas trouvée", () => {
+      it('retourne une 404', async () => {
+        // Given
+        supprimerArchiveJeuneCommandHandler.execute.resolves(
+          failure(new NonTrouveError('ArchiveJeune', '42'))
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .delete('/support/archives-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          // Then
+          .expect(HttpStatus.NOT_FOUND)
+      })
+    })
+
+    describe('auth', () => {
+      it('fail avec mauvaise api key', async () => {
+        // When
+        await request(app.getHttpServer())
+          .delete('/support/archives-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-inconnue' })
+          // Then
+          .expect(HttpStatus.UNAUTHORIZED)
       })
     })
   })
