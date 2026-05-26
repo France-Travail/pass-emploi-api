@@ -285,6 +285,7 @@ export namespace ArchiveJeune {
       emailJeune: string,
       motif: MotifSuppression | MotifSuppressionSupport
     ): Promise<boolean>
+    findById(idArchive: number): Promise<boolean>
     delete(idArchive: number): Promise<void>
   }
 

@@ -8,6 +8,7 @@ import {
   Inject,
   Param,
   ParseEnumPipe,
+  ParseIntPipe,
   Post,
   SetMetadata,
   UploadedFile,
@@ -28,6 +29,7 @@ import { ArchiverJeunesMigrationCommandHandler } from '../../application/command
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
+import { SupprimerArchiveJeuneCommandHandler } from '../../application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from '../../application/commands/support/delete-superviseurs.command.handler'
 import { FusionnerAgencesCommandHandler } from '../../application/commands/support/fusionner-agences.command.handler'
@@ -80,6 +82,7 @@ export class SupportController {
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
+    private readonly supprimerArchiveJeuneCommandHandler: SupprimerArchiveJeuneCommandHandler,
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
@@ -459,6 +462,26 @@ PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
         phaseDeMigration
       })
 
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: 'Supprime une archive jeune via son identifiant en base',
+    description: 'Autorisé pour le support'
+  })
+  @Delete('archives-jeune/:idArchive')
+  @HttpCode(HttpStatus.OK)
+  async supprimerArchiveJeune(
+    @Param('idArchive', ParseIntPipe) idArchive: number
+  ): Promise<void> {
+    const result = await this.supprimerArchiveJeuneCommandHandler.execute(
+      { idArchive },
+      Authentification.unUtilisateurSupport()
+    )
     return handleResult(result)
   }
 
