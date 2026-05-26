@@ -24,7 +24,7 @@ describe('attachExternalApiLogger', () => {
           config
         })
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       await instance.get('https://api.example.com/foo/bar')
 
@@ -74,7 +74,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(axiosError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://api.example.com/secret')
@@ -128,7 +128,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(axiosError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://api.example.com/big')
@@ -160,7 +160,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(netError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://nope.invalid/x')
