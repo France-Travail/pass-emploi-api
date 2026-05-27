@@ -172,7 +172,14 @@ export const serializeBodyForLog = (value: unknown): string | undefined => {
   if (value === undefined || value === null) return undefined
   if (Buffer.isBuffer(value)) return '[binary]'
   if (typeof value === 'string') return serializeString(value)
-  if (typeof value !== 'object') return truncateBody(String(value))
+  if (
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint'
+  ) {
+    return truncateBody(value.toString())
+  }
+  if (typeof value !== 'object') return undefined // symbol, function : non loggable
   if (isStream(value)) return '[stream]'
   if (value instanceof URLSearchParams) return serializeUrlSearchParams(value)
   if (Array.isArray(value) || isPlainObject(value)) {
