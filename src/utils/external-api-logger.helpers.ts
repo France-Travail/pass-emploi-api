@@ -36,7 +36,7 @@ export function attachExternalApiLogger(
       logCall(
         emit,
         isDebugEnabled,
-        response.config as ConfigWithMetadata,
+        response.config,
         response.status,
         undefined,
         response.data
@@ -44,11 +44,10 @@ export function attachExternalApiLogger(
       return response
     },
     (error: AxiosError) => {
-      const config = error.config as ConfigWithMetadata | undefined
       logCall(
         emit,
         isDebugEnabled,
-        config,
+        error.config,
         error.response?.status,
         error,
         error.response?.data
@@ -56,6 +55,34 @@ export function attachExternalApiLogger(
       return Promise.reject(error)
     }
   )
+}
+
+const buildResponsePayload = (
+  statusCode: number | undefined,
+  responseBodyContent: string | undefined
+): Record<string, unknown> | undefined => {
+  if (statusCode === undefined && responseBodyContent === undefined) {
+    return undefined
+  }
+  return {
+    ...(statusCode !== undefined && { status_code: statusCode }),
+    ...(responseBodyContent !== undefined && {
+      body: { content: responseBodyContent }
+    })
+  }
+}
+
+const buildErrorFragment = (
+  err: AxiosError | undefined
+): Record<string, unknown> | undefined => {
+  if (!err) return undefined
+  return {
+    error: {
+      type: err.name,
+      message: err.message,
+      ...(err.stack && { stack_trace: err.stack })
+    }
+  }
 }
 
 export function logCall(
@@ -66,14 +93,7 @@ export function logCall(
   err: AxiosError | undefined,
   responseData: unknown
 ): void {
-  const durationNs = config?.metadata
-    ? Number(process.hrtime.bigint() - config.metadata.startTimeNs)
-    : undefined
-
-  const { path, domain, search } = parseUrl(config)
-  const query = serializeQuery(config, search)
   const isFailure = !!err || (!!statusCode && statusCode >= 400)
-
   // Bodies request + response : sur échec, toujours ; sur succès, seulement
   // si LOG_LEVEL=debug (inspecter / rejouer un appel partenaire en dev).
   const includeBodies = isFailure || isDebugEnabled()
@@ -84,15 +104,12 @@ export function logCall(
     ? serializeBodyForLog(responseData)
     : undefined
 
-  const responsePayload =
-    statusCode !== undefined || responseBodyContent !== undefined
-      ? {
-          ...(statusCode !== undefined && { status_code: statusCode }),
-          ...(responseBodyContent !== undefined && {
-            body: { content: responseBodyContent }
-          })
-        }
-      : undefined
+  const { path, domain, search } = parseUrl(config)
+  const query = serializeQuery(config, search)
+  const responsePayload = buildResponsePayload(statusCode, responseBodyContent)
+  const durationNs = config?.metadata
+    ? Number(process.hrtime.bigint() - config.metadata.startTimeNs)
+    : undefined
 
   const obj: Record<string, unknown> = {
     event: {
@@ -114,17 +131,12 @@ export function logCall(
       ...(domain && { domain }),
       ...(query && { query })
     },
-    ...(err && {
-      error: {
-        type: err.name,
-        message: err.message,
-        ...(err.stack && { stack_trace: err.stack })
-      }
-    })
+    ...buildErrorFragment(err)
   }
 
+  // erreur réseau : pas de réponse → log error
   const isCrash =
-    (!!statusCode && statusCode >= 500) || (!!err && statusCode === undefined) // erreur réseau : pas de réponse
+    (!!statusCode && statusCode >= 500) || (!!err && statusCode === undefined)
   emit(isCrash ? 'error' : 'info', obj, 'external_api_call')
 }
 

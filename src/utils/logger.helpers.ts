@@ -12,15 +12,14 @@ const REQ_HEADERS_WHITELIST = [
 const pickHeaders = (
   headers: Record<string, string | string[] | undefined>,
   whitelist: string[]
-): Record<string, string | string[]> =>
-  Object.fromEntries(
-    whitelist
-      .map(key => [key, headers[key]] as const)
-      .filter(
-        (entry): entry is readonly [string, string | string[]] =>
-          entry[1] !== undefined
-      )
-  )
+): Record<string, string | string[]> => {
+  const out: Record<string, string | string[]> = {}
+  for (const key of whitelist) {
+    const value = headers[key]
+    if (value !== undefined) out[key] = value
+  }
+  return out
+}
 
 export const pinoSerializers = {
   req: (req: {
@@ -124,61 +123,76 @@ const redactDeep = (value: unknown): unknown => {
   return value
 }
 
+const isStream = (value: object): boolean =>
+  typeof (value as { pipe?: unknown }).pipe === 'function'
+
+const serializeUrlSearchParams = (
+  value: URLSearchParams
+): string | undefined => {
+  const redacted = new URLSearchParams()
+  let empty = true
+  value.forEach((v, k) => {
+    empty = false
+    redacted.append(k, isSensitiveKey(k) ? '[Redacted]' : v)
+  })
+  return empty ? undefined : truncateBody(redacted.toString())
+}
+
+const FORM_URLENCODED_RE = /^[\w.%+-]+=[^&\s]*(&[\w.%+-]+=[^&\s]*)*$/
+
+const serializeString = (value: string): string | undefined => {
+  if (value.length === 0) return undefined
+  try {
+    return serializeBodyForLog(JSON.parse(value))
+  } catch {
+    if (FORM_URLENCODED_RE.test(value)) {
+      return serializeBodyForLog(new URLSearchParams(value))
+    }
+    return truncateBody(value)
+  }
+}
+
+const serializeArrayOrObject = (
+  value: unknown[] | Record<string, unknown>
+): string | undefined => {
+  const isEmpty = Array.isArray(value)
+    ? value.length === 0
+    : Object.keys(value).length === 0
+  if (isEmpty) return undefined
+  try {
+    return truncateBody(JSON.stringify(redactDeep(value)))
+  } catch {
+    return undefined
+  }
+}
+
 // Sérialise un body de requête pour le log : JSON, form-urlencoded ou
 // URLSearchParams, clés sensibles masquées, tronqué. undefined si vide.
 export const serializeBodyForLog = (value: unknown): string | undefined => {
   if (value === undefined || value === null) return undefined
   if (Buffer.isBuffer(value)) return '[binary]'
-  if (
-    typeof value === 'object' &&
-    typeof (value as { pipe?: unknown }).pipe === 'function'
-  ) {
-    return '[stream]'
-  }
-
-  if (value instanceof URLSearchParams) {
-    const redacted = new URLSearchParams()
-    let empty = true
-    value.forEach((v, k) => {
-      empty = false
-      redacted.append(k, isSensitiveKey(k) ? '[Redacted]' : v)
-    })
-    return empty ? undefined : truncateBody(redacted.toString())
-  }
-
-  if (typeof value === 'string') {
-    if (value.length === 0) return undefined
-    try {
-      return serializeBodyForLog(JSON.parse(value))
-    } catch {
-      if (/^[\w.%+-]+=[^&\s]*(&[\w.%+-]+=[^&\s]*)*$/.test(value)) {
-        return serializeBodyForLog(new URLSearchParams(value))
-      }
-      return truncateBody(value)
-    }
-  }
-
+  if (typeof value === 'string') return serializeString(value)
+  if (typeof value !== 'object') return truncateBody(String(value))
+  if (isStream(value)) return '[stream]'
+  if (value instanceof URLSearchParams) return serializeUrlSearchParams(value)
   if (Array.isArray(value) || isPlainObject(value)) {
-    const isEmpty = Array.isArray(value)
-      ? value.length === 0
-      : Object.keys(value).length === 0
-    if (isEmpty) return undefined
-    try {
-      return truncateBody(JSON.stringify(redactDeep(value)))
-    } catch {
-      return undefined
-    }
+    return serializeArrayOrObject(value)
   }
-
-  return truncateBody(String(value))
+  // Objet non-plain (Date, classe custom...) : JSON.stringify pour éviter le
+  // fallback "[object Object]" de String().
+  try {
+    return truncateBody(JSON.stringify(value))
+  } catch {
+    return undefined
+  }
 }
 
-// Fragment ECS http.request.body.content, vide si pas de body.
+// Fragment ECS http.request.body.content, undefined si pas de body.
 export const requestBodyFragment = (
   req: IncomingMessage
-): Record<string, unknown> => {
+): Record<string, unknown> | undefined => {
   const content = serializeBodyForLog((req as { body?: unknown }).body)
-  return content ? { http: { request: { body: { content } } } } : {}
+  return content ? { http: { request: { body: { content } } } } : undefined
 }
 
 export const customLogLevel = (
@@ -245,8 +259,7 @@ export function toEcsError(error: unknown): Record<string, unknown> {
     'code' in error &&
     'message' in error
   ) {
-    const e = error as { code: unknown; message: unknown }
-    return { type: String(e.code), message: String(e.message) }
+    return { type: String(error.code), message: String(error.message) }
   }
   return { type: 'Unknown', message: String(error) }
 }
@@ -280,7 +293,7 @@ export function emitHandlerExecuted(
         outcome: isFailure ? 'failure' : 'success',
         duration: Number(process.hrtime.bigint() - startNs)
       },
-      ...(extra ?? {}),
+      ...extra,
       ...(error !== undefined && { error: toEcsError(error) })
     },
     'handler_executed'
