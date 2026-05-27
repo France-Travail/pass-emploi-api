@@ -24,7 +24,7 @@ describe('attachExternalApiLogger', () => {
           config
         })
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       await instance.get('https://api.example.com/foo/bar')
 
@@ -50,7 +50,7 @@ describe('attachExternalApiLogger', () => {
   })
 
   describe('appel sortant failure 4xx', () => {
-    it('emit error ECS avec error.* et http.response.body.content', async () => {
+    it('emit info (échec géré) ECS avec error.* et http.response.body.content', async () => {
       const instance = axios.create()
       const axiosError = Object.assign(new Error('boom'), {
         name: 'AxiosError',
@@ -74,7 +74,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(axiosError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://api.example.com/secret')
@@ -84,7 +84,8 @@ describe('attachExternalApiLogger', () => {
 
       expect(emit.calledOnce).to.equal(true)
       const [level, obj] = emit.firstCall.args
-      expect(level).to.equal('error')
+      // 4xx = échec géré → info/failure (5xx + réseau → error, cf. isCrash)
+      expect(level).to.equal('info')
       expect(obj.event).to.deep.include({
         action: 'external_api_call',
         outcome: 'failure'
@@ -127,7 +128,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(axiosError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://api.example.com/big')
@@ -159,7 +160,7 @@ describe('attachExternalApiLogger', () => {
       }) as unknown as AxiosError
       instance.defaults.adapter = sinon.stub().rejects(netError)
 
-      attachExternalApiLogger(instance, emit)
+      attachExternalApiLogger(instance, emit, () => false)
 
       try {
         await instance.get('https://nope.invalid/x')

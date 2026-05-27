@@ -9,6 +9,7 @@ import {
   IsArray,
   IsEnum,
   IsEmail,
+  Max,
   MaxLength,
   ValidateIf,
   Matches,
@@ -47,6 +48,7 @@ export class GetOffresImmersionQueryParams implements GetOffresImmersionQuery {
   @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
+  @Max(100)
   @Transform(params => transformStringToInteger(params, 'distance'))
   distance?: number
 }
@@ -80,6 +82,7 @@ export class GetOffresImmersionQueryParamsV3 {
   @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
+  @Max(100)
   @Transform(params => transformStringToInteger(params, 'distance'))
   distance?: number
 
