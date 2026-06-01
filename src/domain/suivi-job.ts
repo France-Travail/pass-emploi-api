@@ -24,6 +24,7 @@ export interface RapportJob24h {
 
 export interface NettoyageJobsStats {
   nbJobsNettoyes: number
+  nbJobsEnEchecNettoyes: number
   tempsDExecution?: number
 }
 

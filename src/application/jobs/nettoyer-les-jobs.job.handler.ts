@@ -34,7 +34,7 @@ export class NettoyerLesJobsJobHandler extends JobHandler {
 
     return {
       jobType: this.jobType,
-      nbErreurs: 0,
+      nbErreurs: erreur ? 1 : 0,
       succes: !erreur,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),

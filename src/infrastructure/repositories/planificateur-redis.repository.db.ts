@@ -121,13 +121,15 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
   }
 
   async supprimerLesJobsPasses(): Promise<NettoyageJobsStats> {
-    const stats: NettoyageJobsStats = {
-      nbJobsNettoyes: 0
-    }
     const ilYA7Jours = Duration.fromObject({ day: 7 }).toMillis()
-    const jobs = await this.queue.clean(ilYA7Jours, 'completed')
-    stats.nbJobsNettoyes = jobs.length
-    return stats
+    const [completed, failed] = await Promise.all([
+      this.queue.clean(ilYA7Jours, 'completed'),
+      this.queue.clean(ilYA7Jours, 'failed')
+    ])
+    return {
+      nbJobsNettoyes: completed.length,
+      nbJobsEnEchecNettoyes: failed.length
+    }
   }
 
   async supprimerLesJobsSelonPattern(pattern: string): Promise<void> {

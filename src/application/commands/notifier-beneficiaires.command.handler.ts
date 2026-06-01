@@ -48,7 +48,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   async handle(
     command: NotifierBeneficiairesCommand
   ): Promise<Result<Planificateur.JobId>> {
-    const push: boolean = command.push || PUSH_NOTIF_DEFAUT
+    const push: boolean = command.push ?? PUSH_NOTIF_DEFAUT
     if (
       push &&
       command.typeNotification === Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT

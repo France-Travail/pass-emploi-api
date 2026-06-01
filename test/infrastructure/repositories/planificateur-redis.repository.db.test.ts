@@ -115,6 +115,22 @@ describe('PlanificateurRedisRepository', () => {
     })
   })
 
+  describe('supprimerLesJobsPasses', () => {
+    describe('si le redis est accessible', () => {
+      it('retourne les stats avec les deux compteurs à zéro quand aucun job ancien', async () => {
+        // When
+        const stats =
+          await planificateurRedisRepository.supprimerLesJobsPasses()
+
+        // Then
+        expect(stats).to.deep.equal({
+          nbJobsNettoyes: 0,
+          nbJobsEnEchecNettoyes: 0
+        })
+      })
+    })
+  })
+
   describe('supprimerJobsSelonPattern', () => {
     describe('si le redis est accessible', () => {
       it('supprime les jobs avec id', async () => {

@@ -84,6 +84,68 @@ describe('NotifierBeneficiairesCommandHandler', () => {
       expect(result).to.deep.equal(success({ jobId: jobId }))
     })
 
+    it('crée un job avec push: false quand explicitement demandé', async () => {
+      // Given
+      planificateurRepository.recupererPremierJobNonTermine.resolves(null)
+      planificateurRepository.ajouterJob.resolves('3')
+
+      const command: NotifierBeneficiairesCommand = {
+        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+        titre: 'Titre',
+        description: 'Description',
+        push: false
+      }
+
+      // When
+      const result = await handler.handle(command)
+
+      // Then - push: false ne doit pas être écrasé par le défaut true
+      expect(
+        planificateurRepository.ajouterJob
+      ).to.have.been.calledOnceWithExactly({
+        dateExecution: maintenant.toJSDate(),
+        type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+          titre: 'Titre',
+          description: 'Description',
+          params: {
+            structures: undefined,
+            phaseDeMigration: undefined,
+            push: false,
+            batchSize: undefined,
+            minutesEntreLesBatchs: 5
+          }
+        }
+      })
+      expect(result).to.deep.equal(success({ jobId: '3' }))
+    })
+
+    it('refuse push: true avec typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT', async () => {
+      // Given
+      planificateurRepository.recupererPremierJobNonTermine.resolves(null)
+
+      const command: NotifierBeneficiairesCommand = {
+        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+        titre: 'Titre',
+        description: 'Description',
+        push: true
+      }
+
+      // When
+      const result = await handler.handle(command)
+
+      // Then
+      expect(planificateurRepository.ajouterJob).not.to.have.been.called()
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Une notif push doit etre de type different de CENTRE_DE_NOTIFS_UNIQUEMENT.'
+          )
+        )
+      )
+    })
+
     it('ne crée pas de job si un job NOTIFIER_BENEFICIAIRES existe déjà', async () => {
       //Given
       planificateurRepository.recupererPremierJobNonTermine.resolves('1')
