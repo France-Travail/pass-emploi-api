@@ -452,6 +452,133 @@ describe('NotifierBeneficiairesJobHandler', () => {
       })
     })
 
+    it("s'arrête quand le nombre de bénéficiaires notifiés dépasse le snapshot de la population totale", async () => {
+      // Given - 5 jeunes en base mais le snapshot initial disait 3
+      await ConseillerSqlModel.bulkCreate([unConseillerDto({ id: 'con1' })])
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'j1',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push1',
+          structure: Core.Structure.MILO
+        }),
+        unJeuneDto({
+          id: 'j2',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push2',
+          structure: Core.Structure.MILO
+        }),
+        unJeuneDto({
+          id: 'j3',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push3',
+          structure: Core.Structure.MILO
+        }),
+        unJeuneDto({
+          id: 'j4',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push4',
+          structure: Core.Structure.MILO
+        }),
+        unJeuneDto({
+          id: 'j5',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push5',
+          structure: Core.Structure.MILO
+        })
+      ])
+
+      const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
+        dateExecution: maintenant.toJSDate(),
+        type: JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.OUTILS,
+          titre: 'Titre',
+          description: 'Description',
+          params: {
+            structures: [Core.Structure.MILO],
+            push: true,
+            minutesEntreLesBatchs: 5,
+            batchSize: 2
+          },
+          stats: {
+            taillePopulationTotale: 3,
+            nbBeneficiairesNotifies: 2,
+            offset: 2,
+            estLaDerniereExecution: false
+          }
+        }
+      }
+
+      // When
+      const result = await handler.handle(job)
+
+      // Then - 2 + 2 = 4 >= 3 (snapshot), doit s'arrêter malgré le dépassement
+      expect(result.succes).to.be.true()
+      expect(result.resultat).to.deep.equal({
+        estLaDerniereExecution: true,
+        nbBeneficiairesNotifies: 4,
+        nbPopulationTotale: 3,
+        offset: 2
+      })
+      expect(planificateurRepository.ajouterJob).not.to.have.been.called()
+    })
+
+    it("s'arrête quand le batch retourné est vide même si le compteur est inférieur au snapshot", async () => {
+      // Given - 2 jeunes en base mais le snapshot disait 5 (certains ont été supprimés)
+      await ConseillerSqlModel.bulkCreate([unConseillerDto({ id: 'con1' })])
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'j1',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push1',
+          structure: Core.Structure.MILO
+        }),
+        unJeuneDto({
+          id: 'j2',
+          idConseiller: 'con1',
+          pushNotificationToken: 'push2',
+          structure: Core.Structure.MILO
+        })
+      ])
+
+      const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
+        dateExecution: maintenant.toJSDate(),
+        type: JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.OUTILS,
+          titre: 'Titre',
+          description: 'Description',
+          params: {
+            structures: [Core.Structure.MILO],
+            push: true,
+            minutesEntreLesBatchs: 5,
+            batchSize: 2
+          },
+          stats: {
+            taillePopulationTotale: 5,
+            nbBeneficiairesNotifies: 2,
+            offset: 5,
+            estLaDerniereExecution: false
+          }
+        }
+      }
+
+      // When
+      const result = await handler.handle(job)
+
+      // Then - batch vide (offset dépasse la taille réelle) → arrêt même si nbNotifies < snapshot
+      expect(result.succes).to.be.true()
+      expect(result.resultat).to.deep.equal({
+        estLaDerniereExecution: true,
+        nbBeneficiairesNotifies: 2,
+        nbPopulationTotale: 5,
+        offset: 5
+      })
+      expect(notificationRepository.send).not.to.have.been.called()
+      expect(planificateurRepository.ajouterJob).not.to.have.been.called()
+    })
+
     describe("s'assure que les jobs suivants (batchs) ne tournent que les jours ouvrés entre 08h00 et 17h00 (Zone Europe/Paris)", async () => {
       it('après 17h00', async () => {
         // Given
@@ -554,6 +681,80 @@ describe('NotifierBeneficiairesJobHandler', () => {
 
         const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
           dateExecution: dimancheMidi.toJSDate(),
+          type: JobType.NOTIFIER_BENEFICIAIRES,
+          contenu: {
+            typeNotification: Notification.Type.OUTILS,
+            titre: 'Une notification très importante',
+            description: "C'est incroyable",
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              minutesEntreLesBatchs: 5,
+              batchSize: 1
+            }
+          }
+        }
+
+        // When
+        const result = await handler.handle(job)
+
+        // Then
+        expect(result.succes).to.be.true()
+        const lundi08h00 = maintenant
+          .setZone(TIME_ZONE_EUROPE_PARIS)
+          .set({ localWeekday: 1, hour: 8, minute: 0 })
+        expect(planificateurRepository.ajouterJob).to.have.been.calledWith({
+          dateExecution: lundi08h00.toJSDate(),
+          type: JobType.NOTIFIER_BENEFICIAIRES,
+          contenu: {
+            typeNotification: Notification.Type.OUTILS,
+            titre: 'Une notification très importante',
+            description: "C'est incroyable",
+            params: {
+              structures: [Core.Structure.MILO],
+              push: true,
+              batchSize: 1,
+              minutesEntreLesBatchs: 5
+            },
+            stats: {
+              taillePopulationTotale: 2,
+              nbBeneficiairesNotifies: 1,
+              offset: 1,
+              estLaDerniereExecution: false
+            }
+          }
+        })
+      })
+
+      it('le vendredi après 17h00', async () => {
+        // Given
+        await ConseillerSqlModel.bulkCreate([
+          unConseillerDto({
+            id: 'con1'
+          })
+        ])
+        await JeuneSqlModel.bulkCreate([
+          unJeuneDto({
+            id: 'j1',
+            idConseiller: 'con1',
+            pushNotificationToken: 'push1',
+            structure: Core.Structure.MILO
+          }),
+          unJeuneDto({
+            id: 'j2',
+            idConseiller: 'con1',
+            pushNotificationToken: 'push2',
+            structure: Core.Structure.MILO
+          })
+        ])
+
+        const vendredi17h12 = maintenant
+          .setZone(TIME_ZONE_EUROPE_PARIS)
+          .set({ localWeekday: 5, hour: 17, minute: 12 })
+        dateService.now.returns(vendredi17h12)
+
+        const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
+          dateExecution: vendredi17h12.toJSDate(),
           type: JobType.NOTIFIER_BENEFICIAIRES,
           contenu: {
             typeNotification: Notification.Type.OUTILS,

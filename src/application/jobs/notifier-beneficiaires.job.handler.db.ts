@@ -78,7 +78,8 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
       }
 
       const ilResteDesBeneficiairesANotifier =
-        nbBeneficiairesNotifiesOuErreur !== taillePopulationTotale
+        nbBeneficiairesNotifiesOuErreur < taillePopulationTotale &&
+        idsEtTokensBeneficiairesDuBatch.length > 0
 
       if (ilResteDesBeneficiairesANotifier) {
         estLaDerniereExecution = false
@@ -188,7 +189,10 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     }
     if (newDate.hour < 8) newDate = newDate.set(huitHeures)
     if (newDate.localWeekday >= samedi) {
-      newDate = newDate.set(prochainJourOuvre8h00)
+      newDate = newDate.set({
+        localWeekday: lundi as WeekdayNumbers,
+        ...huitHeures
+      })
     }
 
     return newDate
