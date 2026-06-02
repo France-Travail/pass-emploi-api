@@ -119,6 +119,15 @@ describe('ActionPoleEmploiMapper', () => {
       // Then
       expect(queryModel.statut).to.equal(Demarche.Statut.A_FAIRE)
     })
+    it('retourne statut à faire quand etat AE (à engager)', async () => {
+      // Given
+      demarcheDto.etat = DemarcheDtoEtat.AE
+      demarcheDto.dateDebut = '2222-04-06T10:20:00+02:00'
+      // When
+      const queryModel = fromDemarcheDtoToDemarche(demarcheDto, dateService)
+      // Then
+      expect(queryModel.statut).to.equal(Demarche.Statut.A_FAIRE)
+    })
     it('retourne les attributs', async () => {
       // Given
       demarcheDto.organisme = 'pole emploi'

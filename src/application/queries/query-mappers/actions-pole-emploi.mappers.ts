@@ -168,6 +168,7 @@ function buildStatut(
     case DemarcheDtoEtat.AC:
     case DemarcheDtoEtat.AF:
     case DemarcheDtoEtat.EC:
+    case DemarcheDtoEtat.AE:
       if (debut && debut < aujourdhuiAMidi) return Demarche.Statut.EN_COURS
       return Demarche.Statut.A_FAIRE
     case DemarcheDtoEtat.RE:

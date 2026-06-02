@@ -205,7 +205,8 @@ export enum DemarcheDtoEtat {
   RE = 'RE',
   AN = 'AN',
   EC = 'EC',
-  AF = 'AF'
+  AF = 'AF',
+  AE = 'AE'
 }
 
 export interface ListeTypeDemarchesDto {
