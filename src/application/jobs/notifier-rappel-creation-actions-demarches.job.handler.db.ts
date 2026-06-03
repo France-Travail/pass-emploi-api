@@ -118,7 +118,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
       }
 
       if (idsJeunesANotifier.length === PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM) {
-        this.planificateurRepository.ajouterJob({
+        await this.planificateurRepository.ajouterJob({
           dateExecution: maintenant.plus({ minute: 1 }).toJSDate(),
           type: Planificateur.JobType
             .NOTIFIER_RAPPEL_CREATION_ACTIONS_DEMARCHES,

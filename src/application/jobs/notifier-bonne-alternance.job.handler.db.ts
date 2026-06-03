@@ -96,7 +96,7 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
       }
 
       if (idsJeunesANotifier.length === PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM) {
-        this.planificateurRepository.ajouterJob({
+        await this.planificateurRepository.ajouterJob({
           dateExecution: maintenant.plus({ seconds: 30 }).toJSDate(),
           type: Planificateur.JobType.NOTIFIER_BONNE_ALTERNANCE,
           contenu: {

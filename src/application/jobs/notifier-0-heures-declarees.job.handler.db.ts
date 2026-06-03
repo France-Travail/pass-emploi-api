@@ -92,7 +92,7 @@ export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur
       if (
         idsJeunesAvecComptage.length === PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM
       ) {
-        this.planificateurRepository.ajouterJob({
+        await this.planificateurRepository.ajouterJob({
           dateExecution: maintenant.plus({ minute: 1 }).toJSDate(),
           type: Planificateur.JobType.NOTIFIER_0_HEURES_DECLAREES,
           contenu: {
