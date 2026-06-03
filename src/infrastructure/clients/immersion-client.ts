@@ -14,19 +14,6 @@ import { handleAxiosError } from './utils/axios-error-handler'
 import { PartenaireImmersion } from '../repositories/dto/immersion.dto'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 
-export interface FormulaireImmersionPayload {
-  appellationCode: string
-  siret: string
-  potentialBeneficiaryFirstName: string
-  potentialBeneficiaryLastName: string
-  potentialBeneficiaryEmail: string
-  contactMode: string
-  potentialBeneficiaryPhone: string
-  immersionObjective: string
-  locationId: string | null
-  message?: string
-}
-
 export interface FormulaireImmersionPayloadV3 {
   appellationCode: string
   siret: string
@@ -57,51 +44,6 @@ export class ImmersionClient extends ExternalApiClient {
     this.apiUrl = configService.get('immersion').url
     this.immersionApiKey = configService.get('immersion').apiKey
     this.logger = new Logger('ImmersionClient')
-  }
-
-  async getOffres(
-    params: URLSearchParams
-  ): Promise<Result<PartenaireImmersion.DtoV2[]>> {
-    try {
-      const response = await this.get<PartenaireImmersion.DtoV2[]>(
-        'v2/search',
-        params
-      )
-
-      return success(response.data)
-    } catch (erreur) {
-      if (erreur.response?.status === 401)
-        return failure(new ErreurHttp('API Key Immersion invalide', 400))
-
-      return handleAxiosError(erreur, 'ERROR API getOffres immersion')
-    }
-  }
-
-  async getDetailOffre(
-    params: string
-  ): Promise<Result<PartenaireImmersion.DtoV2>> {
-    try {
-      const response = await this.get<PartenaireImmersion.DtoV2>(
-        `v2/search/${params}`
-      )
-      return success(response.data)
-    } catch (erreur) {
-      return handleAxiosError(erreur, 'ERROR API getDetail immersion')
-    }
-  }
-
-  async envoyerFormulaireImmersion(
-    params: FormulaireImmersionPayload
-  ): Promise<Result> {
-    try {
-      await this.post('v2/contact-establishment', params)
-      return emptySuccess()
-    } catch (erreur) {
-      return handleAxiosError(
-        erreur,
-        `L'envoi du formulaire immersion a échoué`
-      )
-    }
   }
 
   async getOffresV3(
