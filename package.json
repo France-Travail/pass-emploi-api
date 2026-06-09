@@ -124,9 +124,9 @@
     "uuid": "13.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.21",
+    "@nestjs/cli": "^11.0.22",
     "@nestjs/schematics": "^11.1.0",
-    "@nestjs/testing": "^11.1.24",
+    "@nestjs/testing": "^11.1.26",
     "@salesforce/ts-sinon": "^1.4.34",
     "@types/chai": "^4.3.20",
     "@types/chai-as-promised": "^8.0.2",
@@ -146,8 +146,8 @@
     "@types/sinon-chai": "^4.0.0",
     "@types/supertest": "^7.2.0",
     "@types/yargs": "^17.0.35",
-    "@typescript-eslint/eslint-plugin": "^8.60.1",
-    "@typescript-eslint/parser": "^8.60.1",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "bull-repl": "^0.29.1",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
