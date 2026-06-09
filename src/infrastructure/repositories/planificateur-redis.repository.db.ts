@@ -11,6 +11,11 @@ const CRON_TIMEZONE = 'Europe/Paris'
 export const REDIS_QUEUE_NAME = 'JobQueue'
 
 const MAX_NUMBER_REDIS_JOBS = 50
+const NB_JOURS_RETENTION_JOBS = 5
+const TAILLE_BATCH_NETTOYAGE = 1000
+const MAX_ITERATIONS_NETTOYAGE = 10000
+const NOMBRE_MAX_JOBS_COMPLETED_CONSERVES = 500000
+const NOMBRE_MAX_JOBS_FAILED_CONSERVES = 50000
 
 @Injectable()
 export class PlanificateurRedisRepository implements Planificateur.Repository {
@@ -39,6 +44,10 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
             this.isReady = true
             return 1000
           }
+        },
+        defaultJobOptions: {
+          removeOnComplete: NOMBRE_MAX_JOBS_COMPLETED_CONSERVES,
+          removeOnFail: NOMBRE_MAX_JOBS_FAILED_CONSERVES
         }
       }
     )
@@ -121,15 +130,31 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
   }
 
   async supprimerLesJobsPasses(): Promise<NettoyageJobsStats> {
-    const ilYA7Jours = Duration.fromObject({ day: 7 }).toMillis()
-    const [completed, failed] = await Promise.all([
-      this.queue.clean(ilYA7Jours, 'completed'),
-      this.queue.clean(ilYA7Jours, 'failed')
+    const graceMillis = Duration.fromObject({
+      day: NB_JOURS_RETENTION_JOBS
+    }).toMillis()
+    const [nbJobsNettoyes, nbJobsEnEchecNettoyes] = await Promise.all([
+      this.nettoyerParBatch('completed', graceMillis),
+      this.nettoyerParBatch('failed', graceMillis)
     ])
-    return {
-      nbJobsNettoyes: completed.length,
-      nbJobsEnEchecNettoyes: failed.length
+    return { nbJobsNettoyes, nbJobsEnEchecNettoyes }
+  }
+
+  private async nettoyerParBatch(
+    statut: 'completed' | 'failed',
+    graceMillis: number
+  ): Promise<number> {
+    let total = 0
+    for (let i = 0; i < MAX_ITERATIONS_NETTOYAGE; i++) {
+      const supprimes = await this.queue.clean(
+        graceMillis,
+        statut,
+        TAILLE_BATCH_NETTOYAGE
+      )
+      total += supprimes.length
+      if (supprimes.length < TAILLE_BATCH_NETTOYAGE) break
     }
+    return total
   }
 
   async supprimerLesJobsSelonPattern(pattern: string): Promise<void> {
