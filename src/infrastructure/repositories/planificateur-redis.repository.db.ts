@@ -11,6 +11,11 @@ const CRON_TIMEZONE = 'Europe/Paris'
 export const REDIS_QUEUE_NAME = 'JobQueue'
 
 const MAX_NUMBER_REDIS_JOBS = 50
+const NB_JOURS_RETENTION_JOBS = 5
+const TAILLE_BATCH_NETTOYAGE = 1000
+const MAX_ITERATIONS_NETTOYAGE = 10000
+const NOMBRE_MAX_JOBS_COMPLETED_CONSERVES = 500000
+const NOMBRE_MAX_JOBS_FAILED_CONSERVES = 50000
 
 @Injectable()
 export class PlanificateurRedisRepository implements Planificateur.Repository {
@@ -39,6 +44,10 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
             this.isReady = true
             return 1000
           }
+        },
+        defaultJobOptions: {
+          removeOnComplete: NOMBRE_MAX_JOBS_COMPLETED_CONSERVES,
+          removeOnFail: NOMBRE_MAX_JOBS_FAILED_CONSERVES
         }
       }
     )
@@ -121,15 +130,31 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
   }
 
   async supprimerLesJobsPasses(): Promise<NettoyageJobsStats> {
-    const ilYA7Jours = Duration.fromObject({ day: 7 }).toMillis()
-    const [completed, failed] = await Promise.all([
-      this.queue.clean(ilYA7Jours, 'completed'),
-      this.queue.clean(ilYA7Jours, 'failed')
+    const graceMillis = Duration.fromObject({
+      day: NB_JOURS_RETENTION_JOBS
+    }).toMillis()
+    const [nbJobsNettoyes, nbJobsEnEchecNettoyes] = await Promise.all([
+      this.nettoyerParBatch('completed', graceMillis),
+      this.nettoyerParBatch('failed', graceMillis)
     ])
-    return {
-      nbJobsNettoyes: completed.length,
-      nbJobsEnEchecNettoyes: failed.length
+    return { nbJobsNettoyes, nbJobsEnEchecNettoyes }
+  }
+
+  private async nettoyerParBatch(
+    statut: 'completed' | 'failed',
+    graceMillis: number
+  ): Promise<number> {
+    let total = 0
+    for (let i = 0; i < MAX_ITERATIONS_NETTOYAGE; i++) {
+      const supprimes = await this.queue.clean(
+        graceMillis,
+        statut,
+        TAILLE_BATCH_NETTOYAGE
+      )
+      total += supprimes.length
+      if (supprimes.length < TAILLE_BATCH_NETTOYAGE) break
     }
+    return total
   }
 
   async supprimerLesJobsSelonPattern(pattern: string): Promise<void> {
@@ -159,18 +184,98 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
     return String(job.id)
   }
 
-  async recupererJobsNonTerminesParType(
-    jobType: Planificateur.JobType
-  ): Promise<Bull.Job[]> {
-    return (await this.recupererJobsNonTermines()).filter(
-      job => job.data.type === jobType
-    )
-  }
-
   async getJobInformations(jobId: Planificateur.JobId): Promise<Bull.Job> {
     const job = await this.queue.getJob(jobId.jobId)
     if (!job) throw new NonTrouveError('Job', jobId.jobId)
     return job
+  }
+
+  async compterLesJobs(): Promise<Planificateur.StatsJobs> {
+    // getJobCounts ne renvoie pas le compteur paused → récupéré à part
+    const [counts, paused] = await Promise.all([
+      this.queue.getJobCounts(),
+      this.queue.getPausedCount()
+    ])
+    const parStatut: Record<Planificateur.StatutJob, number> = {
+      waiting: counts.waiting ?? 0,
+      active: counts.active ?? 0,
+      delayed: counts.delayed ?? 0,
+      completed: counts.completed ?? 0,
+      failed: counts.failed ?? 0,
+      paused: paused ?? 0
+    }
+
+    const statutsVivants: Array<'waiting' | 'active' | 'delayed' | 'failed'> = [
+      'waiting',
+      'active',
+      'delayed',
+      'failed'
+    ]
+
+    const jobsParStatut = await Promise.all(
+      statutsVivants.map(async statut => {
+        const jobs = await this.queue.getJobs(
+          [statut],
+          0,
+          MAX_NUMBER_REDIS_JOBS - 1
+        )
+        return { statut, jobs }
+      })
+    )
+
+    const compteurParType: Partial<
+      Record<
+        Planificateur.JobType,
+        Record<'waiting' | 'active' | 'delayed' | 'failed', number>
+      >
+    > = {}
+
+    for (const { statut, jobs } of jobsParStatut) {
+      for (const job of jobs) {
+        const type: Planificateur.JobType = job.data.type
+        compteurParType[type] ??= {
+          waiting: 0,
+          active: 0,
+          delayed: 0,
+          failed: 0
+        }
+        compteurParType[type][statut]++
+      }
+    }
+
+    const parTypeStatutsVivants = Object.entries(compteurParType).map(
+      ([type, countsParStatut]) => ({
+        type: type as Planificateur.JobType,
+        waiting: countsParStatut.waiting,
+        active: countsParStatut.active,
+        delayed: countsParStatut.delayed,
+        failed: countsParStatut.failed,
+        total:
+          countsParStatut.waiting +
+          countsParStatut.active +
+          countsParStatut.delayed +
+          countsParStatut.failed
+      })
+    )
+
+    return { parStatut, parTypeStatutsVivants }
+  }
+
+  async listerJobs(options: {
+    statut: Planificateur.StatutJob
+    jobType?: Planificateur.JobType
+    debut?: number
+    fin?: number
+  }): Promise<Bull.Job[]> {
+    const jobs = await this.queue.getJobs(
+      [options.statut],
+      options.debut ?? 0,
+      options.fin ?? 20
+    )
+    if (options.jobType) {
+      return jobs.filter(job => job.data.type === options.jobType)
+    }
+    return jobs
   }
 
   private async recupererJobsNonTermines(): Promise<Bull.Job[]> {

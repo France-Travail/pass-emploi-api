@@ -37,6 +37,12 @@ import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
 import { OidcClient } from '../../../src/infrastructure/clients/oidc-client.db'
+import {
+  Planificateur,
+  PlanificateurRepositoryToken
+} from '../../../src/domain/planificateur'
+import { createSandbox, SinonStub } from 'sinon'
+import Bull from 'bull'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -49,10 +55,15 @@ describe('SupportController', () => {
   let creerNotificationCommandHandler: StubbedClass<NotifierBeneficiairesCommandHandler>
   let updateFeatureFlipCommandHandler: StubbedClass<UpdateFeatureFlipCommandHandler>
   let oidcClient: StubbedClass<OidcClient>
+  let planificateurRepository: Planificateur.Repository
   let app: INestApplication
+  const sandbox = createSandbox()
 
   before(async () => {
     app = await getApplicationWithStubbedDependencies()
+    planificateurRepository = app.get(PlanificateurRepositoryToken)
+    sandbox.stub(planificateurRepository, 'compterLesJobs')
+    sandbox.stub(planificateurRepository, 'listerJobs')
     archiverJeuneSupportCommandHandler = app.get(
       ArchiverJeuneSupportCommandHandler
     )
@@ -71,6 +82,10 @@ describe('SupportController', () => {
       NotifierBeneficiairesCommandHandler
     )
     oidcClient = app.get(OidcClient)
+  })
+
+  after(() => {
+    sandbox.restore()
   })
 
   describe('POST /support/logout/:idJeune', () => {
@@ -672,6 +687,121 @@ describe('SupportController', () => {
           .delete('/support/archives-jeune/42')
           .set({ 'X-API-KEY': 'api-key-inconnue' })
           // Then
+          .expect(HttpStatus.UNAUTHORIZED)
+      })
+    })
+  })
+
+  describe('GET /support/jobs/stats', () => {
+    const stats: Planificateur.StatsJobs = {
+      parStatut: {
+        waiting: 1,
+        active: 2,
+        delayed: 3,
+        completed: 4,
+        failed: 5,
+        paused: 0
+      },
+      parTypeStatutsVivants: [
+        {
+          type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+          waiting: 1,
+          active: 0,
+          delayed: 3,
+          failed: 5,
+          total: 9
+        }
+      ]
+    }
+
+    it('retourne les stats des jobs', async () => {
+      // Given
+      ;(planificateurRepository.compterLesJobs as SinonStub).resolves(stats)
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/support/jobs/stats')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.OK)
+        .expect(stats)
+    })
+
+    describe('auth', () => {
+      it('fail avec mauvaise api key', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .get('/support/jobs/stats')
+          .set({ 'X-API-KEY': 'api-key-inconnue' })
+          .expect(HttpStatus.UNAUTHORIZED)
+      })
+    })
+  })
+
+  describe('GET /support/jobs', () => {
+    const job = {
+      id: '42',
+      data: { type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES },
+      timestamp: 1000,
+      processedOn: 2000,
+      finishedOn: 3000,
+      attemptsMade: 1,
+      failedReason: 'boom'
+    } as unknown as Bull.Job
+
+    it('retourne la liste légère des jobs du statut demandé', async () => {
+      // Given
+      ;(planificateurRepository.listerJobs as SinonStub).resolves([job])
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/support/jobs?statut=failed')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.OK)
+        .expect([
+          {
+            id: '42',
+            type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+            statut: 'failed',
+            timestamp: 1000,
+            processedOn: 2000,
+            finishedOn: 3000,
+            attemptsMade: 1,
+            failedReason: 'boom'
+          }
+        ])
+
+      expect(
+        planificateurRepository.listerJobs as SinonStub
+      ).to.have.been.calledOnceWithExactly({
+        statut: 'failed',
+        jobType: undefined,
+        debut: undefined,
+        fin: undefined
+      })
+    })
+
+    it('renvoie 400 quand le statut est absent', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/support/jobs')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 quand le statut est invalide', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/support/jobs?statut=nimporte-quoi')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    describe('auth', () => {
+      it('fail avec mauvaise api key', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .get('/support/jobs?statut=failed')
+          .set({ 'X-API-KEY': 'api-key-inconnue' })
           .expect(HttpStatus.UNAUTHORIZED)
       })
     })

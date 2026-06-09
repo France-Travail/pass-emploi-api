@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsEnum,
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -15,10 +16,12 @@ import {
   Min,
   ValidateIf
 } from 'class-validator'
+import { Type } from 'class-transformer'
 import { Core } from '../../../domain/core'
 import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
 import { Notification } from '../../../domain/notification/notification'
+import { Planificateur } from '../../../domain/planificateur'
 
 export class TeleverserCsvPayload {
   @ApiProperty({ type: 'string', format: 'binary' })
@@ -106,6 +109,43 @@ export class UpdateFeatureFlipPayload {
   @IsArray()
   @IsEmail({}, { each: true })
   emailsConseillersSuppression?: string[]
+}
+
+export class ListerJobsQueryParams {
+  @ApiProperty({
+    enum: ['waiting', 'active', 'delayed', 'completed', 'failed', 'paused'],
+    description: 'Statut des jobs à lister'
+  })
+  @IsEnum(['waiting', 'active', 'delayed', 'completed', 'failed', 'paused'])
+  statut: Planificateur.StatutJob
+
+  @ApiPropertyOptional({
+    enum: Planificateur.JobType,
+    description: 'Filtrer par type de job'
+  })
+  @IsOptional()
+  @IsEnum(Planificateur.JobType)
+  jobType?: Planificateur.JobType
+
+  @ApiPropertyOptional({
+    type: Number,
+    description: 'Index de début pour la pagination (défaut : 0)'
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  debut?: number
+
+  @ApiPropertyOptional({
+    type: Number,
+    description: 'Index de fin pour la pagination (défaut : 20)'
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  fin?: number
 }
 
 export class NotifierBeneficiairesPayload {
