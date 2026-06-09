@@ -54,9 +54,14 @@ export namespace Planificateur {
 
     getJobInformations(jobId: Planificateur.JobId): Promise<Bull.Job>
 
-    recupererJobsNonTerminesParType(
-      jobType: Planificateur.JobType
-    ): Promise<Bull.Job[]>
+    compterLesJobs(): Promise<Planificateur.StatsJobs>
+
+    listerJobs(options: {
+      statut: Planificateur.StatutJob
+      jobType?: Planificateur.JobType
+      debut?: number
+      fin?: number
+    }): Promise<Bull.Job[]>
   }
 
   export interface JobParams {
@@ -198,6 +203,26 @@ export namespace Planificateur {
 
   export interface JobId {
     jobId: string
+  }
+
+  export type StatutJob =
+    | 'waiting'
+    | 'active'
+    | 'delayed'
+    | 'completed'
+    | 'failed'
+    | 'paused'
+
+  export interface StatsJobs {
+    parStatut: Record<StatutJob, number>
+    parTypeStatutsVivants: Array<{
+      type: JobType
+      waiting: number
+      active: number
+      delayed: number
+      failed: number
+      total: number
+    }>
   }
 
   export interface CronJob {

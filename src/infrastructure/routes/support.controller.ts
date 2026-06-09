@@ -10,6 +10,7 @@ import {
   ParseEnumPipe,
   ParseIntPipe,
   Post,
+  Query,
   SetMetadata,
   UploadedFile,
   UseGuards,
@@ -60,6 +61,7 @@ import { handleResult } from './result.handler'
 import {
   ChangerAgenceConseillerPayload,
   FusionnerAgencesPayload,
+  ListerJobsQueryParams,
   NotifierBeneficiairesPayload,
   RefreshJDDPayload,
   SuperviseursPayload,
@@ -69,6 +71,49 @@ import {
 } from './validation/support.inputs'
 import { Migration } from '../../domain/migration'
 import PhaseDeMigration = Migration.PhaseDeMigration
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+
+export class JobSummaryQueryModel {
+  @ApiProperty()
+  id: string
+
+  @ApiProperty()
+  type: string
+
+  @ApiProperty()
+  statut: string
+
+  @ApiProperty()
+  timestamp: number
+
+  @ApiPropertyOptional()
+  processedOn?: number
+
+  @ApiPropertyOptional()
+  finishedOn?: number
+
+  @ApiProperty()
+  attemptsMade: number
+
+  @ApiPropertyOptional()
+  failedReason?: string
+}
+
+function toJobSummaryQueryModel(
+  job: Bull.Job,
+  statut: string
+): JobSummaryQueryModel {
+  return {
+    id: String(job.id),
+    type: job.data?.type,
+    statut,
+    timestamp: job.timestamp,
+    processedOn: job.processedOn ?? undefined,
+    finishedOn: job.finishedOn ?? undefined,
+    attemptsMade: job.attemptsMade,
+    failedReason: job.failedReason ?? undefined
+  }
+}
 
 @Controller('support')
 @ApiTags('Support')
@@ -387,20 +432,79 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
   )
   @ApiOperation({
     summary:
-      'Récupère les jobs non terminés pour un type de job donné (ex. : NOTIFIER_BENEFICIAIRES).'
+      'Compteurs de jobs Bull : totaux exacts par statut + ventilation par type sur les statuts vivants',
+    description: `
+Équivalent de la commande "stats" de Bull, en deux parties.
+
+**1. \`parStatut\` — totaux EXACTS par statut**
+Obtenus via \`Queue.getJobCounts()\`, qui fait un simple comptage Redis (ZCARD/LLEN) par statut.
+Opération O(1), instantanée, sûre quelle que soit la taille des sets. Statuts : \`waiting\`, \`active\`, \`delayed\`, \`completed\`, \`failed\`, \`paused\`.
+
+**2. \`parTypeStatutsVivants\` — ventilation par JobType, ÉCHANTILLONNÉE et BORNÉE**
+Le JobType (NOTIFIER_BENEFICIAIRES, etc.) n'est pas indexé par Bull : il vit dans \`job.data.type\`.
+Compter par type impose donc de charger les jobs et de les grouper côté Node. Pour rester non bloquant :
+- la ventilation ne porte QUE sur les statuts dits "vivants" : \`waiting\`, \`active\`, \`delayed\`, \`failed\` ;
+- le statut \`completed\` est VOLONTAIREMENT EXCLU : ce set peut contenir des centaines de milliers de jobs, le scanner saturerait Redis (cause d'incidents passés) et n'a aucun intérêt (simple historique) ;
+- chaque statut n'est échantillonné que sur ses **50 jobs les plus récents** (limite \`MAX_NUMBER_REDIS_JOBS\`).
+
+**⚠️ Conséquence à connaître :** \`parStatut\` est exact, mais \`parTypeStatutsVivants\` est un ÉCHANTILLON.
+En particulier le set \`delayed\` peut être volumineux (crons à venir + rappels planifiés) : la ventilation par type sur \`delayed\` ne reflète alors que les 50 jobs les plus récents, pas l'intégralité du set. Ne pas l'utiliser comme un comptage exact par type.
+
+**Workflow de diagnostic conseillé :**
+\`GET /support/jobs/stats\` (vue d'ensemble) → \`GET /support/jobs?statut=failed\` (liste + ids) → \`GET /support/job-information/:jobId\` (détail d'un job).`
   })
-  @Get('job-information/jobs/:jobType')
+  @Get('jobs/stats')
   @HttpCode(HttpStatus.OK)
-  async getJobsNonTerminesByType(
-    @Param('jobType') jobType: Planificateur.JobType
-  ): Promise<Bull.Job[]> {
-    let result: Result<Bull.Job[]>
+  async getJobsStats(): Promise<Planificateur.StatsJobs> {
+    let result: Result<Planificateur.StatsJobs>
     try {
-      const jobs =
-        await this.planificateurRepository.recupererJobsNonTerminesParType(
-          jobType
-        )
-      result = success(jobs)
+      const stats = await this.planificateurRepository.compterLesJobs()
+      result = success(stats)
+    } catch (e) {
+      result = failure(e)
+    }
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Liste paginée et légère des jobs d’un statut (ids + aperçu), pour récupérer leurs ids puis le détail via job-information/:jobId',
+    description: `
+Renvoie une fenêtre paginée de jobs pour un statut donné, sous forme d'un résumé léger (pas l'objet Bull complet).
+
+**Paramètres de requête :**
+- \`statut\` (requis) : \`waiting\` | \`active\` | \`delayed\` | \`completed\` | \`failed\` | \`paused\`.
+- \`jobType\` (optionnel) : filtre par type de job (ex. NOTIFIER_BENEFICIAIRES).
+- \`debut\` (optionnel, défaut 0) et \`fin\` (optionnel, défaut 20) : bornes de la fenêtre de pagination.
+
+**Comportement :**
+- Les jobs sont renvoyés par récence (\`getJobs([statut], debut, fin)\`) : les ids les plus récents sortent en premier. La pagination borne le scan, donc l'endpoint reste sûr même sur un set volumineux comme \`completed\`.
+- Le filtre \`jobType\` est appliqué APRÈS pagination (Bull n'indexe pas par type) : une page peut donc contenir moins de \`fin - debut\` éléments une fois filtrée. Pour parcourir plus loin, augmenter \`debut\`/\`fin\`.
+
+**Champs du résumé (JobSummaryQueryModel) :** \`id\`, \`type\`, \`statut\`, \`timestamp\`, \`processedOn\`, \`finishedOn\`, \`attemptsMade\`, \`failedReason\`.
+Utiliser l'\`id\` retourné avec \`GET /support/job-information/:jobId\` pour obtenir le détail complet du job.`
+  })
+  @ApiResponse({ type: JobSummaryQueryModel, isArray: true })
+  @Get('jobs')
+  @HttpCode(HttpStatus.OK)
+  async listerJobs(
+    @Query() query: ListerJobsQueryParams
+  ): Promise<JobSummaryQueryModel[]> {
+    let result: Result<JobSummaryQueryModel[]>
+    try {
+      const jobs = await this.planificateurRepository.listerJobs({
+        statut: query.statut,
+        jobType: query.jobType,
+        debut: query.debut,
+        fin: query.fin
+      })
+      result = success(
+        jobs.map(job => toJobSummaryQueryModel(job, query.statut))
+      )
     } catch (e) {
       result = failure(e)
     }
