@@ -549,4 +549,116 @@ describe('PlanificateurRedisRepository', () => {
       })
     })
   })
+
+  describe('compterLesJobs', () => {
+    it('compte les jobs ajoutés à la queue', async () => {
+      // Given
+      const typeRdv = Planificateur.JobType.RENDEZVOUS
+      const typeNotif = Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+
+      const jobRdv: Planificateur.Job<JobFake> = {
+        dateExecution: maintenant.plus({ minute: 5 }).toJSDate(),
+        type: typeRdv,
+        contenu: { message: 'rdv' }
+      }
+      const jobNotif: Planificateur.Job<JobFake> = {
+        dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
+        type: typeNotif,
+        contenu: { message: 'notif' }
+      }
+
+      await planificateurRedisRepository.ajouterJob(jobRdv, 'rdv')
+      await planificateurRedisRepository.ajouterJob(jobNotif, 'notif')
+
+      // When
+      const stats = await planificateurRedisRepository.compterLesJobs()
+
+      // Then
+      expect(stats.parStatut.delayed).to.equal(2)
+      expect(stats.parStatut.waiting).to.equal(0)
+      expect(stats.parStatut.active).to.equal(0)
+      expect(stats.parStatut.completed).to.equal(0)
+      expect(stats.parStatut.failed).to.equal(0)
+
+      const statsRdv = stats.parTypeStatutsVivants.find(t => t.type === typeRdv)
+      const statsNotif = stats.parTypeStatutsVivants.find(
+        t => t.type === typeNotif
+      )
+      expect(statsRdv?.total).to.equal(1)
+      expect(statsNotif?.total).to.equal(1)
+    })
+
+    it('retourne des compteurs à zéro quand aucun job', async () => {
+      // When
+      const stats = await planificateurRedisRepository.compterLesJobs()
+
+      // Then
+      expect(stats.parStatut).to.deep.equal({
+        waiting: 0,
+        active: 0,
+        delayed: 0,
+        completed: 0,
+        failed: 0,
+        paused: 0
+      })
+      expect(stats.parTypeStatutsVivants).to.deep.equal([])
+    })
+  })
+
+  describe('listerJobs', () => {
+    it('liste les jobs d’un statut donné', async () => {
+      // Given
+      const jobDifferre: Planificateur.Job<JobFake> = {
+        dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
+        type: Planificateur.JobType.RENDEZVOUS,
+        contenu: { message: 'differe' }
+      }
+      await planificateurRedisRepository.ajouterJob(jobDifferre, 'differe')
+
+      // When
+      const jobs = await planificateurRedisRepository.listerJobs({
+        statut: 'delayed'
+      })
+
+      // Then
+      expect(jobs).to.have.length(1)
+      expect(String(jobs[0].id)).to.equal('differe')
+    })
+
+    it('filtre par type de job quand jobType est fourni', async () => {
+      // Given
+      const jobRdv: Planificateur.Job<JobFake> = {
+        dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
+        type: Planificateur.JobType.RENDEZVOUS,
+        contenu: { message: 'rdv' }
+      }
+      const jobNotif: Planificateur.Job<JobFake> = {
+        dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
+        type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: { message: 'notif' }
+      }
+      await planificateurRedisRepository.ajouterJob(jobRdv, 'rdv')
+      await planificateurRedisRepository.ajouterJob(jobNotif, 'notif')
+
+      // When
+      const jobs = await planificateurRedisRepository.listerJobs({
+        statut: 'delayed',
+        jobType: Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+      })
+
+      // Then
+      expect(jobs).to.have.length(1)
+      expect(String(jobs[0].id)).to.equal('notif')
+    })
+
+    it('retourne un tableau vide quand aucun job ne correspond', async () => {
+      // When
+      const jobs = await planificateurRedisRepository.listerJobs({
+        statut: 'failed'
+      })
+
+      // Then
+      expect(jobs).to.deep.equal([])
+    })
+  })
 })
