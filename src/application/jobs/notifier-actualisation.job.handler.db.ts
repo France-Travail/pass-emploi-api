@@ -50,6 +50,7 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
     job: Planificateur.Job<JobNotifierActualisation>
   ): Promise<SuiviJob> {
     let succes = true
+    let erreur: Error | undefined
     const stats: Stats = {
       nbNotifsEnvoyees: job.contenu?.nbNotifsEnvoyees || 0,
       totalBeneficiairesANotifier: 0,
@@ -91,15 +92,17 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
     } catch (e) {
       this.logger.error(e)
       succes = false
+      erreur = e instanceof Error ? e : new Error(String(e))
     }
 
     return {
       jobType: this.jobType,
-      nbErreurs: 0,
+      nbErreurs: erreur ? 1 : 0,
       succes,
       dateExecution: debutExecutionJob,
       tempsExecution: DateService.calculerTempsExecution(debutExecutionJob),
-      resultat: stats
+      resultat: stats,
+      erreur
     }
   }
 

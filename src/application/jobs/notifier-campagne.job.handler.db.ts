@@ -47,6 +47,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
 
   async handle(job: Planificateur.Job<JobCampagne>): Promise<SuiviJob> {
     let succes = true
+    let erreur: Error | undefined
     const contenu = job.contenu!
     const stats: Stats = {
       nbNotifsEnvoyees: contenu.nbNotifsEnvoyees,
@@ -122,15 +123,17 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
     } catch (e) {
       this.logger.error(e)
       succes = false
+      erreur = e instanceof Error ? e : new Error(String(e))
     }
 
     return {
       jobType: this.jobType,
-      nbErreurs: 0,
+      nbErreurs: erreur ? 1 : 0,
       succes,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
-      resultat: stats
+      resultat: stats,
+      erreur
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
+import { DateTime } from 'luxon'
 import { Planificateur } from '../../domain/planificateur'
 import { estJobSuivi, estNotifiable, SuiviJob } from '../../domain/suivi-job'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
@@ -33,23 +34,37 @@ export abstract class JobHandler<TContenu = void> {
 
       const suiviJob = await this.handle(job)
 
-      if (estJobSuivi(suiviJob.jobType)) {
-        this.suiviJobService.save(suiviJob)
-      }
-      if (estNotifiable(suiviJob)) {
-        this.suiviJobService.notifierResultatJob(suiviJob)
-      }
-
+      this.enregistrerEtNotifierRapportJob(suiviJob)
       this.logExecution(startNs, suiviJob, undefined)
       return suiviJob
     } catch (e) {
-      this.apmService.captureError(e)
-      this.logExecution(startNs, undefined, e)
+      const erreur = e instanceof Error ? e : new Error(String(e))
+      this.apmService.captureError(erreur)
+      const suiviJob: SuiviJob = {
+        jobType: this.jobType,
+        dateExecution: DateTime.now(),
+        succes: false,
+        resultat: {},
+        nbErreurs: 1,
+        tempsExecution: Number(process.hrtime.bigint() - startNs) / 1_000_000,
+        erreur: { message: erreur.message, stack: erreur.stack }
+      }
+      this.enregistrerEtNotifierRapportJob(suiviJob)
+      this.logExecution(startNs, suiviJob, erreur)
       throw e
     }
   }
 
   abstract handle(job: Planificateur.Job<TContenu>): Promise<SuiviJob>
+
+  private enregistrerEtNotifierRapportJob(suiviJob: SuiviJob): void {
+    if (estJobSuivi(suiviJob.jobType)) {
+      this.suiviJobService.save(suiviJob)
+    }
+    if (estNotifiable(suiviJob)) {
+      this.suiviJobService.notifierResultatJob(suiviJob)
+    }
+  }
 
   private logExecution(
     startNs: bigint,

@@ -41,6 +41,7 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
     job: Planificateur.Job<Planificateur.JobNotifierParGroupe>
   ): Promise<SuiviJob> {
     let succes = true
+    let erreur: Error | undefined
     const stats: Stats = {
       nbPersonnesNotifiees: job.contenu?.nbPersonnesNotifiees || 0,
       estLaDerniereExecution: false
@@ -110,15 +111,17 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
     } catch (e) {
       this.logger.error(e)
       succes = false
+      erreur = e instanceof Error ? e : new Error(String(e))
     }
 
     return {
       jobType: this.jobType,
-      nbErreurs: 0,
+      nbErreurs: erreur ? 1 : 0,
       succes,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
-      resultat: stats
+      resultat: stats,
+      erreur
     }
   }
 }
