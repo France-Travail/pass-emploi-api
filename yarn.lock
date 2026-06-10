@@ -1622,9 +1622,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/cli@npm:^11.0.22":
-  version: 11.0.22
-  resolution: "@nestjs/cli@npm:11.0.22"
+"@nestjs/cli@npm:^11.0.23":
+  version: 11.0.23
+  resolution: "@nestjs/cli@npm:11.0.23"
   dependencies:
     "@angular-devkit/core": "npm:19.2.27"
     "@angular-devkit/schematics": "npm:19.2.27"
@@ -1654,7 +1654,7 @@ __metadata:
       optional: true
   bin:
     nest: bin/nest.js
-  checksum: 10/38f56e9e09f81655870c1ed4d86146b3302d0c3a563c9e1f5aa6f87c22cb62b9ed7e2e0f94707b98363799250ea90c1ea5dbc265c863a140cc8832e92dd25de4
+  checksum: 10/8f0982f0186f9cad1b134f67a3a05a171d3d0bcdefc6522787ecc0a6e62538c6673954e93c98c55d322dc7e8738f12a931938fb053dfd5c006fb8694eb4e8351
   languageName: node
   linkType: hard
 
@@ -8499,7 +8499,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.1056.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.1056.0"
     "@nestjs/axios": "npm:^4.0.1"
-    "@nestjs/cli": "npm:^11.0.22"
+    "@nestjs/cli": "npm:^11.0.23"
     "@nestjs/common": "npm:11.1.24"
     "@nestjs/config": "npm:4.0.4"
     "@nestjs/core": "npm:11.1.24"
@@ -8570,7 +8570,7 @@ __metadata:
     pg-connection-string: "npm:2.13.0"
     pg-copy-streams: "npm:7.0.0"
     pino-http: "npm:11.0.0"
-    prettier: "npm:^3.8.3"
+    prettier: "npm:^3.8.4"
     redis: "npm:^5.12.1"
     reflect-metadata: "npm:0.2.2"
     remove-accents: "npm:0.5.0"
@@ -9606,12 +9606,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.8.3":
-  version: 3.8.3
-  resolution: "prettier@npm:3.8.3"
+"prettier@npm:^3.8.4":
+  version: 3.8.4
+  resolution: "prettier@npm:3.8.4"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/4b3b12cbb29e4c96bed936e5d070167552500c18d37676fb3e0caae6199c42860662608e4dc116230698f6e2bb0267ef2548158224c92d40f188d309d72fdd6f
+  checksum: 10/54684a3cc6689238692b29fab541c01934af7677be94c02293ba49981a1ac121c8bebe2a865f0c3b963e99d208f847c53aed354cc0ce8750e2d45791d64506c5
   languageName: node
   linkType: hard
 
