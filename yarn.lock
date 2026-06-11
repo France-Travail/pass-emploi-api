@@ -2734,12 +2734,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^25.9.2":
-  version: 25.9.2
-  resolution: "@types/node@npm:25.9.2"
+"@types/node@npm:^25.9.3":
+  version: 25.9.3
+  resolution: "@types/node@npm:25.9.3"
   dependencies:
     undici-types: "npm:>=7.24.0 <7.24.7"
-  checksum: 10/4ec76a3c9d51866cea5c6a5b17d52a2113b387e7fa812303bf20cc2949ff5e2b2bafcdef693c21ff8235d370ec2807961dc1075eb6bbea661916a5bbd84b6511
+  checksum: 10/40c5f5c91450689b255dbf8cbd6cf0bb05e1013a353830b15eb9b5c9cda6448510be572d1ecadc38c8a4ac472e61381de9ae28df82094abece59f4c1eccffbc5
   languageName: node
   linkType: hard
 
@@ -8520,7 +8520,7 @@ __metadata:
     "@types/luxon": "npm:^3.7.1"
     "@types/mocha": "npm:^10.0.10"
     "@types/multer": "npm:^2.0.0"
-    "@types/node": "npm:^25.9.2"
+    "@types/node": "npm:^25.9.3"
     "@types/pg-copy-streams": "npm:^1.2.5"
     "@types/pino-multi-stream": "npm:^5.1.6"
     "@types/sinon": "npm:^17.0.4"
