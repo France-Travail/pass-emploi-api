@@ -743,10 +743,8 @@ describe('JeuneSqlRepository', () => {
           })
         ).to.deep.equal([])
       })
-      it('ne supprime pas le rendez-vous', async () => {
-        expect(
-          await RendezVousSqlModel.findByPk(rendezVousDto.id)
-        ).not.to.be.null()
+      it('supprime le rendez-vous devenu orphelin (plus aucun jeune associé)', async () => {
+        expect(await RendezVousSqlModel.findByPk(rendezVousDto.id)).to.be.null()
       })
       it("ne supprime pas les evenements d'engagement du jeune", async () => {
         expect(
@@ -768,6 +766,51 @@ describe('JeuneSqlRepository', () => {
             where: { idJeune: jeuneDto.id }
           })
         ).to.deep.equal([])
+      })
+    })
+
+    describe('quand un rendez-vous est encore associé à un autre jeune', () => {
+      it('ne supprime pas ce rendez-vous', async () => {
+        // Given
+        const conseillerDto = unConseillerDto({
+          structure: Core.Structure.MILO
+        })
+        await ConseillerSqlModel.creer(conseillerDto)
+        const jeuneASupprimerDto = unJeuneDto({
+          id: 'JEUNE-A-SUPPRIMER',
+          idConseiller: conseillerDto.id
+        })
+        const autreJeuneDto = unJeuneDto({
+          id: 'AUTRE-JEUNE',
+          idConseiller: conseillerDto.id,
+          idAuthentification: 'un-autre-id',
+          email: 'autre@plop.io'
+        })
+        await JeuneSqlModel.creer(jeuneASupprimerDto)
+        await JeuneSqlModel.creer(autreJeuneDto)
+        const rendezVousDto = unRendezVousDto()
+        await RendezVousSqlModel.create(rendezVousDto)
+        await RendezVousJeuneAssociationSqlModel.create({
+          idRendezVous: rendezVousDto.id,
+          idJeune: jeuneASupprimerDto.id
+        })
+        await RendezVousJeuneAssociationSqlModel.create({
+          idRendezVous: rendezVousDto.id,
+          idJeune: autreJeuneDto.id
+        })
+
+        // When
+        await jeuneSqlRepository.supprimer(jeuneASupprimerDto.id)
+
+        // Then
+        expect(
+          await RendezVousSqlModel.findByPk(rendezVousDto.id)
+        ).not.to.be.null()
+        expect(
+          await RendezVousJeuneAssociationSqlModel.findAll({
+            where: { idRendezVous: rendezVousDto.id }
+          })
+        ).to.have.lengthOf(1)
       })
     })
   })
