@@ -1,5 +1,4 @@
-import { firestore } from 'firebase-admin'
-import Timestamp = firestore.Timestamp
+import { Timestamp } from 'firebase-admin/firestore'
 import { Chat } from '../../../domain/chat'
 
 export interface FirebaseChat {
