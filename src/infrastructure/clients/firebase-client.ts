@@ -1,12 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as APM from 'elastic-apm-node'
-import admin, { firestore } from 'firebase-admin'
+import { App, cert, initializeApp } from 'firebase-admin/app'
+import { getAuth } from 'firebase-admin/auth'
+import {
+  CollectionReference,
+  DocumentData,
+  DocumentReference,
+  Firestore,
+  getFirestore,
+  QueryDocumentSnapshot,
+  Timestamp,
+  UpdateData
+} from 'firebase-admin/firestore'
 import {
   FirebaseMessagingError,
   getMessaging,
   TokenMessage
 } from 'firebase-admin/messaging'
+import { getRemoteConfig } from 'firebase-admin/remote-config'
 import { DateTime } from 'luxon'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
@@ -27,12 +39,6 @@ import {
   FirebaseGroupeMessage,
   FirebaseMessage
 } from './dto/firebase.dto'
-import CollectionReference = firestore.CollectionReference
-import DocumentData = firestore.DocumentData
-import DocumentReference = firestore.DocumentReference
-import QueryDocumentSnapshot = firestore.QueryDocumentSnapshot
-import Timestamp = firestore.Timestamp
-import UpdateData = firestore.UpdateData
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const Utf8 = require('crypto-js/enc-utf8')
@@ -52,8 +58,8 @@ const SENT_BY_JEUNE = 'jeune'
 export class FirebaseClient {
   private messaging
   private auth
-  private readonly app: admin.app.App
-  private firestore: FirebaseFirestore.Firestore
+  private readonly app: App
+  private firestore: Firestore
   private logger: Logger
   private apmService: APM.Agent
 
@@ -66,20 +72,19 @@ export class FirebaseClient {
     this.app = FirebaseClient.getApp(firebase)
     this.logger = new Logger('FirebaseClient')
     this.logger.log('Connexion à firebase en cours')
-    this.app
-      .remoteConfig()
+    getRemoteConfig(this.app)
       .listVersions()
       .then(() => this.logger.log('Connexion à firebase OK'))
       .catch(e => this.logger.error(buildError('Connexion à firebase KO', e)))
     this.messaging = getMessaging(this.app)
-    this.firestore = admin.firestore(this.app)
-    this.auth = admin.auth(this.app)
+    this.firestore = getFirestore(this.app)
+    this.auth = getAuth(this.app)
     this.apmService = getAPMInstance()
   }
 
-  private static getApp(firebase: string): admin.app.App {
-    return admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(firebase))
+  private static getApp(firebase: string): App {
+    return initializeApp({
+      credential: cert(JSON.parse(firebase))
     })
   }
 
@@ -354,7 +359,7 @@ export class FirebaseClient {
               : 'NOUVEAU_CONSEILLER',
             content: encryptedText,
             iv: iv,
-            creationDate: firestore.Timestamp.fromDate(new Date())
+            creationDate: Timestamp.fromDate(new Date())
           })
         }
       })
@@ -491,7 +496,7 @@ export class FirebaseClient {
   }
 
   private async fromMessageChiffreToMessageArchive(
-    message: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+    message: QueryDocumentSnapshot<DocumentData>
   ): Promise<ArchiveJeune.Message> {
     const messageFirebase = message.data()
     const key = Utf8.parse(this.configService.get('firebase').encryptionKey)
@@ -531,7 +536,7 @@ export class FirebaseClient {
   }
 
   private fromHistoriqueChiffreToHistoriqueArchive(
-    doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>,
+    doc: QueryDocumentSnapshot<DocumentData>,
     key: unknown,
     iv: unknown
   ): ArchiveJeune.EntreeHistoriqueMessage {
@@ -565,7 +570,6 @@ function getMessagesRef<T extends FirebaseMessage>(
 ): CollectionReference<T> {
   return chatRef.collection(FIREBASE_MESSAGES_PATH).withConverter({
     toFirestore: (data: T) => data,
-    fromFirestore: (snap: FirebaseFirestore.QueryDocumentSnapshot) =>
-      snap.data() as T
+    fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as T
   })
 }
