@@ -133,7 +133,7 @@ export class QualifierActionsMiloPayload {
   @ApiProperty()
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(10)
+  @ArrayMaxSize(50)
   @ValidateNested({ each: true })
   @Type(() => QualificationActionMiloPayload)
   qualifications: QualificationActionMiloPayload[]
