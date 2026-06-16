@@ -369,14 +369,17 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
     describe('retourne une prochaine session Milo', () => {
       it('renseignée s’il y en a une', async () => {
         const sessionSansInscriptionAJPlus1 = uneSessionJeuneMiloQueryModel({
-          dateHeureDebut: maintenant.plus({ days: 1 }).toISODate()
+          dateHeureDebut: maintenant.plus({ days: 1 }).toISODate(),
+          dateHeureFin: maintenant.plus({ days: 1 }).toISO()
         })
         const sessionAvecInscriptionAJPlus12 = uneSessionJeuneMiloQueryModel({
           dateHeureDebut: maintenant.plus({ days: 12 }).toISODate(),
+          dateHeureFin: maintenant.plus({ days: 12 }).toISO(),
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         const sessionAvecInscriptionAJPlus23 = uneSessionJeuneMiloQueryModel({
           dateHeureDebut: maintenant.plus({ days: 23 }).toISODate(),
+          dateHeureFin: maintenant.plus({ days: 23 }).toISO(),
           inscription: SessionMilo.Inscription.Statut.INSCRIT
         })
         sessionsQueryGetter.handle
@@ -399,6 +402,68 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
         expect(
           isSuccess(result) && result.data.prochaineSessionMilo
         ).to.deep.equal(sessionAvecInscriptionAJPlus12)
+      })
+
+      it('ignore une session inscrite déjà terminée et prend la prochaine à venir', async () => {
+        // Given
+        const sessionInscriteDejaTerminee = uneSessionJeuneMiloQueryModel({
+          id: 'session-passee',
+          dateHeureDebut: maintenant.minus({ hours: 2 }).toISO(),
+          dateHeureFin: maintenant.minus({ hours: 1 }).toISO(),
+          inscription: SessionMilo.Inscription.Statut.INSCRIT
+        })
+        const sessionInscriteAVenir = uneSessionJeuneMiloQueryModel({
+          id: 'session-a-venir',
+          dateHeureDebut: maintenant.plus({ days: 2 }).toISO(),
+          dateHeureFin: maintenant.plus({ days: 2 }).toISO(),
+          inscription: SessionMilo.Inscription.Statut.INSCRIT
+        })
+        sessionsQueryGetter.handle
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
+          })
+          .resolves(
+            success([sessionInscriteDejaTerminee, sessionInscriteAVenir])
+          )
+
+        // When
+        result = await handler.handle(accueilQuery)
+
+        // Then
+        expect(
+          isSuccess(result) && result.data.prochaineSessionMilo
+        ).to.deep.equal(sessionInscriteAVenir)
+      })
+
+      it('considère une session inscrite en cours comme prochaine session', async () => {
+        // Given
+        const sessionInscriteEnCours = uneSessionJeuneMiloQueryModel({
+          id: 'session-en-cours',
+          dateHeureDebut: maintenant.minus({ hours: 1 }).toISO(),
+          dateHeureFin: maintenant.plus({ hours: 1 }).toISO(),
+          inscription: SessionMilo.Inscription.Statut.INSCRIT
+        })
+        const sessionInscriteAVenir = uneSessionJeuneMiloQueryModel({
+          id: 'session-a-venir',
+          dateHeureDebut: maintenant.plus({ days: 2 }).toISO(),
+          dateHeureFin: maintenant.plus({ days: 2 }).toISO(),
+          inscription: SessionMilo.Inscription.Statut.INSCRIT
+        })
+        sessionsQueryGetter.handle
+          .withArgs(accueilQuery.idJeune, Authentification.Type.JEUNE, token, {
+            debut: maintenant,
+            fin: DateTime.fromISO(datePlus30Jours)
+          })
+          .resolves(success([sessionInscriteEnCours, sessionInscriteAVenir]))
+
+        // When
+        result = await handler.handle(accueilQuery)
+
+        // Then
+        expect(
+          isSuccess(result) && result.data.prochaineSessionMilo
+        ).to.deep.equal(sessionInscriteEnCours)
       })
 
       it('à undefined s’il n’y en a pas', async () => {

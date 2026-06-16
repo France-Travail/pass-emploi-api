@@ -138,7 +138,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
             idJeune
           )
         : undefined,
-      prochaineSessionMilo: resultatSessionsMilo.sessionsInscrit[0],
+      prochaineSessionMilo: resultatSessionsMilo.sessionsInscritAVenir[0],
       evenementsAVenir: evenementSqlModelAVenir.map(acSql =>
         fromSqlToRendezVousDetailJeuneQueryModel(
           acSql,
@@ -354,6 +354,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     jeuneSqlModel: JeuneSqlModel
   ): Promise<ResultatSessionsMilo> {
     let sessionsInscrit: SessionJeuneMiloQueryModel[] = []
+    let sessionsInscritAVenir: SessionJeuneMiloQueryModel[] = []
     let sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[] = []
     let sessionsNonInscrit: SessionJeuneMiloQueryModel[] = []
 
@@ -368,6 +369,9 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         if (isSuccess(sessionsQueryModels)) {
           sessionsInscrit = sessionsQueryModels.data.filter(session =>
             SessionMilo.Inscription.aEteInscrit(session.inscription)
+          )
+          sessionsInscritAVenir = sessionsInscrit.filter(
+            session => DateTime.fromISO(session.dateHeureFin) >= maintenant
           )
           sessionsInscritCetteSemaine = sessionsInscrit.filter(session => {
             const dateDebutSession = DateTime.fromISO(session.dateHeureDebut)
@@ -388,7 +392,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     }
 
     return {
-      sessionsInscrit: sessionsInscrit,
+      sessionsInscritAVenir: sessionsInscritAVenir,
       sessionsInscritCetteSemaine: sessionsInscritCetteSemaine,
       sessionsNonInscrit: sessionsNonInscrit
     }
@@ -396,7 +400,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 }
 
 class ResultatSessionsMilo {
-  sessionsInscrit: SessionJeuneMiloQueryModel[]
+  sessionsInscritAVenir: SessionJeuneMiloQueryModel[]
   sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[]
   sessionsNonInscrit: SessionJeuneMiloQueryModel[]
 }
