@@ -19,6 +19,7 @@ import { AppModule } from './app.module'
 import { TaskService } from './application/task.service'
 import { WorkerService } from './application/worker.service.db'
 import { useSwagger } from './infrastructure/middlewares/swagger.middleware'
+import { rootLogger } from './utils/root-logger'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -51,7 +52,13 @@ async function bootstrap(): Promise<void> {
         exceptionFactory: (
           validationErrors: ValidationError[] = []
         ): unknown => {
-          logger.warn(JSON.stringify(validationErrors))
+          rootLogger.warn(
+            {
+              context: 'ValidationPipe',
+              event: { action: 'validation_failed', outcome: 'failure' }
+            },
+            JSON.stringify(validationErrors)
+          )
           return new BadRequestException(validationErrors)
         }
       })
