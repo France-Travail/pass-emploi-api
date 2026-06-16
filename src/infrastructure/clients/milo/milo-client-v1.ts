@@ -214,6 +214,7 @@ export class MiloClientV1 implements MiloClientPort {
     const params = new URLSearchParams()
     params.append('taillePage', TAILLE_PAGE_MAX_APIS_MILO.toString())
     params.append('rechercheInscrits', 'true')
+    // toISODate() tronque au jour : l'API MiLo ne filtre pas à l'heure
     if (options.periode.debut) {
       const debutRecherche = options.periode.debut.setZone(timezone)
       params.append('dateDebutRecherche', debutRecherche.toISODate())
@@ -453,6 +454,7 @@ export class MiloClientV1 implements MiloClientPort {
     const params = new URLSearchParams()
     params.append('idDossier', idDossier)
     params.append('taillePage', TAILLE_PAGE_MAX_APIS_MILO.toString())
+    // toISODate() tronque au jour : l'API MiLo ne filtre pas à l'heure
     if (periode?.debut) {
       params.append('dateDebutRecherche', periode.debut.toISODate())
     }

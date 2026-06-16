@@ -15,6 +15,11 @@ import JeuneOuConseiller = Authentification.JeuneOuConseiller
 export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
   constructor(private readonly fetcher: SessionsMiloFetcher) {}
 
+  /**
+   * @param periode borne de recherche tronquée au JOUR par l'API MiLo :
+   * l'heure des DateTime debut/fin est ignorée. Pour un filtrage à l'heure,
+   * filtrer le résultat côté appelant (cf. prochaineSessionMilo dans l'accueil).
+   */
   async handle(
     idJeune: string,
     utilisateur: JeuneOuConseiller,

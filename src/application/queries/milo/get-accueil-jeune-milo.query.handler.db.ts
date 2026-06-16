@@ -360,15 +360,16 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 
     if (jeuneSqlModel.idPartenaire) {
       try {
-        const sessionsQueryModels = await this.getSessionsQueryGetter.handle(
-          query.idJeune,
-          Authentification.Type.JEUNE,
-          query.accessToken,
-          { debut: maintenant, fin: datePlus30Jours }
-        )
-        if (isSuccess(sessionsQueryModels)) {
-          sessionsInscrit = sessionsQueryModels.data.filter(session =>
-            SessionMilo.Inscription.aEteInscrit(session.inscription)
+        const prochainesSessionsDepuisAujourdhuiModel =
+          await this.getSessionsQueryGetter.handle(
+            query.idJeune,
+            Authentification.Type.JEUNE,
+            query.accessToken,
+            { debut: maintenant, fin: datePlus30Jours }
+          )
+        if (isSuccess(prochainesSessionsDepuisAujourdhuiModel)) {
+          sessionsInscrit = prochainesSessionsDepuisAujourdhuiModel.data.filter(
+            session => SessionMilo.Inscription.aEteInscrit(session.inscription)
           )
           sessionsInscritAVenir = sessionsInscrit.filter(
             session => DateTime.fromISO(session.dateHeureFin) >= maintenant
@@ -377,9 +378,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
             const dateDebutSession = DateTime.fromISO(session.dateHeureDebut)
             return dateDebutSession < dateFinDeSemaine
           })
-          sessionsNonInscrit = sessionsQueryModels.data.filter(
-            session => !SessionMilo.Inscription.aEteInscrit(session.inscription)
-          )
+          sessionsNonInscrit =
+            prochainesSessionsDepuisAujourdhuiModel.data.filter(
+              session =>
+                !SessionMilo.Inscription.aEteInscrit(session.inscription)
+            )
         }
       } catch (e) {
         this.logger.error(
