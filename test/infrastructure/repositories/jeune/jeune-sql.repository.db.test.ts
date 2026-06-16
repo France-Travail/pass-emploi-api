@@ -19,6 +19,7 @@ import {
 } from 'test/fixtures/sql-models/favoris.sql-model'
 import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
+import { CodeTypeRendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { FirebaseClient } from '../../../../src/infrastructure/clients/firebase-client'
 import { JeuneSqlRepository } from '../../../../src/infrastructure/repositories/jeune/jeune-sql.repository.db'
@@ -766,6 +767,37 @@ describe('JeuneSqlRepository', () => {
             where: { idJeune: jeuneDto.id }
           })
         ).to.deep.equal([])
+      })
+    })
+
+    describe('quand le rendez-vous orphelin est un atelier collectif', () => {
+      it('ne supprime pas ce rendez-vous', async () => {
+        // Given
+        const conseillerDto = unConseillerDto({
+          structure: Core.Structure.MILO
+        })
+        await ConseillerSqlModel.creer(conseillerDto)
+        const jeuneDto = unJeuneDto({
+          id: 'JEUNE-ATELIER',
+          idConseiller: conseillerDto.id
+        })
+        await JeuneSqlModel.creer(jeuneDto)
+        const atelierDto = unRendezVousDto({
+          type: CodeTypeRendezVous.ATELIER
+        })
+        await RendezVousSqlModel.create(atelierDto)
+        await RendezVousJeuneAssociationSqlModel.create({
+          idRendezVous: atelierDto.id,
+          idJeune: jeuneDto.id
+        })
+
+        // When
+        await jeuneSqlRepository.supprimer(jeuneDto.id)
+
+        // Then
+        expect(
+          await RendezVousSqlModel.findByPk(atelierDto.id)
+        ).not.to.be.null()
       })
     })
 
