@@ -730,3 +730,4 @@ Utilisé pour :
 3. **Result pattern** : Ne pas throw d'exceptions métier, utiliser `failure()`
 4. **Tests DB** : Utiliser `.db.test.ts` pour les tests nécessitant la DB
 5. **Crons** : Penser à réinitialiser après un deploy (`yarn tasks:initialiser-les-crons`)
+6. **`resolutions` (sécurité)** : Toujours noter une entrée de `resolutions` en `">=<version>"`, jamais en `"^<version>"` ni version exacte. Le `^` plafonne le major (`^7.5.6` = `>=7.5.6 <8.0.0`) et recrée la CVE le jour où le correctif passe au major suivant ; `>=` laisse l'arbre se résoudre vers n'importe quelle version sûre plus récente.
