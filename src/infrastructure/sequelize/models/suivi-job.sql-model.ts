@@ -52,6 +52,13 @@ export class SuiviJobDto extends Model {
     type: DataType.INTEGER
   })
   tempsExecution: number
+
+  @Column({
+    field: 'job_run_id',
+    type: DataType.STRING,
+    allowNull: true
+  })
+  jobRunId: string | null
 }
 
 @Table({

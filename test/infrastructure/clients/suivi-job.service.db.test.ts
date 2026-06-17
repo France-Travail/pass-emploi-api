@@ -6,6 +6,7 @@ import { SuiviJobService } from 'src/infrastructure/clients/suivi-job.service.db
 import { Planificateur } from '../../../src/domain/planificateur'
 import { RapportJob24h, SuiviJob } from '../../../src/domain/suivi-job'
 import { SuiviJobSqlModel } from '../../../src/infrastructure/sequelize/models/suivi-job.sql-model'
+import { getWorkerTrackingServiceInstance } from '../../../src/infrastructure/monitoring/worker.tracking.service'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { testConfig } from '../../utils/module-for-testing'
 import { getDatabase } from '../../utils/database-for-testing'
@@ -45,6 +46,30 @@ describe('SuiviJobService', () => {
       })
       expect(jobsNettoyageAvantSave.length).to.equal(0)
       expect(jobsNettoyageApresSave.length).to.equal(1)
+    })
+
+    it("persiste le job_run_id du contexte d'exécution du worker", async () => {
+      // Given
+      const jobType = Planificateur.JobType.NETTOYER_LES_DONNEES
+      const suiviJobNettoyage: SuiviJob = {
+        jobType,
+        dateExecution: uneDatetime(),
+        nbErreurs: 0,
+        succes: true,
+        resultat: {},
+        tempsExecution: 0
+      }
+      const jobRunId =
+        getWorkerTrackingServiceInstance().startJobTracking(jobType)
+
+      // When
+      await service.save(suiviJobNettoyage)
+
+      // Then
+      const [suiviJobSql] = await SuiviJobSqlModel.findAll({
+        where: { jobType }
+      })
+      expect(suiviJobSql.jobRunId).to.equal(jobRunId)
     })
   })
   describe('notifierResultatJob', () => {
