@@ -57,7 +57,12 @@ async function bootstrap(): Promise<void> {
               context: 'ValidationPipe',
               event: { action: 'validation_failed', outcome: 'failure' }
             },
-            JSON.stringify(validationErrors)
+            JSON.stringify(
+              validationErrors.map(e => ({
+                property: e.property,
+                constraints: e.constraints
+              }))
+            )
           )
           return new BadRequestException(validationErrors)
         }
