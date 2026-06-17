@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $APP =~ "pa-back-staging-pr" ]] ; then
+if [[ $APP =~ "pass-emploi-api-staging-pr" ]] ; then
   echo "Dump de la DB de staging"
   export PATH=$HOME/bin:$PATH
   dbclient-fetcher psql 16

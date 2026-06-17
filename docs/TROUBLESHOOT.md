@@ -14,7 +14,7 @@ Pas d'inquiétude, on a un cli pour ça
 Créer un tunnel :
 ```bash
 # Exemple pour la prod, sur la region secnumt
-scalingo --region osc-secnum-fr1 -a pa-back-prod db-tunnel SCALINGO_REDIS_URL
+scalingo --region osc-secnum-fr1 -a pass-emploi-api-prod db-tunnel SCALINGO_REDIS_URL
 ```
 Ensuite, se connecter via l'outil `bull-repl`, installé en tant que dépendance de dev dans ce projet
 ```bash

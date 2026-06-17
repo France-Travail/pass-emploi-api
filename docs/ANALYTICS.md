@@ -86,7 +86,7 @@ Les indicateurs sont les mêmes que pour la table analytics_engagement
 Si vous avez besoin de recalculer les vues analytics dans le passé (suite à une mise à jour d'actes d'engagement ou de création de nouvelles vues), vous pouvez relancer les calculs via une task Scalingo
 
 ```
-scalingo --region osc-fr1 --app pa-back-staging run yarn tasks:initialiser-les-vues
+scalingo --region osc-fr1 --app pass-emploi-api-staging run yarn tasks:initialiser-les-vues
 ```
 
 [Une variante existe pour relancer uniquement les calculs sur la dernière année.](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2Finitialiser-les-vues-derniere-annee.job.ts)

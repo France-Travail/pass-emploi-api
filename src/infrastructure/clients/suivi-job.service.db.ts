@@ -10,6 +10,7 @@ import {
 } from '../sequelize/models/suivi-job.sql-model'
 import { AsSql } from '../sequelize/types'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
+import { getWorkerTrackingServiceInstance } from '../monitoring/worker.tracking.service'
 
 const BOT_USERNAME = 'CEJ Lama'
 
@@ -40,13 +41,16 @@ export class SuiviJobService implements SuiviJob.Service {
   }
 
   async save(suiviJob: SuiviJob): Promise<void> {
+    const { jobRunId } =
+      getWorkerTrackingServiceInstance().getCurrentJobTracking()
     const dto: Omit<AsSql<SuiviJobDto>, 'id'> = {
       jobType: suiviJob.jobType,
       dateExecution: suiviJob.dateExecution.toJSDate(),
       nbErreurs: suiviJob.nbErreurs,
       succes: suiviJob.succes,
       resultat: suiviJob.resultat,
-      tempsExecution: suiviJob.tempsExecution
+      tempsExecution: suiviJob.tempsExecution,
+      jobRunId: jobRunId ?? null
     }
     await SuiviJobSqlModel.create(dto)
   }

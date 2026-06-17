@@ -8,7 +8,7 @@ export const TIME_ZONE_EUROPE_PARIS = 'Europe/Paris'
 export default () => {
   const scalingoApp = process.env.APP
   let baseUrl: string
-  if (scalingoApp && scalingoApp.startsWith('pa-back-staging-pr')) {
+  if (scalingoApp && scalingoApp.startsWith('pass-emploi-api-staging-pr')) {
     baseUrl = `https://${scalingoApp}.osc-fr1.scalingo.io`
   } else {
     baseUrl = process.env.BASE_URL as string
