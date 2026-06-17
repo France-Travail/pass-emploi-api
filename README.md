@@ -38,7 +38,7 @@ Mettre en PROD un **HOTFIX** : faire une nouvelle version (`yarn release`) et un
 
 ## DATA MIGRATIONS
 
-- En PROD : `scalingo -a pa-back-prod run 'DATABASE_URL=${DATABASE_URL} node scripts/data-migrations/<nom_migration.js>'`
+- En PROD : `scalingo -a pass-emploi-api-prod run 'DATABASE_URL=${DATABASE_URL} node scripts/data-migrations/<nom_migration.js>'`
 - En LOCAL : `DATABASE_URL=postgresql://<user>:<mdp>@localhost:55432/passemploidb node scripts/data-migrations/<nom_migration.js>`
 
 **EN détail :** voir [le CONTRIBUTING](docs/CONTRIBUTING.md)

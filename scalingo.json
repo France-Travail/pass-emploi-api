@@ -1,4 +1,9 @@
 {
+  "env": {
+    "APM_IS_ACTIVE": {
+      "value": "false"
+    }
+  },
   "scripts": {
     "first-deploy": "bash .scalingo/first-deploy.sh"
   }
