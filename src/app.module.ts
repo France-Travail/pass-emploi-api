@@ -415,6 +415,7 @@ import { AdminController } from './infrastructure/routes/admin.controller'
 import { QueueTimeMiddleware } from './infrastructure/middlewares/queue-time.middleware'
 import { MiloClientUtils } from './infrastructure/clients/milo/milo-client-utils'
 import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from './application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
+import { GetSessionsBeneficiaireAccueilMiloQueryGetter } from './application/queries/query-getters/milo/get-sessions-beneficiaire-accueil.milo.query.getter.db'
 import { SessionsMiloFetcher } from './application/queries/query-getters/milo/sessions-milo.fetcher'
 
 export const buildModuleMetadata = (): ModuleMetadata => ({
@@ -861,6 +862,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     SessionsMiloFetcher,
     GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
     GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
+    GetSessionsBeneficiaireAccueilMiloQueryGetter,
     GetDetailSessionConseillerMiloQueryHandler,
     GetDetailSessionJeuneMiloQueryHandler,
     UpdateSessionMiloCommandHandler,

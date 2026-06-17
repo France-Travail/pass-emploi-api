@@ -22,7 +22,7 @@ import {
 } from '../query-models/sessions.milo.query.model'
 import { DateService } from '../../../utils/date-service'
 
-function buildSessionTypeQueryModel(
+export function buildSessionTypeQueryModel(
   type: OffreTypeCode
 ): SessionTypeQueryModel {
   switch (type) {

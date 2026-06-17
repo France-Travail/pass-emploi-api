@@ -11,6 +11,8 @@ import { DateService } from '../../../../utils/date-service'
 import { Authentification } from '../../../../domain/authentification'
 import JeuneOuConseiller = Authentification.JeuneOuConseiller
 
+// TODO: à décommissionner une fois get-sessions-jeune et get-mon-suivi-jeune migrés
+// vers GetSessionsBeneficiaireAccueilMiloQueryGetter (projection domaine, dates exactes).
 @Injectable()
 export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
   constructor(private readonly fetcher: SessionsMiloFetcher) {}
