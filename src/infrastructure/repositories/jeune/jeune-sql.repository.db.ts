@@ -6,6 +6,9 @@ import { IdService } from '../../../utils/id-service'
 import { FirebaseClient } from '../../clients/firebase-client'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
 import { JeuneDto, JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
+import { RendezVousJeuneAssociationSqlModel } from '../../sequelize/models/rendez-vous-jeune-association.sql-model'
+import { RendezVousSqlModel } from '../../sequelize/models/rendez-vous.sql-model'
+import { TYPES_ANIMATIONS_COLLECTIVES } from '../../../domain/rendez-vous/rendez-vous'
 import { TransfertConseillerSqlModel } from '../../sequelize/models/transfert-conseiller.sql-model'
 import { SequelizeInjectionToken } from '../../sequelize/providers'
 import { AsSql } from '../../sequelize/types'
@@ -199,8 +202,43 @@ export class JeuneSqlRepository implements Jeune.Repository {
     )
   }
 
-  async supprimer(jeune: Jeune.Id): Promise<void> {
-    await JeuneSqlModel.supprimer(jeune)
+  async supprimer(idJeune: Jeune.Id): Promise<void> {
+    await this.sequelize.transaction(async transaction => {
+      const associations = await RendezVousJeuneAssociationSqlModel.findAll({
+        attributes: ['idRendezVous'],
+        where: { idJeune },
+        transaction
+      })
+      const idsRendezVous = associations.map(
+        association => association.idRendezVous
+      )
+
+      await JeuneSqlModel.destroy({ where: { id: idJeune }, transaction })
+
+      if (idsRendezVous.length) {
+        const associationsRestantes =
+          await RendezVousJeuneAssociationSqlModel.findAll({
+            attributes: ['idRendezVous'],
+            where: { idRendezVous: { [Op.in]: idsRendezVous } },
+            transaction
+          })
+        const idsRendezVousAvecParticipants = new Set(
+          associationsRestantes.map(association => association.idRendezVous)
+        )
+        const idsRendezVousOrphelins = idsRendezVous.filter(
+          idRendezVous => !idsRendezVousAvecParticipants.has(idRendezVous)
+        )
+        if (idsRendezVousOrphelins.length) {
+          await RendezVousSqlModel.destroy({
+            where: {
+              id: { [Op.in]: idsRendezVousOrphelins },
+              type: { [Op.notIn]: TYPES_ANIMATIONS_COLLECTIVES }
+            },
+            transaction
+          })
+        }
+      }
+    })
   }
 
   async saveAllJeuneTransferes(jeunes: Jeune[]): Promise<void> {

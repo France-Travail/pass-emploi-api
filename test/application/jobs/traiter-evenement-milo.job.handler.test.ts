@@ -458,6 +458,56 @@ describe('TraiterEvenementMiloJobHandler', () => {
               })
             })
           })
+
+          describe("quand le RDV CEJ existant n'a plus de jeune associé (orphelin)", () => {
+            let rdvCEJOrphelin: RendezVous
+
+            beforeEach(() => {
+              rdvCEJOrphelin = unRendezVous({ jeunes: [] })
+              rendezVousRepository.getByIdPartenaire
+                .withArgs(evenement.idObjet, evenement.objet)
+                .returns(rdvCEJOrphelin)
+            })
+
+            STATUTS_ACTIFS_RDV.forEach(statut => {
+              it(`supprime l'orphelin et recrée le RDV CEJ pour le jeune actuel quand statut ${statut}`, async () => {
+                const rendezVousMilo = unRendezVousMilo({ statut })
+                miloRendezVousRepository.findRendezVousByEvenement
+                  .withArgs(evenement)
+                  .resolves(rendezVousMilo)
+                const rdvRecree = unRendezVous()
+                rendezVousMiloFactory.createRendezVousCEJ
+                  .withArgs(rendezVousMilo, jeune)
+                  .returns(rdvRecree)
+
+                const result = await handler.handle(unJob(evenement))
+
+                expect(result.resultat).to.deep.equal({
+                  traitement: Traitement.RENDEZ_VOUS_AJOUTE,
+                  idJeune: jeune.id,
+                  idObjet: rdvRecree.id
+                })
+                expect(
+                  rendezVousRepository.delete
+                ).to.have.been.calledOnceWithExactly(rdvCEJOrphelin.id)
+                expect(
+                  rendezVousRepository.save
+                ).to.have.been.calledOnceWithExactly(rdvRecree)
+                expect(
+                  rendezVousMiloFactory.updateRendezVousCEJ
+                ).not.to.have.been.called()
+                expect(
+                  planificateurService.planifierRappelsRendezVous
+                ).to.have.been.calledOnceWithExactly(rdvRecree)
+                expect(
+                  notificationService.notifierLesJeunesDuRdv
+                ).to.have.been.calledOnceWithExactly(
+                  rdvRecree,
+                  Notification.Type.NEW_RENDEZVOUS
+                )
+              })
+            })
+          })
         })
 
         describe('DELETE', () => {
