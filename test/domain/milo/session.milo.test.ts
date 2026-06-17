@@ -434,6 +434,26 @@ describe('SessionMilo', () => {
     })
   })
 
+  describe('estAVenir', () => {
+    const maintenant = DateTime.fromISO('2020-04-06T13:20:00.000Z')
+
+    it('retourne true si le début est postérieur à maintenant', () => {
+      const debut = maintenant.plus({ minutes: 1 })
+
+      expect(SessionMilo.estAVenir(debut, maintenant)).to.be.true()
+    })
+
+    it('retourne false si le début est antérieur à maintenant', () => {
+      const debut = maintenant.minus({ minutes: 1 })
+
+      expect(SessionMilo.estAVenir(debut, maintenant)).to.be.false()
+    })
+
+    it('retourne false si le début est égal à maintenant', () => {
+      expect(SessionMilo.estAVenir(maintenant, maintenant)).to.be.false()
+    })
+  })
+
   describe('peutInscrireBeneficiaire', () => {
     const maintenant = DateTime.fromISO('2020-04-05T10:00:00.000Z')
     const dateMaxInscription = DateTime.fromISO('2020-04-06T13:20:00.000Z')

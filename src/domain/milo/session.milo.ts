@@ -248,6 +248,10 @@ export namespace SessionMilo {
     return fin < maintenant
   }
 
+  export function estAVenir(debut: DateTime, maintenant: DateTime): boolean {
+    return debut > maintenant
+  }
+
   export function calculerDateMaxDesinscription(
     timezone: string,
     dateHeureDebut: DateTime,
