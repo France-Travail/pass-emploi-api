@@ -244,6 +244,10 @@ export namespace SessionMilo {
     return statut === Statut.EMARGEE
   }
 
+  export function estTerminee(fin: DateTime, maintenant: DateTime): boolean {
+    return fin < maintenant
+  }
+
   export function calculerDateMaxDesinscription(
     timezone: string,
     dateHeureDebut: DateTime,
