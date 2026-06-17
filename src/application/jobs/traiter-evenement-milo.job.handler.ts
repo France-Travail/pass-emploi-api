@@ -233,6 +233,16 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       )
     }
 
+    if (rendezVousCEJExistant.jeunes.length === 0) {
+      await this.rendezVousRepository.delete(rendezVousCEJExistant.id)
+      return this.handleCreateRDV(
+        jeune,
+        maintenant,
+        rendezVousMilo,
+        notifierRdvMilo
+      )
+    }
+
     if (!this.dateRecuperable(rendezVousMilo, jeune)) {
       return this.handleDeleteRDV(
         jeune,
