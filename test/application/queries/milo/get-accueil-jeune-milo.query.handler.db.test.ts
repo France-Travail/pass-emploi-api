@@ -8,7 +8,7 @@ import {
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import { GetSessionsBeneficiaireAccueilMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-beneficiaire-accueil.milo.query.getter.db'
+import { GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-ou-inscrites-pour-jeune.milo.query.getter.db'
 import { AccueilJeuneMiloQueryModel } from 'src/application/queries/query-models/jeunes.milo.query-model'
 import {
   JeuneMiloSansIdDossier,
@@ -41,7 +41,7 @@ import {
   unRendezVousJeuneDetailQueryModel,
   unRendezVousQueryModel
 } from 'test/fixtures/query-models/rendez-vous.query-model.fixtures'
-import { uneSessionBeneficiaireAccueil } from 'test/fixtures/sessions.fixture'
+import { uneSessionMiloBeneficiaireDetaillee } from 'test/fixtures/sessions.fixture'
 import { uneActionDto } from 'test/fixtures/sql-models/action.sql-model'
 import { uneAgenceMiloDto } from 'test/fixtures/sql-models/agence.sql-model'
 import { unConseillerDto } from 'test/fixtures/sql-models/conseiller.sql-model'
@@ -57,7 +57,7 @@ import {
 describe('GetAccueilJeuneMiloQueryHandler', () => {
   let handler: GetAccueilJeuneMiloQueryHandler
   let databaseForTesting: DatabaseForTesting
-  let sessionsQueryGetter: StubbedClass<GetSessionsBeneficiaireAccueilMiloQueryGetter>
+  let sessionsQueryGetter: StubbedClass<GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter>
   let alertesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let favorisAccueilQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
   let getCampagneQueryGetter: StubbedClass<GetCampagneQueryGetter>
@@ -67,7 +67,7 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
     databaseForTesting = getDatabase()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     sessionsQueryGetter = stubClass(
-      GetSessionsBeneficiaireAccueilMiloQueryGetter
+      GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter
     )
     alertesQueryGetter = stubClass(GetRecherchesSauvegardeesQueryGetter)
     favorisAccueilQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
@@ -246,23 +246,26 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
         })
 
         it('ainsi que les sessions inscrites si le jeune en a dans la semaine', async () => {
-          const sessionInscriteCetteSemaine = uneSessionBeneficiaireAccueil({
-            id: 'session-inscrite-semaine',
-            debut: maintenant.plus({ days: 1 }),
-            fin: maintenant.plus({ days: 1, hours: 2 }),
-            statutInscription: SessionMilo.Inscription.Statut.INSCRIT
-          })
-          const sessionNonInscriteCetteSemaine = uneSessionBeneficiaireAccueil({
-            id: 'session-non-inscrite-semaine',
-            debut: maintenant.plus({ days: 2 }),
-            fin: maintenant.plus({ days: 2, hours: 2 })
-          })
-          const sessionInscriteSemaineSuivante = uneSessionBeneficiaireAccueil({
-            id: 'session-inscrite-semaine-suivante',
-            debut: maintenant.plus({ days: 8 }),
-            fin: maintenant.plus({ days: 8, hours: 2 }),
-            statutInscription: SessionMilo.Inscription.Statut.INSCRIT
-          })
+          const sessionInscriteCetteSemaine =
+            uneSessionMiloBeneficiaireDetaillee({
+              id: 'session-inscrite-semaine',
+              debut: maintenant.plus({ days: 1 }),
+              fin: maintenant.plus({ days: 1, hours: 2 }),
+              statutInscription: SessionMilo.Inscription.Statut.INSCRIT
+            })
+          const sessionNonInscriteCetteSemaine =
+            uneSessionMiloBeneficiaireDetaillee({
+              id: 'session-non-inscrite-semaine',
+              debut: maintenant.plus({ days: 2 }),
+              fin: maintenant.plus({ days: 2, hours: 2 })
+            })
+          const sessionInscriteSemaineSuivante =
+            uneSessionMiloBeneficiaireDetaillee({
+              id: 'session-inscrite-semaine-suivante',
+              debut: maintenant.plus({ days: 8 }),
+              fin: maintenant.plus({ days: 8, hours: 2 }),
+              statutInscription: SessionMilo.Inscription.Statut.INSCRIT
+            })
 
           sessionsQueryGetter.handle
             .withArgs(
@@ -293,7 +296,7 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
         it('compte une session inscrite déjà passée en début de semaine', async () => {
           const sessionInscritePasseeCetteSemaine =
-            uneSessionBeneficiaireAccueil({
+            uneSessionMiloBeneficiaireDetaillee({
               id: 'session-inscrite-passee',
               debut: maintenant.minus({ hours: 2 }),
               fin: maintenant.minus({ hours: 1 }),
@@ -401,18 +404,18 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
     describe('retourne la prochaine session Milo inscrite non terminée', () => {
       it('prend la prochaine session inscrite à venir', async () => {
-        const sessionNonInscriteAJPlus1 = uneSessionBeneficiaireAccueil({
+        const sessionNonInscriteAJPlus1 = uneSessionMiloBeneficiaireDetaillee({
           id: 'non-inscrite-j1',
           debut: maintenant.plus({ days: 1 }),
           fin: maintenant.plus({ days: 1, hours: 2 })
         })
-        const sessionInscriteAJPlus12 = uneSessionBeneficiaireAccueil({
+        const sessionInscriteAJPlus12 = uneSessionMiloBeneficiaireDetaillee({
           id: 'inscrite-j12',
           debut: maintenant.plus({ days: 12 }),
           fin: maintenant.plus({ days: 12, hours: 2 }),
           statutInscription: SessionMilo.Inscription.Statut.INSCRIT
         })
-        const sessionInscriteAJPlus23 = uneSessionBeneficiaireAccueil({
+        const sessionInscriteAJPlus23 = uneSessionMiloBeneficiaireDetaillee({
           id: 'inscrite-j23',
           debut: maintenant.plus({ days: 23 }),
           fin: maintenant.plus({ days: 23, hours: 2 }),
@@ -442,13 +445,15 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
       it('ignore une session inscrite déjà terminée et prend la prochaine à venir', async () => {
         // Given
-        const sessionInscriteDejaTerminee = uneSessionBeneficiaireAccueil({
-          id: 'session-passee',
-          debut: maintenant.minus({ hours: 2 }),
-          fin: maintenant.minus({ hours: 1 }),
-          statutInscription: SessionMilo.Inscription.Statut.INSCRIT
-        })
-        const sessionInscriteAVenir = uneSessionBeneficiaireAccueil({
+        const sessionInscriteDejaTerminee = uneSessionMiloBeneficiaireDetaillee(
+          {
+            id: 'session-passee',
+            debut: maintenant.minus({ hours: 2 }),
+            fin: maintenant.minus({ hours: 1 }),
+            statutInscription: SessionMilo.Inscription.Statut.INSCRIT
+          }
+        )
+        const sessionInscriteAVenir = uneSessionMiloBeneficiaireDetaillee({
           id: 'session-a-venir',
           debut: maintenant.plus({ days: 2 }),
           fin: maintenant.plus({ days: 2, hours: 2 }),
@@ -474,13 +479,13 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
       it('considère une session inscrite en cours comme prochaine session', async () => {
         // Given
-        const sessionInscriteEnCours = uneSessionBeneficiaireAccueil({
+        const sessionInscriteEnCours = uneSessionMiloBeneficiaireDetaillee({
           id: 'session-en-cours',
           debut: maintenant.minus({ hours: 1 }),
           fin: maintenant.plus({ hours: 1 }),
           statutInscription: SessionMilo.Inscription.Statut.INSCRIT
         })
-        const sessionInscriteAVenir = uneSessionBeneficiaireAccueil({
+        const sessionInscriteAVenir = uneSessionMiloBeneficiaireDetaillee({
           id: 'session-a-venir',
           debut: maintenant.plus({ days: 2 }),
           fin: maintenant.plus({ days: 2, hours: 2 }),
@@ -636,32 +641,32 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
     describe("retourne les 3 prochaines sessions Milo où le bénéficiaire peut s'inscrire", () => {
       it('renseignées s’il y en a, dans l’ordre, limitées à 3', async () => {
-        const sessionInscriteAJPlus1 = uneSessionBeneficiaireAccueil({
+        const sessionInscriteAJPlus1 = uneSessionMiloBeneficiaireDetaillee({
           id: 'inscrite-j1',
           debut: maintenant.plus({ days: 1 }),
           fin: maintenant.plus({ days: 1, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 1 }),
           statutInscription: SessionMilo.Inscription.Statut.INSCRIT
         })
-        const sessionOuverteAJPlus2 = uneSessionBeneficiaireAccueil({
+        const sessionOuverteAJPlus2 = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte-j2',
           debut: maintenant.plus({ days: 2 }),
           fin: maintenant.plus({ days: 2, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 2 })
         })
-        const sessionOuverteAJPlus3 = uneSessionBeneficiaireAccueil({
+        const sessionOuverteAJPlus3 = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte-j3',
           debut: maintenant.plus({ days: 3 }),
           fin: maintenant.plus({ days: 3, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 3 })
         })
-        const sessionOuverteAJPlus4 = uneSessionBeneficiaireAccueil({
+        const sessionOuverteAJPlus4 = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte-j4',
           debut: maintenant.plus({ days: 4 }),
           fin: maintenant.plus({ days: 4, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 4 })
         })
-        const sessionOuverteAJPlus5 = uneSessionBeneficiaireAccueil({
+        const sessionOuverteAJPlus5 = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte-j5',
           debut: maintenant.plus({ days: 5 }),
           fin: maintenant.plus({ days: 5, hours: 2 }),
@@ -696,14 +701,14 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
         // Given : session déroulée ce matin mais dateMaxInscription en fin de
         // journée (MiLo donne une date) → peutInscrire réussirait, mais la
         // session n'est plus à venir
-        const sessionPasseeCeMatin = uneSessionBeneficiaireAccueil({
+        const sessionPasseeCeMatin = uneSessionMiloBeneficiaireDetaillee({
           id: 'passee-ce-matin',
           debut: maintenant.minus({ hours: 2 }),
           fin: maintenant.minus({ hours: 1 }),
           dateMaxInscription: maintenant.endOf('day'),
           dateMaxInscriptionAffichee: maintenant.endOf('day')
         })
-        const sessionOuverte = uneSessionBeneficiaireAccueil({
+        const sessionOuverte = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte',
           debut: maintenant.plus({ days: 2 }),
           fin: maintenant.plus({ days: 2, hours: 2 }),
@@ -728,21 +733,21 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
 
       it('exclut une session sans autoinscription ou sans place', async () => {
         // Given
-        const sessionSansAutoinscription = uneSessionBeneficiaireAccueil({
+        const sessionSansAutoinscription = uneSessionMiloBeneficiaireDetaillee({
           id: 'sans-autoinscription',
           debut: maintenant.plus({ days: 2 }),
           fin: maintenant.plus({ days: 2, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 2 }),
           autoinscription: false
         })
-        const sessionSansPlace = uneSessionBeneficiaireAccueil({
+        const sessionSansPlace = uneSessionMiloBeneficiaireDetaillee({
           id: 'sans-place',
           debut: maintenant.plus({ days: 3 }),
           fin: maintenant.plus({ days: 3, hours: 2 }),
           dateMaxInscription: maintenant.plus({ days: 3 }),
           nbPlacesDisponibles: 0
         })
-        const sessionOuverte = uneSessionBeneficiaireAccueil({
+        const sessionOuverte = uneSessionMiloBeneficiaireDetaillee({
           id: 'ouverte',
           debut: maintenant.plus({ days: 4 }),
           fin: maintenant.plus({ days: 4, hours: 2 }),

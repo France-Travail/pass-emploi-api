@@ -6,10 +6,7 @@ import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import {
-  GetSessionsBeneficiaireAccueilMiloQueryGetter,
-  mapSessionBeneficiaireAccueilToQueryModel
-} from 'src/application/queries/query-getters/milo/get-sessions-beneficiaire-accueil.milo.query.getter.db'
+import { GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-ou-inscrites-pour-jeune.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -34,6 +31,7 @@ import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-mod
 import { RendezVousSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { rootLogger, toEcsError } from '../../../utils/logger.module'
+import { mapSessionMiloBeneficiaireDetailleeToQueryModel } from '../query-mappers/milo.mappers'
 import {
   fromSqlToRendezVousDetailJeuneQueryModel,
   fromSqlToRendezVousJeuneQueryModel
@@ -54,7 +52,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 > {
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    private readonly getSessionsAccueilQueryGetter: GetSessionsBeneficiaireAccueilMiloQueryGetter,
+    private readonly getSessionsVisiblesOuInscritesQueryGetter: GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter,
     private readonly getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private readonly getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
     private readonly getCampagneQueryGetter: GetCampagneQueryGetter,
@@ -368,12 +366,13 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     }
 
     try {
-      const sessionsResult = await this.getSessionsAccueilQueryGetter.handle(
-        query.idJeune,
-        Authentification.Type.JEUNE,
-        query.accessToken,
-        { debut: dateDebutDeSemaine, fin: datePlus30Jours }
-      )
+      const sessionsResult =
+        await this.getSessionsVisiblesOuInscritesQueryGetter.handle(
+          query.idJeune,
+          Authentification.Type.JEUNE,
+          query.accessToken,
+          { debut: dateDebutDeSemaine, fin: datePlus30Jours }
+        )
       if (isSuccess(sessionsResult)) {
         const sessions = sessionsResult.data
 
@@ -393,7 +392,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
         )
         if (prochaineSessionInscrite) {
           resultat.prochaineSessionInscrite =
-            mapSessionBeneficiaireAccueilToQueryModel(
+            mapSessionMiloBeneficiaireDetailleeToQueryModel(
               prochaineSessionInscrite,
               maintenant
             )
@@ -409,7 +408,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           )
           .slice(0, 3)
           .map(session =>
-            mapSessionBeneficiaireAccueilToQueryModel(session, maintenant)
+            mapSessionMiloBeneficiaireDetailleeToQueryModel(session, maintenant)
           )
       }
     } catch (e) {

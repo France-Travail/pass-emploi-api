@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { describe } from 'mocha'
 import { createSandbox, SinonSandbox } from 'sinon'
-import { GetSessionsBeneficiaireAccueilMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-beneficiaire-accueil.milo.query.getter.db'
+import { GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-ou-inscrites-pour-jeune.milo.query.getter.db'
 import { SessionsMiloFetcher } from 'src/application/queries/query-getters/milo/sessions-milo.fetcher'
 import { isSuccess, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
@@ -25,8 +25,8 @@ import { StructureMiloSqlModel } from '../../../../../src/infrastructure/sequeli
 import { unConseillerDto } from '../../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../../fixtures/sql-models/jeune.sql-model'
 
-describe('GetSessionsBeneficiaireAccueilMiloQueryGetter', () => {
-  let getter: GetSessionsBeneficiaireAccueilMiloQueryGetter
+describe('GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter', () => {
+  let getter: GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter
   let oidcClient: StubbedClass<OidcClient>
   let miloClient: StubbedClass<MiloClient>
   let dateService: StubbedClass<DateService>
@@ -51,7 +51,9 @@ describe('GetSessionsBeneficiaireAccueilMiloQueryGetter', () => {
     dateService = stubClass(DateService)
     dateService.now.returns(DateTime.fromISO('2020-04-01T00:00:00.000Z'))
     const fetcher = new SessionsMiloFetcher(dateService, oidcClient, miloClient)
-    getter = new GetSessionsBeneficiaireAccueilMiloQueryGetter(fetcher)
+    getter = new GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter(
+      fetcher
+    )
 
     await getDatabase().cleanPG()
     await ConseillerSqlModel.create(unConseillerDto())

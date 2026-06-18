@@ -49,6 +49,14 @@ export interface SessionMiloBeneficiaire {
   dateMaxDesinscription: DateTime
 }
 
+export interface SessionMiloBeneficiaireDetaillee extends SessionMiloBeneficiaire {
+  fin: DateTime
+  nomOffre: string
+  theme: string
+  typeOffre: SessionMilo.Offre['type']
+  dateMaxInscriptionAffichee?: DateTime
+}
+
 export interface InstanceSessionMilo {
   id: string
   idSession: string
