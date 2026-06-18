@@ -127,7 +127,7 @@
     "@nestjs/cli": "^11.0.23",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.27",
-    "@salesforce/ts-sinon": "^1.4.35",
+    "@salesforce/ts-sinon": "^1.4.36",
     "@types/chai": "^4.3.20",
     "@types/chai-as-promised": "^8.0.2",
     "@types/compression": "^1.8.1",
