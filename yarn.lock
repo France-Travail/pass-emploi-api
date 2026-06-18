@@ -2162,14 +2162,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@salesforce/ts-sinon@npm:^1.4.35":
-  version: 1.4.35
-  resolution: "@salesforce/ts-sinon@npm:1.4.35"
+"@salesforce/ts-sinon@npm:^1.4.36":
+  version: 1.4.36
+  resolution: "@salesforce/ts-sinon@npm:1.4.36"
   dependencies:
     "@salesforce/ts-types": "npm:^2.0.12"
     sinon: "npm:^5.1.1"
     tslib: "npm:^2.8.1"
-  checksum: 10/1f222cd869c9219da186704ca66aa95da98c4abedbfb887f74de0f409d09047a20b2e7712ff092f61894027847413f7c025a1e85eeacb75ae84e888792b73358
+  checksum: 10/a1297f6e71f5aea608193e95ee6f3cbc91ee0d03cdb3ec1911d1a678aeaa94325a751b8dcd45aede8f232fc54c2bbcd77be5f248e92cc22bea6e06c8635c97e6
   languageName: node
   linkType: hard
 
@@ -8552,7 +8552,7 @@ __metadata:
     "@nestjs/swagger": "npm:11.4.4"
     "@nestjs/terminus": "npm:11.1.1"
     "@nestjs/testing": "npm:^11.1.27"
-    "@salesforce/ts-sinon": "npm:^1.4.35"
+    "@salesforce/ts-sinon": "npm:^1.4.36"
     "@types/chai": "npm:^4.3.20"
     "@types/chai-as-promised": "npm:^8.0.2"
     "@types/compression": "npm:^1.8.1"
