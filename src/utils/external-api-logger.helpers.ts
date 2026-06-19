@@ -134,9 +134,14 @@ export function logCall(
     ...buildErrorFragment(err)
   }
 
-  // erreur réseau : pas de réponse → log error
-  const isCrash =
-    (!!statusCode && statusCode >= 500) || (!!err && statusCode === undefined)
+  // panne de transport : axios rejette alors que le status n'est pas un refus
+  // HTTP volontaire (≥400). Ex. body tronqué après des headers 200 (aborted,
+  // décompression Brotli interrompue), ECONNRESET sans status.
+  const isTransportError =
+    !!err && (statusCode === undefined || statusCode < 400)
+  // log error = panne à surveiller : 5xx serveur ou panne de transport. Les 4xx
+  // (401/404/408…) restent en info : refus/timeout HTTP attendus.
+  const isCrash = (!!statusCode && statusCode >= 500) || isTransportError
   emit(isCrash ? 'error' : 'info', obj, 'external_api_call')
 }
 

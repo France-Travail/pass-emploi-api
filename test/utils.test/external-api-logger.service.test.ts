@@ -181,4 +181,46 @@ describe('attachExternalApiLogger', () => {
       })
     })
   })
+
+  describe('appel sortant transport failure sur status 200', () => {
+    it('emit error/failure quand axios rejette malgré un status < 400 (body tronqué)', async () => {
+      const instance = axios.create()
+      const abortError = Object.assign(new Error('aborted'), {
+        name: 'Error',
+        isAxiosError: true,
+        code: 'ECONNRESET',
+        config: {
+          method: 'get',
+          url: 'https://api.i-milo.fr/dossiers/1',
+          headers: {}
+        },
+        response: { status: 200, data: undefined },
+        toJSON: (): Record<string, unknown> => ({})
+      }) as unknown as AxiosError
+      instance.defaults.adapter = sinon.stub().rejects(abortError)
+
+      attachExternalApiLogger(instance, emit, () => false)
+
+      try {
+        await instance.get('https://api.i-milo.fr/dossiers/1')
+      } catch {
+        // attendu
+      }
+
+      const [level, obj] = emit.firstCall.args
+      // status 200 mais err présent = panne de transport → error, pas info
+      expect(level).to.equal('error')
+      expect(obj.event).to.deep.include({
+        action: 'external_api_call',
+        outcome: 'failure'
+      })
+      expect(obj.http).to.deep.include({
+        response: { status_code: 200 }
+      })
+      expect(obj.error).to.deep.include({
+        type: 'Error',
+        message: 'aborted'
+      })
+    })
+  })
 })
