@@ -378,7 +378,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 
         resultat.nbSessionsInscritCetteSemaine = sessions.filter(
           session =>
-            SessionMilo.Inscription.aEteInscrit(session.statutInscription) &&
+            SessionMilo.Inscription.estInscrit(session.statutInscription) &&
             DateService.estDansLaSemaine(session.debut, {
               debut: dateDebutDeSemaine,
               fin: dateFinDeSemaine
@@ -387,7 +387,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 
         const prochaineSessionInscrite = sessions.find(
           session =>
-            SessionMilo.Inscription.aEteInscrit(session.statutInscription) &&
+            SessionMilo.Inscription.estInscrit(session.statutInscription) &&
             !SessionMilo.estTerminee(session.fin, maintenant)
         )
         if (prochaineSessionInscrite) {

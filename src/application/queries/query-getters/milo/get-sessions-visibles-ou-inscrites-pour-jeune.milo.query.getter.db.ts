@@ -56,7 +56,7 @@ export class GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter {
       )
       .filter(
         session =>
-          SessionMilo.Inscription.aEteInscrit(session.statutInscription) ||
+          SessionMilo.Inscription.estInscrit(session.statutInscription) ||
           idsSessionsVisibles.has(session.id)
       )
       .sort((s1, s2) => s1.debut.toMillis() - s2.debut.toMillis())

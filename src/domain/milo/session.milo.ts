@@ -350,17 +350,6 @@ export namespace SessionMilo {
       PRESENT = 'PRESENT'
     }
 
-    export function aEteInscrit(statut?: Statut): boolean {
-      switch (statut) {
-        case Inscription.Statut.INSCRIT:
-        case Inscription.Statut.REFUS_JEUNE:
-        case Inscription.Statut.PRESENT:
-          return true
-        default:
-          return false
-      }
-    }
-
     export function estInscrit(statut?: Statut): boolean {
       switch (statut) {
         case Statut.INSCRIT:
