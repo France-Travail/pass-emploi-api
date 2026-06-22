@@ -136,7 +136,7 @@
     "@types/express": "^5.0.6",
     "@types/geojson": "^7946.0.16",
     "@types/lodash.isequal": "^4.5.8",
-    "@types/luxon": "^3.7.1",
+    "@types/luxon": "^3.7.2",
     "@types/mocha": "^10.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.9.3",
