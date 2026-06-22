@@ -49,6 +49,14 @@ export interface SessionMiloBeneficiaire {
   dateMaxDesinscription: DateTime
 }
 
+export interface SessionMiloBeneficiaireDetaillee extends SessionMiloBeneficiaire {
+  fin: DateTime
+  nomOffre: string
+  theme: string
+  typeOffre: SessionMilo.Offre['type']
+  dateMaxInscriptionAffichee?: DateTime
+}
+
 export interface InstanceSessionMilo {
   id: string
   idSession: string
@@ -244,6 +252,14 @@ export namespace SessionMilo {
     return statut === Statut.EMARGEE
   }
 
+  export function estTerminee(fin: DateTime, maintenant: DateTime): boolean {
+    return fin < maintenant
+  }
+
+  export function estAVenir(debut: DateTime, maintenant: DateTime): boolean {
+    return debut > maintenant
+  }
+
   export function calculerDateMaxDesinscription(
     timezone: string,
     dateHeureDebut: DateTime,
@@ -332,17 +348,6 @@ export namespace SessionMilo {
       REFUS_JEUNE = 'REFUS_JEUNE',
       REFUS_TIERS = 'REFUS_TIERS',
       PRESENT = 'PRESENT'
-    }
-
-    export function aEteInscrit(statut?: Statut): boolean {
-      switch (statut) {
-        case Inscription.Statut.INSCRIT:
-        case Inscription.Statut.REFUS_JEUNE:
-        case Inscription.Statut.PRESENT:
-          return true
-        default:
-          return false
-      }
     }
 
     export function estInscrit(statut?: Statut): boolean {

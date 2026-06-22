@@ -9,7 +9,8 @@ import {
 import { OffreTypeCode } from 'src/infrastructure/clients/dto/milo.dto'
 import {
   SessionMilo,
-  SessionMiloBeneficiaire
+  SessionMiloBeneficiaire,
+  SessionMiloBeneficiaireDetaillee
 } from '../../src/domain/milo/session.milo'
 
 export const uneSessionConseillerMiloQueryModel: SessionConseillerMiloQueryModel =
@@ -190,6 +191,34 @@ export const uneSessionMilo = (
   }
 
   return { ...defaults, ...args }
+}
+
+export function uneSessionMiloBeneficiaireDetaillee(
+  overrides: Partial<SessionMiloBeneficiaireDetaillee> = {}
+): SessionMiloBeneficiaireDetaillee {
+  const debut = DateTime.fromISO('2020-04-06T13:20:00.000Z', {
+    zone: 'Europe/Paris'
+  })
+  const defaults: SessionMiloBeneficiaireDetaillee = {
+    id: 'id-session',
+    nom: 'Une session',
+    debut,
+    fin: debut.plus({ hours: 2 }),
+    nbPlacesDisponibles: undefined,
+    statutInscription: undefined,
+    autoinscription: true,
+    dateMaxInscription: debut,
+    dateMaxInscriptionAffichee: debut,
+    autodesinscription: false,
+    dateMaxDesinscription: DateTime.fromISO('2020-04-05T13:20:00.000Z', {
+      zone: 'Europe/Paris'
+    }),
+    nomOffre: 'Une-offre',
+    theme: 'Un-theme',
+    typeOffre: { code: OffreTypeCode.WORKSHOP, label: 'Atelier' }
+  }
+
+  return { ...defaults, ...overrides }
 }
 
 export function uneSessionMiloAllegee(

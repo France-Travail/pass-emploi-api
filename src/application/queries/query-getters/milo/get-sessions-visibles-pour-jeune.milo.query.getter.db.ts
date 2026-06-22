@@ -11,10 +11,17 @@ import { DateService } from '../../../../utils/date-service'
 import { Authentification } from '../../../../domain/authentification'
 import JeuneOuConseiller = Authentification.JeuneOuConseiller
 
+// TODO: à décommissionner une fois get-sessions-jeune et get-mon-suivi-jeune migrés
+// vers GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter (projection domaine, dates exactes).
 @Injectable()
 export class GetSessionsVisiblesPourLeJeuneMiloQueryGetter {
   constructor(private readonly fetcher: SessionsMiloFetcher) {}
 
+  /**
+   * @param periode borne de recherche tronquée au JOUR par l'API MiLo :
+   * l'heure des DateTime debut/fin est ignorée. Pour un filtrage à l'heure,
+   * filtrer le résultat côté appelant (cf. prochaineSessionMilo dans l'accueil).
+   */
   async handle(
     idJeune: string,
     utilisateur: JeuneOuConseiller,
