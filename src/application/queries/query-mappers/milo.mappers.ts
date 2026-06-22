@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { ConfigurationLocale, SessionMilo } from 'src/domain/milo/session.milo'
+import {
+  ConfigurationLocale,
+  SessionMilo,
+  SessionMiloBeneficiaireDetaillee
+} from 'src/domain/milo/session.milo'
 import {
   MILO_INSCRIT,
   MILO_PRESENT,
@@ -95,6 +99,70 @@ export function mapSessionJeuneDtoToQueryModel(
   }
 
   return queryModel
+}
+
+export function dtoToSessionMiloBeneficiaireDetaillee(
+  { session, offre, sessionInstance }: SessionParDossierJeuneDto,
+  configuration:
+    | Pick<ConfigurationLocale, 'autoinscription' | 'autodesinscription'>
+    | undefined,
+  idDossier: string,
+  timezone: string
+): SessionMiloBeneficiaireDetaillee {
+  const idSession = session.id.toString()
+  const debut = DateService.dateFromMilo(session.dateHeureDebut, timezone)
+  const fin = DateService.dateFromMilo(session.dateHeureFin, timezone)
+  const dateMaxInscriptionAffichee = session.dateMaxInscription
+    ? DateService.dateStringToEndOfDayUtc(session.dateMaxInscription, timezone)
+    : undefined
+  const dateMaxDesinscription = SessionMilo.calculerDateMaxDesinscription(
+    timezone,
+    debut,
+    dateMaxInscriptionAffichee
+  )
+
+  return {
+    id: idSession,
+    nom: session.nom,
+    debut,
+    fin,
+    nbPlacesDisponibles: session.nbPlacesDisponibles ?? undefined,
+    statutInscription: sessionInstance
+      ? dtoToStatutInscription(sessionInstance.statut, session.id, idDossier)
+      : undefined,
+    autoinscription: configuration?.autoinscription ?? false,
+    autodesinscription: configuration?.autodesinscription ?? false,
+    dateMaxInscription: dateMaxInscriptionAffichee ?? debut,
+    dateMaxDesinscription,
+    nomOffre: offre.nom,
+    theme: offre.theme,
+    typeOffre: buildSessionTypeQueryModel(offre.type),
+    dateMaxInscriptionAffichee
+  }
+}
+
+export function mapSessionMiloBeneficiaireDetailleeToQueryModel(
+  session: SessionMiloBeneficiaireDetaillee,
+  maintenant: DateTime
+): SessionJeuneMiloQueryModel {
+  return {
+    id: session.id,
+    nomSession: session.nom,
+    nomOffre: session.nomOffre,
+    dateHeureDebut: session.debut.toISO(),
+    dateHeureFin: session.fin.toISO(),
+    type: session.typeOffre,
+    inscription: session.statutInscription,
+    autoinscription: session.autoinscription,
+    autodesinscription: SessionMilo.autodesinscriptionEffectivePourBeneficiaire(
+      session.autodesinscription,
+      session.dateMaxDesinscription,
+      maintenant
+    ),
+    dateMaxInscription: session.dateMaxInscriptionAffichee?.toISO(),
+    nbPlacesRestantes: session.nbPlacesDisponibles,
+    theme: session.theme
+  }
 }
 
 export function mapSessionConseillerDtoToQueryModel(

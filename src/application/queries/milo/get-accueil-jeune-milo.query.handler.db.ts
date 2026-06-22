@@ -6,7 +6,7 @@ import { JeuneAuthorizer } from 'src/application/authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from 'src/application/queries/query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from 'src/application/queries/query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
 import { GetCampagneQueryGetter } from 'src/application/queries/query-getters/get-campagne.query.getter.db'
-import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
+import { GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-ou-inscrites-pour-jeune.milo.query.getter.db'
 import {
   JeuneMiloSansIdDossier,
   NonTrouveError
@@ -24,12 +24,14 @@ import { Authentification } from 'src/domain/authentification'
 import { estMilo } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { TYPES_ANIMATIONS_COLLECTIVES } from 'src/domain/rendez-vous/rendez-vous'
+import { DateService } from 'src/utils/date-service'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
-import { buildError } from '../../../utils/logger.module'
+import { rootLogger, toEcsError } from '../../../utils/logger.module'
+import { mapSessionMiloBeneficiaireDetailleeToQueryModel } from '../query-mappers/milo.mappers'
 import {
   fromSqlToRendezVousDetailJeuneQueryModel,
   fromSqlToRendezVousJeuneQueryModel
@@ -50,7 +52,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 > {
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    private readonly getSessionsQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
+    private readonly getSessionsVisiblesOuInscritesQueryGetter: GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter,
     private readonly getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private readonly getFavorisAccueilQueryGetter: GetFavorisAccueilQueryGetter,
     private readonly getCampagneQueryGetter: GetCampagneQueryGetter,
@@ -99,7 +101,11 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       campagneQueryModel,
       resultatSessionsMilo
     ] = await Promise.all([
-      this.countRendezVousSemaine(maintenant, dateFinDeSemaine, idJeune),
+      this.countRendezVousSemaine(
+        dateDebutDeSemaine,
+        dateFinDeSemaine,
+        idJeune
+      ),
       this.prochainRendezVous(maintenant, idJeune),
       this.countActions(
         idJeune,
@@ -115,10 +121,10 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       this.getCampagneQueryGetter.handle({ idJeune }),
       this.recupererSessions(
         maintenant,
+        dateDebutDeSemaine,
         dateFinDeSemaine,
         datePlus30Jours,
-        query,
-        jeuneSqlModel
+        query
       )
     ])
 
@@ -126,7 +132,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       cetteSemaine: {
         nombreRendezVous:
           rendezVousSqlModelsCount +
-          resultatSessionsMilo.sessionsInscritCetteSemaine.length,
+          resultatSessionsMilo.nbSessionsInscritCetteSemaine,
         nombreActionsDemarchesEnRetard: countActions.enRetard,
         nombreActionsDemarchesARealiser: countActions.aRealiser,
         nombreActionsDemarchesAFaireSemaineCalendaire: countActions.aFaire
@@ -138,7 +144,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
             idJeune
           )
         : undefined,
-      prochaineSessionMilo: resultatSessionsMilo.sessionsInscrit[0],
+      prochaineSessionMilo: resultatSessionsMilo.prochaineSessionInscrite,
       evenementsAVenir: evenementSqlModelAVenir.map(acSql =>
         fromSqlToRendezVousDetailJeuneQueryModel(
           acSql,
@@ -146,7 +152,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
           Authentification.Type.JEUNE
         )
       ),
-      sessionsMiloAVenir: resultatSessionsMilo.sessionsNonInscrit.slice(0, 3),
+      sessionsMiloAVenir: resultatSessionsMilo.sessionsNonInscritOuvertes,
       mesAlertes: recherchesQueryModels,
       mesFavoris: favorisQueryModels,
       campagne: campagneQueryModel,
@@ -293,7 +299,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   }
 
   private async countRendezVousSemaine(
-    maintenant: DateTime,
+    dateDebutDeSemaine: DateTime,
     dateFinDeSemaine: DateTime,
     idJeune: string
   ): Promise<number> {
@@ -310,7 +316,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
       {
         replacements: {
           idJeune,
-          dateDebut: maintenant.toJSDate(),
+          dateDebut: dateDebutDeSemaine.toJSDate(),
           dateFin: dateFinDeSemaine.toJSDate()
         },
         type: QueryTypes.SELECT
@@ -348,55 +354,83 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
 
   private async recupererSessions(
     maintenant: DateTime,
+    dateDebutDeSemaine: DateTime,
     dateFinDeSemaine: DateTime,
     datePlus30Jours: DateTime,
-    query: GetAccueilJeuneMiloQuery,
-    jeuneSqlModel: JeuneSqlModel
+    query: GetAccueilJeuneMiloQuery
   ): Promise<ResultatSessionsMilo> {
-    let sessionsInscrit: SessionJeuneMiloQueryModel[] = []
-    let sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[] = []
-    let sessionsNonInscrit: SessionJeuneMiloQueryModel[] = []
+    const resultat: ResultatSessionsMilo = {
+      nbSessionsInscritCetteSemaine: 0,
+      prochaineSessionInscrite: undefined,
+      sessionsNonInscritOuvertes: []
+    }
 
-    if (jeuneSqlModel.idPartenaire) {
-      try {
-        const sessionsQueryModels = await this.getSessionsQueryGetter.handle(
+    try {
+      const sessionsResult =
+        await this.getSessionsVisiblesOuInscritesQueryGetter.handle(
           query.idJeune,
           Authentification.Type.JEUNE,
           query.accessToken,
-          { debut: maintenant, fin: datePlus30Jours }
+          { debut: dateDebutDeSemaine, fin: datePlus30Jours }
         )
-        if (isSuccess(sessionsQueryModels)) {
-          sessionsInscrit = sessionsQueryModels.data.filter(session =>
-            SessionMilo.Inscription.aEteInscrit(session.inscription)
-          )
-          sessionsInscritCetteSemaine = sessionsInscrit.filter(session => {
-            const dateDebutSession = DateTime.fromISO(session.dateHeureDebut)
-            return dateDebutSession < dateFinDeSemaine
-          })
-          sessionsNonInscrit = sessionsQueryModels.data.filter(
-            session => !SessionMilo.Inscription.aEteInscrit(session.inscription)
-          )
+      if (isSuccess(sessionsResult)) {
+        const sessions = sessionsResult.data
+
+        resultat.nbSessionsInscritCetteSemaine = sessions.filter(
+          session =>
+            SessionMilo.Inscription.estInscrit(session.statutInscription) &&
+            DateService.estDansLaSemaine(session.debut, {
+              debut: dateDebutDeSemaine,
+              fin: dateFinDeSemaine
+            })
+        ).length
+
+        const prochaineSessionInscrite = sessions.find(
+          session =>
+            SessionMilo.Inscription.estInscrit(session.statutInscription) &&
+            !SessionMilo.estTerminee(session.fin, maintenant)
+        )
+        if (prochaineSessionInscrite) {
+          resultat.prochaineSessionInscrite =
+            mapSessionMiloBeneficiaireDetailleeToQueryModel(
+              prochaineSessionInscrite,
+              maintenant
+            )
         }
-      } catch (e) {
-        this.logger.error(
-          buildError(
-            `La récupération des sessions de l'accueil du jeune ${query.idJeune} a échoué`,
-            e
+
+        resultat.sessionsNonInscritOuvertes = sessions
+          .filter(
+            session =>
+              SessionMilo.estAVenir(session.debut, maintenant) &&
+              isSuccess(
+                SessionMilo.peutInscrireBeneficiaire(session, maintenant)
+              )
           )
-        )
+          .slice(0, 3)
+          .map(session =>
+            mapSessionMiloBeneficiaireDetailleeToQueryModel(session, maintenant)
+          )
       }
+    } catch (e) {
+      rootLogger.error(
+        {
+          context: 'GetAccueilJeuneMiloQueryHandler',
+          event: {
+            action: 'accueil_sessions_milo_recuperees',
+            outcome: 'failure'
+          },
+          error: toEcsError(e)
+        },
+        'accueil_sessions_milo_recuperees'
+      )
     }
 
-    return {
-      sessionsInscrit: sessionsInscrit,
-      sessionsInscritCetteSemaine: sessionsInscritCetteSemaine,
-      sessionsNonInscrit: sessionsNonInscrit
-    }
+    return resultat
   }
 }
 
 class ResultatSessionsMilo {
-  sessionsInscrit: SessionJeuneMiloQueryModel[]
-  sessionsInscritCetteSemaine: SessionJeuneMiloQueryModel[]
-  sessionsNonInscrit: SessionJeuneMiloQueryModel[]
+  nbSessionsInscritCetteSemaine: number
+  prochaineSessionInscrite?: SessionJeuneMiloQueryModel
+  sessionsNonInscritOuvertes: SessionJeuneMiloQueryModel[]
 }

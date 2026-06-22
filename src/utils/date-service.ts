@@ -51,6 +51,13 @@ export class DateService {
     return dateMin <= dateAComparer && dateAComparer <= dateMax
   }
 
+  static estDansLaSemaine(
+    date: DateTime,
+    semaine: { debut: DateTime; fin: DateTime }
+  ): boolean {
+    return semaine.debut <= date && date <= semaine.fin
+  }
+
   fromISOStringToJSDate(stringISO: string): Date {
     return DateTime.fromISO(stringISO).toJSDate()
   }
