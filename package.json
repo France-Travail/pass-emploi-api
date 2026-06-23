@@ -180,7 +180,7 @@
   },
   "resolutions": {
     "minimatch": ">=9.0.5",
-    "multer": ">=2.1.0",
+    "multer": ">=2.2.0",
     "tar": ">=7.5.11",
     "fast-xml-parser": ">=5.5.6",
     "fast-xml-builder": ">=1.1.7",
