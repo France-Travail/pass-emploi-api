@@ -1,16 +1,72 @@
 # Pipeline analytics
 
-La pipeline fonctionne en mode ELT (Extract, Load, Transform) et est composée de 4 jobs :
+## Pourquoi cette pipeline ? Pour qui ?
 
-1. [0-dump-for-analytics.job.ts](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2F0-dump-for-analytics.job.ts)
-2. [1-charger-les-evenements.job.ts](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2F1-charger-les-evenements.job.ts)
-3. [2-enrichir-les-evenements.job.ts](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2F2-enrichir-les-evenements.job.ts)
-4. [3-charger-les-vues.job.ts](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2F3-charger-les-vues.job.ts)
-5. Bonus : [initialiser-les-vues.job.ts](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2Finitialiser-les-vues.job.ts)
+Pour analyser l'usage de l'application, on ne requête **jamais** la base de production
+directement : elle est transactionnelle (elle sert l'app mobile et le web conseiller en
+temps réel) et on ne veut ni la ralentir, ni exposer ses données vivantes.
+
+On alimente donc une **base Analytics séparée**, puis on construit dessus des tables de vues
+agrégées (par semaine / structure / type d'utilisateur / géographie) que **Metabase** requête
+pour les dashboards.
+
+La pipeline fonctionne en mode **ELT** (Extract, Load, **puis** Transform) : on charge d'abord
+les données brutes dans la base Analytics, et on transforme ensuite en SQL directement dans
+cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboards à garder
+< 1 min) est détaillé dans [ADR-004](./decisions/ADR-004-pipeline-analytics.md).
+
+## Vue d'ensemble
+
+```
+   BASE API (prod, transactionnelle)                BASE ANALYTICS (dédiée)
+ ┌──────────────────────────────────┐            ┌──────────────────────────────────┐
+ │  Tables métier                   │  ① DUMP    │  Tables métier (copie)           │
+ │   jeune, action, rdv, ...        │ ─────────► │                                  │
+ │                                  │            │  evenement_engagement            │
+ │  evenement_engagement            │  ② COPY    │   ◄── chargement itératif        │
+ │   ◄── EvenementService.creer()   │ ─────────► │        (batch, stream COPY)      │
+ │       (1 ligne / acte usager)    │            │                                  │
+ └──────────────────────────────────┘            │  ③ ENRICHIR : semaine, jour,     │
+   SOURCE (DUMP_RESTORE_DB_SOURCE)               │      géographie (agence/dépt/rég)│
+                                                  │                                  │
+                                                  │  ④ VUES agrégées (chaque lundi)  │
+                                                  │   analytics_fonctionnalites      │
+                                                  │   analytics_engagement[_national]│
+                                                  └─────────────────┬────────────────┘
+                                                    TARGET (DUMP_RESTORE_DB_TARGET)
+                                                                    │
+                                                                    ▼
+                                                            Metabase (dataviz)
+```
+
+> **Frontière de périmètre** : le repo `pass-emploi-api` s'arrête à la base Analytics et ses
+> vues. La restitution (dashboards Metabase) et les indicateurs consolidés vivent en aval
+> (voir `pass-emploi-analytics`). Chaque job remonte un `SuiviJob` (succès/échec, volumétrie,
+> durée) : c'est le premier réflexe quand un chiffre Metabase paraît figé (cf.
+> [investigation baisse RDV](./investigations/2026-05-11-baisse-rdv.md)).
+
+## Comment analyser les données
+
+- Les données à requêter sont dans la **base Analytics**, tables `analytics_fonctionnalites`
+  et `analytics_engagement` (détaillées plus bas).
+- Un **événement d'engagement (EE)** = une ligne écrite en prod à chaque acte utilisateur
+  important, via `EvenementService.creer(...)` (`src/domain/evenement.ts`). C'est la matière
+  première de tout le suivi d'usage.
+- Les vues sont **agrégées à la semaine** : les analyses fines se font à cette maille.
+
+## Composition de la pipeline
+
+La pipeline est composée de 4 jobs :
+
+1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts)
+2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts)
+3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts)
+4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts)
+5. Bonus : [initialiser-les-vues.job.ts](../src/application/jobs/analytics/initialiser-les-vues.job.ts)
 
 ## Ordonnancement
 
-- Le premier job de la pipeline est lancé via un **cron** dans le worker.
+- Le premier job de la pipeline (`0-dump-for-analytics`) est lancé via un **cron** dans le worker, **tous les jours à 02h30** (`DUMP_ANALYTICS = '30 2 * * *'`, voir `src/domain/planificateur.ts`).
 - A l'issue du job, un nouveau job est créé dans le worker pour l'étape charger les événements.
 - A l'issue du job, un nouveau job est créé dans le worker pour l'étape enrichir les événements.
 - Lorsque le jour de la semaine est un **lundi**, un nouveau job est créé dans le worker pour l'étape charger les vues.
@@ -23,25 +79,25 @@ Basiquement un gros pg_dump pg_restore de la DB de prod vers celle d'analytics. 
 
 ### 1-charger-les-evenements.job.ts
 
-Chargement des événements d'engagement de la prod qui ne sont pas présent dans analytics. En gros les événements de la journée.
+Chargement des événements d'engagement de la prod qui ne sont pas présents dans analytics. En gros les événements de la journée.
 Technique utilisée : COPY FROM / TO de postgresql en passant par un stream node
 
 ### 2-enrichir-les-evenements.job.ts
 
-Afin de facilité l'exploratoire et le reporting, on enrichit les données ajoutées de la journée.
+Afin de faciliter l'exploratoire et le reporting, on enrichit les données ajoutées de la journée.
 
 - mise à jour du schéma des événements d'engagement d'analytics pour ajouter les colonnes des champs enrichis. ATTENTION : il n'y a pas de système de migration, c'est un peu manuel et ça doit être idempotent.
 - enrichissement des données ajoutées de la journée
 
 Les champs rajoutés sont :
 
-- semaine de l'événement - car quasi toutes les analyses sont faites à la semaines
+- semaine de l'événement - car quasi toutes les analyses sont faites à la semaine
 - jour de l'événement - utilisé pour la notion d'utilisateur actif dans la vue engagement
-- agence/département/région utilisés pour les et pour l'exploratoire
+- agence/département/région - utilisés pour les analyses géographiques et pour l'exploratoire
 
 ### 3-charger-les-vues.job.ts
 
-Afin d'avoir des dashboards qui répondent vite, on fait des calculs d'indicateurs aggrégés par Semaine/Structure/Type d'utilisateur/Géographie
+Afin d'avoir des dashboards qui répondent vite, on fait des calculs d'indicateurs agrégés par Semaine/Structure/Type d'utilisateur/Géographie
 
 - mise à jour des schémas des tables pour l'analytics
 - chargement des données de la semaine précédente
@@ -89,4 +145,4 @@ Si vous avez besoin de recalculer les vues analytics dans le passé (suite à un
 scalingo --region osc-fr1 --app pass-emploi-api-staging run yarn tasks:initialiser-les-vues
 ```
 
-[Une variante existe pour relancer uniquement les calculs sur la dernière année.](..%2Fsrc%2Fapplication%2Fjobs%2Fanalytics%2Finitialiser-les-vues-derniere-annee.job.ts)
+[Une variante existe pour relancer uniquement les calculs sur la dernière année.](../src/application/jobs/analytics/initialiser-les-vues-derniere-annee.job.ts)
