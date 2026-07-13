@@ -13,8 +13,7 @@ export namespace Authentification {
     SUPPORT = 'SUPPORT'
   }
   export type JeuneOuConseiller =
-    | Authentification.Type.JEUNE
-    | Authentification.Type.CONSEILLER
+    Authentification.Type.JEUNE | Authentification.Type.CONSEILLER
 
   export enum Role {
     SUPERVISEUR = 'SUPERVISEUR'
