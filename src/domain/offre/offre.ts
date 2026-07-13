@@ -50,18 +50,18 @@ export namespace Offre {
     }
 
     export enum Domaine {
-      'environnement' = 'environnement',
+      environnement = 'environnement',
       'solidarite-insertion' = 'solidarite-insertion',
       'prevention-protection' = 'prevention-protection',
-      'sante' = 'sante',
+      sante = 'sante',
       'culture-loisirs' = 'culture-loisirs',
-      'education' = 'education',
-      'emploi' = 'emploi',
-      'sport' = 'sport',
-      'humanitaire' = 'humanitaire',
-      'animaux' = 'animaux',
+      education = 'education',
+      emploi = 'emploi',
+      sport = 'sport',
+      humanitaire = 'humanitaire',
+      animaux = 'animaux',
       'vivre-ensemble' = 'vivre-ensemble',
-      'autre' = 'autre'
+      autre = 'autre'
     }
   }
 }

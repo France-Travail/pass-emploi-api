@@ -39,10 +39,7 @@ export class SuggestionDto extends Model {
 
   @Column({ field: 'criteres', type: DataType.JSONB })
   criteres:
-    | Recherche.Emploi
-    | Recherche.Immersion
-    | Recherche.ServiceCivique
-    | null
+    Recherche.Emploi | Recherche.Immersion | Recherche.ServiceCivique | null
 
   @Column({ field: 'date_creation', type: DataType.DATE })
   dateCreation: Date

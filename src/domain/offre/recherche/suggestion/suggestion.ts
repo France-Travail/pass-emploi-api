@@ -18,9 +18,7 @@ import { Diagoriente } from './diagoriente'
 import { DiagorienteInformationsPayload } from 'src/infrastructure/routes/validation/suggestions-inputs'
 
 type CriteresSuggestion =
-  | Recherche.Emploi
-  | Recherche.Immersion
-  | Recherche.ServiceCivique
+  Recherche.Emploi | Recherche.Immersion | Recherche.ServiceCivique
 
 export interface Suggestion {
   id: string
@@ -247,9 +245,7 @@ export namespace Suggestion {
       type: Recherche.Type,
       idJeune: string,
       criteres:
-        | Recherche.Emploi
-        | Recherche.Immersion
-        | Recherche.ServiceCivique,
+        Recherche.Emploi | Recherche.Immersion | Recherche.ServiceCivique,
       localisation: string,
       titre?: string,
       metier?: string
