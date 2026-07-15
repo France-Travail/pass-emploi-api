@@ -9,9 +9,11 @@ import {
   isSuccess,
   Success
 } from 'src/building-blocks/types/result'
+import { JeuneInviteSqlModel } from 'src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-model'
 import { SuperviseurSqlModel } from 'src/infrastructure/sequelize/models/superviseur.sql-model'
 import { uneDate, uneDatetime } from 'test/fixtures/date.fixture'
+import { unJeuneInviteDto } from 'test/fixtures/sql-models/jeune-invite.sql-model'
 import { unJeuneDto } from 'test/fixtures/sql-models/jeune.sql-model'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
@@ -190,6 +192,81 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(undefined)
+    })
+
+    it('route vers la table jeune_invite quand la structure est INVITE', async () => {
+      // Given : l'invité vit dans jeune_invite, pas dans jeune
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'invite-en-base',
+          idAuthentification: 'sub-invite',
+          prenom: 'Malek'
+        })
+      )
+
+      // When
+      const utilisateur = await repository.getJeuneByStructure(
+        'sub-invite',
+        Core.Structure.INVITE
+      )
+
+      // Then : c'est ce chemin qui permet à Connect de retrouver l'invité au refresh
+      expect(utilisateur).to.deep.equal({
+        id: 'invite-en-base',
+        idAuthentification: 'sub-invite',
+        prenom: 'Malek',
+        nom: '',
+        structure: Core.Structure.INVITE,
+        type: Authentification.Type.JEUNE,
+        datePremiereConnexion: new Date('2021-11-11T08:03:30.000Z'),
+        dateDerniereConnexion: uneDatetime().toJSDate(),
+        appVersion: '1.8.1',
+        installationId: '123456',
+        roles: []
+      })
+    })
+  })
+
+  describe('getJeuneInvite', () => {
+    it("retourne l'invité quand il existe", async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ idAuthentification: 'sub-invite' })
+      )
+
+      // When
+      const utilisateur = await repository.getJeuneInvite('sub-invite')
+
+      // Then
+      expect(utilisateur?.type).to.equal(Authentification.Type.JEUNE)
+      expect(utilisateur?.structure).to.equal(Core.Structure.INVITE)
+      expect(utilisateur?.nom).to.equal('')
+    })
+
+    it("retourne undefined quand il n'existe pas", async () => {
+      // When
+      const utilisateur = await repository.getJeuneInvite('inconnu')
+
+      // Then
+      expect(utilisateur).to.equal(undefined)
+    })
+  })
+
+  describe('creerJeuneInvite', () => {
+    it('insère un invité en base', async () => {
+      // When
+      await repository.creerJeuneInvite({
+        id: 'nouvel-invite',
+        idAuthentification: 'nouveau-sub',
+        prenom: 'Invité',
+        dateCreation: uneDate()
+      })
+
+      // Then
+      const inDb = await JeuneInviteSqlModel.findByPk('nouvel-invite')
+      expect(inDb).not.to.equal(null)
+      expect(inDb!.idAuthentification).to.equal('nouveau-sub')
+      expect(inDb!.prenom).to.equal('Invité')
     })
   })
 

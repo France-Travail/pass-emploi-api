@@ -166,6 +166,11 @@ export class MailBrevoService
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
             return Number.parseInt(this.templates.compteJeuneArchivePEBRSA)
+          // Inatteignable : un invité vit dans jeune_invite et n'a pas d'email.
+          case Core.Structure.INVITE:
+            throw new Error(
+              `Le jeune ${jeune.id} est un invité : pas de mail d'archivage`
+            )
         }
       })()
     }

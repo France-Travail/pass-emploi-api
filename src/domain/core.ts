@@ -8,7 +8,8 @@ export namespace Core {
     AVENIR_PRO = 'AVENIR_PRO',
     FT_ACCOMPAGNEMENT_INTENSIF = 'FT_ACCOMPAGNEMENT_INTENSIF',
     FT_ACCOMPAGNEMENT_GLOBAL = 'FT_ACCOMPAGNEMENT_GLOBAL',
-    FT_EQUIP_EMPLOI_RECRUT = 'FT_EQUIP_EMPLOI_RECRUT'
+    FT_EQUIP_EMPLOI_RECRUT = 'FT_EQUIP_EMPLOI_RECRUT',
+    INVITE = 'INVITE'
   }
 
   export const structuresFT: readonly Structure[] = [
@@ -41,6 +42,10 @@ export function beneficiaireEstFTConnect(structure: Core.Structure): boolean {
 
 export function estFranceTravail(structure: Core.Structure): boolean {
   return Core.structuresFT.includes(structure)
+}
+
+export function estInvite(structure: Core.Structure): boolean {
+  return structure === Core.Structure.INVITE
 }
 
 export function estFranceTravailOuMilo(structure: Core.Structure): boolean {

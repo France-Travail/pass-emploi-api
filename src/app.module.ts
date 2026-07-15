@@ -122,6 +122,7 @@ import { UpdateListeDeDiffusionCommandHandler } from './application/commands/upd
 import { UpdateJeunePreferencesCommandHandler } from './application/commands/update-preferences-jeune.command.handler'
 import { UpdateRendezVousCommandHandler } from './application/commands/update-rendez-vous.command.handler'
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
+import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
 import { NettoyerEvenementsChargesAnalyticsJobHandler } from './application/jobs/analytics/1bis-nettoyer-les-evenements-charges.job.handler.db'
@@ -748,6 +749,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetRecherchesQueryHandler,
     DeleteRechercheCommandHandler,
     UpdateUtilisateurCommandHandler,
+    UpdateUtilisateurInviteCommandHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
     CreerJeuneMiloCommandHandler,
