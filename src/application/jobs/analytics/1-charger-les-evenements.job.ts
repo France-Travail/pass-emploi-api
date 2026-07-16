@@ -20,6 +20,15 @@ import { pipeline } from 'node:stream/promises'
 
 const TAILLE_DU_BATCH = 150000
 
+/**
+ * Analytics pipeline — step 1/4 (quotidien).
+ * @see docs/ANALYTICS.md#1-charger-les-evenementsjobts
+ * @analytics.after DUMP_ANALYTICS
+ * @analytics.before ENRICHIR_EVENEMENTS_ANALYTICS
+ * @analytics.before NETTOYER_EVENEMENTS_CHARGES_ANALYTICS (lundi)
+ * @analytics.tables_in evenement_engagement_hebdo (prod)
+ * @analytics.tables_out evenement_engagement (analytics)
+ */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS)
 export class ChargerEvenementsJobHandler extends JobHandler {

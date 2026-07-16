@@ -9,6 +9,12 @@ import { chargerLesVuesDeLaSemaine } from './3-charger-les-vues.job'
 import { infosTablesAEAnnuelles } from './creer-tables-ae-annuelles'
 import { migrate } from './vues/3-0-migrate-schema'
 
+/**
+ * Analytics pipeline — maintenance (hors chaîne quotidienne).
+ * @see docs/ANALYTICS.md#initialiser-les-vuesjobts
+ * @analytics.trigger TASK_NAME=INITIALISER_LES_VUES (Scalingo)
+ * @analytics.scope historical weeks (all annual AE tables)
+ */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.INITIALISER_LES_VUES)
 export class InitialiserLesVuesJobHandler extends JobHandler {

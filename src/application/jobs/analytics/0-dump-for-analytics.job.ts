@@ -10,6 +10,13 @@ import { DateService } from '../../../utils/date-service'
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
 
+/**
+ * Analytics pipeline — step 0/4 (quotidien).
+ * @see docs/ANALYTICS.md#0-dump-for-analyticsjobts
+ * @analytics.trigger cron DUMP_ANALYTICS (`30 2 * * *`)
+ * @analytics.before CHARGER_EVENEMENTS_ANALYTICS
+ * @analytics.tables_out métier analytics (excl. evenement_engagement*)
+ */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.DUMP_ANALYTICS)
 export class DumpForAnalyticsJobHandler extends JobHandler {
