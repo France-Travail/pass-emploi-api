@@ -41,6 +41,7 @@ import { FavoriOffreServiceCiviqueAuthorizer } from './application/authorizers/f
 import { FavoriOffresImmersionAuthorizer } from './application/authorizers/favori-offres-immersion-authorizer'
 import { FichierAuthorizer } from './application/authorizers/fichier-authorizer'
 import { JeuneAuthorizer } from './application/authorizers/jeune-authorizer'
+import { JeuneInviteAuthorizer } from './application/authorizers/jeune-invite-authorizer'
 import { ListeDeDiffusionAuthorizer } from './application/authorizers/liste-de-diffusion-authorizer'
 import { RechercheAuthorizer } from './application/authorizers/recherche-authorizer'
 import { RendezVousAuthorizer } from './application/authorizers/rendezvous-authorizer'
@@ -123,6 +124,8 @@ import { UpdateJeunePreferencesCommandHandler } from './application/commands/upd
 import { UpdateRendezVousCommandHandler } from './application/commands/update-rendez-vous.command.handler'
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
+import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
+import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
 import { NettoyerEvenementsChargesAnalyticsJobHandler } from './application/jobs/analytics/1bis-nettoyer-les-evenements-charges.job.handler.db'
@@ -392,6 +395,7 @@ import { FavorisController } from './infrastructure/routes/favoris.controller'
 import { FilesController } from './infrastructure/routes/fichiers.controller'
 import { HealthController } from './infrastructure/routes/health.controller'
 import { JeunesController } from './infrastructure/routes/jeunes.controller'
+import { JeunesInviteController } from './infrastructure/routes/jeunes.invite.controller'
 import { JeunesMiloController } from './infrastructure/routes/jeunes.milo.controller'
 import { JeunesPoleEmploiController } from './infrastructure/routes/jeunes.pole-emploi.controller'
 import { ListesDeDiffusionController } from './infrastructure/routes/listes-de-diffusion.controller'
@@ -436,6 +440,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     // De base
     JeunesController,
     JeunesMiloController,
+    JeunesInviteController,
     JeunesPoleEmploiController,
     ConseillersController,
     ConseillersMiloController,
@@ -704,6 +709,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     FavoriOffresImmersionAuthorizer,
     RechercherMessageQueryHandler,
     JeuneAuthorizer,
+    JeuneInviteAuthorizer,
     RechercheAuthorizer,
     RendezVousAuthorizer,
     SupportAuthorizer,
@@ -750,6 +756,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     DeleteRechercheCommandHandler,
     UpdateUtilisateurCommandHandler,
     UpdateUtilisateurInviteCommandHandler,
+    UpdatePrenomInviteCommandHandler,
+    GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
     CreerJeuneMiloCommandHandler,
