@@ -54,6 +54,18 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
   première de tout le suivi d'usage.
 - Les vues sont **agrégées à la semaine** : les analyses fines se font à cette maille.
 
+## Fraîcheur des données
+
+| Donnée | Mise à jour |
+| --- | --- |
+| Tables métier (dump) | Quotidien, après le cron 02h30 (job 0) |
+| `evenement_engagement` | Quotidien (jobs 0 → 1) |
+| Colonnes enrichies (`semaine`, `jour`, géo) | Quotidien (job 2) |
+| Vues `analytics_*` | **Chaque lundi** — agrégats de la **semaine précédente** (job 3) |
+
+Les dashboards sur les vues agrégées reflètent donc la semaine précédente au plus tôt le lundi
+matin ; la semaine en cours n'apparaît qu'au lundi suivant.
+
 ## Composition de la pipeline
 
 Le dispositif analytics repose sur **deux familles de jobs** :
