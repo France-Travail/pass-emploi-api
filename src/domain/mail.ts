@@ -51,7 +51,8 @@ export namespace Mail {
     envoyerEmailJeuneArchive(
       jeune: Jeune,
       motif:
-        ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport,
+        | ArchiveJeune.MotifSuppression
+        | ArchiveJeune.MotifSuppressionSupport,
       commentaire?: string
     ): Promise<void>
 
@@ -103,8 +104,6 @@ export namespace Mail {
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
             return parseInt(this.templates.suppressionBeneficiairePassEmploi)
-          // Inatteignable : un invité vit dans jeune_invite, n'a ni conseiller
-          // ni email, donc aucun mail de suppression ne le concerne.
           case Core.Structure.INVITE:
             throw new Error(
               `Le jeune ${jeune.id} est un invité : pas de mail de suppression`

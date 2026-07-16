@@ -55,8 +55,6 @@ export class AuthentificationSqlOidcRepository
     idUtilisateurAuth: string,
     structure: Core.Structure
   ): Promise<Authentification.Utilisateur | undefined> {
-    // L'invité ne vit pas dans la table jeune : c'est ce chemin qui permet à
-    // Connect de le retrouver (findAccount) au refresh du token.
     if (estInvite(structure)) {
       return this.getJeuneInvite(idUtilisateurAuth)
     }

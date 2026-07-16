@@ -22,18 +22,8 @@ export interface UpdateUtilisateurInviteCommand extends Command {
   idUtilisateurAuth: string
 }
 
-// L'invité est anonyme à la création : il pourra choisir son nom d'affichage
-// depuis l'app ensuite (le JWT le reprendra au refresh suivant).
 export const PRENOM_INVITE_PAR_DEFAUT = 'Invité'
 
-/**
- * Mode invité : appelé par Connect au premier lancement de l'app.
- *
- * Contrairement à UpdateUtilisateurCommandHandler, il n'y a aucune donnée
- * d'IDP à rapprocher ni d'éligibilité à vérifier : l'invité est anonyme. On
- * crée le jeune invité s'il n'existe pas, sinon on renvoie l'existant.
- * Idempotent : rejouer le même sub ne crée pas de doublon.
- */
 @Injectable()
 export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
   UpdateUtilisateurInviteCommand,

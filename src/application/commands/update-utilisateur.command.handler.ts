@@ -147,7 +147,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.recupererOuCreerUtilisateurConseiller(commandSanitized)
       case 'FRANCE_TRAVAIL':
         return this.recupererUtilisateurConseillerExistant(commandSanitized)
-      // Un invité est toujours un bénéficiaire anonyme, jamais un conseiller.
       case Core.Structure.INVITE:
         return Promise.resolve(
           failure(
@@ -177,8 +176,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.authentificationBeneficiaireFT(commandSanitized)
       case Core.Structure.CONSEIL_DEPT:
       case Core.Structure.AVENIR_PRO:
-      // L'invité a son propre endpoint (PUT users/invite/:id) : il ne doit
-      // jamais transiter par le chemin d'authentification IDP.
       case Core.Structure.INVITE:
         return failure(
           new NonTraitableError(
@@ -504,7 +501,6 @@ function autoriseUtilisateurFTConnectOnly(
     case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return emptySuccess()
-    // Un compte invité ne peut pas être repris par une connexion FT Connect.
     case Core.Structure.INVITE:
       return failure(
         new NonTraitableError(

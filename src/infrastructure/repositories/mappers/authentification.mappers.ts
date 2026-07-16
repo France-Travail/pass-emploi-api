@@ -24,9 +24,6 @@ export function fromConseillerSqlToUtilisateur(
   }
 }
 
-// L'invité n'a qu'un nom d'affichage (prenom -> claim given_name du JWT) : pas
-// de nom de famille ni d'email. La structure est toujours INVITE, donc pas
-// stockée en base.
 export function fromJeuneInviteSqlToUtilisateur(
   jeuneInviteSqlModel: JeuneInviteSqlModel
 ): Authentification.Utilisateur {
