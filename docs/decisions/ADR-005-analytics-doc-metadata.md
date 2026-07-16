@@ -73,5 +73,4 @@ Première ligne du bloc : `Analytics pipeline — step N/4 (…)` ou `maintenanc
 
 * Orchestration ops : [ANALYTICS.md](../ANALYTICS.md)
 * Décision ELT : [ADR-004](./ADR-004-pipeline-analytics.md)
-* Nuances observabilité (hors doc ops) : [AUDIT-SPECS.md](../AUDIT-SPECS.md)
 * Handlers concernés : `src/application/jobs/analytics/*`
