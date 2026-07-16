@@ -87,12 +87,13 @@ Scalingo :
 
 ### 0-dump-for-analytics.job.ts
 
-Basiquement un gros pg_dump pg_restore de la DB de prod vers celle d'analytics. En excluant les tables de logs et d'événements d'engagement.
+Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant les tables de logs et d'événements d'engagement.
 
 ### 1-charger-les-evenements.job.ts
 
-Chargement des événements d'engagement de la prod qui ne sont pas présents dans analytics. En gros les événements de la journée.
-Technique utilisée : COPY FROM / TO de postgresql en passant par un stream node
+Chargement incrémental depuis `evenement_engagement_hebdo` (prod) : événements dont
+`date_evenement` est postérieure au dernier déjà chargé en analytics.
+Technique utilisée : COPY FROM / TO PostgreSQL via un stream Node (batch de 150 000 lignes).
 
 ### 2-enrichir-les-evenements.job.ts
 
