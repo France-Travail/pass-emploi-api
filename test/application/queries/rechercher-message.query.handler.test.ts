@@ -132,7 +132,7 @@ describe('RechercheMessageQueryHandler', () => {
               matches: [
                 {
                   key: 'piecesJointes.nom',
-                  match: [0, 21]
+                  match: [0, 10]
                 }
               ],
               message: {

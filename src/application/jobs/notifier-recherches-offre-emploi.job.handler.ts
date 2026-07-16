@@ -168,8 +168,7 @@ export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler {
     recherche: Offre.Recherche
   ): Promise<Result<OffresEmploiQueryModel>> {
     const criteresBasiques = recherche.criteres as
-      | GetOffresEmploiQuery
-      | undefined
+      GetOffresEmploiQuery | undefined
     const criteres: GetOffresEmploiQuery = {
       ...criteresBasiques,
       minDateCreation: recherche.dateDerniereRecherche.toISO(),
