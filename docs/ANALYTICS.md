@@ -185,6 +185,15 @@ Pour cette maille les indicateurs suivants sont calculés :
 **_analytics_fonctionnalites_demarches_ia_**
 Même chose que **_analytics_fonctionnalites_** sauf que c'est filtré uniquement sur les bénéficiaires qui ont la fonctionnalité `DEMARCHES_IA` active (voir la table `feature_flip`).
 
+**_analytics_fonctionnalites_migration_**
+Même chose que **_analytics_fonctionnalites_** (mêmes mailles et indicateurs), filtré sur les
+utilisateurs liés à une migration :
+
+- conseillers dont un `feature_flip.feature_tag` contient `migration`
+- jeunes présents dans `archive_jeune` avec un `motif` contenant `migration`
+
+(voir `3-1bis-vue-fonctionnalites-migration.ts`).
+
 **_analytics_engagement_**
 Détaille l'engagement des utilisateurs aux mailles :
 
