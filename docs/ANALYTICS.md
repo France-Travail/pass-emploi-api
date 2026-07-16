@@ -97,16 +97,32 @@ Technique utilisée : COPY FROM / TO PostgreSQL via un stream Node (batch de 150
 
 ### 2-enrichir-les-evenements.job.ts
 
-Afin de faciliter l'exploratoire et le reporting, on enrichit les données ajoutées de la journée.
+Afin de faciliter l'exploratoire et le reporting, le job enrichit les événements **non encore
+enrichis** (`semaine is null` — en pratique, ceux chargés par le job 1 et pas encore enrichis).
 
-- mise à jour du schéma des événements d'engagement d'analytics pour ajouter les colonnes des champs enrichis. ATTENTION : il n'y a pas de système de migration, c'est un peu manuel et ça doit être idempotent.
-- enrichissement des données ajoutées de la journée
+1. Mise à jour du schéma analytics (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`)
+2. Enrichissement : semaine, jour, agence / département / région
 
-Les champs rajoutés sont :
+Les champs enrichis sur `evenement_engagement` :
 
-- semaine de l'événement - car quasi toutes les analyses sont faites à la semaine
-- jour de l'événement - utilisé pour la notion d'utilisateur actif dans la vue engagement
-- agence/département/région - utilisés pour les analyses géographiques et pour l'exploratoire
+- `semaine` — maille d'analyse principale
+- `jour` — notion d'utilisateur actif (vue engagement)
+- `agence` / `departement` / `region` — analyses géographiques
+
+#### Ajouter un champ enrichi
+
+Le schéma analytics n'a pas de migration Sequelize dédiée : les évolutions passent par
+`2-enrichir-les-evenements.job.ts` (`mettreAJourLeSchema`, `indexerLesColonnes`, puis la
+requête d'enrichissement).
+
+1. **`mettreAJourLeSchema`** — `ADD COLUMN IF NOT EXISTS` sur la table concernée
+2. **`indexerLesColonnes`** — `create index if not exists` si le champ sera filtré ou joint
+3. **Requête d'enrichissement** — cibler les lignes non enrichies (`where semaine is null`,
+   ou la colonne équivalente pour le nouveau champ)
+4. **Déployer** — au prochain run nocturne, le schéma est appliqué et les nouveaux EE sont enrichis
+
+Pour **backfill sur l'historique** déjà enrichi (`semaine` renseigné), prévoir une requête
+dédiée ou un run manuel : le job quotidien ne retraite pas ces lignes.
 
 ### 3-charger-les-vues.job.ts
 
