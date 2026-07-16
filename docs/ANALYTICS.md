@@ -56,13 +56,25 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
 
 ## Composition de la pipeline
 
-La pipeline est composée de 4 jobs :
+Le dispositif analytics repose sur **deux familles de jobs** :
 
-1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts)
-2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts)
-3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts)
-4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts)
-5. Bonus : [initialiser-les-vues.job.ts](../src/application/jobs/analytics/initialiser-les-vues.job.ts)
+### Pipeline quotidienne
+
+Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#ordonnancement)) :
+
+1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts) — copie des tables métier prod → analytics
+2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts) — chargement des événements d'engagement
+3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
+4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
+
+### Maintenance — recalcul des vues
+
+Pour reconstruire les vues agrégées sur l'historique — évolution des actes d'engagement, ajout
+d'une nouvelle vue, correction de données — deux jobs sont lancés **à la demande** via task
+Scalingo :
+
+- [initialiser-les-vues.job.ts](../src/application/jobs/analytics/initialiser-les-vues.job.ts) — tout l'historique
+- [initialiser-les-vues-derniere-annee.job.ts](../src/application/jobs/analytics/initialiser-les-vues-derniere-annee.job.ts) — dernière année
 
 ## Ordonnancement
 
