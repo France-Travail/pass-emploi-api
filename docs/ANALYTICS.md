@@ -70,6 +70,10 @@ matin ; la semaine en cours n'apparaît qu'au lundi suivant.
 
 Le dispositif analytics repose sur **deux familles de jobs** :
 
+Les handlers portent un bloc JSDoc (étape, liens de chaîne, tables, `@see` vers cette
+page). Ce n'est **pas** du runtime : convention documentée dans
+[ADR-005](./decisions/ADR-005-analytics-doc-metadata.md).
+
 ### Pipeline quotidienne
 
 Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#ordonnancement)) :
