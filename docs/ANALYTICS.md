@@ -95,6 +95,29 @@ Scalingo :
 - A l'issue du job, un nouveau job est créé dans le worker pour l'étape enrichir les événements.
 - Lorsque le jour de la semaine est un **lundi**, un nouveau job est créé dans le worker pour l'étape charger les vues.
 
+## Reprise en cas d'échec
+
+Quand un chiffre Metabase paraît figé : consulter d'abord les `SuiviJob` (succès/échec,
+volumétrie, durée). Si un job a **levé une exception** (ex. job 1), aucun `SuiviJob` n'est
+enregistré — regarder les logs / APM. Voir aussi
+[investigation baisse RDV](./investigations/2026-05-11-baisse-rdv.md).
+
+Seul le cron démarre le job 0 ; la suite est enfilée via `ajouterJob`. Pas de retry Bull
+automatique (`attempts: 1`). Si le job 1 ou 2 échoue **avant** d'enfiler la suite, l'étape
+suivante ne part pas.
+
+Note : le job 0 enfile quand même le job 1 même si le dump remonte une erreur (`stderr`) —
+vérifier le `SuiviJob` du dump avant de faire confiance à la suite.
+
+| Situation | Comportement | Piste de reprise |
+| --- | --- | --- |
+| Job 1 échoue (chargement EE) | Job 2 (et job 3 le lundi) non enfilés | Relancer via `TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS` ; chargement **incrémental**, un run ultérieur rattrape les EE manquants |
+| Job 2 échoue un **lundi** | Job 3 non enfilé | Relancer via `TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS` ; les lignes restent avec `semaine is null` jusqu'à un enrichissement réussi, puis enfiler / relancer les vues si besoin |
+| Job 3 manqué / échoué (vues) | Vues `analytics_*` non mises à jour pour la semaine | Relancer via `TASK_NAME=CHARGER_LES_VUES_ANALYTICS` (semaine précédente), ou `yarn tasks:initialiser-les-vues` / variante dernière année pour un recalcul large |
+
+Le run quotidien suivant repart du cron (job 0) : utile pour rattraper les EE, mais **ne
+recalcule pas** automatiquement une semaine de vues déjà manquée (job 3 = lundi uniquement).
+
 ## Que font les jobs ?
 
 ### 0-dump-for-analytics.job.ts
