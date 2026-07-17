@@ -1,5 +1,6 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
+import { UpdateUtilisateurInviteCommandHandler } from '../../../src/application/commands/update-utilisateur-invite.command.handler'
 import {
   StructureUtilisateurAuth,
   TypeUtilisateurAuth,
@@ -29,6 +30,7 @@ import {
 } from '../../../src/application/queries/get-utilisateur.query.handler'
 
 let updateUtilisateurCommandHandler: StubbedClass<UpdateUtilisateurCommandHandler>
+let updateUtilisateurInviteCommandHandler: StubbedClass<UpdateUtilisateurInviteCommandHandler>
 let getUtilisateurQueryHandler: StubbedClass<GetUtilisateurQueryHandler>
 
 describe('AuthentificationController', () => {
@@ -39,7 +41,37 @@ describe('AuthentificationController', () => {
   before(async () => {
     app = await getApplicationWithStubbedDependencies()
     updateUtilisateurCommandHandler = app.get(UpdateUtilisateurCommandHandler)
+    updateUtilisateurInviteCommandHandler = app.get(
+      UpdateUtilisateurInviteCommandHandler
+    )
     getUtilisateurQueryHandler = app.get(GetUtilisateurQueryHandler)
+  })
+
+  describe('PUT auth/users/invite/:idUtilisateurAuth', () => {
+    it("crée/retourne l'invité sans données d'IDP", async () => {
+      // Given
+      const utilisateur = unUtilisateurQueryModel({
+        prenom: 'Invité',
+        structure: Core.Structure.INVITE
+      })
+      updateUtilisateurInviteCommandHandler.execute.resolves(
+        success(utilisateur)
+      )
+
+      // When - Then
+      const result = await request(app.getHttpServer())
+        .put('/auth/users/invite/un-sub-invite')
+        .set({ 'X-API-KEY': 'api-key-keycloak' })
+        .expect(HttpStatus.OK)
+
+      expect(
+        updateUtilisateurInviteCommandHandler.execute
+      ).to.have.been.calledOnceWithExactly({
+        idUtilisateurAuth: 'un-sub-invite'
+      })
+      // JSON.parse/stringify : le corps HTTP élimine les champs undefined (username)
+      expect(result.body).to.deep.equal(JSON.parse(JSON.stringify(utilisateur)))
+    })
   })
 
   describe('PUT auth/users/:idUtilisateurAuth', () => {

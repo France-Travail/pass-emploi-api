@@ -112,6 +112,7 @@ function fromStructureFTToDispositif(
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return Jeune.Dispositif.EQUIP_EMPLOI_RECRUT
     case Core.Structure.MILO:
+    case Core.Structure.INVITE:
       throw new RuntimeException()
   }
 }

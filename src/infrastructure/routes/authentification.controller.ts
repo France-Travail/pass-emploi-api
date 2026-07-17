@@ -17,6 +17,7 @@ import {
   ApiSecurity,
   ApiTags
 } from '@nestjs/swagger'
+import { UpdateUtilisateurInviteCommandHandler } from '../../application/commands/update-utilisateur-invite.command.handler'
 import {
   UpdateUtilisateurCommand,
   UpdateUtilisateurCommandHandler
@@ -43,9 +44,35 @@ import {
 export class AuthentificationController {
   constructor(
     private updateUtilisateurCommandHandler: UpdateUtilisateurCommandHandler,
+    private updateUtilisateurInviteCommandHandler: UpdateUtilisateurInviteCommandHandler,
     private getUtilisateurQueryHandler: GetUtilisateurQueryHandler,
     private getChatSecretsQueryHandler: GetChatSecretsQueryHandler
   ) {}
+
+  @SkipOidcAuth()
+  @UseGuards(ApiKeyAuthGuard)
+  @ApiSecurity('api_key')
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.KEYCLOAK
+  )
+  @ApiOperation({
+    summary:
+      "Mode invité : crée le jeune invité s'il n'existe pas, sinon renvoie l'existant (idempotent)"
+  })
+  @Put('users/invite/:idAuthentification')
+  @ApiResponse({
+    type: UtilisateurQueryModel
+  })
+  async putUtilisateurInvite(
+    @Param('idAuthentification') idAuthentification: string
+  ): Promise<UtilisateurQueryModel> {
+    const result = await this.updateUtilisateurInviteCommandHandler.execute({
+      idUtilisateurAuth: idAuthentification
+    })
+
+    return handleResult(result)
+  }
 
   @SkipOidcAuth()
   @UseGuards(ApiKeyAuthGuard)

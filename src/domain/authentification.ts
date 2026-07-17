@@ -85,6 +85,15 @@ export namespace Authentification {
 
     getJeuneByEmail(email: string): Promise<Utilisateur | undefined>
 
+    getJeuneInvite(idAuthentification: string): Promise<Utilisateur | undefined>
+
+    creerJeuneInvite(jeuneInvite: {
+      id: string
+      idAuthentification: string
+      prenom: string
+      dateCreation: Date
+    }): Promise<void>
+
     update(utilisateur: Authentification.Utilisateur): Promise<void>
 
     save(utilisateur: Utilisateur, dateCreation?: Date): Promise<void>

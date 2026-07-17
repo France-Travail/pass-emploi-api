@@ -14,7 +14,10 @@ export enum IDPName {
   PE_AIJ_CONSEILLER = 'pe-aij-conseiller',
   SIMILO_JEUNE = 'similo-jeune',
   SIMILO_CONSEILLER = 'similo-conseiller',
-  CONSEILLER_DEPT = 'conseildepartemental-conseiller'
+  CONSEILLER_DEPT = 'conseildepartemental-conseiller',
+  // Mode invité : Connect ne redirige vers aucun IDP, il crée un compte anonyme
+  // et renvoie les tokens directement. Pratique pour tester depuis Swagger.
+  INVITE = 'invite'
 }
 
 export function useSwagger(
@@ -62,6 +65,10 @@ export function useSwagger(
       .addOAuth2(
         createSecurityScheme(issuerUrl, IDPName.CONSEILLER_DEPT),
         IDPName.CONSEILLER_DEPT
+      )
+      .addOAuth2(
+        createSecurityScheme(issuerUrl, IDPName.INVITE),
+        IDPName.INVITE
       )
   }
   const swaggerConfig = swaggerConfigBuilder.build()

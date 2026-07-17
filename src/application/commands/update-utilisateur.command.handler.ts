@@ -147,6 +147,16 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.recupererOuCreerUtilisateurConseiller(commandSanitized)
       case 'FRANCE_TRAVAIL':
         return this.recupererUtilisateurConseillerExistant(commandSanitized)
+      case Core.Structure.INVITE:
+        return Promise.resolve(
+          failure(
+            new NonTraitableError(
+              'Utilisateur',
+              commandSanitized.idUtilisateurAuth,
+              NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+            )
+          )
+        )
     }
   }
 
@@ -166,6 +176,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.authentificationBeneficiaireFT(commandSanitized)
       case Core.Structure.CONSEIL_DEPT:
       case Core.Structure.AVENIR_PRO:
+      case Core.Structure.INVITE:
         return failure(
           new NonTraitableError(
             'Utilisateur',
@@ -490,6 +501,14 @@ function autoriseUtilisateurFTConnectOnly(
     case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return emptySuccess()
+    case Core.Structure.INVITE:
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          idUtilisateur,
+          NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+        )
+      )
   }
 }
 
@@ -513,5 +532,7 @@ function reasonFromStructure(structure: Core.Structure): NonTraitableReason {
       return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return NonTraitableReason.UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT
+    case Core.Structure.INVITE:
+      return NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
   }
 }

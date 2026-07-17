@@ -41,7 +41,10 @@ export class MajMailingListConseillerJobHandler extends JobHandler {
       resultat: {}
     }
 
-    const mailingLists: Record<Core.Structure, { id: string }> = {
+    const mailingLists: Record<
+      Exclude<Core.Structure, Core.Structure.INVITE>,
+      { id: string }
+    > = {
       [Core.Structure.POLE_EMPLOI]: {
         id: this.configuration.get('brevo').mailingLists.poleEmploi
       },

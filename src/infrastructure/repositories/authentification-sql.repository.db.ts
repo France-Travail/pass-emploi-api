@@ -7,12 +7,14 @@ import {
 import { failure, Result, success } from 'src/building-blocks/types/result'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { Authentification } from '../../domain/authentification'
-import { Core, estMilo } from '../../domain/core'
+import { Core, estInvite, estMilo } from '../../domain/core'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
+import { JeuneInviteSqlModel } from '../sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
 import { SuperviseurSqlModel } from '../sequelize/models/superviseur.sql-model'
 import {
   fromConseillerSqlToUtilisateur,
+  fromJeuneInviteSqlToUtilisateur,
   fromJeuneSqlToUtilisateur
 } from './mappers/authentification.mappers'
 
@@ -53,6 +55,10 @@ export class AuthentificationSqlOidcRepository
     idUtilisateurAuth: string,
     structure: Core.Structure
   ): Promise<Authentification.Utilisateur | undefined> {
+    if (estInvite(structure)) {
+      return this.getJeuneInvite(idUtilisateurAuth)
+    }
+
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: {
         idAuthentification: idUtilisateurAuth,
@@ -65,6 +71,45 @@ export class AuthentificationSqlOidcRepository
     }
 
     return undefined
+  }
+
+  async getJeuneInvite(
+    idUtilisateurAuth: string
+  ): Promise<Authentification.Utilisateur | undefined> {
+    const jeuneInviteSqlModel = await JeuneInviteSqlModel.findOne({
+      where: {
+        idAuthentification: idUtilisateurAuth
+      }
+    })
+
+    if (jeuneInviteSqlModel) {
+      return fromJeuneInviteSqlToUtilisateur(jeuneInviteSqlModel)
+    }
+
+    return undefined
+  }
+
+  async creerJeuneInvite(jeuneInvite: {
+    id: string
+    idAuthentification: string
+    prenom: string
+    dateCreation: Date
+  }): Promise<void> {
+    await JeuneInviteSqlModel.creer({
+      id: jeuneInvite.id,
+      idAuthentification: jeuneInvite.idAuthentification,
+      prenom: jeuneInvite.prenom,
+      dateCreation: jeuneInvite.dateCreation,
+      datePremiereConnexion: jeuneInvite.dateCreation,
+      dateDerniereConnexion: jeuneInvite.dateCreation,
+      pushNotificationToken: null,
+      dateDerniereActualisationToken: null,
+      appVersion: null,
+      installationId: null,
+      instanceId: null,
+      timezone: null,
+      dateSignatureCGU: null
+    })
   }
 
   async getJeuneByIdAuthentification(

@@ -1,5 +1,7 @@
 import { Authentification } from '../../../domain/authentification'
+import { Core } from '../../../domain/core'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
+import { JeuneInviteSqlModel } from '../../sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 
 export function fromConseillerSqlToUtilisateur(
@@ -19,6 +21,26 @@ export function fromConseillerSqlToUtilisateur(
       conseillerSqlModel.dateDerniereConnexion ?? undefined,
     datePremiereConnexion: conseillerSqlModel.dateCreation || undefined,
     roles
+  }
+}
+
+export function fromJeuneInviteSqlToUtilisateur(
+  jeuneInviteSqlModel: JeuneInviteSqlModel
+): Authentification.Utilisateur {
+  return {
+    id: jeuneInviteSqlModel.id,
+    idAuthentification: jeuneInviteSqlModel.idAuthentification,
+    prenom: jeuneInviteSqlModel.prenom,
+    nom: '',
+    structure: Core.Structure.INVITE,
+    type: Authentification.Type.JEUNE,
+    dateDerniereConnexion:
+      jeuneInviteSqlModel.dateDerniereConnexion ?? undefined,
+    datePremiereConnexion:
+      jeuneInviteSqlModel.datePremiereConnexion ?? undefined,
+    appVersion: jeuneInviteSqlModel.appVersion ?? undefined,
+    installationId: jeuneInviteSqlModel.installationId ?? undefined,
+    roles: []
   }
 }
 

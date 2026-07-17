@@ -8,6 +8,7 @@ import { FavoriOffreEngagementSqlModel } from './favori-offre-engagement.sql-mod
 import { FavoriOffreImmersionSqlModel } from './favori-offre-immersion.sql-model'
 import { FichierSqlModel } from './fichier.sql-model'
 import { JeuneSqlModel } from './jeune.sql-model'
+import { JeuneInviteSqlModel } from './jeune-invite.sql-model'
 import { RendezVousSqlModel } from './rendez-vous.sql-model'
 import { RechercheSqlModel } from './recherche.sql-model'
 import { TransfertConseillerSqlModel } from './transfert-conseiller.sql-model'
@@ -39,6 +40,7 @@ import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 export const sqlModels = [
   ConseillerSqlModel,
   JeuneSqlModel,
+  JeuneInviteSqlModel,
   ActionSqlModel,
   RendezVousSqlModel,
   FavoriOffreEmploiSqlModel,
