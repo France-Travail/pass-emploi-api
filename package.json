@@ -1,6 +1,6 @@
 {
   "name": "nest-pass-emploi-api",
-  "version": "9.39.0",
+  "version": "9.39.1",
   "description": "",
   "author": "",
   "private": true,
@@ -80,8 +80,8 @@
     "release:major:push": "scripts/release_and_push.sh major"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1085.0",
-    "@aws-sdk/s3-request-presigner": "^3.1085.0",
+    "@aws-sdk/client-s3": "^3.1089.0",
+    "@aws-sdk/s3-request-presigner": "^3.1089.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
@@ -94,11 +94,11 @@
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
     "compression": "1.8.1",
-    "cron-parser": "5.6.1",
+    "cron-parser": "5.6.2",
     "crypto-js": "4.2.0",
     "elastic-apm-node": "3.52.2",
-    "firebase-admin": "^14.1.0",
-    "fuse.js": "7.4.2",
+    "firebase-admin": "^14.2.0",
+    "fuse.js": "7.5.0",
     "geojson": "0.5.0",
     "helmet": "8.3.0",
     "ics": "3.12.0",
@@ -144,10 +144,10 @@
     "@types/pino-multi-stream": "^5.1.6",
     "@types/sinon": "^17.0.4",
     "@types/sinon-chai": "^4.0.0",
-    "@types/supertest": "^7.2.0",
+    "@types/supertest": "^7.2.1",
     "@types/yargs": "^17.0.35",
-    "@typescript-eslint/eslint-plugin": "^8.63.0",
-    "@typescript-eslint/parser": "^8.63.0",
+    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/parser": "^8.64.0",
     "bull-repl": "^0.29.1",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
@@ -188,7 +188,8 @@
     "node-forge": ">=1.4.0",
     "path-to-regexp": ">=8.4.0",
     "lodash": ">=4.18.0",
-    "js-cookie": "^3.0.7"
+    "js-cookie": "^3.0.7",
+    "websocket-driver": ">=0.7.5"
   },
   "mocha": {
     "require": [
