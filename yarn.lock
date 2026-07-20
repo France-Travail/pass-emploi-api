@@ -130,9 +130,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1089.0":
-  version: 3.1089.0
-  resolution: "@aws-sdk/client-s3@npm:3.1089.0"
+"@aws-sdk/client-s3@npm:^3.1090.0":
+  version: 3.1090.0
+  resolution: "@aws-sdk/client-s3@npm:3.1090.0"
   dependencies:
     "@aws-sdk/checksums": "npm:^3.1000.18"
     "@aws-sdk/core": "npm:^3.975.3"
@@ -145,7 +145,7 @@ __metadata:
     "@smithy/node-http-handler": "npm:^4.9.6"
     "@smithy/types": "npm:^4.16.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/5a64e7a45b37bcad0098239dd8d9f932cecea3be26758b05d109fd672cec48e75254ed4c217b586ee98c16521e096c0b0f0f3171d005a6fef341f54143da2ed5
+  checksum: 10/6e980d48bbbd42f3236eff673ecd94cdbd49bec537c30d632bbf7c091b3a21c2a202b776c38f9c48359ac9923351fff8c532f2bf1f9fe469f179f31f2e1d1907
   languageName: node
   linkType: hard
 
@@ -319,9 +319,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1089.0":
-  version: 3.1089.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1089.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1090.0":
+  version: 3.1090.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1090.0"
   dependencies:
     "@aws-sdk/core": "npm:^3.975.3"
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.41"
@@ -329,7 +329,7 @@ __metadata:
     "@smithy/core": "npm:^3.29.4"
     "@smithy/types": "npm:^4.16.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/a8c38f83d2ecdb560a50ac292dc79c8dd45f2de9134092a73114fd96be0e8bb145fc6ebfda2962f37a386e66fe8dcd2d30c6dccecb7fda72d5c44f4479033e2c
+  checksum: 10/77d77e69d65115b31c1a45ddcc2a109063c008e9a43b198ffdcef60e154eed26d00754c455e8c7e23368c6f36dff1e82783a7ca3fe86077c9e33bdf9684b56a1
   languageName: node
   linkType: hard
 
@@ -1605,18 +1605,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/swagger@npm:11.4.5":
-  version: 11.4.5
-  resolution: "@nestjs/swagger@npm:11.4.5"
+"@nestjs/swagger@npm:11.4.6":
+  version: 11.4.6
+  resolution: "@nestjs/swagger@npm:11.4.6"
   dependencies:
     "@microsoft/tsdoc": "npm:0.16.0"
     "@nestjs/mapped-types": "npm:2.1.1"
-    js-yaml: "npm:4.3.0"
+    js-yaml: "npm:5.2.1"
     lodash: "npm:4.18.1"
     path-to-regexp: "npm:8.4.2"
     swagger-ui-dist: "npm:5.32.8"
   peerDependencies:
-    "@fastify/static": ^8.0.0 || ^9.0.0
+    "@fastify/static": ^8.0.0 || ^9.0.0 || ^10.0.0
     "@nestjs/common": ^11.0.1
     "@nestjs/core": ^11.0.1
     class-transformer: "*"
@@ -1629,7 +1629,7 @@ __metadata:
       optional: true
     class-validator:
       optional: true
-  checksum: 10/f3b1626330d8cb84e83db245947eaeb7f72117650b8b5aaca4bf5bfddb91a66a3b4ecaf4ff7db5d49caf2d919da4cdb8217c1a3d815198858bd4aba18213b6f4
+  checksum: 10/4aee3d99012adda56e4d3a8748dc6df1981f0727adedaa33b90f39ffb4bf58fe7da80b70ae692014dc0fbf352bf39de3980aa05c02e520876e386857b99ff03e
   languageName: node
   linkType: hard
 
@@ -7228,14 +7228,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:4.3.0":
-  version: 4.3.0
-  resolution: "js-yaml@npm:4.3.0"
+"js-yaml@npm:5.2.1":
+  version: 5.2.1
+  resolution: "js-yaml@npm:5.2.1"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
-    js-yaml: bin/js-yaml.js
-  checksum: 10/2bcec3a8118d7f744badeb04e14366578d234a736f353d41fe35d2305e4ce2409a8e041d277f07cd6bbc8aaa12128d650a68ce43247072519bede20962d2126f
+    js-yaml: bin/js-yaml.mjs
+  checksum: 10/e1eca2d21c15572585bb236d9fde31d6789eb50b9c63e8753fa7e0777bc480f7521cad517bd7a0c66f27dfc27ddcd7100beeefa51c1a50e10e98f2e009633c3d
   languageName: node
   linkType: hard
 
@@ -8278,8 +8278,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1089.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1089.0"
+    "@aws-sdk/client-s3": "npm:^3.1090.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1090.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.24"
     "@nestjs/common": "npm:11.1.28"
@@ -8287,7 +8287,7 @@ __metadata:
     "@nestjs/core": "npm:11.1.28"
     "@nestjs/platform-express": "npm:11.1.28"
     "@nestjs/schematics": "npm:^11.1.0"
-    "@nestjs/swagger": "npm:11.4.5"
+    "@nestjs/swagger": "npm:11.4.6"
     "@nestjs/terminus": "npm:11.1.1"
     "@nestjs/testing": "npm:^11.1.28"
     "@salesforce/ts-sinon": "npm:^1.4.36"
