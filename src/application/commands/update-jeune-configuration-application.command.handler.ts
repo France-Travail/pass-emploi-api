@@ -8,12 +8,14 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { estInvite } from '../../domain/core'
 import {
   Jeune,
-  JeuneConfigurationApplicationRepositoryToken,
-  JeuneRepositoryToken
+  JeuneConfigurationApplicationRepositoryToken
 } from '../../domain/jeune/jeune'
+import { JeuneInviteConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune-invite'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
 
 export interface UpdateJeuneConfigurationApplicationCommand extends Command {
@@ -31,31 +33,42 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
   void
 > {
   constructor(
-    @Inject(JeuneRepositoryToken) private jeuneRepository: Jeune.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
     private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    @Inject(JeuneInviteConfigurationApplicationRepositoryToken)
+    private jeuneInviteConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
     private jeuneAuthorizer: JeuneAuthorizer,
+    private jeuneInviteAuthorizer: JeuneInviteAuthorizer,
     private configurationApplicationFactory: ConfigurationApplication.Factory
   ) {
     super('UpdateJeuneConfigurationApplicationCommandHandler')
   }
 
   async handle(
-    command: UpdateJeuneConfigurationApplicationCommand
+    command: UpdateJeuneConfigurationApplicationCommand,
+    utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const jeune = await this.jeuneRepository.get(command.idJeune)
-    if (!jeune) {
-      return failure(new NonTrouveError(command.idJeune, 'Jeune'))
+    const estUnInvite = estInvite(utilisateur.structure)
+    const repository = estUnInvite
+      ? this.jeuneInviteConfigurationApplicationRepository
+      : this.jeuneConfigurationApplicationRepository
+
+    const configurationExistante = await repository.get(command.idJeune)
+    if (!configurationExistante) {
+      return failure(
+        new NonTrouveError(
+          command.idJeune,
+          estUnInvite ? 'Jeune invité' : 'Jeune'
+        )
+      )
     }
 
     const configurationApplication =
       this.configurationApplicationFactory.mettreAJour(
-        jeune.configuration,
+        configurationExistante,
         command
       )
-    await this.jeuneConfigurationApplicationRepository.save(
-      configurationApplication
-    )
+    await repository.save(configurationApplication)
     return emptySuccess()
   }
 
@@ -63,6 +76,13 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
     command: UpdateJeuneConfigurationApplicationCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
+    if (estInvite(utilisateur.structure)) {
+      return this.jeuneInviteAuthorizer.autoriserLInvite(
+        command.idJeune,
+        utilisateur
+      )
+    }
+
     return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
   }
 

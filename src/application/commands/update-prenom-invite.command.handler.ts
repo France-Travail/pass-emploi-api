@@ -16,10 +16,6 @@ export interface UpdatePrenomInviteCommand extends Command {
   prenom: string
 }
 
-/**
- * Le prénom modifié ici est la source de vérité : le JWT le reprendra au
- * refresh suivant (findAccount côté Connect relit l'API).
- */
 @Injectable()
 export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   UpdatePrenomInviteCommand,
@@ -30,14 +26,13 @@ export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   }
 
   async handle(command: UpdatePrenomInviteCommand): Promise<Result> {
-    const [nombreDeLignesMisesAJour] = await JeuneInviteSqlModel.update(
-      { prenom: command.prenom },
-      { where: { id: command.idJeune } }
-    )
+    const jeuneInvite = await JeuneInviteSqlModel.findByPk(command.idJeune)
 
-    if (nombreDeLignesMisesAJour === 0) {
+    if (!jeuneInvite) {
       return failure(new NonTrouveError('Jeune invité', command.idJeune))
     }
+
+    await jeuneInvite.update({ prenom: command.prenom })
 
     return emptySuccess()
   }

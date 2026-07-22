@@ -124,7 +124,7 @@ import { UpdateJeunePreferencesCommandHandler } from './application/commands/upd
 import { UpdateRendezVousCommandHandler } from './application/commands/update-rendez-vous.command.handler'
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
-import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
+import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
@@ -276,6 +276,12 @@ import {
   JeunePoleEmploiRepositoryToken,
   JeuneRepositoryToken
 } from './domain/jeune/jeune'
+import {
+  JeuneInviteConfigurationApplicationRepositoryToken,
+  JeuneInviteRepositoryToken
+} from './domain/jeune/jeune-invite'
+import { JeuneInviteConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-invite-configuration-application-sql.repository.db'
+import { JeuneInviteSqlRepository } from './infrastructure/repositories/jeune/jeune-invite-sql.repository.db'
 import { Mail, MailRepositoryToken, MailServiceToken } from './domain/mail'
 import { ActionMiloRepositoryToken } from './domain/milo/action.milo'
 import {
@@ -644,6 +650,14 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: JeuneConfigurationApplicationRepositoryToken,
       useClass: JeuneConfigurationApplicationSqlRepository
+    },
+    {
+      provide: JeuneInviteRepositoryToken,
+      useClass: JeuneInviteSqlRepository
+    },
+    {
+      provide: JeuneInviteConfigurationApplicationRepositoryToken,
+      useClass: JeuneInviteConfigurationApplicationSqlRepository
     },
     {
       provide: CommentaireActionRepositoryToken,

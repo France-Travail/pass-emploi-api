@@ -8,7 +8,7 @@ import {
   Put
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UpdatePrenomInviteCommandHandler } from '../../application/commands/update-prenom-invite.command.handler.db'
+import { UpdatePrenomInviteCommandHandler } from '../../application/commands/update-prenom-invite.command.handler'
 import {
   GetPrenomInviteQueryHandler,
   PrenomInviteQueryModel
@@ -19,10 +19,6 @@ import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import { PutPrenomInvitePayload } from './validation/jeunes.invite.inputs'
 
-/**
- * Routes réservées au mode invité : l'autorisation est portée par
- * JeuneInviteAuthorizer, qui rejette tout utilisateur non INVITE.
- */
 @Controller('jeunes')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Jeunes Invité')

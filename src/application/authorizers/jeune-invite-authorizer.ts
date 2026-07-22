@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -7,17 +7,18 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { estInvite } from '../../domain/core'
-import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
+import {
+  JeuneInvite,
+  JeuneInviteRepositoryToken
+} from '../../domain/jeune/jeune-invite'
 
 @Injectable()
 export class JeuneInviteAuthorizer {
-  /**
-   * N'autorise que les invités, et uniquement sur leurs propres données.
-   *
-   * Le contrôle d'existence en base n'est pas redondant avec le JWT : le token
-   * d'un invité n'expirant jamais, un compte purgé conserverait un token
-   * valide. C'est ce contrôle qui l'arrête.
-   */
+  constructor(
+    @Inject(JeuneInviteRepositoryToken)
+    private jeuneInviteRepository: JeuneInvite.Repository
+  ) {}
+
   async autoriserLInvite(
     idJeune: string,
     utilisateur: Authentification.Utilisateur
@@ -27,8 +28,8 @@ export class JeuneInviteAuthorizer {
       estInvite(utilisateur.structure) &&
       utilisateur.id === idJeune
     ) {
-      const jeuneInvite = await JeuneInviteSqlModel.findByPk(idJeune)
-      if (jeuneInvite) {
+      const existe = await this.jeuneInviteRepository.existe(idJeune)
+      if (existe) {
         return emptySuccess()
       }
     }
