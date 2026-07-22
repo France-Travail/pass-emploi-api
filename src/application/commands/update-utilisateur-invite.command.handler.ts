@@ -13,6 +13,7 @@ import {
 import { Core } from '../../domain/core'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
+import { rootLogger } from '../../utils/logger.module'
 import {
   queryModelFromUtilisateur,
   UtilisateurQueryModel
@@ -23,6 +24,8 @@ export interface UpdateUtilisateurInviteCommand extends Command {
 }
 
 export const PRENOM_INVITE_PAR_DEFAUT = 'Invité'
+
+const CONTEXT_LOG = 'UpdateUtilisateurInviteCommandHandler'
 
 @Injectable()
 export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
@@ -47,6 +50,16 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
       )
 
     if (utilisateurExistant) {
+      // Distinguer créé / retrouvé est le seul moyen de suivre le volume réel
+      // de nouveaux invités : un ratio anormal signale des ré-enregistrements
+      // (bug), un pic de créations signale un abus.
+      rootLogger.info(
+        {
+          context: CONTEXT_LOG,
+          event: { action: 'invite_account_retrieved', outcome: 'success' }
+        },
+        'invite_account_retrieved'
+      )
       return success(queryModelFromUtilisateur(utilisateurExistant))
     }
 
@@ -59,6 +72,14 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
       prenom: PRENOM_INVITE_PAR_DEFAUT,
       dateCreation
     })
+
+    rootLogger.info(
+      {
+        context: CONTEXT_LOG,
+        event: { action: 'invite_account_created', outcome: 'success' }
+      },
+      'invite_account_created'
+    )
 
     return success(
       queryModelFromUtilisateur({
