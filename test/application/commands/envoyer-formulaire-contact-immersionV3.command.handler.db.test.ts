@@ -1,9 +1,11 @@
 import { emptySuccess, failure } from 'src/building-blocks/types/result'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ImmersionClient } from 'src/infrastructure/clients/immersion-client'
+import { Core } from 'src/domain/core'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
+import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import {
   EnvoyerFormulaireContactImmersionCommandHandlerV3,
   EnvoyerFormulaireContactImmersionCommandV3
@@ -14,17 +16,20 @@ import ContactMode = PartenaireImmersion.ContactMode
 
 describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
+  let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
   let envoyerFormulaireContactImmersionCommandHandler: EnvoyerFormulaireContactImmersionCommandHandlerV3
   let immersionClient: StubbedClass<ImmersionClient>
   let evenementService: StubbedClass<EvenementService>
 
   beforeEach(async () => {
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
+    jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     immersionClient = stubClass(ImmersionClient)
     evenementService = stubClass(EvenementService)
     envoyerFormulaireContactImmersionCommandHandler =
       new EnvoyerFormulaireContactImmersionCommandHandlerV3(
         jeuneAuthorizer,
+        jeuneInviteAuthorizer,
         immersionClient,
         evenementService
       )
@@ -175,6 +180,29 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         'idJeune',
         utilisateur
       )
+    })
+
+    it("passe par l'authorizer invité quand c'est un invité", async () => {
+      // Given
+      const command = {
+        idJeune: 'idInvite'
+      } as EnvoyerFormulaireContactImmersionCommandV3
+      const utilisateur = unUtilisateurJeune({
+        id: 'idInvite',
+        structure: Core.Structure.INVITE
+      })
+
+      // When
+      await envoyerFormulaireContactImmersionCommandHandler.authorize(
+        command,
+        utilisateur
+      )
+
+      // Then
+      expect(
+        jeuneInviteAuthorizer.autoriserLInvite
+      ).to.have.been.calledWithExactly('idInvite', utilisateur)
+      expect(jeuneAuthorizer.autoriserLeJeune).not.to.have.been.called()
     })
   })
   describe('monitor', () => {

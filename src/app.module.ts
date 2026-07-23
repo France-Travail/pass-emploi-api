@@ -276,6 +276,12 @@ import {
   JeunePoleEmploiRepositoryToken,
   JeuneRepositoryToken
 } from './domain/jeune/jeune'
+import {
+  JeuneInviteConfigurationApplicationRepositoryToken,
+  JeuneInviteRepositoryToken
+} from './domain/jeune/jeune-invite'
+import { JeuneInviteConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-invite-configuration-application-sql.repository.db'
+import { JeuneInviteSqlRepository } from './infrastructure/repositories/jeune/jeune-invite-sql.repository.db'
 import { Mail, MailRepositoryToken, MailServiceToken } from './domain/mail'
 import { ActionMiloRepositoryToken } from './domain/milo/action.milo'
 import {
@@ -644,6 +650,14 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: JeuneConfigurationApplicationRepositoryToken,
       useClass: JeuneConfigurationApplicationSqlRepository
+    },
+    {
+      provide: JeuneInviteRepositoryToken,
+      useClass: JeuneInviteSqlRepository
+    },
+    {
+      provide: JeuneInviteConfigurationApplicationRepositoryToken,
+      useClass: JeuneInviteConfigurationApplicationSqlRepository
     },
     {
       provide: CommentaireActionRepositoryToken,

@@ -6,6 +6,7 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { estInvite } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 
 @Injectable()
@@ -20,6 +21,10 @@ export class JeuneAuthorizer {
     utilisateur: Authentification.Utilisateur,
     structureAutorisee = true
   ): Promise<Result> {
+    if (estInvite(utilisateur.structure)) {
+      return failure(new DroitsInsuffisants())
+    }
+
     if (Authentification.estJeune(utilisateur.type) && structureAutorisee) {
       const jeune = await this.jeuneRepository.existe(idJeune)
 

@@ -16,10 +16,6 @@ export interface UpdatePrenomInviteCommand extends Command {
   prenom: string
 }
 
-/**
- * Le prénom modifié ici est la source de vérité : le JWT le reprendra au
- * refresh suivant (findAccount côté Connect relit l'API).
- */
 @Injectable()
 export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   UpdatePrenomInviteCommand,

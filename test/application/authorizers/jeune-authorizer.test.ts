@@ -21,6 +21,28 @@ describe('JeuneAuthorizer', () => {
   })
 
   describe('autoriserLeJeune', () => {
+    describe("quand l'utilisateur est un invité", () => {
+      it("retourne un echec même s'il existe en base", async () => {
+        // Given : un invité est de type JEUNE, il passerait sans le contrôle
+        // explicite de structure
+        const utilisateur = unUtilisateurJeune({
+          id: 'invite-id',
+          structure: Core.Structure.INVITE
+        })
+        jeuneRepository.existe.withArgs('invite-id').resolves(true)
+
+        // When
+        const result = await jeuneAuthorizer.autoriserLeJeune(
+          'invite-id',
+          utilisateur
+        )
+
+        // Then : sans `auth_user_not_found`, qui déclencherait une
+        // déconnexion côté application
+        expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+      })
+    })
+
     describe("quand l'utilisateur est de la mauvaise strucutre", () => {
       it('retourne un echec', async () => {
         // Given

@@ -6,6 +6,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
+import { JeuneInviteSqlRepository } from '../../../src/infrastructure/repositories/jeune/jeune-invite-sql.repository.db'
 import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
@@ -28,7 +29,9 @@ describe('JeuneInviteAuthorizer', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    jeuneInviteAuthorizer = new JeuneInviteAuthorizer()
+    jeuneInviteAuthorizer = new JeuneInviteAuthorizer(
+      new JeuneInviteSqlRepository()
+    )
     await JeuneInviteSqlModel.creer(unJeuneInviteDto({ id: idInvite }))
   })
 
