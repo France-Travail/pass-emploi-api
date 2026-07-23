@@ -1,11 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosResponse } from 'axios'
+import { AxiosError, AxiosResponse } from 'axios'
 import * as https from 'https'
 import { DateTime } from 'luxon'
-import { QueryTypes, Sequelize } from 'sequelize'
-import { v4 as uuidV4 } from 'uuid'
-import { Context, ContextKey } from '../../building-blocks/context'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { Result, failure, success } from '../../building-blocks/types/result'
@@ -15,12 +12,9 @@ import {
   isSuccessApi,
   successApi
 } from '../../building-blocks/types/result-api'
-import { Authentification } from '../../domain/authentification'
 import { Demarche } from '../../domain/demarche'
-import { getAPMInstance } from '../monitoring/apm.init'
 import { suggestionsPEInMemory } from '../repositories/dto/pole-emploi.in-memory.dto'
-import { CacheApiPartenaireSqlModel } from '../sequelize/models/cache-api-partenaire.sql-model'
-import { SequelizeInjectionToken } from '../sequelize/providers'
+import { CacheApiPartenaireSqlService } from './cache-api-partenaire.sql-service.db'
 import {
   DemarcheDto,
   DocumentPoleEmploiDto,
@@ -84,8 +78,7 @@ export class PoleEmploiPartenaireClient
 
   constructor(
     private configService: ConfigService,
-    private context: Context,
-    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
+    private readonly cacheApiPartenaire: CacheApiPartenaireSqlService,
     externalApiLogger: ExternalApiLoggerService
   ) {
     super('PoleEmploiPartenaireClient', externalApiLogger)
@@ -119,16 +112,13 @@ export class PoleEmploiPartenaireClient
   async getDemarchesEnCache(
     idJeune: string
   ): Promise<ResultApi<DemarcheDto[]>> {
-    const cache = await this.recupererLesDernieresDonnees(
+    const cache = await this.cacheApiPartenaire.recuperer<DemarcheDto[]>(
       appendCacheParam(DEMARCHES_URL, idJeune)
     )
     if (!cache)
       return failureApi(new ErreurHttp('Aucune démarche en cache', 404))
 
-    return successApi(
-      cache.resultatPartenaire as DemarcheDto[],
-      DateTime.fromJSDate(cache.date)
-    )
+    return successApi(cache.data, cache.date)
   }
 
   async getRendezVous(
@@ -354,40 +344,41 @@ export class PoleEmploiPartenaireClient
   ): Promise<ResultApi<T>> {
     const cacheUrl = appendCacheParam(suffixUrl, cacheParam)
 
-    try {
-      let res
-      if (retry) {
-        res = await this.getWithRetry<T>(suffixUrl, tokenDuJeune, params)
-      } else {
-        res = await this.get<T>(suffixUrl, tokenDuJeune, params)
+    const resultat = await this.cacheApiPartenaire.executerAvecCache<T>({
+      pathPartenaire: cacheUrl,
+      appel: async () => {
+        const res = retry
+          ? await this.getWithRetry<T>(suffixUrl, tokenDuJeune, params)
+          : await this.get<T>(suffixUrl, tokenDuJeune, params)
+        return res.data
+      },
+      // Repli cache sur erreur technique (pas de réponse / 5xx) ou 402-499,
+      // pas sur 401 (token invalide). Comportement historique préservé.
+      erreurEstRecuperable: erreur => {
+        const e = erreur as AxiosError
+        return !e.response || e.response.status > 401
       }
-      this.sauvegarderLeRetourEnCache(res, cacheUrl)
-      return success(res.data)
-    } catch (e) {
-      if (!e.response || e.response.status > 401) {
-        const cache = await this.recupererLesDernieresDonnees(cacheUrl)
-        if (cache) {
-          this.logger.warn(
-            `Utilisation du cache pour ${suffixUrl} avec l'id ${cache.id}`
-          )
-          return successApi(
-            cache.resultatPartenaire as T,
-            DateTime.fromJSDate(cache.date)
+    })
+
+    switch (resultat.type) {
+      case 'frais':
+        return success(resultat.data)
+      case 'cache':
+        return successApi(resultat.data, resultat.date)
+      case 'erreur': {
+        const e = resultat.erreur as AxiosError
+        if (e.response) {
+          return failureApi(
+            new ErreurHttp(
+              typeof e.response.data === 'string'
+                ? e.response.data
+                : JSON.stringify(e.response.data),
+              e.response.status
+            )
           )
         }
+        throw e
       }
-
-      if (e.response) {
-        return failureApi(
-          new ErreurHttp(
-            typeof e.response.data === 'string'
-              ? e.response.data
-              : JSON.stringify(e.response.data),
-            e.response.status
-          )
-        )
-      }
-      throw e
     }
   }
 
@@ -419,57 +410,6 @@ export class PoleEmploiPartenaireClient
         this.configService.get('environment') !== 'prod'
           ? new https.Agent({ rejectUnauthorized: false })
           : undefined
-    })
-  }
-
-  private async sauvegarderLeRetourEnCache<T>(
-    res: AxiosResponse<T>,
-    pathPartenaire: string
-  ): Promise<void> {
-    const utilisateur = this.context.get<Authentification.Utilisateur>(
-      ContextKey.UTILISATEUR
-    )!
-
-    await this.sequelize
-      .query(
-        `
-      INSERT INTO cache_api_partenaire (id, id_utilisateur, type_utilisateur, date, path_partenaire, resultat_partenaire, transaction_id)
-      VALUES (:id, :idUtilisateur, :typeUtilisateur, :date, :pathPartenaire, :resultatPartenaire, :transactionId)
-      ON CONFLICT (id_utilisateur, path_partenaire) 
-      DO UPDATE SET date = :date, resultat_partenaire = :resultatPartenaire, transaction_id = :transactionId;
-      `,
-        {
-          replacements: {
-            id: uuidV4(),
-            idUtilisateur: utilisateur.id,
-            typeUtilisateur: utilisateur.type,
-            date: new Date(),
-            pathPartenaire,
-            resultatPartenaire: JSON.stringify(res.data),
-            transactionId:
-              getAPMInstance().currentTraceIds['transaction.id'] || null
-          },
-          type: QueryTypes.INSERT
-        }
-      )
-      .catch(e => {
-        getAPMInstance().captureError(e)
-        this.logger.error(e)
-      })
-  }
-
-  private async recupererLesDernieresDonnees(
-    pathPartenaire: string
-  ): Promise<CacheApiPartenaireSqlModel | null> {
-    const utilisateur = this.context.get<Authentification.Utilisateur>(
-      ContextKey.UTILISATEUR
-    )!
-    return CacheApiPartenaireSqlModel.findOne({
-      where: {
-        pathPartenaire,
-        idUtilisateur: utilisateur.id
-      },
-      order: [['date', 'DESC']]
     })
   }
 }

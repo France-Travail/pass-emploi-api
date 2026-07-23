@@ -346,6 +346,7 @@ import { MatomoClient } from './infrastructure/clients/matomo-client'
 import { MiloClient } from './infrastructure/clients/milo/milo-client'
 import { MiloClientV1 } from './infrastructure/clients/milo/milo-client-v1'
 import { MiloClientV2 } from './infrastructure/clients/milo/milo-client-v2'
+import { CacheApiPartenaireSqlService } from './infrastructure/clients/cache-api-partenaire.sql-service.db'
 import { ObjectStorageClient } from './infrastructure/clients/object-storage.client'
 import { PlanActionClient } from './infrastructure/clients/plan-action-client'
 import { PoleEmploiClient } from './infrastructure/clients/pole-emploi-client'
@@ -502,6 +503,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ExternalApiLoggerService,
     RateLimiterService,
     PoleEmploiClient,
+    CacheApiPartenaireSqlService,
     MiloClient,
     MiloClientV1,
     MiloClientV2,

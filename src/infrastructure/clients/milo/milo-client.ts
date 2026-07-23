@@ -2,8 +2,14 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Context, ContextKey } from 'src/building-blocks/context'
-import { Result } from 'src/building-blocks/types/result'
+import {
+  Failure,
+  isFailure,
+  Result,
+  success
+} from 'src/building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { CacheApiPartenaireSqlService } from '../cache-api-partenaire.sql-service.db'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import {
   EvenementMiloDto,
@@ -33,7 +39,8 @@ export class MiloClient implements MiloClientPort {
     private readonly miloClientV1: MiloClientV1,
     private readonly miloClientV2: MiloClientV2,
     private readonly context: Context,
-    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
+    @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
+    private readonly cacheApiPartenaire: CacheApiPartenaireSqlService
   ) {
     this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
     this.emailsConseillersV2 =
@@ -87,11 +94,18 @@ export class MiloClient implements MiloClientPort {
       periode: { debut?: DateTime; fin?: DateTime }
     }
   ): Promise<Result<SessionConseillerDetailDto[]>> {
-    return (await this.getClient()).getSessionsConseillerParStructure(
-      idpToken,
-      idStructure,
-      timezone,
-      options
+    return this.avecCache(
+      `milo/conseiller/structures/${idStructure}/sessions${suffixePeriode(
+        options.periode,
+        timezone
+      )}`,
+      async () =>
+        (await this.getClient()).getSessionsConseillerParStructure(
+          idpToken,
+          idStructure,
+          timezone,
+          options
+        )
     )
   }
 
@@ -100,10 +114,14 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return (await this.getClient()).getSessionsParDossierJeune(
-      idpToken,
-      idDossier,
-      periode
+    return this.avecCache(
+      `milo/jeune/dossiers/${idDossier}/sessions${suffixePeriode(periode)}`,
+      async () =>
+        (await this.getClient()).getSessionsParDossierJeune(
+          idpToken,
+          idDossier,
+          periode
+        )
     )
   }
 
@@ -112,10 +130,14 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return (await this.getClient()).getSessionsParDossierJeunePourConseiller(
-      idpToken,
-      idDossier,
-      periode
+    return this.avecCache(
+      `milo/conseiller/dossiers/${idDossier}/sessions${suffixePeriode(periode)}`,
+      async () =>
+        (await this.getClient()).getSessionsParDossierJeunePourConseiller(
+          idpToken,
+          idDossier,
+          periode
+        )
     )
   }
 
@@ -239,6 +261,39 @@ export class MiloClient implements MiloClientPort {
     return (await this.getClient()).envoyerEmailActivation(idpToken, email)
   }
 
+  // Cache de résilience : borne la latence à ~2s en servant la dernière donnée
+  // connue quand i-milo est lent/en erreur. Uniquement pour les lectures de
+  // listes de sessions (idempotentes, contexte web). Voir
+  // CacheApiPartenaireSqlService.
+  private async avecCache<T>(
+    pathPartenaire: string,
+    appel: () => Promise<Result<T>>
+  ): Promise<Result<T>> {
+    const resultat = await this.cacheApiPartenaire.executerAvecCache<T>({
+      pathPartenaire,
+      appel: async () => {
+        const result = await appel()
+        // miloClientUtils renvoie failure sur 4xx (métier, pas de repli cache)
+        // et throw sur 5xx/timeout/réseau (technique, repli cache souhaité).
+        if (isFailure(result)) throw new ErreurMiloNonRecuperable(result)
+        return result.data
+      },
+      erreurEstRecuperable: erreur =>
+        !(erreur instanceof ErreurMiloNonRecuperable)
+    })
+
+    switch (resultat.type) {
+      case 'frais':
+      case 'cache':
+        return success(resultat.data)
+      case 'erreur':
+        if (resultat.erreur instanceof ErreurMiloNonRecuperable) {
+          return resultat.erreur.failure
+        }
+        throw resultat.erreur
+    }
+  }
+
   private async getClient(): Promise<MiloClientPort> {
     let useV2 = this.apiV2Enabled && this.emailsConseillersV2?.length > 0
 
@@ -287,4 +342,25 @@ export class MiloClient implements MiloClientPort {
     if (emailConseillerDuJeuneRaw.length !== 1) return false
     return this.emailsConseillersV2.includes(emailConseillerDuJeuneRaw[0].email)
   }
+}
+
+class ErreurMiloNonRecuperable extends Error {
+  constructor(readonly failure: Failure) {
+    super('Erreur Milo non récupérable (pas de repli cache)')
+  }
+}
+
+function suffixePeriode(
+  periode?: { debut?: DateTime; fin?: DateTime },
+  timezone?: string
+): string {
+  // Granularité au jour, alignée sur le paramètre envoyé à l'API i-milo, pour
+  // que la clé de cache reste stable sur la journée (ex. période « à clore »
+  // calculée à partir de now()).
+  const toJour = (date?: DateTime): string => {
+    if (!date) return ''
+    const dateZonee = timezone ? date.setZone(timezone) : date
+    return dateZonee.toISODate() ?? ''
+  }
+  return `?debut=${toJour(periode?.debut)}&fin=${toJour(periode?.fin)}`
 }

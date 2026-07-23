@@ -16,6 +16,7 @@ import { Core } from '../../../src/domain/core'
 import { Demarche } from '../../../src/domain/demarche'
 import { DocumentPoleEmploiDto } from '../../../src/infrastructure/clients/dto/pole-emploi.dto'
 import { PoleEmploiPartenaireClient } from '../../../src/infrastructure/clients/pole-emploi-partenaire-client.db'
+import { CacheApiPartenaireSqlService } from '../../../src/infrastructure/clients/cache-api-partenaire.sql-service.db'
 import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 import {
   CacheApiPartenaireDto,
@@ -56,10 +57,13 @@ describe('PoleEmploiPartenaireClient', () => {
 
     const externalApiLogger = stubClass(ExternalApiLoggerService)
     externalApiLogger.createAxios.returns(axios.create())
+    const cacheApiPartenaire = new CacheApiPartenaireSqlService(
+      databaseForTesting.sequelize,
+      context
+    )
     poleEmploiPartenaireClient = new PoleEmploiPartenaireClient(
       configService,
-      context,
-      databaseForTesting.sequelize,
+      cacheApiPartenaire,
       externalApiLogger
     )
   })
