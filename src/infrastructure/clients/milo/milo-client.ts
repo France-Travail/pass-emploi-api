@@ -9,7 +9,10 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { CacheApiPartenaireSqlService } from '../cache-api-partenaire.sql-service.db'
+import {
+  CacheApiPartenaireSqlService,
+  StatutResultatCache
+} from '../cache-api-partenaire.sql-service.db'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import {
   EvenementMiloDto,
@@ -94,18 +97,17 @@ export class MiloClient implements MiloClientPort {
       periode: { debut?: DateTime; fin?: DateTime }
     }
   ): Promise<Result<SessionConseillerDetailDto[]>> {
-    return this.avecCache(
-      `milo/conseiller/structures/${idStructure}/sessions${suffixePeriode(
-        options.periode,
-        timezone
-      )}`,
-      async () =>
-        (await this.getClient()).getSessionsConseillerParStructure(
-          idpToken,
-          idStructure,
-          timezone,
-          options
-        )
+    const cleCache = `milo/conseiller/structures/${idStructure}/sessions${suffixePeriode(
+      options.periode,
+      timezone
+    )}`
+    return this.avecCache(cleCache, async () =>
+      (await this.getClient()).getSessionsConseillerParStructure(
+        idpToken,
+        idStructure,
+        timezone,
+        options
+      )
     )
   }
 
@@ -114,14 +116,15 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return this.avecCache(
-      `milo/jeune/dossiers/${idDossier}/sessions${suffixePeriode(periode)}`,
-      async () =>
-        (await this.getClient()).getSessionsParDossierJeune(
-          idpToken,
-          idDossier,
-          periode
-        )
+    const cleCache = `milo/jeune/dossiers/${idDossier}/sessions${suffixePeriode(
+      periode
+    )}`
+    return this.avecCache(cleCache, async () =>
+      (await this.getClient()).getSessionsParDossierJeune(
+        idpToken,
+        idDossier,
+        periode
+      )
     )
   }
 
@@ -130,14 +133,15 @@ export class MiloClient implements MiloClientPort {
     idDossier: string,
     periode?: { debut?: DateTime; fin?: DateTime }
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
-    return this.avecCache(
-      `milo/conseiller/dossiers/${idDossier}/sessions${suffixePeriode(periode)}`,
-      async () =>
-        (await this.getClient()).getSessionsParDossierJeunePourConseiller(
-          idpToken,
-          idDossier,
-          periode
-        )
+    const cleCache = `milo/conseiller/dossiers/${idDossier}/sessions${suffixePeriode(
+      periode
+    )}`
+    return this.avecCache(cleCache, async () =>
+      (await this.getClient()).getSessionsParDossierJeunePourConseiller(
+        idpToken,
+        idDossier,
+        periode
+      )
     )
   }
 
@@ -266,11 +270,11 @@ export class MiloClient implements MiloClientPort {
   // listes de sessions (idempotentes, contexte web). Voir
   // CacheApiPartenaireSqlService.
   private async avecCache<T>(
-    pathPartenaire: string,
+    cleCache: string,
     appel: () => Promise<Result<T>>
   ): Promise<Result<T>> {
     const resultat = await this.cacheApiPartenaire.executerAvecCache<T>({
-      pathPartenaire,
+      cleCache,
       appel: async () => {
         const result = await appel()
         // miloClientUtils renvoie failure sur 4xx (métier, pas de repli cache)
@@ -283,10 +287,10 @@ export class MiloClient implements MiloClientPort {
     })
 
     switch (resultat.type) {
-      case 'frais':
-      case 'cache':
+      case StatutResultatCache.FRAIS:
+      case StatutResultatCache.CACHE:
         return success(resultat.data)
-      case 'erreur':
+      case StatutResultatCache.ERREUR:
         if (resultat.erreur instanceof ErreurMiloNonRecuperable) {
           return resultat.erreur.failure
         }

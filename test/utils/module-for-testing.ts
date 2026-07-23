@@ -1,4 +1,3 @@
-import { HttpModule } from '@nestjs/axios'
 import {
   INestApplication,
   Provider,
@@ -35,12 +34,7 @@ export function buildTestingModuleForHttpTesting(
 ): TestingModuleBuilder {
   const moduleMetadata = buildModuleMetadata()
   return Test.createTestingModule({
-    imports: [
-      HttpModule,
-      ConfigModule.forRoot(),
-      TerminusModule,
-      configureLoggerModule()
-    ],
+    imports: [ConfigModule.forRoot(), TerminusModule, configureLoggerModule()],
     providers: stubProviders(sandbox),
     controllers: [...moduleMetadata.controllers!, FakeController]
   })
@@ -48,12 +42,7 @@ export function buildTestingModuleForHttpTesting(
 export function buildTestingModuleForEndToEndTesting(): TestingModuleBuilder {
   const moduleMetadata = buildModuleMetadata()
   return Test.createTestingModule({
-    imports: [
-      HttpModule,
-      ConfigModule.forRoot(),
-      TerminusModule,
-      configureLoggerModule()
-    ],
+    imports: [ConfigModule.forRoot(), TerminusModule, configureLoggerModule()],
     providers: [...moduleMetadata.providers!],
     controllers: [...moduleMetadata.controllers!, FakeController]
   })

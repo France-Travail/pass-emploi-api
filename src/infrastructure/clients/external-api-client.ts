@@ -13,8 +13,9 @@ export abstract class ExternalApiClient {
 
   protected constructor(
     target: string,
-    externalApiLogger: ExternalApiLoggerService
+    externalApiLogger: ExternalApiLoggerService,
+    timeoutMs?: number
   ) {
-    this.axios = externalApiLogger.createAxios(target)
+    this.axios = externalApiLogger.createAxios(target, timeoutMs)
   }
 }

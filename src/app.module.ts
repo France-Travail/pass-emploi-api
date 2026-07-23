@@ -1,4 +1,3 @@
-import { HttpModule } from '@nestjs/axios'
 import {
   MiddlewareConsumer,
   Module,
@@ -179,7 +178,6 @@ import { GetMetadonneesFavorisJeuneQueryHandler } from './application/queries/fa
 import { GetAgencesQueryHandler } from './application/queries/get-agences.query.handler.db'
 import { GetCatalogueDemarchesQueryHandler } from './application/queries/get-catalogue-demarches.query.handler'
 import { GetChatSecretsQueryHandler } from './application/queries/get-chat-secrets.query.handler'
-import { GetCJETokenQueryHandler } from './application/queries/get-cje-token.query.handler'
 import { GetCommunesEtDepartementsQueryHandler } from './application/queries/get-communes-et-departements.query.handler.db'
 import { GetComptageJeuneQueryHandler } from './application/queries/get-comptage-jeune.query.handler.db'
 import { GetComptageJeunesByConseillerQueryHandler } from './application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
@@ -396,7 +394,6 @@ import { SuperviseurSqlRepository } from './infrastructure/repositories/supervis
 import { ActionsController } from './infrastructure/routes/actions.controller'
 import { AuthentificationController } from './infrastructure/routes/authentification.controller'
 import { CampagnesController } from './infrastructure/routes/campagnes.controller'
-import { CJEController } from './infrastructure/routes/cje.controller'
 import { ConfigController } from './infrastructure/routes/config.controller'
 import { ConseillersController } from './infrastructure/routes/conseillers.controller'
 import { ConseillersMiloController } from './infrastructure/routes/conseillers.milo.controller'
@@ -445,9 +442,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
       load: [configuration]
     }),
     configureLoggerModule(),
-    HttpModule.register({
-      timeout: 6000
-    }),
     TerminusModule
   ],
   controllers: [
@@ -483,7 +477,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     // Campagnes
     CampagnesController,
     // Autre
-    CJEController,
     AuthentificationController,
     SupportController,
     AdminController,
@@ -883,7 +876,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     FusionnerAgencesCommandHandler,
     GetActionsConseillerV2QueryHandler,
     GetDiagorienteUrlsQueryHandler,
-    GetCJETokenQueryHandler,
     ArchiverJeuneSupportCommandHandler,
     DesarchiverJeuneCommandHandler,
     CreerJeunePESupportCommandHandler,

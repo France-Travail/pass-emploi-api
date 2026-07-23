@@ -14,7 +14,10 @@ import {
 } from '../../building-blocks/types/result-api'
 import { Demarche } from '../../domain/demarche'
 import { suggestionsPEInMemory } from '../repositories/dto/pole-emploi.in-memory.dto'
-import { CacheApiPartenaireSqlService } from './cache-api-partenaire.sql-service.db'
+import {
+  CacheApiPartenaireSqlService,
+  StatutResultatCache
+} from './cache-api-partenaire.sql-service.db'
 import {
   DemarcheDto,
   DocumentPoleEmploiDto,
@@ -345,7 +348,7 @@ export class PoleEmploiPartenaireClient
     const cacheUrl = appendCacheParam(suffixUrl, cacheParam)
 
     const resultat = await this.cacheApiPartenaire.executerAvecCache<T>({
-      pathPartenaire: cacheUrl,
+      cleCache: cacheUrl,
       appel: async () => {
         const res = retry
           ? await this.getWithRetry<T>(suffixUrl, tokenDuJeune, params)
@@ -361,11 +364,11 @@ export class PoleEmploiPartenaireClient
     })
 
     switch (resultat.type) {
-      case 'frais':
+      case StatutResultatCache.FRAIS:
         return success(resultat.data)
-      case 'cache':
+      case StatutResultatCache.CACHE:
         return successApi(resultat.data, resultat.date)
-      case 'erreur': {
+      case StatutResultatCache.ERREUR: {
         const e = resultat.erreur as AxiosError
         if (e.response) {
           return failureApi(

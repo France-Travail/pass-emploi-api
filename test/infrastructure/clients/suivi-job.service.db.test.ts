@@ -1,8 +1,10 @@
-import { HttpService } from '@nestjs/axios'
+import axios from 'axios'
 import { expect } from 'chai'
 import * as nock from 'nock'
 import { NonTrouveError } from 'src/building-blocks/types/domain-error'
 import { SuiviJobService } from 'src/infrastructure/clients/suivi-job.service.db'
+import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
+import { stubClass } from '../../utils'
 import { Planificateur } from '../../../src/domain/planificateur'
 import { RapportJob24h, SuiviJob } from '../../../src/domain/suivi-job'
 import { SuiviJobSqlModel } from '../../../src/infrastructure/sequelize/models/suivi-job.sql-model'
@@ -17,8 +19,9 @@ describe('SuiviJobService', () => {
   const configService = testConfig()
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    const httpService = new HttpService()
-    service = new SuiviJobService(configService, httpService)
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+    service = new SuiviJobService(configService, externalApiLogger)
   })
 
   describe('save', () => {

@@ -10,17 +10,23 @@ import { SequelizeInjectionToken } from '../sequelize/providers'
 
 export const TIMEOUT_APPEL_PARTENAIRE_MS = 2000
 
+export enum StatutResultatCache {
+  FRAIS = 'frais',
+  CACHE = 'cache',
+  ERREUR = 'erreur'
+}
+
 export type ResultatAppelAvecCache<T> =
-  | { type: 'frais'; data: T }
-  | { type: 'cache'; data: T; date: DateTime }
-  | { type: 'erreur'; erreur: unknown }
+  | { type: StatutResultatCache.FRAIS; data: T }
+  | { type: StatutResultatCache.CACHE; data: T; date: DateTime }
+  | { type: StatutResultatCache.ERREUR; erreur: unknown }
 
 const SENTINELLE_TIMEOUT = Symbol('timeout')
 
 /**
  * Cache de résilience « stale-if-slow / stale-if-error » pour les APIs
  * partenaires (France Travail, Milo), stocké dans `cache_api_partenaire` et
- * indexé par (utilisateur courant, path partenaire).
+ * indexé par (utilisateur courant, clé de cache).
  *
  * Il ne s'agit PAS d'un cache TTL lecture-d'abord : l'appel partenaire est
  * toujours lancé. Le cache sert de repli quand l'appel est trop lent (au-delà
@@ -38,12 +44,14 @@ export class CacheApiPartenaireSqlService {
   ) {}
 
   async executerAvecCache<T>({
-    pathPartenaire,
+    cleCache,
     appel,
     erreurEstRecuperable,
     timeoutMs = TIMEOUT_APPEL_PARTENAIRE_MS
   }: {
-    pathPartenaire: string
+    // Identifiant sous lequel le résultat est mis en cache (colonne
+    // `path_partenaire`) : vraie URL partenaire côté FT, clé synthétique côté Milo.
+    cleCache: string
     // `appel` DOIT throw pour signaler une erreur. Les erreurs sans repli cache
     // (ex. 4xx métier) doivent renvoyer false via `erreurEstRecuperable`.
     appel: () => Promise<T>
@@ -52,10 +60,10 @@ export class CacheApiPartenaireSqlService {
   }): Promise<ResultatAppelAvecCache<T>> {
     const appelInstrumente: Promise<ResultatAppelAvecCache<T>> = appel()
       .then(data => {
-        this.sauvegarder(pathPartenaire, data)
-        return { type: 'frais' as const, data }
+        this.sauvegarder(cleCache, data)
+        return { type: StatutResultatCache.FRAIS as const, data }
       })
-      .catch(erreur => ({ type: 'erreur' as const, erreur }))
+      .catch(erreur => ({ type: StatutResultatCache.ERREUR as const, erreur }))
 
     let handleTimeout: NodeJS.Timeout
     const timeout = new Promise<typeof SENTINELLE_TIMEOUT>(resolve => {
@@ -66,18 +74,23 @@ export class CacheApiPartenaireSqlService {
       const premier = await Promise.race([appelInstrumente, timeout])
 
       if (premier !== SENTINELLE_TIMEOUT) {
-        return this.resoudre(premier, pathPartenaire, erreurEstRecuperable)
+        return this.resoudre(premier, cleCache, erreurEstRecuperable)
       }
 
       // Appel trop lent : on sert le dernier cache connu s'il existe. L'appel
       // continue en tâche de fond et rafraîchira le cache à sa complétion.
-      const cache = await this.recuperer<T>(pathPartenaire)
-      if (cache) return { type: 'cache', data: cache.data, date: cache.date }
+      const cache = await this.recuperer<T>(cleCache)
+      if (cache)
+        return {
+          type: StatutResultatCache.CACHE,
+          data: cache.data,
+          date: cache.date
+        }
 
       // Cache froid : pas d'autre choix que d'attendre l'appel réel.
       return this.resoudre(
         await appelInstrumente,
-        pathPartenaire,
+        cleCache,
         erreurEstRecuperable
       )
     } finally {
@@ -87,18 +100,23 @@ export class CacheApiPartenaireSqlService {
 
   private async resoudre<T>(
     resultat: ResultatAppelAvecCache<T>,
-    pathPartenaire: string,
+    cleCache: string,
     erreurEstRecuperable: (erreur: unknown) => boolean
   ): Promise<ResultatAppelAvecCache<T>> {
-    if (resultat.type !== 'erreur') return resultat
+    if (resultat.type !== StatutResultatCache.ERREUR) return resultat
     if (erreurEstRecuperable(resultat.erreur)) {
-      const cache = await this.recuperer<T>(pathPartenaire)
-      if (cache) return { type: 'cache', data: cache.data, date: cache.date }
+      const cache = await this.recuperer<T>(cleCache)
+      if (cache)
+        return {
+          type: StatutResultatCache.CACHE,
+          data: cache.data,
+          date: cache.date
+        }
     }
     return resultat
   }
 
-  async sauvegarder(pathPartenaire: string, data: unknown): Promise<void> {
+  async sauvegarder(cleCache: string, data: unknown): Promise<void> {
     const utilisateur = this.context.get<Authentification.Utilisateur>(
       ContextKey.UTILISATEUR
     )
@@ -108,7 +126,7 @@ export class CacheApiPartenaireSqlService {
       .query(
         `
       INSERT INTO cache_api_partenaire (id, id_utilisateur, type_utilisateur, date, path_partenaire, resultat_partenaire, transaction_id)
-      VALUES (:id, :idUtilisateur, :typeUtilisateur, :date, :pathPartenaire, :resultatPartenaire, :transactionId)
+      VALUES (:id, :idUtilisateur, :typeUtilisateur, :date, :cleCache, :resultatPartenaire, :transactionId)
       ON CONFLICT (id_utilisateur, path_partenaire)
       DO UPDATE SET date = :date, resultat_partenaire = :resultatPartenaire, transaction_id = :transactionId;
       `,
@@ -118,7 +136,7 @@ export class CacheApiPartenaireSqlService {
             idUtilisateur: utilisateur.id,
             typeUtilisateur: utilisateur.type,
             date: new Date(),
-            pathPartenaire,
+            cleCache,
             resultatPartenaire: JSON.stringify(data),
             transactionId:
               getAPMInstance().currentTraceIds['transaction.id'] || null
@@ -133,7 +151,7 @@ export class CacheApiPartenaireSqlService {
   }
 
   async recuperer<T>(
-    pathPartenaire: string
+    cleCache: string
   ): Promise<{ data: T; date: DateTime } | null> {
     const utilisateur = this.context.get<Authentification.Utilisateur>(
       ContextKey.UTILISATEUR
@@ -142,7 +160,7 @@ export class CacheApiPartenaireSqlService {
 
     const cache = await CacheApiPartenaireSqlModel.findOne({
       where: {
-        pathPartenaire,
+        pathPartenaire: cleCache,
         idUtilisateur: utilisateur.id
       },
       order: [['date', 'DESC']]
@@ -150,7 +168,7 @@ export class CacheApiPartenaireSqlService {
     if (!cache) return null
 
     this.logger.warn(
-      `Utilisation du cache pour ${pathPartenaire} avec l'id ${cache.id}`
+      `Utilisation du cache pour ${cleCache} avec l'id ${cache.id}`
     )
     return {
       data: cache.resultatPartenaire as T,

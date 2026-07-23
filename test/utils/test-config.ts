@@ -78,10 +78,6 @@ export const testConfig = (): ConfigService => {
       apiKey: 'apiKey',
       apiKeyV3: 'apiKeyV3'
     },
-    cje: {
-      apiUrl: 'https://cje.com/api',
-      apiKey: 'cjekey'
-    },
     diagoriente: {
       url: 'https://api-dev.diagoriente.fr',
       clientId: 'diagoriente-client-id',
