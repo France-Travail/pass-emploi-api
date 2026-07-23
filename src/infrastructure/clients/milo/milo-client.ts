@@ -10,9 +10,9 @@ import {
 } from 'src/building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import {
-  CacheApiPartenaireSqlService,
+  CacheApiPartenaireService,
   StatutResultatCache
-} from '../cache-api-partenaire.sql-service.db'
+} from '../cache-api-partenaire.service.db'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import {
   EvenementMiloDto,
@@ -43,7 +43,7 @@ export class MiloClient implements MiloClientPort {
     private readonly miloClientV2: MiloClientV2,
     private readonly context: Context,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
-    private readonly cacheApiPartenaire: CacheApiPartenaireSqlService
+    private readonly cacheApiPartenaire: CacheApiPartenaireService
   ) {
     this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
     this.emailsConseillersV2 =
@@ -265,10 +265,6 @@ export class MiloClient implements MiloClientPort {
     return (await this.getClient()).envoyerEmailActivation(idpToken, email)
   }
 
-  // Cache de résilience : borne la latence à ~2s en servant la dernière donnée
-  // connue quand i-milo est lent/en erreur. Uniquement pour les lectures de
-  // listes de sessions (idempotentes, contexte web). Voir
-  // CacheApiPartenaireSqlService.
   private async avecCache<T>(
     cleCache: string,
     appel: () => Promise<Result<T>>
@@ -277,8 +273,6 @@ export class MiloClient implements MiloClientPort {
       cleCache,
       appel: async () => {
         const result = await appel()
-        // miloClientUtils renvoie failure sur 4xx (métier, pas de repli cache)
-        // et throw sur 5xx/timeout/réseau (technique, repli cache souhaité).
         if (isFailure(result)) throw new ErreurMiloNonRecuperable(result)
         return result.data
       },
@@ -358,9 +352,6 @@ function suffixePeriode(
   periode?: { debut?: DateTime; fin?: DateTime },
   timezone?: string
 ): string {
-  // Granularité au jour, alignée sur le paramètre envoyé à l'API i-milo, pour
-  // que la clé de cache reste stable sur la journée (ex. période « à clore »
-  // calculée à partir de now()).
   const toJour = (date?: DateTime): string => {
     if (!date) return ''
     const dateZonee = timezone ? date.setZone(timezone) : date

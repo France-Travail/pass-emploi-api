@@ -15,9 +15,9 @@ import {
 import { Demarche } from '../../domain/demarche'
 import { suggestionsPEInMemory } from '../repositories/dto/pole-emploi.in-memory.dto'
 import {
-  CacheApiPartenaireSqlService,
+  CacheApiPartenaireService,
   StatutResultatCache
-} from './cache-api-partenaire.sql-service.db'
+} from './cache-api-partenaire.service.db'
 import {
   DemarcheDto,
   DocumentPoleEmploiDto,
@@ -81,7 +81,7 @@ export class PoleEmploiPartenaireClient
 
   constructor(
     private configService: ConfigService,
-    private readonly cacheApiPartenaire: CacheApiPartenaireSqlService,
+    private readonly cacheApiPartenaire: CacheApiPartenaireService,
     externalApiLogger: ExternalApiLoggerService
   ) {
     super('PoleEmploiPartenaireClient', externalApiLogger)
@@ -355,8 +355,7 @@ export class PoleEmploiPartenaireClient
           : await this.get<T>(suffixUrl, tokenDuJeune, params)
         return res.data
       },
-      // Repli cache sur erreur technique (pas de réponse / 5xx) ou 402-499,
-      // pas sur 401 (token invalide). Comportement historique préservé.
+      // Repli cache sur erreur technique (pas de réponse / 5xx) ou 402-499, pas sur 401
       erreurEstRecuperable: erreur => {
         const e = erreur as AxiosError
         return !e.response || e.response.status > 401

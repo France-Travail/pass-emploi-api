@@ -20,7 +20,7 @@ export class SuiviJobService
   implements SuiviJob.Service
 {
   constructor(
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
     externalApiLogger: ExternalApiLoggerService
   ) {
     super('SuiviJobService', externalApiLogger)

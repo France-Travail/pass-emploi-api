@@ -5,7 +5,7 @@ import {
   isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
-import { CacheApiPartenaireSqlService } from '../../../src/infrastructure/clients/cache-api-partenaire.sql-service.db'
+import { CacheApiPartenaireService } from '../../../src/infrastructure/clients/cache-api-partenaire.service.db'
 import { MiloClient } from '../../../src/infrastructure/clients/milo/milo-client'
 import { MiloClientV1 } from '../../../src/infrastructure/clients/milo/milo-client-v1'
 import { MiloClientV2 } from '../../../src/infrastructure/clients/milo/milo-client-v2'
@@ -49,7 +49,7 @@ describe('MiloClient (cache sessions)', () => {
     context.get.withArgs(ContextKey.UTILISATEUR).returns(conseiller)
     miloClientV1 = stubClass(MiloClientV1)
     miloClientV2 = stubClass(MiloClientV2)
-    const cacheApiPartenaire = new CacheApiPartenaireSqlService(
+    const cacheApiPartenaire = new CacheApiPartenaireService(
       databaseForTesting.sequelize,
       context
     )

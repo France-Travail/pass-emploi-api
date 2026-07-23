@@ -5,9 +5,9 @@ import {
 } from 'src/infrastructure/sequelize/models/cache-api-partenaire.sql-model'
 import { AsSql } from 'src/infrastructure/sequelize/types'
 import {
-  CacheApiPartenaireSqlService,
+  CacheApiPartenaireService,
   StatutResultatCache
-} from '../../../src/infrastructure/clients/cache-api-partenaire.sql-service.db'
+} from '../../../src/infrastructure/clients/cache-api-partenaire.service.db'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
@@ -16,8 +16,8 @@ import {
   getDatabase
 } from '../../utils/database-for-testing'
 
-describe('CacheApiPartenaireSqlService', () => {
-  let service: CacheApiPartenaireSqlService
+describe('CacheApiPartenaireService', () => {
+  let service: CacheApiPartenaireService
   let context: StubbedClass<Context>
   let databaseForTesting: DatabaseForTesting
   const utilisateur = unUtilisateurJeune({ id: 'harry' })
@@ -44,7 +44,7 @@ describe('CacheApiPartenaireSqlService', () => {
     await databaseForTesting.cleanPG()
     context = stubClass(Context)
     context.get.withArgs(ContextKey.UTILISATEUR).returns(utilisateur)
-    service = new CacheApiPartenaireSqlService(
+    service = new CacheApiPartenaireService(
       databaseForTesting.sequelize,
       context
     )
@@ -202,7 +202,7 @@ describe('CacheApiPartenaireSqlService', () => {
       const enBase = await CacheApiPartenaireSqlModel.findOne({
         where: { pathPartenaire: pathSansUtilisateur }
       })
-      expect(enBase).to.equal(null)
+      expect(enBase).to.be.null()
     })
   })
 })

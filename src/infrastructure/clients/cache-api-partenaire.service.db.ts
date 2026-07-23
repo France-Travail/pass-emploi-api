@@ -35,8 +35,8 @@ const SENTINELLE_TIMEOUT = Symbol('timeout')
  * répond vite.
  */
 @Injectable()
-export class CacheApiPartenaireSqlService {
-  private readonly logger = new Logger('CacheApiPartenaireSqlService')
+export class CacheApiPartenaireService {
+  private readonly logger = new Logger('CacheApiPartenaireService')
 
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
@@ -49,11 +49,7 @@ export class CacheApiPartenaireSqlService {
     erreurEstRecuperable,
     timeoutMs = TIMEOUT_APPEL_PARTENAIRE_MS
   }: {
-    // Identifiant sous lequel le résultat est mis en cache (colonne
-    // `path_partenaire`) : vraie URL partenaire côté FT, clé synthétique côté Milo.
     cleCache: string
-    // `appel` DOIT throw pour signaler une erreur. Les erreurs sans repli cache
-    // (ex. 4xx métier) doivent renvoyer false via `erreurEstRecuperable`.
     appel: () => Promise<T>
     erreurEstRecuperable: (erreur: unknown) => boolean
     timeoutMs?: number
@@ -77,8 +73,8 @@ export class CacheApiPartenaireSqlService {
         return this.resoudre(premier, cleCache, erreurEstRecuperable)
       }
 
-      // Appel trop lent : on sert le dernier cache connu s'il existe. L'appel
-      // continue en tâche de fond et rafraîchira le cache à sa complétion.
+      // Appel trop lent : on sert le dernier cache connu s'il existe
+      // L'appel continue en tâche de fond et rafraîchira le cache s'il finit par réussir
       const cache = await this.recuperer<T>(cleCache)
       if (cache)
         return {
@@ -87,7 +83,7 @@ export class CacheApiPartenaireSqlService {
           date: cache.date
         }
 
-      // Cache froid : pas d'autre choix que d'attendre l'appel réel.
+      // Cache indispo : pas d'autre choix que d'attendre l'appel réel.
       return this.resoudre(
         await appelInstrumente,
         cleCache,
@@ -167,7 +163,7 @@ export class CacheApiPartenaireSqlService {
     })
     if (!cache) return null
 
-    this.logger.warn(
+    this.logger.log(
       `Utilisation du cache pour ${cleCache} avec l'id ${cache.id}`
     )
     return {
