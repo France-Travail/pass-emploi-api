@@ -26,13 +26,14 @@ export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   }
 
   async handle(command: UpdatePrenomInviteCommand): Promise<Result> {
-    const jeuneInvite = await JeuneInviteSqlModel.findByPk(command.idJeune)
+    const [nombreDeLignesMisesAJour] = await JeuneInviteSqlModel.update(
+      { prenom: command.prenom },
+      { where: { id: command.idJeune } }
+    )
 
-    if (!jeuneInvite) {
+    if (nombreDeLignesMisesAJour === 0) {
       return failure(new NonTrouveError('Jeune invité', command.idJeune))
     }
-
-    await jeuneInvite.update({ prenom: command.prenom })
 
     return emptySuccess()
   }

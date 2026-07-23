@@ -8,7 +8,7 @@ import {
   Put
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UpdatePrenomInviteCommandHandler } from '../../application/commands/update-prenom-invite.command.handler'
+import { UpdatePrenomInviteCommandHandler } from '../../application/commands/update-prenom-invite.command.handler.db'
 import {
   GetPrenomInviteQueryHandler,
   PrenomInviteQueryModel

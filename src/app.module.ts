@@ -124,7 +124,7 @@ import { UpdateJeunePreferencesCommandHandler } from './application/commands/upd
 import { UpdateRendezVousCommandHandler } from './application/commands/update-rendez-vous.command.handler'
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
-import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler'
+import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'

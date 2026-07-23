@@ -1,5 +1,5 @@
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
-import { UpdatePrenomInviteCommandHandler } from '../../../src/application/commands/update-prenom-invite.command.handler'
+import { UpdatePrenomInviteCommandHandler } from '../../../src/application/commands/update-prenom-invite.command.handler.db'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
