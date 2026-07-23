@@ -88,7 +88,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       prenom: metadonnees.prenomJeune,
       nom: metadonnees.nomJeune,
       structure: metadonnees.structure,
-      dispositif: metadonnees.dispositif,
+      dispositif: metadonnees.dispositif ?? null,
       idPartenaire: metadonnees.idPartenaire ?? null,
       dateCreation: metadonnees.dateCreation,
       datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,

@@ -10,7 +10,7 @@ import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Profil } from '../../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { Core } from '../../../domain/core'
+import { Core, estFTConnectSansAccompagnement } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -53,7 +53,10 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
 
     const jeune = await this.jeuneRepository.getByEmail(command.email)
     if (jeune) {
-      return failure(new EmailExisteDejaError(command.email))
+      if (!estFTConnectSansAccompagnement(jeune.structure)) {
+        return failure(new EmailExisteDejaError(command.email))
+      }
+      return this.reprendreEnAccompagnement(jeune, conseiller)
     }
 
     const jeuneACreer: Jeune.Factory.ACreer = {
@@ -76,6 +79,36 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
       nouveauJeune.conseiller!.id
     )
     return success(nouveauJeune)
+  }
+
+  private async reprendreEnAccompagnement(
+    jeune: Jeune,
+    conseiller: Conseiller
+  ): Promise<Result<Jeune>> {
+    const jeuneAccompagne: Jeune = {
+      ...jeune,
+      conseiller: {
+        id: conseiller.id,
+        lastName: conseiller.lastName,
+        firstName: conseiller.firstName,
+        email: conseiller.email
+      },
+      structure: conseiller.structure,
+      dispositif: fromStructureFTToDispositif(conseiller.structure),
+      preferences: {
+        ...jeune.preferences,
+        messages: true,
+        creationActionConseiller: true
+      }
+    }
+
+    await this.jeuneRepository.save(jeuneAccompagne)
+    await this.chatRepository.initializeChatIfNotExists(
+      jeuneAccompagne.id,
+      conseiller.id
+    )
+
+    return success(jeuneAccompagne)
   }
 
   async authorize(
@@ -115,6 +148,7 @@ function fromStructureFTToDispositif(
       return Jeune.Dispositif.EQUIP_EMPLOI_RECRUT
     case Core.Structure.MILO:
     case Core.Structure.FT_ESPACE_CANDIDAT:
+    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
     case Core.Structure.INVITE:
       throw new RuntimeException()
   }

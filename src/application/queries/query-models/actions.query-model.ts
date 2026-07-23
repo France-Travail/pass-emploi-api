@@ -44,7 +44,7 @@ export class BeneficiaireActionQueryModel {
   idConseiller: string
 
   @ApiProperty()
-  dispositif: string
+  dispositif?: string
 }
 
 export class ActionQueryModel {

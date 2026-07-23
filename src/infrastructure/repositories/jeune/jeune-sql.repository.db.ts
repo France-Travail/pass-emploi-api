@@ -189,7 +189,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
       instanceId: jeune.configuration.instanceId ?? null,
       timezone: jeune.configuration.fuseauHoraire ?? null,
       dateSignatureCGU: jeune.dateSignatureCGU?.toJSDate() ?? null,
-      dispositif: jeune.dispositif,
+      dispositif: jeune.dispositif ?? null,
       peutVoirLeComptageDesHeures: jeune.peutVoirLeComptageDesHeures ?? null
     }
     await JeuneSqlModel.upsert(jeuneDto)
@@ -276,7 +276,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
         notificationsRappelActions: jeune.preferences.rappelActions,
         notificationsActualitesMilo: jeune.preferences.actualitesMilo,
-        dispositif: jeune.dispositif
+        dispositif: jeune.dispositif ?? null
       }
       await JeuneSqlModel.upsert(jeuneTransfereSQL)
     }

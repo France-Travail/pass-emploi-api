@@ -9,6 +9,7 @@ export namespace Core {
     FT_ACCOMPAGNEMENT_INTENSIF = 'FT_ACCOMPAGNEMENT_INTENSIF',
     FT_ACCOMPAGNEMENT_GLOBAL = 'FT_ACCOMPAGNEMENT_GLOBAL',
     FT_EQUIP_EMPLOI_RECRUT = 'FT_EQUIP_EMPLOI_RECRUT',
+    FT_DEMANDEUR_D_EMPLOI = 'FT_DEMANDEUR_D_EMPLOI',
     INVITE = 'INVITE',
     FT_ESPACE_CANDIDAT = 'FT_ESPACE_CANDIDAT'
   }
@@ -19,7 +20,9 @@ export namespace Core {
     Structure.POLE_EMPLOI_AIJ,
     Structure.FT_ACCOMPAGNEMENT_INTENSIF,
     Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-    Structure.FT_EQUIP_EMPLOI_RECRUT
+    Structure.FT_EQUIP_EMPLOI_RECRUT,
+    Structure.FT_DEMANDEUR_D_EMPLOI,
+    Structure.FT_ESPACE_CANDIDAT
   ] as const
 
   export const structuresBeneficiaireFTConnect = [
@@ -47,6 +50,22 @@ export function estFranceTravail(structure: Core.Structure): boolean {
 
 export function estInvite(structure: Core.Structure): boolean {
   return structure === Core.Structure.INVITE
+}
+
+export function estFTConnectSansAccompagnement(
+  structure: Core.Structure
+): boolean {
+  return (
+    structure === Core.Structure.FT_DEMANDEUR_D_EMPLOI ||
+    structure === Core.Structure.FT_ESPACE_CANDIDAT
+  )
+}
+
+export function estDemandeurDEmploiFT(structure: Core.Structure): boolean {
+  return (
+    beneficiaireEstFTConnect(structure) &&
+    structure !== Core.Structure.FT_ESPACE_CANDIDAT
+  )
 }
 
 export function estFranceTravailOuMilo(structure: Core.Structure): boolean {

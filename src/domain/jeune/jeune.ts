@@ -30,7 +30,7 @@ export interface Jeune {
   configuration: Jeune.ConfigurationApplication
   preferences: Jeune.Preferences
   dateSignatureCGU?: DateTime
-  dispositif: Jeune.Dispositif
+  dispositif?: Jeune.Dispositif
   peutVoirLeComptageDesHeures?: boolean
 }
 
@@ -88,7 +88,7 @@ export namespace Jeune {
 
   function autoriseAVoirLeComptage(
     structure: Structure,
-    dispositif: Dispositif
+    dispositif?: Dispositif
   ): boolean {
     return estMilo(structure) && dispositif === Jeune.Dispositif.CEJ
   }
@@ -222,6 +222,35 @@ export namespace Jeune {
         peutVoirLeComptageDesHeures: jeuneACreer.peutVoirLeCompteurDesHeures
       }
     }
+
+    creerSansConseiller(jeuneACreer: Factory.ACreerSansConseiller): Jeune {
+      const id = this.idService.uuid()
+      const maintenant = this.dateService.now()
+      return {
+        id: id,
+        firstName: jeuneACreer.prenom,
+        lastName: jeuneACreer.nom,
+        email: jeuneACreer.email,
+        isActivated: true,
+        creationDate: maintenant,
+        datePremiereConnexion: maintenant,
+        dateDerniereConnexion: maintenant,
+        structure: jeuneACreer.structure,
+        preferences: {
+          partageFavoris: true,
+          alertesOffres: true,
+          messages: false,
+          creationActionConseiller: false,
+          rendezVousSessions: true,
+          rappelActions: true,
+          actualitesMilo: false
+        },
+        configuration: {
+          idJeune: id,
+          fuseauHoraire: TIMEZONE_PAR_DEFAUT
+        }
+      }
+    }
   }
 
   export namespace Factory {
@@ -234,6 +263,13 @@ export namespace Jeune {
       idPartenaire?: string
       dispositif: Jeune.Dispositif
       peutVoirLeCompteurDesHeures?: boolean
+    }
+
+    export interface ACreerSansConseiller {
+      prenom: string
+      nom: string
+      email?: string
+      structure: Core.Structure
     }
   }
 

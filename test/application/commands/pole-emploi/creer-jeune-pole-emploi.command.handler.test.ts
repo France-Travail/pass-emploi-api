@@ -1,7 +1,7 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
-import { failure, success } from 'src/building-blocks/types/result'
+import { failure, isSuccess, success } from 'src/building-blocks/types/result'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
 import {
   CreateJeuneCommand,
@@ -120,6 +120,41 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         expect(result).to.deep.equal(
           failure(new EmailExisteDejaError(command.email))
         )
+      })
+    })
+
+    describe('quand le jeune existant est un bénéficiaire non accompagné', () => {
+      it('le rattache au conseiller et le reprend en accompagnement', async () => {
+        // Given
+        const command: CreateJeuneCommand = {
+          firstName: 'Kenji',
+          lastName: 'Lefameux',
+          email: 'kenji.lefameur@poleemploi.fr',
+          idConseiller: conseiller.id
+        }
+        const jeuneNonAccompagne = unJeune({
+          conseiller: undefined,
+          structure: Core.Structure.FT_ESPACE_CANDIDAT,
+          dispositif: Jeune.Dispositif.CEJ
+        })
+        jeuneRepository.getByEmail
+          .withArgs(command.email)
+          .resolves(jeuneNonAccompagne)
+
+        // When
+        const result = await createJeuneCommandHandler.handle(command)
+
+        // Then
+        expect(isSuccess(result)).to.equal(true)
+        if (isSuccess(result)) {
+          expect(result.data.id).to.equal(jeuneNonAccompagne.id)
+          expect(result.data.conseiller?.id).to.equal(conseiller.id)
+          expect(result.data.structure).to.equal(conseiller.structure)
+          expect(result.data.preferences.messages).to.equal(true)
+        }
+        expect(
+          chatRepository.initializeChatIfNotExists
+        ).to.have.been.calledWithExactly(jeuneNonAccompagne.id, conseiller.id)
       })
     })
   })
