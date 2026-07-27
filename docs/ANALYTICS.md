@@ -54,15 +54,43 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
   première de tout le suivi d'usage.
 - Les vues sont **agrégées à la semaine** : les analyses fines se font à cette maille.
 
+## Fraîcheur des données
+
+| Donnée | Mise à jour |
+| --- | --- |
+| Tables métier (dump) | Quotidien, après le cron 02h30 (job 0) |
+| `evenement_engagement` | Quotidien (jobs 0 → 1) |
+| Colonnes enrichies (`semaine`, `jour`, géo) | Quotidien (job 2) |
+| Vues `analytics_*` | **Chaque lundi** — agrégats de la **semaine précédente** (job 3) |
+
+Les dashboards sur les vues agrégées reflètent donc la semaine précédente au plus tôt le lundi
+matin ; la semaine en cours n'apparaît qu'au lundi suivant.
+
 ## Composition de la pipeline
 
-La pipeline est composée de 4 jobs :
+Le dispositif analytics repose sur **deux familles de jobs** :
 
-1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts)
-2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts)
-3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts)
-4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts)
-5. Bonus : [initialiser-les-vues.job.ts](../src/application/jobs/analytics/initialiser-les-vues.job.ts)
+Les handlers portent un bloc JSDoc (étape, liens de chaîne, tables, `@see` vers cette
+page). Ce n'est **pas** du runtime : convention documentée dans
+[ADR-005](./decisions/ADR-005-analytics-doc-metadata.md).
+
+### Pipeline quotidienne
+
+Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#ordonnancement)) :
+
+1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts) — copie des tables métier prod → analytics
+2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts) — chargement des événements d'engagement
+3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
+4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
+
+### Maintenance — recalcul des vues
+
+Pour reconstruire les vues agrégées sur l'historique — évolution des actes d'engagement, ajout
+d'une nouvelle vue, correction de données — deux jobs sont lancés **à la demande** via task
+Scalingo :
+
+- [initialiser-les-vues.job.ts](../src/application/jobs/analytics/initialiser-les-vues.job.ts) — tout l'historique
+- [initialiser-les-vues-derniere-annee.job.ts](../src/application/jobs/analytics/initialiser-les-vues-derniere-annee.job.ts) — dernière année
 
 ## Ordonnancement
 
@@ -71,29 +99,69 @@ La pipeline est composée de 4 jobs :
 - A l'issue du job, un nouveau job est créé dans le worker pour l'étape enrichir les événements.
 - Lorsque le jour de la semaine est un **lundi**, un nouveau job est créé dans le worker pour l'étape charger les vues.
 
+## Reprise en cas d'échec
+
+Quand un chiffre Metabase paraît figé : consulter d'abord les `SuiviJob` (succès/échec,
+volumétrie, durée). Si un job a **levé une exception** (ex. job 1), aucun `SuiviJob` n'est
+enregistré — regarder les logs / APM. Voir aussi
+[investigation baisse RDV](./investigations/2026-05-11-baisse-rdv.md).
+
+Seul le cron démarre le job 0 ; la suite est enfilée via `ajouterJob`. Pas de retry Bull
+automatique (`attempts: 1`). Si le job 1 ou 2 échoue **avant** d'enfiler la suite, l'étape
+suivante ne part pas.
+
+Note : le job 0 enfile quand même le job 1 même si le dump remonte une erreur (`stderr`) —
+vérifier le `SuiviJob` du dump avant de faire confiance à la suite.
+
+| Situation | Comportement | Piste de reprise |
+| --- | --- | --- |
+| Job 1 échoue (chargement EE) | Job 2 (et job 3 le lundi) non enfilés | Relancer via `TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS` ; chargement **incrémental**, un run ultérieur rattrape les EE manquants |
+| Job 2 échoue un **lundi** | Job 3 non enfilé | Relancer via `TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS` ; les lignes restent avec `semaine is null` jusqu'à un enrichissement réussi, puis enfiler / relancer les vues si besoin |
+| Job 3 manqué / échoué (vues) | Vues `analytics_*` non mises à jour pour la semaine | Relancer via `TASK_NAME=CHARGER_LES_VUES_ANALYTICS` (semaine précédente), ou `yarn tasks:initialiser-les-vues` / variante dernière année pour un recalcul large |
+
+Le run quotidien suivant repart du cron (job 0) : utile pour rattraper les EE, mais **ne
+recalcule pas** automatiquement une semaine de vues déjà manquée (job 3 = lundi uniquement).
+
 ## Que font les jobs ?
 
 ### 0-dump-for-analytics.job.ts
 
-Basiquement un gros pg_dump pg_restore de la DB de prod vers celle d'analytics. En excluant les tables de logs et d'événements d'engagement.
+Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant les tables de logs et d'événements d'engagement.
 
 ### 1-charger-les-evenements.job.ts
 
-Chargement des événements d'engagement de la prod qui ne sont pas présents dans analytics. En gros les événements de la journée.
-Technique utilisée : COPY FROM / TO de postgresql en passant par un stream node
+Chargement incrémental depuis `evenement_engagement_hebdo` (prod) : événements dont
+`date_evenement` est postérieure au dernier déjà chargé en analytics.
+Technique utilisée : COPY FROM / TO PostgreSQL via un stream Node (batch de 150 000 lignes).
 
 ### 2-enrichir-les-evenements.job.ts
 
-Afin de faciliter l'exploratoire et le reporting, on enrichit les données ajoutées de la journée.
+Afin de faciliter l'exploratoire et le reporting, le job enrichit les événements **non encore
+enrichis** (`semaine is null` — en pratique, ceux chargés par le job 1 et pas encore enrichis).
 
-- mise à jour du schéma des événements d'engagement d'analytics pour ajouter les colonnes des champs enrichis. ATTENTION : il n'y a pas de système de migration, c'est un peu manuel et ça doit être idempotent.
-- enrichissement des données ajoutées de la journée
+1. Mise à jour du schéma analytics (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`)
+2. Enrichissement : semaine, jour, agence / département / région
 
-Les champs rajoutés sont :
+Les champs enrichis sur `evenement_engagement` :
 
-- semaine de l'événement - car quasi toutes les analyses sont faites à la semaine
-- jour de l'événement - utilisé pour la notion d'utilisateur actif dans la vue engagement
-- agence/département/région - utilisés pour les analyses géographiques et pour l'exploratoire
+- `semaine` — maille d'analyse principale
+- `jour` — notion d'utilisateur actif (vue engagement)
+- `agence` / `departement` / `region` — analyses géographiques
+
+#### Ajouter un champ enrichi
+
+Le schéma analytics n'a pas de migration Sequelize dédiée : les évolutions passent par
+`2-enrichir-les-evenements.job.ts` (`mettreAJourLeSchema`, `indexerLesColonnes`, puis la
+requête d'enrichissement).
+
+1. **`mettreAJourLeSchema`** — `ADD COLUMN IF NOT EXISTS` sur la table concernée
+2. **`indexerLesColonnes`** — `create index if not exists` si le champ sera filtré ou joint
+3. **Requête d'enrichissement** — cibler les lignes non enrichies (`where semaine is null`,
+   ou la colonne équivalente pour le nouveau champ)
+4. **Déployer** — au prochain run nocturne, le schéma est appliqué et les nouveaux EE sont enrichis
+
+Pour **backfill sur l'historique** déjà enrichi (`semaine` renseigné), prévoir une requête
+dédiée ou un run manuel : le job quotidien ne retraite pas ces lignes.
 
 ### 3-charger-les-vues.job.ts
 
@@ -116,6 +184,15 @@ Pour cette maille les indicateurs suivants sont calculés :
 
 **_analytics_fonctionnalites_demarches_ia_**
 Même chose que **_analytics_fonctionnalites_** sauf que c'est filtré uniquement sur les bénéficiaires qui ont la fonctionnalité `DEMARCHES_IA` active (voir la table `feature_flip`).
+
+**_analytics_fonctionnalites_migration_**
+Même chose que **_analytics_fonctionnalites_** (mêmes mailles et indicateurs), filtré sur les
+utilisateurs liés à une migration :
+
+- conseillers dont un `feature_flip.feature_tag` contient `migration`
+- jeunes présents dans `archive_jeune` avec un `motif` contenant `migration`
+
+(voir `3-1bis-vue-fonctionnalites-migration.ts`).
 
 **_analytics_engagement_**
 Détaille l'engagement des utilisateurs aux mailles :

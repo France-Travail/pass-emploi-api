@@ -17,6 +17,13 @@ import {
   InfoTableAEAnnuelle
 } from './creer-tables-ae-annuelles'
 
+/**
+ * Analytics pipeline — step 2/4 (quotidien).
+ * @see docs/ANALYTICS.md#2-enrichir-les-evenementsjobts
+ * @analytics.after CHARGER_EVENEMENTS_ANALYTICS
+ * @analytics.before CHARGER_LES_VUES_ANALYTICS (lundi)
+ * @analytics.tables_out evenement_engagement (semaine, jour, géo)
+ */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.ENRICHIR_EVENEMENTS_ANALYTICS)
 export class EnrichirEvenementsJobHandler extends JobHandler {

@@ -14,6 +14,13 @@ import { chargerLaVueFonctionnaliteDemarchesIA } from './vues/3-1bis-vue-fonctio
 import { Sequelize } from 'sequelize-typescript'
 import { chargerLaVueFonctionnaliteMigration } from './vues/3-1bis-vue-fonctionnalites-migration'
 
+/**
+ * Analytics pipeline — step 3/4 (lundi uniquement).
+ * @see docs/ANALYTICS.md#3-charger-les-vuesjobts
+ * @analytics.after ENRICHIR_EVENEMENTS_ANALYTICS (lundi)
+ * @analytics.tables_in evenement_engagement
+ * @analytics.tables_out analytics_fonctionnalites, analytics_engagement[_national], …
+ */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_LES_VUES_ANALYTICS)
 export class ChargerLesVuesJobHandler extends JobHandler {
