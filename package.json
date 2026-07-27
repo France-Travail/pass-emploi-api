@@ -80,8 +80,8 @@
     "release:major:push": "scripts/release_and_push.sh major"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1092.0",
-    "@aws-sdk/s3-request-presigner": "^3.1092.0",
+    "@aws-sdk/client-s3": "^3.1095.0",
+    "@aws-sdk/s3-request-presigner": "^3.1095.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
