@@ -111,8 +111,8 @@ export default () => {
     planAction: {
       url: process.env.PLAN_ACTION_API_URL,
       apiKey: process.env.PLAN_ACTION_API_KEY,
-      timeoutMs: process.env.PLAN_ACTION_TIMEOUT_MS ?? 15000,
-      modele: process.env.PLAN_ACTION_MODELE
+      timeoutMs: process.env.PLAN_ACTION_TIMEOUT_MS || 15000,
+      modele: process.env.PLAN_ACTION_MODELE || undefined
     },
     jecliqueoupas: {
       url: process.env.JECLIQUEOUPAS_API_URL,

@@ -54,11 +54,6 @@ export class PlanActionClient extends ExternalApiClient {
   }
 }
 
-// Un 400 du service de génération signale un profil que le proxy a mal
-// traduit : c'est un défaut interne à l'API, jamais une faute du mobile. On
-// ne relaie donc aucun statut du service — contrairement à handleAxiosError,
-// utilisé par les autres clients partenaires — et on retombe systématiquement
-// sur 502/504 côté mobile.
 function handlePlanActionError(error: AxiosError): Result<PlanDto> {
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return failure(
