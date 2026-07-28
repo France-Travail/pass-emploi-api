@@ -21,6 +21,9 @@ import {
 } from 'src/application/commands/archiver-jeune.command.handler'
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from 'src/application/commands/delete-jeune.command.handler'
+import { GenererPlanActionCommandHandler } from 'src/application/commands/generer-plan-action.command.handler'
+import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
+import { GenererPlanActionPayload } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
@@ -87,7 +90,8 @@ export class JeunesController {
     private readonly getPreferencesJeuneQueryHandler: GetPreferencesJeuneQueryHandler,
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
-    private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler
+    private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
+    private genererPlanActionCommandHandler: GenererPlanActionCommandHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -414,6 +418,25 @@ export class JeunesController {
         recherche: query.recherche,
         idBeneficiaire: idJeune
       },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Post(':idJeune/plan-action')
+  @ApiOperation({
+    summary: "Génère une suggestion de plan d'action",
+    description: 'Autorisé pour un bénéficiaire, invité compris'
+  })
+  @ApiResponse({ type: PlanActionQueryModel })
+  async genererPlanAction(
+    @Param('idJeune') idJeune: string,
+    @Body() payload: GenererPlanActionPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<PlanActionQueryModel> {
+    const result = await this.genererPlanActionCommandHandler.execute(
+      { idJeune, payload },
       utilisateur
     )
 

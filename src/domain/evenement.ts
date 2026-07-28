@@ -176,7 +176,8 @@ export namespace Evenement {
     ACTUALITE_MILO_CREEE = 'ACTUALITE_MILO_CREEE',
     ACTUALITE_MILO_MODIFIEE = 'ACTUALITE_MILO_MODIFIEE',
     ACTUALITE_MILO_SUPPRIMEE = 'ACTUALITE_MILO_SUPPRIMEE',
-    ACTUALITE_MILO_CONSULTATION = 'ACTUALITE_MILO_CONSULTATION'
+    ACTUALITE_MILO_CONSULTATION = 'ACTUALITE_MILO_CONSULTATION',
+    PLAN_ACTION_GENERE = 'PLAN_ACTION_GENERE'
   }
 
   export interface Repository {
@@ -917,6 +918,10 @@ const evenements: {
   [Evenement.Code.ACTUALITE_MILO_CONSULTATION]: {
     categorie: 'Actualite',
     action: 'Consultation'
+  },
+  [Evenement.Code.PLAN_ACTION_GENERE]: {
+    categorie: "Plan d'action",
+    action: 'Génération'
   }
 }
 
