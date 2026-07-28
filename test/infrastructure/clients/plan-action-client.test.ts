@@ -24,6 +24,12 @@ describe('PlanActionClient', () => {
     location: { city: 'Rouen', radiusKm: 30, territory: '76' }
   }
 
+  // nock compare le corps *sérialisé* : on lui passe l'objet JSON plutôt que le
+  // DTO typé, dont l'interface fermée ne satisfait pas RequestBodyMatcher.
+  function corpsJson(corps: unknown): nock.DataMatcherMap {
+    return JSON.parse(JSON.stringify(corps))
+  }
+
   beforeEach(async () => {
     const externalApiLogger = stubClass(ExternalApiLoggerService)
     externalApiLogger.createAxios.returns(axios.create())
@@ -48,7 +54,7 @@ describe('PlanActionClient', () => {
       nock(apiUrl, {
         reqheaders: { authorization: `Bearer ${apiKey}` }
       })
-        .post('/v1/action-plans', { profile })
+        .post('/v1/action-plans', corpsJson({ profile }))
         .reply(201, { plan })
 
       // When
@@ -81,7 +87,10 @@ describe('PlanActionClient', () => {
       }
 
       nock(apiUrl)
-        .post('/v1/action-plans', { profile, model: 'gemini-3.5-flash' })
+        .post(
+          '/v1/action-plans',
+          corpsJson({ profile, model: 'gemini-3.5-flash' })
+        )
         .reply(201, { plan })
 
       // When
