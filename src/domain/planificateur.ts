@@ -206,7 +206,12 @@ export namespace Planificateur {
   }
 
   export type StatutJob =
-    'waiting' | 'active' | 'delayed' | 'completed' | 'failed' | 'paused'
+    | 'waiting'
+    | 'active'
+    | 'delayed'
+    | 'completed'
+    | 'failed'
+    | 'paused'
 
   export interface StatsJobs {
     parStatut: Record<StatutJob, number>

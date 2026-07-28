@@ -290,25 +290,27 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     actions: ActionSqlModel[],
     metadonnes: ArchiveJeune.Metadonnees
   ): ArchiveJeune.Action[] {
-    return actions.map((actionSql): ArchiveJeune.Action => ({
-      description: actionSql.description || '',
-      contenu: actionSql.contenu || '',
-      statut: actionSql.statut || '',
-      dateCreation: actionSql.dateCreation,
-      creePar:
-        actionSql.idCreateur === metadonnes.idJeune ? 'JEUNE' : 'CONSEILLER',
-      dateActualisation: actionSql.dateDerniereActualisation,
-      dateEcheance: actionSql.dateEcheance ?? undefined,
-      commentaires: actionSql.commentaires.map(commentaireSql => {
-        return {
-          date: commentaireSql.date,
-          message: commentaireSql.message,
-          creePar:
-            commentaireSql.createur.type === Action.TypeCreateur.JEUNE
-              ? 'JEUNE'
-              : 'CONSEILLER'
-        }
+    return actions.map(
+      (actionSql): ArchiveJeune.Action => ({
+        description: actionSql.description || '',
+        contenu: actionSql.contenu || '',
+        statut: actionSql.statut || '',
+        dateCreation: actionSql.dateCreation,
+        creePar:
+          actionSql.idCreateur === metadonnes.idJeune ? 'JEUNE' : 'CONSEILLER',
+        dateActualisation: actionSql.dateDerniereActualisation,
+        dateEcheance: actionSql.dateEcheance ?? undefined,
+        commentaires: actionSql.commentaires.map(commentaireSql => {
+          return {
+            date: commentaireSql.date,
+            message: commentaireSql.message,
+            creePar:
+              commentaireSql.createur.type === Action.TypeCreateur.JEUNE
+                ? 'JEUNE'
+                : 'CONSEILLER'
+          }
+        })
       })
-    }))
+    )
   }
 }

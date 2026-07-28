@@ -29,7 +29,8 @@ export interface TransfererJeunesConseillerCommand extends Command {
   idsJeunes: string[]
   estTemporaire: boolean
   provenanceUtilisateur:
-    Authentification.Type.CONSEILLER | Authentification.Type.SUPPORT
+    | Authentification.Type.CONSEILLER
+    | Authentification.Type.SUPPORT
 }
 
 @Injectable()
