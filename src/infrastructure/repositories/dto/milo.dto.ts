@@ -63,12 +63,7 @@ export interface RendezVousMiloDto {
   lieu?: string
   type: string
   statut:
-    | 'Absent'
-    | 'Annulé'
-    | 'Non précisé'
-    | 'Planifié'
-    | 'Présent'
-    | 'Reporté'
+    'Absent' | 'Annulé' | 'Non précisé' | 'Planifié' | 'Présent' | 'Reporté'
 }
 
 export interface InstanceSessionMiloDto {

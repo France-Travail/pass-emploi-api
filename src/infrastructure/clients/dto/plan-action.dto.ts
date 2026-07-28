@@ -3,11 +3,7 @@
 // de ce repo, volontairement non recopié ici car amené à bouger.
 
 export type SituationDto =
-  | 'middle-school'
-  | 'high-school'
-  | 'higher-education'
-  | 'employed'
-  | 'other'
+  'middle-school' | 'high-school' | 'higher-education' | 'employed' | 'other'
 
 export type GoalDto =
   | 'orientation'
@@ -59,9 +55,7 @@ export interface GenererPlanActionRequestDto {
 export type ActionKindDto = 'link' | 'app' | 'advice'
 
 export type DeepLinkDto =
-  | 'apprenticeship-offers'
-  | 'civic-service-offers'
-  | 'events'
+  'apprenticeship-offers' | 'civic-service-offers' | 'events'
 
 export interface ActionDto {
   id: string
