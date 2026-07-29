@@ -97,8 +97,6 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
         nom: '',
         structure: Core.Structure.INVITE,
         type: Authentification.Type.JEUNE,
-        datePremiereConnexion: dateCreation,
-        dateDerniereConnexion: dateCreation,
         roles: []
       })
     )

@@ -34,18 +34,6 @@ export class JeuneInviteDto extends Model {
   dateCreation: Date
 
   @Column({
-    field: 'date_premiere_connexion',
-    type: DataType.DATE
-  })
-  datePremiereConnexion: Date | null
-
-  @Column({
-    field: 'date_derniere_connexion',
-    type: DataType.DATE
-  })
-  dateDerniereConnexion: Date | null
-
-  @Column({
     field: 'push_notification_token',
     type: DataType.STRING
   })

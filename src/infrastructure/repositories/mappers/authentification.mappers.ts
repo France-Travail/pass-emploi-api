@@ -34,10 +34,6 @@ export function fromJeuneInviteSqlToUtilisateur(
     nom: '',
     structure: Core.Structure.INVITE,
     type: Authentification.Type.JEUNE,
-    dateDerniereConnexion:
-      jeuneInviteSqlModel.dateDerniereConnexion ?? undefined,
-    datePremiereConnexion:
-      jeuneInviteSqlModel.datePremiereConnexion ?? undefined,
     appVersion: jeuneInviteSqlModel.appVersion ?? undefined,
     installationId: jeuneInviteSqlModel.installationId ?? undefined,
     roles: []

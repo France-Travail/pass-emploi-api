@@ -23,14 +23,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false
       },
-      date_premiere_connexion: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
-      date_derniere_connexion: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
       push_notification_token: {
         type: Sequelize.STRING,
         allowNull: true

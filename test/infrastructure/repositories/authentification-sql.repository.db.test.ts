@@ -218,8 +218,6 @@ describe('AuthentificationSqlRepository', () => {
         nom: '',
         structure: Core.Structure.INVITE,
         type: Authentification.Type.JEUNE,
-        datePremiereConnexion: new Date('2021-11-11T08:03:30.000Z'),
-        dateDerniereConnexion: uneDatetime().toJSDate(),
         appVersion: '1.8.1',
         installationId: '123456',
         roles: []
