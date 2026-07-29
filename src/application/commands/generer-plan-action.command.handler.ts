@@ -66,4 +66,26 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
       utilisateur
     )
   }
+
+  protected labelsDuLog(
+    result: Result<PlanActionQueryModel>,
+    command?: GenererPlanActionCommand
+  ): Record<string, string | string[]> | undefined {
+    if (!command) return undefined
+
+    const labels: Record<string, string | string[]> = {
+      plan_action_situation: command.payload.situation,
+      plan_action_goals: command.payload.goals,
+      ...(command.payload.domaine
+        ? { plan_action_domain: command.payload.domaine }
+        : {}),
+      ...(command.payload.obstacles?.length
+        ? { plan_action_obstacles: command.payload.obstacles }
+        : {})
+    }
+    if (isSuccess(result)) {
+      labels.plan_action_generateur = result.data.generateur
+    }
+    return labels
+  }
 }

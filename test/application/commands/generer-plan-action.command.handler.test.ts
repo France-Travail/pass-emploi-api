@@ -17,8 +17,9 @@ import {
   GoalPayload,
   SituationPayload
 } from '../../../src/infrastructure/routes/validation/plan-action.inputs'
+import { rootLogger } from '../../../src/utils/logger.module'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
-import { StubbedClass, expect, stubClass } from '../../utils'
+import { StubbedClass, expect, sinon, stubClass } from '../../utils'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -180,6 +181,63 @@ describe('GenererPlanActionCommandHandler', () => {
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
       expect(planActionClient.genererPlan).not.to.have.been.called()
+    })
+  })
+
+  describe('execute — labels de handler_executed', () => {
+    let logInfo: sinon.SinonStub
+
+    beforeEach(() => {
+      logInfo = sinon.stub(rootLogger, 'info')
+      jeuneInviteAuthorizer.autoriserLInvite.resolves(emptySuccess())
+    })
+
+    afterEach(() => {
+      logInfo.restore()
+    })
+
+    it('trace le générateur et les choix du jeune, un plan fallback étant un succès HTTP', async () => {
+      // Given
+      planActionClient.genererPlan.resolves(
+        success({
+          id: 'plan-1',
+          greeting: 'Salut !',
+          generatedAt: '2026-07-20T22:03:52.448Z',
+          generator: 'fallback',
+          objectives: []
+        })
+      )
+
+      // When
+      await handler.execute(command, utilisateur)
+
+      // Then
+      expect(logInfo).to.have.been.calledWithMatch({
+        context: 'GenererPlanActionCommandHandler',
+        event: { action: 'handler_executed', outcome: 'success' },
+        labels: {
+          plan_action_generateur: 'fallback',
+          plan_action_situation: SituationPayload.LYCEE,
+          plan_action_goals: [GoalPayload.ALTERNANCE]
+        }
+      })
+    })
+
+    it('trace les choix du jeune sans générateur quand la génération échoue', async () => {
+      // Given
+      planActionClient.genererPlan.resolves(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+
+      // When
+      await handler.execute(command, utilisateur)
+
+      // Then
+      const labels = logInfo.firstCall.args[0].labels
+      expect(labels).to.deep.equal({
+        plan_action_situation: SituationPayload.LYCEE,
+        plan_action_goals: [GoalPayload.ALTERNANCE]
+      })
     })
   })
 })
