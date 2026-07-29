@@ -88,7 +88,7 @@ export class FirebaseClient {
     })
   }
 
-  async senxd(tokenMessage: TokenMessage): Promise<void> {
+  async send(tokenMessage: TokenMessage): Promise<void> {
     try {
       await this.messaging.send(tokenMessage)
       this.logger.log(tokenMessage)
