@@ -18,6 +18,7 @@ import {
 import { Authentification } from '../../domain/authentification'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
 import { Utilisateur } from '../decorators/authenticated.decorator'
+import { AutoriseLesInvites } from '../decorators/autorise-les-invites.decorator'
 import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
@@ -114,6 +115,7 @@ export class OffresImmersionController {
   }
 
   @Post('jeunes/:idJeune/offres-immersion/v3/contact')
+  @AutoriseLesInvites()
   async postFormulaireImmersionV3(
     @Param('idJeune') idJeune: string,
     @Body() postImmersionContactBody: PostImmersionContactBodyV3,

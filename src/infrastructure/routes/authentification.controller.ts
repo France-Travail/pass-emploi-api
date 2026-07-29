@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -65,7 +66,12 @@ export class AuthentificationController {
     type: UtilisateurQueryModel
   })
   async putUtilisateurInvite(
-    @Param('idAuthentification') idAuthentification: string
+    // Contrairement aux autres structures, l'idAuthentification d'un invité
+    // n'est pas un sub d'IDP tiers subi mais un uuid v4 fabriqué par Connect :
+    // on peut donc l'imposer. Un appel malformé échoue en 400 plutôt que de
+    // créer un invité orphelin impossible à retrouver.
+    @Param('idAuthentification', new ParseUUIDPipe({ version: '4' }))
+    idAuthentification: string
   ): Promise<UtilisateurQueryModel> {
     const result = await this.updateUtilisateurInviteCommandHandler.execute({
       idUtilisateurAuth: idAuthentification

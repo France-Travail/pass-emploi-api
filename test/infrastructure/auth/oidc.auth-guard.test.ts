@@ -4,6 +4,7 @@ import supertest from 'supertest'
 import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import {
   unHeaderAuthorization,
+  unJwtPayloadValideInvite,
   unUtilisateurDecode
 } from '../../fixtures/authentification.fixture'
 import { buildTestingModuleForHttpTesting, expect } from '../../utils'
@@ -151,6 +152,56 @@ describe(`OidcAuthGuard`, () => {
           '/fake/oidc-query-token?token=valide'
         )
         //Then
+        expect(response).to.have.property('statusCode').to.equal(200)
+      })
+    })
+  })
+  context('OIDC mode invité', () => {
+    let appInvite: INestApplication
+    before(async () => {
+      const testingModule = await buildTestingModuleForHttpTesting()
+        .overrideProvider(JwtService)
+        .useValue(new FakeJwtService(true, unJwtPayloadValideInvite()))
+        .compile()
+      appInvite = testingModule.createNestApplication()
+      await appInvite.init()
+    })
+    after(async () => {
+      await appInvite.close()
+    })
+
+    describe('route sans @AutoriseLesInvites', () => {
+      it('retourne 403 alors que le token est valide', async () => {
+        // When
+        const response = await request(appInvite.getHttpServer())
+          .get('/fake')
+          .set('authorization', unHeaderAuthorization())
+
+        // Then
+        expect(response).to.have.property('statusCode').to.equal(403)
+      })
+    })
+
+    describe('route avec @AutoriseLesInvites', () => {
+      it('retourne 200', async () => {
+        // When
+        const response = await request(appInvite.getHttpServer())
+          .get('/fake/autorise-les-invites')
+          .set('authorization', unHeaderAuthorization())
+
+        // Then
+        expect(response).to.have.property('statusCode').to.equal(200)
+      })
+    })
+
+    describe('utilisateur non invité', () => {
+      it('passe sur une route sans @AutoriseLesInvites', async () => {
+        // When
+        const response = await request(appJwtOK.getHttpServer())
+          .get('/fake')
+          .set('authorization', unHeaderAuthorization())
+
+        // Then
         expect(response).to.have.property('statusCode').to.equal(200)
       })
     })

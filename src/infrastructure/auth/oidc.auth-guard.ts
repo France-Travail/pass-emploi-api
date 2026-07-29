@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException
 } from '@nestjs/common'
@@ -9,8 +10,9 @@ import { UserObject } from 'elastic-apm-node'
 import { Request } from 'express'
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
+import { Core, estInvite } from '../../domain/core'
 import { rootLogger } from '../../utils/logger.module'
+import { AUTORISE_LES_INVITES_KEY } from '../decorators/autorise-les-invites.decorator'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 import {
   OIDC_QUERY_TOKEN,
@@ -48,10 +50,11 @@ export class OidcAuthGuard implements CanActivate {
         `Access token non présent dans le header 'Authorization'${erreurQueryParam}`
       )
     }
+    let utilisateur: Authentification.Utilisateur
     try {
       const payload: JWTPayload =
         await this.jwtService.verifyTokenAndGetJwt(accessToken)
-      const utilisateur = OidcAuthGuard.buildUtilisateur(payload)
+      utilisateur = OidcAuthGuard.buildUtilisateur(payload)
       /*
       ts-ignore accepté ici
       On ajoute un nouvel attribut à la request au runtime pour le mettre dans le context et pouvoir l'utiliser plus tard dans l'execution
@@ -84,7 +87,6 @@ export class OidcAuthGuard implements CanActivate {
         },
         'auth_succeeded'
       )
-      return true
     } catch (error) {
       rootLogger.error(
         {
@@ -98,6 +100,26 @@ export class OidcAuthGuard implements CanActivate {
       )
       throw new UnauthorizedException()
     }
+
+    // Fermé par défaut au mode invité : une route ne lui est ouverte que si
+    // elle porte @AutoriseLesInvites(). Sans ça, un invité passerait les
+    // authorizers qui ne testent que le type JEUNE, et ne serait arrêté que par
+    // hasard, quand leur lecture en base tape la table `jeune` où il n'est pas.
+    if (estInvite(utilisateur.structure) && !this.autoriseLesInvites(context)) {
+      rootLogger.info(
+        {
+          context: 'OidcAuthGuard',
+          event: { action: 'invite_access_denied', outcome: 'failure' },
+          http: { request: { id: req.id, method: req.method } },
+          url: { path: req.url },
+          user: { id: utilisateur.id, type: utilisateur.type }
+        },
+        'invite_access_denied'
+      )
+      throw new ForbiddenException('Route non ouverte au mode invité')
+    }
+
+    return true
   }
 
   private static buildUtilisateur(
@@ -124,6 +146,13 @@ export class OidcAuthGuard implements CanActivate {
 
   private isSkipOidcAuth(context: ExecutionContext): boolean {
     return this.reflector.getAllAndOverride<boolean>(SKIP_OIDC_AUTH_KEY, [
+      context.getHandler(),
+      context.getClass()
+    ])
+  }
+
+  private autoriseLesInvites(context: ExecutionContext): boolean {
+    return this.reflector.getAllAndOverride<boolean>(AUTORISE_LES_INVITES_KEY, [
       context.getHandler(),
       context.getClass()
     ])

@@ -118,6 +118,26 @@ export const unJwtPayloadValide = (): JWTPayload => ({
   email: 'conseiller.milo.passemploi@gmail.com',
   realm_access: { roles: [] }
 })
+export const unJwtPayloadValideInvite = (): JWTPayload => ({
+  exp: 1638970870,
+  iat: 1638970570,
+  auth_time: 1638969913,
+  jti: '9c84a1ab-96e2-4841-935a-16d69fe2e7ff',
+  iss: 'https://pa-auth-staging.osc-secnum-fr1.scalingo.io/auth/realms/pass-emploi',
+  sub: '7f3d1c9a-2b4e-4f1a-8c6d-5e0a9b7c3d21',
+  typ: 'Bearer',
+  azp: 'pass-emploi-app',
+  session_state: 'c627ac87-410f-486d-a5c9-d7e8811c610a',
+  acr: '0',
+  scope: 'pass-emploi-user email profile',
+  sid: 'c627ac87-410f-486d-a5c9-d7e8811c610a',
+  email_verified: false,
+  userStructure: 'INVITE',
+  userType: 'JEUNE',
+  given_name: 'Invité',
+  userId: 'bcd60403-5f10-4a16-a660-2099d79ebd66',
+  realm_access: { roles: [] }
+})
 export const unJwtPayloadValideJeunePE = (): JWTPayload => ({
   exp: 1638970870,
   iat: 1638970570,

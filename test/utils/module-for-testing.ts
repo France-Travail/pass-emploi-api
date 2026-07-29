@@ -135,14 +135,16 @@ const stubProviders = (sandbox: SinonSandbox): Provider[] => {
 
 export class FakeJwtService implements IJwtService {
   private valid: boolean
+  private payload: JWTPayload
 
-  constructor(valid = true) {
+  constructor(valid = true, payload: JWTPayload = unJwtPayloadValide()) {
     this.valid = valid
+    this.payload = payload
   }
 
   async verifyTokenAndGetJwt(_token: string): Promise<JWTPayload> {
     if (this.valid) {
-      return unJwtPayloadValide()
+      return this.payload
     }
     throw new Error('JWT invalid')
   }

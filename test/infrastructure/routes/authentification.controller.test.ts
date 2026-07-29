@@ -48,6 +48,9 @@ describe('AuthentificationController', () => {
   })
 
   describe('PUT auth/users/invite/:idUtilisateurAuth', () => {
+    // Connect fabrique ce sub avec uuid.v4()
+    const subInvite = '7f3d1c9a-2b4e-4f1a-8c6d-5e0a9b7c3d21'
+
     it("crée/retourne l'invité sans données d'IDP", async () => {
       // Given
       const utilisateur = unUtilisateurQueryModel({
@@ -60,17 +63,29 @@ describe('AuthentificationController', () => {
 
       // When - Then
       const result = await request(app.getHttpServer())
-        .put('/auth/users/invite/un-sub-invite')
+        .put(`/auth/users/invite/${subInvite}`)
         .set({ 'X-API-KEY': 'api-key-keycloak' })
         .expect(HttpStatus.OK)
 
       expect(
         updateUtilisateurInviteCommandHandler.execute
       ).to.have.been.calledOnceWithExactly({
-        idUtilisateurAuth: 'un-sub-invite'
+        idUtilisateurAuth: subInvite
       })
       // JSON.parse/stringify : le corps HTTP élimine les champs undefined (username)
       expect(result.body).to.deep.equal(JSON.parse(JSON.stringify(utilisateur)))
+    })
+
+    it("rejette un sub qui n'est pas un uuid v4 sans créer d'invité", async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/auth/users/invite/un-sub-invite')
+        .set({ 'X-API-KEY': 'api-key-keycloak' })
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        updateUtilisateurInviteCommandHandler.execute
+      ).not.to.have.been.called()
     })
   })
 
