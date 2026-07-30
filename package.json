@@ -96,7 +96,7 @@
     "compression": "1.8.1",
     "cron-parser": "5.6.2",
     "crypto-js": "4.2.0",
-    "elastic-apm-node": "3.52.2",
+    "elastic-apm-node": "4.18.0",
     "firebase-admin": "^14.2.0",
     "fuse.js": "7.5.0",
     "geojson": "0.5.0",
@@ -121,7 +121,7 @@
     "sequelize-typescript": "2.1.6",
     "swagger-ui-express": "5.0.1",
     "tokenbucket": "0.3.2",
-    "uuid": "13.0.0"
+    "uuid": "13.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
@@ -180,9 +180,16 @@
   },
   "resolutions": {
     "minimatch": ">=9.0.5",
+    "brace-expansion": ">=5.0.8",
+    "@nestjs/swagger/js-yaml": ">=5.2.2",
     "multer": ">=2.2.0",
-    "tar": ">=7.5.11",
-    "fast-xml-parser": ">=5.5.6",
+    "tar": ">=7.5.21",
+    "fast-xml-parser": ">=5.7.0",
+    "protobufjs": ">=7.6.5 <8",
+    "qs": ">=6.15.2",
+    "ip-address": ">=10.1.1",
+    "body-parser": ">=2.3.0",
+    "@tootallnate/once": ">=2.0.1 <3",
     "fast-xml-builder": ">=1.1.7",
     "picomatch": ">=4.0.3",
     "node-forge": ">=1.4.0",

@@ -16,7 +16,6 @@ const config: APM.AgentConfigOptions = {
   environment,
   active,
   serviceVersion,
-  logUncaughtExceptions: true,
   transactionSampleRate: Number.parseFloat(
     process.env.APM_TRANSACTION_SAMPLE_RATE || '0.5'
   ),
