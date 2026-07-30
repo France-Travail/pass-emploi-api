@@ -80,8 +80,8 @@
     "release:major:push": "scripts/release_and_push.sh major"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1097.0",
-    "@aws-sdk/s3-request-presigner": "^3.1097.0",
+    "@aws-sdk/client-s3": "^3.1098.0",
+    "@aws-sdk/s3-request-presigner": "^3.1098.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
@@ -89,7 +89,7 @@
     "@nestjs/platform-express": "11.1.28",
     "@nestjs/swagger": "11.4.6",
     "@nestjs/terminus": "11.1.1",
-    "axios": "^1.18.1",
+    "axios": "^1.19.0",
     "bull": "4.16.5",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
@@ -103,7 +103,7 @@
     "helmet": "8.3.0",
     "ics": "3.12.0",
     "joi": "18.2.3",
-    "jose": "6.2.4",
+    "jose": "6.2.5",
     "lodash.isequal": "4.5.0",
     "luxon": "3.7.2",
     "nestjs-pino": "4.6.1",
