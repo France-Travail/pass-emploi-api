@@ -36,7 +36,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
         aggregate
       )
       if (isFailure(authorizerResult)) {
-        this.logExecution(startNs, authorizerResult)
+        this.logExecution(startNs, authorizerResult, command)
         return authorizerResult
       }
 
@@ -48,11 +48,11 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
           this.logger.error(error)
         })
       }
-      this.logExecution(startNs, result)
+      this.logExecution(startNs, result, command)
 
       return result
     } catch (e) {
-      this.logExecution(startNs, failure(e))
+      this.logExecution(startNs, failure(e), command)
       throw e
     }
   }
@@ -83,8 +83,28 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
     aggregate?: Aggregat
   ): Promise<void>
 
-  private logExecution(startNs: bigint, result: Result<Data>): void {
+  // Labels ECS additionnels portés par `handler_executed`. Aucun par défaut :
+  // un handler les surcharge quand il a des dimensions d'exécution à tracer.
+  // Appelé aussi sur le chemin d'erreur : doit rester une lecture de champs.
+  protected labelsDuLog(
+    _result: Result<Data>,
+    _command?: Command
+  ): Record<string, string | string[]> | undefined {
+    return undefined
+  }
+
+  private logExecution(
+    startNs: bigint,
+    result: Result<Data>,
+    command?: Command
+  ): void {
     const error = isFailure(result) ? result.error : undefined
-    logHandlerExecuted({ context: this.commandName, startNs, error })
+    const labels = this.labelsDuLog(result, command)
+    logHandlerExecuted({
+      context: this.commandName,
+      startNs,
+      error,
+      ...(labels && { extra: { labels } })
+    })
   }
 }

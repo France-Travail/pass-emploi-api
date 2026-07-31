@@ -2,6 +2,7 @@ import * as Joi from 'joi'
 
 export const configurationSchema = Joi.object({
   environment: Joi.string().default('development'),
+  appJeuneActif: Joi.boolean().default(false),
   isWeb: Joi.boolean().required(),
   isWorker: Joi.boolean().required(),
   isInMemory: Joi.boolean(),
@@ -72,6 +73,12 @@ export const configurationSchema = Joi.object({
     clientId: Joi.string().required(),
     clientSecret: Joi.string().required(),
     disabled: Joi.boolean().default(false)
+  },
+  planAction: {
+    url: Joi.string().uri().required(),
+    apiKey: Joi.string().required(),
+    timeoutMs: Joi.number().default(15000),
+    modele: Joi.string().optional()
   },
   jecliqueoupas: {
     url: Joi.string().uri().required(),

@@ -1,16 +1,23 @@
+import { ConfigService } from '@nestjs/config'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox, SinonSandbox } from 'sinon'
 import {
   PRENOM_INVITE_PAR_DEFAUT,
   UpdateUtilisateurInviteCommandHandler
 } from '../../../src/application/commands/update-utilisateur-invite.command.handler'
-import { isSuccess, Success } from '../../../src/building-blocks/types/result'
+import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
+import {
+  failure,
+  isSuccess,
+  Success
+} from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
 import { DateService } from '../../../src/utils/date-service'
 import { IdService } from '../../../src/utils/id-service'
 import { uneDate } from '../../fixtures/date.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
+import { testConfig } from '../../utils/module-for-testing'
 
 describe('UpdateUtilisateurInviteCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -35,7 +42,8 @@ describe('UpdateUtilisateurInviteCommandHandler', () => {
       new UpdateUtilisateurInviteCommandHandler(
         authentificationRepository,
         idService,
-        dateService
+        dateService,
+        testConfig()
       )
   })
 
@@ -44,6 +52,30 @@ describe('UpdateUtilisateurInviteCommandHandler', () => {
   })
 
   describe('handle', () => {
+    describe('quand le mode app jeune est désactivé', () => {
+      it('échoue sans chercher ni créer un utilisateur', async () => {
+        // Given
+        const handlerDesactive = new UpdateUtilisateurInviteCommandHandler(
+          authentificationRepository,
+          idService,
+          dateService,
+          new ConfigService({ appJeuneActif: false })
+        )
+
+        // When
+        const result = await handlerDesactive.handle({ idUtilisateurAuth })
+
+        // Then
+        expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+        expect(
+          authentificationRepository.getJeuneInvite
+        ).not.to.have.been.called()
+        expect(
+          authentificationRepository.creerJeuneInvite
+        ).not.to.have.been.called()
+      })
+    })
+
     describe("quand l'invité n'existe pas encore", () => {
       it('le crée avec un prénom par défaut et renvoie son id en base', async () => {
         // Given

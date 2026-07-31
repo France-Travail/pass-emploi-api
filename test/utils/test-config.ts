@@ -8,6 +8,7 @@ export const testConfig = (): ConfigService => {
   const { host, port, database, user, password } = parse(databaseUrl)
   return new ConfigService({
     environment: 'test',
+    appJeuneActif: true,
     database: {
       host,
       port,
@@ -85,6 +86,11 @@ export const testConfig = (): ConfigService => {
       url: 'https://api-dev.diagoriente.fr',
       clientId: 'diagoriente-client-id',
       clientSecret: 'diagoriente-client-secret'
+    },
+    planAction: {
+      url: 'https://plan-action.beta.gouv.op',
+      apiKey: 'plan-action-api-key',
+      timeoutMs: 15000
     },
     jecliqueoupas: {
       url: 'https://jecliqueoupas.fr/api',

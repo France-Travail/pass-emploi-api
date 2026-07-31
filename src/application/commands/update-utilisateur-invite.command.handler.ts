@@ -1,8 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
+  failure,
   Result,
   success
 } from '../../building-blocks/types/result'
@@ -36,7 +39,8 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,
     private readonly idService: IdService,
-    private readonly dateService: DateService
+    private readonly dateService: DateService,
+    private readonly configService: ConfigService
   ) {
     super('UpdateUtilisateurInviteCommandHandler')
   }
@@ -44,6 +48,10 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
   async handle(
     command: UpdateUtilisateurInviteCommand
   ): Promise<Result<UtilisateurQueryModel>> {
+    if (!this.configService.get<boolean>('appJeuneActif')) {
+      return failure(new DroitsInsuffisants())
+    }
+
     const utilisateurExistant =
       await this.authentificationRepository.getJeuneInvite(
         command.idUtilisateurAuth

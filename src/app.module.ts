@@ -125,6 +125,7 @@ import { UpdateRendezVousCommandHandler } from './application/commands/update-re
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
+import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
@@ -341,6 +342,7 @@ import { MiloClient } from './infrastructure/clients/milo/milo-client'
 import { MiloClientV1 } from './infrastructure/clients/milo/milo-client-v1'
 import { MiloClientV2 } from './infrastructure/clients/milo/milo-client-v2'
 import { ObjectStorageClient } from './infrastructure/clients/object-storage.client'
+import { PlanActionClient } from './infrastructure/clients/plan-action-client'
 import { PoleEmploiClient } from './infrastructure/clients/pole-emploi-client'
 import {
   PoleEmploiPartenaireClient,
@@ -535,6 +537,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVousMilo.Factory,
     ActualiteMilo.Factory,
     DiagorienteClient,
+    PlanActionClient,
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard
@@ -771,6 +774,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurCommandHandler,
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
+    GenererPlanActionCommandHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
