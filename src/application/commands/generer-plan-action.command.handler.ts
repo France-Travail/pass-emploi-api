@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { isSuccess, Result, success } from '../../building-blocks/types/result'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
+import {
+  failure,
+  isSuccess,
+  Result,
+  success
+} from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { estInvite } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
@@ -28,7 +35,8 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
     private readonly planActionClient: PlanActionClient,
-    private readonly evenementService: EvenementService
+    private readonly evenementService: EvenementService,
+    private readonly configService: ConfigService
   ) {
     super('GenererPlanActionCommandHandler')
   }
@@ -37,6 +45,10 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     command: GenererPlanActionCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
+    if (!this.configService.get<boolean>('appJeuneActif')) {
+      return failure(new DroitsInsuffisants())
+    }
+
     if (estInvite(utilisateur.structure)) {
       return this.jeuneInviteAuthorizer.autoriserLInvite(
         command.idJeune,

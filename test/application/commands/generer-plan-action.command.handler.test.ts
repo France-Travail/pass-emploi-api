@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
@@ -20,6 +21,7 @@ import {
 import { rootLogger } from '../../../src/utils/logger.module'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, sinon, stubClass } from '../../utils'
+import { testConfig } from '../../utils/module-for-testing'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -46,11 +48,39 @@ describe('GenererPlanActionCommandHandler', () => {
       jeuneAuthorizer,
       jeuneInviteAuthorizer,
       planActionClient,
-      evenementService
+      evenementService,
+      testConfig()
     )
   })
 
   describe('authorize', () => {
+    it("refuse aussi bien un invité qu'un bénéficiaire accompagné quand le mode app jeune est désactivé", async () => {
+      // Given
+      const handlerDesactive = new GenererPlanActionCommandHandler(
+        jeuneAuthorizer,
+        jeuneInviteAuthorizer,
+        planActionClient,
+        evenementService,
+        new ConfigService({ appJeuneActif: false })
+      )
+
+      // When
+      const resultInvite = await handlerDesactive.authorize(
+        command,
+        utilisateur
+      )
+      const resultAccompagne = await handlerDesactive.authorize(
+        command,
+        unUtilisateurJeune()
+      )
+
+      // Then
+      expect(resultInvite).to.deep.equal(failure(new DroitsInsuffisants()))
+      expect(resultAccompagne).to.deep.equal(failure(new DroitsInsuffisants()))
+      expect(jeuneAuthorizer.autoriserLeJeune).not.to.have.been.called()
+      expect(jeuneInviteAuthorizer.autoriserLInvite).not.to.have.been.called()
+    })
+
     it("délègue à l'autorisation invité quand la structure est INVITE", async () => {
       // Given
       jeuneInviteAuthorizer.autoriserLInvite
