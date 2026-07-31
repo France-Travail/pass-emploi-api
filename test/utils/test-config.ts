@@ -8,6 +8,7 @@ export const testConfig = (): ConfigService => {
   const { host, port, database, user, password } = parse(databaseUrl)
   return new ConfigService({
     environment: 'test',
+    appJeuneActif: true,
     database: {
       host,
       port,

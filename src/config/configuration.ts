@@ -20,6 +20,7 @@ export default () => {
   const isWorker = process.env.IS_WORKER === 'true'
   const configuration = {
     environment: process.env.ENVIRONMENT,
+    appJeuneActif: process.env.APP_JEUNE_ACTIF === 'true',
     isWeb: process.env.IS_WEB !== 'false',
     isWorker,
     isInMemory: process.env.IS_IN_MEMORY === 'true',

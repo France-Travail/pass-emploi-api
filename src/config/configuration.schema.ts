@@ -2,6 +2,7 @@ import * as Joi from 'joi'
 
 export const configurationSchema = Joi.object({
   environment: Joi.string().default('development'),
+  appJeuneActif: Joi.boolean().default(false),
   isWeb: Joi.boolean().required(),
   isWorker: Joi.boolean().required(),
   isInMemory: Joi.boolean(),
