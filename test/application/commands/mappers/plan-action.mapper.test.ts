@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon'
 import {
   toPlanActionQueryModel,
   toProfileDto
@@ -35,11 +34,11 @@ describe('plan-action.mapper', () => {
   describe('toProfileDto', () => {
     describe('situation', () => {
       const cas: Array<[SituationPayload, string]> = [
-        [SituationPayload.COLLEGE, 'middle-school'],
-        [SituationPayload.LYCEE, 'high-school'],
-        [SituationPayload.ETUDES_SUPERIEURES, 'higher-education'],
-        [SituationPayload.EMPLOI, 'employed'],
-        [SituationPayload.AUTRE, 'other']
+        [SituationPayload.COLLEGE, 'COLLEGE'],
+        [SituationPayload.LYCEE, 'LYCEE'],
+        [SituationPayload.ETUDES_SUPERIEURES, 'ETUDES_SUPERIEURES'],
+        [SituationPayload.EMPLOI, 'EMPLOI'],
+        [SituationPayload.AUTRE, 'AUTRE']
       ]
       cas.forEach(([situation, attendu]) => {
         it(`mappe ${situation} vers ${attendu}`, () => {
@@ -56,126 +55,62 @@ describe('plan-action.mapper', () => {
     })
 
     describe('goals', () => {
-      const cas: Array<[GoalPayload, string]> = [
-        [GoalPayload.ORIENTER, 'orientation'],
-        [GoalPayload.DECOUVRIR_METIERS, 'discover-jobs'],
-        [GoalPayload.FORMER, 'training'],
-        [GoalPayload.STAGE_IMMERSION, 'internship-immersion'],
-        [GoalPayload.ALTERNANCE, 'apprenticeship'],
-        [GoalPayload.EMPLOI, 'job'],
-        [GoalPayload.ENGAGER, 'civic-engagement'],
-        [GoalPayload.MOBILITE_INTERNATIONALE, 'international-mobility'],
-        [GoalPayload.ACCOMPAGNE, 'guidance-support'],
-        [GoalPayload.CREER_ACTIVITE, 'start-business']
-      ]
-      cas.forEach(([objectif, attendu]) => {
-        it(`mappe ${objectif} vers ${attendu}`, () => {
-          // When
-          const profile = toProfileDto(
-            unPayload({ goals: [objectif] }),
-            Core.Structure.INVITE
-          )
-
-          // Then
-          expect(profile.goals).to.deep.equal([attendu])
-        })
-      })
-
-      it('replie sur dont-know quand VIE_QUOTIDIENNE est le seul objectif coché', () => {
+      it('mappe chaque objectif du questionnaire vers le référentiel du service', () => {
         // When
         const profile = toProfileDto(
-          unPayload({ goals: [GoalPayload.VIE_QUOTIDIENNE] }),
+          unPayload({ goals: Object.values(GoalPayload) }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.goals).to.deep.equal(['dont-know'])
-      })
-
-      it('conserve les objectifs mappés aux côtés de ceux sans équivalent', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({
-            goals: [GoalPayload.ALTERNANCE, GoalPayload.VIE_QUOTIDIENNE]
-          }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.goals).to.deep.equal(['apprenticeship'])
+        expect(profile.goals).to.deep.equal([
+          'ORIENTER',
+          'DECOUVRIR_METIERS',
+          'FORMER',
+          'STAGE_IMMERSION',
+          'ALTERNANCE',
+          'EMPLOI',
+          'ENGAGER',
+          'MOBILITE_INTERNATIONALE',
+          'ACCOMPAGNE',
+          'CREER_ACTIVITE',
+          'VIE_QUOTIDIENNE'
+        ])
       })
     })
 
     describe('obstacles', () => {
-      const cas: Array<[ObstaclePayload, string]> = [
-        [ObstaclePayload.PAS_DE_TRANSPORT, 'transport'],
-        [ObstaclePayload.PAS_DE_LOGEMENT, 'housing'],
-        [ObstaclePayload.MANQUE_CONFIANCE, 'confidence'],
-        [ObstaclePayload.FIN_DE_MOIS, 'money'],
-        [ObstaclePayload.GARDE_ENFANT, 'childcare'],
-        [ObstaclePayload.PAS_DE_DIPLOME, 'no-diploma'],
-        [ObstaclePayload.NUMERIQUE, 'no-device'],
-        [ObstaclePayload.HANDICAP, 'disability'],
-        [ObstaclePayload.SANTE, 'health']
-      ]
-      cas.forEach(([obstacle, attendu]) => {
-        it(`mappe ${obstacle} vers ${attendu}`, () => {
-          // When
-          const profile = toProfileDto(
-            unPayload({ obstacles: [obstacle] }),
-            Core.Structure.INVITE
-          )
+      it('mappe chaque frein du questionnaire vers le référentiel du service', () => {
+        // Given
+        const freins = Object.values(ObstaclePayload).filter(
+          obstacle => obstacle !== ObstaclePayload.RIEN_NE_ME_BLOQUE
+        )
 
-          // Then
-          expect(profile.obstacles).to.deep.equal([attendu])
-        })
-      })
-
-      it('mappe PAS_DE_PERMIS vers transport comme PAS_DE_TRANSPORT (collision assumée)', () => {
         // When
         const profile = toProfileDto(
-          unPayload({ obstacles: [ObstaclePayload.PAS_DE_PERMIS] }),
+          unPayload({ obstacles: freins }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.obstacles).to.deep.equal(['transport'])
+        expect(profile.obstacles).to.deep.equal([
+          'PAS_DE_TRANSPORT',
+          'PAS_DE_PERMIS',
+          'PAS_DE_LOGEMENT',
+          'MANQUE_CONFIANCE',
+          'FIN_DE_MOIS',
+          'GARDE_ENFANT',
+          'PAS_DE_DIPLOME',
+          'NUMERIQUE',
+          'HANDICAP',
+          'SANTE',
+          'PEU_EXPERIENCE',
+          'FRANCAIS',
+          'AUTRE'
+        ])
       })
 
-      it('dédoublonne PAS_DE_TRANSPORT et PAS_DE_PERMIS', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({
-            obstacles: [
-              ObstaclePayload.PAS_DE_TRANSPORT,
-              ObstaclePayload.PAS_DE_PERMIS
-            ]
-          }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.obstacles).to.deep.equal(['transport'])
-      })
-
-      it('omet obstacles sans équivalent (PEU_EXPERIENCE, FRANCAIS, AUTRE)', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({
-            obstacles: [
-              ObstaclePayload.PEU_EXPERIENCE,
-              ObstaclePayload.FRANCAIS,
-              ObstaclePayload.AUTRE
-            ]
-          }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.obstacles).to.be.undefined()
-      })
-
-      it('mappe RIEN_NE_ME_BLOQUE vers un tableau vide, même combiné à un autre obstacle', () => {
+      it('rend RIEN_NE_ME_BLOQUE exclusif quand il est combiné à un autre frein', () => {
         // When
         const profile = toProfileDto(
           unPayload({
@@ -188,64 +123,63 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.obstacles).to.be.undefined()
+        expect(profile.obstacles).to.deep.equal(['RIEN_NE_ME_BLOQUE'])
       })
 
-      it("n'envoie pas obstacles quand le champ est absent", () => {
-        // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
-
-        // Then
-        expect(profile.obstacles).to.be.undefined()
-      })
-    })
-
-    describe('age', () => {
-      function ilYA(annees: number): string {
-        return DateTime.now().minus({ years: annees }).toISODate()!
-      }
-
-      it('calcule un âge dans les bornes', () => {
+      it('dédoublonne les freins', () => {
         // When
         const profile = toProfileDto(
-          unPayload({ dateNaissance: ilYA(20) }),
+          unPayload({
+            obstacles: [
+              ObstaclePayload.PAS_DE_TRANSPORT,
+              ObstaclePayload.PAS_DE_TRANSPORT
+            ]
+          }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.age).to.equal(20)
+        expect(profile.obstacles).to.deep.equal(['PAS_DE_TRANSPORT'])
       })
 
-      it('omet age quand dateNaissance est absente', () => {
+      it('envoie un tableau vide quand le champ est absent', () => {
         // When
         const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.age).to.be.undefined()
+        expect(profile.obstacles).to.deep.equal([])
       })
-      ;[13, 31].forEach(annees => {
-        it(`omet age quand il est hors bornes 14-30 (${annees} ans)`, () => {
-          // When
-          const profile = toProfileDto(
-            unPayload({ dateNaissance: ilYA(annees) }),
-            Core.Structure.INVITE
-          )
+    })
 
-          // Then
-          expect(profile.age).to.be.undefined()
-        })
+    describe('dateNaissance', () => {
+      it('relaie la date de naissance', () => {
+        // When
+        const profile = toProfileDto(
+          unPayload({ dateNaissance: '2006-05-12' }),
+          Core.Structure.INVITE
+        )
+
+        // Then
+        expect(profile.dateNaissance).to.equal('2006-05-12')
       })
-      ;[14, 30].forEach(annees => {
-        it(`conserve age aux bornes 14-30 (${annees} ans)`, () => {
-          // When
-          const profile = toProfileDto(
-            unPayload({ dateNaissance: ilYA(annees) }),
-            Core.Structure.INVITE
-          )
 
-          // Then
-          expect(profile.age).to.equal(annees)
-        })
+      it('tronque un ISO complet en date civile, sans glissement de fuseau', () => {
+        // When
+        const profile = toProfileDto(
+          unPayload({ dateNaissance: '2006-05-12T00:00:00+02:00' }),
+          Core.Structure.INVITE
+        )
+
+        // Then
+        expect(profile.dateNaissance).to.equal('2006-05-12')
+      })
+
+      it("n'envoie pas dateNaissance quand elle est absente", () => {
+        // When
+        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+
+        // Then
+        expect(profile.dateNaissance).to.be.undefined()
       })
     })
 
@@ -258,7 +192,7 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.domain).to.equal('mécanique')
+        expect(profile.domaine).to.equal('mécanique')
       })
 
       it('relaie null quand le jeune ne sait pas', () => {
@@ -269,26 +203,26 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.domain).to.be.null()
+        expect(profile.domaine).to.be.null()
       })
 
-      it("n'envoie pas domain quand domaine n'est pas renseigné", () => {
+      it("n'envoie pas domaine quand il n'est pas renseigné", () => {
         // When
         const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.domain).to.be.undefined()
+        expect(profile.domaine).to.be.undefined()
       })
     })
 
-    describe('location', () => {
+    describe('localisation', () => {
       const rouen: CommunePayload = { codeInsee: '76540', nom: 'Rouen' }
       const fortDeFrance: CommunePayload = {
         codeInsee: '97209',
         nom: 'Fort-de-France'
       }
 
-      it('compose city/radiusKm depuis villeRecherche et territory depuis habitation', () => {
+      it('relaie les deux communes et le rayon', () => {
         // When
         const profile = toProfileDto(
           unPayload({
@@ -300,14 +234,12 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.location).to.deep.equal({
-          city: 'Rouen',
-          radiusKm: 30,
-          territory: '972'
-        })
+        expect(profile.habitation).to.deep.equal(fortDeFrance)
+        expect(profile.villeRecherche).to.deep.equal(rouen)
+        expect(profile.rayonKm).to.equal(30)
       })
 
-      it('replie sur habitation quand villeRecherche est absente', () => {
+      it('relaie une seule commune quand le jeune ne renseigne que celle-là', () => {
         // When
         const profile = toProfileDto(
           unPayload({ habitation: rouen }),
@@ -315,54 +247,18 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.location).to.deep.equal({
-          city: 'Rouen',
-          territory: '76'
-        })
+        expect(profile.habitation).to.deep.equal(rouen)
+        expect(profile.villeRecherche).to.be.undefined()
       })
 
-      it('replie sur villeRecherche quand habitation est absente', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({ villeRecherche: fortDeFrance }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.location).to.deep.equal({
-          city: 'Fort-de-France',
-          territory: '972'
-        })
-      })
-
-      it("n'envoie pas location quand aucune commune n'est renseignée", () => {
+      it("n'envoie aucune localisation quand rien n'est renseigné", () => {
         // When
         const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.location).to.be.undefined()
-      })
-
-      it('dérive un département métropolitain sur 2 caractères', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({ habitation: { codeInsee: '75056', nom: 'Paris' } }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.location?.territory).to.equal('75')
-      })
-
-      it('dérive un département ultramarin sur 3 caractères', () => {
-        // When
-        const profile = toProfileDto(
-          unPayload({ habitation: fortDeFrance }),
-          Core.Structure.INVITE
-        )
-
-        // Then
-        expect(profile.location?.territory).to.equal('972')
+        expect(profile.habitation).to.be.undefined()
+        expect(profile.villeRecherche).to.be.undefined()
+        expect(profile.rayonKm).to.be.undefined()
       })
     })
 

@@ -113,8 +113,8 @@ describe('GenererPlanActionCommandHandler', () => {
       // Then
       expect(planActionClient.genererPlan).to.have.been.calledWithMatch({
         authProvider: 'guest',
-        situation: 'high-school',
-        goals: ['apprenticeship']
+        situation: 'LYCEE',
+        goals: ['ALTERNANCE']
       })
       expect(result).to.deep.equal(
         success({

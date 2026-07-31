@@ -17,11 +17,12 @@ describe('PlanActionClient', () => {
 
   const profile: ProfileDto = {
     authProvider: 'guest',
-    situation: 'high-school',
-    goals: ['apprenticeship'],
-    obstacles: ['transport'],
-    domain: 'mécanique',
-    location: { city: 'Rouen', radiusKm: 30, territory: '76' }
+    situation: 'LYCEE',
+    goals: ['ALTERNANCE'],
+    obstacles: ['PAS_DE_TRANSPORT'],
+    domaine: 'mécanique',
+    villeRecherche: { codeInsee: '76540', nom: 'Rouen' },
+    rayonKm: 30
   }
 
   // nock compare le corps *sérialisé* : on lui passe l'objet JSON plutôt que le

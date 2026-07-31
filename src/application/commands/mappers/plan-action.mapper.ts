@@ -4,9 +4,9 @@ import {
   ActionDto,
   ActionKindDto,
   AuthProviderDto,
+  CommuneDto,
   DeepLinkDto,
   GoalDto,
-  LocationDto,
   ObstacleDto,
   PlanDto,
   ProfileDto,
@@ -14,6 +14,7 @@ import {
 } from '../../../infrastructure/clients/dto/plan-action.dto'
 import {
   ObstaclePayload,
+  CommunePayload,
   GenererPlanActionPayload,
   GoalPayload,
   SituationPayload
@@ -26,51 +27,43 @@ import {
   TypeActionPlan
 } from '../../queries/query-models/plan-action.query-model'
 
-const AGE_MIN = 14
-const AGE_MAX = 30
-
 const situationVersDto: Record<SituationPayload, SituationDto> = {
-  [SituationPayload.COLLEGE]: 'middle-school',
-  [SituationPayload.LYCEE]: 'high-school',
-  [SituationPayload.ETUDES_SUPERIEURES]: 'higher-education',
-  [SituationPayload.EMPLOI]: 'employed',
-  [SituationPayload.AUTRE]: 'other'
+  [SituationPayload.COLLEGE]: 'COLLEGE',
+  [SituationPayload.LYCEE]: 'LYCEE',
+  [SituationPayload.ETUDES_SUPERIEURES]: 'ETUDES_SUPERIEURES',
+  [SituationPayload.EMPLOI]: 'EMPLOI',
+  [SituationPayload.AUTRE]: 'AUTRE'
 }
 
-const goalVersDto: Record<GoalPayload, GoalDto | undefined> = {
-  [GoalPayload.ORIENTER]: 'orientation',
-  [GoalPayload.DECOUVRIR_METIERS]: 'discover-jobs',
-  [GoalPayload.FORMER]: 'training',
-  [GoalPayload.STAGE_IMMERSION]: 'internship-immersion',
-  [GoalPayload.ALTERNANCE]: 'apprenticeship',
-  [GoalPayload.EMPLOI]: 'job',
-  [GoalPayload.ENGAGER]: 'civic-engagement',
-  [GoalPayload.MOBILITE_INTERNATIONALE]: 'international-mobility',
-  [GoalPayload.ACCOMPAGNE]: 'guidance-support',
-  [GoalPayload.CREER_ACTIVITE]: 'start-business',
-  // Aucun équivalent dans le référentiel du service de génération.
-  [GoalPayload.VIE_QUOTIDIENNE]: undefined
+const goalVersDto: Record<GoalPayload, GoalDto> = {
+  [GoalPayload.ORIENTER]: 'ORIENTER',
+  [GoalPayload.DECOUVRIR_METIERS]: 'DECOUVRIR_METIERS',
+  [GoalPayload.FORMER]: 'FORMER',
+  [GoalPayload.STAGE_IMMERSION]: 'STAGE_IMMERSION',
+  [GoalPayload.ALTERNANCE]: 'ALTERNANCE',
+  [GoalPayload.EMPLOI]: 'EMPLOI',
+  [GoalPayload.ENGAGER]: 'ENGAGER',
+  [GoalPayload.MOBILITE_INTERNATIONALE]: 'MOBILITE_INTERNATIONALE',
+  [GoalPayload.ACCOMPAGNE]: 'ACCOMPAGNE',
+  [GoalPayload.CREER_ACTIVITE]: 'CREER_ACTIVITE',
+  [GoalPayload.VIE_QUOTIDIENNE]: 'VIE_QUOTIDIENNE'
 }
 
-const obstacleVersDto: Record<ObstaclePayload, ObstacleDto | undefined> = {
-  [ObstaclePayload.PAS_DE_TRANSPORT]: 'transport',
-  // Collision assumée avec PAS_DE_TRANSPORT : le référentiel n'a qu'un seul
-  // obstacle transport.
-  [ObstaclePayload.PAS_DE_PERMIS]: 'transport',
-  [ObstaclePayload.PAS_DE_LOGEMENT]: 'housing',
-  [ObstaclePayload.MANQUE_CONFIANCE]: 'confidence',
-  [ObstaclePayload.FIN_DE_MOIS]: 'money',
-  [ObstaclePayload.GARDE_ENFANT]: 'childcare',
-  [ObstaclePayload.PAS_DE_DIPLOME]: 'no-diploma',
-  [ObstaclePayload.NUMERIQUE]: 'no-device',
-  [ObstaclePayload.HANDICAP]: 'disability',
-  [ObstaclePayload.SANTE]: 'health',
-  // Aucun équivalent dans le référentiel du service de génération.
-  [ObstaclePayload.PEU_EXPERIENCE]: undefined,
-  [ObstaclePayload.FRANCAIS]: undefined,
-  [ObstaclePayload.AUTRE]: undefined,
-  // Exclusif : traité à part dans toProfileDto.
-  [ObstaclePayload.RIEN_NE_ME_BLOQUE]: undefined
+const obstacleVersDto: Record<ObstaclePayload, ObstacleDto> = {
+  [ObstaclePayload.PAS_DE_TRANSPORT]: 'PAS_DE_TRANSPORT',
+  [ObstaclePayload.PAS_DE_PERMIS]: 'PAS_DE_PERMIS',
+  [ObstaclePayload.PAS_DE_LOGEMENT]: 'PAS_DE_LOGEMENT',
+  [ObstaclePayload.MANQUE_CONFIANCE]: 'MANQUE_CONFIANCE',
+  [ObstaclePayload.FIN_DE_MOIS]: 'FIN_DE_MOIS',
+  [ObstaclePayload.GARDE_ENFANT]: 'GARDE_ENFANT',
+  [ObstaclePayload.PAS_DE_DIPLOME]: 'PAS_DE_DIPLOME',
+  [ObstaclePayload.NUMERIQUE]: 'NUMERIQUE',
+  [ObstaclePayload.HANDICAP]: 'HANDICAP',
+  [ObstaclePayload.SANTE]: 'SANTE',
+  [ObstaclePayload.PEU_EXPERIENCE]: 'PEU_EXPERIENCE',
+  [ObstaclePayload.FRANCAIS]: 'FRANCAIS',
+  [ObstaclePayload.AUTRE]: 'AUTRE',
+  [ObstaclePayload.RIEN_NE_ME_BLOQUE]: 'RIEN_NE_ME_BLOQUE'
 }
 
 const kindVersType: Record<ActionKindDto, TypeActionPlan> = {
@@ -89,19 +82,22 @@ export function toProfileDto(
   payload: GenererPlanActionPayload,
   structure: Core.Structure
 ): ProfileDto {
-  const goals = calculerGoals(payload.goals)
-  const obstacles = calculerObstacles(payload.obstacles ?? [])
-  const age = calculerAge(payload.dateNaissance)
-  const location = calculerLocation(payload)
+  const dateNaissance = calculerDateNaissance(payload.dateNaissance)
 
   return {
     authProvider: calculerAuthProvider(structure),
     situation: situationVersDto[payload.situation],
-    goals,
-    ...(obstacles.length ? { obstacles } : {}),
-    ...(age !== undefined ? { age } : {}),
-    ...(payload.domaine !== undefined ? { domain: payload.domaine } : {}),
-    ...(location ? { location } : {})
+    goals: payload.goals.map(goal => goalVersDto[goal]),
+    obstacles: calculerObstacles(payload.obstacles ?? []),
+    ...(dateNaissance !== undefined ? { dateNaissance } : {}),
+    ...(payload.domaine !== undefined ? { domaine: payload.domaine } : {}),
+    ...(payload.habitation
+      ? { habitation: toCommuneDto(payload.habitation) }
+      : {}),
+    ...(payload.villeRecherche
+      ? { villeRecherche: toCommuneDto(payload.villeRecherche) }
+      : {}),
+    ...(payload.rayonKm !== undefined ? { rayonKm: payload.rayonKm } : {})
   }
 }
 
@@ -111,64 +107,31 @@ function calculerAuthProvider(structure: Core.Structure): AuthProviderDto {
   return 'france-travail'
 }
 
-function calculerGoals(goalsPayload: GoalPayload[]): GoalDto[] {
-  const goals = goalsPayload
-    .map(goal => goalVersDto[goal])
-    .filter((goal): goal is GoalDto => goal !== undefined)
-
-  return goals.length ? goals : ['dont-know']
-}
-
 function calculerObstacles(obstaclesPayload: ObstaclePayload[]): ObstacleDto[] {
+  // RIEN_NE_ME_BLOQUE est exclusif côté service : accompagné d'un autre
+  // obstacle, il fait échouer la validation du profil.
   if (obstaclesPayload.includes(ObstaclePayload.RIEN_NE_ME_BLOQUE)) {
-    return []
+    return [obstacleVersDto[ObstaclePayload.RIEN_NE_ME_BLOQUE]]
   }
 
-  const obstacles = obstaclesPayload
-    .map(obstacle => obstacleVersDto[obstacle])
-    .filter((obstacle): obstacle is ObstacleDto => obstacle !== undefined)
-
-  return Array.from(new Set(obstacles))
+  return Array.from(
+    new Set(obstaclesPayload.map(obstacle => obstacleVersDto[obstacle]))
+  )
 }
 
-function calculerAge(dateNaissance?: string): number | undefined {
+function calculerDateNaissance(dateNaissance?: string): string | undefined {
   if (!dateNaissance) return undefined
 
-  const naissance = DateTime.fromISO(dateNaissance)
-  const maintenant = DateTime.now()
-  const anniversairePasse =
-    maintenant.month > naissance.month ||
-    (maintenant.month === naissance.month && maintenant.day >= naissance.day)
-  const age = maintenant.year - naissance.year - (anniversairePasse ? 0 : 1)
+  // Le service n'accepte que YYYY-MM-DD, là où IsDateString laisse passer un
+  // ISO complet. setZone conserve le décalage écrit dans la chaîne, pour que la
+  // date civile ne glisse pas d'un jour au passage dans le fuseau du serveur.
+  const date = DateTime.fromISO(dateNaissance, { setZone: true })
 
-  if (age < AGE_MIN || age > AGE_MAX) return undefined
-
-  return age
+  return date.isValid ? date.toISODate()! : undefined
 }
 
-function calculerLocation(
-  payload: GenererPlanActionPayload
-): LocationDto | undefined {
-  // city/radiusKm décrivent le périmètre de recherche du jeune : villeRecherche.
-  // territory conditionne l'éligibilité à des solutions rattachées au lieu de
-  // vie : habitation. Repli croisé si l'une des deux communes manque.
-  const communeVille = payload.villeRecherche ?? payload.habitation
-  const communeTerritoire = payload.habitation ?? payload.villeRecherche
-
-  if (!communeVille && !communeTerritoire) return undefined
-
-  return {
-    ...(communeVille ? { city: communeVille.nom } : {}),
-    ...(payload.rayonKm !== undefined ? { radiusKm: payload.rayonKm } : {}),
-    ...(communeTerritoire
-      ? { territory: calculerTerritoire(communeTerritoire.codeInsee) }
-      : {})
-  }
-}
-
-function calculerTerritoire(codeInsee: string): string {
-  const longueur = codeInsee.startsWith('97') ? 3 : 2
-  return codeInsee.slice(0, longueur)
+function toCommuneDto(commune: CommunePayload): CommuneDto {
+  return { codeInsee: commune.codeInsee, nom: commune.nom }
 }
 
 export function toPlanActionQueryModel(plan: PlanDto): PlanActionQueryModel {
