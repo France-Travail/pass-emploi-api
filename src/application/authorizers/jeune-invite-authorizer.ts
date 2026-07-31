@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -16,13 +17,18 @@ import {
 export class JeuneInviteAuthorizer {
   constructor(
     @Inject(JeuneInviteRepositoryToken)
-    private jeuneInviteRepository: JeuneInvite.Repository
+    private jeuneInviteRepository: JeuneInvite.Repository,
+    private configService: ConfigService
   ) {}
 
   async autoriserLInvite(
     idJeune: string,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
+    if (!this.configService.get<boolean>('appJeuneActif')) {
+      return failure(new DroitsInsuffisants())
+    }
+
     if (
       Authentification.estJeune(utilisateur.type) &&
       estInvite(utilisateur.structure) &&
