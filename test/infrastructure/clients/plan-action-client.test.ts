@@ -129,6 +129,57 @@ describe('PlanActionClient', () => {
       )
     })
 
+    it('renvoie une 502 quand le service répond sans plan', async () => {
+      // Given
+      nock(apiUrl).post('/v1/action-plans').reply(201, {})
+
+      // When
+      const result = await planActionClient.genererPlan(profile)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
+    it("renvoie une 502 quand le plan n'a pas de tableau objectives", async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, { plan: { id: 'plan-1' } })
+
+      // When
+      const result = await planActionClient.genererPlan(profile)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
+    it("renvoie une 502 quand un objective n'a pas de tableau actions", async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, {
+          plan: {
+            id: 'plan-1',
+            greeting: 'Salut !',
+            objectives: [{ id: 'obj-1', title: 'Titre', theme: 'Theme' }],
+            generatedAt: '2026-07-20T22:03:52.448Z',
+            generator: 'fallback'
+          }
+        })
+
+      // When
+      const result = await planActionClient.genererPlan(profile)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
     it('renvoie une 504 quand le service ne répond pas dans le délai imparti', async () => {
       // Given
       const externalApiLogger = stubClass(ExternalApiLoggerService)

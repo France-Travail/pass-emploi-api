@@ -47,12 +47,23 @@ export class PlanActionClient extends ExternalApiClient {
         }
       )
 
-      return success(response.data.plan)
+      const plan = response.data?.plan
+      if (
+        !plan ||
+        !Array.isArray(plan.objectives) ||
+        plan.objectives.some(objective => !Array.isArray(objective.actions))
+      ) {
+        return failure(new ErreurHttp(PLAN_ACTION_ECHEC, 502))
+      }
+
+      return success(plan)
     } catch (e) {
       return handlePlanActionError(e)
     }
   }
 }
+
+const PLAN_ACTION_ECHEC = "La génération du plan d'action a échoué"
 
 function handlePlanActionError(error: AxiosError): Result<PlanDto> {
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
@@ -64,5 +75,5 @@ function handlePlanActionError(error: AxiosError): Result<PlanDto> {
     )
   }
 
-  return failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+  return failure(new ErreurHttp(PLAN_ACTION_ECHEC, 502))
 }
