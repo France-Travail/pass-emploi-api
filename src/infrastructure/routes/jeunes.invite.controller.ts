@@ -15,7 +15,6 @@ import {
 } from '../../application/queries/get-prenom-invite.query.handler.db'
 import { Authentification } from '../../domain/authentification'
 import { Utilisateur } from '../decorators/authenticated.decorator'
-import { AutoriseLesInvites } from '../decorators/autorise-les-invites.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import { PutPrenomInvitePayload } from './validation/jeunes.invite.inputs'
@@ -23,7 +22,6 @@ import { PutPrenomInvitePayload } from './validation/jeunes.invite.inputs'
 @Controller('jeunes')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Jeunes Invité')
-@AutoriseLesInvites()
 export class JeunesInviteController {
   constructor(
     private readonly getPrenomInviteQueryHandler: GetPrenomInviteQueryHandler,

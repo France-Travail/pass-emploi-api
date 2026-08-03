@@ -2,7 +2,6 @@ import { Controller, Get, SetMetadata, UseGuards } from '@nestjs/common'
 import { Authentification } from '../../../src/domain/authentification'
 import { ApiKeyAuthGuard } from '../../../src/infrastructure/auth/api-key.auth-guard'
 import { Utilisateur } from '../../../src/infrastructure/decorators/authenticated.decorator'
-import { AutoriseLesInvites } from '../../../src/infrastructure/decorators/autorise-les-invites.decorator'
 import { Public } from '../../../src/infrastructure/decorators/public.decorator'
 import {
   OidcQueryToken,
@@ -25,12 +24,6 @@ export class FakeController {
   @SkipOidcAuth()
   @Get('/skip-oidc-auth')
   async getSkipOidcAuth(): Promise<string> {
-    return '👌'
-  }
-
-  @AutoriseLesInvites()
-  @Get('/autorise-les-invites')
-  async getAutoriseLesInvites(): Promise<string> {
     return '👌'
   }
 

@@ -60,7 +60,6 @@ import {
   NotificationJeuneQueryModel
 } from '../../application/queries/get-notifications-jeune.query.handler.db'
 import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
-import { AutoriseLesInvites } from '../decorators/autorise-les-invites.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import {
@@ -189,7 +188,6 @@ export class JeunesController {
     required: false
   })
   @Put(':idJeune/configuration-application')
-  @AutoriseLesInvites()
   async updateConfiguration(
     @Param('idJeune') idJeune: string,
     @Body() updateConfigurationInput: UpdateConfigurationInput,

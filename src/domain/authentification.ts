@@ -43,29 +43,6 @@ export namespace Authentification {
 
   export interface Utilisateur {
     id: string
-    /**
-     * Identifiant de l'utilisateur chez son fournisseur d'identité. Son format
-     * dépend de la structure et n'est PAS uniforme :
-     *
-     * - FT (`POLE_EMPLOI*`, `FT_*`, `AVENIR_PRO`) : sub de l'IDP France Travail,
-     *   qui est aussi l'`idExterneDE`. Format imposé par FT, et consommé comme
-     *   tel — cf. `notifier-rendez-vous-pole-emploi.job.handler` (rapprochement
-     *   avec `idExterneDE`) et `get-demarches.query.getter` (token exchange).
-     *   Ne jamais le traiter comme une clé opaque réattribuable.
-     * - MILO : sub Keycloak Milo (uuid). Deux producteurs : Connect via
-     *   `PUT /auth/users/:idAuthentification`, et `CreerJeuneMiloCommandHandler`
-     *   via l'`idKeycloak` renvoyé par le client Milo.
-     * - CONSEIL_DEPT : sub de l'IDP départemental.
-     * - PASS_EMPLOI (comptes de recette créés à la main) : username Keycloak,
-     *   égal à `id` par convention — cf. `docs/CONTRIBUTING.md`.
-     * - INVITE : uuid v4 fabriqué par Connect, sans signification externe. Seul
-     *   format dont on maîtrise la production de bout en bout, donc le seul
-     *   qu'on valide (`ParseUUIDPipe` sur `PUT /auth/users/invite/:id`).
-     *
-     * Contrainte transverse : Connect sérialise ses accountId en
-     * `TYPE|STRUCTURE|SUB` et les reparse par découpage sur `|`. Un
-     * idAuthentification contenant `|` casserait cette lecture.
-     */
     idAuthentification?: string
     prenom: string
     nom: string
