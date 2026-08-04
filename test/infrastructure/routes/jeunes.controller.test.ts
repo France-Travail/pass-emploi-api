@@ -692,6 +692,35 @@ describe('JeunesController', () => {
           // Then
           .expect(HttpStatus.OK)
       })
+      it('met à jour la configuration avec un registration_token vide sans renvoyer une 400', async () => {
+        // Given
+        const payloadAvecTokenVide: UpdateConfigurationInput = {
+          registration_token: '',
+          fuseauHoraire: 'Europe/Paris'
+        }
+        jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValide())
+        updateJeuneConfigurationApplicationCommandHandler.execute
+          .withArgs(
+            {
+              idJeune,
+              pushNotificationToken: '',
+              appVersion: undefined,
+              installationId: undefined,
+              instanceId: undefined,
+              fuseauHoraire: 'Europe/Paris'
+            },
+            unUtilisateurDecode()
+          )
+          .resolves(emptySuccess())
+
+        // When
+        await request(app.getHttpServer())
+          .put(`/jeunes/${idJeune}/configuration-application`)
+          .set('authorization', unHeaderAuthorization())
+          .send(payloadAvecTokenVide)
+          // Then
+          .expect(HttpStatus.OK)
+      })
     })
 
     describe('quand le payload est invalide', () => {
