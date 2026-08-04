@@ -121,6 +121,12 @@ export const testConfig = (): ConfigService => {
       },
       mailConseillers: {
         nombreDeConseillersEnParallele: '100'
+      },
+      purgeInvites: {
+        retentionMois: '12',
+        batchMax: '500',
+        pourcentageParcMax: '20',
+        dryRun: false
       }
     },
     apiKeys: {

@@ -208,6 +208,12 @@ export const configurationSchema = Joi.object({
     }),
     mailConseillers: Joi.object({
       nombreDeConseillersEnParallele: Joi.number().required()
+    }),
+    purgeInvites: Joi.object({
+      retentionMois: Joi.number().required(),
+      batchMax: Joi.number().required(),
+      pourcentageParcMax: Joi.number().required(),
+      dryRun: Joi.boolean().required()
     })
   }),
   version: Joi.string().required(),
