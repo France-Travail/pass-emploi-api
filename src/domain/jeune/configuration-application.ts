@@ -50,11 +50,9 @@ export namespace ConfigurationApplication {
       return {
         idJeune: configuration.idJeune,
         pushNotificationToken:
-          aMettreAJour.pushNotificationToken ??
+          aMettreAJour.pushNotificationToken ||
           configuration.pushNotificationToken,
-        dateDerniereActualisationToken: aMettreAJour.pushNotificationToken
-          ? this.dateService.nowJs()
-          : configuration.dateDerniereActualisationToken,
+        dateDerniereActualisationToken: this.dateService.nowJs(),
         installationId:
           aMettreAJour.installationId ?? configuration.installationId,
         instanceId: aMettreAJour.instanceId ?? configuration.instanceId,

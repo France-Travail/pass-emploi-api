@@ -200,7 +200,8 @@ export class JeunesController {
       await this.updateJeuneConfigurationApplicationCommandHandler.execute(
         {
           idJeune,
-          pushNotificationToken: updateConfigurationInput.registration_token,
+          pushNotificationToken:
+            updateConfigurationInput.registration_token ?? '',
           appVersion,
           installationId,
           instanceId,

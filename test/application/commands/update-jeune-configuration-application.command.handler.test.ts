@@ -8,7 +8,11 @@ import {
   UpdateJeuneConfigurationApplicationCommand,
   UpdateJeuneConfigurationApplicationCommandHandler
 } from '../../../src/application/commands/update-jeune-configuration-application.command.handler'
-import { isFailure, isSuccess } from '../../../src/building-blocks/types/result'
+import {
+  emptySuccess,
+  isFailure,
+  isSuccess
+} from '../../../src/building-blocks/types/result'
 import { DateService } from '../../../src/utils/date-service'
 import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -185,6 +189,68 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
 
         // Then
         expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('Option A - dateDerniereActualisationToken découplée du push', () => {
+      it('met la date à maintenant même sans token (push refusé)', async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune()
+        jeuneConfigurationApplicationRepository.get
+          .withArgs(utilisateur.id)
+          .resolves({
+            idJeune: utilisateur.id,
+            pushNotificationToken: 'ancienToken',
+            dateDerniereActualisationToken: uneDatetime()
+              .minus({ days: 30 })
+              .toJSDate(),
+            fuseauHoraire: 'Europe/Paris'
+          })
+        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
+
+        // When
+        await updateJeuneConfigurationApplicationCommandHandler.execute(
+          { idJeune: utilisateur.id, pushNotificationToken: '' },
+          utilisateur
+        )
+
+        // Then
+        const configSauvegardee =
+          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
+        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
+          uneDatetime().toJSDate()
+        )
+        expect(configSauvegardee.pushNotificationToken).to.equal('ancienToken')
+      })
+
+      it('met la date à maintenant et stocke le token quand il est fourni', async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune()
+        jeuneConfigurationApplicationRepository.get
+          .withArgs(utilisateur.id)
+          .resolves({
+            idJeune: utilisateur.id,
+            pushNotificationToken: 'ancienToken',
+            dateDerniereActualisationToken: uneDatetime()
+              .minus({ days: 30 })
+              .toJSDate(),
+            fuseauHoraire: 'Europe/Paris'
+          })
+        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
+
+        // When
+        await updateJeuneConfigurationApplicationCommandHandler.execute(
+          { idJeune: utilisateur.id, pushNotificationToken: 'nouveauToken' },
+          utilisateur
+        )
+
+        // Then
+        const configSauvegardee =
+          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
+        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
+          uneDatetime().toJSDate()
+        )
+        expect(configSauvegardee.pushNotificationToken).to.equal('nouveauToken')
       })
     })
   })
