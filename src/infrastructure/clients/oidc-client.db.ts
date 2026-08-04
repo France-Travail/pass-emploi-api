@@ -160,6 +160,17 @@ export class OidcClient extends ExternalApiClient {
     }
   }
 
+  public async deleteAccountByIdAuth(
+    idAuthentification: string
+  ): Promise<void> {
+    const apiKey = this.configService.get('oidc.apiKey')
+    const url = `${this.configService.get('oidc').issuerApiUrl}/accounts`
+    const headers = {
+      'X-API-KEY': apiKey
+    }
+    await this.axios.delete(`${url}/${idAuthentification}`, { headers })
+  }
+
   private async getToken(): Promise<string> {
     const url = `${this.issuerUrl}/protocol/openid-connect/token`
     const payload = {

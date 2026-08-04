@@ -106,6 +106,8 @@ export namespace Authentification {
 
     deleteUtilisateurIdp(idUserCEJ: string): Promise<void>
 
+    supprimerCompteIdpInvite(idAuthentification: string): Promise<void>
+
     estConseillerSuperviseur(
       structure: Core.Structure,
       email?: string | null

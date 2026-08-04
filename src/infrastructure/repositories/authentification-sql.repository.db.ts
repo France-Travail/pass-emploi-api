@@ -222,6 +222,10 @@ export class AuthentificationSqlOidcRepository
     }
   }
 
+  async supprimerCompteIdpInvite(idAuthentification: string): Promise<void> {
+    await this.oidcClient.deleteAccountByIdAuth(idAuthentification)
+  }
+
   async estConseillerSuperviseur(
     structure: Core.Structure,
     email?: string | null
