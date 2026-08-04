@@ -159,6 +159,7 @@ import { NotifierRappelRendezVousJobHandler } from './application/jobs/notifier-
 import { NotifierRecherchesOffreEmploiJobHandler } from './application/jobs/notifier-recherches-offre-emploi.job.handler'
 import { NotifierRecherchesServiceCiviqueJobHandler } from './application/jobs/notifier-recherches-service-civique.job.handler'
 import { NotifierRendezVousPEJobHandler } from './application/jobs/notifier-rendez-vous-pole-emploi.job.handler'
+import { PurgerInvitesInactifsJobHandler } from './application/jobs/purger-invites-inactifs.job.handler.db'
 import { QualifierActionsJobHandler } from './application/jobs/qualifier-actions.job.handler.db'
 import { RecupererAnalyseAntivirusJobHandler } from './application/jobs/recuperer-analyse-antivirus.job.handler'
 import { RecupererSituationsJeunesMiloJobHandler } from './application/jobs/recuperer-situations-jeunes-milo.job.handler'
@@ -943,6 +944,7 @@ export const JobHandlerProviders = [
   MajMailingListConseillerJobHandler,
   NotifierRecherchesServiceCiviqueJobHandler,
   NettoyerLesDonneesJobHandler,
+  PurgerInvitesInactifsJobHandler,
   MonitorJobsJobHandler,
   HandleJobGenererJDDCommandHandler,
   SuivreEvenementsMiloCronJobHandler,

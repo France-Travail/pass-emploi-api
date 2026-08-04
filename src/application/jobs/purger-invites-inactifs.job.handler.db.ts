@@ -1,0 +1,133 @@
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { JobHandler } from '../../building-blocks/types/job-handler'
+import {
+  Authentification,
+  AuthentificationRepositoryToken
+} from '../../domain/authentification'
+import {
+  JeuneInvite,
+  JeuneInviteRepositoryToken
+} from '../../domain/jeune/jeune-invite'
+import { Planificateur, ProcessJobType } from '../../domain/planificateur'
+import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
+import { DateService } from '../../utils/date-service'
+
+@Injectable()
+@ProcessJobType(Planificateur.JobType.PURGER_INVITES_INACTIFS)
+export class PurgerInvitesInactifsJobHandler extends JobHandler {
+  constructor(
+    private dateService: DateService,
+    @Inject(SuiviJobServiceToken)
+    suiviJobService: SuiviJob.Service,
+    @Inject(JeuneInviteRepositoryToken)
+    private readonly jeuneInviteRepository: JeuneInvite.Repository,
+    @Inject(AuthentificationRepositoryToken)
+    private readonly authentificationRepository: Authentification.Repository,
+    private readonly configService: ConfigService
+  ) {
+    super(Planificateur.JobType.PURGER_INVITES_INACTIFS, suiviJobService)
+  }
+
+  async handle(): Promise<SuiviJob> {
+    const maintenant = this.dateService.now()
+    const config = this.configService.get('jobs').purgeInvites
+    const retentionMois = Number(config.retentionMois)
+    const batchMax = Number(config.batchMax)
+    const pourcentageParcMax = Number(config.pourcentageParcMax)
+    const dryRun: boolean = config.dryRun
+
+    const dateSeuil = maintenant.minus({ months: retentionMois }).toJSDate()
+
+    let nbErreurs = 0
+    let nbPurges = 0
+    let nbSimules = 0
+    let nbEchecsRedis = 0
+    let nbEchecsDb = 0
+    const ageMinJours: number | null = null
+    const ageMaxJours: number | null = null
+    let pourcentageParc = 0
+    let succes = true
+
+    try {
+      const total = await this.jeuneInviteRepository.compterTout()
+      const candidats =
+        await this.jeuneInviteRepository.recupererInvitesInactifs(
+          dateSeuil,
+          batchMax
+        )
+
+      pourcentageParc = total > 0 ? (candidats.length / total) * 100 : 0
+
+      if (pourcentageParc > pourcentageParcMax) {
+        this.logger.warn(
+          `Purge invités abandonnée: ${pourcentageParc.toFixed(
+            1
+          )}% du parc dépasse le seuil ${pourcentageParcMax}%`
+        )
+        return {
+          jobType: this.jobType,
+          nbErreurs: 1,
+          succes: false,
+          dateExecution: maintenant,
+          tempsExecution: DateService.calculerTempsExecution(maintenant),
+          resultat: {
+            dryRun,
+            abandon: true,
+            pourcentageParc,
+            nbCandidats: candidats.length,
+            total
+          }
+        }
+      }
+
+      for (const invite of candidats) {
+        if (dryRun) {
+          nbSimules++
+          continue
+        }
+        try {
+          await this.authentificationRepository.supprimerCompteIdpInvite(
+            invite.idAuthentification
+          )
+        } catch (e) {
+          this.logger.warn(
+            `Echec suppression IDP invité ${invite.idAuthentification}`,
+            e
+          )
+          nbEchecsRedis++
+          continue
+        }
+        try {
+          await this.jeuneInviteRepository.supprimer(invite.id)
+          nbPurges++
+        } catch (e) {
+          this.logger.warn(`Echec suppression DB invité ${invite.id}`, e)
+          nbEchecsDb++
+        }
+      }
+    } catch (e) {
+      this.logger.warn(e)
+      nbErreurs++
+      succes = false
+    }
+
+    return {
+      jobType: this.jobType,
+      nbErreurs,
+      succes,
+      dateExecution: maintenant,
+      tempsExecution: DateService.calculerTempsExecution(maintenant),
+      resultat: {
+        dryRun,
+        nbPurges,
+        nbSimules,
+        nbEchecsRedis,
+        nbEchecsDb,
+        pourcentageParc,
+        ageMinJours,
+        ageMaxJours
+      }
+    }
+  }
+}
