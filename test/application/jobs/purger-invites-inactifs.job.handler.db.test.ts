@@ -49,6 +49,11 @@ describe('PurgerInvitesInactifsJobHandler', () => {
       authentificationRepository.supprimerCompteIdpInvite
     ).to.have.been.calledWith('sub1')
     expect(jeuneInviteRepository.supprimer).to.have.been.calledWith('inv1')
+    expect(
+      authentificationRepository.supprimerCompteIdpInvite
+        .getCall(0)
+        .calledBefore(jeuneInviteRepository.supprimer.getCall(0))
+    ).to.equal(true)
     const resultat = suivi.resultat as { nbPurges: number }
     expect(resultat.nbPurges).to.equal(2)
   })
@@ -123,5 +128,11 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     ).not.to.have.been.called()
     expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
     expect(suivi.succes).to.equal(false)
+    const resultat = suivi.resultat as {
+      nbPurges: number
+      nbEchecsRedis: number
+    }
+    expect(resultat.nbPurges).to.equal(0)
+    expect(resultat.nbEchecsRedis).to.equal(0)
   })
 })

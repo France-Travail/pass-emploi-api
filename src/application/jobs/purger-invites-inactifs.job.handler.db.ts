@@ -73,8 +73,14 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
           tempsExecution: DateService.calculerTempsExecution(maintenant),
           resultat: {
             dryRun,
-            abandon: true,
+            nbPurges: 0,
+            nbSimules: 0,
+            nbEchecsRedis: 0,
+            nbEchecsDb: 0,
             pourcentageParc,
+            ageMinJours: null,
+            ageMaxJours: null,
+            abandon: true,
             nbCandidats: candidats.length,
             total
           }
@@ -107,7 +113,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
         }
       }
     } catch (e) {
-      this.logger.warn(e)
+      this.logger.warn('Echec du job de purge des invités inactifs', e)
       nbErreurs++
       succes = false
     }
