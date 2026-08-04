@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
-import { AxiosResponse } from 'axios'
+import { AxiosResponse, isAxiosError } from 'axios'
 import { Authentification } from 'src/domain/authentification'
 import { beneficiaireEstFTConnect, Core, estMilo } from 'src/domain/core'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
@@ -168,7 +168,13 @@ export class OidcClient extends ExternalApiClient {
     const headers = {
       'X-API-KEY': apiKey
     }
-    await this.axios.delete(`${url}/${idAuthentification}`, { headers })
+    try {
+      await this.axios.delete(`${url}/${idAuthentification}`, { headers })
+    } catch (e) {
+      if (!isAxiosError(e) || e.response?.status !== 404) {
+        throw e
+      }
+    }
   }
 
   private async getToken(): Promise<string> {

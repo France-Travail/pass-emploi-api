@@ -1,4 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
 import { Authentification } from 'src/domain/authentification'
 import { JeuneInvite } from 'src/domain/jeune/jeune-invite'
@@ -35,10 +36,21 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
   it('supprime IDP puis DB pour chaque invité inactif (mode réel)', async () => {
     // Given
+    const dateReferenceRecente = maintenant.minus({ months: 18 }).toJSDate()
+    const dateReferenceAncienne = maintenant.minus({ months: 24 }).toJSDate()
     jeuneInviteRepository.compterTout.resolves(100)
+    jeuneInviteRepository.compterInvitesInactifs.resolves(2)
     jeuneInviteRepository.recupererInvitesInactifs.resolves([
-      { id: 'inv1', idAuthentification: 'sub1' },
-      { id: 'inv2', idAuthentification: 'sub2' }
+      {
+        id: 'inv1',
+        idAuthentification: 'sub1',
+        dateReference: dateReferenceRecente
+      },
+      {
+        id: 'inv2',
+        idAuthentification: 'sub2',
+        dateReference: dateReferenceAncienne
+      }
     ])
 
     // When
@@ -54,15 +66,32 @@ describe('PurgerInvitesInactifsJobHandler', () => {
         .getCall(0)
         .calledBefore(jeuneInviteRepository.supprimer.getCall(0))
     ).to.equal(true)
-    const resultat = suivi.resultat as { nbPurges: number }
+    const resultat = suivi.resultat as {
+      nbPurges: number
+      ageMinJours: number
+      ageMaxJours: number
+    }
     expect(resultat.nbPurges).to.equal(2)
+    const ageAttenduRecent = Math.floor(
+      maintenant.diff(DateTime.fromJSDate(dateReferenceRecente), 'days').days
+    )
+    const ageAttenduAncien = Math.floor(
+      maintenant.diff(DateTime.fromJSDate(dateReferenceAncienne), 'days').days
+    )
+    expect(resultat.ageMinJours).to.equal(ageAttenduRecent)
+    expect(resultat.ageMaxJours).to.equal(ageAttenduAncien)
   })
 
   it('ne supprime pas la ligne DB si la suppression IDP échoue', async () => {
     // Given
     jeuneInviteRepository.compterTout.resolves(100)
+    jeuneInviteRepository.compterInvitesInactifs.resolves(1)
     jeuneInviteRepository.recupererInvitesInactifs.resolves([
-      { id: 'inv1', idAuthentification: 'sub1' }
+      {
+        id: 'inv1',
+        idAuthentification: 'sub1',
+        dateReference: maintenant.minus({ months: 18 }).toJSDate()
+      }
     ])
     authentificationRepository.supprimerCompteIdpInvite
       .withArgs('sub1')
@@ -81,7 +110,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(resultat.nbPurges).to.equal(0)
   })
 
-  it('en dry-run ne supprime rien et compte les simulations', async () => {
+  it('en dry-run ne supprime rien, compte les simulations et expose les âges', async () => {
     // Given
     const config = testConfig()
     config.get('jobs').purgeInvites.dryRun = true
@@ -92,9 +121,11 @@ describe('PurgerInvitesInactifsJobHandler', () => {
       authentificationRepository,
       config
     )
+    const dateReference = maintenant.minus({ months: 18 }).toJSDate()
     jeuneInviteRepository.compterTout.resolves(100)
+    jeuneInviteRepository.compterInvitesInactifs.resolves(1)
     jeuneInviteRepository.recupererInvitesInactifs.resolves([
-      { id: 'inv1', idAuthentification: 'sub1' }
+      { id: 'inv1', idAuthentification: 'sub1', dateReference }
     ])
 
     // When
@@ -105,17 +136,28 @@ describe('PurgerInvitesInactifsJobHandler', () => {
       authentificationRepository.supprimerCompteIdpInvite
     ).not.to.have.been.called()
     expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
-    const resultat = suivi.resultat as { nbSimules: number }
+    const resultat = suivi.resultat as {
+      nbSimules: number
+      ageMinJours: number
+      ageMaxJours: number
+    }
     expect(resultat.nbSimules).to.equal(1)
+    const ageAttendu = Math.floor(
+      maintenant.diff(DateTime.fromJSDate(dateReference), 'days').days
+    )
+    expect(resultat.ageMinJours).to.equal(ageAttendu)
+    expect(resultat.ageMaxJours).to.equal(ageAttendu)
   })
 
   it('abandonne si le pourcentage du parc dépasse le seuil', async () => {
     // Given : seuil 20%, on tente 30 sur 100
     jeuneInviteRepository.compterTout.resolves(100)
+    jeuneInviteRepository.compterInvitesInactifs.resolves(30)
     jeuneInviteRepository.recupererInvitesInactifs.resolves(
       Array.from({ length: 30 }, (_, i) => ({
         id: `inv${i}`,
-        idAuthentification: `sub${i}`
+        idAuthentification: `sub${i}`,
+        dateReference: maintenant.minus({ months: 18 }).toJSDate()
       }))
     )
 
@@ -134,5 +176,38 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     }
     expect(resultat.nbPurges).to.equal(0)
     expect(resultat.nbEchecsRedis).to.equal(0)
+  })
+
+  it('abandonne sur le compte réel des inactifs même si le batch remonté est petit (F1)', async () => {
+    // Given : seuil 20%, total 100, batch remonté = 5 candidats mais le
+    // parc inactif réel en compte 30 (30% > 20%) : sans le count réel,
+    // l'ancien code n'aurait vu que 5/100 = 5% et n'aurait jamais abandonné
+    jeuneInviteRepository.compterTout.resolves(100)
+    jeuneInviteRepository.compterInvitesInactifs.resolves(30)
+    jeuneInviteRepository.recupererInvitesInactifs.resolves(
+      Array.from({ length: 5 }, (_, i) => ({
+        id: `inv${i}`,
+        idAuthentification: `sub${i}`,
+        dateReference: maintenant.minus({ months: 18 }).toJSDate()
+      }))
+    )
+
+    // When
+    const suivi = await handler.handle()
+
+    // Then
+    expect(
+      authentificationRepository.supprimerCompteIdpInvite
+    ).not.to.have.been.called()
+    expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
+    expect(suivi.succes).to.equal(false)
+    const resultat = suivi.resultat as {
+      nbPurges: number
+      pourcentageParc: number
+      abandon: boolean
+    }
+    expect(resultat.nbPurges).to.equal(0)
+    expect(resultat.pourcentageParc).to.equal(30)
+    expect(resultat.abandon).to.equal(true)
   })
 })

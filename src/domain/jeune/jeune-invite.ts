@@ -9,8 +9,11 @@ export namespace JeuneInvite {
     recupererInvitesInactifs(
       dateSeuil: Date,
       limite: number
-    ): Promise<Array<{ id: string; idAuthentification: string }>>
+    ): Promise<
+      Array<{ id: string; idAuthentification: string; dateReference: Date }>
+    >
     compterTout(): Promise<number>
+    compterInvitesInactifs(dateSeuil: Date): Promise<number>
     supprimer(id: string): Promise<void>
   }
 }

@@ -246,4 +246,45 @@ describe('OidcClient', () => {
       } catch (_e) {}
     })
   })
+
+  describe('deleteAccountByIdAuth', () => {
+    const apiUrl = configService.get('oidc').issuerApiUrl
+
+    it("passe lorsque l'appel d'api est ok", async () => {
+      // Given
+      nock(apiUrl).delete('/accounts/idAuthInvite').reply(204)
+
+      try {
+        // When
+        await oidcClient.deleteAccountByIdAuth('idAuthInvite')
+      } catch (_e) {
+        // Then
+        expect.fail(null, null, 'handle test rejected with an error')
+      }
+    })
+
+    it("passe (idempotence) lorsque l'appel d'api renvoie 404", async () => {
+      // Given
+      nock(apiUrl).delete('/accounts/idAuthInvite').reply(404)
+
+      try {
+        // When
+        await oidcClient.deleteAccountByIdAuth('idAuthInvite')
+      } catch (_e) {
+        // Then
+        expect.fail(null, null, 'handle test rejected with an error')
+      }
+    })
+
+    it("echoue lorsque l'appel d'api est ko avec un code différent de 404", async () => {
+      // Given
+      nock(apiUrl).delete('/accounts/idAuthInvite').reply(500)
+
+      try {
+        // When
+        await oidcClient.deleteAccountByIdAuth('idAuthInvite')
+        expect.fail(null, null, 'handle test did not reject with an error')
+      } catch (_e) {}
+    })
+  })
 })

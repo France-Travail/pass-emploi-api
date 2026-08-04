@@ -278,7 +278,9 @@ export default () => {
         batchMax: process.env.JOB_PURGE_INVITES_BATCH_MAX ?? '500',
         pourcentageParcMax:
           process.env.JOB_PURGE_INVITES_POURCENTAGE_MAX ?? '20',
-        dryRun: process.env.JOB_PURGE_INVITES_DRY_RUN !== 'false'
+        dryRun: process.env.JOB_PURGE_INVITES_DRY_RUN !== 'false',
+        delaiEntreSuppressionsMs:
+          process.env.JOB_PURGE_INVITES_DELAI_MS ?? '200'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',

@@ -213,7 +213,8 @@ export const configurationSchema = Joi.object({
       retentionMois: Joi.number().required(),
       batchMax: Joi.number().required(),
       pourcentageParcMax: Joi.number().required(),
-      dryRun: Joi.boolean().required()
+      dryRun: Joi.boolean().required(),
+      delaiEntreSuppressionsMs: Joi.number().required()
     })
   }),
   version: Joi.string().required(),

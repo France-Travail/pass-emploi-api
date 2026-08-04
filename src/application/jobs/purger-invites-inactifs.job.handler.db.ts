@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { DateTime } from 'luxon'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   Authentification,
@@ -36,6 +37,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
     const batchMax = Number(config.batchMax)
     const pourcentageParcMax = Number(config.pourcentageParcMax)
     const dryRun: boolean = config.dryRun
+    const delaiMs = Number(config.delaiEntreSuppressionsMs)
 
     const dateSeuil = maintenant.minus({ months: retentionMois }).toJSDate()
 
@@ -44,20 +46,22 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
     let nbSimules = 0
     let nbEchecsRedis = 0
     let nbEchecsDb = 0
-    const ageMinJours: number | null = null
-    const ageMaxJours: number | null = null
+    let ageMinJours: number | null = null
+    let ageMaxJours: number | null = null
     let pourcentageParc = 0
     let succes = true
 
     try {
       const total = await this.jeuneInviteRepository.compterTout()
+      const nombreInactifs =
+        await this.jeuneInviteRepository.compterInvitesInactifs(dateSeuil)
       const candidats =
         await this.jeuneInviteRepository.recupererInvitesInactifs(
           dateSeuil,
           batchMax
         )
 
-      pourcentageParc = total > 0 ? (candidats.length / total) * 100 : 0
+      pourcentageParc = total > 0 ? (nombreInactifs / total) * 100 : 0
 
       if (pourcentageParc > pourcentageParcMax) {
         this.logger.warn(
@@ -87,6 +91,17 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
         }
       }
 
+      const agesJours = candidats.map(invite =>
+        Math.floor(
+          maintenant.diff(DateTime.fromJSDate(invite.dateReference), 'days')
+            .days
+        )
+      )
+      if (agesJours.length > 0) {
+        ageMinJours = Math.min(...agesJours)
+        ageMaxJours = Math.max(...agesJours)
+      }
+
       for (const invite of candidats) {
         if (dryRun) {
           nbSimules++
@@ -111,6 +126,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
           this.logger.warn(`Echec suppression DB invité ${invite.id}`, e)
           nbEchecsDb++
         }
+        await this.pause(delaiMs)
       }
     } catch (e) {
       this.logger.warn('Echec du job de purge des invités inactifs', e)
@@ -134,6 +150,12 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
         ageMinJours,
         ageMaxJours
       }
+    }
+  }
+
+  private async pause(ms: number): Promise<void> {
+    if (ms > 0) {
+      await new Promise<void>(resolve => setTimeout(resolve, ms))
     }
   }
 }

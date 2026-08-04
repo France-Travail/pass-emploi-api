@@ -13,9 +13,22 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
   async recupererInvitesInactifs(
     dateSeuil: Date,
     limite: number
-  ): Promise<Array<{ id: string; idAuthentification: string }>> {
+  ): Promise<
+    Array<{ id: string; idAuthentification: string; dateReference: Date }>
+  > {
     const invites = await JeuneInviteSqlModel.findAll({
-      attributes: ['id', 'idAuthentification'],
+      attributes: [
+        'id',
+        'idAuthentification',
+        [
+          Sequelize.fn(
+            'GREATEST',
+            Sequelize.col('date_derniere_actualisation_token'),
+            Sequelize.col('date_creation')
+          ),
+          'dateReference'
+        ]
+      ],
       where: Sequelize.where(
         Sequelize.fn(
           'GREATEST',
@@ -28,12 +41,26 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     })
     return invites.map(invite => ({
       id: invite.id,
-      idAuthentification: invite.idAuthentification
+      idAuthentification: invite.idAuthentification,
+      dateReference: invite.get('dateReference') as Date
     }))
   }
 
   async compterTout(): Promise<number> {
     return JeuneInviteSqlModel.count()
+  }
+
+  async compterInvitesInactifs(dateSeuil: Date): Promise<number> {
+    return JeuneInviteSqlModel.count({
+      where: Sequelize.where(
+        Sequelize.fn(
+          'GREATEST',
+          Sequelize.col('date_derniere_actualisation_token'),
+          Sequelize.col('date_creation')
+        ),
+        { [Op.lt]: dateSeuil }
+      )
+    })
   }
 
   async supprimer(id: string): Promise<void> {

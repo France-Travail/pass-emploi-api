@@ -64,6 +64,19 @@ describe('JeuneInviteSqlRepository', () => {
         'inactif-token-vieux'
       ])
       expect(inactifs[0]).to.have.property('idAuthentification')
+
+      const inactifTokenVieux = inactifs.find(
+        i => i.id === 'inactif-token-vieux'
+      )
+      expect(inactifTokenVieux?.dateReference.getTime()).to.equal(
+        maintenant.minus({ months: 18 }).toJSDate().getTime()
+      )
+      const inactifJamaisDeToken = inactifs.find(
+        i => i.id === 'inactif-jamais-de-token'
+      )
+      expect(inactifJamaisDeToken?.dateReference.getTime()).to.equal(
+        maintenant.minus({ months: 18 }).toJSDate().getTime()
+      )
     })
 
     it('respecte la limite passée', async () => {
@@ -90,6 +103,42 @@ describe('JeuneInviteSqlRepository', () => {
 
       // Then
       expect(inactifs).to.have.length(1)
+    })
+  })
+
+  describe('compterInvitesInactifs', () => {
+    it('compte uniquement les invités inactifs (pas tout le parc)', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'inactif-1',
+          idAuthentification: 'sub-inactif-1',
+          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
+          dateDerniereActualisationToken: null
+        })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'inactif-2',
+          idAuthentification: 'sub-inactif-2',
+          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
+          dateDerniereActualisationToken: null
+        })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'actif',
+          idAuthentification: 'sub-actif',
+          dateCreation: maintenant.minus({ days: 5 }).toJSDate(),
+          dateDerniereActualisationToken: null
+        })
+      )
+
+      // When
+      const nombreInactifs = await repository.compterInvitesInactifs(seuil)
+
+      // Then
+      expect(nombreInactifs).to.equal(2)
     })
   })
 

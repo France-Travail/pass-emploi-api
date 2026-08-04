@@ -126,7 +126,8 @@ export const testConfig = (): ConfigService => {
         retentionMois: '12',
         batchMax: '500',
         pourcentageParcMax: '20',
-        dryRun: false
+        dryRun: false,
+        delaiEntreSuppressionsMs: '0'
       }
     },
     apiKeys: {
