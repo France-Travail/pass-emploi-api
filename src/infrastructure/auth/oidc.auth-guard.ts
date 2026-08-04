@@ -48,10 +48,11 @@ export class OidcAuthGuard implements CanActivate {
         `Access token non présent dans le header 'Authorization'${erreurQueryParam}`
       )
     }
+    let utilisateur: Authentification.Utilisateur
     try {
       const payload: JWTPayload =
         await this.jwtService.verifyTokenAndGetJwt(accessToken)
-      const utilisateur = OidcAuthGuard.buildUtilisateur(payload)
+      utilisateur = OidcAuthGuard.buildUtilisateur(payload)
       /*
       ts-ignore accepté ici
       On ajoute un nouvel attribut à la request au runtime pour le mettre dans le context et pouvoir l'utiliser plus tard dans l'execution
@@ -84,7 +85,6 @@ export class OidcAuthGuard implements CanActivate {
         },
         'auth_succeeded'
       )
-      return true
     } catch (error) {
       rootLogger.error(
         {
@@ -98,6 +98,8 @@ export class OidcAuthGuard implements CanActivate {
       )
       throw new UnauthorizedException()
     }
+
+    return true
   }
 
   private static buildUtilisateur(

@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -65,7 +66,8 @@ export class AuthentificationController {
     type: UtilisateurQueryModel
   })
   async putUtilisateurInvite(
-    @Param('idAuthentification') idAuthentification: string
+    @Param('idAuthentification', new ParseUUIDPipe({ version: '4' }))
+    idAuthentification: string
   ): Promise<UtilisateurQueryModel> {
     const result = await this.updateUtilisateurInviteCommandHandler.execute({
       idUtilisateurAuth: idAuthentification
