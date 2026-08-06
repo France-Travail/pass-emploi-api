@@ -7,7 +7,7 @@ import {
   failure,
   isFailure
 } from '../../building-blocks/types/result'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
@@ -41,7 +41,7 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
   ArchiverJeuneCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     @Inject(JeuneRepositoryToken)

@@ -9,7 +9,7 @@ import {
   isFailure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { ListeDeDiffusionRepositoryToken } from '../../domain/milo/liste-de-diffusion'
@@ -29,7 +29,7 @@ export class AjouterJeuneListeDeDiffusionCommandHandler extends CommandHandler<
   AjouterJeuneListeDeDiffusionCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,

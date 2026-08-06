@@ -8,7 +8,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetCampagneQueryGetter } from './query-getters/get-campagne.query.getter.db'
 import { JeuneHomeActionQueryModel } from './query-models/home-jeune.query-model'
@@ -22,12 +22,7 @@ export class GetJeuneHomeActionsQueryHandler extends QueryHandler<
   GetJeuneHomeActionsQuery,
   JeuneHomeActionQueryModel
 > {
-  readonly profilsAutorises = [
-    Profil.MILO,
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
-  ]
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
 
   constructor(
     private getCampagneQueryGetter: GetCampagneQueryGetter,

@@ -7,7 +7,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import * as CryptoJS from 'crypto-js'
@@ -26,12 +26,7 @@ export class GetCJETokenQueryHandler extends QueryHandler<
   GetCJETokenQuery,
   Result<CJETokenQueryModel>
 > {
-  readonly profilsAutorises = [
-    Profil.MILO,
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
-  ]
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
   private apiUrl: string
   private apiKey: string
 

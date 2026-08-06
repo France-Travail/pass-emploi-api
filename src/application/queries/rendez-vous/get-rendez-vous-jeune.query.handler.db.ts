@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
-import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
-import { estMilo } from 'src/domain/core'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
-import { failure, Result, success } from '../../../building-blocks/types/result'
+import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Profil } from '../../../domain/profil'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
@@ -25,7 +23,7 @@ export class GetRendezVousJeuneQueryHandler extends QueryHandler<
   GetRendezVousJeuneQuery,
   Result<RendezVousJeuneQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerInterAgenceAuthorizer
@@ -54,16 +52,10 @@ export class GetRendezVousJeuneQueryHandler extends QueryHandler<
     query: GetRendezVousJeuneQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (
-      Authentification.estConseiller(utilisateur.type) &&
-      estMilo(utilisateur.structure)
-    ) {
-      return this.conseillerAuthorizer.autoriserConseillerPourSonJeuneOuUnJeuneDeSonAgenceMilo(
-        query.idJeune,
-        utilisateur
-      )
-    }
-    return failure(new DroitsInsuffisants())
+    return this.conseillerAuthorizer.autoriserConseillerPourSonJeuneOuUnJeuneDeSonAgenceMilo(
+      query.idJeune,
+      utilisateur
+    )
   }
 
   async monitor(): Promise<void> {

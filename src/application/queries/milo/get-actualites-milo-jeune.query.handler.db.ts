@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { isFailure, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../../domain/profil'
 import {
   ActualiteMilo,
   ActualiteMiloRepositoryToken
@@ -25,12 +25,7 @@ export class GetActualitesMiloJeuneQueryHandler extends QueryHandler<
   GetActualitesMiloJeuneQuery,
   ActualitesMiloJeuneQueryModel
 > {
-  readonly profilsAutorises = [
-    Profil.MILO,
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
-  ]
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
 
   constructor(
     @Inject(ActualiteMiloRepositoryToken)

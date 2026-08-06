@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
+  emptySuccess,
   isSuccess,
   Result,
   success
@@ -11,10 +12,8 @@ import {
   AgenceRepositoryToken,
   ChangementAgenceQueryModel
 } from '../../../domain/agence'
-import { Authentification } from '../../../domain/authentification'
 
 import { Profil } from '../../../domain/profil'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface FusionnerAgencesCommand extends Command {
   idAgenceSource: string
@@ -26,22 +25,18 @@ export class FusionnerAgencesCommandHandler extends CommandHandler<
   FusionnerAgencesCommand,
   ChangementAgenceQueryModel[]
 > {
-  readonly profilsAutorises = [Profil.SUPPORT]
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
 
   constructor(
     private readonly agenceService: Agence.Service,
-    private readonly supportAuthorizer: SupportAuthorizer,
     @Inject(AgenceRepositoryToken)
     private readonly agenceRepository: Agence.Repository
   ) {
     super('FusionnerAgencesCommandHandler')
   }
 
-  async authorize(
-    _command: FusionnerAgencesCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
   async monitor(): Promise<void> {
     return

@@ -359,7 +359,7 @@ describe('GetMonSuiviMiloQueryHandler', () => {
   describe('profilsAutorises', () => {
     it('exige le profil MILO', () => {
       // Then
-      expect(handler.profilsAutorises).to.deep.equal([Profil.MILO])
+      expect(handler.profilsAutorises).to.deep.equal([Profil.Jeune.MILO])
     })
   })
 })

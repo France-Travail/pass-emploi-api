@@ -3,7 +3,6 @@ import { Evenement, EvenementService } from 'src/domain/evenement'
 import { Mail } from 'src/domain/mail'
 import { unMailDto } from 'test/fixtures/mail.fixture'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
-import { SupportAuthorizer } from '../../../src/application/authorizers/support-authorizer'
 import {
   DeleteJeuneCommand,
   DeleteJeuneCommandHandler
@@ -35,7 +34,6 @@ describe('DeleteJeuneCommandHandler', () => {
   let mailService: StubbedType<Mail.Service>
   let authentificationRepository: StubbedType<Authentification.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
   let jeune: Jeune
   let command: DeleteJeuneCommand
   const sandbox = createSandbox()
@@ -44,7 +42,6 @@ describe('DeleteJeuneCommandHandler', () => {
     chatRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    supportAuthorizer = stubClass(SupportAuthorizer)
     authentificationRepository = stubInterface(sandbox)
     mailService = stubInterface(sandbox)
     mailFactory = stubClass(Mail.Factory)
@@ -55,8 +52,7 @@ describe('DeleteJeuneCommandHandler', () => {
       evenementService,
       mailService,
       mailFactory,
-      jeuneAuthorizer,
-      supportAuthorizer
+      jeuneAuthorizer
     )
 
     mailFactory.creerMailSuppressionJeune.returns(unMailDto())
@@ -95,12 +91,13 @@ describe('DeleteJeuneCommandHandler', () => {
       const utilisateur = unUtilisateurSupport()
 
       // When
-      await deleteJeuneCommandHandler.authorize(command, utilisateur)
+      const result = await deleteJeuneCommandHandler.authorize(
+        command,
+        utilisateur
+      )
 
       // Then
-      expect(
-        supportAuthorizer.autoriserSupport
-      ).to.have.been.calledOnceWithExactly(utilisateur)
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 
@@ -249,10 +246,11 @@ describe('DeleteJeuneCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(deleteJeuneCommandHandler.profilsAutorises).to.deep.equal([
-        Profil.MILO,
-        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.FT_DEMANDEUR_EMPLOI,
-        Profil.CONSEIL_DEPT
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT,
+        Profil.Support.SUPPORT
       ])
     })
   })

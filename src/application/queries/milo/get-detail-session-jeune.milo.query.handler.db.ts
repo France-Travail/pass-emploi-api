@@ -34,7 +34,7 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
   GetDetailSessionJeuneMiloQuery,
   Result<DetailSessionJeuneMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.MILO]
+  readonly profilsAutorises = [Profil.Jeune.MILO]
 
   constructor(
     private readonly oidcClient: OidcClient,

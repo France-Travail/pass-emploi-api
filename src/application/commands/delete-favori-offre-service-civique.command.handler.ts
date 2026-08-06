@@ -8,7 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { FavorisOffresServiceCiviqueRepositoryToken } from '../../domain/offre/favori/offre-service-civique'
 import { FavoriOffreServiceCiviqueAuthorizer } from '../authorizers/favori-offres-engagement-authorizer'
 import { Offre } from '../../domain/offre/offre'
@@ -23,12 +23,7 @@ export class DeleteFavoriOffreServiceCiviqueCommandHandler extends CommandHandle
   DeleteFavoriOffreServiceCiviqueCommand,
   void
 > {
-  readonly profilsAutorises = [
-    Profil.MILO,
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
-  ]
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
 
   constructor(
     @Inject(FavorisOffresServiceCiviqueRepositoryToken)

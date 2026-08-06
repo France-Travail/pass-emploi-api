@@ -5,7 +5,7 @@ import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { estMilo } from '../../domain/core'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneMiloAArchiverSqlModel } from '../../infrastructure/sequelize/models/jeune-milo-a-archiver.sql-model'
@@ -26,12 +26,7 @@ export class GetDetailJeuneQueryHandler extends QueryHandler<
   GetDetailJeuneQuery,
   Result<DetailJeuneQueryModel>
 > {
-  readonly profilsAutorises = [
-    Profil.MILO,
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
-  ]
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
 
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,

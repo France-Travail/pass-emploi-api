@@ -1,6 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   SupprimerArchiveJeuneCommand,
   SupprimerArchiveJeuneCommandHandler
@@ -11,36 +10,25 @@ import {
   failure
 } from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
-import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
-import { expect, StubbedClass, stubClass } from '../../../utils'
+import { expect } from '../../../utils'
 
 describe('SupprimerArchiveJeuneCommandHandler', () => {
   let handler: SupprimerArchiveJeuneCommandHandler
   let archiveJeuneRepository: StubbedType<ArchiveJeune.Repository>
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
 
   beforeEach(() => {
     const sandbox = createSandbox()
     archiveJeuneRepository = stubInterface<ArchiveJeune.Repository>(sandbox)
-    supportAuthorizer = stubClass(SupportAuthorizer)
-    handler = new SupprimerArchiveJeuneCommandHandler(
-      archiveJeuneRepository,
-      supportAuthorizer
-    )
+    handler = new SupprimerArchiveJeuneCommandHandler(archiveJeuneRepository)
   })
 
   describe('authorize', () => {
-    it('autorise un membre du support', () => {
-      // Given
-      const command: SupprimerArchiveJeuneCommand = { idArchive: 1 }
-
+    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
       // When
-      handler.authorize(command, unUtilisateurSupport())
+      const result = await handler.authorize()
 
       // Then
-      expect(supportAuthorizer.autoriserSupport).to.have.been.calledWithExactly(
-        unUtilisateurSupport()
-      )
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 

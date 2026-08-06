@@ -9,7 +9,6 @@ import {
 import { Authentification } from 'src/domain/authentification'
 import { Profil } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
-import { estMilo } from 'src/domain/core'
 import { ConseillerMiloRepositoryToken } from 'src/domain/milo/conseiller.milo.db'
 import {
   SessionMilo,
@@ -38,7 +37,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
   UpdateSessionMiloCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
@@ -159,8 +158,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

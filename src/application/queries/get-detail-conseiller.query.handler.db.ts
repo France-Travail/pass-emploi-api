@@ -7,7 +7,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { Migration } from '../../domain/migration'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { fromSqlToDetailConseillerQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
@@ -30,7 +30,7 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
   GetDetailConseillerQuery,
   Result<DetailConseillerQueryModel>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,

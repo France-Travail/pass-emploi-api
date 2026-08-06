@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import {
+  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../building-blocks/types/domain-error'
@@ -80,20 +81,23 @@ export class GetComptageJeuneQueryHandler extends QueryHandler<
     return resultComptage
   }
 
+  // Bi-public : reste sur TOUS_LES_PROFILS en attendant la scission en
+  // handlers jeune/conseiller séparés (ticket dédié). La restriction MiLo
+  // ne se réduit à aucun `Profil` déclarable tant que ce handler sert les
+  // deux publics sur une même route : elle reste ici.
   async authorize(
     query: GetComptageJeuneQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (Authentification.estJeune(utilisateur.type))
-      return this.jeuneAuthorizer.autoriserLeJeune(
-        query.idJeune,
-        utilisateur,
-        estMilo(utilisateur.structure)
-      )
+    if (!estMilo(utilisateur.structure)) {
+      return failure(new DroitsInsuffisants())
+    }
+    if (Authentification.estJeune(utilisateur.type)) {
+      return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
+    }
     return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
       query.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

@@ -33,9 +33,9 @@ export class GenerateDemarchesIACommandHandler extends CommandHandler<
   DemarcheIAQueryModel[]
 > {
   readonly profilsAutorises = [
-    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.FT_DEMANDEUR_EMPLOI,
-    Profil.CONSEIL_DEPT
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
   ]
 
   constructor(

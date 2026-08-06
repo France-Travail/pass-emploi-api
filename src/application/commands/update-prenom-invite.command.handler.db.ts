@@ -22,7 +22,7 @@ export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   UpdatePrenomInviteCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.INVITE]
+  readonly profilsAutorises = [Profil.Jeune.INVITE]
 
   constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
     super('UpdatePrenomInviteCommandHandler')

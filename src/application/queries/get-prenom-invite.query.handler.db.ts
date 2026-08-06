@@ -23,7 +23,7 @@ export class GetPrenomInviteQueryHandler extends QueryHandler<
   GetPrenomInviteQuery,
   Result<PrenomInviteQueryModel>
 > {
-  readonly profilsAutorises = [Profil.INVITE]
+  readonly profilsAutorises = [Profil.Jeune.INVITE]
 
   constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
     super('GetPrenomInviteQueryHandler')

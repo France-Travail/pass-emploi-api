@@ -13,7 +13,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
@@ -32,7 +32,7 @@ export class DeleteConseillerCommandHandler extends CommandHandler<
   DeleteConseillerCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     @Inject(ConseillerRepositoryToken)

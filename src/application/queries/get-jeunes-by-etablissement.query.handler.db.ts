@@ -8,7 +8,7 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../domain/milo/conseiller'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
@@ -24,7 +24,7 @@ export class GetJeunesByEtablissementQueryHandler extends QueryHandler<
   GetJeunesByEtablissementQuery,
   Result<JeuneQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,

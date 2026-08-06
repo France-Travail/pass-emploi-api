@@ -47,7 +47,7 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
   void,
   JeuneMilo
 > {
-  readonly profilsAutorises = [Profil.MILO]
+  readonly profilsAutorises = [Profil.Jeune.MILO]
 
   constructor(
     @Inject(JeuneMiloRepositoryToken)

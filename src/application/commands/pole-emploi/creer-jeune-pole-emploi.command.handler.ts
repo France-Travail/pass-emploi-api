@@ -10,7 +10,7 @@ import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Profil } from '../../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { beneficiaireEstFTConnect, Core } from '../../../domain/core'
+import { Core } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -30,7 +30,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   CreateJeuneCommand,
   Jeune
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.FT]
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -84,8 +84,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
+      utilisateur
     )
   }
 

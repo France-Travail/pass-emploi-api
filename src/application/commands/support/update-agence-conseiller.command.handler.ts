@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import { Result } from '../../../building-blocks/types/result'
+import { Result, emptySuccess } from '../../../building-blocks/types/result'
 import { Agence, ChangementAgenceQueryModel } from '../../../domain/agence'
-import { Authentification } from '../../../domain/authentification'
 
 import { Profil } from '../../../domain/profil'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface UpdateAgenceConseillerCommand extends Command {
   idConseiller: string
@@ -18,20 +16,14 @@ export class UpdateAgenceConseillerCommandHandler extends CommandHandler<
   UpdateAgenceConseillerCommand,
   ChangementAgenceQueryModel
 > {
-  readonly profilsAutorises = [Profil.SUPPORT]
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
 
-  constructor(
-    private readonly agenceService: Agence.Service,
-    private readonly supportAuthorizer: SupportAuthorizer
-  ) {
+  constructor(private readonly agenceService: Agence.Service) {
     super('UpdateAgenceConseillerCommandHandler')
   }
 
-  async authorize(
-    _command: UpdateAgenceConseillerCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
   async monitor(): Promise<void> {
     return

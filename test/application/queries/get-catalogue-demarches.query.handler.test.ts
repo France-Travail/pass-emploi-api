@@ -79,9 +79,9 @@ xdescribe('GetCatalogueQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.FT_DEMANDEUR_EMPLOI,
-        Profil.CONSEIL_DEPT
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
       ])
     })
   })

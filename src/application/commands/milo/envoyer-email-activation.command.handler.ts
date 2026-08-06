@@ -5,7 +5,6 @@ import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { failure, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Profil } from '../../../domain/profil'
-import { estMilo } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -26,7 +25,7 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
   EnvoyerEmailActivationCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -65,8 +64,7 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
     return this.conseillerAuthorizer.autoriserLeConseillerPourSonJeune(
       command.idConseiller,
       command.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

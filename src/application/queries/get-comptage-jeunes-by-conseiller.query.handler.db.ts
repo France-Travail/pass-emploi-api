@@ -13,7 +13,6 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { estMilo } from '../../domain/core'
 import { Jeune } from '../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -49,7 +48,7 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
   GetComptageJeunesByConseillerQuery,
   Result<ComptageJeunesQueryModel>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -116,8 +115,6 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
     query: GetComptageJeunesByConseillerQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (!estMilo(utilisateur.structure))
-      return failure(new DroitsInsuffisants())
     const conseiller = await this.conseillersRepository.get(query.idConseiller)
     if (!conseiller) {
       return failure(new DroitsInsuffisants())

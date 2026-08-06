@@ -30,7 +30,12 @@ export class RefreshJddCommandHandler extends CommandHandler<
   // authorize() restreint ensuite au conseiller de l'agence ID_AGENCE_MILO_JDD
   // ou au support : la restriction de public s'arrête à « support ou
   // conseiller », le reste est de l'appartenance, pas un profil.
-  readonly profilsAutorises = [Profil.SUPPORT, Profil.CONSEILLER]
+  readonly profilsAutorises = [
+    Profil.Support.SUPPORT,
+    Profil.Conseiller.MILO,
+    Profil.Conseiller.FT,
+    Profil.Conseiller.CONSEIL_DEPT
+  ]
 
   constructor(
     private dateService: DateService,

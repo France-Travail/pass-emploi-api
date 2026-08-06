@@ -41,7 +41,7 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
   GetMonSuiviMiloQuery,
   Result<GetMonSuiviMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.MILO]
+  readonly profilsAutorises = [Profil.Jeune.MILO]
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

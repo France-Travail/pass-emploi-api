@@ -8,7 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { aAccesAuxAlternancesEtServicesCiviques } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
@@ -32,7 +32,7 @@ export class CreateSuggestionConseillerServiceCiviqueCommandHandler extends Comm
   CreateSuggestionConseillerServiceCiviqueCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,

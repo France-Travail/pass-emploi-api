@@ -22,7 +22,6 @@ import {
 import { Conseiller } from '../../../src/domain/milo/conseiller'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
-import { SupportAuthorizer } from '../../../src/application/authorizers/support-authorizer'
 import { Authentification } from '../../../src/domain/authentification'
 import Structure = Core.Structure
 import {
@@ -67,7 +66,6 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
   let chatRepository: StubbedType<Chat.Repository>
   let listesDeDiffusionService: StubbedClass<Conseiller.ListeDeDiffusion.Service>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
   let animationCollectiveService: StubbedClass<RendezVous.AnimationCollective.Service>
   let sandbox: SinonSandbox
 
@@ -85,7 +83,6 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
     chatRepository = stubInterface(sandbox)
     listesDeDiffusionService = stubClass(Conseiller.ListeDeDiffusion.Service)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
-    supportAuthorizer = stubClass(SupportAuthorizer)
     animationCollectiveService = stubClass(
       RendezVous.AnimationCollective.Service
     )
@@ -96,8 +93,7 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
         listesDeDiffusionService,
         chatRepository,
         animationCollectiveService,
-        conseillerAuthorizer,
-        supportAuthorizer
+        conseillerAuthorizer
       )
   })
 

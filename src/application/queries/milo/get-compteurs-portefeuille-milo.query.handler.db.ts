@@ -8,7 +8,6 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
 import { Profil } from 'src/domain/profil'
 import { SequelizeInjectionToken } from 'src/infrastructure/sequelize/providers'
 
@@ -24,7 +23,7 @@ export class GetCompteursBeneficiaireMiloQueryHandler extends QueryHandler<
   GetCompteursBeneficiaireMiloQuery,
   Result<CompteursBeneficiaireQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     private getAgendaSessionsConseillerMiloQueryHandler: GetAgendaSessionsConseillerMiloQueryHandler,
@@ -108,8 +107,7 @@ export class GetCompteursBeneficiaireMiloQueryHandler extends QueryHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       query.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

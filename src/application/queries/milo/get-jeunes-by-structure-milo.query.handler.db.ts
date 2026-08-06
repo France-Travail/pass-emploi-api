@@ -5,7 +5,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
 import { Situation } from '../../../infrastructure/sequelize/models/situations-milo.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { ConseillerInterStructureMiloAuthorizer } from '../../authorizers/conseiller-inter-structure-milo-authorizer'
@@ -47,7 +47,7 @@ export class GetJeunesByStructureMiloQueryHandler extends QueryHandler<
   GetJeunesByStructureMiloQuery,
   Result<GetJeunesByStructureMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     private conseillerInterStructureMiloAuthorizer: ConseillerInterStructureMiloAuthorizer,

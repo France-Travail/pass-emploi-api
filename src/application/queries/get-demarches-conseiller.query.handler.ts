@@ -4,7 +4,6 @@ import { Cached, Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../domain/core'
 import { Profil } from '../../domain/profil'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
@@ -23,7 +22,7 @@ export class GetDemarchesConseillerQueryHandler extends QueryHandler<
   GetDemarchesConseillerQuery,
   Result<Cached<DemarcheQueryModel[]>>
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.FT]
 
   constructor(
     private getDemarchesQueryGetter: GetDemarchesQueryGetter,
@@ -52,8 +51,7 @@ export class GetDemarchesConseillerQueryHandler extends QueryHandler<
     return this.conseillerAuthorizer.autoriserLeConseillerPourSonJeune(
       query.idConseiller,
       query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
+      utilisateur
     )
   }
 

@@ -51,7 +51,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
   CreerJeuneMiloCommand,
   IdentiteJeuneQueryModel
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -166,8 +166,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

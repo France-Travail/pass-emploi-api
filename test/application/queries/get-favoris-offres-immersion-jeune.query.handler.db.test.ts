@@ -85,10 +85,10 @@ describe('GetFavorisOffresImmersionJeuneQueryHandler', () => {
       expect(
         getFavorisOffresImmersionJeuneQueryHandler.profilsAutorises
       ).to.deep.equal([
-        Profil.MILO,
-        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.FT_DEMANDEUR_EMPLOI,
-        Profil.CONSEIL_DEPT
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
       ])
     })
   })

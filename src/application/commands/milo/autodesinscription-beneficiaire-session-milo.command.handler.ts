@@ -47,7 +47,7 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
   void,
   JeuneMilo
 > {
-  readonly profilsAutorises = [Profil.MILO]
+  readonly profilsAutorises = [Profil.Jeune.MILO]
 
   constructor(
     @Inject(JeuneMiloRepositoryToken)

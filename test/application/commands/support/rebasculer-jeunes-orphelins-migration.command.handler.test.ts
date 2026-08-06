@@ -1,5 +1,4 @@
 import { createSandbox } from 'sinon'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   RebasculerJeunesOrphelinsMigrationCommand,
   RebasculerJeunesOrphelinsMigrationCommandHandler
@@ -9,40 +8,30 @@ import {
   Migration,
   RebasculementOrphelin
 } from '../../../../src/domain/migration'
-import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import PhaseDeMigration = Migration.PhaseDeMigration
 
 describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
   let handler: RebasculerJeunesOrphelinsMigrationCommandHandler
   let migrationService: StubbedClass<Migration.Service>
-  let authorizeSupport: StubbedClass<SupportAuthorizer>
   const sandbox = createSandbox()
 
   beforeEach(() => {
     migrationService = stubClass(Migration.Service)
-    authorizeSupport = stubClass(SupportAuthorizer)
     handler = new RebasculerJeunesOrphelinsMigrationCommandHandler(
-      migrationService,
-      authorizeSupport
+      migrationService
     )
   })
 
   afterEach(() => sandbox.restore())
 
   describe('authorize', () => {
-    it('autorise un membre du support', () => {
-      // Given
-      const command: RebasculerJeunesOrphelinsMigrationCommand = {
-        phaseDeMigration: PhaseDeMigration.PHASE_B
-      }
+    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
       // When
-      handler.authorize(command, unUtilisateurSupport())
+      const result = await handler.authorize()
 
       // Then
-      expect(authorizeSupport.autoriserSupport).to.have.been.calledWithExactly(
-        unUtilisateurSupport()
-      )
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 

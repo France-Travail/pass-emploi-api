@@ -91,7 +91,7 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
     it('exige le profil MILO', () => {
       // Then
       expect(getDetailSessionQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.MILO
+        Profil.Jeune.MILO
       ])
     })
   })

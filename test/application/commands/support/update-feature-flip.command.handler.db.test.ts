@@ -1,5 +1,4 @@
 import { before } from 'mocha'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   UpdateFeatureFlipCommand,
   UpdateFeatureFlipCommandHandler
@@ -10,14 +9,13 @@ import { FeatureFlipSqlModel } from '../../../../src/infrastructure/sequelize/mo
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { expect, StubbedClass, stubClass } from '../../../utils'
+import { expect } from '../../../utils'
 import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
 
 describe('UpdateFeatureFlipCommandHandler', () => {
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
   let databaseForTesting: DatabaseForTesting
   let handler: UpdateFeatureFlipCommandHandler
 
@@ -35,8 +33,7 @@ describe('UpdateFeatureFlipCommandHandler', () => {
     const j2 = unJeuneDto({ id: 'j2', idConseiller: 'c-1' })
     await JeuneSqlModel.bulkCreate([j1, j2])
 
-    supportAuthorizer = stubClass(SupportAuthorizer)
-    handler = new UpdateFeatureFlipCommandHandler(supportAuthorizer)
+    handler = new UpdateFeatureFlipCommandHandler()
   })
 
   describe('handle - ajout', () => {

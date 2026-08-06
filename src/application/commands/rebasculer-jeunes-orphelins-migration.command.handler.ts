@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
-import { Authentification } from '../../domain/authentification'
 import { Migration } from '../../domain/migration'
 import { Profil } from '../../domain/profil'
-import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import PhaseDeMigration = Migration.PhaseDeMigration
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
@@ -16,20 +14,14 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   RebasculerJeunesOrphelinsMigrationCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.SUPPORT]
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
 
-  constructor(
-    private readonly migrationService: Migration.Service,
-    private readonly authorizeSupport: SupportAuthorizer
-  ) {
+  constructor(private readonly migrationService: Migration.Service) {
     super('RebasculerJeunesOrphelinsMigrationCommandHandler')
   }
 
-  async authorize(
-    _command: RebasculerJeunesOrphelinsMigrationCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.authorizeSupport.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async handle(

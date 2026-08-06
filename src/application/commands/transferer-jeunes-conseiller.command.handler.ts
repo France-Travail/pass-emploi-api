@@ -21,7 +21,6 @@ import {
 import { Profil } from '../../domain/profil'
 import { RendezVous } from '../../domain/rendez-vous/rendez-vous'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
-import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import { estFranceTravail } from '../../domain/core'
 
 export interface TransfererJeunesConseillerCommand extends Command {
@@ -38,7 +37,12 @@ export class TransfererJeunesConseillerCommandHandler extends CommandHandler<
   TransfererJeunesConseillerCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER, Profil.SUPPORT]
+  readonly profilsAutorises = [
+    Profil.Conseiller.MILO,
+    Profil.Conseiller.FT,
+    Profil.Conseiller.CONSEIL_DEPT,
+    Profil.Support.SUPPORT
+  ]
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -49,8 +53,7 @@ export class TransfererJeunesConseillerCommandHandler extends CommandHandler<
     @Inject(ChatRepositoryToken)
     private chatRepository: Chat.Repository,
     private animationCollectiveService: RendezVous.AnimationCollective.Service,
-    private conseillerAuthorizer: ConseillerAuthorizer,
-    private supportAuthorizer: SupportAuthorizer
+    private conseillerAuthorizer: ConseillerAuthorizer
   ) {
     super('TransfererJeunesConseillerCommandHandler')
   }
@@ -134,7 +137,7 @@ export class TransfererJeunesConseillerCommandHandler extends CommandHandler<
           utilisateur
         )
       case Authentification.Type.SUPPORT:
-        return this.supportAuthorizer.autoriserSupport(utilisateur)
+        return emptySuccess()
     }
   }
 

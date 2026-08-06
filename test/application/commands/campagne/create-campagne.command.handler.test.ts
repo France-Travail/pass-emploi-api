@@ -1,14 +1,16 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   CreateCampagneCommand,
   CreateCampagneCommandHandler
 } from '../../../../src/application/commands/campagne/create-campagne.command.handler'
 import { CampagneExisteDejaError } from '../../../../src/building-blocks/types/domain-error'
-import { failure, success } from '../../../../src/building-blocks/types/result'
+import {
+  emptySuccess,
+  failure,
+  success
+} from '../../../../src/building-blocks/types/result'
 import { Campagne } from '../../../../src/domain/campagne'
-import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
 import { uneCampagne } from '../../../fixtures/campagne.fixture'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../../utils'
@@ -19,7 +21,6 @@ import { TIME_ZONE_EUROPE_PARIS } from '../../../../src/config/configuration'
 describe('CreateCampagneCommandHandler', () => {
   let campagneRepository: StubbedType<Campagne.Repository>
   let campagneFactory: StubbedClass<Campagne.Factory>
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
   let createCampagneCommandeHandler: CreateCampagneCommandHandler
   let planificateurRepository: Planificateur.Repository
   let dateService: StubbedClass<DateService>
@@ -28,14 +29,12 @@ describe('CreateCampagneCommandHandler', () => {
     const sandbox: SinonSandbox = createSandbox()
     campagneRepository = stubInterface(sandbox)
     campagneFactory = stubClass(Campagne.Factory)
-    supportAuthorizer = stubClass(SupportAuthorizer)
     planificateurRepository = stubInterface(sandbox)
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
     createCampagneCommandeHandler = new CreateCampagneCommandHandler(
       campagneRepository,
       campagneFactory,
-      supportAuthorizer,
       planificateurRepository,
       dateService
     )
@@ -128,23 +127,12 @@ describe('CreateCampagneCommandHandler', () => {
   })
 
   describe('authorize', () => {
-    const command: CreateCampagneCommand = {
-      nom: 'unNom',
-      dateDebut: uneDatetime(),
-      dateFin: uneDatetime().plus({ week: 2 })
-    }
-
-    it('autorise le support', async () => {
+    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
       // When
-      await createCampagneCommandeHandler.authorize(
-        command,
-        unUtilisateurSupport()
-      )
+      const result = await createCampagneCommandeHandler.authorize()
 
       // Then
-      expect(supportAuthorizer.autoriserSupport).to.have.been.calledWithExactly(
-        unUtilisateurSupport()
-      )
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 })

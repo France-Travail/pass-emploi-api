@@ -3,7 +3,7 @@ import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { ListeDeDiffusionRepositoryToken } from '../../domain/milo/liste-de-diffusion'
@@ -19,7 +19,7 @@ export class DeleteListeDeDiffusionCommandHandler extends CommandHandler<
   DeleteListeDeDiffusionCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.CONSEILLER]
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
 
   constructor(
     private authorizeListeDeDiffusion: ListeDeDiffusionAuthorizer,

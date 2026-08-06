@@ -1,29 +1,23 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { success } from 'src/building-blocks/types/result'
-import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
+import { emptySuccess, success } from 'src/building-blocks/types/result'
 import {
   VerifierEmailBeneficiaireFTQuery,
   VerifierEmailBeneficiaireQueryHandler
 } from '../../../../src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
 import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
-import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
-import { createSandbox, expect, stubClass } from '../../../utils'
+import { createSandbox, expect } from '../../../utils'
 
 describe('VerifierEmailBeneficiaireQueryHandler', () => {
   let verifierEmailBeneficiaireQueryHandler: VerifierEmailBeneficiaireQueryHandler
   const sandbox: SinonSandbox = createSandbox()
   const jeuneRepository: StubbedType<Jeune.Repository> = stubInterface(sandbox)
-  const conseillerAuthorizer = stubClass(ConseillerAuthorizer)
 
   before(async () => {
     verifierEmailBeneficiaireQueryHandler =
-      new VerifierEmailBeneficiaireQueryHandler(
-        jeuneRepository,
-        conseillerAuthorizer
-      )
+      new VerifierEmailBeneficiaireQueryHandler(jeuneRepository)
   })
 
   afterEach(() => {
@@ -83,23 +77,12 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
   })
 
   describe('authorize', () => {
-    it('autorise un conseiller dont le bénéficiaire est FT connect', async () => {
-      // Given
-      const query: VerifierEmailBeneficiaireFTQuery = {
-        email: 'test@test.com'
-      }
-
-      const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.CONSEIL_DEPT
-      })
-
+    it('autorise : le profil FT est déjà garanti par profilsAutorises', async () => {
       // When
-      await verifierEmailBeneficiaireQueryHandler.authorize(query, utilisateur)
+      const result = await verifierEmailBeneficiaireQueryHandler.authorize()
 
       // Then
-      expect(
-        conseillerAuthorizer.autoriserLeConseillerPourTous
-      ).to.have.been.calledWithExactly(utilisateur, true)
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 })
