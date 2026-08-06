@@ -5,7 +5,6 @@ import {
   GetDossierMiloJeuneQuery,
   GetDossierMiloJeuneQueryHandler
 } from '../../../src/application/queries/get-dossier-milo-jeune.query.handler'
-import { estMilo } from '../../../src/domain/core'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unDossierMilo } from '../../fixtures/milo.fixture'
@@ -67,10 +66,7 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
       // Then
       expect(
         conseillerAuthorizer.autoriserToutConseiller
-      ).to.have.been.calledOnceWithExactly(
-        utilisateur,
-        estMilo(utilisateur.structure)
-      )
+      ).to.have.been.calledOnceWithExactly(utilisateur)
     })
   })
 })

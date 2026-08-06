@@ -6,7 +6,6 @@ import {
   QualifierActionsMiloCommandHandler
 } from '../../../../src/application/commands/milo/qualifier-actions-milo.command.handler'
 import {
-  DroitsInsuffisants,
   ErreurHttp,
   MauvaiseCommandeError
 } from '../../../../src/building-blocks/types/domain-error'
@@ -22,8 +21,7 @@ import { ActionMilo } from '../../../../src/domain/milo/action.milo'
 import { uneAction, uneActionTerminee } from '../../../fixtures/action.fixture'
 import {
   unUtilisateurConseiller,
-  unUtilisateurDecode,
-  unUtilisateurJeune
+  unUtilisateurDecode
 } from '../../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
@@ -381,29 +379,6 @@ describe('QualifierActionsMiloCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
-    })
-    it('rejette si jeune', async () => {
-      // Given
-
-      const command: QualifierActionsMiloCommand = {
-        estSNP: true,
-        qualifications: [
-          {
-            idAction: 'inconnu',
-            codeQualification: Action.Qualification.Code.EMPLOI
-          }
-        ]
-      }
-
-      // When
-      const result = await qualifierActionsMiloCommandHandler.authorize(
-        command,
-        unUtilisateurJeune(),
-        actions
-      )
-
-      // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
   })
 

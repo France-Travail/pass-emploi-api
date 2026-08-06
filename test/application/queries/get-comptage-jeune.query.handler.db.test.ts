@@ -199,8 +199,7 @@ describe('GetComptageJeuneQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         'id-jeune',
-        utilisateur,
-        true
+        utilisateur
       )
     })
     it('Valide le conseiller', async () => {
@@ -218,7 +217,7 @@ describe('GetComptageJeuneQueryHandler', () => {
       // Then
       expect(
         conseillerAuthorizer.autoriserConseillerPourSonJeune
-      ).to.have.been.calledWithExactly('id-jeune', utilisateur, true)
+      ).to.have.been.calledWithExactly('id-jeune', utilisateur)
     })
   })
 })

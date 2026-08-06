@@ -22,7 +22,7 @@ import { PoleEmploiPartenaireClient } from '../../src/infrastructure/clients/pol
 import { IdService } from '../../src/utils/id-service'
 import {
   unHeaderAuthorization,
-  unJwtPayloadValide,
+  unJwtPayloadValideJeunePE,
   unUtilisateurJeune
 } from '../fixtures/authentification.fixture'
 import { unJeune } from '../fixtures/jeune.fixture'
@@ -101,7 +101,7 @@ describe('JeunesControllerE2E', () => {
   })
 
   beforeEach(() => {
-    jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValide())
+    jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValideJeunePE())
   })
 
   after(async () => {

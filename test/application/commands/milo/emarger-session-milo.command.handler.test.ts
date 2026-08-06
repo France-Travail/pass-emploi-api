@@ -228,7 +228,7 @@ describe('EmargerSessionMiloCommandHandler', () => {
       // Then
       expect(
         conseillerAuthorizer.autoriserLeConseiller
-      ).to.have.been.calledWithExactly(command.idConseiller, utilisateur, true)
+      ).to.have.been.calledWithExactly(command.idConseiller, utilisateur)
     })
   })
 })

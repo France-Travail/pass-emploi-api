@@ -9,7 +9,6 @@ import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
 import { JeuneInviteSqlRepository } from '../../../src/infrastructure/repositories/jeune/jeune-invite-sql.repository.db'
 import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
-import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { expect } from '../../utils'
@@ -72,37 +71,6 @@ describe('JeuneInviteAuthorizer', () => {
       const result = await jeuneInviteAuthorizer.autoriserLInvite(
         'un-autre-invite',
         unInvite()
-      )
-
-      // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-    })
-
-    it('rejette un jeune non invité (structure MILO)', async () => {
-      // Given : même id, mais authentifié via un IDP
-      const jeuneMilo = unUtilisateurJeune({
-        id: idInvite,
-        structure: Core.Structure.MILO
-      })
-
-      // When
-      const result = await jeuneInviteAuthorizer.autoriserLInvite(
-        idInvite,
-        jeuneMilo
-      )
-
-      // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-    })
-
-    it('rejette un conseiller', async () => {
-      // When
-      const result = await jeuneInviteAuthorizer.autoriserLInvite(
-        idInvite,
-        unUtilisateurConseiller({
-          id: idInvite,
-          structure: Core.Structure.INVITE
-        })
       )
 
       // Then

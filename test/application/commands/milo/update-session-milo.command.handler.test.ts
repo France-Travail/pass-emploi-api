@@ -83,8 +83,7 @@ describe('EnvoyerEmailActivationCommandHandler', () => {
       ).to.have.been.calledWithExactly(
         command.idConseiller,
         command.idJeune,
-        utilisateur,
-        true
+        utilisateur
       )
     })
   })

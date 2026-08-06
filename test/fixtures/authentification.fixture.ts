@@ -1,12 +1,13 @@
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../src/domain/authentification'
 import { Core } from '../../src/domain/core'
-import { profilJeuneDe } from '../../src/domain/profil'
+import { profilConseillerDe, profilJeuneDe } from '../../src/domain/profil'
 import { uneDatetime } from './date.fixture'
 
 export const unUtilisateurConseiller = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
+  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: '1',
     idAuthentification: 'id-authentification-conseiller',
@@ -14,7 +15,8 @@ export const unUtilisateurConseiller = (
     prenom: 'Nils',
     type: Authentification.Type.CONSEILLER,
     email: 'nils.tavernier@passemploi.com',
-    structure: Core.Structure.MILO,
+    structure,
+    profil: profilConseillerDe(structure),
     roles: [],
     dateDerniereConnexion: undefined,
     datePremiereConnexion: uneDatetime().toJSDate(),
@@ -224,6 +226,7 @@ export const unUtilisateurDecode = (): Authentification.Utilisateur => ({
   username: 'a.durant',
   type: Authentification.Type.CONSEILLER,
   structure: Core.Structure.MILO,
+  profil: profilConseillerDe(Core.Structure.MILO),
   roles: []
 })
 
