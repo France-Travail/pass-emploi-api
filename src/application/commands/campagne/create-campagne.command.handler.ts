@@ -7,6 +7,7 @@ import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Campagne, CampagneRepositoryToken } from '../../../domain/campagne'
 import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 import {
   Planificateur,
@@ -25,6 +26,8 @@ export class CreateCampagneCommandHandler extends CommandHandler<
   CreateCampagneCommand,
   Core.Id
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     @Inject(CampagneRepositoryToken)
     private campagneRepository: Campagne.Repository,

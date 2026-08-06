@@ -18,6 +18,7 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../domain/milo/conseiller'
+import { Profil } from '../../domain/profil'
 import { RendezVous } from '../../domain/rendez-vous/rendez-vous'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
@@ -37,6 +38,8 @@ export class TransfererJeunesConseillerCommandHandler extends CommandHandler<
   TransfererJeunesConseillerCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER, Profil.SUPPORT]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private conseillerRepository: Conseiller.Repository,

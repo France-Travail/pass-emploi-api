@@ -9,6 +9,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { AnimationCollectiveRepositoryToken } from '../../domain/rendez-vous/animation-collective'
 import { RendezVous } from '../../domain/rendez-vous/rendez-vous'
 import { RendezVousAuthorizer } from '../authorizers/rendezvous-authorizer'
@@ -23,6 +24,8 @@ export class CloturerAnimationCollectiveCommandHandler extends CommandHandler<
   CloturerAnimationCollectiveCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(AnimationCollectiveRepositoryToken)
     private animationCollectiveRepository: RendezVous.AnimationCollective.Repository,

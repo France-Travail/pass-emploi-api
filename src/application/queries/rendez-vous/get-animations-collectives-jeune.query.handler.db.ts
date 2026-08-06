@@ -3,6 +3,7 @@ import { Result, success } from '../../../building-blocks/types/result'
 import { RendezVousJeuneDetailQueryModel } from '../query-models/rendez-vous.query-model'
 import { Query } from '../../../building-blocks/types/query'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { DateTime } from 'luxon'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
@@ -22,6 +23,13 @@ export class GetAnimationsCollectivesJeuneQueryHandler extends QueryHandler<
   GetAnimationsCollectivesJeuneQuery,
   Result<RendezVousJeuneDetailQueryModel[]>
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetAnimationsCollectivesJeuneQueryHandler')
   }

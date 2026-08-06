@@ -3,6 +3,7 @@ import { ConseillerNonValide } from '../building-blocks/types/domain-error'
 import { failure, Result, success } from '../building-blocks/types/result'
 import { IdService } from '../utils/id-service'
 import { Core } from './core'
+import { Profil } from './profil'
 
 export const AuthentificationRepositoryToken = 'Authentification.Repository'
 
@@ -47,6 +48,7 @@ export namespace Authentification {
     prenom: string
     nom: string
     structure: Core.Structure
+    profil?: Profil
     type: Authentification.Type
     roles: Authentification.Role[]
     email?: string

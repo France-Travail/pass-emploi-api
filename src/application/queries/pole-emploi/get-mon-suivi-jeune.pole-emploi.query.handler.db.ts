@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { GetDemarchesQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from 'src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
-import { Cached, Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
+import { Cached, Query } from '../../../building-blocks/types/query'
 import {
   isFailure,
   Result,
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 
@@ -26,6 +26,12 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
   GetMonSuiviPoleEmploiQuery,
   Result<Cached<MonSuiviPoleEmploiQueryModel>>
 > {
+  readonly profilsAutorises = [
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
@@ -38,11 +44,7 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
     query: GetMonSuiviPoleEmploiQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async handle(

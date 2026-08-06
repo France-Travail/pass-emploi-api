@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { DateService } from 'src/utils/date-service'
 
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Jeune } from '../../domain/jeune/jeune'
 import { FavoriOffreEngagementSqlModel } from '../../infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -19,6 +20,13 @@ export class GetFavorisServiceCiviqueJeuneQueryHandler extends QueryHandler<
   GetFavorisOffresEngagementJeuneQuery,
   FavoriOffreServiceCiviqueQueryModel[]
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetFavorisServiceCiviqueJeuneQueryHandler')
   }

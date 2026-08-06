@@ -4,6 +4,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
 import { RendezVousAuthorizer } from '../../authorizers/rendezvous-authorizer'
@@ -20,6 +21,8 @@ export class GetDetailRendezVousJeuneQueryHandler extends QueryHandler<
   GetDetailRendezVousJeuneQuery,
   Result<RendezVousJeuneDetailQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(private rendezVousAuthorizer: RendezVousAuthorizer) {
     super('GetDetailRendezVousJeuneQueryHandlerQueryHandler')
   }

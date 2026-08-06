@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsArray } from 'class-validator'
+import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
-import { QueryHandler } from '../../building-blocks/types/query-handler'
 import {
   failure,
   isFailure,
@@ -11,6 +11,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DiagorienteClient } from '../../infrastructure/clients/diagoriente-client'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -43,6 +44,13 @@ export class GetDiagorienteMetiersFavorisQueryHandler extends QueryHandler<
   GetDiagorienteMetiersFavorisQuery,
   Result<DiagorienteMetiersFavorisQueryModel>
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly diagorienteClient: DiagorienteClient,

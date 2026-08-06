@@ -4,6 +4,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { estMilo } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 import {
   JeuneMilo,
   JeuneMiloRepositoryToken
@@ -20,6 +21,8 @@ export class GetDossierMiloJeuneQueryHandler extends QueryHandler<
   GetDossierMiloJeuneQuery,
   Result<DossierJeuneMiloQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(JeuneMiloRepositoryToken)
     private miloRepository: JeuneMilo.Repository,

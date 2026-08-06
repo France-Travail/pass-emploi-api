@@ -139,9 +139,10 @@ export class AuthentificationController {
   async postFirebaseToken(
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<ChatSecretsQueryModel> {
-    const queryModel = await this.getChatSecretsQueryHandler.execute({
+    const queryModel = await this.getChatSecretsQueryHandler.execute(
+      { utilisateur },
       utilisateur
-    })
+    )
 
     if (queryModel) {
       return queryModel

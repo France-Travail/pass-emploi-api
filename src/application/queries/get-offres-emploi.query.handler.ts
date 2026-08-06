@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { OffresEmploiQueryModel } from './query-models/offres-emploi.query-model'
@@ -28,6 +29,8 @@ export class GetOffresEmploiQueryHandler extends QueryHandler<
   GetOffresEmploiQuery,
   Result<OffresEmploiQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private findAllOffresEmploiQueryGetter: FindAllOffresEmploiQueryGetter,
     private evenementService: EvenementService

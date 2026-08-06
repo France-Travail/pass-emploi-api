@@ -6,6 +6,7 @@ import {
 } from '../../../src/application/queries/get-notifications-jeune.query.handler.db'
 import { success } from '../../../src/building-blocks/types/result'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { NotificationJeuneSqlModel } from '../../../src/infrastructure/sequelize/models/notification-jeune.sql-model'
@@ -105,6 +106,18 @@ describe('GetNotificationsJeuneQueryHandler', () => {
         idJeune,
         unUtilisateurJeune({ id: idJeune })
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(queryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

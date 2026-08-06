@@ -1,7 +1,8 @@
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 
 import { GetCatalogueDemarchesQueryHandler } from 'src/application/queries/get-catalogue-demarches.query.handler'
-import { Core, estFranceTravail } from '../../../src/domain/core'
+import { Profil } from '../../../src/domain/profil'
+import { Core } from '../../../src/domain/core'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 
@@ -70,11 +71,18 @@ xdescribe('GetCatalogueQueryHandler', () => {
       // Then
       expect(
         jeuneAuthorizer.autoriserLeJeune
-      ).to.have.been.calledOnceWithExactly(
-        utilisateur.id,
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
-      )
+      ).to.have.been.calledOnceWithExactly(utilisateur.id, utilisateur)
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

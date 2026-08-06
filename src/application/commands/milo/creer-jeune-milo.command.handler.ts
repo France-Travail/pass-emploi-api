@@ -14,6 +14,7 @@ import {
   Result,
   success
 } from '../../../building-blocks/types/result'
+import { Profil } from '../../../domain/profil'
 import {
   Authentification,
   AuthentificationRepositoryToken
@@ -50,6 +51,8 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
   CreerJeuneMiloCommand,
   IdentiteJeuneQueryModel
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(JeuneMiloRepositoryToken)

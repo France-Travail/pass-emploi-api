@@ -2,6 +2,7 @@ import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Command } from '../../building-blocks/types/command'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
@@ -20,6 +21,8 @@ export class CreateListeDeDiffusionCommandHandler extends CommandHandler<
   CreateListeDeDiffusionCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(ListeDeDiffusionRepositoryToken)

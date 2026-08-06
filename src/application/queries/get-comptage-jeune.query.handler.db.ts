@@ -10,6 +10,7 @@ import { failure, isFailure, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { estMilo } from '../../domain/core'
 import { Jeune } from '../../domain/jeune/jeune'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -36,6 +37,8 @@ export class GetComptageJeuneQueryHandler extends QueryHandler<
   GetComptageJeuneQuery,
   Result<ComptageJeuneQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
     private conseillerAuthorizer: ConseillerAuthorizer,

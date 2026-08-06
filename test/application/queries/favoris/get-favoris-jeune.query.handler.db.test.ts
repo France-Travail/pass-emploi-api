@@ -25,6 +25,7 @@ import {
   unFavoriOffreImmersion
 } from '../../../fixtures/sql-models/favoris.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
+import { Profil } from '../../../../src/domain/profil'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
 
@@ -463,6 +464,18 @@ describe('GetFavorisJeuneQueryHandler', () => {
           conseillerAgenceAuthorizer.autoriserConseillerPourSonJeuneOuUnJeuneDeSonAgenceMiloAvecPartageFavoris
         ).to.have.been.calledWithExactly('id-jeune', utilisateur)
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getFavorisJeuneQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

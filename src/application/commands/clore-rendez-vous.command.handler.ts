@@ -9,6 +9,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import {
   RendezVous,
   RendezVousRepositoryToken
@@ -25,6 +26,8 @@ export class CloreRendezVousCommandHandler extends CommandHandler<
   CloreRendezVousCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(RendezVousRepositoryToken)
     private rendezVousRepository: RendezVous.Repository,

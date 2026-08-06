@@ -10,6 +10,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -50,6 +51,8 @@ export class CreateRendezVousCommandHandler extends CommandHandler<
   CreateRendezVousCommand,
   string
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(RendezVousRepositoryToken)
     private rendezVousRepository: RendezVous.Repository,

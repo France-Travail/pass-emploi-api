@@ -4,6 +4,7 @@ import { Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { estInvite } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
+import { Profil } from 'src/domain/profil'
 import {
   FormulaireImmersionPayloadV3,
   ImmersionClient
@@ -33,6 +34,14 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
   EnvoyerFormulaireContactImmersionCommandV3,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT,
+    Profil.INVITE
+  ]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,

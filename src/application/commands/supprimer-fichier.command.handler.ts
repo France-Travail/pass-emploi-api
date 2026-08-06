@@ -4,6 +4,7 @@ import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Fichier, FichierRepositoryToken } from '../../domain/fichier'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { FichierAuthorizer } from '../authorizers/fichier-authorizer'
 
 export interface SupprimerFichierCommand extends Command {
@@ -15,6 +16,8 @@ export class SupprimerFichierCommandHandler extends CommandHandler<
   SupprimerFichierCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(FichierRepositoryToken)
     private fichierRepository: Fichier.Repository,

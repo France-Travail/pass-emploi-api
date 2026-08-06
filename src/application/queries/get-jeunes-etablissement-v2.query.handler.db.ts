@@ -4,6 +4,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { Situation } from '../../infrastructure/sequelize/models/situations-milo.sql-model'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
@@ -37,6 +38,8 @@ export class GetJeunesEtablissementV2QueryHandler extends QueryHandler<
   GetJeunesEtablissementV2Query,
   Result<GetJeunesEtablissementV2QueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize

@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { Command } from '../../../building-blocks/types/command'
 import { Result, isFailure } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../../domain/core'
 import { Demarche, DemarcheRepositoryToken } from '../../../domain/demarche'
+import { Profil } from '../../../domain/profil'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { estDemarchePerso } from '../../queries/query-mappers/actions-pole-emploi.mappers'
@@ -27,6 +27,12 @@ export class CreateDemarcheCommandHandler extends CommandHandler<
   CreateDemarcheCommand,
   Demarche
 > {
+  readonly profilsAutorises = [
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
     private evenementService: EvenementService,
@@ -41,11 +47,7 @@ export class CreateDemarcheCommandHandler extends CommandHandler<
     command: CreateDemarcheCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      command.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
   }
 
   async handle(

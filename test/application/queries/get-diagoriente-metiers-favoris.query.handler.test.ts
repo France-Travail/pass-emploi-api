@@ -16,6 +16,7 @@ import {
   MauvaiseCommandeError
 } from '../../../src/building-blocks/types/domain-error'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import { DiagorienteClient } from '../../../src/infrastructure/clients/diagoriente-client'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -269,6 +270,18 @@ describe('GetDiagorienteMetiersFavorisQueryHandler', () => {
           )
         })
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

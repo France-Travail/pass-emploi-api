@@ -18,6 +18,7 @@ import {
 import { Authentification } from '../../../src/domain/authentification'
 import { Chat } from '../../../src/domain/chat'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import {
   unUtilisateurJeune,
   unUtilisateurSupport
@@ -241,6 +242,18 @@ describe('DeleteJeuneCommandHandler', () => {
         Evenement.Code.COMPTE_SUPPRIME,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(deleteJeuneCommandHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

@@ -5,6 +5,7 @@ import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 
 import { FeatureFlip } from '../../../domain/feature-flip'
+import { Profil } from '../../../domain/profil'
 import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { AsSql } from '../../../infrastructure/sequelize/types'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
@@ -21,6 +22,8 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
   UpdateFeatureFlipCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(private supportAuthorizer: SupportAuthorizer) {
     super('UpdateFeatureFlipCommandHandler')
   }

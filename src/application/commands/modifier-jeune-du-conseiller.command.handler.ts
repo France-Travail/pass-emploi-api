@@ -8,6 +8,7 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { beneficiaireEstFTConnect } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
@@ -24,6 +25,8 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
   ModifierJeuneDuConseillerCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,

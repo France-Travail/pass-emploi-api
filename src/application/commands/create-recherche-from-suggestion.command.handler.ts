@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DiagorienteLocation } from 'src/domain/offre/recherche/suggestion/diagoriente'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { Result, failure, isFailure } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { EvenementService } from '../../domain/evenement'
 import {
   Recherche,
@@ -28,6 +29,13 @@ export class CreateRechercheFromSuggestionCommandHandler extends CommandHandler<
   CreateRechercheFromSuggestionCommand,
   Recherche
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private suggestionAuthorizer: SuggestionAuthorizer,
     @Inject(SuggestionsRepositoryToken)

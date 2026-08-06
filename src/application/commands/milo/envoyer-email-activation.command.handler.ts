@@ -4,6 +4,7 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { failure, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { estMilo } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
@@ -25,6 +26,8 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
   EnvoyerEmailActivationCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private conseillerRepository: Conseiller.Repository,

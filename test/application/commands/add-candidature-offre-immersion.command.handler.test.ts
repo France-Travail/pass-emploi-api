@@ -11,6 +11,7 @@ import {
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { failure } from '../../../src/building-blocks/types/result'
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unFavoriOffreImmersion } from '../../fixtures/offre-immersion.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -113,6 +114,20 @@ describe('AddCandidatureOffreImmersionCommandHandler', () => {
         Evenement.Code.OFFRE_IMMERSION_CANDIDATURE_CONFIRMEE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        addCandidatureOffreImmersionCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

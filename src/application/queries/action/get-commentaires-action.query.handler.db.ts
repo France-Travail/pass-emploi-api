@@ -4,6 +4,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { CommentaireSqlModel } from '../../../infrastructure/sequelize/models/commentaire.sql-model'
 import { ActionAuthorizer } from '../../authorizers/action-authorizer'
 import { ConseillerInterAgenceAuthorizer } from '../../authorizers/conseiller-inter-agence-authorizer'
@@ -18,6 +19,8 @@ export class GetCommentairesActionQueryHandler extends QueryHandler<
   GetCommentairesAction,
   Result<CommentaireActionQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private actionAuthorizer: ActionAuthorizer,
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer

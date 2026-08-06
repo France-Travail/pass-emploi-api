@@ -17,6 +17,7 @@ import { uneOffreEmploi } from '../../fixtures/offre-emploi.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import Utilisateur = Authentification.Utilisateur
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 
 describe('AddFavoriOffreEmploiCommandHandler', () => {
   let offresEmploiRepository: StubbedType<Offre.Favori.Emploi.Repository>
@@ -196,6 +197,20 @@ describe('AddFavoriOffreEmploiCommandHandler', () => {
           utilisateur
         )
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(addFavoriOffreEmploiCommandHandler.profilsAutorises).to.deep.equal(
+        [
+          Profil.MILO,
+          Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+          Profil.FT_DEMANDEUR_EMPLOI,
+          Profil.CONSEIL_DEPT
+        ]
+      )
     })
   })
 })

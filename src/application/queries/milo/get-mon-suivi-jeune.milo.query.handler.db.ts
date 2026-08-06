@@ -9,6 +9,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { GetMonSuiviMiloQueryModel } from '../query-models/jeunes.milo.query-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
@@ -26,7 +27,6 @@ import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/ren
 import { fromSqlToRendezVousJeuneQueryModel } from '../query-mappers/rendez-vous-milo.mappers'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from '../query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { buildError } from '../../../utils/logger.module'
-import { estMilo } from '../../../domain/core'
 import { SessionMilo } from '../../../domain/milo/session.milo'
 
 export interface GetMonSuiviMiloQuery extends Query {
@@ -41,6 +41,8 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
   GetMonSuiviMiloQuery,
   Result<GetMonSuiviMiloQueryModel>
 > {
+  readonly profilsAutorises = [Profil.MILO]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly sessionsJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter
@@ -51,11 +53,7 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
     query: GetMonSuiviMiloQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async handle(

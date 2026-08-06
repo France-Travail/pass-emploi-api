@@ -5,6 +5,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, getStructureDeReference } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import Structure = Core.Structure
@@ -21,6 +22,8 @@ export class GetAgencesQueryHandler extends QueryHandler<
   GetAgenceQuery,
   AgenceQueryModel[]
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(private readonly conseillerAuthorizer: ConseillerAuthorizer) {
     super('GetAgencesQueryHandler')
   }

@@ -11,6 +11,7 @@ import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { desPreferencesJeune, unJeune } from '../../fixtures/jeune.fixture'
 import { emptySuccess } from '../../../src/building-blocks/types/result'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
+import { Profil } from '../../../src/domain/profil'
 
 describe('UpdateJeunePreferencesCommandHandler', () => {
   let updateJeunePreferencesCommandHandler: UpdateJeunePreferencesCommandHandler
@@ -130,6 +131,20 @@ describe('UpdateJeunePreferencesCommandHandler', () => {
         Evenement.Code.PREFERENCES_MISES_A_JOUR,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        updateJeunePreferencesCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

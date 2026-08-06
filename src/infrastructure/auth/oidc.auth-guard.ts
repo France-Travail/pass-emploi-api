@@ -10,6 +10,7 @@ import { Request } from 'express'
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
+import { Profil, profilDe } from '../../domain/profil'
 import { rootLogger } from '../../utils/logger.module'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 import {
@@ -105,15 +106,33 @@ export class OidcAuthGuard implements CanActivate {
   private static buildUtilisateur(
     payload: JWTPayload
   ): Authentification.Utilisateur {
+    const type = payload.userType as Authentification.Type
+    const structure = payload.userStructure as Core.Structure
+    const profil = OidcAuthGuard.profilDeLUtilisateur(type, structure)
     return {
       id: payload.userId as string,
       email: payload.email as string,
       nom: payload.family_name as string,
       prenom: payload.given_name as string,
-      type: payload.userType as Authentification.Type,
-      structure: payload.userStructure as Core.Structure,
+      type,
+      structure,
+      profil,
       username: (payload.preferred_username as string) ?? undefined,
       roles: getRoles(payload.userRoles as Authentification.Role[] | undefined)
+    }
+  }
+
+  private static profilDeLUtilisateur(
+    type: Authentification.Type,
+    structure: Core.Structure
+  ): Profil {
+    switch (type) {
+      case Authentification.Type.CONSEILLER:
+        return Profil.CONSEILLER
+      case Authentification.Type.SUPPORT:
+        return Profil.SUPPORT
+      case Authentification.Type.JEUNE:
+        return profilDe(structure)
     }
   }
 

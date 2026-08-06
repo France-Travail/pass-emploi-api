@@ -15,6 +15,7 @@ import {
   Recherche,
   RecherchesRepositoryToken
 } from '../../domain/offre/recherche/recherche'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 
 export interface NotifierNouvellesImmersionsCommand extends Command {
@@ -35,6 +36,8 @@ export class NotifierNouvellesImmersionsCommandHandler extends CommandHandler<
   NotifierNouvellesImmersionsCommand,
   Stats
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(RecherchesRepositoryToken)
     private recherchesRepository: Recherche.Repository,

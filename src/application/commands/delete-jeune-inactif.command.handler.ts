@@ -11,6 +11,7 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
 import {
   Conseiller,
@@ -29,6 +30,8 @@ export class DeleteJeuneInactifCommandHandler extends CommandHandler<
   DeleteJeuneInactifCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private readonly conseillerRepository: Conseiller.Repository,

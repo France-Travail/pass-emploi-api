@@ -11,6 +11,7 @@ import {
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { failure } from '../../../src/building-blocks/types/result'
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneOffreEmploi } from '../../fixtures/offre-emploi.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -165,6 +166,20 @@ describe('AddCandidatureOffreEmploiCommandHandler', () => {
         Evenement.Code.OFFRE_ALTERNANCE_CANDIDATURE_CONFIRMEE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        addCandidatureOffreEmploiCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

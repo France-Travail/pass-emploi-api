@@ -3,6 +3,7 @@ import { GetTokenPoleEmploiQueryHandler } from '../../../src/application/queries
 import { emptySuccess } from '../../../src/building-blocks/types/result'
 import { estFranceTravail } from '../../../src/domain/core'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
 
@@ -65,6 +66,16 @@ describe('GetTokenPoleEmploiQueryHandler', () => {
 
       // Then
       expect(result._isSuccess).to.be.true()
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('exige un profil France Travail (le filtrage AVENIR_PRO reste sur estFranceTravail dans authorize)', () => {
+      // Then
+      expect(getTokenPoleEmploiQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI
+      ])
     })
   })
 })

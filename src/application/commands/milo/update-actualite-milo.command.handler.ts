@@ -3,6 +3,7 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { estMilo } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import {
@@ -30,6 +31,8 @@ export class UpdateActualiteMiloCommandHandler extends CommandHandler<
   UpdateActualiteMiloCommand,
   ActualiteMiloConseillerQueryModel
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(ActualiteMiloRepositoryToken)

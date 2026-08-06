@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DiagorienteClient } from 'src/infrastructure/clients/diagoriente-client'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -10,6 +10,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Core, beneficiaireEstFTConnect } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { SuggestionPoleEmploiService } from '../../domain/offre/recherche/suggestion/pole-emploi.service'
@@ -33,6 +34,13 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
   RafraichirSuggestionsCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,

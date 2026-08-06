@@ -14,6 +14,7 @@ import {
   isFailure,
   success
 } from '../../../building-blocks/types/result'
+import { Profil } from '../../../domain/profil'
 import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
@@ -45,6 +46,8 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
   QualificationActionsMiloQueryModel,
   Action[]
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ActionRepositoryToken)
     private readonly actionRepository: Action.Repository,

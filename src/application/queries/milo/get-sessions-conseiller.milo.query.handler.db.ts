@@ -7,6 +7,7 @@ import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
 import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import {
   ConseillerMilo,
@@ -38,6 +39,7 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
   GetSessionsConseillerMiloQuery,
   Result<SessionConseillerMiloQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
   constructor(
     private readonly configService: ConfigService,
     @Inject(ConseillerMiloRepositoryToken)

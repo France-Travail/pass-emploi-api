@@ -8,6 +8,7 @@ import {
 } from '../../../src/application/commands/update-jeune.command.handler'
 import { emptySuccess } from '../../../src/building-blocks/types/result'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
@@ -65,6 +66,18 @@ describe('UpdateJeuneCommandHandler', () => {
         dateSignatureCGU: DateTime.fromISO(command.dateSignatureCGU!)
       })
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(updateJeuneCommandHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

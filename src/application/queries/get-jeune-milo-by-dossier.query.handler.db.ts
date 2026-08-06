@@ -4,6 +4,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, failure, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { estMilo } from '../../domain/core'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
@@ -18,6 +19,8 @@ export class GetJeuneMiloByDossierQueryHandler extends QueryHandler<
   GetJeuneMiloByDossierQuery,
   Result<JeuneQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(private readonly conseillerAuthorizer: ConseillerAuthorizer) {
     super('GetJeuneMiloByDossierQueryHandler')
   }

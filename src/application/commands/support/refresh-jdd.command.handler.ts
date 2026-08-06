@@ -14,6 +14,7 @@ import { DateService } from '../../../utils/date-service'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 import { AgenceSqlModel } from '../../../infrastructure/sequelize/models/agence.sql-model'
 import { DroitsInsuffisants } from '../../../building-blocks/types/domain-error'
+import { Profil } from '../../../domain/profil'
 import { ID_AGENCE_MILO_JDD } from '../../queries/get-agences.query.handler.db'
 
 export interface RefreshJddCommand {
@@ -26,6 +27,11 @@ export class RefreshJddCommandHandler extends CommandHandler<
   RefreshJddCommand,
   void
 > {
+  // authorize() restreint ensuite au conseiller de l'agence ID_AGENCE_MILO_JDD
+  // ou au support : la restriction de public s'arrête à « support ou
+  // conseiller », le reste est de l'appartenance, pas un profil.
+  readonly profilsAutorises = [Profil.SUPPORT, Profil.CONSEILLER]
+
   constructor(
     private dateService: DateService,
     @Inject(PlanificateurRepositoryToken)

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetFavorisServiceCiviqueJeuneQueryHandler } from '../../../src/application/queries/get-favoris-service-civique-jeune.query.handler.db'
+import { Profil } from '../../../src/domain/profil'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { FavoriOffreEngagementSqlModel } from '../../../src/infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import {
@@ -83,6 +84,20 @@ describe('GetFavorisServiceCiviqueJeuneQueryHandler', () => {
           dateCreation: now.toISO(),
           dateCandidature: now.toISO()
         }
+      ])
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        getFavorisServiceCiviqueJeuneQueryHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
       ])
     })
   })

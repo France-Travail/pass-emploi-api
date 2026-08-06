@@ -13,6 +13,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { EngagementClient } from '../../infrastructure/clients/engagement-client'
 import {
   DetailOffreEngagementDto,
@@ -29,6 +30,8 @@ export class GetDetailOffreServiceCiviqueQueryHandler extends QueryHandler<
   GetDetailOffreServiceCiviqueQuery,
   Result<DetailServiceCiviqueQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private engagementClient: EngagementClient,
     private evenementService: EvenementService

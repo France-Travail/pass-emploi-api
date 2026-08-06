@@ -10,6 +10,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
+import { Profil } from 'src/domain/profil'
 import { Chat, ChatRepositoryToken, MessageRecherche } from 'src/domain/chat'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 
@@ -26,6 +27,8 @@ export class RechercherMessageQueryHandler extends QueryHandler<
   RechercherMessageQuery,
   Result<ResultatsRechercheMessageQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ChatRepositoryToken)
     private chatRepository: Chat.Repository,

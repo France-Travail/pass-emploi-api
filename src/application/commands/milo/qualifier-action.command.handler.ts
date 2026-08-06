@@ -17,6 +17,7 @@ import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 import {
   ActionMilo,
   ActionMiloRepositoryToken
@@ -38,6 +39,8 @@ export class QualifierActionCommandHandler extends CommandHandler<
   QualifierActionCommand,
   QualificationActionQueryModel
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(ActionRepositoryToken)
     private readonly actionRepository: Action.Repository,

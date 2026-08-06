@@ -17,6 +17,7 @@ import {
 import { FavoriExisteDejaError } from '../../../src/building-blocks/types/domain-error'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 
 describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
   let addFavoriOffreServiceCiviqueCommandHandler: AddFavoriOffreServiceCiviqueCommandHandler
@@ -150,6 +151,20 @@ describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
         Evenement.Code.OFFRE_SERVICE_CIVIQUE_CANDIDATURE_CONFIRMEE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        addFavoriOffreServiceCiviqueCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

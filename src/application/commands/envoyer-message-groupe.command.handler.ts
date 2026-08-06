@@ -9,6 +9,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Chat, ChatIndividuel, ChatRepositoryToken } from '../../domain/chat'
 import { Conseiller } from '../../domain/milo/conseiller'
 import {
@@ -39,6 +40,8 @@ export class EnvoyerMessageGroupeCommandHandler extends CommandHandler<
   EnvoyerMessageGroupeCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ChatRepositoryToken)
     private chatRepository: Chat.Repository,

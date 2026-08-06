@@ -3,10 +3,11 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ApiProperty } from '@nestjs/swagger'
 import { firstValueFrom } from 'rxjs'
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import * as CryptoJS from 'crypto-js'
@@ -25,6 +26,12 @@ export class GetCJETokenQueryHandler extends QueryHandler<
   GetCJETokenQuery,
   Result<CJETokenQueryModel>
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
   private apiUrl: string
   private apiKey: string
 

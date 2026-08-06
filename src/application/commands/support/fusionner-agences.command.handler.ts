@@ -13,6 +13,7 @@ import {
 } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
 
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface FusionnerAgencesCommand extends Command {
@@ -25,6 +26,8 @@ export class FusionnerAgencesCommandHandler extends CommandHandler<
   FusionnerAgencesCommand,
   ChangementAgenceQueryModel[]
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     private readonly agenceService: Agence.Service,
     private readonly supportAuthorizer: SupportAuthorizer,

@@ -14,6 +14,7 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core } from '../../domain/core'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
 import { rootLogger } from '../../utils/logger.module'
@@ -35,6 +36,8 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
   UpdateUtilisateurInviteCommand,
   UtilisateurQueryModel
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,

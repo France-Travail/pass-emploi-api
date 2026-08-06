@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { NotificationJeuneSqlModel } from '../../infrastructure/sequelize/models/notification-jeune.sql-model'
 
@@ -36,6 +37,13 @@ export class GetNotificationsJeuneQueryHandler extends QueryHandler<
   GetNotificationsJeuneQuery,
   Result<NotificationJeuneQueryModel[]>
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(private readonly jeuneAuthorizer: JeuneAuthorizer) {
     super('GetNotificationsJeuneQueryHandler')
   }

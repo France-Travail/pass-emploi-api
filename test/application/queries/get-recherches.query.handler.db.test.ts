@@ -3,6 +3,7 @@ import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-auth
 import { GetRecherchesQueryHandler } from '../../../src/application/queries/get-recherches.query.handler.db'
 import { Core } from '../../../src/domain/core'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
+import { Profil } from '../../../src/domain/profil'
 import { RechercheSqlRepository } from '../../../src/infrastructure/repositories/offre/recherche/recherche-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -120,6 +121,18 @@ describe('GetRecherchesQueryHandler', () => {
           geometrieNice
         )
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getRecherchesQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

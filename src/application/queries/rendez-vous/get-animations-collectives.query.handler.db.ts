@@ -5,6 +5,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
 import { ConseillerInterAgenceAuthorizer } from '../../authorizers/conseiller-inter-agence-authorizer'
@@ -26,6 +27,8 @@ export class GetAnimationsCollectivesQueryHandler extends QueryHandler<
   GetAnimationsCollectivesQuery,
   Result<AnimationCollectiveQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer,
     private dateService: DateService

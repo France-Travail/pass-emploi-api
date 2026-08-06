@@ -30,6 +30,7 @@ import { unDetailJeuneQueryModel } from '../../fixtures/query-models/jeunes.quer
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import { ConseillerInterAgenceAuthorizer } from '../../../src/application/authorizers/conseiller-inter-agence-authorizer'
+import { Profil } from '../../../src/domain/profil'
 
 describe('GetDetailJeuneQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -446,6 +447,18 @@ describe('GetDetailJeuneQueryHandler', () => {
         query.idJeune,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getDetailJeuneQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

@@ -10,6 +10,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Mail, MailServiceToken } from '../../domain/mail'
 
@@ -36,6 +37,13 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
   DeleteJeuneCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,

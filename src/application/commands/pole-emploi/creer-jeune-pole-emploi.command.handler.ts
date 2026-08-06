@@ -8,6 +8,7 @@ import {
 } from '../../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
 import { beneficiaireEstFTConnect, Core } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
@@ -29,6 +30,8 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   CreateJeuneCommand,
   Jeune
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
@@ -112,6 +115,7 @@ function fromStructureFTToDispositif(
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return Jeune.Dispositif.EQUIP_EMPLOI_RECRUT
     case Core.Structure.MILO:
+    case Core.Structure.FT_ESPACE_CANDIDAT:
     case Core.Structure.INVITE:
       throw new RuntimeException()
   }

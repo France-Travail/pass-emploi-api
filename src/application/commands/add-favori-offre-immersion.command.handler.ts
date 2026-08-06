@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateService } from 'src/utils/date-service'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { FavorisOffresImmersionRepositoryToken } from '../../domain/offre/favori/offre-immersion'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { FavoriExisteDejaError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -11,6 +11,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Offre } from '../../domain/offre/offre'
 
@@ -25,6 +26,13 @@ export class AddFavoriOffreImmersionCommandHandler extends CommandHandler<
   AddFavoriOffreImmersionCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(FavorisOffresImmersionRepositoryToken)
     private offresImmersionRepository: Offre.Favori.Immersion.Repository,

@@ -3,8 +3,9 @@ import { DateService } from 'src/utils/date-service'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
-import { FeedbackSqlModel } from '../../infrastructure/sequelize/models/feedback.sql-model'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { FeedbackSqlModel } from '../../infrastructure/sequelize/models/feedback.sql-model'
 
 export interface CreateFeedbackCommand extends Command {
   tag: string
@@ -17,6 +18,8 @@ export class CreateFeedbackCommandHandler extends CommandHandler<
   CreateFeedbackCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(private readonly dateService: DateService) {
     super('CreateFeedbackCommandHandler')
   }

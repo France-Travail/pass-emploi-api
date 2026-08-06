@@ -11,6 +11,7 @@ import {
   getDatabase
 } from 'test/utils/database-for-testing'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
+import { Profil } from '../../../src/domain/profil'
 import { GetCampagneQueryGetter } from '../../../src/application/queries/query-getters/get-campagne.query.getter.db'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneCampagneQueryModel } from '../../fixtures/campagne.fixture'
@@ -108,6 +109,18 @@ describe('GetJeuneHomeActionsQueryHandler', () => {
         idBeneficiaire,
         unUtilisateurJeune()
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getJeuneHomeActionsQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

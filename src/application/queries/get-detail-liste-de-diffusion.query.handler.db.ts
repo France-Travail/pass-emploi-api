@@ -5,6 +5,7 @@ import { Query } from '../../building-blocks/types/query'
 import { ListeDeDiffusionQueryModel } from './query-models/liste-de-diffusion.query-model'
 import { ListeDeDiffusionAuthorizer } from '../authorizers/liste-de-diffusion-authorizer'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { ListeDeDiffusionSqlModel } from '../../infrastructure/sequelize/models/liste-de-diffusion.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { fromSqlToListeDeDiffusionQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
@@ -19,6 +20,8 @@ export class GetDetailListeDeDiffusionQueryHandler extends QueryHandler<
   GetDetailListeDeDiffusionQuery,
   Result<ListeDeDiffusionQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(private listeDiffusionAuthorizer: ListeDeDiffusionAuthorizer) {
     super('GetDetailListeDeDiffusionQueryHandler')
   }

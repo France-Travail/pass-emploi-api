@@ -11,6 +11,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { ActionSqlModel } from '../../infrastructure/sequelize/models/action.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../infrastructure/sequelize/models/rendez-vous.sql-model'
@@ -32,6 +33,8 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
   GetIndicateursPourConseillerQuery,
   Result<IndicateursPourConseillerQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private readonly dateService: DateService,
     private readonly getSessionsJeuneMiloQueryGetter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,

@@ -6,6 +6,7 @@ import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-auth
 import { GetCJETokenQueryHandler } from '../../../src/application/queries/get-cje-token.query.handler'
 import { success } from '../../../src/building-blocks/types/result'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
@@ -55,6 +56,18 @@ describe('GetCJETokenQueryHandler', () => {
         // Then
         expect(result).to.deep.equal(success({ widgetToken: 'eyTok' }))
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

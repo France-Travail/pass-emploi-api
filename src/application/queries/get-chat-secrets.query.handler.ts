@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { Authentification } from '../../domain/authentification'
-import { Query } from '../../building-blocks/types/query'
+import { Profil } from '../../domain/profil'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import { ChatSecretsQueryModel } from './query-models/authentification.query-model'
 import { FirebaseClient } from '../../infrastructure/clients/firebase-client'
 import { ConfigService } from '@nestjs/config'
@@ -16,6 +17,13 @@ export class GetChatSecretsQueryHandler extends QueryHandler<
   GetChatSecretsQuery,
   ChatSecretsQueryModel | undefined
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private firebaseClient: FirebaseClient,
     private configService: ConfigService

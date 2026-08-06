@@ -4,6 +4,7 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { SuiviPeCejSqlModel } from '../../../infrastructure/sequelize/models/suivi-pe-cej.sql-model'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
@@ -16,6 +17,8 @@ export class MettreAJourLesJeunesCejPeCommandHandler extends CommandHandler<
   MettreAJourLesJeunesCEJPoleEmploiCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(private supportAuthorizer: SupportAuthorizer) {
     super('MettreAJourLesJeunesCejPeCommandHandler')
   }

@@ -12,7 +12,7 @@ import {
   isSuccess,
   success
 } from '../../../../src/building-blocks/types/result'
-import { estFranceTravail } from '../../../../src/domain/core'
+import { Profil } from '../../../../src/domain/profil'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
@@ -142,9 +142,19 @@ describe('UpdateDemarcheCommandHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         command.idJeune,
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(updateDemarcheCommandHandler.profilsAutorises).to.deep.equal([
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 

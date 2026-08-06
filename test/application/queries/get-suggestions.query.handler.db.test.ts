@@ -10,6 +10,7 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { getDatabase } from '../../utils/database-for-testing'
 import { Suggestion } from 'src/domain/offre/recherche/suggestion/suggestion'
@@ -302,6 +303,18 @@ describe('GetSuggestionsQueryHandler', () => {
         'idJeune',
         unUtilisateurJeune()
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(queryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

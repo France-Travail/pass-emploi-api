@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetFavorisOffresImmersionJeuneQueryHandler } from '../../../src/application/queries/get-favoris-offres-immersion-jeune.query.handler.db'
 import { FavoriOffreImmersionQueryModel } from '../../../src/application/queries/query-models/offres-immersion.query-model'
+import { Profil } from '../../../src/domain/profil'
 import { FavorisOffresImmersionSqlRepository } from '../../../src/infrastructure/repositories/offre/offre-immersion-http-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -75,6 +76,20 @@ describe('GetFavorisOffresImmersionJeuneQueryHandler', () => {
         idJeune,
         unUtilisateurJeune()
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        getFavorisOffresImmersionJeuneQueryHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

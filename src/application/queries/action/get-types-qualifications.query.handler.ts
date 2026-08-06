@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 import { Qualification } from '../../../domain/action/qualification'
 import { TypeQualificationQueryModel } from '../query-models/actions.query-model'
 
@@ -10,6 +11,8 @@ export class GetTypesQualificationsQueryHandler extends QueryHandler<
   Query,
   TypeQualificationQueryModel[]
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor() {
     super('GetTypesQualificationsQueryHandler')
   }

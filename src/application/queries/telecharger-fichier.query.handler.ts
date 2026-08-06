@@ -16,6 +16,7 @@ import {
   FichierMetadata,
   FichierRepositoryToken
 } from '../../domain/fichier'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { FichierAuthorizer } from '../authorizers/fichier-authorizer'
 
 export interface TelechargerFichierQuery extends Query {
@@ -29,6 +30,8 @@ export class TelechargerFichierQueryHandler extends QueryHandler<
   TelechargerFichierQuery,
   Result<TelechargerFichierQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(FichierRepositoryToken)
     private fichierRepository: Fichier.Repository,

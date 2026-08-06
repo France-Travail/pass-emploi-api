@@ -27,6 +27,7 @@ import {
   SessionMiloBeneficiaire,
   SessionMiloRepositoryToken
 } from 'src/domain/milo/session.milo'
+import { Profil } from 'src/domain/profil'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
 import { DateService } from 'src/utils/date-service'
 
@@ -46,6 +47,8 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
   void,
   JeuneMilo
 > {
+  readonly profilsAutorises = [Profil.MILO]
+
   constructor(
     @Inject(JeuneMiloRepositoryToken)
     private readonly beneficiaireMiloRepository: JeuneMilo.Repository,

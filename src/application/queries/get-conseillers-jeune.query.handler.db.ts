@@ -4,6 +4,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { TransfertConseillerSqlModel } from '../../infrastructure/sequelize/models/transfert-conseiller.sql-model'
@@ -19,6 +20,8 @@ export class GetConseillersJeuneQueryHandler extends QueryHandler<
   GetConseillersJeuneQuery,
   Result<HistoriqueConseillerJeuneQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
   ) {

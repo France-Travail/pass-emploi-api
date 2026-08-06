@@ -3,6 +3,7 @@ import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Migration } from '../../domain/migration'
+import { Profil } from '../../domain/profil'
 import { SupportAuthorizer } from '../authorizers/support-authorizer'
 import PhaseDeMigration = Migration.PhaseDeMigration
 
@@ -15,6 +16,8 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   RebasculerJeunesOrphelinsMigrationCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     private readonly migrationService: Migration.Service,
     private readonly authorizeSupport: SupportAuthorizer

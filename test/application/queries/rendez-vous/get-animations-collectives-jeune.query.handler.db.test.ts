@@ -17,6 +17,7 @@ import { uneAgenceDto } from '../../../fixtures/sql-models/agence.sql-model'
 import { AgenceSqlModel } from '../../../../src/infrastructure/sequelize/models/agence.sql-model'
 import { RendezVousJeuneDetailQueryModel } from '../../../../src/application/queries/query-models/rendez-vous.query-model'
 import { RendezVousJeuneAssociationSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
+import { Profil } from '../../../../src/domain/profil'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import { getDatabase } from '../../../utils/database-for-testing'
 
@@ -251,6 +252,20 @@ describe('GetAnimationsCollectivesJeuneQueryHandler', () => {
         // Then
         expect(isSuccess(result) && result.data).to.deep.equal([])
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        getAnimationsCollectivesJeuneQueryHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

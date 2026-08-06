@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
-import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { Command } from '../../../building-blocks/types/command'
 import {
   Result,
   isFailure,
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../../domain/core'
 import { PoleEmploiClient } from '../../../infrastructure/clients/pole-emploi-client'
+import { Profil } from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 
@@ -32,6 +32,12 @@ export class GenerateDemarchesIACommandHandler extends CommandHandler<
   GenerateDemarchesIACommand,
   DemarcheIAQueryModel[]
 > {
+  readonly profilsAutorises = [
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
     private readonly poleEmploiClient: PoleEmploiClient,
@@ -44,11 +50,7 @@ export class GenerateDemarchesIACommandHandler extends CommandHandler<
     command: GenerateDemarchesIACommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      command.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
   }
 
   async handle(

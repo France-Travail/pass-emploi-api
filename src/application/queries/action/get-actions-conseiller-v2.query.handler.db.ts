@@ -6,6 +6,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { Result, success } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
+import { Profil } from 'src/domain/profil'
 import { Qualification } from 'src/domain/action/qualification'
 import { Authentification } from 'src/domain/authentification'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
@@ -34,6 +35,8 @@ export class GetActionsConseillerV2QueryHandler extends QueryHandler<
   GetActionsConseillerV2Query,
   Result<GetActionsConseillerV2QueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(private conseillerAuthorizer: ConseillerAuthorizer) {
     super('GetActionsDuConseillerAQualifierQueryHandler')
   }

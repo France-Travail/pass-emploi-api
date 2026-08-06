@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import { Op } from 'sequelize'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
+import { Profil } from '../../domain/profil'
 import {
   emptySuccess,
   failure,
@@ -48,6 +49,8 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
   GetComptageJeunesByConseillerQuery,
   Result<ComptageJeunesQueryModel>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private readonly conseillersRepository: Conseiller.Repository,

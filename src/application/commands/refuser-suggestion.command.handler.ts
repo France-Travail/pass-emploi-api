@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import {
   Result,
@@ -9,6 +9,7 @@ import {
   isFailure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { EvenementService } from '../../domain/evenement'
 import {
   Suggestion,
@@ -26,6 +27,13 @@ export class RefuserSuggestionCommandHandler extends CommandHandler<
   RefuserSuggestionCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     private suggestionAuthorizer: SuggestionAuthorizer,
     @Inject(SuggestionsRepositoryToken)

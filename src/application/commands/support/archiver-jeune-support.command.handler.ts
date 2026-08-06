@@ -5,6 +5,7 @@ import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { Authentification } from '../../../domain/authentification'
 
 import { Jeune } from '../../../domain/jeune/jeune'
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 const COMMENTAIRE_SUPPRESSION_SUPPORT =
@@ -19,6 +20,8 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
   ArchiverJeuneSupportCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     private authorizeSupport: SupportAuthorizer,
     private readonly archiverJeuneService: ArchiveJeune.Service

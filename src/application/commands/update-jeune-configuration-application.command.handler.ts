@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -14,6 +14,7 @@ import {
   JeuneConfigurationApplicationRepositoryToken
 } from '../../domain/jeune/jeune'
 import { JeuneInviteConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune-invite'
+import { Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
@@ -32,6 +33,14 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
   UpdateJeuneConfigurationApplicationCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT,
+    Profil.INVITE
+  ]
+
   constructor(
     @Inject(JeuneConfigurationApplicationRepositoryToken)
     private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,

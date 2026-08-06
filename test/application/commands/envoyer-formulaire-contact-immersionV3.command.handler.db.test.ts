@@ -12,6 +12,7 @@ import {
 } from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
 import { PartenaireImmersion } from '../../../src/infrastructure/repositories/dto/immersion.dto'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
+import { Profil } from '../../../src/domain/profil'
 import ContactMode = PartenaireImmersion.ContactMode
 
 describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
@@ -215,6 +216,21 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
         Evenement.Code.OFFRE_IMMERSION_ENVOI_FORMULAIRE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        envoyerFormulaireContactImmersionCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT,
+        Profil.INVITE
+      ])
     })
   })
 })

@@ -8,6 +8,7 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
 import { estMilo } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import {
@@ -41,6 +42,8 @@ export class CreateActualiteMiloCommandHandler extends CommandHandler<
   CreateActualiteMiloCommand,
   ActualiteMiloConseillerQueryModel
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(ActualiteMiloRepositoryToken)

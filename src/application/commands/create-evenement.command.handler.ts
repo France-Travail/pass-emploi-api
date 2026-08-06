@@ -10,6 +10,7 @@ import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 
 export interface CreateEvenementCommand extends Command {
   type: Evenement.Code
@@ -25,6 +26,8 @@ export class CreateEvenementCommandHandler extends CommandHandler<
   CreateEvenementCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(private evenementService: EvenementService) {
     super('CreateEvenementCommandHandler')
   }

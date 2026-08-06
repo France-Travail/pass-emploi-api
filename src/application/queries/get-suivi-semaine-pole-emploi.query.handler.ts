@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from 'src/utils/date-service'
+import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Cached, Query } from '../../building-blocks/types/query'
-import { QueryHandler } from '../../building-blocks/types/query-handler'
 import {
   failure,
   isFailure,
@@ -11,9 +11,9 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../domain/core'
 import { Demarche } from '../../domain/demarche'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
+import { Profil } from '../../domain/profil'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
@@ -31,6 +31,12 @@ export class GetSuiviSemainePoleEmploiQueryHandler extends QueryHandler<
   GetSuiviSemainePoleEmploiQuery,
   Result<Cached<SuiviSemainePoleEmploiQueryModel>>
 > {
+  readonly profilsAutorises = [
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,
@@ -118,11 +124,7 @@ export class GetSuiviSemainePoleEmploiQueryHandler extends QueryHandler<
     query: GetSuiviSemainePoleEmploiQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {

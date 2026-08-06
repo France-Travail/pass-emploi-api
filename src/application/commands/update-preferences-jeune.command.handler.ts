@@ -8,6 +8,7 @@ import {
 } from '../../building-blocks/types/result'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Evenement, EvenementService } from '../../domain/evenement'
@@ -28,6 +29,13 @@ export class UpdateJeunePreferencesCommandHandler extends CommandHandler<
   UpdateJeunePreferencesCommand,
   void
 > {
+  readonly profilsAutorises = [
+    Profil.MILO,
+    Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.FT_DEMANDEUR_EMPLOI,
+    Profil.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,

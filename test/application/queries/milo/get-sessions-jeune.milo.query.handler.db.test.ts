@@ -20,6 +20,7 @@ import { uneSessionJeuneMiloQueryModel } from 'test/fixtures/sessions.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { ConseillerInterStructureMiloAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-structure-milo-authorizer'
 import { Authentification } from '../../../../src/domain/authentification'
+import { Profil } from '../../../../src/domain/profil'
 import { Core } from '../../../../src/domain/core'
 import { SessionMilo } from '../../../../src/domain/milo/session.milo'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -77,8 +78,7 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
 
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         'idJeune',
-        utilisateur,
-        true
+        utilisateur
       )
     })
 
@@ -90,6 +90,15 @@ describe('GetSessionsJeuneMiloQueryHandler', () => {
       expect(
         conseillerAuthorizer.autoriserConseillerAvecLaMemeStructureQueLeJeune
       ).to.have.been.calledWithExactly('idJeune', utilisateurConseiller)
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('exige le profil MILO', () => {
+      // Then
+      expect(getSessionsQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.MILO
+      ])
     })
   })
 

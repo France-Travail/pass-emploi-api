@@ -16,6 +16,7 @@ import {
 import { Action } from 'src/domain/action/action'
 import { Core } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
+import { Profil } from 'src/domain/profil'
 import {
   ActionDto,
   ActionSqlModel
@@ -442,6 +443,18 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
           conseillerAgenceAuthorizer.autoriserConseillerPourSonJeuneOuUnJeuneDeSonAgenceMilo
         ).to.have.been.calledWithExactly(jeune.id, utilisateur)
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.MILO,
+        Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.FT_DEMANDEUR_EMPLOI,
+        Profil.CONSEIL_DEPT
+      ])
     })
   })
 })

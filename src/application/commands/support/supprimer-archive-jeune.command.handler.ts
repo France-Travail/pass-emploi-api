@@ -12,6 +12,7 @@ import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
 } from '../../../domain/archive-jeune'
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface SupprimerArchiveJeuneCommand extends Command {
@@ -23,6 +24,8 @@ export class SupprimerArchiveJeuneCommandHandler extends CommandHandler<
   SupprimerArchiveJeuneCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     @Inject(ArchiveJeuneRepositoryToken)
     private readonly archiveJeuneRepository: ArchiveJeune.Repository,

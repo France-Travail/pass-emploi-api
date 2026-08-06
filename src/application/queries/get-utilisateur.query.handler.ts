@@ -13,6 +13,7 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core } from '../../domain/core'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import {
   UtilisateurQueryModel,
   queryModelFromUtilisateur
@@ -29,6 +30,8 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
   GetUtilisateurQuery,
   Result<UtilisateurQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository

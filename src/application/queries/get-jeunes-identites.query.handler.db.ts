@@ -3,6 +3,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { IdentiteJeuneQueryModel } from './query-models/jeunes.query-model'
@@ -17,6 +18,8 @@ export class GetJeunesIdentitesQueryHandler extends QueryHandler<
   GetJeunesIdentitesQuery,
   Result<IdentiteJeuneQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(private readonly conseillerAuthorizer: ConseillerAuthorizer) {
     super('GetJeunesIdentitesQueryHandler')
   }

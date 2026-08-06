@@ -7,6 +7,7 @@ import {
   Result
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
+import { Profil } from 'src/domain/profil'
 import { estMilo } from 'src/domain/core'
 import {
   SessionMilo,
@@ -30,6 +31,8 @@ export class EmargerSessionMiloCommandHandler extends CommandHandler<
   EmargerSessionMiloCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
     private conseillerMiloRepository: Conseiller.Milo.Repository,

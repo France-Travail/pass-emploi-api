@@ -9,6 +9,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -25,6 +26,8 @@ export class RecupererJeunesDuConseillerCommandHandler extends CommandHandler<
   RecupererJeunesDuConseillerCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private conseillerRepository: Conseiller.Repository,

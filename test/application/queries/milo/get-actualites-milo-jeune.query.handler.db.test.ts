@@ -21,6 +21,7 @@ import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { DateService } from '../../../../src/utils/date-service'
+import { Profil } from '../../../../src/domain/profil'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
@@ -243,6 +244,20 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       expect(result.actualites).to.have.lengthOf(1)
       expect(result.actualites[0]).not.to.have.property('id')
       expect(result.actualites[0]).not.to.have.property('proprietaire')
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getActualitesMiloJeuneQueryHandler.profilsAutorises).to.deep.equal(
+        [
+          Profil.MILO,
+          Profil.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+          Profil.FT_DEMANDEUR_EMPLOI,
+          Profil.CONSEIL_DEPT
+        ]
+      )
     })
   })
 })

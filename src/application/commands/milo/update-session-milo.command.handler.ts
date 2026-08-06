@@ -7,6 +7,7 @@ import {
   Result
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
+import { Profil } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import { estMilo } from 'src/domain/core'
 import { ConseillerMiloRepositoryToken } from 'src/domain/milo/conseiller.milo.db'
@@ -37,6 +38,8 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
   UpdateSessionMiloCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.CONSEILLER]
+
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
     private conseillerMiloRepository: Conseiller.Milo.Repository,

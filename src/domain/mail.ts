@@ -103,9 +103,10 @@ export namespace Mail {
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
             return parseInt(this.templates.suppressionBeneficiairePassEmploi)
+          case Core.Structure.FT_ESPACE_CANDIDAT:
           case Core.Structure.INVITE:
             throw new Error(
-              `Le jeune ${jeune.id} est un invité : pas de mail de suppression`
+              `Le jeune ${jeune.id} n'est pas un bénéficiaire accompagné : pas de mail de suppression`
             )
         }
       })()

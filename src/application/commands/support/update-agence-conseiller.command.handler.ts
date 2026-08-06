@@ -5,6 +5,7 @@ import { Result } from '../../../building-blocks/types/result'
 import { Agence, ChangementAgenceQueryModel } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
 
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface UpdateAgenceConseillerCommand extends Command {
@@ -17,6 +18,8 @@ export class UpdateAgenceConseillerCommandHandler extends CommandHandler<
   UpdateAgenceConseillerCommand,
   ChangementAgenceQueryModel
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     private readonly agenceService: Agence.Service,
     private readonly supportAuthorizer: SupportAuthorizer

@@ -166,9 +166,10 @@ export class MailBrevoService
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
             return Number.parseInt(this.templates.compteJeuneArchivePEBRSA)
+          case Core.Structure.FT_ESPACE_CANDIDAT:
           case Core.Structure.INVITE:
             throw new Error(
-              `Le jeune ${jeune.id} est un invité : pas de mail d'archivage`
+              `Le jeune ${jeune.id} n'est pas un bénéficiaire accompagné : pas de mail d'archivage`
             )
         }
       })()

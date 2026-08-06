@@ -7,6 +7,7 @@ import {
   Superviseur,
   SuperviseursRepositoryToken
 } from '../../../domain/superviseur'
+import { Profil } from '../../../domain/profil'
 import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface DeleteSuperviseursCommand extends Command {
@@ -18,6 +19,8 @@ export class DeleteSuperviseursCommandHandler extends CommandHandler<
   DeleteSuperviseursCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.SUPPORT]
+
   constructor(
     @Inject(SuperviseursRepositoryToken)
     private readonly superviseurRepository: Superviseur.Repository,
