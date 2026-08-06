@@ -11,7 +11,10 @@ import {
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from 'src/domain/profil'
+import {
+  PROFILS_JEUNES_HORS_INVITE,
+  TOUS_LES_CONSEILLERS
+} from 'src/domain/profil'
 import { fromSqlToActionQueryModelWithJeune } from 'src/infrastructure/repositories/mappers/actions.mappers'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -45,7 +48,10 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
   GetJeuneHomeAgendaQuery,
   Result<JeuneHomeAgendaQueryModel>
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = [
+    ...PROFILS_JEUNES_HORS_INVITE,
+    ...TOUS_LES_CONSEILLERS
+  ]
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

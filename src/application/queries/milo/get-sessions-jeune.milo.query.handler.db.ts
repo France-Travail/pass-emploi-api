@@ -29,7 +29,7 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
   GetSessionsJeuneMiloQuery,
   Result<SessionJeuneMiloQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO]
+  readonly profilsAutorises = [Profil.Jeune.MILO, Profil.Conseiller.MILO]
 
   constructor(
     private readonly getSessionsPourLeJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,

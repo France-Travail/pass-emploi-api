@@ -4,7 +4,10 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import {
+  PROFILS_JEUNES_HORS_INVITE,
+  TOUS_LES_CONSEILLERS
+} from '../../domain/profil'
 import { RechercheSqlModel } from '../../infrastructure/sequelize/models/recherche.sql-model'
 import { ConseillerInterAgenceAuthorizer } from '../authorizers/conseiller-inter-agence-authorizer'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -21,7 +24,10 @@ export class GetRecherchesQueryHandler extends QueryHandler<
   GetRecherchesQuery,
   RechercheQueryModel[]
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = [
+    ...PROFILS_JEUNES_HORS_INVITE,
+    ...TOUS_LES_CONSEILLERS
+  ]
 
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
