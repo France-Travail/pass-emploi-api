@@ -11,7 +11,7 @@ import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune } from '../../domain/jeune/jeune'
 import { Migration } from '../../domain/migration'
-import { SupportAuthorizer } from '../authorizers/support-authorizer'
+import { Profil } from '../../domain/profil'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 import PhaseDeMigration = Migration.PhaseDeMigration
 
@@ -34,20 +34,18 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   ArchiverJeunesMigrationCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
+
   constructor(
     private readonly evenementService: EvenementService,
-    private readonly authorizeSupport: SupportAuthorizer,
     private readonly featureFlipService: Migration.Service,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
     super('ArchiverJeuneCommandHandler')
   }
 
-  async authorize(
-    _command: ArchiverJeunesMigrationCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.authorizeSupport.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async handle(command: ArchiverJeunesMigrationCommand): Promise<Result> {

@@ -82,8 +82,7 @@ describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
         conseillerAuthorizer.autoriserLeConseiller
       ).to.have.been.calledWithExactly(
         'idConseiller',
-        unUtilisateurConseiller({ structure: Structure.MILO }),
-        true
+        unUtilisateurConseiller({ structure: Structure.MILO })
       )
     })
   })

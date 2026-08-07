@@ -6,6 +6,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Core, estFranceTravail } from '../../domain/core'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { ConseillerSimpleQueryModel } from './query-models/conseillers.query-model'
@@ -19,6 +20,8 @@ export class GetConseillersQueryHandler extends QueryHandler<
   GetConseillersQuery,
   Result<ConseillerSimpleQueryModel[]>
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,

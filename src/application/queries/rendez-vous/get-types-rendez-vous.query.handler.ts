@@ -8,6 +8,7 @@ import {
 } from '../../../domain/rendez-vous/rendez-vous'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 import { TypeRendezVousQueryModel } from '../query-models/rendez-vous.query-model'
 
 @Injectable()
@@ -15,6 +16,8 @@ export class GetTypesRendezVousQueryHandler extends QueryHandler<
   Query,
   TypeRendezVousQueryModel[]
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor() {
     super('GetTypesRendezvousQueryHandler')
   }

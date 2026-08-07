@@ -4,7 +4,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from 'src/domain/milo/conseiller.milo.db'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -37,6 +37,8 @@ export class GetAgendaSessionsConseillerMiloQueryHandler extends QueryHandler<
   GetAgendaSessionsConseillerMiloQuery,
   Result<AgendaConseillerMiloSessionListItemQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
+
   constructor(
     private miloClient: MiloClient,
     private oidcClient: OidcClient,
@@ -152,8 +154,7 @@ export class GetAgendaSessionsConseillerMiloQueryHandler extends QueryHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       query.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

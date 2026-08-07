@@ -11,7 +11,7 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { failureApi } from '../../../src/building-blocks/types/result-api'
-import { estFranceTravail } from '../../../src/domain/core'
+import { Profil } from '../../../src/domain/profil'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DocumentPoleEmploiDto } from '../../../src/infrastructure/clients/dto/pole-emploi.dto'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -120,11 +120,7 @@ describe('GetCVPoleEmploiQueryHandler', () => {
       // Given
       const utilisateur = unUtilisateurJeune()
       jeuneAuthorizer.autoriserLeJeune
-        .withArgs(
-          query.idJeune,
-          utilisateur,
-          estFranceTravail(utilisateur.structure)
-        )
+        .withArgs(query.idJeune, utilisateur)
         .resolves(emptySuccess())
 
       // When
@@ -135,6 +131,17 @@ describe('GetCVPoleEmploiQueryHandler', () => {
 
       // Then
       expect(result._isSuccess).to.be.true()
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getCVPoleEmploiQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

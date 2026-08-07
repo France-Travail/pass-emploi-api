@@ -3,7 +3,7 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { estMilo } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import {
   ActualiteMilo,
@@ -30,6 +30,8 @@ export class UpdateActualiteMiloCommandHandler extends CommandHandler<
   UpdateActualiteMiloCommand,
   ActualiteMiloConseillerQueryModel
 > {
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
+
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(ActualiteMiloRepositoryToken)
@@ -46,8 +48,7 @@ export class UpdateActualiteMiloCommandHandler extends CommandHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

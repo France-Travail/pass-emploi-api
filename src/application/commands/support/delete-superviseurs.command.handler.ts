@@ -2,12 +2,11 @@ import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { Result, emptySuccess } from '../../../building-blocks/types/result'
-import { Authentification } from '../../../domain/authentification'
 import {
   Superviseur,
   SuperviseursRepositoryToken
 } from '../../../domain/superviseur'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
+import { Profil } from '../../../domain/profil'
 
 export interface DeleteSuperviseursCommand extends Command {
   emails: string[]
@@ -18,10 +17,11 @@ export class DeleteSuperviseursCommandHandler extends CommandHandler<
   DeleteSuperviseursCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
+
   constructor(
     @Inject(SuperviseursRepositoryToken)
-    private readonly superviseurRepository: Superviseur.Repository,
-    private readonly supportAuthorizer: SupportAuthorizer
+    private readonly superviseurRepository: Superviseur.Repository
   ) {
     super('DeleteSuperviseursCommandHandler')
   }
@@ -31,11 +31,8 @@ export class DeleteSuperviseursCommandHandler extends CommandHandler<
     return emptySuccess()
   }
 
-  async authorize(
-    _command: DeleteSuperviseursCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async monitor(): Promise<void> {

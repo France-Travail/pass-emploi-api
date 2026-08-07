@@ -89,8 +89,7 @@ describe('GetSessionsConseillerMiloQueryHandler', () => {
         conseillerAuthorizer.autoriserLeConseiller
       ).to.have.been.calledWithExactly(
         'idConseiller',
-        unUtilisateurConseiller(),
-        true
+        unUtilisateurConseiller()
       )
     })
   })

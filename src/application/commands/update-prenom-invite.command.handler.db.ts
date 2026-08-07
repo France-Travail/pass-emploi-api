@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -8,6 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 
@@ -21,6 +22,8 @@ export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   UpdatePrenomInviteCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.Jeune.INVITE]
+
   constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
     super('UpdatePrenomInviteCommandHandler')
   }

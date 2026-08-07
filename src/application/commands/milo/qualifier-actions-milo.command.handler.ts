@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
-  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
@@ -14,10 +13,10 @@ import {
   isFailure,
   success
 } from '../../../building-blocks/types/result'
+import { Profil } from '../../../domain/profil'
 import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
-import { estMilo } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
@@ -45,6 +44,8 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
   QualificationActionsMiloQueryModel,
   Action[]
 > {
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
+
   constructor(
     @Inject(ActionRepositoryToken)
     private readonly actionRepository: Action.Repository,
@@ -128,17 +129,11 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
     utilisateur: Authentification.Utilisateur,
     actions: Action[]
   ): Promise<Result> {
-    if (
-      Authentification.estConseiller(utilisateur.type) &&
-      estMilo(utilisateur.structure)
-    ) {
-      const idsJeunes = actions.map(action => action.idJeune)
-      return this.conseillerAuthorizer.autoriserConseillerPourSesJeunes(
-        idsJeunes,
-        utilisateur
-      )
-    }
-    return failure(new DroitsInsuffisants())
+    const idsJeunes = actions.map(action => action.idJeune)
+    return this.conseillerAuthorizer.autoriserConseillerPourSesJeunes(
+      idsJeunes,
+      utilisateur
+    )
   }
 
   async monitor(

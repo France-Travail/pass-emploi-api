@@ -1,5 +1,6 @@
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
+import { Profil } from '../../../src/domain/profil'
 import { success } from '../../../src/building-blocks/types/result'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { GetPreferencesJeuneQueryHandler } from '../../../src/application/queries/get-preferences-jeune.query.handler.db'
@@ -85,6 +86,18 @@ describe('GetPreferencesJeuneQueryHandler', () => {
         'idJeune',
         unUtilisateurJeune()
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getPreferencesJeuneQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

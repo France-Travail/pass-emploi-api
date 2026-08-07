@@ -90,7 +90,7 @@ describe('CreateActualiteMiloCommandHandler', () => {
       expect(isSuccess(result)).to.be.true()
       expect(
         conseillerAuthorizer.autoriserLeConseiller
-      ).to.have.been.calledWith(idConseiller, utilisateur, true)
+      ).to.have.been.calledWith(idConseiller, utilisateur)
     })
   })
 

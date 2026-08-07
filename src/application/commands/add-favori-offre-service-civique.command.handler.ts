@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateService } from 'src/utils/date-service'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { FavoriExisteDejaError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -10,6 +10,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { FavorisOffresServiceCiviqueRepositoryToken } from '../../domain/offre/favori/offre-service-civique'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Offre } from '../../domain/offre/offre'
@@ -25,6 +26,8 @@ export class AddFavoriOffreServiceCiviqueCommandHandler extends CommandHandler<
   AddFavoriServiceCiviqueCommand,
   void
 > {
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+
   constructor(
     @Inject(FavorisOffresServiceCiviqueRepositoryToken)
     private offreServiceCiviqueRepository: Offre.Favori.ServiceCivique.Repository,

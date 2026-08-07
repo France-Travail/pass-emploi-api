@@ -19,6 +19,7 @@ import {
   SituationPayload
 } from '../../../src/infrastructure/routes/validation/plan-action.inputs'
 import { rootLogger } from '../../../src/utils/logger.module'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, sinon, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
@@ -268,6 +269,19 @@ describe('GenererPlanActionCommandHandler', () => {
         plan_action_situation: SituationPayload.LYCEE,
         plan_action_goals: [GoalPayload.ALTERNANCE]
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT,
+        Profil.Jeune.INVITE
+      ])
     })
   })
 })

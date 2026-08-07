@@ -6,7 +6,7 @@ import { JeuneHomeDemarcheQueryModel } from '../../../src/application/queries/qu
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 import { Cached } from '../../../src/building-blocks/types/query'
 import { failure, success } from '../../../src/building-blocks/types/result'
-import { estFranceTravail } from '../../../src/domain/core'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneCampagneQueryModel } from '../../fixtures/campagne.fixture'
 import { desDemarchesQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
@@ -111,9 +111,19 @@ describe('GetJeuneHomeDemarchesQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         'idJeune',
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(getJeuneHomeDemarchesQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

@@ -23,6 +23,7 @@ import {
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
 import { Migration } from '../../domain/migration'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { MailServiceToken } from '../../domain/mail'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
@@ -52,6 +53,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   UpdateUtilisateurCommand,
   UtilisateurQueryModel
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(AuthentificationRepositoryToken)
     private readonly authentificationRepository: Authentification.Repository,
@@ -147,6 +150,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.recupererOuCreerUtilisateurConseiller(commandSanitized)
       case 'FRANCE_TRAVAIL':
         return this.recupererUtilisateurConseillerExistant(commandSanitized)
+      case Core.Structure.FT_ESPACE_CANDIDAT:
       case Core.Structure.INVITE:
         return Promise.resolve(
           failure(
@@ -176,6 +180,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         return this.authentificationBeneficiaireFT(commandSanitized)
       case Core.Structure.CONSEIL_DEPT:
       case Core.Structure.AVENIR_PRO:
+      // TODO: inerte tant que `connect` n'émet pas cette structure. C'est
+      // la première ligne à changer pour authentifier l'espace candidat FT.
+      case Core.Structure.FT_ESPACE_CANDIDAT:
       case Core.Structure.INVITE:
         return failure(
           new NonTraitableError(
@@ -501,6 +508,7 @@ function autoriseUtilisateurFTConnectOnly(
     case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return emptySuccess()
+    case Core.Structure.FT_ESPACE_CANDIDAT:
     case Core.Structure.INVITE:
       return failure(
         new NonTraitableError(
@@ -532,6 +540,7 @@ function reasonFromStructure(structure: Core.Structure): NonTraitableReason {
       return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return NonTraitableReason.UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT
+    case Core.Structure.FT_ESPACE_CANDIDAT:
     case Core.Structure.INVITE:
       return NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
   }

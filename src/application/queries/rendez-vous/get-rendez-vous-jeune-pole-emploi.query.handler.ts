@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { DateService } from 'src/utils/date-service'
-import { Cached, Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
+import { Cached, Query } from '../../../building-blocks/types/query'
 import { Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../../domain/core'
 import { Evenement, EvenementService } from '../../../domain/evenement'
+import { Profil } from '../../../domain/profil'
 import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
@@ -22,6 +22,12 @@ export class GetRendezVousJeunePoleEmploiQueryHandler extends QueryHandler<
   GetRendezVousJeunePoleEmploiQuery,
   Result<Cached<RendezVousJeuneQueryModel[]>>
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
+  ]
+
   constructor(
     private getRendezVousJeunePoleEmploiQueryGetter: GetRendezVousJeunePoleEmploiQueryGetter,
     private jeuneAuthorizer: JeuneAuthorizer,
@@ -54,11 +60,7 @@ export class GetRendezVousJeunePoleEmploiQueryHandler extends QueryHandler<
     query: GetRendezVousJeunePoleEmploiQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(

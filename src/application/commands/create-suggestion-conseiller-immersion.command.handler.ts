@@ -8,6 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Recherche } from '../../domain/offre/recherche/recherche'
 import {
@@ -30,6 +31,8 @@ export class CreateSuggestionConseillerImmersionCommandHandler extends CommandHa
   CreateSuggestionConseillerImmersionCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(SuggestionsRepositoryToken)

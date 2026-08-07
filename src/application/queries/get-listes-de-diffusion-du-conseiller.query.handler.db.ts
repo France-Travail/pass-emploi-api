@@ -2,6 +2,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { fromSqlToListeDeDiffusionQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ListeDeDiffusionSqlModel } from '../../infrastructure/sequelize/models/liste-de-diffusion.sql-model'
@@ -18,6 +19,8 @@ export class GetListesDeDiffusionDuConseillerQueryHandler extends QueryHandler<
   GetListesDeDiffusionDuConseillerQuery,
   Result<ListeDeDiffusionQueryModel[]>
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(private readonly authorizer: ConseillerAuthorizer) {
     super('GetListesDeDiffusionDuConseillerQueryHandler')
   }

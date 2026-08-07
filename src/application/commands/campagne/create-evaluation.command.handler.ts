@@ -1,5 +1,5 @@
-import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { Command } from '../../../building-blocks/types/command'
 import { Authentification } from '../../../domain/authentification'
 import {
   emptySuccess,
@@ -8,6 +8,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Campagne, CampagneRepositoryToken } from '../../../domain/campagne'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../../domain/profil'
 import { Inject } from '@nestjs/common'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 
@@ -25,6 +26,8 @@ export class CreateEvaluationCommandHandler extends CommandHandler<
   CreateEvaluationCommand,
   void
 > {
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+
   constructor(
     private campagneFactory: Campagne.Factory,
     @Inject(CampagneRepositoryToken)

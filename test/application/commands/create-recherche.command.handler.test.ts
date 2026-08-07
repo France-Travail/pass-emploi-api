@@ -9,6 +9,7 @@ import {
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -164,6 +165,18 @@ describe('CreateRechercheCommandHandler', () => {
         Evenement.Code.RECHERCHE_SERVICE_CIVIQUE_SAUVEGARDEE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(createRechercheCommandHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

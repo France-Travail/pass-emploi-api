@@ -11,6 +11,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -31,6 +32,8 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
   ModifierConseillerCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private conseillerRepository: Conseiller.Repository,

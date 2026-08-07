@@ -1,9 +1,11 @@
 import { Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import { logHandlerExecuted } from '../../utils/logger.module'
 import { failure, isFailure, isSuccess, Result } from './result'
+import { verifierProfils } from './verifier-profils'
 
 /**
  * Implémente la logique nécessaire à la réalisation de la commande envoyée au système.
@@ -14,6 +16,7 @@ import { failure, isFailure, isSuccess, Result } from './result'
 export abstract class CommandHandler<Command, Data, Aggregat = void> {
   protected logger: Logger
   protected apmService: APM.Agent
+  abstract readonly profilsAutorises: readonly Profil[]
   private commandName: string
 
   constructor(commandName: string) {
@@ -28,6 +31,12 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
   ): Promise<Result<Data>> {
     const startNs = process.hrtime.bigint()
     try {
+      const profilsResult = verifierProfils(this.profilsAutorises, utilisateur)
+      if (isFailure(profilsResult)) {
+        this.logExecution(startNs, profilsResult, command)
+        return profilsResult
+      }
+
       const aggregate = await this.getAggregate(command, utilisateur)
 
       const authorizerResult = await this.authorize(

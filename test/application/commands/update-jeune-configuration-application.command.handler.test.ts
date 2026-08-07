@@ -10,6 +10,7 @@ import {
 } from '../../../src/application/commands/update-jeune-configuration-application.command.handler'
 import { isFailure, isSuccess } from '../../../src/building-blocks/types/result'
 import { DateService } from '../../../src/utils/date-service'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -233,6 +234,21 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
         command.idJeune,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        updateJeuneConfigurationApplicationCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT,
+        Profil.Jeune.INVITE
+      ])
     })
   })
 })

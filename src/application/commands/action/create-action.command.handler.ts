@@ -15,6 +15,7 @@ import { Evenement, EvenementService } from '../../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { PlanificateurService } from '../../../domain/planificateur'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 import { buildError } from '../../../utils/logger.module'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
@@ -37,6 +38,8 @@ export class CreateActionCommandHandler extends CommandHandler<
   CreateActionCommand,
   string
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(ActionRepositoryToken)
     private readonly actionRepository: Action.Repository,

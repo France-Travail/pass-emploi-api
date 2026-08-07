@@ -5,6 +5,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
 import { fromSqlToActionQueryModelWithJeune } from '../../../infrastructure/repositories/mappers/actions.mappers'
 import { ActionSqlModel } from '../../../infrastructure/sequelize/models/action.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
@@ -22,6 +23,8 @@ export class GetActionsJeuneQueryHandler extends QueryHandler<
   GetActionsJeuneQuery,
   Result<ActionQueryModel[]>
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
   ) {

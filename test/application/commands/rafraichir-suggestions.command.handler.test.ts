@@ -18,6 +18,7 @@ import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 import { SuggestionPoleEmploiService } from '../../../src/domain/offre/recherche/suggestion/pole-emploi.service'
 import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { DiagorienteClient } from 'src/infrastructure/clients/diagoriente-client'
 import { Diagoriente } from 'src/domain/offre/recherche/suggestion/diagoriente'
@@ -271,6 +272,18 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         // Then
         expect(result).to.deep.equal(emptySuccess())
       })
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

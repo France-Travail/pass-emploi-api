@@ -11,6 +11,7 @@ import {
 import { Authentification } from '../../domain/authentification'
 import { estInvite } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
+import { Profil } from '../../domain/profil'
 import { PlanActionClient } from '../../infrastructure/clients/plan-action-client'
 import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -31,6 +32,14 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
   GenererPlanActionCommand,
   PlanActionQueryModel
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.MILO,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT,
+    Profil.Jeune.INVITE
+  ]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,

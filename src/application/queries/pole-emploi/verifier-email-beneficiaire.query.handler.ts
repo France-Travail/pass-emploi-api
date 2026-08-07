@@ -1,11 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
-import { Result, success } from '../../../building-blocks/types/result'
-import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../../domain/core'
+import {
+  Result,
+  emptySuccess,
+  success
+} from '../../../building-blocks/types/result'
+import { Profil } from '../../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
-import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 
 export interface VerifierEmailBeneficiaireFTQuery extends Query {
   email: string
@@ -20,10 +22,11 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
   VerifierEmailBeneficiaireFTQuery,
   Result<EmailBeneficiaireFTQueryModel>
 > {
+  readonly profilsAutorises = [Profil.Conseiller.FT]
+
   constructor(
     @Inject(JeuneRepositoryToken)
-    private readonly jeuneRepository: Jeune.Repository,
-    private readonly conseillerAuthorizer: ConseillerAuthorizer
+    private readonly jeuneRepository: Jeune.Repository
   ) {
     super('VerifierEmailBeneficiaireQueryHandler')
   }
@@ -38,14 +41,11 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
     })
   }
 
-  async authorize(
-    _query: VerifierEmailBeneficiaireFTQuery,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.conseillerAuthorizer.autoriserLeConseillerPourTous(
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+  // Aucune appartenance de ressource à vérifier : tout conseiller FT peut
+  // interroger n'importe quel email. `autoriserLeConseillerPourTous`
+  // (supprimée) ne faisait que redire le profil déjà garanti ci-dessus.
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async monitor(): Promise<void> {

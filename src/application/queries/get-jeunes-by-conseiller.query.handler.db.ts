@@ -3,14 +3,15 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { Authentification } from '../../domain/authentification'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import {
   emptySuccess,
   failure,
   Result,
   success
 } from '../../building-blocks/types/result'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -32,6 +33,8 @@ export class GetJeunesByConseillerQueryHandler extends QueryHandler<
   GetJeunesByConseillerQuery,
   Result<DetailJeuneConseillerQueryModel[]>
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
     @Inject(ConseillerRepositoryToken)

@@ -16,6 +16,7 @@ import {
 } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
+import { TOUS_LES_PROFILS } from '../../../domain/profil'
 
 export interface AddCommentaireActionCommand extends Command {
   idAction: string
@@ -27,6 +28,8 @@ export class AddCommentaireActionCommandHandler extends CommandHandler<
   AddCommentaireActionCommand,
   Action.Commentaire
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private actionAuthorizer: ActionAuthorizer,
     @Inject(ActionRepositoryToken)

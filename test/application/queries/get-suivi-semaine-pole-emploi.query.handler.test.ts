@@ -19,7 +19,7 @@ import {
   Result,
   success
 } from '../../../src/building-blocks/types/result'
-import { estFranceTravail } from '../../../src/domain/core'
+import { Profil } from '../../../src/domain/profil'
 import { Demarche } from '../../../src/domain/demarche'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -502,9 +502,19 @@ describe('GetSuiviSemainePoleEmploiQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         query.idJeune,
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

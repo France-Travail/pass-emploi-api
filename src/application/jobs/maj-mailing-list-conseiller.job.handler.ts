@@ -42,7 +42,10 @@ export class MajMailingListConseillerJobHandler extends JobHandler {
     }
 
     const mailingLists: Record<
-      Exclude<Core.Structure, Core.Structure.INVITE>,
+      Exclude<
+        Core.Structure,
+        Core.Structure.INVITE | Core.Structure.FT_ESPACE_CANDIDAT
+      >,
       { id: string }
     > = {
       [Core.Structure.POLE_EMPLOI]: {

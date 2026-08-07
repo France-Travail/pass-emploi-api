@@ -13,6 +13,7 @@ import {
   Result,
   success
 } from '../../../../src/building-blocks/types/result'
+import { Profil } from '../../../../src/domain/profil'
 import { Core } from '../../../../src/domain/core'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
@@ -152,8 +153,19 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
       // Then
       expect(
         jeuneAuthorizer.autoriserLeJeune
-      ).to.have.been.calledOnceWithExactly('id-jeune', utilisateurJeunePE, true)
+      ).to.have.been.calledOnceWithExactly('id-jeune', utilisateurJeunePE)
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

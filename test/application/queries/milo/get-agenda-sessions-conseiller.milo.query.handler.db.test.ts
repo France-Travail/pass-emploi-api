@@ -74,8 +74,7 @@ describe('GetAgendaSessionsConseillerMiloQueryHandler', () => {
         conseillerAuthorizer.autoriserLeConseiller
       ).to.have.been.calledWithExactly(
         'idConseiller',
-        unUtilisateurConseiller(),
-        true
+        unUtilisateurConseiller()
       )
     })
   })

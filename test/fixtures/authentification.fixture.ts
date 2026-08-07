@@ -1,11 +1,13 @@
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../src/domain/authentification'
 import { Core } from '../../src/domain/core'
+import { profilConseillerDe, profilJeuneDe } from '../../src/domain/profil'
 import { uneDatetime } from './date.fixture'
 
 export const unUtilisateurConseiller = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
+  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: '1',
     idAuthentification: 'id-authentification-conseiller',
@@ -13,7 +15,8 @@ export const unUtilisateurConseiller = (
     prenom: 'Nils',
     type: Authentification.Type.CONSEILLER,
     email: 'nils.tavernier@passemploi.com',
-    structure: Core.Structure.MILO,
+    structure,
+    profil: profilConseillerDe(structure),
     roles: [],
     dateDerniereConnexion: undefined,
     datePremiereConnexion: uneDatetime().toJSDate(),
@@ -30,6 +33,7 @@ export const unUtilisateurConseiller = (
 export const unUtilisateurJeune = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
+  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: 'ABCDE',
     idAuthentification: 'id-authentification-jeune',
@@ -37,7 +41,8 @@ export const unUtilisateurJeune = (
     prenom: 'John',
     type: Authentification.Type.JEUNE,
     email: 'john.doe@plop.io',
-    structure: Core.Structure.MILO,
+    structure,
+    profil: profilJeuneDe(structure),
     roles: [],
     dateDerniereConnexion: uneDatetime().toJSDate(),
     datePremiereConnexion: undefined
@@ -53,13 +58,15 @@ export const unUtilisateurJeune = (
 export const unUtilisateurJeunePasConnecte = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
+  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: 'ABCDE',
     nom: 'Doe',
     prenom: 'John',
     type: Authentification.Type.JEUNE,
     email: 'john.doe@plop.io',
-    structure: Core.Structure.MILO,
+    structure,
+    profil: profilJeuneDe(structure),
     roles: [],
     dateDerniereConnexion: undefined,
     datePremiereConnexion: undefined
@@ -219,6 +226,7 @@ export const unUtilisateurDecode = (): Authentification.Utilisateur => ({
   username: 'a.durant',
   type: Authentification.Type.CONSEILLER,
   structure: Core.Structure.MILO,
+  profil: profilConseillerDe(Core.Structure.MILO),
   roles: []
 })
 
@@ -231,6 +239,7 @@ export const unUtilisateurDecodePoleEmploi =
     username: 'a.durant',
     type: Authentification.Type.JEUNE,
     structure: Core.Structure.POLE_EMPLOI,
+    profil: profilJeuneDe(Core.Structure.POLE_EMPLOI),
     roles: []
   })
 

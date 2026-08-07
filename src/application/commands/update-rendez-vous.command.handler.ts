@@ -18,6 +18,7 @@ import {
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Mail, MailServiceToken } from '../../domain/mail'
 import { Notification } from '../../domain/notification/notification'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import {
   PlanificateurService,
   replanifierLesRappelsDeRendezVous
@@ -50,6 +51,8 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
   UpdateRendezVousCommand,
   Core.Id
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     @Inject(RendezVousRepositoryToken)
     private rendezVousRepository: RendezVous.Repository,

@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
-import { Authentification } from '../../../domain/authentification'
 
 import { FeatureFlip } from '../../../domain/feature-flip'
+import { Profil } from '../../../domain/profil'
 import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { AsSql } from '../../../infrastructure/sequelize/types'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
 
 export interface UpdateFeatureFlipCommand extends Command {
   emailsConseillersAjout?: string[]
@@ -21,15 +20,14 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
   UpdateFeatureFlipCommand,
   void
 > {
-  constructor(private supportAuthorizer: SupportAuthorizer) {
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
+
+  constructor() {
     super('UpdateFeatureFlipCommandHandler')
   }
 
-  async authorize(
-    _command: UpdateFeatureFlipCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
   async monitor(): Promise<void> {
     return

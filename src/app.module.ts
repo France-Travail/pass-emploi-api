@@ -46,7 +46,6 @@ import { ListeDeDiffusionAuthorizer } from './application/authorizers/liste-de-d
 import { RechercheAuthorizer } from './application/authorizers/recherche-authorizer'
 import { RendezVousAuthorizer } from './application/authorizers/rendezvous-authorizer'
 import { SuggestionAuthorizer } from './application/authorizers/suggestion-authorizer'
-import { SupportAuthorizer } from './application/authorizers/support-authorizer'
 import { AddCommentaireActionCommandHandler } from './application/commands/action/add-commentaire-action.command.handler'
 import { CreateActionCommandHandler } from './application/commands/action/create-action.command.handler'
 import { DeleteActionCommandHandler } from './application/commands/action/delete-action.command.handler'
@@ -729,7 +728,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     JeuneInviteAuthorizer,
     RechercheAuthorizer,
     RendezVousAuthorizer,
-    SupportAuthorizer,
     SuggestionAuthorizer,
     FavoriOffreServiceCiviqueAuthorizer,
     ConseillerInterAgenceAuthorizer,

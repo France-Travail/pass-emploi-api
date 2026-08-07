@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import {
   emptySuccess,
   failure,
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import {
   Recherche,
   RecherchesRepositoryToken
@@ -28,6 +29,8 @@ export class DeleteRechercheCommandHandler extends CommandHandler<
   DeleteRechercheCommand,
   void
 > {
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+
   constructor(
     @Inject(RecherchesRepositoryToken)
     private readonly rechercheRepository: Recherche.Repository,

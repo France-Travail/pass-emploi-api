@@ -28,6 +28,16 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 
+// `profil` est résolu uniquement dans le guard OIDC depuis le JWT : les
+// mappers SQL ne le posent jamais, contrairement au défaut de la fixture
+// `unUtilisateurJeune`, pensé pour les tests de handlers.
+function sansProfil(
+  utilisateur: Authentification.Utilisateur
+): Authentification.Utilisateur {
+  const { profil: _profil, ...reste } = utilisateur
+  return reste
+}
+
 describe('AuthentificationSqlRepository', () => {
   let repository: AuthentificationSqlOidcRepository
   let oidcClient: StubbedClass<OidcClient>
@@ -64,12 +74,14 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            id: conseillerDtoPE.id,
-            email: conseillerDtoPE.email!,
-            idAuthentification: conseillerDtoPE.idAuthentification,
-            structure: Core.Structure.POLE_EMPLOI
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              id: conseillerDtoPE.id,
+              email: conseillerDtoPE.email!,
+              idAuthentification: conseillerDtoPE.idAuthentification,
+              structure: Core.Structure.POLE_EMPLOI
+            })
+          )
         )
       })
       it("retourne l'utilisateur quand il existe avec role SUPERVISEUR quand c'est un MILO", async () => {
@@ -80,10 +92,12 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            structure: Core.Structure.MILO,
-            roles: [Authentification.Role.SUPERVISEUR]
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              structure: Core.Structure.MILO,
+              roles: [Authentification.Role.SUPERVISEUR]
+            })
+          )
         )
       })
 
@@ -113,13 +127,15 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            id: conseillerDtoPE.id,
-            email: conseillerDtoPE.email!,
-            idAuthentification: conseillerDtoPE.idAuthentification,
-            structure: Core.Structure.POLE_EMPLOI,
-            roles: [Authentification.Role.SUPERVISEUR]
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              id: conseillerDtoPE.id,
+              email: conseillerDtoPE.email!,
+              idAuthentification: conseillerDtoPE.idAuthentification,
+              structure: Core.Structure.POLE_EMPLOI,
+              roles: [Authentification.Role.SUPERVISEUR]
+            })
+          )
         )
       })
     })
@@ -141,13 +157,15 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            id: conseillerDtoPE.id,
-            email: conseillerDtoPE.email!,
-            idAuthentification: conseillerDtoPE.idAuthentification,
-            structure: Core.Structure.POLE_EMPLOI,
-            roles: [Authentification.Role.SUPERVISEUR]
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              id: conseillerDtoPE.id,
+              email: conseillerDtoPE.email!,
+              idAuthentification: conseillerDtoPE.idAuthentification,
+              structure: Core.Structure.POLE_EMPLOI,
+              roles: [Authentification.Role.SUPERVISEUR]
+            })
+          )
         )
       })
     })
@@ -179,7 +197,7 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(
-        unUtilisateurJeune({ datePremiereConnexion: uneDate() })
+        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
       )
     })
 
@@ -293,7 +311,7 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(
-        unUtilisateurJeune({ datePremiereConnexion: uneDate() })
+        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
       )
     })
 
@@ -328,7 +346,7 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(
-        unUtilisateurJeune({ datePremiereConnexion: uneDate() })
+        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
       )
     })
 
@@ -366,7 +384,7 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          unUtilisateurJeune({ datePremiereConnexion: uneDate() })
+          sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
         )
       })
       it("retourne undefined quand l'email n'existe pas", async () => {
@@ -484,10 +502,12 @@ describe('AuthentificationSqlRepository', () => {
         )
 
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            roles: [Authentification.Role.SUPERVISEUR],
-            datePremiereConnexion: uneDate()
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              roles: [Authentification.Role.SUPERVISEUR],
+              datePremiereConnexion: uneDate()
+            })
+          )
         )
       })
     })
@@ -515,10 +535,12 @@ describe('AuthentificationSqlRepository', () => {
           : undefined
 
         expect(utilisateur).to.deep.equal(
-          unUtilisateurConseiller({
-            email: nouvelEmail,
-            roles: [Authentification.Role.SUPERVISEUR]
-          })
+          sansProfil(
+            unUtilisateurConseiller({
+              email: nouvelEmail,
+              roles: [Authentification.Role.SUPERVISEUR]
+            })
+          )
         )
 
         expect(conseiller?.dateCreation).to.deep.equal(dateCreation)

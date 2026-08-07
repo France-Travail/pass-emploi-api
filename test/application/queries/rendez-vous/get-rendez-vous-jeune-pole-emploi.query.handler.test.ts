@@ -10,6 +10,7 @@ import { expect, StubbedClass, stubClass } from '../../../utils'
 import { RendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
+import { Profil } from '../../../../src/domain/profil'
 
 describe('GetRendezVousJeunePoleEmploiQueryHandler', () => {
   let queryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
@@ -147,6 +148,19 @@ describe('GetRendezVousJeunePoleEmploiQueryHandler', () => {
 
       // Then
       expect(evenementService.creer).to.have.callCount(0)
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        getRendezVousJeunePoleEmploiQueryHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

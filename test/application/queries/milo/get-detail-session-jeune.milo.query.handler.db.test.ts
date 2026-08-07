@@ -18,6 +18,7 @@ import {
 } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { AsSql } from 'src/infrastructure/sequelize/types'
+import { Profil } from 'src/domain/profil'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { uneOffreDto, uneSessionDto } from 'test/fixtures/milo-dto.fixture'
@@ -81,9 +82,17 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         query.idJeune,
-        utilisateur,
-        true
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('exige le profil MILO', () => {
+      // Then
+      expect(getDetailSessionQueryHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.MILO
+      ])
     })
   })
 

@@ -21,7 +21,8 @@ import {
   success
 } from '../../../../src/building-blocks/types/result'
 import { Authentification } from '../../../../src/domain/authentification'
-import { Core, estFranceTravail } from '../../../../src/domain/core'
+import { Profil } from '../../../../src/domain/profil'
+import { Core } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Migration } from '../../../../src/domain/migration'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
@@ -384,9 +385,19 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         query.idJeune,
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

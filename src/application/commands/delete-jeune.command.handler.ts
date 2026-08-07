@@ -10,6 +10,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Mail, MailServiceToken } from '../../domain/mail'
 
@@ -18,7 +19,6 @@ import { Core } from '../../domain/core'
 
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
-import { SupportAuthorizer } from '../authorizers/support-authorizer'
 
 export interface DeleteJeuneCommand {
   idJeune: Jeune.Id
@@ -36,6 +36,16 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
   DeleteJeuneCommand,
   void
 > {
+  // Bi-public : suppression par le jeune lui-même ou déclenchée par le
+  // support (cf. authorize()).
+  readonly profilsAutorises = [
+    Profil.Jeune.MILO,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT,
+    Profil.Support.SUPPORT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
@@ -47,8 +57,7 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
     @Inject(MailServiceToken)
     private readonly mailService: Mail.Service,
     private mailFactory: Mail.Factory,
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private supportAuthorizer: SupportAuthorizer
+    private jeuneAuthorizer: JeuneAuthorizer
   ) {
     super('DeleteJeuneCommandHandler')
   }
@@ -60,7 +69,7 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
     if (Authentification.estJeune(utilisateur.type)) {
       return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
     }
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+    return emptySuccess()
   }
 
   async handle(command: DeleteJeuneCommand): Promise<Result> {

@@ -1,14 +1,12 @@
 import { stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   ArchiverJeuneSupportCommand,
   ArchiverJeuneSupportCommandHandler
 } from '../../../../src/application/commands/support/archiver-jeune-support.command.handler'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
-import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
-import { expect, StubbedClass, stubClass } from '../../../utils'
+import { expect, stubClass } from '../../../utils'
 import { DateService } from '../../../../src/utils/date-service'
 import { Mail } from '../../../../src/domain/mail'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
@@ -19,7 +17,6 @@ import Service = ArchiveJeune.Service
 describe('ArchiverJeuneSupportCommandHandler', () => {
   let archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler
   let serviceMock: Service
-  let authorizeSupport: StubbedClass<SupportAuthorizer>
 
   const maintenant = new Date('2022-03-01T03:24:00Z')
 
@@ -46,29 +43,18 @@ describe('ArchiverJeuneSupportCommandHandler', () => {
       archiver: sandbox.stub().resolves(emptySuccess())
     } as unknown as Service
 
-    authorizeSupport = stubClass(SupportAuthorizer)
     archiverJeuneSupportCommandHandler = new ArchiverJeuneSupportCommandHandler(
-      authorizeSupport,
       serviceMock
     )
   })
 
   describe('authorize', () => {
-    it('autorise un membre du support à acceder au handler', () => {
-      // Given
-      const command: ArchiverJeuneSupportCommand = {
-        idJeune: 'idJeune'
-      }
+    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
       // When
-      archiverJeuneSupportCommandHandler.authorize(
-        command,
-        unUtilisateurSupport()
-      )
+      const result = await archiverJeuneSupportCommandHandler.authorize()
 
       // Then
-      expect(authorizeSupport.autoriserSupport).to.have.been.calledWithExactly(
-        unUtilisateurSupport()
-      )
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 

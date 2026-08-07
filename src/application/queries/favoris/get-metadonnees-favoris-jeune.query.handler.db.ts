@@ -4,6 +4,7 @@ import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
 import { Recherche } from '../../../domain/offre/recherche/recherche'
 import { FavoriOffreEmploiSqlModel } from '../../../infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from '../../../infrastructure/sequelize/models/favori-offre-engagement.sql-model'
@@ -22,6 +23,8 @@ export class GetMetadonneesFavorisJeuneQueryHandler extends QueryHandler<
   GetMetadonneesFavorisJeuneQuery,
   Result<MetadonneesFavorisQueryModel>
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     private conseillerAgenceAuthorizer: ConseillerInterAgenceAuthorizer
   ) {

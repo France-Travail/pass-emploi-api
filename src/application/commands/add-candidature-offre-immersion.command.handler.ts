@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { DateService } from 'src/utils/date-service'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -10,6 +10,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { FavorisOffresImmersionRepositoryToken } from '../../domain/offre/favori/offre-immersion'
 import { Offre } from '../../domain/offre/offre'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -24,6 +25,8 @@ export class AddCandidatureOffreImmersionCommandHandler extends CommandHandler<
   AddCandidatureOffreImmersionCommand,
   void
 > {
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+
   constructor(
     @Inject(FavorisOffresImmersionRepositoryToken)
     private readonly offresImmersionRepository: Offre.Favori.Immersion.Repository,

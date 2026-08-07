@@ -22,7 +22,7 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import { Chat } from '../../../../src/domain/chat'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
-import { Core, estMilo } from '../../../../src/domain/core'
+import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { DateService } from '../../../../src/utils/date-service'
@@ -430,11 +430,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
 
       expect(
         conseillerAuthorizer.autoriserLeConseiller
-      ).to.have.been.calledWithExactly(
-        command.idConseiller,
-        utilisateur,
-        estMilo(utilisateur.structure)
-      )
+      ).to.have.been.calledWithExactly(command.idConseiller, utilisateur)
     })
   })
 })

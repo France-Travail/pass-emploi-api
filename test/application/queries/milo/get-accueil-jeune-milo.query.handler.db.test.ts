@@ -22,7 +22,8 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
-import { Core, estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
+import { Core } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { CodeTypeRendezVous } from 'src/domain/rendez-vous/rendez-vous'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
@@ -860,9 +861,15 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         query.idJeune,
-        utilisateur,
-        estMilo(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('exige le profil MILO', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([Profil.Jeune.MILO])
     })
   })
 })

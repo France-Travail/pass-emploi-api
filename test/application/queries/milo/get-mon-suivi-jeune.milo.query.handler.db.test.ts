@@ -23,6 +23,7 @@ import {
   success
 } from '../../../../src/building-blocks/types/result'
 import { Action } from '../../../../src/domain/action/action'
+import { Profil } from '../../../../src/domain/profil'
 import { SessionMilo } from '../../../../src/domain/milo/session.milo'
 import {
   ActionDto,
@@ -349,10 +350,16 @@ describe('GetMonSuiviMiloQueryHandler', () => {
         jeuneAuthorizer.autoriserLeJeune
       ).to.have.been.calledOnceWithExactly(
         jeune.id,
-        unUtilisateurJeune({ id: jeune.id }),
-        true
+        unUtilisateurJeune({ id: jeune.id })
       )
       expect(result).to.deep.equal(emptySuccess())
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('exige le profil MILO', () => {
+      // Then
+      expect(handler.profilsAutorises).to.deep.equal([Profil.Jeune.MILO])
     })
   })
 })

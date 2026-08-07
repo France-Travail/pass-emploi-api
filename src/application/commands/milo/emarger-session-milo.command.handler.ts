@@ -7,7 +7,7 @@ import {
   Result
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import {
   SessionMilo,
   SessionMiloRepositoryToken
@@ -30,6 +30,8 @@ export class EmargerSessionMiloCommandHandler extends CommandHandler<
   EmargerSessionMiloCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
+
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
     private conseillerMiloRepository: Conseiller.Milo.Repository,
@@ -89,8 +91,7 @@ export class EmargerSessionMiloCommandHandler extends CommandHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      utilisateur,
-      estMilo(utilisateur.structure)
+      utilisateur
     )
   }
 

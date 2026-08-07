@@ -12,10 +12,11 @@ import {
   Planificateur,
   PlanificateurRepositoryToken
 } from '../../domain/planificateur'
-import { DateService } from '../../utils/date-service'
 import { Core } from '../../domain/core'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { Migration } from '../../domain/migration'
+import { DateService } from '../../utils/date-service'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
 
 const MINUTES_ENTRE_LES_BATCHS_DEFAUT = 5
@@ -37,6 +38,8 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   NotifierBeneficiairesCommand,
   Planificateur.JobId
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)

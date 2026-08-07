@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Result, success } from '../../building-blocks/types/result'
 import { IdService } from '../../utils/id-service'
-import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { Command } from '../../building-blocks/types/command'
 import { Authentification } from '../../domain/authentification'
+import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
 import { Core } from '../../domain/core'
 import {
   Recherche,
@@ -27,6 +28,8 @@ export class CreateRechercheCommandHandler extends CommandHandler<
   CreateRechercheCommand,
   Core.Id
 > {
+  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+
   constructor(
     @Inject(RecherchesRepositoryToken)
     private rechercheRepository: Recherche.Repository,

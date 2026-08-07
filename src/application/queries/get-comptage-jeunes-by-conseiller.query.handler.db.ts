@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import { Op } from 'sequelize'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
-import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
+import { Profil } from '../../domain/profil'
 import {
   emptySuccess,
   failure,
@@ -12,7 +13,6 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { estMilo } from '../../domain/core'
 import { Jeune } from '../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -48,6 +48,8 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
   GetComptageJeunesByConseillerQuery,
   Result<ComptageJeunesQueryModel>
 > {
+  readonly profilsAutorises = [Profil.Conseiller.MILO]
+
   constructor(
     @Inject(ConseillerRepositoryToken)
     private readonly conseillersRepository: Conseiller.Repository,
@@ -113,8 +115,6 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
     query: GetComptageJeunesByConseillerQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (!estMilo(utilisateur.structure))
-      return failure(new DroitsInsuffisants())
     const conseiller = await this.conseillersRepository.get(query.idConseiller)
     if (!conseiller) {
       return failure(new DroitsInsuffisants())

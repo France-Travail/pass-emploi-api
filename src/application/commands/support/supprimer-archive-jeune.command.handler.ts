@@ -7,12 +7,11 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
-import { Authentification } from '../../../domain/authentification'
 import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
 } from '../../../domain/archive-jeune'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
+import { Profil } from '../../../domain/profil'
 
 export interface SupprimerArchiveJeuneCommand extends Command {
   idArchive: number
@@ -23,10 +22,11 @@ export class SupprimerArchiveJeuneCommandHandler extends CommandHandler<
   SupprimerArchiveJeuneCommand,
   void
 > {
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
+
   constructor(
     @Inject(ArchiveJeuneRepositoryToken)
-    private readonly archiveJeuneRepository: ArchiveJeune.Repository,
-    private readonly supportAuthorizer: SupportAuthorizer
+    private readonly archiveJeuneRepository: ArchiveJeune.Repository
   ) {
     super('SupprimerArchiveJeuneCommandHandler')
   }
@@ -42,11 +42,8 @@ export class SupprimerArchiveJeuneCommandHandler extends CommandHandler<
     return emptySuccess()
   }
 
-  async authorize(
-    _command: SupprimerArchiveJeuneCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async monitor(): Promise<void> {

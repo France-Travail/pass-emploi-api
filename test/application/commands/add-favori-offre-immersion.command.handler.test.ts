@@ -12,6 +12,7 @@ import { FavoriExisteDejaError } from '../../../src/building-blocks/types/domain
 import { failure } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Offre } from '../../../src/domain/offre/offre'
+import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { unFavoriOffreImmersion } from '../../fixtures/offre-immersion.fixture'
@@ -152,6 +153,20 @@ describe('AddFavoriOffreImmersionCommandHandler', () => {
         Evenement.Code.OFFRE_IMMERSION_CANDIDATURE_CONFIRMEE,
         utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(
+        addFavoriOffreImmersionCommandHandler.profilsAutorises
+      ).to.deep.equal([
+        Profil.Jeune.MILO,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
     })
   })
 })

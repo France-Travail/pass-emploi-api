@@ -1,27 +1,23 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { SupportAuthorizer } from 'src/application/authorizers/support-authorizer'
 import {
   DeleteSuperviseursCommand,
   DeleteSuperviseursCommandHandler
 } from 'src/application/commands/support/delete-superviseurs.command.handler'
 import { Superviseur } from 'src/domain/superviseur'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
-import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
+import { createSandbox, expect } from '../../../utils'
 
 describe('DeleteSuperviseursCommandHandler', () => {
   let deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler
   let superviseurRepository: StubbedType<Superviseur.Repository>
-  let supportAuthorizer: StubbedClass<SupportAuthorizer>
 
   beforeEach(async () => {
     const sandbox: SinonSandbox = createSandbox()
     superviseurRepository = stubInterface(sandbox)
-    supportAuthorizer = stubClass(SupportAuthorizer)
 
     deleteSuperviseursCommandHandler = new DeleteSuperviseursCommandHandler(
-      superviseurRepository,
-      supportAuthorizer
+      superviseurRepository
     )
   })
 

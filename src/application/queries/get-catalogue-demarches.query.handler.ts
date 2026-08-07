@@ -3,7 +3,8 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Core, beneficiaireEstFTConnect } from '../../domain/core'
+import { Core } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { ThematiqueQueryModel } from './query-models/catalogue.query-model'
 
@@ -19,6 +20,12 @@ export class GetCatalogueDemarchesQueryHandler extends QueryHandler<
   GetCatalogueDemarchesQuery,
   ThematiqueQueryModel[]
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
+  ]
+
   constructor(private readonly jeuneAuthorizer: JeuneAuthorizer) {
     super('GetCatalogueQueryHandler')
   }
@@ -43,11 +50,7 @@ export class GetCatalogueDemarchesQueryHandler extends QueryHandler<
     _query: GetCatalogueDemarchesQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      utilisateur.id,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(utilisateur.id, utilisateur)
   }
 
   async monitor(): Promise<void> {

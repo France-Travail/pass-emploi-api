@@ -3,11 +3,15 @@ import { DateTime } from 'luxon'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { CampagneExisteDejaError } from '../../../building-blocks/types/domain-error'
-import { failure, Result, success } from '../../../building-blocks/types/result'
-import { Authentification } from '../../../domain/authentification'
+import {
+  emptySuccess,
+  failure,
+  Result,
+  success
+} from '../../../building-blocks/types/result'
 import { Campagne, CampagneRepositoryToken } from '../../../domain/campagne'
 import { Core } from '../../../domain/core'
-import { SupportAuthorizer } from '../../authorizers/support-authorizer'
+import { Profil } from '../../../domain/profil'
 import {
   Planificateur,
   PlanificateurRepositoryToken
@@ -25,11 +29,12 @@ export class CreateCampagneCommandHandler extends CommandHandler<
   CreateCampagneCommand,
   Core.Id
 > {
+  readonly profilsAutorises = [Profil.Support.SUPPORT]
+
   constructor(
     @Inject(CampagneRepositoryToken)
     private campagneRepository: Campagne.Repository,
     private campagneFactory: Campagne.Factory,
-    private supportAuthorizer: SupportAuthorizer,
     @Inject(PlanificateurRepositoryToken)
     private planificateurRepository: Planificateur.Repository,
     private dateService: DateService
@@ -37,11 +42,8 @@ export class CreateCampagneCommandHandler extends CommandHandler<
     super('CreateCampagneCommandHandler')
   }
 
-  async authorize(
-    _command: CreateCampagneCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.supportAuthorizer.autoriserSupport(utilisateur)
+  async authorize(): Promise<Result> {
+    return emptySuccess()
   }
 
   async handle(command: CreateCampagneCommand): Promise<Result<Core.Id>> {

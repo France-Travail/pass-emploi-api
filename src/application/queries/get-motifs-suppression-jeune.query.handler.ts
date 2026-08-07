@@ -7,6 +7,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Injectable } from '@nestjs/common'
 import { ArchiveJeune } from '../../domain/archive-jeune'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { MotifSuppressionJeuneQueryModel } from './query-models/jeunes.query-model'
 import { Core } from '../../domain/core'
 import Structure = Core.Structure
@@ -19,6 +20,8 @@ export class GetMotifsSuppressionJeuneQueryHandler extends QueryHandler<
   Query,
   Result<MotifSuppressionJeuneQueryModel[]>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor() {
     super('GetMotifsSuppressionJeuneQueryHandler')
   }

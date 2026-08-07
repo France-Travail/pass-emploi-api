@@ -1,13 +1,11 @@
 import { stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
-import { SupportAuthorizer } from '../../../../src/application/authorizers/support-authorizer'
 import {
   ArchiverJeunesMigrationCommand,
   ArchiverJeunesMigrationCommandHandler
 } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
 import { emptySuccess } from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
-import { unUtilisateurSupport } from '../../../fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { DateService } from '../../../../src/utils/date-service'
 import { Mail } from '../../../../src/domain/mail'
@@ -22,7 +20,6 @@ import PhaseDeMigration = Migration.PhaseDeMigration
 describe('ArchiverJeunesMigrationCommandHandler', () => {
   let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
   let serviceMock: Service
-  let authorizeSupport: StubbedClass<SupportAuthorizer>
   let featureFlipService: StubbedClass<Migration.Service>
   let evenementService: StubbedClass<EvenementService>
 
@@ -51,34 +48,24 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
       archiver: sandbox.stub().resolves(emptySuccess())
     } as unknown as Service
 
-    authorizeSupport = stubClass(SupportAuthorizer)
     featureFlipService = stubClass(Migration.Service)
     evenementService = stubClass(EvenementService)
     archiverJeunesMigrationSupportCommandHandler =
       new ArchiverJeunesMigrationCommandHandler(
         evenementService,
-        authorizeSupport,
         featureFlipService,
         serviceMock
       )
   })
 
   describe('authorize', () => {
-    it('autorise un membre du support à acceder au handler', () => {
-      // Given
-      const command: ArchiverJeunesMigrationCommand = {
-        phaseDeMigration: PhaseDeMigration.PHASE_A
-      }
+    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
       // When
-      archiverJeunesMigrationSupportCommandHandler.authorize(
-        command,
-        unUtilisateurSupport()
-      )
+      const result =
+        await archiverJeunesMigrationSupportCommandHandler.authorize()
 
       // Then
-      expect(authorizeSupport.autoriserSupport).to.have.been.calledWithExactly(
-        unUtilisateurSupport()
-      )
+      expect(result).to.deep.equal(emptySuccess())
     })
   })
 

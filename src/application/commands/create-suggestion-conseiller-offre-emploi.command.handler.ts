@@ -11,6 +11,7 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { aAccesAuxAlternancesEtServicesCiviques } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
@@ -34,6 +35,8 @@ export class CreateSuggestionConseillerOffreEmploiCommandHandler extends Command
   CreateSuggestionConseillerOffreEmploiCommand,
   void
 > {
+  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(SuggestionsRepositoryToken)

@@ -86,7 +86,7 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
       expect(result).to.deep.equal(emptySuccess())
       expect(
         conseillerAuthorizer.autoriserLeConseiller
-      ).to.have.been.calledOnceWithExactly(idConseiller, utilisateur, true)
+      ).to.have.been.calledOnceWithExactly(idConseiller, utilisateur)
     })
   })
 

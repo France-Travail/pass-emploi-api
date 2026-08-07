@@ -2,18 +2,19 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { DateService } from 'src/utils/date-service'
-import { Cached, Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
+import { Cached, Query } from '../../../building-blocks/types/query'
 import {
   isFailure,
   Result,
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { beneficiaireEstFTConnect, Core } from '../../../domain/core'
+import { Core } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
 import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
+import { Profil } from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -37,6 +38,12 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   GetAccueilJeunePoleEmploiQuery,
   Result<AccueilJeunePoleEmploiQueryModel>
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
+  ]
+
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
     private oidcClient: OidcClient,
@@ -201,11 +208,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     query: GetAccueilJeunePoleEmploiQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {

@@ -6,8 +6,8 @@ import {
   JeuneMiloSansIdDossier,
   JeuneMiloSansStructure
 } from 'src/building-blocks/types/domain-error'
-import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
+import { Query } from 'src/building-blocks/types/query'
 import {
   failure,
   isFailure,
@@ -15,7 +15,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
@@ -34,6 +34,8 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
   GetDetailSessionJeuneMiloQuery,
   Result<DetailSessionJeuneMiloQueryModel>
 > {
+  readonly profilsAutorises = [Profil.Jeune.MILO]
+
   constructor(
     private readonly oidcClient: OidcClient,
     private readonly miloClient: MiloClient,
@@ -97,11 +99,7 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
     query: GetDetailSessionJeuneMiloQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {

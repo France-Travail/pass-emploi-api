@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { Cached, Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Cached, Query } from '../../building-blocks/types/query'
 import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetCampagneQueryGetter } from './query-getters/get-campagne.query.getter.db'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
@@ -19,6 +19,12 @@ export class GetJeuneHomeDemarchesQueryHandler extends QueryHandler<
   GetJeuneHomeDemarchesQuery,
   Result<Cached<JeuneHomeDemarcheQueryModel>>
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
+  ]
+
   constructor(
     private getActionsJeunePoleEmploiQueryGetter: GetDemarchesQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
@@ -56,11 +62,7 @@ export class GetJeuneHomeDemarchesQueryHandler extends QueryHandler<
     query: GetJeuneHomeDemarchesQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {

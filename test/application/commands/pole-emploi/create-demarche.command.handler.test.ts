@@ -9,10 +9,12 @@ import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
+  isFailure,
   isSuccess,
   success
 } from '../../../../src/building-blocks/types/result'
-import { estFranceTravail } from '../../../../src/domain/core'
+import { Profil } from '../../../../src/domain/profil'
+import { Core } from '../../../../src/domain/core'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
@@ -128,9 +130,40 @@ describe('CreateDemarcheCommandHandler', () => {
       // Then
       expect(jeuneAuthorizer.autoriserLeJeune).to.have.been.calledWithExactly(
         command.idJeune,
-        utilisateur,
-        estFranceTravail(utilisateur.structure)
+        utilisateur
       )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('déclare les profils autorisés', () => {
+      // Then
+      expect(createDemarcheCommandHandler.profilsAutorises).to.deep.equal([
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+        Profil.Jeune.CONSEIL_DEPT
+      ])
+    })
+  })
+
+  describe('execute', () => {
+    it("rejette un profil sans la capacité SERVICES_FT sans appeler l'authorizer ni le repository", async () => {
+      // Given
+      const utilisateurMilo = unUtilisateurJeune({
+        structure: Core.Structure.MILO
+      })
+
+      // When
+      const result = await createDemarcheCommandHandler.execute(
+        command,
+        utilisateurMilo
+      )
+
+      // Then
+      expect(isFailure(result)).to.be.true()
+      expect(jeuneAuthorizer.autoriserLeJeune).not.to.have.been.called()
+      expect(demarcheFactory.creerDemarche).not.to.have.been.called()
+      expect(demarcheRepository.save).not.to.have.been.called()
     })
   })
 

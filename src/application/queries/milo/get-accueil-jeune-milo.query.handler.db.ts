@@ -11,8 +11,8 @@ import {
   JeuneMiloSansIdDossier,
   NonTrouveError
 } from 'src/building-blocks/types/domain-error'
-import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
+import { Query } from 'src/building-blocks/types/query'
 import {
   failure,
   isSuccess,
@@ -21,7 +21,7 @@ import {
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { TYPES_ANIMATIONS_COLLECTIVES } from 'src/domain/rendez-vous/rendez-vous'
 import { DateService } from 'src/utils/date-service'
@@ -50,6 +50,8 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   GetAccueilJeuneMiloQuery,
   Result<AccueilJeuneMiloQueryModel>
 > {
+  readonly profilsAutorises = [Profil.Jeune.MILO]
+
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly getSessionsVisiblesOuInscritesQueryGetter: GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter,
@@ -166,11 +168,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
     query: GetAccueilJeuneMiloQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
-import { QueryHandler } from '../../building-blocks/types/query-handler'
 import {
   Result,
   failure,
@@ -9,8 +9,8 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { beneficiaireEstFTConnect } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
+import { Profil } from '../../domain/profil'
 import { DocumentPoleEmploiDto } from '../../infrastructure/clients/dto/pole-emploi.dto'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import {
@@ -30,6 +30,12 @@ export class GetCVPoleEmploiQueryHandler extends QueryHandler<
   GetCVPoleEmploiQuery,
   Result<CVPoleEmploiQueryModel[]>
 > {
+  readonly profilsAutorises = [
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI,
+    Profil.Jeune.CONSEIL_DEPT
+  ]
+
   constructor(
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,
@@ -44,11 +50,7 @@ export class GetCVPoleEmploiQueryHandler extends QueryHandler<
     query: GetCVPoleEmploiQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      beneficiaireEstFTConnect(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async handle(

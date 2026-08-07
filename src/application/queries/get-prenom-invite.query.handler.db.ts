@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
+import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
-import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import { Profil } from '../../domain/profil'
 import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 
@@ -22,6 +23,8 @@ export class GetPrenomInviteQueryHandler extends QueryHandler<
   GetPrenomInviteQuery,
   Result<PrenomInviteQueryModel>
 > {
+  readonly profilsAutorises = [Profil.Jeune.INVITE]
+
   constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
     super('GetPrenomInviteQueryHandler')
   }

@@ -8,10 +8,11 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
+import { Authentification } from '../../domain/authentification'
+import { Evenement, EvenementService } from '../../domain/evenement'
+import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { toDetailOffreImmersionQueryModelV3 } from '../../infrastructure/repositories/mappers/offres-immersion.mappers'
 import { ImmersionClient } from '../../infrastructure/clients/immersion-client'
-import { Evenement, EvenementService } from '../../domain/evenement'
-import { Authentification } from '../../domain/authentification'
 
 export interface GetDetailOffreImmersionQueryV3 extends Query {
   siret: string
@@ -24,6 +25,8 @@ export class GetDetailOffreImmersionQueryHandlerV3 extends QueryHandler<
   GetDetailOffreImmersionQueryV3,
   Result<DetailOffreImmersionQueryModelV3>
 > {
+  readonly profilsAutorises = TOUS_LES_PROFILS
+
   constructor(
     private readonly immersionClient: ImmersionClient,
     private readonly evenementService: EvenementService

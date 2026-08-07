@@ -7,11 +7,11 @@ import {
   JeuneMiloSansIdDossier,
   NonTrouveError
 } from 'src/building-blocks/types/domain-error'
-import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
+import { Query } from 'src/building-blocks/types/query'
 import { failure, Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerInterStructureMiloAuthorizer } from '../../authorizers/conseiller-inter-structure-milo-authorizer'
@@ -29,6 +29,8 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
   GetSessionsJeuneMiloQuery,
   Result<SessionJeuneMiloQueryModel[]>
 > {
+  readonly profilsAutorises = [Profil.Jeune.MILO, Profil.Conseiller.MILO]
+
   constructor(
     private readonly getSessionsPourLeJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,
     private readonly getSessionsAuxquellesLeJeuneEstInscritQueryGetter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter,
@@ -86,11 +88,7 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
       )
     }
 
-    return this.jeuneAuthorizer.autoriserLeJeune(
-      query.idJeune,
-      utilisateur,
-      estMilo(utilisateur.structure)
-    )
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async monitor(): Promise<void> {
