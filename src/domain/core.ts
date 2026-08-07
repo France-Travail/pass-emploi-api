@@ -52,22 +52,6 @@ export function estInvite(structure: Core.Structure): boolean {
   return structure === Core.Structure.INVITE
 }
 
-export function estFTConnectSansAccompagnement(
-  structure: Core.Structure
-): boolean {
-  return (
-    structure === Core.Structure.FT_DEMANDEUR_D_EMPLOI ||
-    structure === Core.Structure.FT_ESPACE_CANDIDAT
-  )
-}
-
-export function estDemandeurDEmploiFT(structure: Core.Structure): boolean {
-  return (
-    beneficiaireEstFTConnect(structure) &&
-    structure !== Core.Structure.FT_ESPACE_CANDIDAT
-  )
-}
-
 export function estFranceTravailOuMilo(structure: Core.Structure): boolean {
   return estFranceTravail(structure) || estMilo(structure)
 }

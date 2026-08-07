@@ -8,7 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
 import { FavorisOffresEmploiRepositoryToken } from '../../domain/offre/favori/offre-emploi'
 import { FavoriOffresEmploiAuthorizer } from '../authorizers/favori-offres-emploi-authorizer'
 import { Offre } from '../../domain/offre/offre'
@@ -23,7 +23,7 @@ export class DeleteFavoriOffreEmploiCommandHandler extends CommandHandler<
   DeleteFavoriOffreEmploiCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
 
   constructor(
     @Inject(FavorisOffresEmploiRepositoryToken)

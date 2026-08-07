@@ -22,7 +22,11 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
-import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
+import {
+  Jeune,
+  JeuneNonAccompagne,
+  JeuneRepositoryToken
+} from '../../domain/jeune/jeune'
 import { Migration } from '../../domain/migration'
 import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { MailServiceToken } from '../../domain/mail'
@@ -68,7 +72,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly archiverJeuneRepository: ArchiveJeune.Repository,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
-    private readonly jeuneFactory: Jeune.Factory
+    private readonly jeuneNonAccompagneFactory: JeuneNonAccompagne.Factory
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -413,7 +417,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       return success(queryModelFromUtilisateur(utilisateurMisAJour))
     }
 
-    const nouveauJeune = this.jeuneFactory.creerSansConseiller({
+    const nouveauJeune = this.jeuneNonAccompagneFactory.creer({
       prenom: commandSanitized.prenom ?? '',
       nom: commandSanitized.nom ?? '',
       email: commandSanitized.email,

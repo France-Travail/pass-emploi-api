@@ -119,7 +119,6 @@ describe('CreateEvaluationCommandHandler', () => {
       expect(createEvaluationCommandHandler.profilsAutorises).to.deep.equal([
         Profil.Jeune.MILO,
         Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
         Profil.Jeune.CONSEIL_DEPT
       ])
     })

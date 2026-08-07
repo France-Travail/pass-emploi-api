@@ -12,7 +12,7 @@ import {
 import { Action } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
 import {
-  PROFILS_JEUNES_HORS_INVITE,
+  PROFILS_JEUNES_ACCOMPAGNES,
   TOUS_LES_CONSEILLERS
 } from 'src/domain/profil'
 import { fromSqlToActionQueryModelWithJeune } from 'src/infrastructure/repositories/mappers/actions.mappers'
@@ -49,7 +49,7 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
   Result<JeuneHomeAgendaQueryModel>
 > {
   readonly profilsAutorises = [
-    ...PROFILS_JEUNES_HORS_INVITE,
+    ...PROFILS_JEUNES_ACCOMPAGNES,
     ...TOUS_LES_CONSEILLERS
   ]
 

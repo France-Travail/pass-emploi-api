@@ -23,7 +23,9 @@ describe('profilJeuneDe', () => {
       Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
     [Core.Structure.CONSEIL_DEPT]: Profil.Jeune.CONSEIL_DEPT,
     [Core.Structure.INVITE]: Profil.Jeune.INVITE,
-    [Core.Structure.FT_ESPACE_CANDIDAT]: Profil.Jeune.FT_ESPACE_CANDIDAT
+    [Core.Structure.FT_ESPACE_CANDIDAT]: Profil.Jeune.FT_ESPACE_CANDIDAT,
+    [Core.Structure.FT_DEMANDEUR_D_EMPLOI]:
+      Profil.Jeune.FT_DEMANDEUR_EMPLOI_NON_ACCOMPAGNE
   }
 
   for (const structure of Object.values(Core.Structure)) {
@@ -52,7 +54,8 @@ describe('profilConseillerDe', () => {
     [Core.Structure.FT_EQUIP_EMPLOI_RECRUT]: Profil.Conseiller.FT,
     [Core.Structure.CONSEIL_DEPT]: Profil.Conseiller.CONSEIL_DEPT,
     [Core.Structure.INVITE]: undefined,
-    [Core.Structure.FT_ESPACE_CANDIDAT]: undefined
+    [Core.Structure.FT_ESPACE_CANDIDAT]: undefined,
+    [Core.Structure.FT_DEMANDEUR_D_EMPLOI]: undefined
   }
 
   for (const structure of Object.values(Core.Structure)) {

@@ -5,7 +5,7 @@ import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import {
-  PROFILS_JEUNES_HORS_INVITE,
+  PROFILS_JEUNES_ACCOMPAGNES,
   TOUS_LES_CONSEILLERS
 } from '../../domain/profil'
 import { RechercheSqlModel } from '../../infrastructure/sequelize/models/recherche.sql-model'
@@ -25,7 +25,7 @@ export class GetRecherchesQueryHandler extends QueryHandler<
   RechercheQueryModel[]
 > {
   readonly profilsAutorises = [
-    ...PROFILS_JEUNES_HORS_INVITE,
+    ...PROFILS_JEUNES_ACCOMPAGNES,
     ...TOUS_LES_CONSEILLERS
   ]
 

@@ -8,7 +8,7 @@ import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import {
-  PROFILS_JEUNES_HORS_INVITE,
+  PROFILS_JEUNES_ACCOMPAGNES,
   TOUS_LES_CONSEILLERS
 } from '../../../domain/profil'
 import { FavoriOffreEmploiSqlModel } from '../../../infrastructure/sequelize/models/favori-offre-emploi.sql-model'
@@ -35,7 +35,7 @@ export class GetFavorisJeuneQueryHandler extends QueryHandler<
   FavorisQueryModel[]
 > {
   readonly profilsAutorises = [
-    ...PROFILS_JEUNES_HORS_INVITE,
+    ...PROFILS_JEUNES_ACCOMPAGNES,
     ...TOUS_LES_CONSEILLERS
   ]
 

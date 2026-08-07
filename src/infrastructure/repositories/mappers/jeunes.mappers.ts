@@ -1,10 +1,12 @@
 import { DateTime } from 'luxon'
 import { TIMEZONE_PAR_DEFAUT } from '../../../domain/jeune/configuration-application'
-import { Jeune } from '../../../domain/jeune/jeune'
+import { Jeune, JeuneNonAccompagne } from '../../../domain/jeune/jeune'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 
-export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
-  const jeune: Jeune = {
+function fromSqlToJeuneCommun(
+  jeuneSqlModel: JeuneSqlModel
+): Omit<Jeune, 'dispositif'> {
+  const jeune: Omit<Jeune, 'dispositif'> = {
     id: jeuneSqlModel.id,
     firstName: jeuneSqlModel.prenom,
     lastName: jeuneSqlModel.nom,
@@ -18,7 +20,6 @@ export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
     idPartenaire: jeuneSqlModel.idPartenaire ?? undefined,
     configuration: toConfigurationApplication(jeuneSqlModel),
     preferences: fromSqlToPreferencesJeune(jeuneSqlModel),
-    dispositif: jeuneSqlModel.dispositif ?? undefined,
     peutVoirLeComptageDesHeures:
       jeuneSqlModel.peutVoirLeComptageDesHeures ?? undefined,
     dateSignatureCGU: jeuneSqlModel.dateSignatureCGU
@@ -45,6 +46,31 @@ export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
     }
   }
   return jeune
+}
+
+// N'utiliser que sur un chemin ne servant que des jeunes accompagnés
+// (`dispositif` garanti) — sinon `fromSqlToJeuneOuNonAccompagne`.
+export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
+  return {
+    ...fromSqlToJeuneCommun(jeuneSqlModel),
+    dispositif: jeuneSqlModel.dispositif!
+  }
+}
+
+// Le discriminant est `dispositif`, pas la présence d'un conseiller : un
+// jeune historique peut avoir perdu son conseiller sans perdre son
+// dispositif (cf. fixture `unJeuneSansConseiller`), alors qu'un
+// JeuneNonAccompagne n'a jamais eu ni l'un ni l'autre.
+export function fromSqlToJeuneOuNonAccompagne(
+  jeuneSqlModel: JeuneSqlModel
+): Jeune | JeuneNonAccompagne {
+  if (!jeuneSqlModel.dispositif) {
+    // Sans dispositif, ce chemin ne sert que le nouveau public FT non
+    // accompagné, qui n'a jamais de conseiller non plus — le cast traduit
+    // cet invariant, que le typage structurel de `Omit` ne peut pas garantir.
+    return fromSqlToJeuneCommun(jeuneSqlModel) as JeuneNonAccompagne
+  }
+  return fromSqlToJeune(jeuneSqlModel)
 }
 
 export function fromSqlToPreferencesJeune(

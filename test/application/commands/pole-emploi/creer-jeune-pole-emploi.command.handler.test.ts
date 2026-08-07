@@ -16,7 +16,11 @@ import { DateService } from '../../../../src/utils/date-service'
 import { IdService } from '../../../../src/utils/id-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
-import { unConseillerDuJeune, unJeune } from '../../../fixtures/jeune.fixture'
+import {
+  unConseillerDuJeune,
+  unJeune,
+  unJeuneNonAccompagne
+} from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, stubClass } from '../../../utils'
 import Structure = Core.Structure
 import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
@@ -132,10 +136,8 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           email: 'kenji.lefameur@poleemploi.fr',
           idConseiller: conseiller.id
         }
-        const jeuneNonAccompagne = unJeune({
-          conseiller: undefined,
-          structure: Core.Structure.FT_ESPACE_CANDIDAT,
-          dispositif: Jeune.Dispositif.CEJ
+        const jeuneNonAccompagne = unJeuneNonAccompagne({
+          structure: Core.Structure.FT_ESPACE_CANDIDAT
         })
         jeuneRepository.getByEmail
           .withArgs(command.email)

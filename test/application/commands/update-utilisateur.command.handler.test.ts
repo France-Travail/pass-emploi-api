@@ -35,7 +35,7 @@ import { Migration } from '../../../src/domain/migration'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Jeune, JeuneNonAccompagne } from '../../../src/domain/jeune/jeune'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 describe('UpdateUtilisateurCommandHandler', () => {
@@ -55,7 +55,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
   let migrationService: StubbedClass<Migration.Service>
   let archiverJeuneRepository: StubbedType<ArchiveJeune.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
-  const jeuneFactory: Jeune.Factory = new Jeune.Factory(dateService, idService)
+  const jeuneNonAccompagneFactory: JeuneNonAccompagne.Factory =
+    new JeuneNonAccompagne.Factory(dateService, idService)
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
@@ -72,7 +73,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
       migrationService,
       archiverJeuneRepository,
       jeuneRepository,
-      jeuneFactory
+      jeuneNonAccompagneFactory
     )
   })
 

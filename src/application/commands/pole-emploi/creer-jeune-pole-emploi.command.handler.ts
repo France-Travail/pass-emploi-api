@@ -10,8 +10,12 @@ import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Profil } from '../../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { Core, estFTConnectSansAccompagnement } from '../../../domain/core'
-import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { Core } from '../../../domain/core'
+import {
+  Jeune,
+  JeuneNonAccompagne,
+  JeuneRepositoryToken
+} from '../../../domain/jeune/jeune'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -53,7 +57,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
 
     const jeune = await this.jeuneRepository.getByEmail(command.email)
     if (jeune) {
-      if (!estFTConnectSansAccompagnement(jeune.structure)) {
+      if (jeune.conseiller || jeune.dispositif) {
         return failure(new EmailExisteDejaError(command.email))
       }
       return this.reprendreEnAccompagnement(jeune, conseiller)
@@ -82,7 +86,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   }
 
   private async reprendreEnAccompagnement(
-    jeune: Jeune,
+    jeune: JeuneNonAccompagne,
     conseiller: Conseiller
   ): Promise<Result<Jeune>> {
     const jeuneAccompagne: Jeune = {

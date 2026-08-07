@@ -1,5 +1,5 @@
 import { Core } from '../../src/domain/core'
-import { Jeune } from '../../src/domain/jeune/jeune'
+import { Jeune, JeuneNonAccompagne } from '../../src/domain/jeune/jeune'
 import { unConseiller } from './conseiller.fixture'
 import { uneDate, uneDatetime } from './date.fixture'
 
@@ -79,6 +79,27 @@ export const unJeuneSansConseiller = (
     preferences: desPreferencesJeune(),
     configuration: uneConfiguration(),
     dispositif: Jeune.Dispositif.CEJ
+  }
+
+  return { ...defaults, ...args }
+}
+
+export const unJeuneNonAccompagne = (
+  args: Partial<JeuneNonAccompagne> = {}
+): JeuneNonAccompagne => {
+  const defaults: JeuneNonAccompagne = {
+    id: 'ABCDE',
+    lastName: 'Doe',
+    firstName: 'John',
+    isActivated: true,
+    creationDate: uneDatetime(),
+    datePremiereConnexion: uneDatetime().plus({ day: 1 }),
+    dateDerniereConnexion: uneDatetime(),
+    email: 'john.doe@plop.io',
+    idPartenaire: '1234',
+    structure: Core.Structure.FT_ESPACE_CANDIDAT,
+    configuration: uneConfiguration(),
+    preferences: desPreferencesJeune()
   }
 
   return { ...defaults, ...args }
