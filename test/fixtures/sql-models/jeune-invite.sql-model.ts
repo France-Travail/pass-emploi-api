@@ -12,6 +12,7 @@ export function unJeuneInviteDto(
     dateCreation: new Date('2021-11-11T08:03:30.000Z'),
     pushNotificationToken: null,
     dateDerniereActualisationToken: uneDate(),
+    dateDerniereActivite: null,
     appVersion: '1.8.1',
     installationId: '123456',
     instanceId: 'abcdef',

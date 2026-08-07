@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
 import axios from 'axios'
 import * as nock from 'nock'
@@ -237,13 +238,23 @@ describe('OidcClient', () => {
     })
     it("echoue lorsque l'appel d'api est ko", async () => {
       // Given
+      const idAuthentification = 'idAuth'
+      const id = 'idCejJeuneKo'
+      await ConseillerSqlModel.create(unConseillerDto())
+      await JeuneSqlModel.create(unJeuneDto({ id, idAuthentification }))
       nock(apiUrl).delete('/accounts/idAuth').reply(500)
 
+      let erreur: unknown
       try {
         // When
-        await oidcClient.deleteAccount('idAuth')
-        expect.fail(null, null, 'handle test did not reject with an error')
-      } catch (_e) {}
+        await oidcClient.deleteAccount(id)
+      } catch (e) {
+        erreur = e
+      }
+
+      // Then
+      expect(erreur).to.exist()
+      expect(erreur).not.to.be.instanceOf(NotFoundException)
     })
   })
 
@@ -280,11 +291,30 @@ describe('OidcClient', () => {
       // Given
       nock(apiUrl).delete('/accounts/idAuthInvite').reply(500)
 
+      let erreur: unknown
       try {
         // When
         await oidcClient.deleteAccountByIdAuth('idAuthInvite')
-        expect.fail(null, null, 'handle test did not reject with an error')
-      } catch (_e) {}
+      } catch (e) {
+        erreur = e
+      }
+
+      // Then
+      expect(erreur).to.exist()
+    })
+
+    it("echoue lorsque l'idAuthentification est vide", async () => {
+      // Given
+      let erreur: unknown
+      try {
+        // When
+        await oidcClient.deleteAccountByIdAuth('')
+      } catch (e) {
+        erreur = e
+      }
+
+      // Then
+      expect(erreur).to.be.instanceOf(NotFoundException)
     })
   })
 })

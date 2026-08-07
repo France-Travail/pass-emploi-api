@@ -30,6 +30,8 @@ export class JeuneInviteConfigurationApplicationSqlRepository
           configurationApplication.pushNotificationToken ?? null,
         dateDerniereActualisationToken:
           configurationApplication.dateDerniereActualisationToken ?? null,
+        dateDerniereActivite:
+          configurationApplication.dateDerniereActivite ?? null,
         installationId: configurationApplication.installationId ?? null,
         instanceId: configurationApplication.instanceId ?? null,
         timezone: configurationApplication.fuseauHoraire ?? null
@@ -51,7 +53,8 @@ function toConfigurationApplication(
       jeuneInviteSqlModel.pushNotificationToken ?? undefined,
     fuseauHoraire: jeuneInviteSqlModel.timezone ?? TIMEZONE_PAR_DEFAUT,
     dateDerniereActualisationToken:
-      jeuneInviteSqlModel.dateDerniereActualisationToken ?? undefined
+      jeuneInviteSqlModel.dateDerniereActualisationToken ?? undefined,
+    dateDerniereActivite: jeuneInviteSqlModel.dateDerniereActivite ?? undefined
   }
 }
 
@@ -62,5 +65,6 @@ const attributesConfigurationApplication = [
   'instanceId',
   'pushNotificationToken',
   'dateDerniereActualisationToken',
+  'dateDerniereActivite',
   'timezone'
 ]

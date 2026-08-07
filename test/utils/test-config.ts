@@ -123,11 +123,11 @@ export const testConfig = (): ConfigService => {
         nombreDeConseillersEnParallele: '100'
       },
       purgeInvites: {
-        retentionMois: '12',
-        batchMax: '500',
-        pourcentageParcMax: '20',
+        retentionJours: '365',
+        pourcentageInactifsMax: '20',
         dryRun: false,
-        delaiEntreSuppressionsMs: '0'
+        delaiEntreSuppressionsMs: '0',
+        parcMinimalControleSignal: '100'
       }
     },
     apiKeys: {

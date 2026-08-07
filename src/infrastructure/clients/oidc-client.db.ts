@@ -163,6 +163,9 @@ export class OidcClient extends ExternalApiClient {
   public async deleteAccountByIdAuth(
     idAuthentification: string
   ): Promise<void> {
+    if (!idAuthentification) {
+      throw new NotFoundException('User to delete not found')
+    }
     const apiKey = this.configService.get('oidc.apiKey')
     const url = `${this.configService.get('oidc').issuerApiUrl}/accounts`
     const headers = {

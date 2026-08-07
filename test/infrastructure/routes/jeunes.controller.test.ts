@@ -703,7 +703,7 @@ describe('JeunesController', () => {
           .withArgs(
             {
               idJeune,
-              pushNotificationToken: '',
+              pushNotificationToken: undefined,
               appVersion: undefined,
               installationId: undefined,
               instanceId: undefined,

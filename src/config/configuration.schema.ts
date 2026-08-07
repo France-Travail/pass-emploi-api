@@ -210,11 +210,11 @@ export const configurationSchema = Joi.object({
       nombreDeConseillersEnParallele: Joi.number().required()
     }),
     purgeInvites: Joi.object({
-      retentionMois: Joi.number().required(),
-      batchMax: Joi.number().required(),
-      pourcentageParcMax: Joi.number().required(),
+      retentionJours: Joi.number().required(),
+      pourcentageInactifsMax: Joi.number().required(),
       dryRun: Joi.boolean().required(),
-      delaiEntreSuppressionsMs: Joi.number().required()
+      delaiEntreSuppressionsMs: Joi.number().required(),
+      parcMinimalControleSignal: Joi.number().required()
     })
   }),
   version: Joi.string().required(),

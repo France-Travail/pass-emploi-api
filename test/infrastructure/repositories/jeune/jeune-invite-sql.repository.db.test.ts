@@ -16,34 +16,30 @@ describe('JeuneInviteSqlRepository', () => {
   })
 
   describe('recupererInvitesInactifs', () => {
-    it('retourne les invités dont GREATEST(actualisation, creation) < seuil', async () => {
+    it('retourne les invités dont GREATEST(activite, creation) < seuil', async () => {
       // Given
       await JeuneInviteSqlModel.creer(
         unJeuneInviteDto({
-          id: 'inactif-token-vieux',
+          id: 'inactif-activite-vieille',
           idAuthentification: 'sub-inactif',
           dateCreation: maintenant.minus({ years: 3 }).toJSDate(),
-          dateDerniereActualisationToken: maintenant
-            .minus({ months: 18 })
-            .toJSDate()
+          dateDerniereActivite: maintenant.minus({ months: 18 }).toJSDate()
         })
       )
       await JeuneInviteSqlModel.creer(
         unJeuneInviteDto({
-          id: 'inactif-jamais-de-token',
-          idAuthentification: 'sub-jamais',
+          id: 'inactif-avant-migration',
+          idAuthentification: 'sub-avant-migration',
           dateCreation: maintenant.minus({ months: 18 }).toJSDate(),
-          dateDerniereActualisationToken: null
+          dateDerniereActivite: null
         })
       )
       await JeuneInviteSqlModel.creer(
         unJeuneInviteDto({
-          id: 'actif-token-recent',
+          id: 'actif-activite-recente',
           idAuthentification: 'sub-actif',
           dateCreation: maintenant.minus({ years: 3 }).toJSDate(),
-          dateDerniereActualisationToken: maintenant
-            .minus({ days: 5 })
-            .toJSDate()
+          dateDerniereActivite: maintenant.minus({ days: 5 }).toJSDate()
         })
       )
       await JeuneInviteSqlModel.creer(
@@ -51,94 +47,107 @@ describe('JeuneInviteSqlRepository', () => {
           id: 'actif-cree-recemment',
           idAuthentification: 'sub-recent',
           dateCreation: maintenant.minus({ days: 5 }).toJSDate(),
-          dateDerniereActualisationToken: null
+          dateDerniereActivite: null
+        })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'inactif-malgre-token-recent',
+          idAuthentification: 'sub-token-recent',
+          dateCreation: maintenant.minus({ years: 3 }).toJSDate(),
+          dateDerniereActivite: maintenant.minus({ months: 18 }).toJSDate(),
+          dateDerniereActualisationToken: maintenant
+            .minus({ days: 2 })
+            .toJSDate()
         })
       )
 
       // When
-      const inactifs = await repository.recupererInvitesInactifs(seuil, 100)
+      const inactifs = await repository.recupererInvitesInactifs(seuil)
 
       // Then
       expect(inactifs.map(i => i.id).sort()).to.deep.equal([
-        'inactif-jamais-de-token',
-        'inactif-token-vieux'
+        'inactif-activite-vieille',
+        'inactif-avant-migration',
+        'inactif-malgre-token-recent'
       ])
       expect(inactifs[0]).to.have.property('idAuthentification')
 
-      const inactifTokenVieux = inactifs.find(
-        i => i.id === 'inactif-token-vieux'
+      const inactifActiviteVieille = inactifs.find(
+        i => i.id === 'inactif-activite-vieille'
       )
-      expect(inactifTokenVieux?.dateReference.getTime()).to.equal(
+      expect(inactifActiviteVieille?.dateReference.getTime()).to.equal(
         maintenant.minus({ months: 18 }).toJSDate().getTime()
       )
-      const inactifJamaisDeToken = inactifs.find(
-        i => i.id === 'inactif-jamais-de-token'
+      const inactifAvantMigration = inactifs.find(
+        i => i.id === 'inactif-avant-migration'
       )
-      expect(inactifJamaisDeToken?.dateReference.getTime()).to.equal(
+      expect(inactifAvantMigration?.dateReference.getTime()).to.equal(
         maintenant.minus({ months: 18 }).toJSDate().getTime()
       )
-    })
-
-    it('respecte la limite passée', async () => {
-      // Given
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'inactif-1',
-          idAuthentification: 'sub-1',
-          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
-          dateDerniereActualisationToken: null
-        })
-      )
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'inactif-2',
-          idAuthentification: 'sub-2',
-          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
-          dateDerniereActualisationToken: null
-        })
-      )
-
-      // When
-      const inactifs = await repository.recupererInvitesInactifs(seuil, 1)
-
-      // Then
-      expect(inactifs).to.have.length(1)
     })
   })
 
-  describe('compterInvitesInactifs', () => {
-    it('compte uniquement les invités inactifs (pas tout le parc)', async () => {
+  describe('existeActiviteDepuis', () => {
+    const borne = maintenant.minus({ hours: 24 }).toJSDate()
+
+    it('renvoie true quand une ligne a une date_derniere_activite postérieure à la borne', async () => {
       // Given
       await JeuneInviteSqlModel.creer(
         unJeuneInviteDto({
-          id: 'inactif-1',
-          idAuthentification: 'sub-inactif-1',
-          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
-          dateDerniereActualisationToken: null
-        })
-      )
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'inactif-2',
-          idAuthentification: 'sub-inactif-2',
-          dateCreation: maintenant.minus({ years: 2 }).toJSDate(),
-          dateDerniereActualisationToken: null
-        })
-      )
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'actif',
-          idAuthentification: 'sub-actif',
-          dateCreation: maintenant.minus({ days: 5 }).toJSDate(),
-          dateDerniereActualisationToken: null
+          id: 'actif-recent',
+          idAuthentification: 'sub-actif-recent',
+          dateDerniereActivite: maintenant.minus({ hours: 1 }).toJSDate()
         })
       )
 
       // When
-      const nombreInactifs = await repository.compterInvitesInactifs(seuil)
+      const activiteRecente = await repository.existeActiviteDepuis(borne)
 
       // Then
-      expect(nombreInactifs).to.equal(2)
+      expect(activiteRecente).to.equal(true)
+    })
+
+    it('renvoie false quand seules des lignes antérieures à la borne existent', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'actif-avant-la-borne',
+          idAuthentification: 'sub-actif-avant-la-borne',
+          dateDerniereActivite: maintenant.minus({ hours: 48 }).toJSDate()
+        })
+      )
+
+      // When
+      const activiteRecente = await repository.existeActiviteDepuis(borne)
+
+      // Then
+      expect(activiteRecente).to.equal(false)
+    })
+
+    it('renvoie false quand seules des lignes à date_derniere_activite null existent', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'sans-activite',
+          idAuthentification: 'sub-sans-activite',
+          dateDerniereActivite: null
+        })
+      )
+
+      // When
+      const activiteRecente = await repository.existeActiviteDepuis(borne)
+
+      // Then
+      expect(activiteRecente).to.equal(false)
+    })
+
+    it('renvoie false quand la table est vide', async () => {
+      // When
+      const activiteRecente = await repository.existeActiviteDepuis(borne)
+
+      // Then
+      expect(activiteRecente).to.equal(false)
     })
   })
 

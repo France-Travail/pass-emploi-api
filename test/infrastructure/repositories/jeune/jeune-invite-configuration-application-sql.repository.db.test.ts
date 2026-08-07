@@ -24,6 +24,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
             id: idInvite,
             pushNotificationToken: 'unToken',
             dateDerniereActualisationToken: uneDatetime().toJSDate(),
+            dateDerniereActivite: uneDatetime().toJSDate(),
             installationId: 'uneInstallationId',
             instanceId: 'uneInstanceId',
             appVersion: 'uneAppVersion',
@@ -42,6 +43,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
           instanceId: 'uneInstanceId',
           appVersion: 'uneAppVersion',
           dateDerniereActualisationToken: uneDatetime().toJSDate(),
+          dateDerniereActivite: uneDatetime().toJSDate(),
           fuseauHoraire: 'Europe/Paris'
         }
         expect(result).to.deep.equal(expected)
@@ -55,6 +57,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
             timezone: null,
             pushNotificationToken: null,
             dateDerniereActualisationToken: null,
+            dateDerniereActivite: null,
             installationId: null,
             instanceId: null,
             appVersion: null
@@ -68,6 +71,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
         expect(result?.fuseauHoraire).to.equal('Europe/Paris')
         expect(result?.pushNotificationToken).to.equal(undefined)
         expect(result?.dateDerniereActualisationToken).to.equal(undefined)
+        expect(result?.dateDerniereActivite).to.equal(undefined)
         expect(result?.appVersion).to.equal(undefined)
       })
     })
@@ -97,6 +101,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
         instanceId: 'uneInstanceId',
         appVersion: 'uneAppVersion',
         dateDerniereActualisationToken: uneDatetime().toJSDate(),
+        dateDerniereActivite: uneDatetime().toJSDate(),
         fuseauHoraire: 'Europe/Paris'
       }
 
@@ -111,6 +116,9 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
       expect(result?.appVersion).to.equal('uneAppVersion')
       expect(result?.timezone).to.equal('Europe/Paris')
       expect(result?.dateDerniereActualisationToken).to.deep.equal(
+        uneDatetime().toJSDate()
+      )
+      expect(result?.dateDerniereActivite).to.deep.equal(
         uneDatetime().toJSDate()
       )
     })
@@ -136,6 +144,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
       expect(result?.instanceId).to.equal(null)
       expect(result?.timezone).to.equal(null)
       expect(result?.dateDerniereActualisationToken).to.equal(null)
+      expect(result?.dateDerniereActivite).to.equal(null)
     })
   })
 })

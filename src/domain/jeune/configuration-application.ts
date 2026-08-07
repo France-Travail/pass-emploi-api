@@ -7,6 +7,7 @@ export interface ConfigurationApplication {
   idJeune: string
   pushNotificationToken?: string
   dateDerniereActualisationToken?: Date
+  dateDerniereActivite?: Date
   appVersion?: string
   installationId?: string
   instanceId?: string
@@ -50,9 +51,12 @@ export namespace ConfigurationApplication {
       return {
         idJeune: configuration.idJeune,
         pushNotificationToken:
-          aMettreAJour.pushNotificationToken ||
+          aMettreAJour.pushNotificationToken ??
           configuration.pushNotificationToken,
-        dateDerniereActualisationToken: this.dateService.nowJs(),
+        dateDerniereActualisationToken: aMettreAJour.pushNotificationToken
+          ? this.dateService.nowJs()
+          : configuration.dateDerniereActualisationToken,
+        dateDerniereActivite: this.dateService.nowJs(),
         installationId:
           aMettreAJour.installationId ?? configuration.installationId,
         instanceId: aMettreAJour.instanceId ?? configuration.instanceId,
