@@ -5,7 +5,7 @@ import { Command } from '../../building-blocks/types/command'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { Result, failure, isFailure } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
 import { EvenementService } from '../../domain/evenement'
 import {
   Recherche,
@@ -29,7 +29,7 @@ export class CreateRechercheFromSuggestionCommandHandler extends CommandHandler<
   CreateRechercheFromSuggestionCommand,
   Recherche
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
 
   constructor(
     private suggestionAuthorizer: SuggestionAuthorizer,

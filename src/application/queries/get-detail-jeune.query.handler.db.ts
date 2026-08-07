@@ -6,7 +6,7 @@ import { Query } from '../../building-blocks/types/query'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import {
-  PROFILS_JEUNES_HORS_INVITE,
+  PROFILS_JEUNES_ACCOMPAGNES,
   TOUS_LES_CONSEILLERS
 } from '../../domain/profil'
 import { estMilo } from '../../domain/core'
@@ -30,7 +30,7 @@ export class GetDetailJeuneQueryHandler extends QueryHandler<
   Result<DetailJeuneQueryModel>
 > {
   readonly profilsAutorises = [
-    ...PROFILS_JEUNES_HORS_INVITE,
+    ...PROFILS_JEUNES_ACCOMPAGNES,
     ...TOUS_LES_CONSEILLERS
   ]
 

@@ -54,7 +54,7 @@ function fromSqlToBeneficiarieActionQueryModel(
     firstName: jeuneSqlModel.prenom,
     lastName: jeuneSqlModel.nom,
     idConseiller: jeuneSqlModel.idConseiller!,
-    dispositif: jeuneSqlModel.dispositif
+    dispositif: jeuneSqlModel.dispositif ?? undefined
   }
 }
 

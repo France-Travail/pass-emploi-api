@@ -225,7 +225,7 @@ export namespace ArchiveJeune {
     prenomJeune: string
     nomJeune: string
     structure: Core.Structure
-    dispositif: Jeune.Dispositif
+    dispositif?: Jeune.Dispositif
     idPartenaire?: string
     dateCreation: Date
     datePremiereConnexion?: Date

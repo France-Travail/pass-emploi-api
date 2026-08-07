@@ -1,5 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { createSandbox, SinonSandbox } from 'sinon'
+import { createSandbox, match, SinonSandbox } from 'sinon'
 import {
   ConseillerNonValide,
   NonTraitableError,
@@ -35,6 +35,7 @@ import { Migration } from '../../../src/domain/migration'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
+import { Jeune, JeuneNonAccompagne } from '../../../src/domain/jeune/jeune'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 describe('UpdateUtilisateurCommandHandler', () => {
@@ -53,6 +54,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
     new Authentification.Factory(idService)
   let migrationService: StubbedClass<Migration.Service>
   let archiverJeuneRepository: StubbedType<ArchiveJeune.Repository>
+  let jeuneRepository: StubbedType<Jeune.Repository>
+  const jeuneNonAccompagneFactory: JeuneNonAccompagne.Factory =
+    new JeuneNonAccompagne.Factory(dateService, idService)
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
@@ -60,13 +64,16 @@ describe('UpdateUtilisateurCommandHandler', () => {
     mailBrevoService = stubClass(MailBrevoService)
     migrationService = stubClass(Migration.Service)
     archiverJeuneRepository = stubInterface(sandbox)
+    jeuneRepository = stubInterface(sandbox)
     updateUtilisateurCommandHandler = new UpdateUtilisateurCommandHandler(
       authentificationRepository,
       authentificationFactory,
       dateService,
       mailBrevoService,
       migrationService,
-      archiverJeuneRepository
+      archiverJeuneRepository,
+      jeuneRepository,
+      jeuneNonAccompagneFactory
     )
   })
 
@@ -721,6 +728,69 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             )
           })
+        })
+      })
+
+      describe('bénéficiaire non accompagné (DEMANDEUR / NON DEMANDEUR)', () => {
+        it('crée le jeune sans conseiller quand il est inconnu', async () => {
+          // Given
+          const command: UpdateUtilisateurCommand = {
+            idUtilisateurAuth: 'un-sub-ft',
+            prenom: 'Jean',
+            nom: 'Dupont',
+            email: 'jean.dupont@test.com',
+            type: 'BENEFICIAIRE',
+            structure: Core.Structure.FT_DEMANDEUR_D_EMPLOI
+          }
+          authentificationRepository.getJeuneByIdAuthentification
+            .withArgs(command.idUtilisateurAuth)
+            .resolves(undefined)
+
+          // When
+          const result = await updateUtilisateurCommandHandler.execute(command)
+
+          // Then
+          expect(jeuneRepository.save).to.have.been.calledOnce()
+          const jeuneCree = jeuneRepository.save.getCall(0).args[0]
+          expect(jeuneCree.conseiller).to.be.undefined()
+          expect(jeuneCree.structure).to.equal(
+            Core.Structure.FT_DEMANDEUR_D_EMPLOI
+          )
+          expect(
+            authentificationRepository.update
+          ).to.have.been.calledWithExactly(
+            match({ idAuthentification: 'un-sub-ft', id: uuidGenere })
+          )
+          expect(isSuccess(result)).to.equal(true)
+          if (isSuccess(result)) {
+            expect(result.data.structure).to.equal(
+              Core.Structure.FT_DEMANDEUR_D_EMPLOI
+            )
+            expect(result.data.id).to.equal(uuidGenere)
+          }
+        })
+
+        it('met à jour le jeune quand il est déjà connu', async () => {
+          // Given
+          const command: UpdateUtilisateurCommand = {
+            idUtilisateurAuth: 'un-sub-ft',
+            type: 'BENEFICIAIRE',
+            structure: Core.Structure.FT_ESPACE_CANDIDAT
+          }
+          const utilisateur = unUtilisateurJeune({
+            structure: Core.Structure.FT_ESPACE_CANDIDAT
+          })
+          authentificationRepository.getJeuneByIdAuthentification
+            .withArgs(command.idUtilisateurAuth)
+            .resolves(utilisateur)
+
+          // When
+          const result = await updateUtilisateurCommandHandler.execute(command)
+
+          // Then
+          expect(jeuneRepository.save).not.to.have.been.called()
+          expect(authentificationRepository.update).to.have.been.calledOnce()
+          expect(isSuccess(result)).to.equal(true)
         })
       })
 

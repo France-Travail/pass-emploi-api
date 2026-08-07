@@ -139,7 +139,6 @@ describe('GetCVPoleEmploiQueryHandler', () => {
       // Then
       expect(getCVPoleEmploiQueryHandler.profilsAutorises).to.deep.equal([
         Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
         Profil.Jeune.CONSEIL_DEPT
       ])
     })

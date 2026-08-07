@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op, Sequelize } from 'sequelize'
-import { Jeune } from '../../../domain/jeune/jeune'
+import { Jeune, JeuneNonAccompagne } from '../../../domain/jeune/jeune'
 import { DateService } from '../../../utils/date-service'
 import { IdService } from '../../../utils/id-service'
 import { FirebaseClient } from '../../clients/firebase-client'
@@ -12,7 +12,10 @@ import { TYPES_ANIMATIONS_COLLECTIVES } from '../../../domain/rendez-vous/rendez
 import { TransfertConseillerSqlModel } from '../../sequelize/models/transfert-conseiller.sql-model'
 import { SequelizeInjectionToken } from '../../sequelize/providers'
 import { AsSql } from '../../sequelize/types'
-import { fromSqlToJeune } from '../mappers/jeunes.mappers'
+import {
+  fromSqlToJeune,
+  fromSqlToJeuneOuNonAccompagne
+} from '../mappers/jeunes.mappers'
 import { Core } from '../../../domain/core'
 
 @Injectable()
@@ -59,7 +62,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
   async getByEmail(
     email: string,
     options?: { includeConseiller: boolean }
-  ): Promise<Jeune | undefined> {
+  ): Promise<Jeune | JeuneNonAccompagne | undefined> {
     const normalizedEmail = email.trim().toLowerCase()
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: this.sequelize.where(
@@ -74,7 +77,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     if (!jeuneSqlModel) {
       return undefined
     }
-    return fromSqlToJeune(jeuneSqlModel)
+    return fromSqlToJeuneOuNonAccompagne(jeuneSqlModel)
   }
 
   async transferAndSaveAll(
@@ -162,7 +165,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSqlModel.map(jeuneSqlModel => fromSqlToJeune(jeuneSqlModel))
   }
 
-  async save(jeune: Jeune): Promise<void> {
+  async save(jeune: Jeune | JeuneNonAccompagne): Promise<void> {
     const jeuneDto: Partial<AsSql<JeuneDto>> = {
       id: jeune.id,
       nom: jeune.lastName,
@@ -189,7 +192,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
       instanceId: jeune.configuration.instanceId ?? null,
       timezone: jeune.configuration.fuseauHoraire ?? null,
       dateSignatureCGU: jeune.dateSignatureCGU?.toJSDate() ?? null,
-      dispositif: jeune.dispositif,
+      dispositif: jeune.dispositif ?? null,
       peutVoirLeComptageDesHeures: jeune.peutVoirLeComptageDesHeures ?? null
     }
     await JeuneSqlModel.upsert(jeuneDto)
@@ -276,7 +279,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         notificationsRendezVousSessions: jeune.preferences.rendezVousSessions,
         notificationsRappelActions: jeune.preferences.rappelActions,
         notificationsActualitesMilo: jeune.preferences.actualitesMilo,
-        dispositif: jeune.dispositif
+        dispositif: jeune.dispositif ?? null
       }
       await JeuneSqlModel.upsert(jeuneTransfereSQL)
     }

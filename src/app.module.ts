@@ -273,6 +273,7 @@ import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import {
   Jeune,
   JeuneConfigurationApplicationRepositoryToken,
+  JeuneNonAccompagne,
   JeunePoleEmploiRepositoryToken,
   JeuneRepositoryToken
 } from './domain/jeune/jeune'
@@ -515,6 +516,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVous.Historique.Factory,
     RendezVous.Factory,
     Jeune.Factory,
+    JeuneNonAccompagne.Factory,
     Jeune.ConfigurationApplication.Factory,
     Fichier.Factory,
     Suggestion.Factory,

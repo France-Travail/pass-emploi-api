@@ -25,10 +25,7 @@ export class GetTokenPoleEmploiQueryHandler extends QueryHandler<
   // CONSEIL_DEPT n'a jamais été dans ce profil. Écart volontaire ou non,
   // arbitrage PO en attente. Le contrôle vit ici plutôt que dans
   // JeuneAuthorizer car il ne se réduit à aucun `Profil` déclarable.
-  readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI
-  ]
+  readonly profilsAutorises = [Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE]
 
   constructor(
     private oidcClient: OidcClient,

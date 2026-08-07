@@ -103,6 +103,7 @@ export namespace Mail {
           case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
           case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
             return parseInt(this.templates.suppressionBeneficiairePassEmploi)
+          case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
           case Core.Structure.FT_ESPACE_CANDIDAT:
           case Core.Structure.INVITE:
             throw new Error(

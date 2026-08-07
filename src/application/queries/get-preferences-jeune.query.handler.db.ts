@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -18,7 +18,7 @@ export class GetPreferencesJeuneQueryHandler extends QueryHandler<
   GetPreferencesJeuneQuery,
   Result<PreferencesJeuneQueryModel>
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetPreferencesJeuneQueryHandler')

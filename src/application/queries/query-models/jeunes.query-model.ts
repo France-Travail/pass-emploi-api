@@ -169,7 +169,7 @@ export class DetailJeuneQueryModel {
   dateSignatureCGU?: string
 
   @ApiProperty()
-  dispositif: Jeune.Dispositif
+  dispositif?: Jeune.Dispositif
 
   @ApiProperty({ required: false })
   peutVoirLeComptageDesHeures?: boolean
@@ -216,7 +216,7 @@ export class DetailJeuneConseillerQueryModel {
   estAArchiver: boolean
 
   @ApiProperty()
-  dispositif: Jeune.Dispositif
+  dispositif?: Jeune.Dispositif
 
   @ApiProperty({ required: false })
   idPartenaire?: string

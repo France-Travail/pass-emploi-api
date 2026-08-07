@@ -278,7 +278,7 @@ function fromDtoToQueryModel(
       lastName: jeuneDto.nom,
       firstName: jeuneDto.prenom,
       idConseiller: jeuneDto.idConseiller!,
-      dispositif: jeuneDto.dispositif
+      dispositif: jeuneDto.dispositif!
     },
     etat,
     qualification,

@@ -22,6 +22,11 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core, estMilo } from '../../domain/core'
+import {
+  Jeune,
+  JeuneNonAccompagne,
+  JeuneRepositoryToken
+} from '../../domain/jeune/jeune'
 import { Migration } from '../../domain/migration'
 import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { MailServiceToken } from '../../domain/mail'
@@ -64,7 +69,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly mailBrevoService: MailBrevoService,
     private readonly migrationService: Migration.Service,
     @Inject(ArchiveJeuneRepositoryToken)
-    private readonly archiverJeuneRepository: ArchiveJeune.Repository
+    private readonly archiverJeuneRepository: ArchiveJeune.Repository,
+    @Inject(JeuneRepositoryToken)
+    private readonly jeuneRepository: Jeune.Repository,
+    private readonly jeuneNonAccompagneFactory: JeuneNonAccompagne.Factory
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -151,6 +159,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       case 'FRANCE_TRAVAIL':
         return this.recupererUtilisateurConseillerExistant(commandSanitized)
       case Core.Structure.FT_ESPACE_CANDIDAT:
+      case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
       case Core.Structure.INVITE:
         return Promise.resolve(
           failure(
@@ -178,11 +187,11 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       case 'FRANCE_TRAVAIL':
         return this.authentificationBeneficiaireFT(commandSanitized)
+      case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
+      case Core.Structure.FT_ESPACE_CANDIDAT:
+        return this.authentificationBeneficiaireNonAccompagne(commandSanitized)
       case Core.Structure.CONSEIL_DEPT:
       case Core.Structure.AVENIR_PRO:
-      // TODO: inerte tant que `connect` n'émet pas cette structure. C'est
-      // la première ligne à changer pour authentifier l'espace candidat FT.
-      case Core.Structure.FT_ESPACE_CANDIDAT:
       case Core.Structure.INVITE:
         return failure(
           new NonTraitableError(
@@ -392,6 +401,48 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
+  private async authentificationBeneficiaireNonAccompagne(
+    commandSanitized: UpdateUtilisateurCommand
+  ): Promise<Result<UtilisateurQueryModel>> {
+    const utilisateurTrouve =
+      await this.authentificationRepository.getJeuneByIdAuthentification(
+        commandSanitized.idUtilisateurAuth
+      )
+
+    if (utilisateurTrouve) {
+      const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
+        utilisateurTrouve,
+        { ...commandSanitized, structure: utilisateurTrouve.structure }
+      )
+      return success(queryModelFromUtilisateur(utilisateurMisAJour))
+    }
+
+    const nouveauJeune = this.jeuneNonAccompagneFactory.creer({
+      prenom: commandSanitized.prenom ?? '',
+      nom: commandSanitized.nom ?? '',
+      email: commandSanitized.email,
+      structure: commandSanitized.structure as Core.Structure
+    })
+    await this.jeuneRepository.save(nouveauJeune)
+
+    const maintenant = this.dateService.nowJs()
+    const utilisateur: Authentification.Utilisateur = {
+      id: nouveauJeune.id,
+      idAuthentification: commandSanitized.idUtilisateurAuth,
+      prenom: nouveauJeune.firstName,
+      nom: nouveauJeune.lastName,
+      email: commandSanitized.email,
+      structure: commandSanitized.structure as Core.Structure,
+      type: Authentification.Type.JEUNE,
+      roles: [],
+      dateDerniereConnexion: maintenant,
+      datePremiereConnexion: maintenant
+    }
+    await this.authentificationRepository.update(utilisateur)
+
+    return success(queryModelFromUtilisateur(utilisateur))
+  }
+
   private async recupererOuCreerUtilisateurConseiller(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
@@ -507,8 +558,9 @@ function autoriseUtilisateurFTConnectOnly(
     case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
     case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-      return emptySuccess()
+    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
     case Core.Structure.FT_ESPACE_CANDIDAT:
+      return emptySuccess()
     case Core.Structure.INVITE:
       return failure(
         new NonTraitableError(
@@ -541,6 +593,7 @@ function reasonFromStructure(structure: Core.Structure): NonTraitableReason {
     case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
       return NonTraitableReason.UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT
     case Core.Structure.FT_ESPACE_CANDIDAT:
+    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
     case Core.Structure.INVITE:
       return NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
   }

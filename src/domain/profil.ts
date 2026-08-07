@@ -4,7 +4,7 @@ export namespace Profil {
   export enum Jeune {
     MILO = 'JEUNE_MILO',
     FT_DEMANDEUR_EMPLOI_ACCOMPAGNE = 'JEUNE_FT_DEMANDEUR_EMPLOI_ACCOMPAGNE',
-    FT_DEMANDEUR_EMPLOI = 'JEUNE_FT_DEMANDEUR_EMPLOI',
+    FT_DEMANDEUR_EMPLOI_NON_ACCOMPAGNE = 'JEUNE_FT_DEMANDEUR_EMPLOI_NON_ACCOMPAGNE',
     FT_ESPACE_CANDIDAT = 'JEUNE_FT_ESPACE_CANDIDAT',
     CONSEIL_DEPT = 'JEUNE_CONSEIL_DEPT',
     INVITE = 'JEUNE_INVITE'
@@ -34,13 +34,9 @@ export const TOUS_LES_CONSEILLERS: readonly Profil.Conseiller[] = Object.values(
   Profil.Conseiller
 )
 
-// Sous-ensemble de Profil.Jeune, pas la totalité : exclut délibérément
-// INVITE (accès fermé par défaut, ouvert route par route) et
-// FT_ESPACE_CANDIDAT (aucune structure ne le produit aujourd'hui).
-export const PROFILS_JEUNES_HORS_INVITE: readonly Profil.Jeune[] = [
+export const PROFILS_JEUNES_ACCOMPAGNES: readonly Profil.Jeune[] = [
   Profil.Jeune.MILO,
   Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-  Profil.Jeune.FT_DEMANDEUR_EMPLOI,
   Profil.Jeune.CONSEIL_DEPT
 ]
 
@@ -64,7 +60,9 @@ const PROFILS_JEUNES: Record<Core.Structure, Profil.Jeune> = {
     Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
   [Core.Structure.CONSEIL_DEPT]: Profil.Jeune.CONSEIL_DEPT,
   [Core.Structure.INVITE]: Profil.Jeune.INVITE,
-  [Core.Structure.FT_ESPACE_CANDIDAT]: Profil.Jeune.FT_ESPACE_CANDIDAT
+  [Core.Structure.FT_ESPACE_CANDIDAT]: Profil.Jeune.FT_ESPACE_CANDIDAT,
+  [Core.Structure.FT_DEMANDEUR_D_EMPLOI]:
+    Profil.Jeune.FT_DEMANDEUR_EMPLOI_NON_ACCOMPAGNE
 }
 
 export function profilJeuneDe(structure: Core.Structure): Profil.Jeune {
@@ -88,7 +86,8 @@ const PROFILS_CONSEILLERS: Record<
   [Core.Structure.FT_EQUIP_EMPLOI_RECRUT]: Profil.Conseiller.FT,
   [Core.Structure.CONSEIL_DEPT]: Profil.Conseiller.CONSEIL_DEPT,
   [Core.Structure.INVITE]: undefined,
-  [Core.Structure.FT_ESPACE_CANDIDAT]: undefined
+  [Core.Structure.FT_ESPACE_CANDIDAT]: undefined,
+  [Core.Structure.FT_DEMANDEUR_D_EMPLOI]: undefined
 }
 
 export function profilConseillerDe(

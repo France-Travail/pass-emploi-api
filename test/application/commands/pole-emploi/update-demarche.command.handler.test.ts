@@ -152,7 +152,6 @@ describe('UpdateDemarcheCommandHandler', () => {
       // Then
       expect(updateDemarcheCommandHandler.profilsAutorises).to.deep.equal([
         Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI,
         Profil.Jeune.CONSEIL_DEPT
       ])
     })

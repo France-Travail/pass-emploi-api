@@ -11,7 +11,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Offre } from '../../domain/offre/offre'
 
@@ -26,7 +26,7 @@ export class AddFavoriOffreImmersionCommandHandler extends CommandHandler<
   AddFavoriOffreImmersionCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
 
   constructor(
     @Inject(FavorisOffresImmersionRepositoryToken)

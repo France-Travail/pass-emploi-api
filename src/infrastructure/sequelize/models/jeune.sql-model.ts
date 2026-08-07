@@ -197,7 +197,7 @@ export class JeuneDto extends Model {
     field: 'dispositif',
     type: DataType.STRING
   })
-  dispositif: Jeune.Dispositif
+  dispositif: Jeune.Dispositif | null
 
   @Column({
     field: 'peut_voir_le_comptage_des_heures',

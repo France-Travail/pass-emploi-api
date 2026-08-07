@@ -94,8 +94,7 @@ describe('GetTokenPoleEmploiQueryHandler', () => {
     it('exige un profil France Travail (le filtrage AVENIR_PRO reste sur estFranceTravail dans authorize)', () => {
       // Then
       expect(getTokenPoleEmploiQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI
+        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE
       ])
     })
   })

@@ -10,7 +10,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_HORS_INVITE } from '../../domain/profil'
+import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
 import { Core, beneficiaireEstFTConnect } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { SuggestionPoleEmploiService } from '../../domain/offre/recherche/suggestion/pole-emploi.service'
@@ -34,7 +34,7 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
   RafraichirSuggestionsCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_HORS_INVITE
+  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)
