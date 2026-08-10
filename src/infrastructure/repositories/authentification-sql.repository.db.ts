@@ -102,6 +102,7 @@ export class AuthentificationSqlOidcRepository
       dateCreation: jeuneInvite.dateCreation,
       pushNotificationToken: null,
       dateDerniereActualisationToken: null,
+      dateDerniereActivite: jeuneInvite.dateCreation,
       appVersion: null,
       installationId: null,
       instanceId: null,
@@ -220,6 +221,10 @@ export class AuthentificationSqlOidcRepository
     } catch (e) {
       this.logger.warn(`Echec suppression compte OIDC ${idUserCEJ}`, e)
     }
+  }
+
+  async supprimerCompteIdpInvite(idAuthentification: string): Promise<void> {
+    await this.oidcClient.deleteAccountByIdAuth(idAuthentification)
   }
 
   async estConseillerSuperviseur(

@@ -24,6 +24,10 @@ export class JeuneConfigurationApplicationSqlRepository
   async save(
     configurationApplication: Jeune.ConfigurationApplication
   ): Promise<void> {
+    // TODO: dateDerniereActivite n'est pas persistée ici (contrairement aux invités,
+    // cf. JeuneInviteConfigurationApplicationSqlRepository) : la colonne n'existe pas
+    // encore sur JeuneSqlModel. Dette assumée, à traiter si le signal se généralise
+    // aux jeunes standards.
     await JeuneSqlModel.update(
       {
         appVersion: configurationApplication.appVersion ?? null,

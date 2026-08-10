@@ -175,6 +175,7 @@ export class JeunesController {
     return handleResult(result)
   }
 
+  // Appelée au login ET en cycle foreground (>24h) pour rafraîchir dateDerniereActivite, pas seulement au démarrage à froid.
   @ApiHeader({
     name: 'x-appversion',
     required: false
@@ -200,7 +201,8 @@ export class JeunesController {
       await this.updateJeuneConfigurationApplicationCommandHandler.execute(
         {
           idJeune,
-          pushNotificationToken: updateConfigurationInput.registration_token,
+          pushNotificationToken:
+            updateConfigurationInput.registration_token || undefined,
           appVersion,
           installationId,
           instanceId,

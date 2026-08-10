@@ -24,6 +24,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
             id: idInvite,
             pushNotificationToken: 'unToken',
             dateDerniereActualisationToken: uneDatetime().toJSDate(),
+            dateDerniereActivite: uneDatetime().toJSDate(),
             installationId: 'uneInstallationId',
             instanceId: 'uneInstanceId',
             appVersion: 'uneAppVersion',
@@ -42,6 +43,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
           instanceId: 'uneInstanceId',
           appVersion: 'uneAppVersion',
           dateDerniereActualisationToken: uneDatetime().toJSDate(),
+          dateDerniereActivite: uneDatetime().toJSDate(),
           fuseauHoraire: 'Europe/Paris'
         }
         expect(result).to.deep.equal(expected)
@@ -97,6 +99,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
         instanceId: 'uneInstanceId',
         appVersion: 'uneAppVersion',
         dateDerniereActualisationToken: uneDatetime().toJSDate(),
+        dateDerniereActivite: uneDatetime().toJSDate(),
         fuseauHoraire: 'Europe/Paris'
       }
 
@@ -113,16 +116,21 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
       expect(result?.dateDerniereActualisationToken).to.deep.equal(
         uneDatetime().toJSDate()
       )
+      expect(result?.dateDerniereActivite).to.deep.equal(
+        uneDatetime().toJSDate()
+      )
     })
 
-    it('écrit null pour les champs absents', async () => {
+    it('écrit null pour les champs optionnels absents', async () => {
       // Given : champs optionnels absents (fuseauHoraire forcé pour couvrir le ?? null)
+      // dateDerniereActivite reste requise : toujours posée par ConfigurationApplication.Factory
       const configuration = {
         idJeune: idInvite,
         pushNotificationToken: 'unToken',
         installationId: 'uneInstallationId',
         appVersion: undefined,
         dateDerniereActualisationToken: undefined,
+        dateDerniereActivite: uneDatetime().toJSDate(),
         fuseauHoraire: undefined
       } as unknown as Jeune.ConfigurationApplication
 
@@ -136,6 +144,22 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
       expect(result?.instanceId).to.equal(null)
       expect(result?.timezone).to.equal(null)
       expect(result?.dateDerniereActualisationToken).to.equal(null)
+      expect(result?.dateDerniereActivite).to.deep.equal(
+        uneDatetime().toJSDate()
+      )
+    })
+
+    it('lève une erreur si dateDerniereActivite est absente', async () => {
+      // Given
+      const configuration = {
+        idJeune: idInvite,
+        fuseauHoraire: 'Europe/Paris'
+      } as unknown as Jeune.ConfigurationApplication
+
+      // When / Then
+      await expect(repository.save(configuration)).to.be.rejectedWith(
+        "dateDerniereActivite est requise pour sauvegarder la configuration d'un invité"
+      )
     })
   })
 })

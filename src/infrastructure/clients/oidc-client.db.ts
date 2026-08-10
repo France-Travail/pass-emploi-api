@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
-import { AxiosResponse } from 'axios'
+import { AxiosResponse, isAxiosError } from 'axios'
 import { Authentification } from 'src/domain/authentification'
 import { beneficiaireEstFTConnect, Core, estMilo } from 'src/domain/core'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
@@ -135,13 +135,6 @@ export class OidcClient extends ExternalApiClient {
   }
 
   public async deleteAccount(idUser: string): Promise<void> {
-    const apiKey = this.configService.get('oidc.apiKey')
-    const url = `${this.configService.get('oidc').issuerApiUrl}/accounts`
-
-    const headers = {
-      'X-API-KEY': apiKey
-    }
-
     const jeune = await JeuneSqlModel.findByPk(idUser)
     let idAuth = jeune?.idAuthentification
 
@@ -153,9 +146,36 @@ export class OidcClient extends ExternalApiClient {
     if (!idAuth) {
       throw new NotFoundException('User to delete not found')
     }
+
+    await this.supprimerCompteAuth(idAuth, false)
+  }
+
+  public async deleteAccountByIdAuth(
+    idAuthentification: string
+  ): Promise<void> {
+    if (!idAuthentification) {
+      throw new NotFoundException('User to delete not found')
+    }
+
+    await this.supprimerCompteAuth(idAuthentification, true)
+  }
+
+  private async supprimerCompteAuth(
+    idAuthentification: string,
+    tolererNotFound: boolean
+  ): Promise<void> {
+    const apiKey = this.configService.get('oidc.apiKey')
+    const url = `${this.configService.get('oidc').issuerApiUrl}/accounts`
+    const headers = {
+      'X-API-KEY': apiKey
+    }
+
     try {
-      await this.axios.delete(`${url}/${idAuth}`, { headers })
+      await this.axios.delete(`${url}/${idAuthentification}`, { headers })
     } catch (e) {
+      if (tolererNotFound && isAxiosError(e) && e.response?.status === 404) {
+        return
+      }
       throw e
     }
   }

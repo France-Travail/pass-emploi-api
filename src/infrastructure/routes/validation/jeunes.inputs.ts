@@ -16,10 +16,10 @@ import {
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 
 export class UpdateConfigurationInput {
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  @IsNotEmpty()
-  registration_token: string
+  @IsOptional()
+  registration_token?: string
 
   @ApiPropertyOptional()
   @IsString()

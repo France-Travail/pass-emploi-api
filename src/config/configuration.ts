@@ -272,6 +272,11 @@ export default () => {
       mailConseillers: {
         nombreDeConseillersEnParallele:
           process.env.JOB_NOMBRE_CONSEILLERS_PARALLELE ?? '100'
+      },
+      purgeInvites: {
+        retentionJours: process.env.JOB_PURGE_INVITES_RETENTION_JOURS ?? '365',
+        pourcentageInactifsMax:
+          process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',

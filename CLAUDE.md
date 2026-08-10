@@ -335,16 +335,8 @@ describe('CreateActionCommandHandler', () => {
 
 ### Commentaires
 
-- **Pas de commentaires explicatifs** dans le code : privilégier des noms
-  explicites (types, fonctions, variables) qui rendent l'intention évidente.
-  Un commentaire qui paraphrase ce que fait le code est à supprimer.
-- **Exception** : un fait réellement non-évident et indispensable à la
-  compréhension (ex. subtilité de fuseau horaire, contrainte métier contre-intuitive).
-- **`// TODO:`** autorisés et encouragés pour tracer une suite de refacto / une
-  dette assumée (ex. décommissionnement d'un getter remplacé, migration d'autres
-  handlers). Les rendre actionnables (quoi migrer, vers quoi).
-- Les marqueurs de structure de test (`// Given` / `// When` / `// Then`) sont une
-  convention du repo, pas des commentaires explicatifs : ils restent.
+Règle transverse : voir **Conventions partagées → Commentaires** dans
+`CONTEXTE-TRANSVERSE.md` (importé en tête de ce fichier).
 
 ---
 

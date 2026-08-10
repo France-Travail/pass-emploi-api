@@ -7,6 +7,11 @@ export interface ConfigurationApplication {
   idJeune: string
   pushNotificationToken?: string
   dateDerniereActualisationToken?: Date
+  // TODO: persistée uniquement pour les invités (JeuneInviteConfigurationApplicationSqlRepository).
+  // Pour les jeunes standards, JeuneConfigurationApplicationSqlRepository l'ignore encore :
+  // dette assumée en attendant de généraliser le signal (possiblement en remplacement de
+  // dateDerniereActualisationToken).
+  dateDerniereActivite?: Date
   appVersion?: string
   installationId?: string
   instanceId?: string
@@ -55,6 +60,7 @@ export namespace ConfigurationApplication {
         dateDerniereActualisationToken: aMettreAJour.pushNotificationToken
           ? this.dateService.nowJs()
           : configuration.dateDerniereActualisationToken,
+        dateDerniereActivite: this.dateService.nowJs(),
         installationId:
           aMettreAJour.installationId ?? configuration.installationId,
         instanceId: aMettreAJour.instanceId ?? configuration.instanceId,

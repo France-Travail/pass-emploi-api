@@ -8,7 +8,11 @@ import {
   UpdateJeuneConfigurationApplicationCommand,
   UpdateJeuneConfigurationApplicationCommandHandler
 } from '../../../src/application/commands/update-jeune-configuration-application.command.handler'
-import { isFailure, isSuccess } from '../../../src/building-blocks/types/result'
+import {
+  emptySuccess,
+  isFailure,
+  isSuccess
+} from '../../../src/building-blocks/types/result'
 import { DateService } from '../../../src/utils/date-service'
 import { Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -87,7 +91,8 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
             installationId: 'uneInstallationId',
             instanceId: 'uneInstanceId',
             fuseauHoraire: 'Europe/Paris',
-            dateDerniereActualisationToken: uneDatetime().toJSDate()
+            dateDerniereActualisationToken: uneDatetime().toJSDate(),
+            dateDerniereActivite: uneDatetime().toJSDate()
           }
         expect(
           jeuneConfigurationApplicationRepository.save
@@ -151,7 +156,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
             utilisateurInvite
           )
 
-        // Then : c'est ce champ qui sert de signal d'activité pour la purge
+        // Then
         expect(
           jeuneInviteConfigurationApplicationRepository.save
         ).to.have.been.calledWithExactly({
@@ -161,7 +166,8 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
           installationId: undefined,
           instanceId: undefined,
           fuseauHoraire: 'Europe/Paris',
-          dateDerniereActualisationToken: uneDatetime().toJSDate()
+          dateDerniereActualisationToken: uneDatetime().toJSDate(),
+          dateDerniereActivite: uneDatetime().toJSDate()
         })
         // et surtout : on ne touche pas à la table jeune
         expect(
@@ -185,6 +191,93 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
 
         // Then
         expect(isFailure(result)).to.equal(true)
+      })
+    })
+
+    describe('dateDerniereActualisationToken', () => {
+      const dateAncienne = uneDatetime().minus({ days: 30 }).toJSDate()
+
+      it("conserve la date et le token quand aucun token n'est fourni", async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune()
+        jeuneConfigurationApplicationRepository.get
+          .withArgs(utilisateur.id)
+          .resolves({
+            idJeune: utilisateur.id,
+            pushNotificationToken: 'ancienToken',
+            dateDerniereActualisationToken: dateAncienne,
+            fuseauHoraire: 'Europe/Paris'
+          })
+        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
+
+        // When
+        await updateJeuneConfigurationApplicationCommandHandler.execute(
+          { idJeune: utilisateur.id, pushNotificationToken: undefined },
+          utilisateur
+        )
+
+        // Then
+        const configSauvegardee =
+          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
+        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
+          dateAncienne
+        )
+        expect(configSauvegardee.pushNotificationToken).to.equal('ancienToken')
+      })
+
+      it('met la date à maintenant et stocke le token quand il est fourni', async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune()
+        jeuneConfigurationApplicationRepository.get
+          .withArgs(utilisateur.id)
+          .resolves({
+            idJeune: utilisateur.id,
+            pushNotificationToken: 'ancienToken',
+            dateDerniereActualisationToken: dateAncienne,
+            fuseauHoraire: 'Europe/Paris'
+          })
+        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
+
+        // When
+        await updateJeuneConfigurationApplicationCommandHandler.execute(
+          { idJeune: utilisateur.id, pushNotificationToken: 'nouveauToken' },
+          utilisateur
+        )
+
+        // Then
+        const configSauvegardee =
+          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
+        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
+          uneDatetime().toJSDate()
+        )
+        expect(configSauvegardee.pushNotificationToken).to.equal('nouveauToken')
+      })
+
+      it('pose dateDerniereActivite à maintenant même sans token', async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune()
+        jeuneConfigurationApplicationRepository.get
+          .withArgs(utilisateur.id)
+          .resolves({
+            idJeune: utilisateur.id,
+            pushNotificationToken: 'ancienToken',
+            dateDerniereActualisationToken: dateAncienne,
+            fuseauHoraire: 'Europe/Paris'
+          })
+        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
+
+        // When
+        await updateJeuneConfigurationApplicationCommandHandler.execute(
+          { idJeune: utilisateur.id, pushNotificationToken: undefined },
+          utilisateur
+        )
+
+        // Then
+        const configSauvegardee =
+          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
+        expect(configSauvegardee.dateDerniereActivite).to.deep.equal(
+          uneDatetime().toJSDate()
+        )
       })
     })
   })

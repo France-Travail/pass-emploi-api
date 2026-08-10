@@ -86,6 +86,7 @@ export namespace Planificateur {
     NETTOYER_LES_JOBS = 'NETTOYER_LES_JOBS',
     NETTOYER_LES_PIECES_JOINTES = 'NETTOYER_LES_PIECES_JOINTES',
     NETTOYER_LES_DONNEES = 'NETTOYER_LES_DONNEES',
+    PURGER_INVITES_INACTIFS = 'PURGER_INVITES_INACTIFS',
     NOTIFIER_RENDEZVOUS_PE = 'NOTIFIER_RENDEZVOUS_PE',
     MAJ_CODES_EVENEMENTS = 'MAJ_CODES_EVENEMENTS',
     MAJ_SEGMENTS = 'MAJ_SEGMENTS',
@@ -269,6 +270,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     expression: '0 5 * * *',
     description:
       "Tous les jours à 5h. Supprime les archives, les logs et les évènements d'engagement hebdo."
+  },
+  {
+    type: Planificateur.JobType.PURGER_INVITES_INACTIFS,
+    expression: '0 4 1 * *',
+    description:
+      'Le 1er de chaque mois à 4h. Purge les invités inactifs (ligne DB + identité connect).'
   },
   {
     type: Planificateur.JobType.QUALIFIER_ACTIONS,

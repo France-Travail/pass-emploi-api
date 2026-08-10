@@ -51,3 +51,7 @@ lerna-debug.log*
 !.yarn/releases
 !.yarn/sdks
 scripts/.yarn/*
+
+# Claude Code : config locale + worktrees générés par les agents en isolation
+.claude/settings.local.json
+.claude/worktrees/

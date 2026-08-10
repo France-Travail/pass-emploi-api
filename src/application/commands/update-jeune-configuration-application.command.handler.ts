@@ -21,7 +21,7 @@ import { ConfigurationApplication } from '../../domain/jeune/configuration-appli
 
 export interface UpdateJeuneConfigurationApplicationCommand extends Command {
   idJeune: string
-  pushNotificationToken: string
+  pushNotificationToken?: string
   appVersion?: string
   installationId?: string
   instanceId?: string
