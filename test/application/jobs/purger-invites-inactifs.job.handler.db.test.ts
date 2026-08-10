@@ -58,11 +58,14 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(
       authentificationRepository.supprimerCompteIdpInvite
     ).to.have.been.calledWith('sub1')
-    expect(jeuneInviteRepository.supprimer).to.have.been.calledWith('inv1')
+    expect(jeuneInviteRepository.supprimerPlusieurs).to.have.been.calledWith([
+      'inv1',
+      'inv2'
+    ])
     expect(
       authentificationRepository.supprimerCompteIdpInvite
         .getCall(0)
-        .calledBefore(jeuneInviteRepository.supprimer.getCall(0))
+        .calledBefore(jeuneInviteRepository.supprimerPlusieurs.getCall(0))
     ).to.equal(true)
     const resultat = suivi.resultat as {
       nbPurges: number
@@ -70,7 +73,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(resultat.nbPurges).to.equal(2)
   })
 
-  it('ne supprime pas la ligne DB si la suppression IDP échoue', async () => {
+  it('ne supprime pas les lignes DB si la suppression IDP échoue pour tous', async () => {
     // Given
     jeuneInviteRepository.compterTout.resolves(100)
     jeuneInviteRepository.recupererInvitesInactifs.resolves([
@@ -88,7 +91,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     const suivi = await handler.handle()
 
     // Then
-    expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
+    expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
     const resultat = suivi.resultat as {
       nbEchecsIdp: number
       nbPurges: number
@@ -115,7 +118,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(
       authentificationRepository.supprimerCompteIdpInvite
     ).not.to.have.been.called()
-    expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
+    expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
     expect(suivi.succes).to.equal(false)
     expect(suivi.nbErreurs).to.equal(1)
     const resultat = suivi.resultat as {
@@ -150,7 +153,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(suivi.succes).to.equal(true)
   })
 
-  it('supprime tous les candidats en un seul run, même bien au-delà de 500 (pas de plafond)', async () => {
+  it('supprime tous les candidats en un seul DELETE en masse, même bien au-delà de 500 (pas de plafond)', async () => {
     // Given
     const candidats = Array.from({ length: 600 }, (_, i) => ({
       id: `inv${i}`,
@@ -164,7 +167,10 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     const suivi = await handler.handle()
 
     // Then
-    expect(jeuneInviteRepository.supprimer).to.have.callCount(600)
+    expect(jeuneInviteRepository.supprimerPlusieurs).to.have.been.calledOnce()
+    expect(
+      jeuneInviteRepository.supprimerPlusieurs.firstCall.args[0]
+    ).to.have.lengthOf(600)
     const resultat = suivi.resultat as {
       nbPurges: number
       nombreInactifs: number
@@ -182,7 +188,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     const suivi = await handler.handle()
 
     // Then
-    expect(jeuneInviteRepository.supprimer).not.to.have.been.called()
+    expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
     expect(suivi.succes).to.equal(true)
   })
 
@@ -232,7 +238,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     expect(resultat.nbEchecsDb).to.equal(0)
   })
 
-  it('signale un run en échec quand une suppression DB échoue après une suppression IDP réussie', async () => {
+  it('signale un run en échec quand le DELETE en masse échoue après des suppressions IDP réussies', async () => {
     // Given
     jeuneInviteRepository.compterTout.resolves(100)
     jeuneInviteRepository.recupererInvitesInactifs.resolves([
@@ -242,7 +248,9 @@ describe('PurgerInvitesInactifsJobHandler', () => {
         dateReference: maintenant.minus({ months: 18 }).toJSDate()
       }
     ])
-    jeuneInviteRepository.supprimer.withArgs('inv1').rejects(new Error('DB KO'))
+    jeuneInviteRepository.supprimerPlusieurs
+      .withArgs(['inv1'])
+      .rejects(new Error('DB KO'))
 
     // When
     const suivi = await handler.handle()

@@ -107,19 +107,26 @@ describe('JeuneInviteSqlRepository', () => {
     })
   })
 
-  describe('supprimer', () => {
-    it('supprime la ligne invité', async () => {
+  describe('supprimerPlusieurs', () => {
+    it('supprime toutes les lignes passées et laisse les autres intactes', async () => {
       // Given
       await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({ id: 'a-supprimer', idAuthentification: 'sup' })
+        unJeuneInviteDto({ id: 'a-supprimer-1', idAuthentification: 'sup1' })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ id: 'a-supprimer-2', idAuthentification: 'sup2' })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ id: 'a-garder', idAuthentification: 'garde' })
       )
 
       // When
-      await repository.supprimer('a-supprimer')
+      await repository.supprimerPlusieurs(['a-supprimer-1', 'a-supprimer-2'])
 
       // Then
-      const restant = await JeuneInviteSqlModel.findByPk('a-supprimer')
-      expect(restant).to.equal(null)
+      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-1')).to.equal(null)
+      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-2')).to.equal(null)
+      expect(await JeuneInviteSqlModel.findByPk('a-garder')).not.to.equal(null)
     })
   })
 })

@@ -110,38 +110,45 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
   private async purger(
     candidats: Array<{ id: string; idAuthentification: string }>
   ): Promise<ResultatPurge> {
-    const resultat: ResultatPurge = {
-      nbPurges: 0,
-      nbEchecsIdp: 0,
-      nbEchecsDb: 0
-    }
+    const idsSupprimesCoteIdp: string[] = []
+    let nbEchecsIdp = 0
 
     for (const invite of candidats) {
       try {
         await this.authentificationRepository.supprimerCompteIdpInvite(
           invite.idAuthentification
         )
+        idsSupprimesCoteIdp.push(invite.id)
       } catch (e) {
         this.logger.error(
           `Echec suppression IDP invité ${invite.idAuthentification}`,
           toEcsError(e).stack_trace
         )
-        resultat.nbEchecsIdp++
-        continue
-      }
-
-      try {
-        await this.jeuneInviteRepository.supprimer(invite.id)
-        resultat.nbPurges++
-      } catch (e) {
-        this.logger.error(
-          `Echec suppression DB invité ${invite.id}`,
-          toEcsError(e).stack_trace
-        )
-        resultat.nbEchecsDb++
+        nbEchecsIdp++
       }
     }
 
-    return resultat
+    if (idsSupprimesCoteIdp.length === 0) {
+      return { nbPurges: 0, nbEchecsIdp, nbEchecsDb: 0 }
+    }
+
+    try {
+      await this.jeuneInviteRepository.supprimerPlusieurs(idsSupprimesCoteIdp)
+      return {
+        nbPurges: idsSupprimesCoteIdp.length,
+        nbEchecsIdp,
+        nbEchecsDb: 0
+      }
+    } catch (e) {
+      this.logger.error(
+        'Echec suppression DB en masse des invités purgés côté IDP',
+        toEcsError(e).stack_trace
+      )
+      return {
+        nbPurges: 0,
+        nbEchecsIdp,
+        nbEchecsDb: idsSupprimesCoteIdp.length
+      }
+    }
   }
 }

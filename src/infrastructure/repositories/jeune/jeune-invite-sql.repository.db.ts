@@ -32,7 +32,7 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     return JeuneInviteSqlModel.count()
   }
 
-  async supprimer(id: string): Promise<void> {
-    await JeuneInviteSqlModel.destroy({ where: { id } })
+  async supprimerPlusieurs(ids: string[]): Promise<void> {
+    await JeuneInviteSqlModel.destroy({ where: { id: { [Op.in]: ids } } })
   }
 }
