@@ -276,12 +276,7 @@ export default () => {
       purgeInvites: {
         retentionJours: process.env.JOB_PURGE_INVITES_RETENTION_JOURS ?? '365',
         pourcentageInactifsMax:
-          process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20',
-        dryRun: process.env.JOB_PURGE_INVITES_DRY_RUN !== 'false',
-        delaiEntreSuppressionsMs:
-          process.env.JOB_PURGE_INVITES_DELAI_MS ?? '200',
-        parcMinimalControleSignal:
-          process.env.JOB_PURGE_INVITES_PARC_MINIMAL ?? '100'
+          process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',

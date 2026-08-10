@@ -12,7 +12,6 @@ export namespace JeuneInvite {
       Array<{ id: string; idAuthentification: string; dateReference: Date }>
     >
     compterTout(): Promise<number>
-    existeActiviteDepuis(depuis: Date): Promise<boolean>
     supprimer(id: string): Promise<void>
   }
 }

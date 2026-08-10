@@ -102,7 +102,7 @@ export class AuthentificationSqlOidcRepository
       dateCreation: jeuneInvite.dateCreation,
       pushNotificationToken: null,
       dateDerniereActualisationToken: null,
-      dateDerniereActivite: null,
+      dateDerniereActivite: jeuneInvite.dateCreation,
       appVersion: null,
       installationId: null,
       instanceId: null,

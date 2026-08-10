@@ -7,6 +7,10 @@ export interface ConfigurationApplication {
   idJeune: string
   pushNotificationToken?: string
   dateDerniereActualisationToken?: Date
+  // TODO: persistée uniquement pour les invités (JeuneInviteConfigurationApplicationSqlRepository).
+  // Pour les jeunes standards, JeuneConfigurationApplicationSqlRepository l'ignore encore :
+  // dette assumée en attendant de généraliser le signal (possiblement en remplacement de
+  // dateDerniereActualisationToken).
   dateDerniereActivite?: Date
   appVersion?: string
   installationId?: string

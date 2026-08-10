@@ -23,6 +23,16 @@ export class JeuneInviteConfigurationApplicationSqlRepository
   async save(
     configurationApplication: Jeune.ConfigurationApplication
   ): Promise<void> {
+    // TODO: dateDerniereActivite est toujours posée par ConfigurationApplication.Factory
+    // avant d'arriver ici, mais reste optionnelle côté type tant que le split
+    // Jeune / Invité de ce type domaine (cf. docs/wip-refacto-configuration-application.md)
+    // n'est pas fait. Garde-fou en attendant : la colonne est NOT NULL en base.
+    if (!configurationApplication.dateDerniereActivite) {
+      throw new Error(
+        "dateDerniereActivite est requise pour sauvegarder la configuration d'un invité"
+      )
+    }
+
     await JeuneInviteSqlModel.update(
       {
         appVersion: configurationApplication.appVersion ?? null,
@@ -30,8 +40,7 @@ export class JeuneInviteConfigurationApplicationSqlRepository
           configurationApplication.pushNotificationToken ?? null,
         dateDerniereActualisationToken:
           configurationApplication.dateDerniereActualisationToken ?? null,
-        dateDerniereActivite:
-          configurationApplication.dateDerniereActivite ?? null,
+        dateDerniereActivite: configurationApplication.dateDerniereActivite,
         installationId: configurationApplication.installationId ?? null,
         instanceId: configurationApplication.instanceId ?? null,
         timezone: configurationApplication.fuseauHoraire ?? null

@@ -124,10 +124,7 @@ export const testConfig = (): ConfigService => {
       },
       purgeInvites: {
         retentionJours: '365',
-        pourcentageInactifsMax: '20',
-        dryRun: false,
-        delaiEntreSuppressionsMs: '0',
-        parcMinimalControleSignal: '100'
+        pourcentageInactifsMax: '20'
       }
     },
     apiKeys: {

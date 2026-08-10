@@ -175,15 +175,7 @@ export class JeunesController {
     return handleResult(result)
   }
 
-  /*
-    Contexte :
-      Anciennement cette route été appellé à chaque login -> LoginSuccessAction (démarag à froid) et
-      maintenant, elle sera aussi appellé en cycle foreground si ça fait plus de 24h
-
-    Utilité :
-      Elle sert à mettre a jour les informations telles que le pushNotificationToken, la dateDerniereActivite, le fuseauHoraire, etc...,
-      de nos jeunes standards et invité
-   */
+  // Appelée au login ET en cycle foreground (>24h) pour rafraîchir dateDerniereActivite, pas seulement au démarrage à froid.
   @ApiHeader({
     name: 'x-appversion',
     required: false

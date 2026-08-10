@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { DateTime } from 'luxon'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import {
   Authentification,
@@ -13,8 +12,13 @@ import {
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 
-const FENETRE_CONTROLE_SIGNAL_HEURES = 24
+interface ResultatPurge {
+  nbPurges: number
+  nbEchecsIdp: number
+  nbEchecsDb: number
+}
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.PURGER_INVITES_INACTIFS)
@@ -34,149 +38,110 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
 
   async handle(): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
-    const config = this.configService.get('jobs').purgeInvites
-    const retentionJours = Number(config.retentionJours)
-    const pourcentageInactifsMax = Number(config.pourcentageInactifsMax)
-    const dryRun: boolean = config.dryRun
-    const delaiMs = Number(config.delaiEntreSuppressionsMs)
-    const parcMinimalControleSignal = Number(config.parcMinimalControleSignal)
+    const { retentionJours, pourcentageInactifsMax } =
+      this.configService.get('jobs').purgeInvites
 
-    const dateSeuil = maintenant.minus({ days: retentionJours }).toJSDate()
+    const dateSeuil = maintenant
+      .minus({ days: Number(retentionJours) })
+      .toJSDate()
 
     let nbErreurs = 0
-    let nbPurges = 0
-    let nbSimules = 0
-    let nbEchecsRedis = 0
-    let nbEchecsDb = 0
-    let plusCourteInactiviteJours: number | null = null
     let pourcentageInactifs = 0
-    let succes = true
-    let motifAbandon: 'SIGNAL_MUET' | 'INVARIANT_AGE' | null = null
-    let alerteBacklog = false
     let total = 0
     let nombreInactifs = 0
-    let activiteRecente = false
+    let resultatPurge: ResultatPurge = {
+      nbPurges: 0,
+      nbEchecsIdp: 0,
+      nbEchecsDb: 0
+    }
 
     try {
-      total = await this.jeuneInviteRepository.compterTout()
-      const candidats =
-        await this.jeuneInviteRepository.recupererInvitesInactifs(dateSeuil)
+      const [totalInvites, candidats] = await Promise.all([
+        this.jeuneInviteRepository.compterTout(),
+        this.jeuneInviteRepository.recupererInvitesInactifs(dateSeuil)
+      ])
+      total = totalInvites
       nombreInactifs = candidats.length
-
-      activiteRecente = await this.jeuneInviteRepository.existeActiviteDepuis(
-        maintenant.minus({ hours: FENETRE_CONTROLE_SIGNAL_HEURES }).toJSDate()
-      )
-
       pourcentageInactifs = total > 0 ? (nombreInactifs / total) * 100 : 0
 
-      if (pourcentageInactifs > pourcentageInactifsMax) {
-        alerteBacklog = true
-        this.logger.warn(
-          `Purge invités: ${pourcentageInactifs.toFixed(
-            1
-          )}% du parc est inactif, au-dessus du seuil ${pourcentageInactifsMax}%`
+      if (pourcentageInactifs > Number(pourcentageInactifsMax)) {
+        rootLogger.error(
+          {
+            context: 'PurgerInvitesInactifsJobHandler',
+            event: {
+              action: 'purge_invites_abandonnee',
+              outcome: 'failure'
+            },
+            labels: {
+              pourcentage_inactifs: pourcentageInactifs.toFixed(1),
+              seuil: String(pourcentageInactifsMax)
+            }
+          },
+          'purge_invites_abandonnee'
         )
-      }
-
-      for (const invite of candidats) {
-        const ageJours = Math.floor(
-          maintenant.diff(DateTime.fromJSDate(invite.dateReference), 'days')
-            .days
-        )
-        if (
-          plusCourteInactiviteJours === null ||
-          ageJours < plusCourteInactiviteJours
-        ) {
-          plusCourteInactiviteJours = ageJours
-        }
-      }
-
-      if (!activiteRecente && total >= parcMinimalControleSignal) {
-        motifAbandon = 'SIGNAL_MUET'
-        this.logger.error(
-          `Purge invités abandonnée: aucune activité invité enregistrée depuis ` +
-            `${FENETRE_CONTROLE_SIGNAL_HEURES}h sur un parc de ${total}, ` +
-            "le signal d'activité est probablement cassé"
-        )
-        succes = false
-        nbErreurs += 1
-      } else if (
-        plusCourteInactiviteJours !== null &&
-        plusCourteInactiviteJours < retentionJours
-      ) {
-        motifAbandon = 'INVARIANT_AGE'
-        this.logger.error(
-          `Purge invités abandonnée: un candidat a ${plusCourteInactiviteJours} jours d'inactivité, ` +
-            `sous la rétention de ${retentionJours} jours`
-        )
-        succes = false
-        nbErreurs += 1
+        nbErreurs++
       } else {
-        for (const invite of candidats) {
-          if (dryRun) {
-            nbSimules++
-            continue
-          }
-          try {
-            await this.authentificationRepository.supprimerCompteIdpInvite(
-              invite.idAuthentification
-            )
-          } catch (e) {
-            this.logger.warn(
-              `Echec suppression IDP invité ${invite.idAuthentification}`,
-              e
-            )
-            nbEchecsRedis++
-            await this.pause(delaiMs)
-            continue
-          }
-          try {
-            await this.jeuneInviteRepository.supprimer(invite.id)
-            nbPurges++
-          } catch (e) {
-            this.logger.warn(`Echec suppression DB invité ${invite.id}`, e)
-            nbEchecsDb++
-          }
-          await this.pause(delaiMs)
-        }
-
-        nbErreurs += nbEchecsRedis + nbEchecsDb
-        if (nbEchecsRedis > 0 || nbEchecsDb > 0) {
-          succes = false
-        }
+        resultatPurge = await this.purger(candidats)
+        nbErreurs += resultatPurge.nbEchecsIdp + resultatPurge.nbEchecsDb
       }
     } catch (e) {
-      this.logger.warn('Echec du job de purge des invités inactifs', e)
+      this.logger.error(
+        'Echec du job de purge des invités inactifs',
+        toEcsError(e).stack_trace
+      )
       nbErreurs++
-      succes = false
     }
 
     return {
       jobType: this.jobType,
       nbErreurs,
-      succes,
+      succes: nbErreurs === 0,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
       resultat: {
-        dryRun,
-        nbPurges,
-        nbSimules,
-        nbEchecsRedis,
-        nbEchecsDb,
+        ...resultatPurge,
         pourcentageInactifs,
-        plusCourteInactiviteJours,
-        motifAbandon,
-        activiteRecente,
-        alerteBacklog,
         nombreInactifs,
         total
       }
     }
   }
 
-  private async pause(ms: number): Promise<void> {
-    if (ms > 0) {
-      await new Promise<void>(resolve => setTimeout(resolve, ms))
+  private async purger(
+    candidats: Array<{ id: string; idAuthentification: string }>
+  ): Promise<ResultatPurge> {
+    const resultat: ResultatPurge = {
+      nbPurges: 0,
+      nbEchecsIdp: 0,
+      nbEchecsDb: 0
     }
+
+    for (const invite of candidats) {
+      try {
+        await this.authentificationRepository.supprimerCompteIdpInvite(
+          invite.idAuthentification
+        )
+      } catch (e) {
+        this.logger.error(
+          `Echec suppression IDP invité ${invite.idAuthentification}`,
+          toEcsError(e).stack_trace
+        )
+        resultat.nbEchecsIdp++
+        continue
+      }
+
+      try {
+        await this.jeuneInviteRepository.supprimer(invite.id)
+        resultat.nbPurges++
+      } catch (e) {
+        this.logger.error(
+          `Echec suppression DB invité ${invite.id}`,
+          toEcsError(e).stack_trace
+        )
+        resultat.nbEchecsDb++
+      }
+    }
+
+    return resultat
   }
 }
