@@ -15,6 +15,7 @@ import {
 import { failure } from '../../../../src/building-blocks/types/result'
 import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
 import { uneConfiguration } from '../../../fixtures/jeune.fixture'
+import { ConfigurationApplication } from '../../../../src/domain/jeune/configuration-application'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Notification } from '../../../../src/domain/notification/notification'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
@@ -25,7 +26,9 @@ describe('AddCommentaireActionCommandHandler', () => {
   let commentaireActionFactory: StubbedClass<Action.Commentaire.Factory>
   let actionRepository: StubbedType<Action.Repository>
   let commentaireActionRepository: StubbedType<Action.Commentaire.Repository>
-  let jeuneConfigurationApplicationRepository: StubbedType<Jeune.ConfigurationApplication.Repository>
+  let jeuneConfigurationApplicationRepository: StubbedType<
+    ConfigurationApplication.Repository<Jeune.ConfigurationApplication>
+  >
   let notificationService: StubbedClass<Notification.Service>
   let evenementService: StubbedClass<EvenementService>
   let addCommentaireActionCommandHandler: AddCommentaireActionCommandHandler

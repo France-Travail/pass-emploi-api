@@ -7,6 +7,7 @@ import {
   isSuccess,
   Result
 } from '../../building-blocks/types/result'
+import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
 import {
   Jeune,
   JeuneConfigurationApplicationRepositoryToken
@@ -31,7 +32,7 @@ export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler {
     private readonly findAllOffresEmploiQueryGetter: FindAllOffresEmploiQueryGetter,
     private readonly notificationService: Notification.Service,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private readonly jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
     private readonly configuration: ConfigService,
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service

@@ -271,6 +271,7 @@ import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
 import { FeatureFlip, FeatureFlipRepositoryToken } from './domain/feature-flip'
 import { Migration, MigrationRepositoryToken } from './domain/migration'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
+import { ConfigurationApplication } from './domain/jeune/configuration-application'
 import {
   Jeune,
   JeuneConfigurationApplicationRepositoryToken,
@@ -518,7 +519,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVous.Factory,
     Jeune.Factory,
     JeuneNonAccompagne.Factory,
-    Jeune.ConfigurationApplication.Factory,
+    ConfigurationApplication.FactoryJeune,
+    ConfigurationApplication.FactoryInvite,
     Fichier.Factory,
     Suggestion.Factory,
     SuggestionPoleEmploiService,

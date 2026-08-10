@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
+import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
 import {
   Jeune,
   JeuneConfigurationApplicationRepositoryToken
@@ -26,7 +27,7 @@ export class NotifierRecherchesServiceCiviqueJobHandler extends JobHandler {
     @Inject(RecherchesRepositoryToken)
     private readonly rechercheRepository: Recherche.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private readonly jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
     private readonly notificationService: Notification.Service,
     private readonly findAllOffresServicesCiviqueQueryGetter: FindAllOffresServicesCiviqueQueryGetter,
     private readonly dateService: DateService,

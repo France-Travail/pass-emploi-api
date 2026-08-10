@@ -14,10 +14,13 @@ import {
   JeuneConfigurationApplicationRepositoryToken
 } from '../../domain/jeune/jeune'
 import { JeuneInviteConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune-invite'
-import { Profil } from '../../domain/profil'
+import { TOUS_LES_JEUNES } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
-import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
+import {
+  ConfigurationApplication,
+  ConfigurationApplicationInvite
+} from '../../domain/jeune/configuration-application'
 
 export interface UpdateJeuneConfigurationApplicationCommand extends Command {
   idJeune: string
@@ -33,21 +36,17 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
   UpdateJeuneConfigurationApplicationCommand,
   void
 > {
-  readonly profilsAutorises = [
-    Profil.Jeune.MILO,
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT,
-    Profil.Jeune.INVITE
-  ]
+  readonly profilsAutorises = TOUS_LES_JEUNES
 
   constructor(
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
     @Inject(JeuneInviteConfigurationApplicationRepositoryToken)
-    private jeuneInviteConfigurationApplicationRepository: Jeune.ConfigurationApplication.Repository,
-    private jeuneAuthorizer: JeuneAuthorizer,
-    private jeuneInviteAuthorizer: JeuneInviteAuthorizer,
-    private configurationApplicationFactory: ConfigurationApplication.Factory
+    private readonly jeuneInviteConfigurationApplicationRepository: ConfigurationApplication.Repository<ConfigurationApplicationInvite>,
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
+    private readonly configurationApplicationJeuneFactory: ConfigurationApplication.FactoryJeune,
+    private readonly configurationApplicationInviteFactory: ConfigurationApplication.FactoryInvite
   ) {
     super('UpdateJeuneConfigurationApplicationCommandHandler')
   }
@@ -56,27 +55,40 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
     command: UpdateJeuneConfigurationApplicationCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const estUnInvite = estInvite(utilisateur.structure)
-    const repository = estUnInvite
-      ? this.jeuneInviteConfigurationApplicationRepository
-      : this.jeuneConfigurationApplicationRepository
-
-    const configurationExistante = await repository.get(command.idJeune)
-    if (!configurationExistante) {
-      return failure(
-        new NonTrouveError(
-          command.idJeune,
-          estUnInvite ? 'Jeune invité' : 'Jeune'
+    if (estInvite(utilisateur.structure)) {
+      const configurationExistante =
+        await this.jeuneInviteConfigurationApplicationRepository.get(
+          command.idJeune
         )
+      if (!configurationExistante) {
+        return failure(new NonTrouveError(command.idJeune, 'Jeune invité'))
+      }
+
+      const configurationApplication =
+        this.configurationApplicationInviteFactory.mettreAJour(
+          configurationExistante,
+          command
+        )
+      await this.jeuneInviteConfigurationApplicationRepository.save(
+        configurationApplication
       )
+      return emptySuccess()
+    }
+
+    const configurationExistante =
+      await this.jeuneConfigurationApplicationRepository.get(command.idJeune)
+    if (!configurationExistante) {
+      return failure(new NonTrouveError(command.idJeune, 'Jeune'))
     }
 
     const configurationApplication =
-      this.configurationApplicationFactory.mettreAJour(
+      this.configurationApplicationJeuneFactory.mettreAJour(
         configurationExistante,
         command
       )
-    await repository.save(configurationApplication)
+    await this.jeuneConfigurationApplicationRepository.save(
+      configurationApplication
+    )
     return emptySuccess()
   }
 

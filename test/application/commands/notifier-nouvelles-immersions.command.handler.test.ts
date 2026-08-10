@@ -4,6 +4,7 @@ import {
   NotifierNouvellesImmersionsCommand,
   NotifierNouvellesImmersionsCommandHandler
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
+import { ConfigurationApplication } from '../../../src/domain/jeune/configuration-application'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -19,7 +20,9 @@ describe('NotifierNouvellesImmersionsCommandHandler', () => {
   const jeune = unJeune()
   const recherche = uneRecherche()
   let rechercheRepository: StubbedType<Recherche.Repository>
-  let jeuneRepository: StubbedType<Jeune.ConfigurationApplication.Repository>
+  let jeuneRepository: StubbedType<
+    ConfigurationApplication.Repository<Jeune.ConfigurationApplication>
+  >
   let notificationService: StubbedClass<Notification.Service>
 
   beforeEach(async () => {
