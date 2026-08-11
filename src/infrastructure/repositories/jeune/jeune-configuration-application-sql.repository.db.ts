@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common'
-import { TIMEZONE_PAR_DEFAUT } from '../../../domain/jeune/configuration-application'
-import { Jeune } from '../../../domain/jeune/jeune'
+import {
+  ConfigurationApplication,
+  ConfigurationApplicationJeune,
+  TIMEZONE_PAR_DEFAUT
+} from '../../../domain/jeune/configuration-application'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { fromSqlToPreferencesJeune } from '../mappers/jeunes.mappers'
 
 @Injectable()
-export class JeuneConfigurationApplicationSqlRepository
-  implements Jeune.ConfigurationApplication.Repository
-{
+export class JeuneConfigurationApplicationSqlRepository implements ConfigurationApplication.Repository<ConfigurationApplicationJeune> {
   async get(
     idJeune: string
-  ): Promise<Jeune.ConfigurationApplication | undefined> {
+  ): Promise<ConfigurationApplicationJeune | undefined> {
     const jeuneSqlModel = await JeuneSqlModel.findByPk(idJeune, {
       attributes: attributesConfigurationApplication
     })
@@ -22,7 +23,7 @@ export class JeuneConfigurationApplicationSqlRepository
   }
 
   async save(
-    configurationApplication: Jeune.ConfigurationApplication
+    configurationApplication: ConfigurationApplicationJeune
   ): Promise<void> {
     // TODO: dateDerniereActivite n'est pas persistée ici (contrairement aux invités,
     // cf. JeuneInviteConfigurationApplicationSqlRepository) : la colonne n'existe pas
@@ -46,7 +47,7 @@ export class JeuneConfigurationApplicationSqlRepository
 
 function toConfigurationApplication(
   jeuneSqlModel: JeuneSqlModel
-): Jeune.ConfigurationApplication {
+): ConfigurationApplicationJeune {
   return {
     idJeune: jeuneSqlModel.id,
     appVersion: jeuneSqlModel.appVersion ?? undefined,

@@ -34,6 +34,10 @@ export const TOUS_LES_CONSEILLERS: readonly Profil.Conseiller[] = Object.values(
   Profil.Conseiller
 )
 
+export const TOUS_LES_JEUNES: readonly Profil.Jeune[] = Object.values(
+  Profil.Jeune
+)
+
 export const PROFILS_JEUNES_ACCOMPAGNES: readonly Profil.Jeune[] = [
   Profil.Jeune.MILO,
   Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,

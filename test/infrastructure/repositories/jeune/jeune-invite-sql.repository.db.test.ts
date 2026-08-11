@@ -51,26 +51,13 @@ describe('JeuneInviteSqlRepository', () => {
           dateDerniereActivite: maintenant.minus({ days: 5 }).toJSDate()
         })
       )
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'inactif-malgre-token-recent',
-          idAuthentification: 'sub-token-recent',
-          dateCreation: maintenant.minus({ years: 3 }).toJSDate(),
-          dateDerniereActivite: maintenant.minus({ months: 18 }).toJSDate(),
-          dateDerniereActualisationToken: maintenant
-            .minus({ days: 2 })
-            .toJSDate()
-        })
-      )
-
       // When
       const inactifs = await repository.recupererInvitesInactifs(seuil)
 
       // Then
       expect(inactifs.map(i => i.id).sort()).to.deep.equal([
         'inactif-activation-egale-creation',
-        'inactif-activite-vieille',
-        'inactif-malgre-token-recent'
+        'inactif-activite-vieille'
       ])
       expect(inactifs[0]).to.have.property('idAuthentification')
 

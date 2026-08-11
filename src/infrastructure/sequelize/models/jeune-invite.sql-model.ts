@@ -40,12 +40,6 @@ export class JeuneInviteDto extends Model {
   pushNotificationToken: string | null
 
   @Column({
-    field: 'date_derniere_actualisation_token',
-    type: DataType.DATE
-  })
-  dateDerniereActualisationToken: Date | null
-
-  @Column({
     field: 'date_derniere_activite',
     type: DataType.DATE,
     allowNull: false

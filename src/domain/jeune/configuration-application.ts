@@ -3,20 +3,22 @@ import { DateService } from '../../utils/date-service'
 
 export const TIMEZONE_PAR_DEFAUT = 'Europe/Paris'
 
-export interface ConfigurationApplication {
+export interface ConfigurationApplicationCommune {
   idJeune: string
   pushNotificationToken?: string
-  dateDerniereActualisationToken?: Date
-  // TODO: persistée uniquement pour les invités (JeuneInviteConfigurationApplicationSqlRepository).
-  // Pour les jeunes standards, JeuneConfigurationApplicationSqlRepository l'ignore encore :
-  // dette assumée en attendant de généraliser le signal (possiblement en remplacement de
-  // dateDerniereActualisationToken).
-  dateDerniereActivite?: Date
   appVersion?: string
   installationId?: string
   instanceId?: string
   fuseauHoraire: string
+}
+
+export interface ConfigurationApplicationJeune extends ConfigurationApplicationCommune {
+  dateDerniereActualisationToken?: Date
   preferences?: ConfigurationApplication.Preferences
+}
+
+export interface ConfigurationApplicationInvite extends ConfigurationApplicationCommune {
+  dateDerniereActivite?: Date
 }
 
 export namespace ConfigurationApplication {
@@ -29,6 +31,7 @@ export namespace ConfigurationApplication {
     rappelActions: boolean
     actualitesMilo: boolean
   }
+
   export interface AMettreAJour {
     pushNotificationToken?: string
     dateDerniereActualisationToken?: Date
@@ -38,20 +41,20 @@ export namespace ConfigurationApplication {
     fuseauHoraire?: string
   }
 
-  export interface Repository {
-    get(idJeune: string): Promise<ConfigurationApplication | undefined>
+  export interface Repository<T> {
+    get(idJeune: string): Promise<T | undefined>
 
-    save(configurationApplication: ConfigurationApplication): Promise<void>
+    save(configurationApplication: T): Promise<void>
   }
 
   @Injectable()
-  export class Factory {
+  export class FactoryJeune {
     constructor(private dateService: DateService) {}
 
     mettreAJour(
-      configuration: ConfigurationApplication,
+      configuration: ConfigurationApplicationJeune,
       aMettreAJour: AMettreAJour
-    ): ConfigurationApplication {
+    ): ConfigurationApplicationJeune {
       return {
         idJeune: configuration.idJeune,
         pushNotificationToken:
@@ -60,6 +63,28 @@ export namespace ConfigurationApplication {
         dateDerniereActualisationToken: aMettreAJour.pushNotificationToken
           ? this.dateService.nowJs()
           : configuration.dateDerniereActualisationToken,
+        installationId:
+          aMettreAJour.installationId ?? configuration.installationId,
+        instanceId: aMettreAJour.instanceId ?? configuration.instanceId,
+        appVersion: aMettreAJour.appVersion ?? configuration.appVersion,
+        fuseauHoraire: aMettreAJour.fuseauHoraire ?? configuration.fuseauHoraire
+      }
+    }
+  }
+
+  @Injectable()
+  export class FactoryInvite {
+    constructor(private dateService: DateService) {}
+
+    mettreAJour(
+      configuration: ConfigurationApplicationInvite,
+      aMettreAJour: AMettreAJour
+    ): ConfigurationApplicationInvite {
+      return {
+        idJeune: configuration.idJeune,
+        pushNotificationToken:
+          aMettreAJour.pushNotificationToken ??
+          configuration.pushNotificationToken,
         dateDerniereActivite: this.dateService.nowJs(),
         installationId:
           aMettreAJour.installationId ?? configuration.installationId,
