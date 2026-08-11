@@ -8,7 +8,6 @@ import { Jeune } from '../jeune/jeune'
 import { Recherche } from '../offre/recherche/recherche'
 import { RendezVous } from '../rendez-vous/rendez-vous'
 import * as _PoleEmploi from './notification.pole-emploi'
-import { RendezVousMilo } from '../milo/rendez-vous.milo'
 
 export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 
@@ -475,7 +474,7 @@ export namespace Notification {
     async notifierInscriptionSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -488,10 +487,7 @@ export namespace Notification {
               jeune.configuration.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -528,7 +524,7 @@ export namespace Notification {
     async notifierModificationSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -541,10 +537,7 @@ export namespace Notification {
               jeune.configuration?.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -559,7 +552,7 @@ export namespace Notification {
     async notifierDesinscriptionSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -572,10 +565,7 @@ export namespace Notification {
               jeune.configuration?.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)

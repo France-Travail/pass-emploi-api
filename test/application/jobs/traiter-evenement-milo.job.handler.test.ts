@@ -227,7 +227,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               .withArgs(evenement)
               .resolves(
                 unRendezVousMilo({
-                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 }).toISO()
+                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                 })
               )
 
@@ -387,9 +387,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
                 .withArgs(evenement)
                 .resolves(
                   unRendezVousMilo({
-                    dateHeureDebut: maintenant
-                      .minus({ year: 1, days: 1 })
-                      .toISO()
+                    dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                   })
                 )
 
@@ -623,7 +621,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               .resolves(
                 uneInstanceSessionMilo({
                   statut: SessionMilo.StatutInstance.PRESCRIT,
-                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 }).toISO()
+                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                 })
               )
 
@@ -689,11 +687,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idInstance: instance.id,
               idDossier: instance.idDossier,
               idSession: instance.idSession,
-              dateDebut: RendezVousMilo.timezonerDateMilo(
-                instance.dateHeureDebut,
-
-                jeune.configuration.fuseauHoraire
-              )
+              dateDebut: instance.dateHeureDebut
             })
           })
 
@@ -808,10 +802,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idInstance: instance.id,
               idDossier: instance.idDossier,
               idSession: instance.idSession,
-              dateDebut: RendezVousMilo.timezonerDateMilo(
-                instance.dateHeureDebut,
-                jeune.configuration.fuseauHoraire
-              )
+              dateDebut: instance.dateHeureDebut
             })
           })
 

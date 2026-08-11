@@ -5,6 +5,7 @@ import { EvenementMiloDto } from 'src/infrastructure/repositories/dto/milo.dto'
 import { RendezVousMilo } from '../../src/domain/milo/rendez-vous.milo'
 import { EvenementMilo } from '../../src/domain/milo/evenement.milo'
 import { InstanceSessionMilo } from '../../src/domain/milo/session.milo'
+import { resoudreDateMilo } from '../../src/utils/milo-date'
 
 export const unDossierMilo = (
   args: Partial<JeuneMilo.Dossier> = {}
@@ -101,8 +102,8 @@ export const unRendezVousMilo = (
 ): RendezVousMilo => {
   const defaults: RendezVousMilo = {
     id: '34',
-    dateHeureDebut: '2020-10-06 10:00:00',
-    dateHeureFin: '2020-10-06 12:00:00',
+    dateHeureDebut: resoudreDateMilo('2020-10-06 10:00:00', 'Europe/Paris'),
+    dateHeureFin: resoudreDateMilo('2020-10-06 12:00:00', 'Europe/Paris'),
     titre: 'Test RDV',
     idPartenaireBeneficiaire: '5045180',
     commentaire: '',
@@ -116,7 +117,7 @@ export const uneInstanceSessionMilo = (
 ): InstanceSessionMilo => {
   const defaults: InstanceSessionMilo = {
     id: '34',
-    dateHeureDebut: '2020-10-06 10:00:00',
+    dateHeureDebut: resoudreDateMilo('2020-10-06 10:00:00', 'Europe/Paris'),
     idSession: '12345',
     idDossier: '5045180',
     statut: 'Prescrit',

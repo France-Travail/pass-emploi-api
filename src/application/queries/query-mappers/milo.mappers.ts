@@ -25,6 +25,7 @@ import {
   SessionTypeQueryModel
 } from '../query-models/sessions.milo.query.model'
 import { DateService } from '../../../utils/date-service'
+import { resoudreDateMilo } from '../../../utils/milo-date'
 
 function buildSessionTypeQueryModel(
   type: OffreTypeCode
@@ -47,10 +48,10 @@ export function mapSessionJeuneDtoToQueryModel(
     'autoinscription' | 'autodesinscription'
   >
 ): SessionJeuneMiloQueryModel {
-  const dateHeureDebutDt = DateService.dateFromMilo(
+  const dateHeureDebutDt = resoudreDateMilo(
     sessionDto.session.dateHeureDebut,
     timezone
-  )
+  ).toUTC()
   const dateMaxInscriptionDt = sessionDto.session.dateMaxInscription
     ? DateService.dateStringToEndOfDayUtc(
         sessionDto.session.dateMaxInscription,
@@ -63,10 +64,9 @@ export function mapSessionJeuneDtoToQueryModel(
     nomSession: sessionDto.session.nom,
     nomOffre: sessionDto.offre.nom,
     dateHeureDebut: dateHeureDebutDt.toISO(),
-    dateHeureFin: DateService.dateFromMilo(
-      sessionDto.session.dateHeureFin,
-      timezone
-    ).toISO(),
+    dateHeureFin: resoudreDateMilo(sessionDto.session.dateHeureFin, timezone)
+      .toUTC()
+      .toISO(),
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
     dateMaxInscription: dateMaxInscriptionDt?.toISO(),
     nbPlacesRestantes: sessionDto.session.nbPlacesDisponibles ?? undefined,
@@ -110,8 +110,8 @@ export function dtoToSessionMiloBeneficiaireDetaillee(
   timezone: string
 ): SessionMiloBeneficiaireDetaillee {
   const idSession = session.id.toString()
-  const debut = DateService.dateFromMilo(session.dateHeureDebut, timezone)
-  const fin = DateService.dateFromMilo(session.dateHeureFin, timezone)
+  const debut = resoudreDateMilo(session.dateHeureDebut, timezone).toUTC()
+  const fin = resoudreDateMilo(session.dateHeureFin, timezone).toUTC()
   const dateMaxInscriptionAffichee = session.dateMaxInscription
     ? DateService.dateStringToEndOfDayUtc(session.dateMaxInscription, timezone)
     : undefined
@@ -171,11 +171,11 @@ export function mapSessionConseillerDtoToQueryModel(
   maintenant: DateTime,
   parametrage?: ConfigurationLocale
 ): SessionConseillerMiloQueryModel {
-  const dateHeureDebut = DateService.dateFromMilo(
+  const dateHeureDebut = resoudreDateMilo(
     session.dateHeureDebut,
     timezone
-  )
-  const dateHeureFin = DateService.dateFromMilo(session.dateHeureFin, timezone)
+  ).toUTC()
+  const dateHeureFin = resoudreDateMilo(session.dateHeureFin, timezone).toUTC()
   const dateCloture = parametrage?.dateCloture
     ? DateTime.fromJSDate(parametrage.dateCloture)
     : undefined
@@ -222,14 +222,15 @@ export function mapSessionConseillerDtoToAgendaQueryModel(
     id: sessionDto.session.id.toString(),
     nomSession: sessionDto.session.nom,
     nomOffre: sessionDto.offre.nom,
-    dateHeureDebut: DateService.dateFromMilo(
+    dateHeureDebut: resoudreDateMilo(
       sessionDto.session.dateHeureDebut,
       timezone
-    ).toISO(),
-    dateHeureFin: DateService.dateFromMilo(
-      sessionDto.session.dateHeureFin,
-      timezone
-    ).toISO(),
+    )
+      .toUTC()
+      .toISO(),
+    dateHeureFin: resoudreDateMilo(sessionDto.session.dateHeureFin, timezone)
+      .toUTC()
+      .toISO(),
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
     beneficiaires: inscrits,
     nbPlacesRestantes: sessionDto.session.nbPlacesDisponibles ?? undefined,
@@ -249,10 +250,10 @@ export function mapDetailSessionJeuneDtoToQueryModel(
   >,
   maintenant: DateTime
 ): DetailSessionJeuneMiloQueryModel {
-  const dateHeureDebutDt = DateService.dateFromMilo(
+  const dateHeureDebutDt = resoudreDateMilo(
     sessionDto.session.dateHeureDebut,
     beneficiaire.timezone
-  )
+  ).toUTC()
   const dateMaxInscriptionDt = sessionDto.session.dateMaxInscription
     ? DateService.dateStringToEndOfDayUtc(
         sessionDto.session.dateMaxInscription,
@@ -272,10 +273,12 @@ export function mapDetailSessionJeuneDtoToQueryModel(
     theme: sessionDto.offre.theme,
     type: buildSessionTypeQueryModel(sessionDto.offre.type),
     dateHeureDebut: dateHeureDebutDt.toISO(),
-    dateHeureFin: DateService.dateFromMilo(
+    dateHeureFin: resoudreDateMilo(
       sessionDto.session.dateHeureFin,
       beneficiaire.timezone
-    ).toISO(),
+    )
+      .toUTC()
+      .toISO(),
     lieu: sessionDto.session.lieu,
     animateur: sessionDto.session.animateur,
     nomPartenaire: sessionDto.offre.nomPartenaire ?? undefined,

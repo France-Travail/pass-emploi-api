@@ -17,7 +17,7 @@ import {
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
-import { DateService, MILO_DATE_FORMAT } from '../../../utils/date-service'
+import { DateService } from '../../../utils/date-service'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import Inscription = SessionMilo.Inscription
@@ -127,7 +127,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
       this.notificationService.notifierInscriptionSession(
         session.id,
         session.nom,
-        session.debut.toFormat(MILO_DATE_FORMAT),
+        session.debut,
         jeunesANotifierInscription
       )
       this.evenementService.creer(
@@ -144,7 +144,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
       this.notificationService.notifierDesinscriptionSession(
         session.id,
         session.nom,
-        session.debut.toFormat(MILO_DATE_FORMAT),
+        session.debut,
         jeunesANotifierDesinscription
       )
     }

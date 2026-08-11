@@ -61,7 +61,7 @@ export interface SessionMiloBeneficiaireDetaillee extends SessionMiloBeneficiair
 export interface InstanceSessionMilo {
   id: string
   idSession: string
-  dateHeureDebut: string
+  dateHeureDebut: DateTime
   idDossier: string
   statut: string
   nom: string
@@ -283,7 +283,8 @@ export namespace SessionMilo {
   export interface Repository {
     findInstanceSession(
       idInstance: string,
-      idDossier: string
+      idDossier: string,
+      timezoneStructureMilo: string
     ): Promise<InstanceSessionMilo | undefined>
 
     getForBeneficiaire(

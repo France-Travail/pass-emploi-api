@@ -14,8 +14,6 @@ import { uneInstanceSessionMilo } from '../../fixtures/milo.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 import { success } from '../../../src/building-blocks/types/result'
 
-const MILO_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss'
-
 describe('handler', () => {
   let handler: NotifierRappelInstanceSessionMiloJobHandler
   let sessionRepository: StubbedType<SessionMilo.Repository>
@@ -24,6 +22,14 @@ describe('handler', () => {
   let dateSevice: StubbedClass<DateService>
   let suiviJobService: StubbedType<SuiviJob.Service>
   const today = DateTime.fromISO('2022-04-06T12:00:00.000Z')
+
+  const idStructureMilo = '1241'
+  const timezoneStructureMilo = 'Europe/Paris'
+  const jeuneAvecToken: JeuneMilo = {
+    ...unJeune(),
+    idStructureMilo,
+    structureMilo: { id: idStructureMilo, timezone: timezoneStructureMilo }
+  }
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
@@ -56,7 +62,12 @@ describe('handler', () => {
   describe("quand l'instance de session n'existe pas", () => {
     it("n'envoie pas de notification", async () => {
       // Given
-      sessionRepository.findInstanceSession.resolves(undefined)
+      jeuneRepository.getByIdDossier
+        .withArgs(job.contenu!.idDossier)
+        .resolves(success(jeuneAvecToken))
+      sessionRepository.findInstanceSession
+        .withArgs(job.contenu!.idInstance)
+        .resolves(undefined)
 
       // When
       await handler.handle(job)
@@ -66,15 +77,35 @@ describe('handler', () => {
     })
   })
 
+  describe("quand le jeune n'a pas de structure Milo", () => {
+    it('remonte une erreur explicite et ne notifie pas', async () => {
+      // Given
+      const jeuneSansStructure: JeuneMilo = {
+        ...unJeune(),
+        structureMilo: undefined
+      }
+      jeuneRepository.getByIdDossier
+        .withArgs(job.contenu!.idDossier)
+        .resolves(success(jeuneSansStructure))
+
+      // When
+      const result = await handler.handle(job)
+
+      // Then
+      expect(sessionRepository.findInstanceSession).not.to.have.been.called()
+      expect(notificationRepository.send).to.have.callCount(0)
+      expect(result.succes).to.equal(false)
+      expect(result.nbErreurs).to.equal(1)
+    })
+  })
+
   describe("quand le jeune n'a pas de pushNotificationToken", () => {
     it("n'envoie pas de notification", async () => {
       // Given
       const instance = uneInstanceSessionMilo()
       const jeuneSansToken: JeuneMilo = {
-        ...unJeune({
-          configuration: uneConfiguration({ pushNotificationToken: undefined })
-        }),
-        idStructureMilo: '1241'
+        ...jeuneAvecToken,
+        configuration: uneConfiguration({ pushNotificationToken: undefined })
       }
       sessionRepository.findInstanceSession
         .withArgs(job.contenu!.idInstance)
@@ -95,12 +126,8 @@ describe('handler', () => {
     it('envoie une notification pour demain', async () => {
       // Given
       const instance = uneInstanceSessionMilo({
-        dateHeureDebut: today.plus({ day: 1 }).toFormat(MILO_DATE_FORMAT)
+        dateHeureDebut: today.plus({ day: 1 })
       })
-      const jeuneAvecToken: JeuneMilo = {
-        ...unJeune(),
-        idStructureMilo: '1241'
-      }
       sessionRepository.findInstanceSession
         .withArgs(job.contenu!.idInstance)
         .resolves(instance)
@@ -129,12 +156,8 @@ describe('handler', () => {
     it('envoie une notification pour la semaine prochaine', async () => {
       // Given
       const instance = uneInstanceSessionMilo({
-        dateHeureDebut: today.plus({ day: 7 }).toFormat(MILO_DATE_FORMAT)
+        dateHeureDebut: today.plus({ day: 7 })
       })
-      const jeuneAvecToken: JeuneMilo = {
-        ...unJeune(),
-        idStructureMilo: '1241'
-      }
       sessionRepository.findInstanceSession
         .withArgs(job.contenu!.idInstance)
         .resolves(instance)
@@ -166,12 +189,8 @@ describe('handler', () => {
     it("n'envoie pas de notification", async () => {
       // Given
       const instance = uneInstanceSessionMilo({
-        dateHeureDebut: today.plus({ day: 5 }).toFormat(MILO_DATE_FORMAT)
+        dateHeureDebut: today.plus({ day: 5 })
       })
-      const jeuneAvecToken: JeuneMilo = {
-        ...unJeune(),
-        idStructureMilo: '1241'
-      }
       jeuneRepository.getByIdDossier
         .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
@@ -190,15 +209,11 @@ describe('handler', () => {
     it("n'envoie pas de notification", async () => {
       // Given
       const instance = uneInstanceSessionMilo({
-        dateHeureDebut: today.minus({ day: 1 }).toFormat(MILO_DATE_FORMAT)
+        dateHeureDebut: today.minus({ day: 1 })
       })
       sessionRepository.findInstanceSession
         .withArgs(job.contenu!.idInstance)
         .resolves(instance)
-      const jeuneAvecToken: JeuneMilo = {
-        ...unJeune(),
-        idStructureMilo: '1241'
-      }
       jeuneRepository.getByIdDossier
         .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))
@@ -214,15 +229,11 @@ describe('handler', () => {
     it("n'envoie pas de notification", async () => {
       // Given
       const instance = uneInstanceSessionMilo({
-        dateHeureDebut: today.plus({ day: 8 }).toFormat(MILO_DATE_FORMAT)
+        dateHeureDebut: today.plus({ day: 8 })
       })
       sessionRepository.findInstanceSession
         .withArgs(job.contenu!.idInstance)
         .resolves(instance)
-      const jeuneAvecToken: JeuneMilo = {
-        ...unJeune(),
-        idStructureMilo: '1241'
-      }
       jeuneRepository.getByIdDossier
         .withArgs(job.contenu!.idDossier)
         .resolves(success(jeuneAvecToken))

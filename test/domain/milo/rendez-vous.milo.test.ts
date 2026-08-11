@@ -5,6 +5,7 @@ import {
   RendezVous
 } from '../../../src/domain/rendez-vous/rendez-vous'
 import { IdService } from '../../../src/utils/id-service'
+import { resoudreDateMilo } from '../../../src/utils/milo-date'
 import { uneConfiguration, unJeune } from '../../fixtures/jeune.fixture'
 import { unRendezVousMilo } from '../../fixtures/milo.fixture'
 import {
@@ -23,14 +24,24 @@ describe('MiloRendezVous', () => {
     let rendezVousPassEmploi: RendezVous
     let jeune: Jeune
     let uuid: string
-    let dateStringRendezVousDebut: string
-    let dateStringRendezVousFin: string
     let rendezVousObtenu: RendezVous
 
     const idJeune = 'id-jeune'
+    // Le fuseau du jeune ne doit jamais influencer la date résolue : elle est
+    // déjà résolue en amont (ACL) avec le fuseau de la structure MiLo. On le
+    // met volontairement à un fuseau différent pour le prouver.
     const configuration = uneConfiguration({
       fuseauHoraire: 'America/Guadeloupe'
     })
+    const timezoneStructureMilo = 'Europe/Paris'
+    const dateTimeRendezVousDebut = resoudreDateMilo(
+      '2022-10-06 10:07:00',
+      timezoneStructureMilo
+    )
+    const dateTimeRendezVousFin = resoudreDateMilo(
+      '2022-10-06 11:43:00',
+      timezoneStructureMilo
+    )
 
     describe('creerRendezVousPassEmploi', () => {
       beforeEach(() => {
@@ -38,8 +49,6 @@ describe('MiloRendezVous', () => {
         idService = stubClass(IdService)
         rendezVousFactory = new RendezVousMilo.Factory(idService)
 
-        dateStringRendezVousDebut = '2022-10-06 10:07:00'
-        dateStringRendezVousFin = '2022-10-06 11:43:00'
         jeune = unJeune({
           id: idJeune,
           configuration
@@ -52,8 +61,8 @@ describe('MiloRendezVous', () => {
         beforeEach(() => {
           // Given
           rdvMilo = unRendezVousMilo({
-            dateHeureDebut: dateStringRendezVousDebut,
-            dateHeureFin: dateStringRendezVousFin
+            dateHeureDebut: dateTimeRendezVousDebut,
+            dateHeureFin: dateTimeRendezVousFin
           })
 
           // When
@@ -62,10 +71,10 @@ describe('MiloRendezVous', () => {
             jeune
           )
         })
-        it('retourne un rendez-vous avec une date timezonée avec le fuseau du jeune', async () => {
+        it('retourne un rendez-vous avec la date résolue au fuseau de la structure, jamais celui du jeune', async () => {
           // Then
           expect(rendezVousObtenu.date).to.deep.equal(
-            new Date('2022-10-06T14:07:00Z')
+            new Date('2022-10-06T08:07:00Z')
           )
         })
         describe('durée', () => {
@@ -92,8 +101,8 @@ describe('MiloRendezVous', () => {
         it('retourne un rendez-vous avec le type ENTRETIEN INDIVIDUEL ', async () => {
           // Given
           rdvMilo = unRendezVousMilo({
-            dateHeureDebut: dateStringRendezVousDebut,
-            dateHeureFin: dateStringRendezVousFin
+            dateHeureDebut: dateTimeRendezVousDebut,
+            dateHeureFin: dateTimeRendezVousFin
           })
 
           // When
@@ -108,7 +117,7 @@ describe('MiloRendezVous', () => {
             source: RendezVous.Source.MILO,
             titre: rdvMilo.titre,
             sousTitre: '',
-            date: new Date('2022-10-06T14:07:00Z'),
+            date: new Date('2022-10-06T08:07:00Z'),
             duree: 96,
             jeunes: [
               unJeuneDuRendezVous({
@@ -133,8 +142,8 @@ describe('MiloRendezVous', () => {
         it('retourne un rendez-vous annulé quand le statut et Annulé', async () => {
           // Given
           rdvMilo = unRendezVousMilo({
-            dateHeureDebut: dateStringRendezVousDebut,
-            dateHeureFin: dateStringRendezVousFin,
+            dateHeureDebut: dateTimeRendezVousDebut,
+            dateHeureFin: dateTimeRendezVousFin,
             statut: RendezVousMilo.Statut.RDV_ANNULE
           })
 
@@ -150,7 +159,7 @@ describe('MiloRendezVous', () => {
             source: RendezVous.Source.MILO,
             titre: rdvMilo.titre,
             sousTitre: '',
-            date: new Date('2022-10-06T14:07:00Z'),
+            date: new Date('2022-10-06T08:07:00Z'),
             duree: 96,
             jeunes: [
               unJeuneDuRendezVous({
@@ -175,8 +184,8 @@ describe('MiloRendezVous', () => {
         it('retourne un rendez-vous annulé quand le statut et Reporté', async () => {
           // Given
           rdvMilo = unRendezVousMilo({
-            dateHeureDebut: dateStringRendezVousDebut,
-            dateHeureFin: dateStringRendezVousFin,
+            dateHeureDebut: dateTimeRendezVousDebut,
+            dateHeureFin: dateTimeRendezVousFin,
             statut: RendezVousMilo.Statut.RDV_REPORTE
           })
 
@@ -192,7 +201,7 @@ describe('MiloRendezVous', () => {
             source: RendezVous.Source.MILO,
             titre: rdvMilo.titre,
             sousTitre: '',
-            date: new Date('2022-10-06T14:07:00Z'),
+            date: new Date('2022-10-06T08:07:00Z'),
             duree: 96,
             jeunes: [
               unJeuneDuRendezVous({
@@ -219,8 +228,8 @@ describe('MiloRendezVous', () => {
         beforeEach(() => {
           // Given
           rdvMilo = unRendezVousMilo({
-            dateHeureDebut: dateStringRendezVousDebut,
-            dateHeureFin: dateStringRendezVousFin,
+            dateHeureDebut: dateTimeRendezVousDebut,
+            dateHeureFin: dateTimeRendezVousFin,
             adresse: 'Route de la plage, 97122 Baie-Mahault'
           })
 
@@ -237,7 +246,7 @@ describe('MiloRendezVous', () => {
             source: RendezVous.Source.MILO,
             titre: rdvMilo.titre,
             sousTitre: '',
-            date: new Date('2022-10-06T14:07:00Z'),
+            date: new Date('2022-10-06T08:07:00Z'),
             duree: 96,
             jeunes: [
               unJeuneDuRendezVous({
@@ -266,8 +275,6 @@ describe('MiloRendezVous', () => {
         // Given
         idService = stubClass(IdService)
         rendezVousFactory = new RendezVousMilo.Factory(idService)
-        dateStringRendezVousDebut = '2022-10-06 10:07:00'
-        dateStringRendezVousFin = '2022-10-06 11:43:00'
         jeune = unJeune({
           id: idJeune,
           configuration
@@ -283,8 +290,8 @@ describe('MiloRendezVous', () => {
         uuid = 'de82d1fe-875c-11ed-a1eb-0242ac120002'
         idService.uuid.returns(uuid)
         rdvMilo = unRendezVousMilo({
-          dateHeureDebut: dateStringRendezVousDebut,
-          dateHeureFin: dateStringRendezVousFin,
+          dateHeureDebut: dateTimeRendezVousDebut,
+          dateHeureFin: dateTimeRendezVousFin,
           statut: Statut.RDV_ABSENT
         })
 
@@ -310,7 +317,7 @@ describe('MiloRendezVous', () => {
             }
           ],
           titre: rdvMilo.titre,
-          date: new Date('2022-10-06T14:07:00Z'),
+          date: new Date('2022-10-06T08:07:00Z'),
           duree: 96,
           modalite: rdvMilo.modalite,
           commentaire: rdvMilo.commentaire,
@@ -328,8 +335,8 @@ describe('MiloRendezVous', () => {
         })
         idService.uuid.returns('de82d1fe-875c-11ed-a1eb-0242ac120002')
         rdvMilo = unRendezVousMilo({
-          dateHeureDebut: dateStringRendezVousDebut,
-          dateHeureFin: dateStringRendezVousFin,
+          dateHeureDebut: dateTimeRendezVousDebut,
+          dateHeureFin: dateTimeRendezVousFin,
           statut: RendezVousMilo.Statut.RDV_ANNULE
         })
 
@@ -351,8 +358,8 @@ describe('MiloRendezVous', () => {
 
         idService.uuid.returns('de82d1fe-875c-11ed-a1eb-0242ac120002')
         rdvMilo = unRendezVousMilo({
-          dateHeureDebut: dateStringRendezVousDebut,
-          dateHeureFin: dateStringRendezVousFin,
+          dateHeureDebut: dateTimeRendezVousDebut,
+          dateHeureFin: dateTimeRendezVousFin,
           statut: RendezVousMilo.Statut.RDV_REPORTE
         })
 

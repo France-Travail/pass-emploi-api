@@ -6,6 +6,7 @@ import { RendezVousMilo } from '../../../../src/domain/milo/rendez-vous.milo'
 import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
 import { RendezVousMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/rendez-vous-milo-http.repository'
 import { ErreurMiloHttp } from '../../../../src/building-blocks/types/domain-error'
+import { resoudreDateMilo } from '../../../../src/utils/milo-date'
 import Statut = RendezVousMilo.Statut
 
 describe('RendezVousMiloHttpRepository', () => {
@@ -20,9 +21,10 @@ describe('RendezVousMiloHttpRepository', () => {
   describe('findRendezVousByEvenement', () => {
     const idPartenaireBeneficiaire = 1234
     const idObjet = 5678
+    const timezoneStructureMilo = 'Indian/Reunion'
 
     describe('quand il existe', () => {
-      it('renvoie le rendez vous milo', async () => {
+      it('renvoie le rendez vous milo avec la date résolue au fuseau de la structure', async () => {
         // Given
         miloClient.getRendezVous.resolves(
           success({
@@ -45,13 +47,22 @@ describe('RendezVousMiloHttpRepository', () => {
             idObjet: idObjet.toString(),
             objet: EvenementMilo.ObjetEvenement.RENDEZ_VOUS,
             idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString()
-          })
+          }),
+          timezoneStructureMilo
         )
 
         // Then
         const expected: RendezVousMilo = unRendezVousMilo({
           id: idObjet.toString(),
           idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString(),
+          dateHeureDebut: resoudreDateMilo(
+            '2020-10-06 10:00:00',
+            timezoneStructureMilo
+          ),
+          dateHeureFin: resoudreDateMilo(
+            '2020-10-06 12:00:00',
+            timezoneStructureMilo
+          ),
           adresse: 'new',
           statut: Statut.RDV_PLANIFIE
         })
@@ -75,7 +86,8 @@ describe('RendezVousMiloHttpRepository', () => {
             idObjet: idObjet.toString(),
             objet: EvenementMilo.ObjetEvenement.RENDEZ_VOUS,
             idPartenaireBeneficiaire: idPartenaireBeneficiaire.toString()
-          })
+          }),
+          timezoneStructureMilo
         )
 
         // Then
@@ -92,8 +104,10 @@ describe('RendezVousMiloHttpRepository', () => {
         })
 
         // When
-        const resultat =
-          await repository.findRendezVousByEvenement(evenementPasBon)
+        const resultat = await repository.findRendezVousByEvenement(
+          evenementPasBon,
+          timezoneStructureMilo
+        )
 
         // Then
         expect(resultat).to.be.undefined()

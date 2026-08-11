@@ -9,14 +9,12 @@ import {
 import { EvenementMilo } from './evenement.milo'
 import Source = RendezVous.Source
 
-const MILO_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss'
-
 export const RendezVousMiloRepositoryToken = 'RendezVousMiloRepositoryToken'
 
 export interface RendezVousMilo {
   id: string
-  dateHeureDebut: string
-  dateHeureFin?: string
+  dateHeureDebut: DateTime
+  dateHeureFin?: DateTime
   titre: string
   idPartenaireBeneficiaire: string
   commentaire?: string
@@ -37,17 +35,9 @@ export namespace RendezVousMilo {
 
   export interface Repository {
     findRendezVousByEvenement(
-      evenement: EvenementMilo
+      evenement: EvenementMilo,
+      timezoneStructureMilo: string
     ): Promise<RendezVousMilo | undefined>
-  }
-
-  export function timezonerDateMilo(
-    dateString: string,
-    timezone: string
-  ): DateTime {
-    return DateTime.fromFormat(dateString, MILO_DATE_FORMAT, {
-      zone: timezone
-    })
   }
 
   export function estAnnule(rendezVousMilo: RendezVousMilo): boolean {
@@ -65,10 +55,7 @@ export namespace RendezVousMilo {
       rendezVousMilo: RendezVousMilo,
       jeune: JeuneDuRendezVous
     ): RendezVous {
-      const { dateTimeDebut, duree } = this.getDateEtDuree(
-        rendezVousMilo,
-        jeune
-      )
+      const { dateTimeDebut, duree } = this.getDateEtDuree(rendezVousMilo)
       return {
         id: this.idService.uuid(),
         source: Source.MILO,
@@ -97,10 +84,7 @@ export namespace RendezVousMilo {
       rendezVousCEJ: RendezVous,
       rendezVousMilo: RendezVousMilo
     ): RendezVous {
-      const { dateTimeDebut, duree } = this.getDateEtDuree(
-        rendezVousMilo,
-        rendezVousCEJ.jeunes[0]
-      )
+      const { dateTimeDebut, duree } = this.getDateEtDuree(rendezVousMilo)
       return {
         ...rendezVousCEJ,
         titre: rendezVousMilo.titre,
@@ -116,21 +100,16 @@ export namespace RendezVousMilo {
       }
     }
 
-    private getDateEtDuree(
-      rendezVousMilo: RendezVousMilo,
-      jeune: JeuneDuRendezVous
-    ): { dateTimeDebut: DateTime; duree: number } {
-      const dateTimeDebut = timezonerDateMilo(
-        rendezVousMilo.dateHeureDebut,
-        jeune.configuration.fuseauHoraire
-      )
+    private getDateEtDuree(rendezVousMilo: RendezVousMilo): {
+      dateTimeDebut: DateTime
+      duree: number
+    } {
+      const dateTimeDebut = rendezVousMilo.dateHeureDebut
       let duree = 0
       if (rendezVousMilo.dateHeureFin) {
-        const dateTimeFin = timezonerDateMilo(
-          rendezVousMilo.dateHeureFin,
-          jeune.configuration.fuseauHoraire
-        )
-        duree = dateTimeFin.diff(dateTimeDebut, 'minutes').get('minutes')
+        duree = rendezVousMilo.dateHeureFin
+          .diff(dateTimeDebut, 'minutes')
+          .get('minutes')
       }
       return { dateTimeDebut, duree }
     }

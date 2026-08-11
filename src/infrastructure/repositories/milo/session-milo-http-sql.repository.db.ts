@@ -36,6 +36,7 @@ import { getAPMInstance } from '../../monitoring/apm.init'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { SessionMiloSqlModel } from '../../sequelize/models/session-milo.sql-model'
 import { DateService } from '../../../utils/date-service'
+import { resoudreDateMilo } from '../../../utils/milo-date'
 
 @Injectable()
 export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
@@ -53,7 +54,8 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
 
   async findInstanceSession(
     idInstance: string,
-    idDossier: string
+    idDossier: string,
+    timezoneStructureMilo: string
   ): Promise<InstanceSessionMilo | undefined> {
     const result = await this.miloClient.getInstanceSession(
       idInstance,
@@ -64,7 +66,10 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     }
     return {
       id: result.data.id,
-      dateHeureDebut: result.data.dateHeureDebut,
+      dateHeureDebut: resoudreDateMilo(
+        result.data.dateHeureDebut,
+        timezoneStructureMilo
+      ),
       idSession: result.data.idSession,
       idDossier: result.data.idDossier,
       statut: result.data.statut,
@@ -92,7 +97,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     }
     const { session, sessionInstance } = resultSession.data
 
-    const debut = DateService.dateFromMilo(session.dateHeureDebut, timezone)
+    const debut = resoudreDateMilo(session.dateHeureDebut, timezone).toUTC()
     const dateMaxInscription = session.dateMaxInscription
       ? DateService.dateStringToEndOfDayUtc(
           session.dateMaxInscription,
@@ -380,10 +385,10 @@ function dtoToSessionMilo(
   jeunes: Array<Pick<JeuneSqlModel, 'id' | 'idPartenaire'>>
 ): SessionMilo {
   const idSession = sessionDto.id.toString()
-  const debut = DateService.dateFromMilo(
+  const debut = resoudreDateMilo(
     sessionDto.dateHeureDebut,
     structureMilo.timezone
-  )
+  ).toUTC()
   const miloDateMaxInscription = sessionDto.dateMaxInscription
     ? DateService.dateStringToEndOfDayUtc(
         sessionDto.dateMaxInscription,
@@ -400,10 +405,10 @@ function dtoToSessionMilo(
     id: idSession,
     nom: sessionDto.nom,
     debut,
-    fin: DateService.dateFromMilo(
+    fin: resoudreDateMilo(
       sessionDto.dateHeureFin,
       structureMilo.timezone
-    ),
+    ).toUTC(),
     animateur: sessionDto.animateur,
     lieu: sessionDto.lieu,
     nbPlacesDisponibles: sessionDto.nbPlacesDisponibles ?? undefined,

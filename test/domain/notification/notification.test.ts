@@ -15,6 +15,7 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { DateService } from '../../../src/utils/date-service'
+import { resoudreDateMilo } from '../../../src/utils/milo-date'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 
 describe('Notification', () => {
@@ -573,7 +574,7 @@ describe('Notification', () => {
         await notificationService.notifierInscriptionSession(
           idSession,
           'étude des antilopes',
-          '2026-01-15 10:00:00',
+          resoudreDateMilo('2026-01-15 10:00:00', 'Europe/Paris'),
           [jeune]
         )
 
@@ -634,7 +635,7 @@ describe('Notification', () => {
         await notificationService.notifierModificationSession(
           idSession,
           'foot de rue',
-          '2026-07-14 18:30:00',
+          resoudreDateMilo('2026-07-14 18:30:00', 'Europe/Paris'),
           [jeune]
         )
 
@@ -743,7 +744,7 @@ describe('Notification', () => {
         await notificationService.notifierDesinscriptionSession(
           idSession,
           'vacances à la plage',
-          '2020-04-06 13:20:00',
+          resoudreDateMilo('2020-04-06 13:20:00', 'Europe/Paris'),
           [jeune]
         )
 
