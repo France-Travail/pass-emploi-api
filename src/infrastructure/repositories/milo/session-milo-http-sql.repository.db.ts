@@ -9,7 +9,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
-import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
+import { StructureMilo } from 'src/domain/milo/structure.milo'
 import {
   InscriptionsATraiter,
   InstanceSessionMilo,
@@ -121,7 +121,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
 
   async getForConseiller(
     idSession: string,
-    structureConseiller: ConseillerMilo.Structure,
+    structureConseiller: StructureMilo,
     tokenMiloConseiller: string
   ): Promise<Result<SessionMilo>> {
     const [resultSession, resultInscrits] = await Promise.all([
@@ -375,7 +375,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
 function dtoToSessionMilo(
   { session: sessionDto, offre: offreDto }: SessionConseillerDetailDto,
   sessionSql: SessionMiloSqlModel | undefined,
-  structureMilo: ConseillerMilo.Structure,
+  structureMilo: StructureMilo,
   listeInscrits: InscritSessionMiloDto[],
   jeunes: Array<Pick<JeuneSqlModel, 'id' | 'idPartenaire'>>
 ): SessionMilo {

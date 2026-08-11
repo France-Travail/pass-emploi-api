@@ -13,6 +13,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { DateService } from '../../utils/date-service'
+import { StructureMilo } from './structure.milo'
 
 export const SessionMiloRepositoryToken = 'SessionMilo.Repository'
 
@@ -376,8 +377,6 @@ export namespace SessionMilo {
       DESINSCRIT = 'DESINSCRIT'
     }
   }
-
-  export type StructureMilo = { id: string; timezone: string }
 }
 
 function trierInscriptionsATraiter(

@@ -19,12 +19,13 @@ import { Conseiller } from './conseiller'
 import { AsSql } from '../../infrastructure/sequelize/types'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
 import { Core } from '../core'
+import { StructureMilo } from './structure.milo'
 
 export const ConseillerMiloRepositoryToken = 'ConseillerMiloRepositoryToken'
 
 export interface ConseillerMilo {
   id: string
-  structure: ConseillerMilo.Structure
+  structure: StructureMilo
 }
 
 export interface ConseillerMiloModifie {
@@ -35,8 +36,6 @@ export interface ConseillerMiloModifie {
 }
 
 export namespace ConseillerMilo {
-  export type Structure = { id: string; timezone: string }
-
   export interface Repository {
     get(idConseiller: string): Promise<Result<ConseillerMilo>>
     save(conseiller: ConseillerMiloModifie): Promise<void>

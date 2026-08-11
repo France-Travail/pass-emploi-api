@@ -43,14 +43,23 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   ): Promise<Result<JeuneMilo>> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: { idPartenaire: idDossier },
-      ...(options?.includeConseiller && { include: [ConseillerSqlModel] })
+      include: [
+        { model: StructureMiloSqlModel, required: false },
+        ...(options?.includeConseiller ? [ConseillerSqlModel] : [])
+      ]
     })
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Dossier Milo', idDossier))
     }
     const jeuneMilo: JeuneMilo = {
       ...fromSqlToJeune(jeuneSqlModel),
-      idStructureMilo: jeuneSqlModel.idStructureMilo ?? undefined
+      idStructureMilo: jeuneSqlModel.idStructureMilo ?? undefined,
+      structureMilo: jeuneSqlModel.structureMilo
+        ? {
+            id: jeuneSqlModel.structureMilo.id,
+            timezone: jeuneSqlModel.structureMilo.timezone
+          }
+        : undefined
     }
     return success(jeuneMilo)
   }

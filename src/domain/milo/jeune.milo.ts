@@ -1,11 +1,13 @@
 import { DateTime } from 'luxon'
 import { Result } from '../../building-blocks/types/result'
 import { Jeune } from '../jeune/jeune'
+import { StructureMilo } from './structure.milo'
 
 export const JeuneMiloRepositoryToken = 'JeuneMiloRepositoryToken'
 
 export interface JeuneMilo extends Jeune {
   idStructureMilo?: string
+  structureMilo?: StructureMilo
 }
 
 export namespace JeuneMilo {
