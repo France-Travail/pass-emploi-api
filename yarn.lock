@@ -8109,7 +8109,7 @@ __metadata:
     mocha: "npm:^11.8.0"
     nestjs-pino: "npm:4.6.1"
     nock: "npm:^14.0.17"
-    npm-check-updates: "npm:^19.6.3"
+    npm-check-updates: "npm:^23.0.2"
     nyc: "npm:^18.0.0"
     openid-client: "npm:5.7.1"
     pg: "npm:8.22.0"
@@ -8345,13 +8345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-check-updates@npm:^19.6.3":
-  version: 19.6.6
-  resolution: "npm-check-updates@npm:19.6.6"
+"npm-check-updates@npm:^23.0.2":
+  version: 23.0.2
+  resolution: "npm-check-updates@npm:23.0.2"
   bin:
     ncu: build/cli.js
     npm-check-updates: build/cli.js
-  checksum: 10/c03f17af9b2a74b425f41653caf56703efbd14a5b5e337582a8be8e1e5f3b7bc0ff088b3d049e91c5d59c6a30eb3c7772d98152e191a495c3685ed3d41f4a191
+  checksum: 10/e5caa7b3b1cb232a0f8f76e770c604a1262e951a4bb3f6be5efe3f6faf568b431cb2b1cc9f745457a6c5008788fbb3a55f8213960a6b2a90b41ea2dbd27a1214
   languageName: node
   linkType: hard
 
