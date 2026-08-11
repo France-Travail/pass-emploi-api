@@ -3,6 +3,7 @@ import { CommandHandler } from 'src/building-blocks/types/command-handler'
 import {
   DroitsInsuffisants,
   JeuneMiloSansIdDossier,
+  JeuneMiloSansStructure,
   NonTraitableError,
   NonTraitableReason,
   NonTrouveError
@@ -38,7 +39,7 @@ export type AutodesinscrireBeneficiaireSessionMiloCommand = {
   motif: string
 }
 
-type ChampsObligatoire = 'conseiller' | 'idPartenaire'
+type ChampsObligatoire = 'conseiller' | 'idPartenaire' | 'structureMilo'
 type BeneficiaireMilo = Omit<JeuneMilo, ChampsObligatoire> &
   Required<Pick<JeuneMilo, ChampsObligatoire>>
 
@@ -98,7 +99,7 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
       command.idSession,
       beneficiaire.idPartenaire,
       accesMiloBeneficiaire,
-      beneficiaire.configuration.fuseauHoraire
+      beneficiaire.structureMilo.timezone
     )
     if (isFailure(resultSession)) return resultSession
     const session = resultSession.data
@@ -170,11 +171,15 @@ export default class AutodesinscrireBeneficiaireSessionMiloCommandHandler extend
     if (!aggregate.idPartenaire) {
       return failure(new JeuneMiloSansIdDossier(aggregate.id))
     }
+    if (!aggregate.structureMilo) {
+      return failure(new JeuneMiloSansStructure(aggregate.id))
+    }
 
     return success({
       ...aggregate,
       conseiller: aggregate.conseiller,
-      idPartenaire: aggregate.idPartenaire
+      idPartenaire: aggregate.idPartenaire,
+      structureMilo: aggregate.structureMilo
     })
   }
 

@@ -47,7 +47,8 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
 
   const beneficiaireMilo: JeuneMilo = {
     ...unJeune(),
-    idStructureMilo: 'id-structure-milo'
+    idStructureMilo: 'id-structure-milo',
+    structureMilo: { id: 'id-structure-milo', timezone: 'Europe/Paris' }
   }
   const utilisateurBeneficiaire = unUtilisateurJeune({
     id: beneficiaireMilo.id
@@ -123,7 +124,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'id-session',
           beneficiaireMilo.idPartenaire,
           'token-beneficiaire-milo',
-          beneficiaireMilo.configuration.fuseauHoraire
+          beneficiaireMilo.structureMilo!.timezone
         )
         .resolves(success(session))
       sessionMiloRepository.inscrireBeneficiaire.resolves(emptySuccess())
@@ -229,7 +230,7 @@ describe('AutoinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'id-session',
           beneficiaireMilo.idPartenaire,
           'token-beneficiaire-milo',
-          beneficiaireMilo.configuration.fuseauHoraire
+          beneficiaireMilo.structureMilo!.timezone
         )
         .resolves(success(uneSessionMiloAllegee({ nbPlacesDisponibles: 0 })))
 

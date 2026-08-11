@@ -24,7 +24,10 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   async get(id: string): Promise<Result<JeuneMilo>> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: { id, structure: Core.Structure.MILO },
-      include: { model: ConseillerSqlModel, required: false }
+      include: [
+        { model: ConseillerSqlModel, required: false },
+        { model: StructureMiloSqlModel, required: false }
+      ]
     })
     if (!jeuneSqlModel) {
       return failure(new NonTrouveError('Jeune', id))
@@ -32,7 +35,13 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
 
     const jeuneMilo: JeuneMilo = {
       ...fromSqlToJeune(jeuneSqlModel),
-      idStructureMilo: jeuneSqlModel.idStructureMilo ?? undefined
+      idStructureMilo: jeuneSqlModel.idStructureMilo ?? undefined,
+      structureMilo: jeuneSqlModel.structureMilo
+        ? {
+            id: jeuneSqlModel.structureMilo.id,
+            timezone: jeuneSqlModel.structureMilo.timezone
+          }
+        : undefined
     }
     return success(jeuneMilo)
   }

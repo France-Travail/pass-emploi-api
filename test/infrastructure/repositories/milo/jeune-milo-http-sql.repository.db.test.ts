@@ -71,6 +71,7 @@ describe('JeuneMiloHttpRepository', () => {
           dateSignatureCGU: undefined
         }
         jeuneMilo.idStructureMilo = 'test'
+        jeuneMilo.structureMilo = { id: 'test', timezone: 'Europe/Paris' }
 
         await StructureMiloSqlModel.create({
           id: jeuneMilo.idStructureMilo,

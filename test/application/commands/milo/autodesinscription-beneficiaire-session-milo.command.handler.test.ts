@@ -45,7 +45,8 @@ describe('AutodesinscrireBeneficiaireSessionMiloCommandHandler', () => {
   const maintenant = uneDatetime()
   const beneficiaireMilo: JeuneMilo = {
     ...unJeune(),
-    idStructureMilo: 'id-structure-milo'
+    idStructureMilo: 'id-structure-milo',
+    structureMilo: { id: 'id-structure-milo', timezone: 'Europe/Paris' }
   }
   const utilisateurBeneficiaire = unUtilisateurJeune({
     id: beneficiaireMilo.id
@@ -123,7 +124,7 @@ describe('AutodesinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'id-session',
           beneficiaireMilo.idPartenaire,
           'token-beneficiaire-milo',
-          beneficiaireMilo.configuration.fuseauHoraire
+          beneficiaireMilo.structureMilo!.timezone
         )
         .resolves(success(session))
       sessionMiloRepository.desinscrireBeneficiaire.resolves(emptySuccess())
@@ -217,7 +218,7 @@ describe('AutodesinscrireBeneficiaireSessionMiloCommandHandler', () => {
           'id-session',
           beneficiaireMilo.idPartenaire,
           'token-beneficiaire-milo',
-          beneficiaireMilo.configuration.fuseauHoraire
+          beneficiaireMilo.structureMilo!.timezone
         )
         .resolves(success(uneSessionMiloAllegee({ autodesinscription: false })))
 
