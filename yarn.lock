@@ -98,9 +98,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1102.0":
-  version: 3.1105.0
-  resolution: "@aws-sdk/client-s3@npm:3.1105.0"
+"@aws-sdk/client-s3@npm:^3.1106.0":
+  version: 3.1106.0
+  resolution: "@aws-sdk/client-s3@npm:3.1106.0"
   dependencies:
     "@aws-sdk/checksums": "npm:^3.1000.26"
     "@aws-sdk/core": "npm:^3.977.6"
@@ -113,7 +113,7 @@ __metadata:
     "@smithy/node-http-handler": "npm:^4.9.13"
     "@smithy/types": "npm:^4.16.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/01b5d1c6d497522b890777a328216415700f3e3025e41fde5c05675eb1f9cd4c9d1ca1ad3dcc50b775612e2b65dea7b43c8300955a914a1ee5862ad928c2195d
+  checksum: 10/57ce125bbc907bb73bfe43b483417a49d968e94301e8277ae8fbfb1b9f9bf948bfaf127296b3441d76edac9515eb8d6bd6192acce79f856f11152e3b95a9f494
   languageName: node
   linkType: hard
 
@@ -287,9 +287,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1102.0":
-  version: 3.1105.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1105.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1106.0":
+  version: 3.1106.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1106.0"
   dependencies:
     "@aws-sdk/core": "npm:^3.977.6"
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.43"
@@ -297,7 +297,7 @@ __metadata:
     "@smithy/core": "npm:^3.31.1"
     "@smithy/types": "npm:^4.16.1"
     tslib: "npm:^2.6.2"
-  checksum: 10/1aa7ec75e64a7795b06d7d61f4660cd25c2ca53cff404a64f2eb14ba66bbeb62df54927306633246863d46083f0fc7365e1d579e3f1eb7230100d0b5a2e39d27
+  checksum: 10/4235cca88fe19a70d8df067ffb3e1715a207b4e19e0c17d660341309c21b95d7d12beea411925707832d913b555f900acea42587593894dc524045943ad1f784
   languageName: node
   linkType: hard
 
@@ -4348,12 +4348,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:5.6.2":
-  version: 5.6.2
-  resolution: "cron-parser@npm:5.6.2"
+"cron-parser@npm:5.7.0":
+  version: 5.7.0
+  resolution: "cron-parser@npm:5.7.0"
   dependencies:
     luxon: "npm:^3.7.2"
-  checksum: 10/43dda9ac0865b1c8d0945940e3442efb51c55c2ca411ee8de86c0af4aaa8ac8dfa6c8d659309366aa9ed0c45ad469840922c4840e244ebb5550f80bcef884966
+  checksum: 10/40a10ac050d72084e4d9478d0c322942369c01a4c6f0fd818f05d326f928357165d4a1099c752eedcba58e92ea9a3ef40b200e5a23bad678a879115fdc542919
   languageName: node
   linkType: hard
 
@@ -8042,8 +8042,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1102.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1102.0"
+    "@aws-sdk/client-s3": "npm:^3.1106.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1106.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.24"
     "@nestjs/common": "npm:11.1.28"
@@ -8084,7 +8084,7 @@ __metadata:
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.15.1"
     compression: "npm:1.8.1"
-    cron-parser: "npm:5.6.2"
+    cron-parser: "npm:5.7.0"
     crypto-js: "npm:4.2.0"
     dirty-chai: "npm:^3.0.0"
     dotenv-cli: "npm:^11.0.0"
