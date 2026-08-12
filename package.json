@@ -121,7 +121,7 @@
     "sequelize-typescript": "2.1.6",
     "swagger-ui-express": "5.0.1",
     "tokenbucket": "0.3.2",
-    "uuid": "13.0.1"
+    "uuid": "14.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
