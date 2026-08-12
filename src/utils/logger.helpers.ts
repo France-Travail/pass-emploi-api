@@ -271,6 +271,28 @@ export function toEcsError(error: unknown): Record<string, unknown> {
   return { type: 'Unknown', message: String(error) }
 }
 
+// Extrait un http.response.status_code ECS quand le DomainError en porte un
+// (ex. ErreurHttp) — sinon le statusCode reste invisible en Kibana, caché
+// derrière un error.type générique identique pour tous les cas (cf. ERREUR_HTTP
+// masquant timeout/504 vs échec partenaire/502).
+function toEcsHttpResponse(
+  error: unknown
+): Record<string, unknown> | undefined {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'statusCode' in error &&
+    typeof (error as { statusCode: unknown }).statusCode === 'number'
+  ) {
+    return {
+      http: {
+        response: { status_code: (error as { statusCode: number }).statusCode }
+      }
+    }
+  }
+  return undefined
+}
+
 interface MinimalLogger {
   info: (obj: Record<string, unknown>, msg: string) => void
   error: (obj: Record<string, unknown>, msg: string) => void
@@ -301,7 +323,8 @@ export function emitHandlerExecuted(
         duration: Number(process.hrtime.bigint() - startNs)
       },
       ...extra,
-      ...(error !== undefined && { error: toEcsError(error) })
+      ...(error !== undefined && { error: toEcsError(error) }),
+      ...toEcsHttpResponse(error)
     },
     'handler_executed'
   )
