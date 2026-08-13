@@ -4348,12 +4348,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:5.7.0":
-  version: 5.7.0
-  resolution: "cron-parser@npm:5.7.0"
+"cron-parser@npm:5.8.1":
+  version: 5.8.1
+  resolution: "cron-parser@npm:5.8.1"
   dependencies:
     luxon: "npm:^3.7.2"
-  checksum: 10/40a10ac050d72084e4d9478d0c322942369c01a4c6f0fd818f05d326f928357165d4a1099c752eedcba58e92ea9a3ef40b200e5a23bad678a879115fdc542919
+  checksum: 10/7c50cbef62d9287dc51f23153741c71435fb2287c383765e1ee170d7ebd4be1479925008a4c36c8fc10aee0e20ba9427f0649113c8cbb3373abc120802a2d8ab
   languageName: node
   linkType: hard
 
@@ -8084,7 +8084,7 @@ __metadata:
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.15.1"
     compression: "npm:1.8.1"
-    cron-parser: "npm:5.7.0"
+    cron-parser: "npm:5.8.1"
     crypto-js: "npm:4.2.0"
     dirty-chai: "npm:^3.0.0"
     dotenv-cli: "npm:^11.0.0"
