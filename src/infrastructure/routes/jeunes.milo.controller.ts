@@ -9,6 +9,7 @@ import {
   Query
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { UserJourney } from '../monitoring/user-journey.decorator'
 
 import { DateTime } from 'luxon'
 import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autoinscrire-beneficiaire-session-milo.command.handler'
@@ -56,6 +57,7 @@ export class JeunesMiloController {
   ) {}
 
   @Get(':idJeune/milo/accueil')
+  @UserJourney('accueil_jeune')
   @ApiOperation({
     description:
       "Permet de récupérer les éléments de la page d'accueil d'un jeune MILO"

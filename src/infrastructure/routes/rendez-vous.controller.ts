@@ -12,6 +12,7 @@ import {
   Query
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { DateTime } from 'luxon'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
 import {
@@ -199,6 +200,7 @@ export class RendezVousController {
     description: 'Autorisé pour un conseiller'
   })
   @Post('conseillers/:idConseiller/rendezvous')
+  @UserJourney('creation_rendez_vous')
   async createRendezVous(
     @Param('idConseiller') idConseiller: string,
     @Body() createRendezVousPayload: CreateRendezVousPayload,

@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   GetDetailOffreEmploiQuery,
   GetDetailOffreEmploiQueryHandler
@@ -28,6 +29,7 @@ export class OffresEmploiController {
   ) {}
 
   @Get()
+  @UserJourney('recherche_offres')
   @ApiResponse({
     type: OffresEmploiQueryModel
   })

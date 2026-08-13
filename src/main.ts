@@ -11,7 +11,7 @@ import {
   ValidationPipe
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
+import { NestFactory, Reflector } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import helmet from 'helmet'
 import { Logger } from 'nestjs-pino'
@@ -44,7 +44,9 @@ async function bootstrap(): Promise<void> {
     useSwagger(appConfig, app)
     app.use(helmet())
     app.enableCors()
-    app.useGlobalInterceptors(new ContextInterceptor(context))
+    app.useGlobalInterceptors(
+      new ContextInterceptor(context, app.get(Reflector))
+    )
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
