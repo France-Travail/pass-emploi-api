@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 
 export const JOUR_DE_LA_SEMAINE_LUNDI = 1
-export const MILO_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss'
 
 @Injectable()
 export class DateService {
@@ -97,12 +96,5 @@ export class DateService {
       DateTime.fromISO(date, { zone: timezone }),
       timezone
     )
-  }
-
-  static dateFromMilo(dateMilo: string, timezone: string): DateTime {
-    // todo: timezonerDateMilo
-    return DateTime.fromFormat(dateMilo, MILO_DATE_FORMAT, {
-      zone: timezone
-    }).toUTC()
   }
 }

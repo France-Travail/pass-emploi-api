@@ -34,6 +34,7 @@ import {
   RendezVousMiloDto
 } from '../../repositories/dto/milo.dto'
 import { MiloClientPort } from './milo-client-port'
+import { resoudreDateMilo } from '../../../utils/milo-date'
 
 export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
 
@@ -304,10 +305,10 @@ export class MiloClientV2 implements MiloClientPort {
       return resultDetail
     }
     const detailSessionDto = resultDetail.data
-    const dateSession = DateService.dateFromMilo(
+    const dateSession = resoudreDateMilo(
       detailSessionDto.session.dateHeureDebut,
       timezone
-    )
+    ).toUTC()
 
     const resultSessionsParDossier = await this.getSessionsParDossierJeune(
       idpToken,

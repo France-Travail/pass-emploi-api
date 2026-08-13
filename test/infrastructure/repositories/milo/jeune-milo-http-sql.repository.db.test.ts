@@ -71,6 +71,7 @@ describe('JeuneMiloHttpRepository', () => {
           dateSignatureCGU: undefined
         }
         jeuneMilo.idStructureMilo = 'test'
+        jeuneMilo.structureMilo = { id: 'test', timezone: 'Europe/Paris' }
 
         await StructureMiloSqlModel.create({
           id: jeuneMilo.idStructureMilo,
@@ -151,6 +152,7 @@ describe('JeuneMiloHttpRepository', () => {
             dateDerniereActualisationToken: uneDatetime().toJSDate()
           }),
           idStructureMilo: idStructure,
+          structureMilo: { id: idStructure, timezone: 'Europe/Paris' },
           peutVoirLeComptageDesHeures: undefined,
           dateSignatureCGU: undefined
         }

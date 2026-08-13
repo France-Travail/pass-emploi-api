@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { JeuneMiloSansStructure } from '../../building-blocks/types/domain-error'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isSuccess } from '../../building-blocks/types/result'
 import {
   JeuneMilo,
   JeuneMiloRepositoryToken
 } from '../../domain/milo/jeune.milo'
-import { RendezVousMilo } from '../../domain/milo/rendez-vous.milo'
 import {
   SessionMilo,
   SessionMiloRepositoryToken
@@ -52,36 +52,35 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Plan
     let nbErreurs = 0
 
     try {
-      const instance = await this.sessionMiloRepository.findInstanceSession(
-        contenu.idInstance,
+      const resultJeune = await this.jeuneRepository.getByIdDossier(
         contenu.idDossier
       )
 
-      if (instance?.statut === SessionMilo.StatutInstance.PRESCRIT) {
-        const resultJeune = await this.jeuneRepository.getByIdDossier(
-          contenu.idDossier
-        )
-        if (isSuccess(resultJeune)) {
-          if (resultJeune.data.configuration?.pushNotificationToken) {
-            const dateTimezonee = RendezVousMilo.timezonerDateMilo(
-              instance.dateHeureDebut,
-              resultJeune.data.configuration.fuseauHoraire
-            )
+      if (isSuccess(resultJeune)) {
+        const jeune = resultJeune.data
+        if (!jeune.structureMilo) {
+          throw new JeuneMiloSansStructure(jeune.id)
+        }
 
-            const notification =
-              Notification.creerNotificationRappelSessionMilo(
-                resultJeune.data.configuration.pushNotificationToken,
-                contenu.idSession,
-                dateTimezonee,
-                this.dateService
-              )
-            if (notification) {
-              await this.notificationRepository.send(
-                notification,
-                resultJeune.data.id
-              )
-              stats.notificationEnvoyee = true
-            }
+        const instance = await this.sessionMiloRepository.findInstanceSession(
+          contenu.idInstance,
+          contenu.idDossier,
+          jeune.structureMilo.timezone
+        )
+
+        if (
+          instance?.statut === SessionMilo.StatutInstance.PRESCRIT &&
+          jeune.configuration?.pushNotificationToken
+        ) {
+          const notification = Notification.creerNotificationRappelSessionMilo(
+            jeune.configuration.pushNotificationToken,
+            contenu.idSession,
+            instance.dateHeureDebut,
+            this.dateService
+          )
+          if (notification) {
+            await this.notificationRepository.send(notification, jeune.id)
+            stats.notificationEnvoyee = true
           }
         }
       }
@@ -93,7 +92,7 @@ export class NotifierRappelInstanceSessionMiloJobHandler extends JobHandler<Plan
       jobType: this.jobType,
       dateExecution: debut,
       resultat: stats,
-      succes: true,
+      succes: nbErreurs === 0,
       nbErreurs,
       tempsExecution: DateService.calculerTempsExecution(debut)
     }

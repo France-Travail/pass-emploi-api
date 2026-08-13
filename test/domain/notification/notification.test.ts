@@ -15,6 +15,7 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { DateService } from '../../../src/utils/date-service'
+import { resoudreDateMilo } from '../../../src/utils/milo-date'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 
 describe('Notification', () => {
@@ -553,7 +554,7 @@ describe('Notification', () => {
     })
 
     describe('notifierInscriptionSession', () => {
-      it('notifie les jeunes avec pushNotificationToken', async () => {
+      it('notifie les jeunes avec le jour de la session dans le fuseau du jeune, pas le jour UTC', async () => {
         // Given
         const jeune: Jeune = unJeune()
         const idSession = 'session-id'
@@ -570,10 +571,11 @@ describe('Notification', () => {
         })
 
         // When
+        // session le 15/01 à 00h30 heure de Paris, soit le 14/01 23h30 en UTC
         await notificationService.notifierInscriptionSession(
           idSession,
           'étude des antilopes',
-          '2026-01-15 10:00:00',
+          resoudreDateMilo('2026-01-15 00:30:00', 'Europe/Paris').toUTC(),
           [jeune]
         )
 
@@ -586,13 +588,17 @@ describe('Notification', () => {
     })
 
     describe('notifierAutoinscriptionSession', () => {
-      it('notifie le jeune', async () => {
+      it("notifie le jeune avec l'heure de la session dans le fuseau du jeune", async () => {
         // Given
         const jeune: Jeune = unJeune()
         const session = uneSessionMiloAllegee()
 
         // When
-        await notificationService.notifierAutoinscriptionSession(session, jeune)
+        // le début arrive en UTC (13h20Z) : affiché en heure de Paris, c'est 15h20
+        await notificationService.notifierAutoinscriptionSession(
+          { ...session, debut: session.debut.toUTC() },
+          jeune
+        )
 
         // Then
         const expectedNotification = uneNotification({
@@ -634,7 +640,7 @@ describe('Notification', () => {
         await notificationService.notifierModificationSession(
           idSession,
           'foot de rue',
-          '2026-07-14 18:30:00',
+          resoudreDateMilo('2026-07-14 18:30:00', 'Europe/Paris').toUTC(),
           [jeune]
         )
 
@@ -743,7 +749,7 @@ describe('Notification', () => {
         await notificationService.notifierDesinscriptionSession(
           idSession,
           'vacances à la plage',
-          '2020-04-06 13:20:00',
+          resoudreDateMilo('2020-04-06 13:20:00', 'Europe/Paris').toUTC(),
           [jeune]
         )
 

@@ -19,6 +19,7 @@ import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { DateService } from 'src/utils/date-service'
+import { StructureMilo } from '../../../domain/milo/structure.milo'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { SessionConseillerMiloQueryModel } from '../query-models/sessions.milo.query.model'
 import estEmargeeMaisPasClose = SessionMilo.estEmargeeMaisPasClose
@@ -99,7 +100,7 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
 
   private async getSessionsDtos(
     query: GetSessionsConseillerMiloQuery,
-    structureMilo: ConseillerMilo.Structure
+    structureMilo: StructureMilo
   ): Promise<Result<SessionConseillerDetailDto[]>> {
     const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
       query.accessToken
@@ -115,7 +116,7 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
 
   private async buildQueryModels(
     sessionsDtos: SessionConseillerDetailDto[],
-    structureMilo: ConseillerMilo.Structure
+    structureMilo: StructureMilo
   ): Promise<SessionConseillerMiloQueryModel[]> {
     const sessionsSqlModels = await SessionMiloSqlModel.findAll({
       where: { idStructureMilo: structureMilo.id }

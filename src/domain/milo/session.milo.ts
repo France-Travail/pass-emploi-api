@@ -13,6 +13,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { DateService } from '../../utils/date-service'
+import { StructureMilo } from './structure.milo'
 
 export const SessionMiloRepositoryToken = 'SessionMilo.Repository'
 
@@ -60,7 +61,7 @@ export interface SessionMiloBeneficiaireDetaillee extends SessionMiloBeneficiair
 export interface InstanceSessionMilo {
   id: string
   idSession: string
-  dateHeureDebut: string
+  dateHeureDebut: DateTime
   idDossier: string
   statut: string
   nom: string
@@ -282,7 +283,8 @@ export namespace SessionMilo {
   export interface Repository {
     findInstanceSession(
       idInstance: string,
-      idDossier: string
+      idDossier: string,
+      timezoneStructureMilo: string
     ): Promise<InstanceSessionMilo | undefined>
 
     getForBeneficiaire(
@@ -376,8 +378,6 @@ export namespace SessionMilo {
       DESINSCRIT = 'DESINSCRIT'
     }
   }
-
-  export type StructureMilo = { id: string; timezone: string }
 }
 
 function trierInscriptionsATraiter(

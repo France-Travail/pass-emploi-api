@@ -8,7 +8,6 @@ import { Jeune } from '../jeune/jeune'
 import { Recherche } from '../offre/recherche/recherche'
 import { RendezVous } from '../rendez-vous/rendez-vous'
 import * as _PoleEmploi from './notification.pole-emploi'
-import { RendezVousMilo } from '../milo/rendez-vous.milo'
 
 export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 
@@ -475,7 +474,7 @@ export namespace Notification {
     async notifierInscriptionSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -488,10 +487,8 @@ export namespace Notification {
               jeune.configuration.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession,
+              jeune.configuration.fuseauHoraire
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -515,7 +512,8 @@ export namespace Notification {
           jeune.configuration.pushNotificationToken,
           session.id,
           session.nom,
-          session.debut
+          session.debut,
+          jeune.configuration.fuseauHoraire
         )
         if (notification) {
           return this.notificationRepository.send(notification, jeune.id)
@@ -528,7 +526,7 @@ export namespace Notification {
     async notifierModificationSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -541,10 +539,8 @@ export namespace Notification {
               jeune.configuration?.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession,
+              jeune.configuration.fuseauHoraire
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -559,7 +555,7 @@ export namespace Notification {
     async notifierDesinscriptionSession(
       idSession: string,
       nomSession: string,
-      dateSession: string,
+      dateSession: DateTime,
       jeunes: Jeune[]
     ): Promise<void[]> {
       return Promise.all(
@@ -572,10 +568,8 @@ export namespace Notification {
               jeune.configuration?.pushNotificationToken,
               idSession,
               nomSession,
-              RendezVousMilo.timezonerDateMilo(
-                dateSession,
-                jeune.configuration.fuseauHoraire
-              )
+              dateSession,
+              jeune.configuration.fuseauHoraire
             )
             if (notification) {
               return this.notificationRepository.send(notification, jeune.id)
@@ -852,13 +846,16 @@ export namespace Notification {
     token: string,
     idSession: string,
     nomSession: string,
-    dateSession: DateTime
+    dateSession: DateTime,
+    timezoneAffichage: string
   ): Notification.Message {
     return {
       token,
       notification: {
         title: 'Nouvel atelier',
-        body: `Votre conseiller a programmé un nouvel atelier le ${dateSession.toFormat('dd/MM')} : ${nomSession}`
+        body: `Votre conseiller a programmé un nouvel atelier le ${dateSession
+          .setZone(timezoneAffichage)
+          .toFormat('dd/MM')} : ${nomSession}`
       },
       data: {
         type: Type.DETAIL_SESSION_MILO,
@@ -871,9 +868,12 @@ export namespace Notification {
     token: string,
     idSession: string,
     nomSession: string,
-    dateSession: DateTime
+    dateSession: DateTime,
+    timezoneAffichage: string
   ): Notification.Message {
-    const date = dateSession.toFormat("dd/MM/yyyy à HH'h'mm")
+    const date = dateSession
+      .setZone(timezoneAffichage)
+      .toFormat("dd/MM/yyyy à HH'h'mm")
 
     return {
       token,
@@ -892,13 +892,16 @@ export namespace Notification {
     token: string,
     idSession: string,
     nomSession: string,
-    dateSession: DateTime
+    dateSession: DateTime,
+    timezoneAffichage: string
   ): Notification.Message {
     return {
       token,
       notification: {
         title: 'Atelier modifié',
-        body: `Votre atelier du ${dateSession.toFormat('dd/MM')} a été modifié : ${nomSession}`
+        body: `Votre atelier du ${dateSession
+          .setZone(timezoneAffichage)
+          .toFormat('dd/MM')} a été modifié : ${nomSession}`
       },
       data: {
         type: Type.DETAIL_SESSION_MILO,
@@ -911,13 +914,16 @@ export namespace Notification {
     token: string,
     idSession: string,
     nomSession: string,
-    dateSession: DateTime
+    dateSession: DateTime,
+    timezoneAffichage: string
   ): Notification.Message {
     return {
       token,
       notification: {
         title: 'Atelier supprimé',
-        body: `Votre atelier du ${dateSession.toFormat('dd/MM')} est supprimé : ${nomSession}`
+        body: `Votre atelier du ${dateSession
+          .setZone(timezoneAffichage)
+          .toFormat('dd/MM')} est supprimé : ${nomSession}`
       },
       data: {
         type: Type.DELETED_SESSION_MILO,

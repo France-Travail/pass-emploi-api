@@ -40,6 +40,7 @@ import {
   ErreurMiloHttp
 } from '../../../../src/building-blocks/types/domain-error'
 import { DateService } from '../../../../src/utils/date-service'
+import { resoudreDateMilo } from '../../../../src/utils/milo-date'
 
 const structureConseiller = {
   id: 'structure-milo',
@@ -64,9 +65,10 @@ describe('SessionMiloHttpSqlRepository', () => {
   describe('findInstanceSession', () => {
     const idDossier = '1234'
     const idInstance = '5678'
+    const timezoneStructureMilo = 'America/Cayenne'
 
     describe('quand elle existe', () => {
-      it('renvoie la session milo', async () => {
+      it('renvoie la session milo avec la date résolue au fuseau de la structure', async () => {
         // Given
         miloClient.getInstanceSession.resolves(
           success({
@@ -85,7 +87,8 @@ describe('SessionMiloHttpSqlRepository', () => {
         // When
         const resultat = await repository.findInstanceSession(
           idInstance,
-          idDossier
+          idDossier,
+          timezoneStructureMilo
         )
 
         // Then
@@ -93,7 +96,10 @@ describe('SessionMiloHttpSqlRepository', () => {
           id: '5678',
           idDossier: idDossier,
           statut: 'Prescrit',
-          dateHeureDebut: '2020-10-06 10:00:00',
+          dateHeureDebut: resoudreDateMilo(
+            '2020-10-06 10:00:00',
+            timezoneStructureMilo
+          ),
           idSession: '123456',
           nom: 'je suis un titre mais en fait le nom'
         })
@@ -111,7 +117,8 @@ describe('SessionMiloHttpSqlRepository', () => {
         // When
         const resultat = await repository.findInstanceSession(
           idInstance,
-          idDossier
+          idDossier,
+          timezoneStructureMilo
         )
 
         // Then

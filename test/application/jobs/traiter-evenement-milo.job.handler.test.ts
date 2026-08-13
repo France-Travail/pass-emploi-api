@@ -45,7 +45,8 @@ describe('TraiterEvenementMiloJobHandler', () => {
   const idPartenaireBeneficiaire = '123456'
   const jeune: JeuneMilo = {
     ...unJeune(),
-    idStructureMilo: 'id-structure-pas-ea'
+    idStructureMilo: 'id-structure-pas-ea',
+    structureMilo: { id: 'id-structure-pas-ea', timezone: 'Europe/Paris' }
   }
 
   const STATUTS_ACTIFS_RDV = [
@@ -161,6 +162,34 @@ describe('TraiterEvenementMiloJobHandler', () => {
         })
         expect(rendezVousRepository.save).not.to.have.been.called()
       })
+
+      it("remonte une erreur quand le jeune n'a pas de structure Milo", async () => {
+        // Given
+        const evenement = unEvenementMilo({
+          idPartenaireBeneficiaire,
+          objet: EvenementMilo.ObjetEvenement.RENDEZ_VOUS,
+          action: EvenementMilo.ActionEvenement.CREATE
+        })
+        jeuneRepository.getByIdDossier
+          .withArgs(idPartenaireBeneficiaire)
+          .resolves(success({ ...jeune, structureMilo: undefined }))
+
+        // When
+        const result = await handler.handle(unJob(evenement))
+
+        // Then
+        expect(result.resultat).to.deep.equal({
+          traitement: Traitement.JEUNE_SANS_STRUCTURE_MILO,
+          idJeune: jeune.id,
+          idObjet: undefined
+        })
+        expect(result.succes).to.equal(false)
+        expect(result.nbErreurs).to.equal(1)
+        expect(rendezVousRepository.save).not.to.have.been.called()
+        expect(
+          miloRendezVousRepository.findRendezVousByEvenement
+        ).not.to.have.been.called()
+      })
     })
 
     describe('quand le jeune existe', () => {
@@ -198,7 +227,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               .withArgs(evenement)
               .resolves(
                 unRendezVousMilo({
-                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 }).toISO()
+                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                 })
               )
 
@@ -358,9 +387,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
                 .withArgs(evenement)
                 .resolves(
                   unRendezVousMilo({
-                    dateHeureDebut: maintenant
-                      .minus({ year: 1, days: 1 })
-                      .toISO()
+                    dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                   })
                 )
 
@@ -594,7 +621,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               .resolves(
                 uneInstanceSessionMilo({
                   statut: SessionMilo.StatutInstance.PRESCRIT,
-                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 }).toISO()
+                  dateHeureDebut: maintenant.minus({ year: 1, days: 1 })
                 })
               )
 
@@ -660,11 +687,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idInstance: instance.id,
               idDossier: instance.idDossier,
               idSession: instance.idSession,
-              dateDebut: RendezVousMilo.timezonerDateMilo(
-                instance.dateHeureDebut,
-
-                jeune.configuration.fuseauHoraire
-              )
+              dateDebut: instance.dateHeureDebut
             })
           })
 
@@ -779,10 +802,7 @@ describe('TraiterEvenementMiloJobHandler', () => {
               idInstance: instance.id,
               idDossier: instance.idDossier,
               idSession: instance.idSession,
-              dateDebut: RendezVousMilo.timezonerDateMilo(
-                instance.dateHeureDebut,
-                jeune.configuration.fuseauHoraire
-              )
+              dateDebut: instance.dateHeureDebut
             })
           })
 

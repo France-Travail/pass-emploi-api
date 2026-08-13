@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import { JeuneMiloSansStructure } from '../../building-blocks/types/domain-error'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
-import { Jeune } from '../../domain/jeune/jeune'
 import { EvenementMilo } from '../../domain/milo/evenement.milo'
 import {
   JeuneMilo,
@@ -92,11 +92,22 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       return this.buildSuiviJob(maintenant, Traitement.JEUNE_INEXISTANT)
     }
 
+    const jeune = resultJeune.data
+    if (!jeune.structureMilo) {
+      this.logger.error(new JeuneMiloSansStructure(jeune.id).message)
+      return this.buildSuiviJobEnErreur(
+        maintenant,
+        Traitement.JEUNE_SANS_STRUCTURE_MILO,
+        jeune.id
+      )
+    }
+
     switch (evenement.objet) {
       case EvenementMilo.ObjetEvenement.RENDEZ_VOUS: {
         const rendezVousMILO =
           await this.rendezVousMiloRepository.findRendezVousByEvenement(
-            evenement
+            evenement,
+            jeune.structureMilo.timezone
           )
         const rendezVousCEJExistant =
           await this.rendezVousRepository.getByIdPartenaire(
@@ -107,14 +118,14 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
         switch (evenement.action) {
           case EvenementMilo.ActionEvenement.CREATE:
             return this.handleCreateRDV(
-              resultJeune.data,
+              jeune,
               maintenant,
               rendezVousMILO,
               notifierRdvMilo
             )
           case EvenementMilo.ActionEvenement.UPDATE:
             return this.handleUpdateRDV(
-              resultJeune.data,
+              jeune,
               maintenant,
               rendezVousMILO,
               rendezVousCEJExistant,
@@ -122,7 +133,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             )
           case EvenementMilo.ActionEvenement.DELETE:
             return this.handleDeleteRDV(
-              resultJeune.data,
+              jeune,
               maintenant,
               rendezVousCEJExistant,
               notifierRdvMilo
@@ -133,26 +144,27 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
         const instanceSessionMilo =
           await this.sessionMiloRepository.findInstanceSession(
             evenement.idObjet,
-            evenement.idPartenaireBeneficiaire
+            evenement.idPartenaireBeneficiaire,
+            jeune.structureMilo.timezone
           )
         switch (evenement.action) {
           case EvenementMilo.ActionEvenement.CREATE:
             return this.handleCreateInstanceSession(
-              resultJeune.data,
+              jeune,
               maintenant,
               instanceSessionMilo,
               notifierRdvMilo
             )
           case EvenementMilo.ActionEvenement.UPDATE:
             return this.handleUpdateInstanceSession(
-              resultJeune.data,
+              jeune,
               maintenant,
               instanceSessionMilo,
               notifierRdvMilo
             )
           case EvenementMilo.ActionEvenement.DELETE:
             return this.handleDeleteInstanceSession(
-              resultJeune.data,
+              jeune,
               maintenant,
               evenement.idObjet,
               instanceSessionMilo,
@@ -171,7 +183,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
   ): Promise<SuiviJob> {
     const nouveauRdvNonTraitable =
       !rendezVousMilo ||
-      this.dateNonRecuperable(rendezVousMilo, jeune) ||
+      this.dateNonRecuperable(rendezVousMilo) ||
       RendezVousMilo.estAnnule(rendezVousMilo)
 
     if (nouveauRdvNonTraitable) {
@@ -243,7 +255,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       )
     }
 
-    if (!this.dateRecuperable(rendezVousMilo, jeune)) {
+    if (!this.dateRecuperable(rendezVousMilo)) {
       return this.handleDeleteRDV(
         jeune,
         maintenant,
@@ -344,7 +356,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
   ): Promise<SuiviJob> {
     if (
       instanceSessionMilo &&
-      this.dateRecuperable(instanceSessionMilo, jeune) &&
+      this.dateRecuperable(instanceSessionMilo) &&
       this.isStatutInstanceSessionRecuperable(instanceSessionMilo)
     ) {
       this.notifierSession(
@@ -377,7 +389,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     if (instanceSessionMilo) {
       if (
         !this.isStatutInstanceSessionRecuperable(instanceSessionMilo) ||
-        !this.dateRecuperable(instanceSessionMilo, jeune)
+        !this.dateRecuperable(instanceSessionMilo)
       ) {
         return this.handleDeleteInstanceSession(
           jeune,
@@ -479,10 +491,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     notifierRdvMilo?: boolean
   ): void {
     if (notifierRdvMilo) {
-      const dateSession = RendezVousMilo.timezonerDateMilo(
-        instanceSessionMilo.dateHeureDebut,
-        jeune.configuration.fuseauHoraire
-      )
+      const dateSession = instanceSessionMilo.dateHeureDebut
       const dansLeFutur = DateService.isGreater(dateSession, maintenant)
       const statutNotifiable =
         typeNotification === 'delete' ||
@@ -501,7 +510,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             this.notificationService.notifierInscriptionSession(
               instanceSessionMilo.idSession,
               instanceSessionMilo.nom,
-              instanceSessionMilo.dateHeureDebut,
+              dateSession,
               [jeune]
             )
             planifierRappelsInstanceSessionMilo(
@@ -515,7 +524,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             this.notificationService.notifierModificationSession(
               instanceSessionMilo.idSession,
               instanceSessionMilo.nom,
-              instanceSessionMilo.dateHeureDebut,
+              dateSession,
               [jeune]
             )
             planifierRappelsInstanceSessionMilo(
@@ -529,7 +538,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             this.notificationService.notifierDesinscriptionSession(
               instanceSessionMilo.idSession,
               instanceSessionMilo.nom,
-              instanceSessionMilo.dateHeureDebut,
+              dateSession,
               [jeune]
             )
             break
@@ -558,26 +567,41 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     }
   }
 
+  private buildSuiviJobEnErreur(
+    debut: DateTime,
+    traitement: Traitement,
+    idJeune?: string,
+    idObjet?: string
+  ): SuiviJob {
+    return {
+      jobType: this.jobType,
+      dateExecution: debut,
+      resultat: {
+        traitement,
+        idJeune,
+        idObjet
+      },
+      succes: false,
+      nbErreurs: 1,
+      tempsExecution: DateService.calculerTempsExecution(debut)
+    }
+  }
+
   private dateRecuperable(
-    rendezVousOuInstanceSessionMILO: RendezVousMilo | InstanceSessionMilo,
-    jeune: Jeune
+    rendezVousOuInstanceSessionMILO: RendezVousMilo | InstanceSessionMilo
   ): boolean {
     const ilYa1An = this.dateService.now().minus({ year: 1 })
     const dans2Ans = this.dateService.now().plus({ year: 2 })
-    const dateRdv = RendezVousMilo.timezonerDateMilo(
-      rendezVousOuInstanceSessionMILO.dateHeureDebut,
-      jeune.configuration.fuseauHoraire
-    )
+    const dateRdv = rendezVousOuInstanceSessionMILO.dateHeureDebut
     return (
       DateService.isGreater(dateRdv, ilYa1An) &&
       DateService.isGreater(dans2Ans, dateRdv)
     )
   }
   private dateNonRecuperable(
-    rendezVousOuInstanceSessionMILO: RendezVousMilo | InstanceSessionMilo,
-    jeune: Jeune
+    rendezVousOuInstanceSessionMILO: RendezVousMilo | InstanceSessionMilo
   ): boolean {
-    return !this.dateRecuperable(rendezVousOuInstanceSessionMILO, jeune)
+    return !this.dateRecuperable(rendezVousOuInstanceSessionMILO)
   }
 
   private isStatutInstanceSessionRecuperable(
@@ -609,6 +633,7 @@ export enum Traitement {
   RENDEZ_VOUS_INEXISTANT = 'RENDEZ_VOUS_INEXISTANT',
   INSTANCE_SESSION_INEXISTANTE = 'INSTANCE_SESSION_INEXISTANTE',
   JEUNE_INEXISTANT = 'JEUNE_INEXISTANT',
+  JEUNE_SANS_STRUCTURE_MILO = 'JEUNE_SANS_STRUCTURE_MILO',
   TYPE_EVENEMENT_NON_TRAITABLE = 'TYPE_EVENEMENT_NON_TRAITABLE',
   OBJET_EVENEMENT_NON_TRAITABLE = 'OBJET_EVENEMENT_NON_TRAITABLE',
   TRAITEMENT_CREATE_INCONNU = 'TRAITEMENT_CREATE_INCONNU',
