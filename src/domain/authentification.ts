@@ -37,6 +37,7 @@ export namespace Authentification {
       nom: 'cej',
       // @ts-expect-error structure utilisateur SUPPORT inutile ailleurs
       structure: 'SUPPORT',
+      profil: Profil.Support.SUPPORT,
       type: Authentification.Type.SUPPORT,
       roles: []
     }

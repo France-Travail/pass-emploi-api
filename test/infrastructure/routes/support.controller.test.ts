@@ -5,6 +5,7 @@ import {
   NotifierBeneficiairesCommandHandler
 } from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
+import { CreerJeunePESupportCommandHandler } from '../../../src/application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from '../../../src/application/commands/support/supprimer-archive-jeune.command.handler'
 import {
   CreerSuperviseursCommand,
@@ -43,9 +44,11 @@ import {
 } from '../../../src/domain/planificateur'
 import { createSandbox, SinonStub } from 'sinon'
 import Bull from 'bull'
+import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
+  let creerJeuneSupportCommandHandler: StubbedClass<CreerJeunePESupportCommandHandler>
   let supprimerArchiveJeuneCommandHandler: StubbedClass<SupprimerArchiveJeuneCommandHandler>
   let updateAgenceCommandHandler: StubbedClass<UpdateAgenceConseillerCommandHandler>
   let fusionnerAgencesCommandHandler: StubbedClass<FusionnerAgencesCommandHandler>
@@ -67,6 +70,7 @@ describe('SupportController', () => {
     archiverJeuneSupportCommandHandler = app.get(
       ArchiverJeuneSupportCommandHandler
     )
+    creerJeuneSupportCommandHandler = app.get(CreerJeunePESupportCommandHandler)
     supprimerArchiveJeuneCommandHandler = app.get(
       SupprimerArchiveJeuneCommandHandler
     )
@@ -100,6 +104,87 @@ describe('SupportController', () => {
       expect(oidcClient.deleteAccount).to.have.been.calledOnceWithExactly(
         'test'
       )
+    })
+  })
+
+  describe('POST /support/jeunes', () => {
+    it('crée un jeune pour le conseiller cible via le support', async () => {
+      // Given
+      const idConseiller = 'id-conseiller'
+      const jeune = unJeune({
+        id: 'id-jeune',
+        firstName: 'Prenom',
+        lastName: 'Nom',
+        conseiller: unConseillerDuJeune({ id: idConseiller })
+      })
+      creerJeuneSupportCommandHandler.execute.resolves(success(jeune))
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/jeunes')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .send({
+          idConseiller,
+          firstName: 'Prenom',
+          lastName: 'Nom',
+          email: 'JEUNE@example.com',
+          motif: 'Conseiller absent'
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+        .expect({
+          id: jeune.id,
+          firstName: jeune.firstName,
+          lastName: jeune.lastName,
+          idConseiller
+        })
+
+      expect(
+        creerJeuneSupportCommandHandler.execute
+      ).to.have.been.calledOnceWithExactly(
+        {
+          idConseiller,
+          firstName: 'Prenom',
+          lastName: 'Nom',
+          email: 'JEUNE@example.com',
+          motif: 'Conseiller absent'
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('retourne une erreur quand la commande échoue', async () => {
+      // Given
+      creerJeuneSupportCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Conseiller', 'id-conseiller'))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/jeunes')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .send({
+          idConseiller: 'id-conseiller',
+          firstName: 'Prenom',
+          lastName: 'Nom',
+          email: 'jeune@example.com'
+        })
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    it("n'autorise pas la route sans API key support", async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/support/jeunes')
+        .send({
+          idConseiller: 'id-conseiller',
+          firstName: 'Prenom',
+          lastName: 'Nom',
+          email: 'jeune@example.com'
+        })
+        // Then
+        .expect(HttpStatus.UNAUTHORIZED)
     })
   })
 

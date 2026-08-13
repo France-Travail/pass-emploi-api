@@ -7,7 +7,10 @@ import {
   CreateJeuneCommand,
   CreerJeunePoleEmploiCommandHandler
 } from '../../../../src/application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
-import { EmailExisteDejaError } from '../../../../src/building-blocks/types/domain-error'
+import {
+  EmailExisteDejaError,
+  NonTrouveError
+} from '../../../../src/building-blocks/types/domain-error'
 import { Chat } from '../../../../src/domain/chat'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
 import { Core } from '../../../../src/domain/core'
@@ -104,6 +107,45 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         idNouveauJeune,
         conseiller.id
       )
+    })
+
+    it("retourne une erreur quand le conseiller n'existe pas", async () => {
+      // Given
+      const command: CreateJeuneCommand = {
+        firstName: 'Kenji',
+        lastName: 'Lefameux',
+        email: 'kenji.lefameur@poleemploi.fr',
+        idConseiller: 'id-conseiller-inconnu'
+      }
+      conseillerRepository.get
+        .withArgs(command.idConseiller)
+        .resolves(undefined)
+
+      // When
+      const result = await createJeuneCommandHandler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('Conseiller', command.idConseiller))
+      )
+    })
+
+    it("normalise l'email en lowercase", async () => {
+      // Given
+      const command: CreateJeuneCommand = {
+        firstName: 'Kenji',
+        lastName: 'Lefameux',
+        email: 'KENJI.LEFAMEUR@POLEEMPLOI.FR',
+        idConseiller: conseiller.id
+      }
+
+      // When
+      await createJeuneCommandHandler.handle(command)
+
+      // Then
+      expect(jeuneRepository.save).to.have.been.calledWithMatch({
+        email: 'kenji.lefameur@poleemploi.fr'
+      })
     })
 
     describe('quand il existe déjà un jeune avec cet email', () => {

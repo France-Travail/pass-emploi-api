@@ -105,6 +105,7 @@ import { RecupererJeunesDuConseillerCommandHandler } from './application/command
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
+import { CreerJeunePESupportCommandHandler } from './application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from './application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from './application/commands/support/delete-superviseurs.command.handler'
@@ -879,6 +880,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetDiagorienteUrlsQueryHandler,
     GetCJETokenQueryHandler,
     ArchiverJeuneSupportCommandHandler,
+    CreerJeunePESupportCommandHandler,
     SupprimerArchiveJeuneCommandHandler,
     GetDiagorienteMetiersFavorisQueryHandler,
     GetJeunesIdentitesQueryHandler,
