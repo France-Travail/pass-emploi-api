@@ -74,6 +74,34 @@ export class TransfererJeunesPayload {
   idsJeunes: string[]
 }
 
+export class CreerJeuneSupportPayload {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idConseiller: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  firstName: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  lastName: string
+
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  motif?: string
+}
+
 export class SuperviseursPayload {
   @ApiProperty({ type: String, isArray: true })
   @IsArray()

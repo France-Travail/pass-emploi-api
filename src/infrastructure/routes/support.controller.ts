@@ -30,6 +30,10 @@ import { ArchiverJeunesMigrationCommandHandler } from '../../application/command
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
+import {
+  CreerJeunePESupportCommand,
+  CreerJeunePESupportCommandHandler
+} from '../../application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from '../../application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from '../../application/commands/support/delete-superviseurs.command.handler'
@@ -60,6 +64,7 @@ import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { handleResult } from './result.handler'
 import {
   ChangerAgenceConseillerPayload,
+  CreerJeuneSupportPayload,
   FusionnerAgencesPayload,
   ListerJobsQueryParams,
   NotifierBeneficiairesPayload,
@@ -72,6 +77,7 @@ import {
 import { Migration } from '../../domain/migration'
 import PhaseDeMigration = Migration.PhaseDeMigration
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
 
 export class JobSummaryQueryModel {
   @ApiProperty()
@@ -127,6 +133,7 @@ export class SupportController {
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
+    private readonly creerJeuneSupportCommandHandler: CreerJeunePESupportCommandHandler,
     private readonly supprimerArchiveJeuneCommandHandler: SupprimerArchiveJeuneCommandHandler,
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
@@ -139,6 +146,42 @@ export class SupportController {
     private readonly rebasculerJeunesOrphelinsMigrationCommandHandler: RebasculerJeunesOrphelinsMigrationCommandHandler,
     private readonly oidcClient: OidcClient
   ) {}
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: 'Crée un jeune Pôle emploi pour un conseiller via le support',
+    description:
+      'Autorisé uniquement pour le support. Utilisé pour dépannage lorsque le conseiller Pôle emploi est indisponible. Le jeune Pôle emploi est rattaché au conseiller fourni dans le payload. Le motif est optionnel et sert uniquement pour les logs.'
+  })
+  @Post('jeunes')
+  @ApiResponse({
+    type: JeuneQueryModel
+  })
+  async creerJeunePourConseiller(
+    @Body() payload: CreerJeuneSupportPayload
+  ): Promise<JeuneQueryModel> {
+    const command: CreerJeunePESupportCommand = {
+      idConseiller: payload.idConseiller,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      motif: payload.motif
+    }
+    const result = await this.creerJeuneSupportCommandHandler.execute(
+      command,
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result, jeune => ({
+      id: jeune.id,
+      firstName: jeune.firstName,
+      lastName: jeune.lastName,
+      idConseiller: jeune.conseiller!.id
+    }))
+  }
 
   @SetMetadata(
     Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
