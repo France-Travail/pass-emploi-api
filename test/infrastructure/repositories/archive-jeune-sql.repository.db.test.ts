@@ -235,6 +235,21 @@ describe('ArchiveJeuneSqlRepository', () => {
       expect(archiveJeuneSql!.idStructureMilo).to.equal(idStructureMilo)
     })
 
+    it('conserve les archives précédentes du même jeune en cas de ré-archivage', async () => {
+      // When
+      await archiveJeuneSqlRepository.archiver({
+        ...metadonnees,
+        motif: ArchiveJeune.MotifSuppressionSupport.SUPPORT,
+        dateArchivage: new Date('2023-01-01T09:23:00Z')
+      })
+
+      // Then
+      const archives = await ArchiveJeuneSqlModel.findAll({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(archives).to.have.length(2)
+    })
+
     it('sauvegarde le dernier conseiller', () => {
       // Then
       expect(archiveJeuneSql!.donnees!.dernierConseiller).to.deep.equal({

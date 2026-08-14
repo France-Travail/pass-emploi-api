@@ -5,6 +5,7 @@ import {
   NotifierBeneficiairesCommandHandler
 } from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
+import { DesarchiverJeuneCommandHandler } from '../../../src/application/commands/support/desarchiver-jeune.command.handler.db'
 import { CreerJeunePESupportCommandHandler } from '../../../src/application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from '../../../src/application/commands/support/supprimer-archive-jeune.command.handler'
 import {
@@ -48,6 +49,7 @@ import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
+  let desarchiverJeuneCommandHandler: StubbedClass<DesarchiverJeuneCommandHandler>
   let creerJeuneSupportCommandHandler: StubbedClass<CreerJeunePESupportCommandHandler>
   let supprimerArchiveJeuneCommandHandler: StubbedClass<SupprimerArchiveJeuneCommandHandler>
   let updateAgenceCommandHandler: StubbedClass<UpdateAgenceConseillerCommandHandler>
@@ -70,6 +72,7 @@ describe('SupportController', () => {
     archiverJeuneSupportCommandHandler = app.get(
       ArchiverJeuneSupportCommandHandler
     )
+    desarchiverJeuneCommandHandler = app.get(DesarchiverJeuneCommandHandler)
     creerJeuneSupportCommandHandler = app.get(CreerJeunePESupportCommandHandler)
     supprimerArchiveJeuneCommandHandler = app.get(
       SupprimerArchiveJeuneCommandHandler
@@ -245,6 +248,88 @@ describe('SupportController', () => {
         await request(app.getHttpServer())
           .post('/support/archiver-jeune/test')
           .set({ 'X-API-KEY': 'api-key-inconnue' })
+          // Then
+          .expect(HttpStatus.UNAUTHORIZED)
+      })
+    })
+  })
+
+  describe('POST /support/desarchiver-jeune/:idArchive', () => {
+    describe('quand la commande est en succes', () => {
+      it('désarchive le jeune et retourne le résumé', async () => {
+        // Given
+        const resume = {
+          idJeune: 'id-jeune',
+          emailRestaure: true,
+          actionsRestaurees: 2,
+          rendezVousRestaures: 1,
+          animationsCollectivesNonRestaurees: 0,
+          favorisRestaures: 3,
+          recherchesRestaurees: 1,
+          messagesRestaures: 5
+        }
+        desarchiverJeuneCommandHandler.execute.resolves(success(resume))
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idConseiller: 'id-conseiller' })
+          // Then
+          .expect(HttpStatus.CREATED)
+          .expect(resume)
+
+        expect(
+          desarchiverJeuneCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          { idArchive: 42, idConseiller: 'id-conseiller' },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+    })
+    describe('quand la commande est en echec', () => {
+      it('throw une erreur', async () => {
+        // Given
+        desarchiverJeuneCommandHandler.execute.resolves(
+          failure(new NonTrouveError('ArchiveJeune', '42'))
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idConseiller: 'id-conseiller' })
+          // Then
+          .expect(HttpStatus.NOT_FOUND)
+      })
+    })
+    describe('validation', () => {
+      it('rejette un idConseiller manquant', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({})
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+      it('rejette un idArchive non numérique', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/abc')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idConseiller: 'id-conseiller' })
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+    describe('auth', () => {
+      it('fail avec mauvaise api key', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-inconnue' })
+          .send({ idConseiller: 'id-conseiller' })
           // Then
           .expect(HttpStatus.UNAUTHORIZED)
       })

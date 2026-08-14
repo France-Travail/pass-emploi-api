@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ArchiveJeune } from '../../domain/archive-jeune'
 import {
   Chat,
   ChatGroupe,
@@ -19,6 +20,18 @@ export class ChatFirebaseRepository implements Chat.Repository {
     conseillerId: string
   ): Promise<void> {
     await this.firebaseClient.initializeChatIfNotExists(jeuneId, conseillerId)
+  }
+
+  async restaurerMessagesIndividuels(
+    idJeune: string,
+    idConseiller: string,
+    messages: ArchiveJeune.Message[]
+  ): Promise<void> {
+    await this.firebaseClient.restaurerMessagesArchives(
+      idJeune,
+      idConseiller,
+      messages
+    )
   }
 
   async initializeListeDeDiffusionIfNotExists(

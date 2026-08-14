@@ -34,6 +34,10 @@ import {
   CreerJeunePESupportCommand,
   CreerJeunePESupportCommandHandler
 } from '../../application/commands/support/creer-jeune-pe-support-command-handler.service'
+import {
+  DesarchivageJeuneQueryModel,
+  DesarchiverJeuneCommandHandler
+} from '../../application/commands/support/desarchiver-jeune.command.handler.db'
 import { SupprimerArchiveJeuneCommandHandler } from '../../application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from '../../application/commands/support/delete-superviseurs.command.handler'
@@ -65,6 +69,7 @@ import { handleResult } from './result.handler'
 import {
   ChangerAgenceConseillerPayload,
   CreerJeuneSupportPayload,
+  DesarchiverJeunePayload,
   FusionnerAgencesPayload,
   ListerJobsQueryParams,
   NotifierBeneficiairesPayload,
@@ -133,6 +138,7 @@ export class SupportController {
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
+    private readonly desarchiverJeuneCommandHandler: DesarchiverJeuneCommandHandler,
     private readonly creerJeuneSupportCommandHandler: CreerJeunePESupportCommandHandler,
     private readonly supprimerArchiveJeuneCommandHandler: SupprimerArchiveJeuneCommandHandler,
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
@@ -297,6 +303,42 @@ export class SupportController {
     const result = await this.archiverJeuneSupportCommandHandler.execute(
       {
         idJeune
+      },
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Désarchive un jeune archivé par erreur, via l’identifiant en base de son archive',
+    description:
+      'Autorisé uniquement pour le support. Restaure un maximum de données depuis l’archive :\n' +
+      '- Recréation du jeune (identité, email, structure, dispositif, dates), rattaché au conseiller fourni dans le payload\n' +
+      '- Restauration des actions (et commentaires), des rendez-vous individuels, des favoris et des recherches sauvegardées\n' +
+      '- Réinitialisation du chat Firebase avec réinjection des messages archivés (texte et historique d’édition)\n\n' +
+      'Limites (données définitivement perdues) :\n' +
+      '- Les pièces jointes, offres liées aux messages et statuts de lecture ne sont pas restaurés (contenu texte uniquement)\n' +
+      '- Les inscriptions aux animations collectives ne sont pas restaurées\n' +
+      '- Les préférences, tokens de notification et l’historique de transferts sont réinitialisés\n' +
+      '- Le compte de l’IDP ayant été supprimé, le jeune sera réassocié par email à sa prochaine connexion\n\n' +
+      'L’archive existante n’est pas supprimée, si vous voulez la supprimer, utiliser DELETE /support/archives-jeune/:idArchive une fois la restauration vérifiée.'
+  })
+  @Post('desarchiver-jeune/:idArchive')
+  @ApiResponse({ type: DesarchivageJeuneQueryModel })
+  async desarchiverJeune(
+    @Param('idArchive', ParseIntPipe) idArchive: number,
+    @Body() payload: DesarchiverJeunePayload
+  ): Promise<DesarchivageJeuneQueryModel> {
+    const result = await this.desarchiverJeuneCommandHandler.execute(
+      {
+        idArchive,
+        idConseiller: payload.idConseiller
       },
       Authentification.unUtilisateurSupport()
     )

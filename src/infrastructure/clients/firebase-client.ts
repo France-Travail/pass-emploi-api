@@ -23,6 +23,7 @@ import { DateTime } from 'luxon'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import {
+  Chat,
   ChatGroupe,
   ChatIndividuel,
   MessageGroupe,
@@ -53,6 +54,13 @@ const FIREBASE_MESSAGES_PATH = 'messages'
 const FIREBASE_MESSAGES_HISTORY_PATH = 'history'
 const SENT_BY_CONSEILLER = 'conseiller'
 const SENT_BY_JEUNE = 'jeune'
+// Types restaurables tels quels après archivage : les autres (ex. MESSAGE_PJ)
+// portent un payload non archivé et sont rétrogradés en MESSAGE
+const TYPES_MESSAGES_SANS_PAYLOAD: Chat.TypeMessage[] = [
+  'MESSAGE',
+  'NOUVEAU_CONSEILLER',
+  'NOUVEAU_CONSEILLER_TEMPORAIRE'
+]
 
 @Injectable()
 export class FirebaseClient {
@@ -419,6 +427,85 @@ export class FirebaseClient {
     }
 
     return messagesArchive
+  }
+
+  async restaurerMessagesArchives(
+    idJeune: string,
+    idConseiller: string,
+    messages: ArchiveJeune.Message[]
+  ): Promise<void> {
+    if (!messages.length) {
+      return
+    }
+
+    const chats = await this.firestore
+      .collection(FIREBASE_CHAT_PATH)
+      .where('jeuneId', '==', idJeune)
+      .where('conseillerId', '==', idConseiller)
+      .get()
+    if (chats.empty) {
+      throw new Error(`Conversation du jeune ${idJeune} non trouvée`)
+    }
+    const chatRef = chats.docs[0].ref
+
+    const messagesTries = [...messages].sort(
+      (premier, second) =>
+        new Date(premier.date).getTime() - new Date(second.date).getTime()
+    )
+
+    let dernierMessageRestaure: FirebaseMessage | undefined
+    for (const message of messagesTries) {
+      const { encryptedText, iv } = this.chatCryptoService.encrypt(
+        message.contenu
+      )
+      const firebaseMessage: FirebaseMessage = {
+        content: encryptedText,
+        iv,
+        conseillerId: idConseiller,
+        sentBy:
+          message.envoyePar === SENT_BY_CONSEILLER
+            ? SENT_BY_CONSEILLER
+            : SENT_BY_JEUNE,
+        creationDate: Timestamp.fromDate(new Date(message.date)),
+        type: TYPES_MESSAGES_SANS_PAYLOAD.includes(
+          message.type as Chat.TypeMessage
+        )
+          ? (message.type as Chat.TypeMessage)
+          : 'MESSAGE'
+      }
+      const messageRef = await getMessagesRef(chatRef).add(firebaseMessage)
+      dernierMessageRestaure = firebaseMessage
+
+      for (const entreeHistorique of message.historique ?? []) {
+        await messageRef.collection(FIREBASE_MESSAGES_HISTORY_PATH).add({
+          date: Timestamp.fromDate(new Date(entreeHistorique.date)),
+          previousContent: this.chiffrerAvecIv(
+            entreeHistorique.contenuPrecedent,
+            iv
+          )
+        })
+      }
+    }
+
+    if (dernierMessageRestaure) {
+      const majChat: UpdateData<FirebaseChat> = {
+        lastMessageContent: dernierMessageRestaure.content,
+        lastMessageIv: dernierMessageRestaure.iv,
+        lastMessageSentAt: dernierMessageRestaure.creationDate,
+        lastMessageSentBy: dernierMessageRestaure.sentBy,
+        seenByConseiller: true
+      }
+      await chatRef.update(majChat)
+    }
+  }
+
+  // L'historique d'un message est chiffré avec l'IV du message lui-même
+  // (cf. fromMessageChiffreToMessageArchive), d'où un chiffrement à IV imposé
+  private chiffrerAvecIv(contenu: string, iv64: string): string {
+    const key = Utf8.parse(this.configService.get('firebase').encryptionKey)
+    return AES.encrypt(contenu, key, {
+      iv: Base64.parse(iv64)
+    }).ciphertext.toString(Base64)
   }
 
   async envoyerStatutAnalysePJ(

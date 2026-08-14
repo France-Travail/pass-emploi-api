@@ -35,12 +35,6 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     const archiveResult = await this.construire(metadonnees)
     if (isFailure(archiveResult)) return archiveResult
 
-    await ArchiveJeuneSqlModel.destroy({
-      where: {
-        idJeune: metadonnees.idJeune
-      }
-    })
-
     await this.creerLigne(
       metadonnees,
       archiveResult.data.idStructureMilo,
