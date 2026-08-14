@@ -167,7 +167,7 @@
     "npm-check-updates": "^19.6.3",
     "nyc": "^18.0.0",
     "prettier": "^3.9.6",
-    "redis": "^5.12.1",
+    "redis": "^6.2.0",
     "sinon": "21.0.0",
     "sinon-chai": "^4.0.1",
     "source-map-support": "^0.5.21",
