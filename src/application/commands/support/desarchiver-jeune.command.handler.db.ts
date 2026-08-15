@@ -59,7 +59,7 @@ export class DesarchivageJeuneQueryModel {
 
   @ApiProperty({
     description:
-      "false si l'archive ne contenait pas d'email : le jeune ne pourra pas être réassocié à son compte à la prochaine connexion"
+      "false si l'archive ne contenait pas d'email : le jeune ne pourra pas être réassocié à son compte à la prochaine connexion. Attention : la réassociation se fait sur l'email transmis par l'IDP partenaire au login — si l'email du compte partenaire (ex. dossier i-milo) a changé depuis l'archivage, elle échouera malgré emailRestaure=true (corriger alors l'email du jeune en base)."
   })
   emailRestaure: boolean
 

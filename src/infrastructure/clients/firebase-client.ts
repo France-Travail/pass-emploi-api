@@ -54,13 +54,12 @@ const FIREBASE_MESSAGES_PATH = 'messages'
 const FIREBASE_MESSAGES_HISTORY_PATH = 'history'
 const SENT_BY_CONSEILLER = 'conseiller'
 const SENT_BY_JEUNE = 'jeune'
-// Types restaurables tels quels après archivage : les autres (ex. MESSAGE_PJ)
-// portent un payload non archivé et sont rétrogradés en MESSAGE
-const TYPES_MESSAGES_SANS_PAYLOAD: Chat.TypeMessage[] = [
+// Les autres types portent un payload non archivé (PJ, session) et sont rétrogradés en MESSAGE à la restauration
+const TYPES_MESSAGES_SANS_PAYLOAD: Set<Chat.TypeMessage> = new Set([
   'MESSAGE',
   'NOUVEAU_CONSEILLER',
   'NOUVEAU_CONSEILLER_TEMPORAIRE'
-]
+])
 
 @Injectable()
 export class FirebaseClient {
@@ -467,9 +466,7 @@ export class FirebaseClient {
             ? SENT_BY_CONSEILLER
             : SENT_BY_JEUNE,
         creationDate: Timestamp.fromDate(new Date(message.date)),
-        type: TYPES_MESSAGES_SANS_PAYLOAD.includes(
-          message.type as Chat.TypeMessage
-        )
+        type: TYPES_MESSAGES_SANS_PAYLOAD.has(message.type as Chat.TypeMessage)
           ? (message.type as Chat.TypeMessage)
           : 'MESSAGE'
       }
@@ -499,8 +496,7 @@ export class FirebaseClient {
     }
   }
 
-  // L'historique d'un message est chiffré avec l'IV du message lui-même
-  // (cf. fromMessageChiffreToMessageArchive), d'où un chiffrement à IV imposé
+  // L'historique est chiffré avec l'IV de son message (cf. fromMessageChiffreToMessageArchive), d'où l'IV imposé
   private chiffrerAvecIv(contenu: string, iv64: string): string {
     const key = Utf8.parse(this.configService.get('firebase').encryptionKey)
     return AES.encrypt(contenu, key, {

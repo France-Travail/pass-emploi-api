@@ -396,6 +396,21 @@ describe('AuthentificationSqlRepository', () => {
         // Then
         expect(utilisateur).to.be.undefined()
       })
+      it("retourne l'utilisateur de la structure demandée uniquement", async () => {
+        // When
+        const utilisateurMilo = await repository.getJeuneByEmail(
+          'john.doe@plop.io',
+          Core.Structure.MILO
+        )
+        const utilisateurPE = await repository.getJeuneByEmail(
+          'john.doe@plop.io',
+          Core.Structure.POLE_EMPLOI
+        )
+
+        // Then
+        expect(utilisateurMilo?.id).to.equal('ABCDE')
+        expect(utilisateurPE).to.be.undefined()
+      })
     })
   })
 
