@@ -73,4 +73,7 @@ export class GetMonSuiviMiloQueryModel {
     isArray: true
   })
   sessionsMilo: SessionJeuneMiloQueryModel[] | null
+
+  @ApiProperty()
+  peutVoirLeComptageDesHeures: boolean
 }

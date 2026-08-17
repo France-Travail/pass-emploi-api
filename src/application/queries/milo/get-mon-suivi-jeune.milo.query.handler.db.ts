@@ -107,7 +107,10 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
                 SessionMilo.Inscription.Statut.PRESENT
               ].includes(sesssion.inscription)
           )
-        : null
+        : null,
+      peutVoirLeComptageDesHeures: Boolean(
+        jeuneSqlModel.peutVoirLeComptageDesHeures
+      )
     })
   }
 

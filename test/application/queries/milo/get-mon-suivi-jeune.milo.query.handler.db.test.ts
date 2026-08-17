@@ -260,6 +260,27 @@ describe('GetMonSuiviMiloQueryHandler', () => {
             ])
           }
         })
+        it('renvoie peutVoirLeComptageDesHeures à false quand il est absent', async () => {
+          // Then
+          expect(
+            isSuccess(result) && result.data.peutVoirLeComptageDesHeures
+          ).to.equal(false)
+        })
+        it('renvoie peutVoirLeComptageDesHeures à true quand le jeune y est autorisé', async () => {
+          // Given
+          await JeuneSqlModel.update(
+            { peutVoirLeComptageDesHeures: true },
+            { where: { id: jeuneDto.id } }
+          )
+
+          // When
+          const result = await handler.handle(query, utilisateurJeune)
+
+          // Then
+          expect(
+            isSuccess(result) && result.data.peutVoirLeComptageDesHeures
+          ).to.equal(true)
+        })
       })
     })
 
@@ -287,7 +308,8 @@ describe('GetMonSuiviMiloQueryHandler', () => {
         expect(isSuccess(result) && result.data).to.deep.equal({
           actions: [],
           rendezVous: [],
-          sessionsMilo: null
+          sessionsMilo: null,
+          peutVoirLeComptageDesHeures: false
         })
       })
     })
