@@ -76,18 +76,21 @@ export class RechercheSqlRepository implements Recherche.Repository {
   }
 
   async update(recherche: Recherche): Promise<void> {
-    await RechercheSqlModel.upsert({
-      id: recherche.id,
-      idJeune: recherche.idJeune,
-      titre: recherche.titre,
-      metier: recherche.metier,
-      type: recherche.type,
-      localisation: recherche.localisation,
-      criteres: recherche.criteres,
-      dateCreation: recherche.dateCreation,
-      dateDerniereRecherche: recherche.dateDerniereRecherche,
-      etatDerniereRecherche: recherche.etat
-    })
+    // UPDATE et non UPSERT : si jeune supprimé pendant le traitement, la recherche disparait en cascade et il ne faut pas la réinsérer
+    await RechercheSqlModel.update(
+      {
+        idJeune: recherche.idJeune,
+        titre: recherche.titre,
+        metier: recherche.metier,
+        type: recherche.type,
+        localisation: recherche.localisation,
+        criteres: recherche.criteres,
+        dateCreation: recherche.dateCreation,
+        dateDerniereRecherche: recherche.dateDerniereRecherche,
+        etatDerniereRecherche: recherche.etat
+      },
+      { where: { id: recherche.id } }
+    )
   }
 
   async findAvantDate(

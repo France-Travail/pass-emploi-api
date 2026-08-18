@@ -241,6 +241,23 @@ describe('RechercheSqlRepository', () => {
         DateTime.fromISO('2022-03-07T10:10:11').toJSDate()
       )
     })
+
+    it('ne recree pas une recherche supprimee entre temps', async () => {
+      // Given
+      const recherche = uneRecherche({ idJeune })
+      await rechercheSqlRepository.save(recherche)
+      await rechercheSqlRepository.delete(recherche.id)
+
+      // When
+      await rechercheSqlRepository.update({
+        ...recherche,
+        dateDerniereRecherche: DateTime.fromISO('2022-03-07T10:10:11')
+      })
+
+      // Then
+      const recherches = await RechercheSqlModel.findAll({ raw: true })
+      expect(recherches.length).to.equal(0)
+    })
   })
 
   describe('findAvantDate', () => {
