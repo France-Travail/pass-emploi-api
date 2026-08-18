@@ -322,6 +322,7 @@ export class SupportController {
       '- Recréation du jeune (identité, email, structure, dispositif, dates), rattaché au conseiller fourni dans le payload\n' +
       '- Restauration des actions (et commentaires), des rendez-vous individuels, des favoris et des recherches sauvegardées\n' +
       '- Réinitialisation du chat Firebase avec réinjection des messages archivés (texte et historique d’édition)\n\n' +
+      'Mode fusion (payload `idJeuneRecree`) : quand le jeune s’est déjà recréé un compte, le jeune archivé n’est pas recréé et les données sont rattachées à ce compte, qui garde son identité, son authentification et son conseiller (`idConseiller` devient alors inutile). Les actions et rendez-vous déjà re-saisis sur ce compte ne sont pas dupliqués (voir `actionsIgnoreesDoublon` / `rendezVousIgnoresDoublon`), et les favoris/recherches déjà présents sont ignorés.\n\n' +
       'Limites (données définitivement perdues) :\n' +
       '- Les pièces jointes, offres liées aux messages et statuts de lecture ne sont pas restaurés (contenu texte uniquement)\n' +
       '- Les inscriptions aux animations collectives ne sont pas restaurées\n' +
@@ -338,7 +339,8 @@ export class SupportController {
     const result = await this.desarchiverJeuneCommandHandler.execute(
       {
         idArchive,
-        idConseiller: payload.idConseiller
+        idConseiller: payload.idConseiller,
+        idJeuneRecree: payload.idJeuneRecree
       },
       Authentification.unUtilisateurSupport()
     )

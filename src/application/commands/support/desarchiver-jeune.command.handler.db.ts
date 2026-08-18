@@ -10,6 +10,7 @@ import {
 import {
   emptySuccess,
   failure,
+  isFailure,
   Result,
   success
 } from '../../../building-blocks/types/result'
@@ -50,12 +51,28 @@ import { IdService } from '../../../utils/id-service'
 
 export interface DesarchiverJeuneCommand extends Command {
   idArchive: number
-  idConseiller: string
+  idConseiller?: string
+  idJeuneRecree?: string
+}
+
+interface CibleDesarchivage {
+  idJeune: string
+  conseiller: ConseillerSqlModel
+  jeuneACreer?: AsSql<JeuneDto>
 }
 
 export class DesarchivageJeuneQueryModel {
-  @ApiProperty()
+  @ApiProperty({
+    description:
+      'Bénéficiaire porteur des données restaurées : le compte recréé en cas de fusion, sinon le jeune recréé depuis l’archive'
+  })
   idJeune: string
+
+  @ApiProperty({
+    description:
+      'true quand les données ont été rattachées à un compte recréé au lieu de recréer le jeune archivé'
+  })
+  fusionAvecCompteRecree: boolean
 
   @ApiProperty({
     description:
@@ -68,6 +85,18 @@ export class DesarchivageJeuneQueryModel {
 
   @ApiProperty()
   rendezVousRestaures: number
+
+  @ApiProperty({
+    description:
+      'Actions de l’archive déjà présentes sur le compte cible (même contenu et même date d’échéance ou de création), donc non recréées'
+  })
+  actionsIgnoreesDoublon: number
+
+  @ApiProperty({
+    description:
+      'Rendez-vous de l’archive déjà présents sur le compte cible (même date et même type), donc non recréés'
+  })
+  rendezVousIgnoresDoublon: number
 
   @ApiProperty({
     description:
@@ -129,6 +158,279 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       )
     }
 
+    const cibleResult = command.idJeuneRecree
+      ? await this.cibleFusion(command.idJeuneRecree, archive)
+      : await this.cibleRecreation(command, archive)
+    if (isFailure(cibleResult)) {
+      return cibleResult
+    }
+    const { idJeune, conseiller, jeuneACreer } = cibleResult.data
+
+    const donnees = archive.donnees
+    const rendezVousHorsAnimations =
+      donnees?.rendezVous.filter(
+        rdv => !TYPES_ANIMATIONS_COLLECTIVES.includes(rdv.type)
+      ) ?? []
+    const nombreFavoris = donnees
+      ? donnees.favoris.offresEmploi.length +
+        donnees.favoris.offresImmersions.length +
+        donnees.favoris.offresServiceCivique.length
+      : 0
+
+    const doublons = await this.detecterDoublons(
+      idJeune,
+      donnees?.actions ?? [],
+      rendezVousHorsAnimations
+    )
+    const actionsARestaurer = (donnees?.actions ?? []).filter(
+      action => !doublons.actions.has(action)
+    )
+    const rendezVousARestaurer = rendezVousHorsAnimations.filter(
+      rendezVous => !doublons.rendezVous.has(rendezVous)
+    )
+
+    await this.sequelize.transaction(async transaction => {
+      if (jeuneACreer) {
+        await JeuneSqlModel.create(jeuneACreer, { transaction })
+      }
+
+      if (!donnees) {
+        return
+      }
+
+      for (const action of actionsARestaurer) {
+        const idAction = this.idService.uuid()
+        await ActionSqlModel.create(
+          this.construireAction(idAction, action, archive, idJeune, conseiller),
+          { transaction }
+        )
+        for (const commentaire of action.commentaires ?? []) {
+          await CommentaireSqlModel.create(
+            {
+              id: this.idService.uuid(),
+              idAction,
+              date: commentaire.date,
+              message: commentaire.message,
+              createur: this.construireCreateur(
+                commentaire.creePar,
+                archive,
+                idJeune,
+                conseiller
+              )
+            },
+            { transaction }
+          )
+        }
+      }
+
+      for (const rendezVous of rendezVousARestaurer) {
+        const idRendezVous = this.idService.uuid()
+        await RendezVousSqlModel.create(
+          this.construireRendezVous(idRendezVous, rendezVous, conseiller),
+          { transaction }
+        )
+        await RendezVousJeuneAssociationSqlModel.create(
+          { idRendezVous, idJeune, present: null },
+          { transaction }
+        )
+      }
+
+      await FavoriOffreEmploiSqlModel.bulkCreate(
+        donnees.favoris.offresEmploi.map(favori => ({
+          idJeune,
+          idOffre: favori.id,
+          titre: favori.titre,
+          typeContrat: favori.typeContrat,
+          nomEntreprise: favori.nomEntreprise ?? null,
+          duree: favori.duree ?? null,
+          isAlternance: favori.alternance ?? null,
+          nomLocalisation: favori.localisation?.nom ?? null,
+          codePostalLocalisation: favori.localisation?.codePostal ?? null,
+          communeLocalisation: favori.localisation?.commune ?? null,
+          dateCreation: archive.dateArchivage,
+          dateCandidature: null,
+          origineNom: favori.origine?.nom ?? null,
+          origineLogoUrl: favori.origine?.logo ?? null
+        })),
+        { transaction, ignoreDuplicates: true }
+      )
+
+      await FavoriOffreImmersionSqlModel.bulkCreate(
+        donnees.favoris.offresImmersions.map(favori => ({
+          idJeune,
+          idOffre: favori.id,
+          metier: favori.metier,
+          ville: favori.ville,
+          nomEtablissement: favori.nomEtablissement,
+          secteurActivite: favori.secteurActivite,
+          dateCreation: archive.dateArchivage,
+          dateCandidature: null
+        })),
+        { transaction, ignoreDuplicates: true }
+      )
+
+      await FavoriOffreEngagementSqlModel.bulkCreate(
+        donnees.favoris.offresServiceCivique.map(favori => ({
+          idJeune,
+          idOffre: favori.id,
+          domaine: favori.domaine,
+          titre: favori.titre,
+          ville: favori.ville ?? null,
+          organisation: favori.organisation ?? null,
+          dateDeDebut: favori.dateDeDebut ?? null,
+          dateCreation: archive.dateArchivage,
+          dateCandidature: null
+        })),
+        { transaction, ignoreDuplicates: true }
+      )
+
+      await RechercheSqlModel.bulkCreate(
+        donnees.recherches.map(recherche => ({
+          id: recherche.id,
+          idJeune,
+          type: recherche.type,
+          titre: recherche.titre,
+          metier: recherche.metier ?? null,
+          localisation: recherche.localisation ?? null,
+          criteres: recherche.criteres ?? null,
+          dateCreation: recherche.dateCreation,
+          dateDerniereRecherche: recherche.dateDerniereRecherche,
+          etatDerniereRecherche: recherche.etat
+        })),
+        { transaction, ignoreDuplicates: true }
+      )
+    })
+
+    let messagesRestaures = 0
+    try {
+      await this.chatRepository.initializeChatIfNotExists(
+        idJeune,
+        conseiller.id
+      )
+      if (donnees?.messages?.length) {
+        await this.chatRepository.restaurerMessagesIndividuels(
+          idJeune,
+          conseiller.id,
+          donnees.messages
+        )
+        messagesRestaures = donnees.messages.length
+      }
+    } catch (e) {
+      this.logger.warn(
+        `Echec de la restauration du chat du jeune ${idJeune}`,
+        e
+      )
+    }
+
+    return success({
+      idJeune,
+      fusionAvecCompteRecree: !jeuneACreer,
+      emailRestaure: Boolean(archive.email),
+      actionsRestaurees: actionsARestaurer.length,
+      rendezVousRestaures: rendezVousARestaurer.length,
+      actionsIgnoreesDoublon: doublons.actions.size,
+      rendezVousIgnoresDoublon: doublons.rendezVous.size,
+      animationsCollectivesNonRestaurees:
+        (donnees?.rendezVous.length ?? 0) - rendezVousHorsAnimations.length,
+      favorisRestaures: nombreFavoris,
+      recherchesRestaurees: donnees?.recherches.length ?? 0,
+      messagesRestaures
+    })
+  }
+
+  // En fusion, le conseiller a pu re-saisir des actions et rendez-vous perdus : on ne recrée pas ceux que le compte cible porte déjà
+  private async detecterDoublons(
+    idJeune: string,
+    actions: ArchiveJeune.Action[],
+    rendezVous: ArchiveJeune.RendezVous[]
+  ): Promise<{
+    actions: Set<ArchiveJeune.Action>
+    rendezVous: Set<ArchiveJeune.RendezVous>
+  }> {
+    const doublons = {
+      actions: new Set<ArchiveJeune.Action>(),
+      rendezVous: new Set<ArchiveJeune.RendezVous>()
+    }
+    if (!actions.length && !rendezVous.length) {
+      return doublons
+    }
+
+    const [actionsExistantes, rendezVousExistants] = await Promise.all([
+      ActionSqlModel.findAll({
+        attributes: ['contenu', 'dateCreation', 'dateEcheance'],
+        where: { idJeune }
+      }),
+      RendezVousSqlModel.findAll({
+        attributes: ['date', 'type'],
+        include: [{ model: JeuneSqlModel, where: { id: idJeune } }]
+      })
+    ])
+
+    for (const action of actions) {
+      const dejaPresente = actionsExistantes.some(
+        existante =>
+          normaliser(existante.contenu) === normaliser(action.contenu) &&
+          (memeInstant(existante.dateEcheance, action.dateEcheance) ||
+            memeInstant(existante.dateCreation, action.dateCreation))
+      )
+      if (dejaPresente) doublons.actions.add(action)
+    }
+
+    for (const unRendezVous of rendezVous) {
+      const dejaPresent = rendezVousExistants.some(
+        existant =>
+          existant.type === unRendezVous.type &&
+          memeInstant(existant.date, unRendezVous.date)
+      )
+      if (dejaPresent) doublons.rendezVous.add(unRendezVous)
+    }
+
+    return doublons
+  }
+
+  // Fusion : le jeune s'est recréé un compte (nouvel id, nouvelle authentification), on ne restaure que ses données sur ce compte
+  private async cibleFusion(
+    idJeuneRecree: string,
+    archive: ArchiveJeuneSqlModel
+  ): Promise<Result<CibleDesarchivage>> {
+    const jeuneRecree = await JeuneSqlModel.findByPk(idJeuneRecree, {
+      include: [ConseillerSqlModel]
+    })
+    if (!jeuneRecree) {
+      return failure(new NonTrouveError('Jeune', idJeuneRecree))
+    }
+    if (jeuneRecree.structure !== archive.structure) {
+      return failure(
+        new MauvaiseCommandeError(
+          `Le jeune ${idJeuneRecree} est de structure ${jeuneRecree.structure}, incompatible avec l'archive (${archive.structure})`
+        )
+      )
+    }
+    if (!jeuneRecree.conseiller) {
+      return failure(
+        new MauvaiseCommandeError(
+          `Le jeune ${idJeuneRecree} n'a pas de conseiller`
+        )
+      )
+    }
+    return success({
+      idJeune: jeuneRecree.id,
+      conseiller: jeuneRecree.conseiller
+    })
+  }
+
+  private async cibleRecreation(
+    command: DesarchiverJeuneCommand,
+    archive: ArchiveJeuneSqlModel
+  ): Promise<Result<CibleDesarchivage>> {
+    if (!command.idConseiller) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Renseigner idConseiller pour recréer le jeune, ou idJeuneRecree pour fusionner avec un compte existant'
+        )
+      )
+    }
+
     const jeuneExistant = await JeuneSqlModel.findByPk(archive.idJeune, {
       attributes: ['id']
     })
@@ -150,155 +452,6 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
           attributes: ['id']
         })
       : null
-
-    const donnees = archive.donnees
-    const rendezVousARestaurer =
-      donnees?.rendezVous.filter(
-        rdv => !TYPES_ANIMATIONS_COLLECTIVES.includes(rdv.type)
-      ) ?? []
-    const nombreFavoris = donnees
-      ? donnees.favoris.offresEmploi.length +
-        donnees.favoris.offresImmersions.length +
-        donnees.favoris.offresServiceCivique.length
-      : 0
-
-    await this.sequelize.transaction(async transaction => {
-      await JeuneSqlModel.create(
-        this.construireJeune(
-          archive,
-          conseiller.id,
-          structureMiloExistante ? archive.idStructureMilo : null
-        ),
-        { transaction }
-      )
-
-      if (!donnees) {
-        return
-      }
-
-      for (const action of donnees.actions) {
-        const idAction = this.idService.uuid()
-        await ActionSqlModel.create(
-          this.construireAction(idAction, action, archive, conseiller),
-          { transaction }
-        )
-        for (const commentaire of action.commentaires ?? []) {
-          await CommentaireSqlModel.create(
-            {
-              id: this.idService.uuid(),
-              idAction,
-              date: commentaire.date,
-              message: commentaire.message,
-              createur: this.construireCreateur(
-                commentaire.creePar,
-                archive,
-                conseiller
-              )
-            },
-            { transaction }
-          )
-        }
-      }
-
-      for (const rendezVous of rendezVousARestaurer) {
-        const idRendezVous = this.idService.uuid()
-        await RendezVousSqlModel.create(
-          this.construireRendezVous(idRendezVous, rendezVous, conseiller),
-          { transaction }
-        )
-        await RendezVousJeuneAssociationSqlModel.create(
-          { idRendezVous, idJeune: archive.idJeune, present: null },
-          { transaction }
-        )
-      }
-
-      await FavoriOffreEmploiSqlModel.bulkCreate(
-        donnees.favoris.offresEmploi.map(favori => ({
-          idJeune: archive.idJeune,
-          idOffre: favori.id,
-          titre: favori.titre,
-          typeContrat: favori.typeContrat,
-          nomEntreprise: favori.nomEntreprise ?? null,
-          duree: favori.duree ?? null,
-          isAlternance: favori.alternance ?? null,
-          nomLocalisation: favori.localisation?.nom ?? null,
-          codePostalLocalisation: favori.localisation?.codePostal ?? null,
-          communeLocalisation: favori.localisation?.commune ?? null,
-          dateCreation: archive.dateArchivage,
-          dateCandidature: null,
-          origineNom: favori.origine?.nom ?? null,
-          origineLogoUrl: favori.origine?.logo ?? null
-        })),
-        { transaction }
-      )
-
-      await FavoriOffreImmersionSqlModel.bulkCreate(
-        donnees.favoris.offresImmersions.map(favori => ({
-          idJeune: archive.idJeune,
-          idOffre: favori.id,
-          metier: favori.metier,
-          ville: favori.ville,
-          nomEtablissement: favori.nomEtablissement,
-          secteurActivite: favori.secteurActivite,
-          dateCreation: archive.dateArchivage,
-          dateCandidature: null
-        })),
-        { transaction }
-      )
-
-      await FavoriOffreEngagementSqlModel.bulkCreate(
-        donnees.favoris.offresServiceCivique.map(favori => ({
-          idJeune: archive.idJeune,
-          idOffre: favori.id,
-          domaine: favori.domaine,
-          titre: favori.titre,
-          ville: favori.ville ?? null,
-          organisation: favori.organisation ?? null,
-          dateDeDebut: favori.dateDeDebut ?? null,
-          dateCreation: archive.dateArchivage,
-          dateCandidature: null
-        })),
-        { transaction }
-      )
-
-      await RechercheSqlModel.bulkCreate(
-        donnees.recherches.map(recherche => ({
-          id: recherche.id,
-          idJeune: archive.idJeune,
-          type: recherche.type,
-          titre: recherche.titre,
-          metier: recherche.metier ?? null,
-          localisation: recherche.localisation ?? null,
-          criteres: recherche.criteres ?? null,
-          dateCreation: recherche.dateCreation,
-          dateDerniereRecherche: recherche.dateDerniereRecherche,
-          etatDerniereRecherche: recherche.etat
-        })),
-        { transaction }
-      )
-    })
-
-    let messagesRestaures = 0
-    try {
-      await this.chatRepository.initializeChatIfNotExists(
-        archive.idJeune,
-        command.idConseiller
-      )
-      if (donnees?.messages?.length) {
-        await this.chatRepository.restaurerMessagesIndividuels(
-          archive.idJeune,
-          command.idConseiller,
-          donnees.messages
-        )
-        messagesRestaures = donnees.messages.length
-      }
-    } catch (e) {
-      this.logger.warn(
-        `Echec de la restauration du chat du jeune ${archive.idJeune}`,
-        e
-      )
-    }
-
     if (!structureMiloExistante && archive.idStructureMilo) {
       this.logger.warn(
         `La structure Milo ${archive.idStructureMilo} n'existe plus : non restaurée pour le jeune ${archive.idJeune}`
@@ -307,14 +460,12 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
 
     return success({
       idJeune: archive.idJeune,
-      emailRestaure: Boolean(archive.email),
-      actionsRestaurees: donnees?.actions.length ?? 0,
-      rendezVousRestaures: rendezVousARestaurer.length,
-      animationsCollectivesNonRestaurees:
-        (donnees?.rendezVous.length ?? 0) - rendezVousARestaurer.length,
-      favorisRestaures: nombreFavoris,
-      recherchesRestaurees: donnees?.recherches.length ?? 0,
-      messagesRestaures
+      conseiller,
+      jeuneACreer: this.construireJeune(
+        archive,
+        conseiller.id,
+        structureMiloExistante ? archive.idStructureMilo : null
+      )
     })
   }
 
@@ -362,16 +513,18 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     idAction: string,
     action: ArchiveJeune.Action,
     archive: ArchiveJeuneSqlModel,
+    idJeune: string,
     conseiller: ConseillerSqlModel
   ): AsSql<ActionDto> {
     const createur = this.construireCreateur(
       action.creePar,
       archive,
+      idJeune,
       conseiller
     )
     return {
       id: idAction,
-      idJeune: archive.idJeune,
+      idJeune,
       idCreateur: createur.id,
       createur: {
         id: createur.id,
@@ -436,11 +589,12 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
   private construireCreateur(
     creePar: 'JEUNE' | 'CONSEILLER',
     archive: ArchiveJeuneSqlModel,
+    idJeune: string,
     conseiller: ConseillerSqlModel
   ): { id: string; nom: string; prenom: string; type: Action.TypeCreateur } {
     if (creePar === 'JEUNE') {
       return {
-        id: archive.idJeune,
+        id: idJeune,
         nom: archive.nom,
         prenom: archive.prenom,
         type: Action.TypeCreateur.JEUNE
@@ -453,4 +607,16 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       type: Action.TypeCreateur.CONSEILLER
     }
   }
+}
+
+function normaliser(texte: string | null): string {
+  return (texte ?? '').trim().toLocaleLowerCase()
+}
+
+function memeInstant(
+  premiere: Date | null | undefined,
+  seconde: Date | null | undefined
+): boolean {
+  if (!premiere || !seconde) return false
+  return new Date(premiere).getTime() === new Date(seconde).getTime()
 }

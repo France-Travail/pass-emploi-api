@@ -260,9 +260,12 @@ describe('SupportController', () => {
         // Given
         const resume = {
           idJeune: 'id-jeune',
+          fusionAvecCompteRecree: false,
           emailRestaure: true,
           actionsRestaurees: 2,
           rendezVousRestaures: 1,
+          actionsIgnoreesDoublon: 0,
+          rendezVousIgnoresDoublon: 0,
           animationsCollectivesNonRestaurees: 0,
           favorisRestaures: 3,
           recherchesRestaurees: 1,
@@ -282,7 +285,11 @@ describe('SupportController', () => {
         expect(
           desarchiverJeuneCommandHandler.execute
         ).to.have.been.calledOnceWithExactly(
-          { idArchive: 42, idConseiller: 'id-conseiller' },
+          {
+            idArchive: 42,
+            idConseiller: 'id-conseiller',
+            idJeuneRecree: undefined
+          },
           Authentification.unUtilisateurSupport()
         )
       })
@@ -304,12 +311,49 @@ describe('SupportController', () => {
       })
     })
     describe('validation', () => {
-      it('rejette un idConseiller manquant', async () => {
+      it('transmet idJeuneRecree pour une fusion avec un compte existant', async () => {
+        // Given
+        desarchiverJeuneCommandHandler.execute.resolves(
+          success({
+            idJeune: 'id-jeune-recree',
+            fusionAvecCompteRecree: true,
+            emailRestaure: true,
+            actionsRestaurees: 0,
+            rendezVousRestaures: 0,
+            actionsIgnoreesDoublon: 2,
+            rendezVousIgnoresDoublon: 1,
+            animationsCollectivesNonRestaurees: 0,
+            favorisRestaures: 0,
+            recherchesRestaurees: 0,
+            messagesRestaures: 0
+          })
+        )
+
         // When
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({})
+          .send({ idJeuneRecree: 'id-jeune-recree' })
+          // Then
+          .expect(HttpStatus.CREATED)
+
+        expect(
+          desarchiverJeuneCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          {
+            idArchive: 42,
+            idConseiller: undefined,
+            idJeuneRecree: 'id-jeune-recree'
+          },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+      it('rejette un idConseiller vide', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeune/42')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ idConseiller: '' })
           // Then
           .expect(HttpStatus.BAD_REQUEST)
       })

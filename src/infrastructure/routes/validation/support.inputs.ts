@@ -30,12 +30,23 @@ export class TeleverserCsvPayload {
 }
 
 export class DesarchiverJeunePayload {
-  @ApiProperty({
-    description: 'ID (en base) du conseiller auquel rattacher le jeune restauré'
+  @ApiPropertyOptional({
+    description:
+      'ID (en base) du conseiller auquel rattacher le jeune restauré. Requis sauf si idJeuneRecree est fourni.'
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  idConseiller: string
+  idConseiller?: string
+
+  @ApiPropertyOptional({
+    description:
+      'ID (en base) du compte que le jeune s’est recréé entre-temps. Sa présence bascule en mode fusion : le jeune archivé n’est pas recréé, ses données sont rattachées à ce compte (qui garde son identité, son authentification et son conseiller).'
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  idJeuneRecree?: string
 }
 
 export class RefreshJDDPayload {

@@ -33,8 +33,10 @@ import { RendezVousJeuneAssociationSqlModel } from '../../../../src/infrastructu
 import { RendezVousSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous.sql-model'
 import { IdService } from '../../../../src/utils/id-service'
 import { uneRecherche } from '../../../fixtures/recherche.fixture'
+import { uneActionDto } from '../../../fixtures/sql-models/action.sql-model'
 import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
+import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
 import { expect } from '../../../utils'
 import {
   DatabaseForTesting,
@@ -234,6 +236,224 @@ describe('DesarchiverJeuneCommandHandler', () => {
       })
     })
 
+    describe('quand ni idConseiller ni idJeuneRecree ne sont fournis', () => {
+      it('retourne une MauvaiseCommandeError', async () => {
+        // Given
+        const archive = await creerArchive()
+
+        // When
+        const result = await handler.handle({ idArchive: archive.id })
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(
+            new MauvaiseCommandeError(
+              'Renseigner idConseiller pour recréer le jeune, ou idJeuneRecree pour fusionner avec un compte existant'
+            )
+          )
+        )
+      })
+    })
+
+    describe('quand le jeune s’est recréé un compte (fusion)', () => {
+      const idJeuneRecree = 'jeune-recree'
+      const idConseillerRecree = 'conseiller-recree'
+      let archive: ArchiveJeuneSqlModel
+      let command: DesarchiverJeuneCommand
+
+      beforeEach(async () => {
+        // Given
+        await ConseillerSqlModel.creer(
+          unConseillerDto({
+            id: idConseillerRecree,
+            email: 'conseiller.recree@passemploi.com',
+            idAuthentification: 'id-auth-conseiller-recree'
+          })
+        )
+        await JeuneSqlModel.creer(
+          unJeuneDto({
+            id: idJeuneRecree,
+            idConseiller: idConseillerRecree,
+            structure: Core.Structure.MILO,
+            idAuthentification: 'nouvel-id-authentification'
+          })
+        )
+        archive = await creerArchive()
+        command = { idArchive: archive.id, idJeuneRecree }
+      })
+
+      it('rattache les données au compte recréé sans recréer le jeune archivé', async () => {
+        // When
+        const result = await handler.handle(command)
+
+        // Then
+        expect(isSuccess(result) && result.data.idJeune).to.equal(idJeuneRecree)
+        expect(
+          isSuccess(result) && result.data.fusionAvecCompteRecree
+        ).to.equal(true)
+        expect(await JeuneSqlModel.findByPk(idJeune)).to.be.null()
+
+        const actions = await ActionSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(actions).to.have.length(1)
+        expect(actions[0].idCreateur).to.equal(idJeuneRecree)
+
+        const associations = await RendezVousJeuneAssociationSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(associations).to.have.length(1)
+
+        const recherches = await RechercheSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(recherches).to.have.length(1)
+      })
+
+      it("préserve l'identité et l'authentification du compte recréé", async () => {
+        // When
+        await handler.handle(command)
+
+        // Then
+        const jeuneRecree = await JeuneSqlModel.findByPk(idJeuneRecree)
+        expect(jeuneRecree?.idAuthentification).to.equal(
+          'nouvel-id-authentification'
+        )
+        expect(jeuneRecree?.idConseiller).to.equal(idConseillerRecree)
+      })
+
+      it('restaure le chat sur le conseiller du compte recréé', async () => {
+        // When
+        await handler.handle(command)
+
+        // Then
+        expect(
+          chatRepository.initializeChatIfNotExists
+        ).to.have.been.calledOnceWithExactly(idJeuneRecree, idConseillerRecree)
+        expect(
+          chatRepository.restaurerMessagesIndividuels
+        ).to.have.been.calledOnceWithExactly(
+          idJeuneRecree,
+          idConseillerRecree,
+          donnees.messages
+        )
+      })
+
+      it('ne duplique pas une action déjà re-saisie sur le compte recréé', async () => {
+        // Given : même contenu et même échéance, re-saisie après l'archivage
+        await ActionSqlModel.creer(
+          uneActionDto({
+            idJeune: idJeuneRecree,
+            contenu: 'Faire mon CV',
+            dateCreation: new Date('2026-01-05T08:00:00.000Z'),
+            dateEcheance: new Date('2023-06-01T08:00:00.000Z')
+          })
+        )
+
+        // When
+        const result = await handler.handle(command)
+
+        // Then
+        expect(isSuccess(result) && result.data.actionsRestaurees).to.equal(0)
+        expect(
+          isSuccess(result) && result.data.actionsIgnoreesDoublon
+        ).to.equal(1)
+        const actions = await ActionSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(actions).to.have.length(1)
+      })
+
+      it('ne duplique pas un rendez-vous déjà re-saisi sur le compte recréé', async () => {
+        // Given : même date et même type que le rendez-vous archivé
+        const rendezVousDto = unRendezVousDto({
+          date: new Date('2023-05-10T10:00:00.000Z'),
+          type: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER
+        })
+        await RendezVousSqlModel.create(rendezVousDto)
+        await RendezVousJeuneAssociationSqlModel.create({
+          idRendezVous: rendezVousDto.id,
+          idJeune: idJeuneRecree
+        })
+
+        // When
+        const result = await handler.handle(command)
+
+        // Then
+        expect(isSuccess(result) && result.data.rendezVousRestaures).to.equal(0)
+        expect(
+          isSuccess(result) && result.data.rendezVousIgnoresDoublon
+        ).to.equal(1)
+        const associations = await RendezVousJeuneAssociationSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(associations).to.have.length(1)
+      })
+
+      it('ne duplique pas un favori déjà présent sur le compte recréé', async () => {
+        // Given
+        await FavoriOffreEmploiSqlModel.create({
+          idJeune: idJeuneRecree,
+          idOffre: 'offre-emploi-1',
+          titre: 'Vendeur',
+          typeContrat: 'CDI',
+          nomEntreprise: null,
+          duree: null,
+          isAlternance: null,
+          nomLocalisation: null,
+          codePostalLocalisation: null,
+          communeLocalisation: null,
+          dateCreation: new Date('2026-01-05T08:00:00.000Z'),
+          dateCandidature: null,
+          origineNom: null,
+          origineLogoUrl: null
+        })
+
+        // When
+        const result = await handler.handle(command)
+
+        // Then
+        expect(isSuccess(result)).to.equal(true)
+        const favoris = await FavoriOffreEmploiSqlModel.findAll({
+          where: { idJeune: idJeuneRecree }
+        })
+        expect(favoris).to.have.length(1)
+      })
+
+      it("retourne une NonTrouveError quand le compte recréé n'existe pas", async () => {
+        // When
+        const result = await handler.handle({
+          idArchive: archive.id,
+          idJeuneRecree: 'inconnu'
+        })
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(new NonTrouveError('Jeune', 'inconnu'))
+        )
+      })
+
+      it('retourne une MauvaiseCommandeError quand la structure du compte recréé diffère', async () => {
+        // Given
+        await JeuneSqlModel.update(
+          { structure: Core.Structure.POLE_EMPLOI },
+          { where: { id: idJeuneRecree } }
+        )
+
+        // When
+        const result = await handler.handle(command)
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(
+            new MauvaiseCommandeError(
+              `Le jeune ${idJeuneRecree} est de structure POLE_EMPLOI, incompatible avec l'archive (MILO)`
+            )
+          )
+        )
+      })
+    })
+
     describe('quand la commande est valide', () => {
       let archive: ArchiveJeuneSqlModel
       let command: DesarchiverJeuneCommand
@@ -355,9 +575,12 @@ describe('DesarchiverJeuneCommandHandler', () => {
         )
         expect(isSuccess(result) && result.data).to.deep.equal({
           idJeune,
+          fusionAvecCompteRecree: false,
           emailRestaure: true,
           actionsRestaurees: 1,
           rendezVousRestaures: 1,
+          actionsIgnoreesDoublon: 0,
+          rendezVousIgnoresDoublon: 0,
           animationsCollectivesNonRestaurees: 1,
           favorisRestaures: 3,
           recherchesRestaurees: 1,
@@ -425,9 +648,12 @@ describe('DesarchiverJeuneCommandHandler', () => {
         ).not.to.have.been.called()
         expect(isSuccess(result) && result.data).to.deep.equal({
           idJeune,
+          fusionAvecCompteRecree: false,
           emailRestaure: false,
           actionsRestaurees: 0,
           rendezVousRestaures: 0,
+          actionsIgnoreesDoublon: 0,
+          rendezVousIgnoresDoublon: 0,
           animationsCollectivesNonRestaurees: 0,
           favorisRestaures: 0,
           recherchesRestaurees: 0,
