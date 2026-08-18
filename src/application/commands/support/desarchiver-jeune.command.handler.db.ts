@@ -198,42 +198,44 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         return
       }
 
+      const actionsSql = []
+      const commentairesSql = []
       for (const action of actionsARestaurer) {
         const idAction = this.idService.uuid()
-        await ActionSqlModel.create(
-          this.construireAction(idAction, action, archive, idJeune, conseiller),
-          { transaction }
+        actionsSql.push(
+          this.construireAction(idAction, action, archive, idJeune, conseiller)
         )
         for (const commentaire of action.commentaires ?? []) {
-          await CommentaireSqlModel.create(
-            {
-              id: this.idService.uuid(),
-              idAction,
-              date: commentaire.date,
-              message: commentaire.message,
-              createur: this.construireCreateur(
-                commentaire.creePar,
-                archive,
-                idJeune,
-                conseiller
-              )
-            },
-            { transaction }
-          )
+          commentairesSql.push({
+            id: this.idService.uuid(),
+            idAction,
+            date: commentaire.date,
+            message: commentaire.message,
+            createur: this.construireCreateur(
+              commentaire.creePar,
+              archive,
+              idJeune,
+              conseiller
+            )
+          })
         }
       }
+      await ActionSqlModel.bulkCreate(actionsSql, { transaction })
+      await CommentaireSqlModel.bulkCreate(commentairesSql, { transaction })
 
+      const rendezVousSql = []
+      const associationsSql = []
       for (const rendezVous of rendezVousARestaurer) {
         const idRendezVous = this.idService.uuid()
-        await RendezVousSqlModel.create(
-          this.construireRendezVous(idRendezVous, rendezVous, conseiller),
-          { transaction }
+        rendezVousSql.push(
+          this.construireRendezVous(idRendezVous, rendezVous, conseiller)
         )
-        await RendezVousJeuneAssociationSqlModel.create(
-          { idRendezVous, idJeune, present: null },
-          { transaction }
-        )
+        associationsSql.push({ idRendezVous, idJeune, present: null })
       }
+      await RendezVousSqlModel.bulkCreate(rendezVousSql, { transaction })
+      await RendezVousJeuneAssociationSqlModel.bulkCreate(associationsSql, {
+        transaction
+      })
 
       await FavoriOffreEmploiSqlModel.bulkCreate(
         donnees.favoris.offresEmploi.map(favori => ({

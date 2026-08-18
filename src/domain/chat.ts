@@ -123,7 +123,8 @@ export namespace Chat {
     envoyerStatutAnalysePJ(
       idJeune: string,
       idMessage: string,
-      statut: StatutPJ
+      statut: StatutPJ,
+      options?: { attendreLeMessage?: boolean }
     ): Promise<void>
   }
 

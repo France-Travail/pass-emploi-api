@@ -89,9 +89,12 @@ describe('FirebaseClient', () => {
   describe('restaurerMessagesArchives', () => {
     let firebaseClient: FirebaseClient
     let updateStub: SinonStub
-    let addMessageStub: SinonStub
-    let addHistoriqueStub: SinonStub
+    let setStub: SinonStub
+    let commitStub: SinonStub
+    let messageDocStub: SinonStub
+    let historiqueDocStub: SinonStub
     let getChatsStub: SinonStub
+    let batchStub: SinonStub
     let chatCryptoService: StubbedClass<ChatCryptoService>
 
     const idJeune = 'id-jeune'
@@ -100,10 +103,16 @@ describe('FirebaseClient', () => {
     beforeEach(() => {
       const sandbox = createSandbox()
       updateStub = sandbox.stub().resolves()
-      addHistoriqueStub = sandbox.stub().resolves()
-      addMessageStub = sandbox.stub().resolves({
-        collection: sandbox.stub().returns({ add: addHistoriqueStub })
-      })
+      setStub = sandbox.stub()
+      commitStub = sandbox.stub().resolves()
+      historiqueDocStub = sandbox
+        .stub()
+        .callsFake((id: string) => ({ id, type: 'historique' }))
+      messageDocStub = sandbox.stub().callsFake((id: string) => ({
+        id,
+        type: 'message',
+        collection: sandbox.stub().returns({ doc: historiqueDocStub })
+      }))
       chatCryptoService = stubClass(ChatCryptoService)
       chatCryptoService.encrypt.returns({
         encryptedText: 'contenu-chiffré',
@@ -112,25 +121,27 @@ describe('FirebaseClient', () => {
 
       const chatRef = {
         collection: sandbox.stub().returns({
-          withConverter: sandbox.stub().returns({ add: addMessageStub })
+          withConverter: sandbox.stub().returns({ doc: messageDocStub })
         }),
         update: updateStub
       }
-      getChatsStub = sandbox
-        .stub()
-        .resolves({ empty: false, docs: [{ ref: chatRef }] })
+      getChatsStub = sandbox.stub().resolves({
+        empty: false,
+        docs: [{ ref: chatRef, data: (): object => ({}) }]
+      })
       const whereChain = {
         where: sandbox.stub(),
         get: getChatsStub
       }
       whereChain.where.returns(whereChain)
+      batchStub = sandbox.stub().returns({ set: setStub, commit: commitStub })
 
       firebaseClient = Object.create(FirebaseClient.prototype) as FirebaseClient
       const internals = firebaseClient as unknown as {
         logger: { log: () => void; error: () => void; warn: () => void }
         chatCryptoService: ChatCryptoService
         configService: { get: SinonStub }
-        firestore: { collection: SinonStub }
+        firestore: { collection: SinonStub; batch: SinonStub }
       }
       internals.logger = {
         log: (): void => {},
@@ -142,7 +153,8 @@ describe('FirebaseClient', () => {
         get: sandbox.stub().returns({ encryptionKey: 'une-clé-de-test' })
       }
       internals.firestore = {
-        collection: sandbox.stub().returns(whereChain)
+        collection: sandbox.stub().returns(whereChain),
+        batch: batchStub
       }
     })
 
@@ -171,8 +183,8 @@ describe('FirebaseClient', () => {
       )
 
       // Then
-      expect(addMessageStub).to.have.been.calledTwice()
-      expect(addMessageStub.firstCall.args[0]).to.deep.equal({
+      expect(setStub).to.have.been.calledTwice()
+      expect(setStub.firstCall.args[1]).to.deep.equal({
         content: 'contenu-chiffré',
         iv: 'aXYtZW4tYmFzZTY0',
         conseillerId: idConseiller,
@@ -180,7 +192,7 @@ describe('FirebaseClient', () => {
         creationDate: Timestamp.fromDate(new Date('2023-05-01T10:00:00.000Z')),
         type: 'MESSAGE'
       })
-      expect(addMessageStub.secondCall.args[0]).to.deep.include({
+      expect(setStub.secondCall.args[1]).to.deep.include({
         sentBy: 'jeune',
         type: 'MESSAGE'
       })
@@ -193,6 +205,107 @@ describe('FirebaseClient', () => {
         lastMessageSentBy: 'jeune',
         seenByConseiller: true
       })
+    })
+
+    it('écrit en un seul batch au lieu d’un aller-retour par message', async () => {
+      // Given
+      const messages: ArchiveJeune.Message[] = Array.from(
+        { length: 40 },
+        (_, index) => ({
+          contenu: `message ${index}`,
+          date: `2023-05-01T10:00:${String(index).padStart(2, '0')}.000Z`,
+          envoyePar: 'jeune',
+          type: 'MESSAGE' as const
+        })
+      )
+
+      // When
+      await firebaseClient.restaurerMessagesArchives(
+        idJeune,
+        idConseiller,
+        messages
+      )
+
+      // Then
+      expect(setStub).to.have.callCount(40)
+      expect(batchStub).to.have.been.calledOnce()
+      expect(commitStub).to.have.been.calledOnce()
+    })
+
+    it('donne aux messages un id déterministe pour qu’un rejeu écrase au lieu de dupliquer', async () => {
+      // Given
+      const messages: ArchiveJeune.Message[] = [
+        {
+          contenu: 'coucou',
+          date: '2023-05-01T10:00:00.000Z',
+          envoyePar: 'jeune',
+          type: 'MESSAGE'
+        }
+      ]
+
+      // When
+      await firebaseClient.restaurerMessagesArchives(
+        idJeune,
+        idConseiller,
+        messages
+      )
+      const idPremierPassage = messageDocStub.firstCall.args[0]
+      messageDocStub.resetHistory()
+      await firebaseClient.restaurerMessagesArchives(
+        idJeune,
+        idConseiller,
+        messages
+      )
+
+      // Then
+      expect(messageDocStub.firstCall.args[0]).to.equal(idPremierPassage)
+      expect(idPremierPassage).to.be.a('string')
+    })
+
+    it("ne touche pas à l'en-tête d'une conversation qui a un message plus récent (fusion)", async () => {
+      // Given : le compte recréé a échangé après l'archivage
+      const chatRefVivant = {
+        collection: createSandbox()
+          .stub()
+          .returns({
+            withConverter: createSandbox()
+              .stub()
+              .returns({ doc: messageDocStub })
+          }),
+        update: updateStub
+      }
+      getChatsStub.resolves({
+        empty: false,
+        docs: [
+          {
+            ref: chatRefVivant,
+            data: (): object => ({
+              lastMessageSentAt: Timestamp.fromDate(
+                new Date('2026-08-01T10:00:00.000Z')
+              )
+            })
+          }
+        ]
+      })
+      const messages: ArchiveJeune.Message[] = [
+        {
+          contenu: 'vieux message archivé',
+          date: '2023-05-01T10:00:00.000Z',
+          envoyePar: 'jeune',
+          type: 'MESSAGE'
+        }
+      ]
+
+      // When
+      await firebaseClient.restaurerMessagesArchives(
+        idJeune,
+        idConseiller,
+        messages
+      )
+
+      // Then : les messages sont réinjectés mais l'aperçu et le statut de lecture restent intacts
+      expect(setStub).to.have.been.calledOnce()
+      expect(updateStub).not.to.have.been.called()
     })
 
     it("restaure l'historique d'édition d'un message", async () => {
@@ -220,8 +333,8 @@ describe('FirebaseClient', () => {
       )
 
       // Then
-      expect(addHistoriqueStub).to.have.been.calledOnce()
-      const historiqueArgs = addHistoriqueStub.firstCall.args[0]
+      expect(setStub).to.have.been.calledTwice()
+      const historiqueArgs = setStub.secondCall.args[1]
       expect(historiqueArgs.date).to.deep.equal(
         Timestamp.fromDate(new Date('2023-05-01T09:00:00.000Z'))
       )
@@ -251,7 +364,113 @@ describe('FirebaseClient', () => {
       await expect(promesse).to.be.rejectedWith(
         `Conversation du jeune ${idJeune} non trouvée`
       )
-      expect(addMessageStub).not.to.have.been.called()
+      expect(setStub).not.to.have.been.called()
+    })
+  })
+
+  describe('envoyerStatutAnalysePJ', () => {
+    let firebaseClient: FirebaseClient
+    let getMessageStub: SinonStub
+    let updateMessageStub: SinonStub
+    let warnStub: SinonStub
+
+    const idJeune = 'id-jeune'
+    const idMessage = 'id-message'
+    type PieceJointe = { id: string; nom: string }
+    const messagePresent = {
+      exists: true,
+      data: (): { piecesJointes: PieceJointe[] } => ({
+        piecesJointes: [{ id: 'id-pj', nom: 'cv.pdf' }]
+      })
+    }
+    const messageAbsent = {
+      exists: false,
+      data: (): undefined => undefined
+    }
+
+    beforeEach(() => {
+      const sandbox = createSandbox()
+      getMessageStub = sandbox.stub()
+      updateMessageStub = sandbox.stub().resolves()
+      warnStub = sandbox.stub()
+
+      const chatRef = {
+        collection: sandbox.stub().returns({
+          withConverter: sandbox.stub().returns({
+            doc: sandbox
+              .stub()
+              .returns({ get: getMessageStub, update: updateMessageStub })
+          })
+        })
+      }
+      const whereChain = {
+        where: sandbox.stub(),
+        get: sandbox.stub().resolves({ empty: false, docs: [{ ref: chatRef }] })
+      }
+      whereChain.where.returns(whereChain)
+
+      firebaseClient = Object.create(FirebaseClient.prototype) as FirebaseClient
+      const internals = firebaseClient as unknown as {
+        logger: { log: () => void; error: () => void; warn: SinonStub }
+        firestore: { collection: SinonStub }
+      }
+      internals.logger = {
+        log: (): void => {},
+        error: (): void => {},
+        warn: warnStub
+      }
+      internals.firestore = {
+        collection: sandbox.stub().returns(whereChain)
+      }
+    })
+
+    it("réessaie quand le message n'est pas encore écrit par l'app", async () => {
+      // Given
+      getMessageStub.onFirstCall().resolves(messageAbsent)
+      getMessageStub.onSecondCall().resolves(messagePresent)
+
+      // When
+      await firebaseClient.envoyerStatutAnalysePJ(
+        idJeune,
+        idMessage,
+        'analyse_en_cours',
+        { attendreLeMessage: true }
+      )
+
+      // Then
+      expect(getMessageStub).to.have.been.calledTwice()
+      expect(updateMessageStub).to.have.been.calledOnceWithExactly({
+        piecesJointes: [
+          { id: 'id-pj', nom: 'cv.pdf', statut: 'analyse_en_cours' }
+        ]
+      })
+      expect(warnStub).not.to.have.been.called()
+    })
+
+    it("n'attend pas le message pour les appels différés (jobs)", async () => {
+      // Given
+      getMessageStub.resolves(messageAbsent)
+
+      // When
+      await firebaseClient.envoyerStatutAnalysePJ(idJeune, idMessage, 'expiree')
+
+      // Then
+      expect(getMessageStub).to.have.been.calledOnce()
+      expect(updateMessageStub).not.to.have.been.called()
+    })
+
+    it('abandonne avec un warn quand le message reste introuvable', async () => {
+      // Given
+      getMessageStub.resolves(messageAbsent)
+
+      // When
+      await firebaseClient.envoyerStatutAnalysePJ(idJeune, idMessage, 'valide')
+
+      // Then
+      expect(warnStub).to.have.been.calledOnceWithExactly(
+        `Message ${idMessage} avec ${idJeune} non trouvé`
+      )
+      expect(updateMessageStub).not.to.have.been.called()
     })
   })
 })

@@ -208,7 +208,8 @@ describe('TeleverserFichierCommandHandler', () => {
           ).to.have.been.calledOnceWithExactly(
             utilisateur.id,
             command.idMessage,
-            'ANALYSE_EN_COURS'
+            'ANALYSE_EN_COURS',
+            { attendreLeMessage: true }
           )
           expect(
             planificateurRepository.ajouterJob

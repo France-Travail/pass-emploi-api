@@ -380,7 +380,7 @@ describe('SupportController', () => {
     })
   })
 
-  describe('POST /support/changer-agence-conseiller', () => {
+  describe('POST /support/changer-agence-conseiller-milo', () => {
     const idConseiller = 'test'
     const idNouvelleAgence = 'b'
     describe('quand la commande est en succes', () => {
@@ -396,7 +396,7 @@ describe('SupportController', () => {
 
         // When
         await request(app.getHttpServer())
-          .post('/support/changer-agence-conseiller')
+          .post('/support/changer-agence-conseiller-milo')
           .set({ 'X-API-KEY': 'api-key-support' })
           .send({ idConseiller, idNouvelleAgence })
           // Then
@@ -419,7 +419,7 @@ describe('SupportController', () => {
 
         // When
         await request(app.getHttpServer())
-          .post('/support/changer-agence-conseiller')
+          .post('/support/changer-agence-conseiller-milo')
           .set({ 'X-API-KEY': 'api-key-support' })
           .send({ idConseiller, idNouvelleAgence })
           // Then
@@ -442,7 +442,7 @@ describe('SupportController', () => {
 
         // When
         await request(app.getHttpServer())
-          .post('/support/changer-agence-conseiller')
+          .post('/support/changer-agence-conseiller-milo')
           .set({ 'X-API-KEY': 'api-key' })
           .send({ idConseiller, idNouvelleAgence })
           // Then

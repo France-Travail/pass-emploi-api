@@ -96,13 +96,15 @@ export class ChatFirebaseRepository implements Chat.Repository {
   envoyerStatutAnalysePJ(
     idJeune: string,
     idMessage: string,
-    statut: Chat.StatutPJ
+    statut: Chat.StatutPJ,
+    options?: { attendreLeMessage?: boolean }
   ): Promise<void> {
     const statutFirebase = mapStatutAnalyse(statut)
     return this.firebaseClient.envoyerStatutAnalysePJ(
       idJeune,
       idMessage,
-      statutFirebase
+      statutFirebase,
+      options
     )
   }
 }

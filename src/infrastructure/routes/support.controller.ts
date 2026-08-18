@@ -241,7 +241,7 @@ export class SupportController {
       'Attribue une nouvelle agence au conseiller identifié par son ID (ID en base, et pas ID Authentification)',
     description: 'Autorisé pour le support'
   })
-  @Post('changer-agence-conseiller')
+  @Post('changer-agence-conseiller-milo')
   async changerAgenceConseiller(
     @Body() payload: ChangerAgenceConseillerPayload
   ): Promise<ChangementAgenceQueryModel> {
@@ -266,9 +266,9 @@ export class SupportController {
       "Modifie l'agence d'un conseiller France Travail (ID en base, et pas ID Authentification)",
     description:
       "Autorisé uniquement pour le support. Rattache le conseiller à l'agence cible du référentiel France Travail et efface son éventuelle agence saisie manuellement.\n\n" +
-      "À la différence de POST /support/changer-agence-conseiller, aucune animation collective n'est transférée (les animations collectives sont un usage MILO) et le conseiller n'a pas besoin d'avoir déjà une agence."
+      "À la différence de POST /support/changer-agence-conseiller-milo, aucune animation collective n'est transférée (les animations collectives sont un usage MILO) et le conseiller n'a pas besoin d'avoir déjà une agence."
   })
-  @Post('modifier-agence-ft-conseiller')
+  @Post('changer-agence-conseiller-ft')
   @HttpCode(HttpStatus.NO_CONTENT)
   async modifierAgenceFTConseiller(
     @Body() payload: ModifierAgenceFTConseillerPayload

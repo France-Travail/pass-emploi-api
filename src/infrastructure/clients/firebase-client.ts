@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { createHash } from 'crypto'
 import * as APM from 'elastic-apm-node'
 import { App, cert, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
@@ -11,7 +12,8 @@ import {
   getFirestore,
   QueryDocumentSnapshot,
   Timestamp,
-  UpdateData
+  UpdateData,
+  WriteBatch
 } from 'firebase-admin/firestore'
 import {
   FirebaseMessagingError,
@@ -54,6 +56,8 @@ const FIREBASE_MESSAGES_PATH = 'messages'
 const FIREBASE_MESSAGES_HISTORY_PATH = 'history'
 const SENT_BY_CONSEILLER = 'conseiller'
 const SENT_BY_JEUNE = 'jeune'
+const TAILLE_MAX_BATCH_FIRESTORE = 500
+const DELAIS_ATTENTE_MESSAGE_MS = [300, 900, 2700]
 // Les autres types portent un payload non archivé (PJ, session) et sont rétrogradés en MESSAGE à la restauration
 const TYPES_MESSAGES_SANS_PAYLOAD: Set<Chat.TypeMessage> = new Set([
   'MESSAGE',
@@ -446,6 +450,8 @@ export class FirebaseClient {
       throw new Error(`Conversation du jeune ${idJeune} non trouvée`)
     }
     const chatRef = chats.docs[0].ref
+    const dernierMessageExistantLe = (chats.docs[0].data() as FirebaseChat)
+      .lastMessageSentAt
 
     const messagesTries = [...messages].sort(
       (premier, second) =>
@@ -453,7 +459,8 @@ export class FirebaseClient {
     )
 
     let dernierMessageRestaure: FirebaseMessage | undefined
-    for (const message of messagesTries) {
+    const ecritures: Array<(batch: WriteBatch) => void> = []
+    messagesTries.forEach((message, index) => {
       const { encryptedText, iv } = this.chatCryptoService.encrypt(
         message.contenu
       )
@@ -470,29 +477,58 @@ export class FirebaseClient {
           ? (message.type as Chat.TypeMessage)
           : 'MESSAGE'
       }
-      const messageRef = await getMessagesRef(chatRef).add(firebaseMessage)
+      // Id déterministe : un rejeu de la restauration écrase au lieu de dupliquer le chat
+      const messageRef = getMessagesRef(chatRef).doc(
+        idDocumentRestaure(index, message.date, message.contenu)
+      )
+      ecritures.push(batch => batch.set(messageRef, firebaseMessage))
       dernierMessageRestaure = firebaseMessage
 
-      for (const entreeHistorique of message.historique ?? []) {
-        await messageRef.collection(FIREBASE_MESSAGES_HISTORY_PATH).add({
-          date: Timestamp.fromDate(new Date(entreeHistorique.date)),
-          previousContent: this.chiffrerAvecIv(
-            entreeHistorique.contenuPrecedent,
-            iv
+      message.historique?.forEach((entreeHistorique, indexHistorique) => {
+        const historiqueRef = messageRef
+          .collection(FIREBASE_MESSAGES_HISTORY_PATH)
+          .doc(
+            idDocumentRestaure(
+              indexHistorique,
+              entreeHistorique.date,
+              entreeHistorique.contenuPrecedent
+            )
           )
-        })
-      }
+        ecritures.push(batch =>
+          batch.set(historiqueRef, {
+            date: Timestamp.fromDate(new Date(entreeHistorique.date)),
+            previousContent: this.chiffrerAvecIv(
+              entreeHistorique.contenuPrecedent,
+              iv
+            )
+          })
+        )
+      })
+    })
+
+    for (const lot of chunkifyTaille(ecritures, TAILLE_MAX_BATCH_FIRESTORE)) {
+      const batch = this.firestore.batch()
+      lot.forEach(ecrire => ecrire(batch))
+      await batch.commit()
     }
 
     if (dernierMessageRestaure) {
-      const majChat: UpdateData<FirebaseChat> = {
-        lastMessageContent: dernierMessageRestaure.content,
-        lastMessageIv: dernierMessageRestaure.iv,
-        lastMessageSentAt: dernierMessageRestaure.creationDate,
-        lastMessageSentBy: dernierMessageRestaure.sentBy,
-        seenByConseiller: true
+      // En fusion, la conversation du compte recréé est vivante : on ne remplace pas
+      // son dernier message (ni son statut de lecture) par un message archivé plus ancien
+      const restaureEstLePlusRecent =
+        !dernierMessageExistantLe ||
+        dernierMessageExistantLe.toMillis() <
+          dernierMessageRestaure.creationDate.toMillis()
+      if (restaureEstLePlusRecent) {
+        const majChat: UpdateData<FirebaseChat> = {
+          lastMessageContent: dernierMessageRestaure.content,
+          lastMessageIv: dernierMessageRestaure.iv,
+          lastMessageSentAt: dernierMessageRestaure.creationDate,
+          lastMessageSentBy: dernierMessageRestaure.sentBy,
+          seenByConseiller: true
+        }
+        await chatRef.update(majChat)
       }
-      await chatRef.update(majChat)
     }
   }
 
@@ -507,7 +543,8 @@ export class FirebaseClient {
   async envoyerStatutAnalysePJ(
     idJeune: string,
     idMessage: string,
-    statut: string
+    statut: string,
+    options: { attendreLeMessage?: boolean } = {}
   ): Promise<void> {
     const collectionChats = this.firestore.collection(FIREBASE_CHAT_PATH)
     const chats = await collectionChats.where('jeuneId', '==', idJeune).get()
@@ -518,20 +555,41 @@ export class FirebaseClient {
     const chat = chats.docs[0]
 
     const messageRef = getMessagesRef(chat.ref).doc(idMessage)
-    const message = await messageRef.get()
-    if (!message.exists) {
-      this.logger.error(`Message ${idMessage} avec ${idJeune} non trouvée`)
+    const data = await this.recupererMessagePJ(
+      messageRef,
+      options.attendreLeMessage ?? false
+    )
+    if (!data) {
+      // L'app écrit le message en parallèle du téléversement : son absence n'est pas une anomalie serveur
+      this.logger.warn(`Message ${idMessage} avec ${idJeune} non trouvé`)
       return
     }
-    const data = message.data()!
 
     if (!data.piecesJointes) {
-      this.logger.error(`PJ non trouvée`)
+      this.logger.error(`PJ du message ${idMessage} (${idJeune}) non trouvée`)
       return
     }
     const [pj, ...other] = data.piecesJointes
 
     await messageRef.update({ piecesJointes: [{ ...pj, statut }, ...other] })
+  }
+
+  // Le message est créé par l'app pendant que l'API téléverse la PJ : on lui laisse le temps d'arriver avant d'abandonner le statut
+  private async recupererMessagePJ(
+    messageRef: DocumentReference<FirebaseMessage>,
+    attendreLeMessage: boolean
+  ): Promise<FirebaseMessage | undefined> {
+    const delais = attendreLeMessage ? DELAIS_ATTENTE_MESSAGE_MS : []
+    for (let tentative = 0; tentative <= delais.length; tentative++) {
+      const message = await messageRef.get()
+      if (message.exists) {
+        return message.data()
+      }
+      if (tentative < delais.length) {
+        await new Promise(resolve => setTimeout(resolve, delais[tentative]))
+      }
+    }
+    return undefined
   }
 
   private messageSnapshotToMessageIndividuelDechiffre(
@@ -635,6 +693,26 @@ export class FirebaseClient {
 
     return { date, contenuPrecedent }
   }
+}
+
+// L'archive ne date les messages qu'à la seconde : l'index rend l'id unique, le contenu le rend stable d'un rejeu à l'autre
+function idDocumentRestaure(
+  index: number,
+  date: string,
+  contenu: string
+): string {
+  const empreinte = createHash('sha256')
+    .update(`${index}|${date}|${contenu}`)
+    .digest('hex')
+  return `restaure-${empreinte}`
+}
+
+function chunkifyTaille<T>(tableau: T[], taille: number): T[][] {
+  const resultat: T[][] = []
+  for (let i = 0, len = tableau.length; i < len; i += taille) {
+    resultat.push(tableau.slice(i, i + taille))
+  }
+  return resultat
 }
 
 function chunkify<T>(tableau: T[]): T[][] {
