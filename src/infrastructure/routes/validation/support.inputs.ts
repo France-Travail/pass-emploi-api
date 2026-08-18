@@ -29,6 +29,15 @@ export class TeleverserCsvPayload {
   fichier: Express.Multer.File
 }
 
+export class DesarchiverJeunePayload {
+  @ApiProperty({
+    description: 'ID (en base) du conseiller auquel rattacher le jeune restauré'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idConseiller: string
+}
+
 export class RefreshJDDPayload {
   @ApiProperty()
   @IsString()

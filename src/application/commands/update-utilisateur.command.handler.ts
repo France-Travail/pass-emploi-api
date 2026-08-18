@@ -345,9 +345,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
     const utilisateurTrouve =
-      await this.authentificationRepository.getJeuneByIdAuthentification(
+      (await this.authentificationRepository.getJeuneByIdAuthentification(
         commandSanitized.idUtilisateurAuth
-      )
+      )) ?? (await this.recupererJeuneMiloOrphelinParEmail(commandSanitized))
+
     if (!utilisateurTrouve) {
       return failure(
         new NonTraitableError(
@@ -371,6 +372,29 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       commandSanitized
     )
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
+  }
+
+  // Un jeune Milo désarchivé n'a plus d'idAuthentification : on le retrouve par email, mais jamais un compte déjà lié car l'email keycloak-milo n'est pas vérifié
+  private async recupererJeuneMiloOrphelinParEmail(
+    command: UpdateUtilisateurCommand
+  ): Promise<Authentification.Utilisateur | undefined> {
+    if (!command.email) {
+      return undefined
+    }
+
+    const utilisateurTrouve =
+      await this.authentificationRepository.getJeuneByEmail(
+        command.email,
+        Core.Structure.MILO
+      )
+    if (!utilisateurTrouve || utilisateurTrouve.idAuthentification) {
+      return undefined
+    }
+
+    this.logger.warn(
+      `Réassociation par email du jeune Milo ${utilisateurTrouve.id} au nouvel idAuthentification ${command.idUtilisateurAuth}`
+    )
+    return utilisateurTrouve
   }
 
   private async authentificationBeneficiaireFT(

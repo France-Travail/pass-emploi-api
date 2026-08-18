@@ -139,11 +139,13 @@ export class AuthentificationSqlOidcRepository
   }
 
   async getJeuneByEmail(
-    email: string
+    email: string,
+    structure?: Core.Structure
   ): Promise<Authentification.Utilisateur | undefined> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: {
-        email: email
+        email,
+        ...(structure ? { structure } : {})
       }
     })
 

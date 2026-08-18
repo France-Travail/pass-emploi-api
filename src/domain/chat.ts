@@ -1,3 +1,4 @@
+import { ArchiveJeune } from './archive-jeune'
 import { Jeune } from './jeune/jeune'
 
 export const ChatRepositoryToken = 'ChatRepositoryToken'
@@ -75,6 +76,12 @@ export namespace Chat {
     initializeChatIfNotExists(
       jeuneId: string,
       conseillerId: string
+    ): Promise<void>
+
+    restaurerMessagesIndividuels(
+      idJeune: string,
+      idConseiller: string,
+      messages: ArchiveJeune.Message[]
     ): Promise<void>
 
     initializeListeDeDiffusionIfNotExists(

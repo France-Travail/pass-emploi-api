@@ -699,7 +699,101 @@ describe('UpdateUtilisateurCommandHandler', () => {
         })
 
         describe("jeune non connu par son id d'authentification", async () => {
-          it('retourne une failure', async () => {
+          it("réassocie par email un jeune Milo orphelin d'id d'authentification en préservant sa date de première connexion", async () => {
+            // Given
+            const datePremiereConnexionHistorique = new Date(
+              '2021-02-03T04:05:06.000Z'
+            )
+            const utilisateur = unUtilisateurJeunePasConnecte({
+              structure: Core.Structure.MILO,
+              datePremiereConnexion: datePremiereConnexionHistorique
+            })
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nouvel-id-keycloak-milo',
+              nom: 'nom jeune',
+              prenom: 'prenom jeune',
+              email: 'abc@test.com',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO
+            }
+
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(undefined)
+            authentificationRepository.getJeuneByEmail
+              .withArgs(command.email, Core.Structure.MILO)
+              .resolves(utilisateur)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(result).to.deep.equal(
+              success({
+                email: 'abc@test.com',
+                id: 'ABCDE',
+                nom: 'nom jeune',
+                prenom: 'prenom jeune',
+                roles: [],
+                structure: 'MILO',
+                type: 'JEUNE',
+                username: undefined
+              })
+            )
+            expect(
+              authentificationRepository.update
+            ).to.have.been.calledWithExactly({
+              ...utilisateur,
+              email: command.email,
+              nom: command.nom,
+              prenom: command.prenom,
+              idAuthentification: command.idUtilisateurAuth,
+              dateDerniereConnexion: uneDate(),
+              datePremiereConnexion: datePremiereConnexionHistorique,
+              username: undefined
+            })
+          })
+
+          it("ne réassocie pas un jeune Milo déjà lié à un autre id d'authentification", async () => {
+            // Given
+            const utilisateurActif = unUtilisateurJeune({
+              structure: Core.Structure.MILO,
+              idAuthentification: 'id-authentification-actif'
+            })
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'sub-inconnu',
+              email: 'abc@test.com',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO
+            }
+
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(undefined)
+            authentificationRepository.getJeuneByEmail
+              .withArgs(command.email, Core.Structure.MILO)
+              .resolves(utilisateurActif)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(authentificationRepository.update).not.to.have.been.called()
+            expect(result).to.deep.equal(
+              failure(
+                new NonTraitableError(
+                  'Utilisateur',
+                  command.idUtilisateurAuth,
+                  NonTraitableReason.UTILISATEUR_INEXISTANT,
+                  command.email
+                )
+              )
+            )
+          })
+
+          it('retourne une failure quand le jeune est aussi inconnu par email', async () => {
             // Given
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
@@ -710,6 +804,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
+              .resolves(undefined)
+            authentificationRepository.getJeuneByEmail
+              .withArgs(command.email, Core.Structure.MILO)
               .resolves(undefined)
 
             // When
@@ -724,6 +821,38 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   command.idUtilisateurAuth,
                   NonTraitableReason.UTILISATEUR_INEXISTANT,
                   command.email
+                )
+              )
+            )
+          })
+
+          it("retourne une failure quand l'email n'est pas fourni", async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO
+            }
+
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(undefined)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(
+              authentificationRepository.getJeuneByEmail
+            ).not.to.have.been.called()
+            expect(result).to.deep.equal(
+              failure(
+                new NonTraitableError(
+                  'Utilisateur',
+                  command.idUtilisateurAuth,
+                  NonTraitableReason.UTILISATEUR_INEXISTANT,
+                  undefined
                 )
               )
             )
