@@ -50,6 +50,7 @@ import {
   RefreshJddCommand,
   RefreshJddCommandHandler
 } from '../../application/commands/support/refresh-jdd.command.handler'
+import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
@@ -72,6 +73,7 @@ import {
   DesarchiverJeunePayload,
   FusionnerAgencesPayload,
   ListerJobsQueryParams,
+  ModifierAgenceFTConseillerPayload,
   NotifierBeneficiairesPayload,
   RefreshJDDPayload,
   SuperviseursPayload,
@@ -136,6 +138,7 @@ export class SupportController {
     private readonly refreshJddCommandHandler: RefreshJddCommandHandler,
     private readonly mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
+    private readonly modifierAgenceFTConseillerCommandHandler: ModifierAgenceFTConseillerCommandHandler,
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
     private readonly desarchiverJeuneCommandHandler: DesarchiverJeuneCommandHandler,
@@ -248,6 +251,33 @@ export class SupportController {
     }
     const result = await this.updateAgenceCommandHandler.execute(
       command,
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      "Modifie l'agence d'un conseiller France Travail (ID en base, et pas ID Authentification)",
+    description:
+      "Autorisé uniquement pour le support. Rattache le conseiller à l'agence cible du référentiel France Travail et efface son éventuelle agence saisie manuellement.\n\n" +
+      "À la différence de POST /support/changer-agence-conseiller, aucune animation collective n'est transférée (les animations collectives sont un usage MILO) et le conseiller n'a pas besoin d'avoir déjà une agence."
+  })
+  @Post('modifier-agence-ft-conseiller')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async modifierAgenceFTConseiller(
+    @Body() payload: ModifierAgenceFTConseillerPayload
+  ): Promise<void> {
+    const result = await this.modifierAgenceFTConseillerCommandHandler.execute(
+      {
+        idConseiller: payload.idConseiller,
+        idAgence: payload.idAgence
+      },
       Authentification.unUtilisateurSupport()
     )
 

@@ -69,6 +69,18 @@ export class ChangerAgenceConseillerPayload {
   idNouvelleAgence: string
 }
 
+export class ModifierAgenceFTConseillerPayload {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idConseiller: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idAgence: string
+}
+
 export class FusionnerAgencesPayload {
   @ApiProperty()
   @IsString()
