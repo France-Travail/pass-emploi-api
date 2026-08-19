@@ -7047,10 +7047,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:6.2.8, jose@npm:^6.1.3":
-  version: 6.2.8
-  resolution: "jose@npm:6.2.8"
-  checksum: 10/d1534f56cf693dfbb4b433b72df469c3c858748fe627621e27d9c1e7894716fc1d0225923be3ae98153345b9823a25c0ac376bfccce3ed363a4c032cfd4e2f5b
+"jose@npm:6.2.9":
+  version: 6.2.9
+  resolution: "jose@npm:6.2.9"
+  checksum: 10/297a644db9076337b70e497b16a602961d823928a9035917cd383148ef2b8b27879f41030bddbe8db4dc9c580bdf84df8a6cd3dadbe2f20d2a703c4e1a1ba8da
   languageName: node
   linkType: hard
 
@@ -7058,6 +7058,13 @@ __metadata:
   version: 4.15.9
   resolution: "jose@npm:4.15.9"
   checksum: 10/256234b6f85cdc080b1331f2d475bd58c8ccf459cb20f70ac5e4200b271bce10002b1c2f8e5b96dd975d83065ae5a586d52cdf89d28471d56de5d297992f9905
+  languageName: node
+  linkType: hard
+
+"jose@npm:^6.1.3":
+  version: 6.2.8
+  resolution: "jose@npm:6.2.8"
+  checksum: 10/d1534f56cf693dfbb4b433b72df469c3c858748fe627621e27d9c1e7894716fc1d0225923be3ae98153345b9823a25c0ac376bfccce3ed363a4c032cfd4e2f5b
   languageName: node
   linkType: hard
 
@@ -8102,7 +8109,7 @@ __metadata:
     husky: "npm:^9.1.7"
     ics: "npm:3.12.0"
     joi: "npm:18.2.3"
-    jose: "npm:6.2.8"
+    jose: "npm:6.2.9"
     lint-staged: "npm:^16.3.2"
     lodash.isequal: "npm:4.5.0"
     luxon: "npm:3.7.2"
