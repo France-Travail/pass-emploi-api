@@ -18,6 +18,10 @@ import { handleAxiosError } from 'src/infrastructure/clients/utils/axios-error-h
 import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
 import { ExternalApiClient } from './external-api-client'
 
+// Upload de fichier + scan : plus long que le timeout sortant par défaut (5s),
+// mais borné pour ne pas rester bloqué indéfiniment.
+const TIMEOUT_ANTIVIRUS_MS = 15000
+
 @Injectable()
 export class AntivirusClient extends ExternalApiClient {
   private readonly logger: Logger
@@ -28,7 +32,7 @@ export class AntivirusClient extends ExternalApiClient {
     configService: ConfigService,
     externalApiLogger: ExternalApiLoggerService
   ) {
-    super('AntivirusClient', externalApiLogger)
+    super('AntivirusClient', externalApiLogger, TIMEOUT_ANTIVIRUS_MS)
     this.logger = new Logger('AntivirusClient')
 
     const config = configService.get('jecliqueoupas')

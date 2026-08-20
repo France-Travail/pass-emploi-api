@@ -1,9 +1,8 @@
-import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { firstValueFrom } from 'rxjs'
 import { listeCronJobs } from '../../domain/planificateur'
 import { estJobSuivi, RapportJob24h, SuiviJob } from '../../domain/suivi-job'
+import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import {
   SuiviJobDto,
   SuiviJobSqlModel
@@ -11,15 +10,21 @@ import {
 import { AsSql } from '../sequelize/types'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { getWorkerTrackingServiceInstance } from '../monitoring/worker.tracking.service'
+import { ExternalApiClient } from './external-api-client'
 
 const BOT_USERNAME = 'CEJ Lama'
 
 @Injectable()
-export class SuiviJobService implements SuiviJob.Service {
+export class SuiviJobService
+  extends ExternalApiClient
+  implements SuiviJob.Service
+{
   constructor(
-    private configService: ConfigService,
-    private httpService: HttpService
-  ) {}
+    private readonly configService: ConfigService,
+    externalApiLogger: ExternalApiLoggerService
+  ) {
+    super('SuiviJobService', externalApiLogger)
+  }
 
   async notifierResultatJob(suiviJob: SuiviJob): Promise<void> {
     await this.envoyerMessageMattermost(construireMessage(suiviJob))
@@ -63,7 +68,7 @@ export class SuiviJobService implements SuiviJob.Service {
         username: BOT_USERNAME,
         text: message
       }
-      await firstValueFrom(this.httpService.post(webhookUrl, payload))
+      await this.axios.post(webhookUrl, payload)
     } catch (_e) {}
   }
 }
