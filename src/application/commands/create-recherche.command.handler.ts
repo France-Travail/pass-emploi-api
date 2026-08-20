@@ -42,6 +42,21 @@ export class CreateRechercheCommandHandler extends CommandHandler<
   }
 
   async handle(command: CreateRechercheCommand): Promise<Result<Core.Id>> {
+    const criteres = Recherche.normaliserLesCriteres(
+      command.type,
+      command.criteres
+    )
+
+    const rechercheExistante =
+      await this.rechercheRepository.trouverParCriteres(
+        command.idJeune,
+        command.type,
+        criteres
+      )
+    if (rechercheExistante) {
+      return success({ id: rechercheExistante.id })
+    }
+
     const idRecherche = this.idService.uuid()
 
     const maintenant = this.dateService.now()
@@ -52,7 +67,7 @@ export class CreateRechercheCommandHandler extends CommandHandler<
       titre: command.titre,
       metier: command.metier,
       localisation: command.localisation,
-      criteres: command.criteres,
+      criteres,
       idJeune: command.idJeune,
       dateCreation: maintenant,
       dateDerniereRecherche: maintenant,

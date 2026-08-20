@@ -274,6 +274,66 @@ describe('CreateRechercheFromSuggestionCommandHandler', () => {
         expect(result).to.deep.equal(success(recherche))
       })
     })
+
+    describe('quand le jeune a déjà une alerte aux mêmes critères', () => {
+      const command = { idJeune: 'id-jeune', idSuggestion: 'id-suggestion' }
+      const idRechercheExistante = 'af1cfa2d-fd9a-4d09-9c1a-2f9d2c0e7c11'
+
+      let suggestionAcceptee: Suggestion.Acceptee
+      let rechercheExistante: Recherche
+
+      beforeEach(() => {
+        const suggestion = uneSuggestion({
+          id: command.idSuggestion,
+          idJeune: command.idJeune
+        })
+        suggestionAcceptee = {
+          ...suggestion,
+          dateCreationRecherche,
+          idRecherche
+        }
+        const rechercheConstruite = uneRecherche({
+          id: idRecherche,
+          type: suggestionAcceptee.type,
+          criteres: suggestionAcceptee.criteres,
+          idJeune: command.idJeune
+        })
+        rechercheExistante = uneRecherche({
+          id: idRechercheExistante,
+          type: suggestionAcceptee.type,
+          criteres: suggestionAcceptee.criteres,
+          idJeune: command.idJeune
+        })
+
+        suggestionRepository.get.resolves(suggestion)
+        suggestionFactory.accepter.returns(success(suggestionAcceptee))
+        rechercheFactory.buildRechercheFromSuggestion.returns(
+          success(rechercheConstruite)
+        )
+        rechercheRepository.trouverParCriteres.resolves(rechercheExistante)
+      })
+
+      it("ne crée pas de seconde alerte et renvoie l'existante", async () => {
+        // When
+        const result =
+          await createRechercheFromSuggestionCommandHandler.handle(command)
+
+        // Then
+        expect(rechercheRepository.save).not.to.have.been.called()
+        expect(result).to.deep.equal(success(rechercheExistante))
+      })
+
+      it("rattache la suggestion à l'alerte conservée, pas à l'id abandonné", async () => {
+        // When
+        await createRechercheFromSuggestionCommandHandler.handle(command)
+
+        // Then
+        expect(suggestionRepository.save).to.have.been.calledWithExactly({
+          ...suggestionAcceptee,
+          idRecherche: idRechercheExistante
+        })
+      })
+    })
   })
 
   describe('monitor', () => {

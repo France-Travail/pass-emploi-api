@@ -70,6 +70,145 @@ describe('RechercheSqlRepository', () => {
     })
   })
 
+  describe('trouverParCriteres', () => {
+    const criteres = { q: 'Serveur', commune: '54323', rayon: 10 }
+
+    it('retourne la recherche quand les critères sont identiques', async () => {
+      // Given
+      const recherche = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120002',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      })
+      await rechercheSqlRepository.save(recherche)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        idJeune,
+        Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      )
+
+      // Then
+      expect(result?.id).to.equal(recherche.id)
+    })
+
+    it("ignore l'ordre des clés, la comparaison est sémantique en jsonb", async () => {
+      // Given
+      const recherche = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120003',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      })
+      await rechercheSqlRepository.save(recherche)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        idJeune,
+        Recherche.Type.OFFRES_EMPLOI,
+        { rayon: 10, commune: '54323', q: 'Serveur' }
+      )
+
+      // Then
+      expect(result?.id).to.equal(recherche.id)
+    })
+
+    it('retourne la plus ancienne quand plusieurs correspondent', async () => {
+      // Given
+      const laPlusAncienne = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120004',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres,
+        dateCreation: uneDatetime().minus({ day: 5 })
+      })
+      const laPlusRecente = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120005',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres,
+        dateCreation: uneDatetime()
+      })
+      await rechercheSqlRepository.save(laPlusRecente)
+      await rechercheSqlRepository.save(laPlusAncienne)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        idJeune,
+        Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      )
+
+      // Then
+      expect(result?.id).to.equal(laPlusAncienne.id)
+    })
+
+    it('retourne undefined quand un critère diffère', async () => {
+      // Given
+      const recherche = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120006',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      })
+      await rechercheSqlRepository.save(recherche)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        idJeune,
+        Recherche.Type.OFFRES_EMPLOI,
+        { ...criteres, rayon: 40 }
+      )
+
+      // Then
+      expect(result).to.equal(undefined)
+    })
+
+    it("retourne undefined quand l'alerte appartient à un autre jeune", async () => {
+      // Given
+      const recherche = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120007',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      })
+      await rechercheSqlRepository.save(recherche)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        'un-autre-jeune',
+        Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      )
+
+      // Then
+      expect(result).to.equal(undefined)
+    })
+
+    it('retourne undefined quand le type diffère', async () => {
+      // Given
+      const recherche = uneRecherche({
+        id: '4a1b3d1c-5b85-11ed-9b6a-0242ac120008',
+        idJeune,
+        type: Recherche.Type.OFFRES_EMPLOI,
+        criteres
+      })
+      await rechercheSqlRepository.save(recherche)
+
+      // When
+      const result = await rechercheSqlRepository.trouverParCriteres(
+        idJeune,
+        Recherche.Type.OFFRES_ALTERNANCE,
+        criteres
+      )
+
+      // Then
+      expect(result).to.equal(undefined)
+    })
+  })
+
   describe('createRecherche', () => {
     describe("quand c'est une offre d'immersion", () => {
       describe('quand lat lon ne sont pas présents', () => {

@@ -24,6 +24,36 @@ export class RechercheSqlRepository implements Recherche.Repository {
     return fromSqlToRecherche(rechercheSql)
   }
 
+  async trouverParCriteres(
+    idJeune: string,
+    type: Recherche.Type,
+    criteres: Recherche.Emploi | Recherche.ServiceCivique | Recherche.Immersion
+  ): Promise<Recherche | undefined> {
+    // Comparaison sémantique en jsonb et non en texte
+    const resultats = await this.sequelize.query<{ id: string }>(
+      `SELECT id
+         FROM recherche
+        WHERE id_jeune = :id_jeune
+          AND type = :type
+          AND criteres = CAST(:criteres AS jsonb)
+        ORDER BY date_creation ASC
+        LIMIT 1`,
+      {
+        type: QueryTypes.SELECT,
+        replacements: {
+          id_jeune: idJeune,
+          type,
+          criteres: JSON.stringify(criteres)
+        }
+      }
+    )
+
+    if (!resultats.length) {
+      return undefined
+    }
+    return this.get(resultats[0].id)
+  }
+
   async save(recherche: Recherche): Promise<void> {
     await RechercheSqlModel.create({
       id: recherche.id,

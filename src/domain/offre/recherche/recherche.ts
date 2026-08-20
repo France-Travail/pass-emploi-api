@@ -41,8 +41,35 @@ export namespace Recherche {
     export const PROJECTION_WGS84 = 4326
   }
 
+  // Le mot-clé arrive régulièrement avec des espaces parasites autour : sans
+  // normalisation, "Serveur " et "Serveur" restent deux alertes distinctes.
+  // Sert de clé de dédoublonnage, donc à appliquer avant toute comparaison
+  export function normaliserLesCriteres(
+    type: Type,
+    criteres: Emploi | ServiceCivique | Immersion
+  ): Emploi | ServiceCivique | Immersion {
+    const estUneRechercheEmploi =
+      type === Type.OFFRES_EMPLOI || type === Type.OFFRES_ALTERNANCE
+    if (!estUneRechercheEmploi) {
+      return criteres
+    }
+
+    const criteresEmploi = criteres as Emploi
+    if (criteresEmploi.q === undefined) {
+      return criteres
+    }
+    return { ...criteresEmploi, q: criteresEmploi.q.trim() }
+  }
+
   export interface Repository {
     get(idRecherche: string): Promise<Recherche | undefined>
+
+    trouverParCriteres(
+      idJeune: string,
+      type: Recherche.Type,
+      criteres:
+        Recherche.Emploi | Recherche.ServiceCivique | Recherche.Immersion
+    ): Promise<Recherche | undefined>
 
     save(recherche: Recherche): Promise<void>
 
