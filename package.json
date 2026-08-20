@@ -70,6 +70,7 @@
     "tasks:notifier-bonne-alternance": "IS_WEB=false TASK_NAME=NOTIFIER_BONNE_ALTERNANCE node dist/main",
     "seed:migration-test": "node dist/scripts/seed-migration-test.js",
     "cleanup:migration-test": "node dist/scripts/cleanup-migration-test.js",
+    "purger:recherches-doublons": "node dist/scripts/purger-recherches-doublons.js",
     "dump-restore-db": "scripts/analytics/0_db_dump_restore.sh 2>&1",
     "dump-restore-db:local": "dotenv -e .environment yarn dump-restore-db",
     "release:patch": "scripts/release_version_only.sh patch",

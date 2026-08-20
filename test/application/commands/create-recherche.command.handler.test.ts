@@ -14,6 +14,7 @@ import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
+import { uneRecherche } from '../../fixtures/recherche.fixture'
 
 describe('CreateRechercheCommandHandler', () => {
   let rechercheRepository: StubbedType<Recherche.Repository>
@@ -76,6 +77,89 @@ describe('CreateRechercheCommandHandler', () => {
           dateCreation: date,
           dateDerniereRecherche: date,
           etat: Recherche.Etat.SUCCES
+        })
+      })
+    })
+
+    describe('quand le jeune a déjà une alerte aux mêmes critères', () => {
+      it("renvoie l'id de l'alerte existante sans en créer une nouvelle", async () => {
+        // Given
+        const criteres = { q: 'Serveur', commune: '54323' }
+        const rechercheExistante = uneRecherche({
+          id: 'id-existant',
+          idJeune: 'ABC123',
+          type: Recherche.Type.OFFRES_EMPLOI,
+          criteres
+        })
+        rechercheRepository.trouverParCriteres
+          .withArgs('ABC123', Recherche.Type.OFFRES_EMPLOI, criteres)
+          .resolves(rechercheExistante)
+
+        const command: CreateRechercheCommand = {
+          idJeune: 'ABC123',
+          type: Recherche.Type.OFFRES_EMPLOI,
+          titre: 'Serveur',
+          criteres
+        }
+
+        // When
+        const result = await createRechercheCommandHandler.handle(command)
+
+        // Then
+        expect(result).to.deep.equal(success({ id: 'id-existant' }))
+        expect(rechercheRepository.save).not.to.have.been.called()
+      })
+    })
+
+    describe("quand le mot-clé est entouré d'espaces", () => {
+      it('le normalise avant de chercher un doublon et de sauvegarder', async () => {
+        // Given
+        idService.uuid.returns('un-id')
+
+        const command: CreateRechercheCommand = {
+          idJeune: 'ABC123',
+          type: Recherche.Type.OFFRES_EMPLOI,
+          titre: 'Nettoyage',
+          criteres: { q: '  Nettoyage ', commune: '92002' }
+        }
+
+        // When
+        await createRechercheCommandHandler.handle(command)
+
+        // Then
+        expect(
+          rechercheRepository.trouverParCriteres
+        ).to.have.been.calledWithExactly(
+          'ABC123',
+          Recherche.Type.OFFRES_EMPLOI,
+          {
+            q: 'Nettoyage',
+            commune: '92002'
+          }
+        )
+        expect(rechercheRepository.save).to.have.been.calledWithMatch({
+          criteres: { q: 'Nettoyage', commune: '92002' }
+        })
+      })
+
+      it("laisse les critères intacts pour les autres types d'alerte", async () => {
+        // Given
+        idService.uuid.returns('un-id')
+        const criteres = { rome: 'G1607', lat: 50.28, lon: 3.96 }
+
+        const command: CreateRechercheCommand = {
+          idJeune: 'ABC123',
+          type: Recherche.Type.OFFRES_IMMERSION,
+          titre: 'Immersion',
+          criteres
+        }
+
+        // When
+        await createRechercheCommandHandler.handle(command)
+
+        // Then
+        expect(rechercheRepository.save).to.have.been.calledWithMatch({
+          criteres
         })
       })
     })
