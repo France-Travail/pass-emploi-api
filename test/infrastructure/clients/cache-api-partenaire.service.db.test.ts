@@ -26,13 +26,16 @@ describe('CacheApiPartenaireService', () => {
   const attendre = (ms: number): Promise<void> =>
     new Promise(resolve => setTimeout(resolve, ms))
 
-  const seedCache = (data: unknown): Promise<CacheApiPartenaireSqlModel> => {
+  const seedCache = (
+    data: unknown,
+    cle: string = PATH
+  ): Promise<CacheApiPartenaireSqlModel> => {
     const dto: AsSql<CacheApiPartenaireDto> = {
       id: 'd90e397a-dcb3-4a7b-8eac-3dec0aa55dfa',
       idUtilisateur: utilisateur.id,
       typeUtilisateur: utilisateur.type,
       date: uneDatetime().toJSDate(),
-      pathPartenaire: PATH,
+      pathPartenaire: cle,
       resultatPartenaire: data,
       transactionId: 'transactionId'
     }
@@ -113,15 +116,19 @@ describe('CacheApiPartenaireService', () => {
   describe("quand l'appel est trop lent", () => {
     it('renvoie le cache sans attendre (stale-if-slow)', async () => {
       // Given
-      await seedCache(['depuis-cache'])
+      // path dédié : l'appel de fond (plus lent que le test) écrit dans le cache
+      // APRÈS le cleanPG du test ; un path unique évite que cette écriture
+      // tardive ne collisionne avec l'insertion d'un test suivant.
+      const cleLente = 'milo/lent/path'
+      await seedCache(['depuis-cache'], cleLente)
 
       // When
       const avant = Date.now()
       const resultat = await service.executerAvecCache<string[]>({
-        cleCache: PATH,
+        cleCache: cleLente,
         timeoutMs: 20,
         appel: async () => {
-          await attendre(500)
+          await attendre(200)
           return ['trop-tard']
         },
         erreurEstRecuperable: toujoursRecuperable
