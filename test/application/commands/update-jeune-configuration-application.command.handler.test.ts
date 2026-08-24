@@ -1,10 +1,7 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
 import { Core } from 'src/domain/core'
-import {
-  ConfigurationApplication,
-  ConfigurationApplicationInvite
-} from 'src/domain/jeune/configuration-application'
+import { ConfigurationApplication } from 'src/domain/jeune/configuration-application'
 import { Jeune } from 'src/domain/jeune/jeune'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
@@ -25,12 +22,8 @@ import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 
 describe('UpdateJeuneConfigurationApplicationCommand', () => {
   let updateJeuneConfigurationApplicationCommandHandler: UpdateJeuneConfigurationApplicationCommandHandler
-  let jeuneConfigurationApplicationRepository: StubbedType<
-    ConfigurationApplication.Repository<Jeune.ConfigurationApplication>
-  >
-  let jeuneInviteConfigurationApplicationRepository: StubbedType<
-    ConfigurationApplication.Repository<ConfigurationApplicationInvite>
-  >
+  let jeuneConfigurationApplicationRepository: StubbedType<ConfigurationApplication.Repository>
+  let jeuneInviteConfigurationApplicationRepository: StubbedType<ConfigurationApplication.Repository>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
 
@@ -43,10 +36,8 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
     const dateService: StubbedClass<DateService> = stubClass(DateService)
     dateService.nowJs.returns(uneDatetime().toJSDate())
 
-    const configurationApplicationJeuneFactory =
-      new ConfigurationApplication.FactoryJeune(dateService)
-    const configurationApplicationInviteFactory =
-      new ConfigurationApplication.FactoryInvite(dateService)
+    const configurationApplicationFactory =
+      new ConfigurationApplication.Factory(dateService)
 
     updateJeuneConfigurationApplicationCommandHandler =
       new UpdateJeuneConfigurationApplicationCommandHandler(
@@ -54,8 +45,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
         jeuneInviteConfigurationApplicationRepository,
         jeuneAuthorizer,
         jeuneInviteAuthorizer,
-        configurationApplicationJeuneFactory,
-        configurationApplicationInviteFactory
+        configurationApplicationFactory
       )
   })
 
@@ -79,9 +69,6 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
             appVersion: 'laVersion',
             installationId: 'uneInstallationId',
             instanceId: 'uneInstanceId',
-            dateDerniereActualisationToken: uneDatetime()
-              .minus({ day: 1 })
-              .toJSDate(),
             fuseauHoraire: 'Europe/London'
           })
 
@@ -101,7 +88,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
             installationId: 'uneInstallationId',
             instanceId: 'uneInstanceId',
             fuseauHoraire: 'Europe/Paris',
-            dateDerniereActualisationToken: uneDatetime().toJSDate()
+            dateDerniereActivite: uneDatetime().toJSDate()
           }
         expect(
           jeuneConfigurationApplicationRepository.save
@@ -196,66 +183,6 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
 
         // Then
         expect(isFailure(result)).to.equal(true)
-      })
-    })
-
-    describe('dateDerniereActualisationToken', () => {
-      const dateAncienne = uneDatetime().minus({ days: 30 }).toJSDate()
-
-      it("conserve la date et le token quand aucun token n'est fourni", async () => {
-        // Given
-        const utilisateur = unUtilisateurJeune()
-        jeuneConfigurationApplicationRepository.get
-          .withArgs(utilisateur.id)
-          .resolves({
-            idJeune: utilisateur.id,
-            pushNotificationToken: 'ancienToken',
-            dateDerniereActualisationToken: dateAncienne,
-            fuseauHoraire: 'Europe/Paris'
-          })
-        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
-
-        // When
-        await updateJeuneConfigurationApplicationCommandHandler.execute(
-          { idJeune: utilisateur.id, pushNotificationToken: undefined },
-          utilisateur
-        )
-
-        // Then
-        const configSauvegardee =
-          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
-        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
-          dateAncienne
-        )
-        expect(configSauvegardee.pushNotificationToken).to.equal('ancienToken')
-      })
-
-      it('met la date à maintenant et stocke le token quand il est fourni', async () => {
-        // Given
-        const utilisateur = unUtilisateurJeune()
-        jeuneConfigurationApplicationRepository.get
-          .withArgs(utilisateur.id)
-          .resolves({
-            idJeune: utilisateur.id,
-            pushNotificationToken: 'ancienToken',
-            dateDerniereActualisationToken: dateAncienne,
-            fuseauHoraire: 'Europe/Paris'
-          })
-        jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
-
-        // When
-        await updateJeuneConfigurationApplicationCommandHandler.execute(
-          { idJeune: utilisateur.id, pushNotificationToken: 'nouveauToken' },
-          utilisateur
-        )
-
-        // Then
-        const configSauvegardee =
-          jeuneConfigurationApplicationRepository.save.getCall(0).args[0]
-        expect(configSauvegardee.dateDerniereActualisationToken).to.deep.equal(
-          uneDatetime().toJSDate()
-        )
-        expect(configSauvegardee.pushNotificationToken).to.equal('nouveauToken')
       })
     })
 

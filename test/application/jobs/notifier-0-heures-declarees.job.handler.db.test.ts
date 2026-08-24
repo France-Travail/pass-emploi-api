@@ -53,9 +53,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         dispositif: Jeune.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j1',
-        dateDerniereActualisationToken: maintenant
-          .minus({ hours: 3 })
-          .toJSDate()
+        dateDerniereActivite: maintenant.minus({ hours: 3 }).toJSDate()
       }),
       // Jeune avec action cette semaine (ne doit pas être notifié)
       unJeuneDto({
@@ -65,7 +63,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         dispositif: Jeune.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j2',
-        dateDerniereActualisationToken: maintenant.minus({ days: 1 }).toJSDate()
+        dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
       }),
       // Jeune sans push notif (ne doit pas être notifié)
       unJeuneDto({
@@ -75,7 +73,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         dispositif: Jeune.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: null,
-        dateDerniereActualisationToken: maintenant.minus({ days: 1 }).toJSDate()
+        dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
       }),
       // Jeune structure différente (ne doit pas être notifié)
       unJeuneDto({
@@ -85,7 +83,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         dispositif: Jeune.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j4',
-        dateDerniereActualisationToken: maintenant.minus({ days: 1 }).toJSDate()
+        dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
       }),
       // Jeune hors dispositif CEJ (ne doit pas être notifié)
       unJeuneDto({
@@ -95,7 +93,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         dispositif: Jeune.Dispositif.PACEA,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j5',
-        dateDerniereActualisationToken: maintenant.minus({ days: 1 }).toJSDate()
+        dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
       })
     ])
 

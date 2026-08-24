@@ -124,7 +124,7 @@ export const uneConfiguration = (
   const defaults: Jeune.ConfigurationApplication = {
     idJeune: 'ABCDE',
     pushNotificationToken: 'token',
-    dateDerniereActualisationToken: uneDate(),
+    dateDerniereActivite: uneDate(),
     installationId: '123456',
     instanceId: 'abcdef',
     appVersion: '1.8.1',

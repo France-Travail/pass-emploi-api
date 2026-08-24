@@ -9,18 +9,12 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { estInvite } from '../../domain/core'
-import {
-  Jeune,
-  JeuneConfigurationApplicationRepositoryToken
-} from '../../domain/jeune/jeune'
+import { JeuneConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneInviteConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune-invite'
 import { TOUS_LES_JEUNES } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
-import {
-  ConfigurationApplication,
-  ConfigurationApplicationInvite
-} from '../../domain/jeune/configuration-application'
+import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
 
 export interface UpdateJeuneConfigurationApplicationCommand extends Command {
   idJeune: string
@@ -40,13 +34,12 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
 
   constructor(
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
     @Inject(JeuneInviteConfigurationApplicationRepositoryToken)
-    private readonly jeuneInviteConfigurationApplicationRepository: ConfigurationApplication.Repository<ConfigurationApplicationInvite>,
+    private readonly jeuneInviteConfigurationApplicationRepository: ConfigurationApplication.Repository,
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
-    private readonly configurationApplicationJeuneFactory: ConfigurationApplication.FactoryJeune,
-    private readonly configurationApplicationInviteFactory: ConfigurationApplication.FactoryInvite
+    private readonly configurationApplicationFactory: ConfigurationApplication.Factory
   ) {
     super('UpdateJeuneConfigurationApplicationCommandHandler')
   }
@@ -65,7 +58,7 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
       }
 
       const configurationApplication =
-        this.configurationApplicationInviteFactory.mettreAJour(
+        this.configurationApplicationFactory.mettreAJour(
           configurationExistante,
           command
         )
@@ -82,7 +75,7 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
     }
 
     const configurationApplication =
-      this.configurationApplicationJeuneFactory.mettreAJour(
+      this.configurationApplicationFactory.mettreAJour(
         configurationExistante,
         command
       )

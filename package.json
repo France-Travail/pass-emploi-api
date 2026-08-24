@@ -55,6 +55,7 @@
     "tasks:recuperer-les-situations-milo": "IS_WEB=false TASK_NAME=RECUPERER_SITUATIONS_JEUNES_MILO node dist/main",
     "tasks:nettoyer-les-pieces-jointes": "IS_WEB=false TASK_NAME=NETTOYER_LES_PIECES_JOINTES node dist/main",
     "tasks:nettoyer-les-donnees": "IS_WEB=false TASK_NAME=NETTOYER_LES_DONNEES node dist/main",
+    "tasks:purger-invites-inactifs": "IS_WEB=false TASK_NAME=PURGER_INVITES_INACTIFS node dist/main",
     "tasks:notifier-rendez-vous-pe": "IS_WEB=false TASK_NAME=NOTIFIER_RENDEZVOUS_PE node dist/main",
     "tasks:monitorer-jobs": "IS_WEB=false TASK_NAME=MONITORER_JOBS node dist/main",
     "tasks:suivre-events-milo": "IS_WEB=false TASK_NAME=SUIVRE_FILE_EVENEMENTS_MILO node dist/main",

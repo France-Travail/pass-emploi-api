@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import {
   ConfigurationApplication,
-  ConfigurationApplicationInvite,
   TIMEZONE_PAR_DEFAUT
 } from '../../../domain/jeune/configuration-application'
 import { JeuneInviteSqlModel } from '../../sequelize/models/jeune-invite.sql-model'
 
 @Injectable()
-export class JeuneInviteConfigurationApplicationSqlRepository implements ConfigurationApplication.Repository<ConfigurationApplicationInvite> {
-  async get(
-    idJeune: string
-  ): Promise<ConfigurationApplicationInvite | undefined> {
+export class JeuneInviteConfigurationApplicationSqlRepository
+  implements ConfigurationApplication.Repository
+{
+  async get(idJeune: string): Promise<ConfigurationApplication | undefined> {
     const jeuneInviteSqlModel = await JeuneInviteSqlModel.findByPk(idJeune, {
       attributes: attributesConfigurationApplication
     })
@@ -22,7 +21,7 @@ export class JeuneInviteConfigurationApplicationSqlRepository implements Configu
   }
 
   async save(
-    configurationApplication: ConfigurationApplicationInvite
+    configurationApplication: ConfigurationApplication
   ): Promise<void> {
     if (!configurationApplication.dateDerniereActivite) {
       throw new Error(
@@ -47,7 +46,7 @@ export class JeuneInviteConfigurationApplicationSqlRepository implements Configu
 
 function toConfigurationApplication(
   jeuneInviteSqlModel: JeuneInviteSqlModel
-): ConfigurationApplicationInvite {
+): ConfigurationApplication {
   return {
     idJeune: jeuneInviteSqlModel.id,
     appVersion: jeuneInviteSqlModel.appVersion ?? undefined,

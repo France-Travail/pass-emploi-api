@@ -93,7 +93,7 @@ describe('GetJeunesByStructureMiloQueryHandler', () => {
       nom: 'Jean',
       prenom: 'Dupont',
       idConseiller: '1',
-      dateDerniereActualisationToken: uneDate(),
+      dateDerniereActivite: uneDate(),
       idStructureMilo: structure1Dto.id
     })
     const jeune2Dto = unJeuneDto({
@@ -101,7 +101,7 @@ describe('GetJeunesByStructureMiloQueryHandler', () => {
       nom: 'Jeanne',
       prenom: 'Claude Van Damme',
       idConseiller: '1',
-      dateDerniereActualisationToken: uneDate(),
+      dateDerniereActivite: uneDate(),
       idStructureMilo: structure1Dto.id
     })
     const jeune3Dto = unJeuneDto({
@@ -109,7 +109,7 @@ describe('GetJeunesByStructureMiloQueryHandler', () => {
       nom: 'Jean',
       prenom: 'Dupont',
       idConseiller: '2',
-      dateDerniereActualisationToken: uneDate(),
+      dateDerniereActivite: uneDate(),
       idStructureMilo: structure2Dto.id
     })
 
@@ -215,6 +215,6 @@ function mapJeuneMiloResume(
       nom: referent.nom
     },
     situation: situation.situationCourante?.categorie,
-    dateDerniereActivite: jeune.dateDerniereActualisationToken?.toISOString()
+    dateDerniereActivite: jeune.dateDerniereActivite?.toISOString()
   }
 }

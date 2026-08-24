@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import {
   ConfigurationApplication,
-  ConfigurationApplicationJeune,
   TIMEZONE_PAR_DEFAUT
 } from '../../../domain/jeune/configuration-application'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { fromSqlToPreferencesJeune } from '../mappers/jeunes.mappers'
 
 @Injectable()
-export class JeuneConfigurationApplicationSqlRepository implements ConfigurationApplication.Repository<ConfigurationApplicationJeune> {
-  async get(
-    idJeune: string
-  ): Promise<ConfigurationApplicationJeune | undefined> {
+export class JeuneConfigurationApplicationSqlRepository
+  implements ConfigurationApplication.Repository
+{
+  async get(idJeune: string): Promise<ConfigurationApplication | undefined> {
     const jeuneSqlModel = await JeuneSqlModel.findByPk(idJeune, {
       attributes: attributesConfigurationApplication
     })
@@ -23,19 +22,14 @@ export class JeuneConfigurationApplicationSqlRepository implements Configuration
   }
 
   async save(
-    configurationApplication: ConfigurationApplicationJeune
+    configurationApplication: ConfigurationApplication
   ): Promise<void> {
-    // TODO: dateDerniereActivite n'est pas persistée ici (contrairement aux invités,
-    // cf. JeuneInviteConfigurationApplicationSqlRepository) : la colonne n'existe pas
-    // encore sur JeuneSqlModel. Dette assumée, à traiter si le signal se généralise
-    // aux jeunes standards.
     await JeuneSqlModel.update(
       {
         appVersion: configurationApplication.appVersion ?? null,
         pushNotificationToken:
           configurationApplication.pushNotificationToken ?? null,
-        dateDerniereActualisationToken:
-          configurationApplication.dateDerniereActualisationToken,
+        dateDerniereActivite: configurationApplication.dateDerniereActivite,
         installationId: configurationApplication.installationId ?? null,
         instanceId: configurationApplication.instanceId ?? null,
         timezone: configurationApplication.fuseauHoraire ?? null
@@ -47,7 +41,7 @@ export class JeuneConfigurationApplicationSqlRepository implements Configuration
 
 function toConfigurationApplication(
   jeuneSqlModel: JeuneSqlModel
-): ConfigurationApplicationJeune {
+): ConfigurationApplication {
   return {
     idJeune: jeuneSqlModel.id,
     appVersion: jeuneSqlModel.appVersion ?? undefined,
@@ -55,8 +49,7 @@ function toConfigurationApplication(
     instanceId: jeuneSqlModel.instanceId ?? undefined,
     pushNotificationToken: jeuneSqlModel.pushNotificationToken ?? undefined,
     fuseauHoraire: jeuneSqlModel.timezone ?? TIMEZONE_PAR_DEFAUT,
-    dateDerniereActualisationToken:
-      jeuneSqlModel.dateDerniereActualisationToken ?? undefined,
+    dateDerniereActivite: jeuneSqlModel.dateDerniereActivite ?? undefined,
     preferences: fromSqlToPreferencesJeune(jeuneSqlModel)
   }
 }
@@ -67,7 +60,7 @@ const attributesConfigurationApplication = [
   'installationId',
   'instanceId',
   'pushNotificationToken',
-  'dateDerniereActualisationToken',
+  'dateDerniereActivite',
   'timezone',
   'partageFavoris',
   'notificationsAlertesOffres',

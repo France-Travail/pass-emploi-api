@@ -143,8 +143,8 @@ describe('AnimationsCollectivesSqlRepository', () => {
           {
             configuration: {
               appVersion: '1.8.1',
-              dateDerniereActualisationToken: new Date(
-                jeune.configuration.dateDerniereActualisationToken!
+              dateDerniereActivite: new Date(
+                jeune.configuration.dateDerniereActivite!
               ),
               idJeune: 'ABCDE',
               installationId: '123456',
@@ -251,8 +251,8 @@ describe('AnimationsCollectivesSqlRepository', () => {
           {
             configuration: {
               appVersion: '1.8.1',
-              dateDerniereActualisationToken: new Date(
-                jeune.configuration.dateDerniereActualisationToken!
+              dateDerniereActivite: new Date(
+                jeune.configuration.dateDerniereActivite!
               ),
               idJeune: 'ABCDE',
               installationId: '123456',

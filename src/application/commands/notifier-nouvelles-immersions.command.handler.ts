@@ -7,10 +7,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
-import {
-  Jeune,
-  JeuneConfigurationApplicationRepositoryToken
-} from '../../domain/jeune/jeune'
+import { JeuneConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune'
 import { Notification } from '../../domain/notification/notification'
 import {
   Recherche,
@@ -43,7 +40,7 @@ export class NotifierNouvellesImmersionsCommandHandler extends CommandHandler<
     @Inject(RecherchesRepositoryToken)
     private recherchesRepository: Recherche.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
+    private jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
     private notificationService: Notification.Service,
     private dateService: DateService
   ) {

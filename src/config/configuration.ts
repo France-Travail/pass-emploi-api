@@ -270,7 +270,7 @@ export default () => {
           process.env.JOB_NOMBRE_CONSEILLERS_PARALLELE ?? '100'
       },
       purgeInvites: {
-        retentionJours: process.env.JOB_PURGE_INVITES_RETENTION_JOURS ?? '365',
+        retentionJours: process.env.JOB_PURGE_INVITES_RETENTION_JOURS ?? '180',
         pourcentageInactifsMax:
           process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20'
       }

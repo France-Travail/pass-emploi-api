@@ -67,7 +67,8 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       await JeuneSqlModel.creer(
         unJeuneDto({
           idConseiller,
-          dateDerniereActualisationToken: dateEvenement,
+          dateDerniereActivite: dateEvenement,
+          dateDerniereConnexion: null,
           dateFinCEJ: null,
           idPartenaire: '123456'
         })
@@ -95,7 +96,7 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       const dateFinCEJ = new Date('2022-06-11')
       const jeune = unJeuneDto({
         idConseiller,
-        dateDerniereActualisationToken: dateEvenement,
+        dateDerniereActivite: dateEvenement,
         dateFinCEJ: dateFinCEJ,
         idPartenaire: '123456'
       })
@@ -126,7 +127,7 @@ describe('GetJeunesByConseillerQueryHandler', () => {
       const dateFinCEJ = new Date('2022-06-11')
       const jeune = unJeuneDto({
         idConseiller,
-        dateDerniereActualisationToken: dateEvenementRecent,
+        dateDerniereActivite: dateEvenementRecent,
         dateFinCEJ: dateFinCEJ,
         idPartenaire: '123456'
       })
@@ -171,7 +172,7 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         id: idJeune,
         idConseiller: idConseillerCible,
         idConseillerInitial: idDernierConseillerPrecedent,
-        dateDerniereActualisationToken: dateEvenement,
+        dateDerniereActivite: dateEvenement,
         dateFinCEJ: dateFinCEJ,
         idPartenaire: '123456'
       })
@@ -237,7 +238,7 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         unJeuneDto({
           id: idJeune,
           idConseiller,
-          dateDerniereActualisationToken: dateEvenement,
+          dateDerniereActivite: dateEvenement,
           idStructureMilo: idStructure,
           dateFinCEJ: dateFinCEJ,
           idPartenaire: '123456'

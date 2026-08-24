@@ -1,7 +1,6 @@
 import { NotifierRappelActionJobHandler } from '../../../src/application/jobs/notifier-rappel-action.job.handler'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigurationApplication } from '../../../src/domain/jeune/configuration-application'
-import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { createSandbox } from 'sinon'
@@ -24,9 +23,7 @@ import { SuiviJob } from '../../../src/domain/suivi-job'
 describe('NotifierRappelActionJobHandler', () => {
   let notifierRappelActionJobHandler: NotifierRappelActionJobHandler
   let actionRepository: StubbedType<Action.Repository>
-  let jeuneConfigurationApplicationRepository: StubbedType<
-    ConfigurationApplication.Repository<Jeune.ConfigurationApplication>
-  >
+  let jeuneConfigurationApplicationRepository: StubbedType<ConfigurationApplication.Repository>
   let notificationRepository: StubbedType<Notification.Repository>
   let actionFactory: StubbedClass<Action.Factory>
   let dateService: StubbedClass<DateService>

@@ -13,6 +13,7 @@ import {
 } from '../../../src/domain/rendez-vous/rendez-vous'
 import { ActionSqlModel } from '../../../src/infrastructure/sequelize/models/action.sql-model'
 import { ArchiveJeuneSqlModel } from '../../../src/infrastructure/sequelize/models/archive-jeune.sql-model'
+import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { CacheApiPartenaireSqlModel } from '../../../src/infrastructure/sequelize/models/cache-api-partenaire.sql-model'
 import {
@@ -23,6 +24,7 @@ import { SuiviJobSqlModel } from '../../../src/infrastructure/sequelize/models/s
 import { AsSql } from '../../../src/infrastructure/sequelize/types'
 import { DateService } from '../../../src/utils/date-service'
 import { uneActionDto } from '../../fixtures/sql-models/action.sql-model'
+import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from '../../fixtures/sql-models/rendez-vous.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -122,12 +124,29 @@ describe('NettoyerLesDonneesJobHandler', () => {
       unJeuneDto({
         id: idJeune2,
         dateDerniereConnexion: maintenant.minus({ days: 59 }).toJSDate(),
+        dateDerniereActivite: maintenant.minus({ days: 59 }).toJSDate(),
         idConseiller: undefined
       }),
       unJeuneDto({
         id: idJeune3,
         dateDerniereConnexion: maintenant.minus({ days: 62 }).toJSDate(),
+        dateDerniereActivite: maintenant.minus({ days: 62 }).toJSDate(),
         idConseiller: undefined
+      })
+    ])
+    // Given - Invités
+    await JeuneInviteSqlModel.bulkCreate([
+      unJeuneInviteDto({
+        id: 'invite-actif',
+        idAuthentification: 'sub-invite-actif',
+        pushNotificationToken: 'token',
+        dateDerniereActivite: maintenant.minus({ days: 59 }).toJSDate()
+      }),
+      unJeuneInviteDto({
+        id: 'invite-inactif',
+        idAuthentification: 'sub-invite-inactif',
+        pushNotificationToken: 'token',
+        dateDerniereActivite: maintenant.minus({ days: 62 }).toJSDate()
       })
     ])
     // Given - Archive
@@ -504,7 +523,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
   })
 
   describe('jeune', () => {
-    it('met à null pushToken pour jeunes connectés la denière fois il y a plus de 60 jours', async () => {
+    it('met à null pushToken pour jeunes sans activité depuis plus de 60 jours', async () => {
       // Then
       const jeunes = await JeuneSqlModel.findAll()
       expect(jeunes).to.have.length(3)
@@ -514,6 +533,20 @@ describe('NettoyerLesDonneesJobHandler', () => {
       expect(jeunes[0].pushNotificationToken).to.equal('token')
       expect(jeunes[2].id).to.equal(idJeune3)
       expect(jeunes[2].pushNotificationToken).to.equal(null)
+    })
+  })
+
+  describe('invité', () => {
+    it('met à null pushToken pour invités sans activité depuis plus de 60 jours', async () => {
+      // Then
+      const inviteActif = await JeuneInviteSqlModel.findByPk('invite-actif')
+      const inviteInactif = await JeuneInviteSqlModel.findByPk('invite-inactif')
+      expect(inviteActif!.pushNotificationToken).to.equal('token')
+      expect(inviteInactif!.pushNotificationToken).to.be.null()
+      expect(
+        (stats.resultat as { nombreTokensInvitesNettoyes: number })
+          .nombreTokensInvitesNettoyes
+      ).to.equal(1)
     })
   })
 

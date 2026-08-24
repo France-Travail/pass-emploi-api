@@ -22,6 +22,7 @@ import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/consei
 import { FavoriOffreEmploiSqlModel } from '../../infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from '../../infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import { FavoriOffreImmersionSqlModel } from '../../infrastructure/sequelize/models/favori-offre-immersion.sql-model'
+import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { LogModificationRendezVousSqlModel } from '../../infrastructure/sequelize/models/log-modification-rendez-vous-sql.model'
 import { NotificationJeuneSqlModel } from '../../infrastructure/sequelize/models/notification-jeune.sql-model'
@@ -59,7 +60,8 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     let nombreSuiviJobsSupprimes = -1
     let nombreRdvSupprimes = -1
     let nombreRdvMiloSupprimes = -1
-    let nombreJeunesPasConnectesDepuis60Jours = -1
+    let nombreTokensJeunesNettoyes = -1
+    let nombreTokensInvitesNettoyes = -1
     let nombreActionsSupprimees = -1
     let nombreAnimationsCollectivesCloses = -1
     let nombreFavorisEmploiSupprimes = -1
@@ -182,13 +184,29 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     }
 
     try {
-      nombreJeunesPasConnectesDepuis60Jours = (
+      nombreTokensJeunesNettoyes = (
         await JeuneSqlModel.update(
           {
             pushNotificationToken: null
           },
           {
-            where: dateConnexionSuperieureA60Jours(maintenant)
+            where: sansActiviteDepuis60Jours(maintenant)
+          }
+        )
+      )[0]
+    } catch (e) {
+      this.logger.warn(e)
+      nbErreurs++
+    }
+
+    try {
+      nombreTokensInvitesNettoyes = (
+        await JeuneInviteSqlModel.update(
+          {
+            pushNotificationToken: null
+          },
+          {
+            where: sansActiviteDepuis60Jours(maintenant)
           }
         )
       )[0]
@@ -331,7 +349,8 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         nombreSuiviJobsSupprimes,
         nombreRdvSupprimes,
         nombreRdvMiloSupprimes,
-        nombreJeunesPasConnectesDepuis60Jours,
+        nombreTokensJeunesNettoyes,
+        nombreTokensInvitesNettoyes,
         nombreActionsSupprimees,
         nombreAnimationsCollectivesCloses,
         nombreFavorisEmploiSupprimes,
@@ -418,9 +437,9 @@ function dateSuperieureADeuxAns(maintenant: DateTime): WhereOptions {
   }
 }
 
-function dateConnexionSuperieureA60Jours(maintenant: DateTime): WhereOptions {
+function sansActiviteDepuis60Jours(maintenant: DateTime): WhereOptions {
   return {
-    dateDerniereConnexion: {
+    dateDerniereActivite: {
       [Op.lt]: maintenant.minus({ days: 60 }).toJSDate()
     },
     pushNotificationToken: {

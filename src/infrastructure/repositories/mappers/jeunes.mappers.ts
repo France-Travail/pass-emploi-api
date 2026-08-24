@@ -96,8 +96,7 @@ export function toConfigurationApplication(
     appVersion: jeuneSqlModel.appVersion ?? undefined,
     installationId: jeuneSqlModel.installationId ?? undefined,
     instanceId: jeuneSqlModel.instanceId ?? undefined,
-    dateDerniereActualisationToken:
-      jeuneSqlModel.dateDerniereActualisationToken ?? undefined,
+    dateDerniereActivite: jeuneSqlModel.dateDerniereActivite ?? undefined,
     pushNotificationToken: jeuneSqlModel.pushNotificationToken ?? undefined,
     fuseauHoraire: jeuneSqlModel.timezone ?? TIMEZONE_PAR_DEFAUT
   }

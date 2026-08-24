@@ -186,8 +186,6 @@ export class JeuneSqlRepository implements Jeune.Repository {
       notificationsActualitesMilo: jeune.preferences.actualitesMilo,
       appVersion: jeune.configuration.appVersion ?? null,
       pushNotificationToken: jeune.configuration.pushNotificationToken ?? null,
-      dateDerniereActualisationToken:
-        jeune.configuration.dateDerniereActualisationToken ?? null,
       installationId: jeune.configuration.installationId ?? null,
       instanceId: jeune.configuration.instanceId ?? null,
       timezone: jeune.configuration.fuseauHoraire ?? null,
@@ -255,7 +253,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         | 'installationId'
         | 'instanceId'
         | 'pushNotificationToken'
-        | 'dateDerniereActualisationToken'
+        | 'dateDerniereActivite'
         | 'timezone'
         | 'idStructureMilo'
         | 'dateSignatureCGU'

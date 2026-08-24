@@ -273,9 +273,9 @@ export const listeCronJobs: Planificateur.CronJob[] = [
   },
   {
     type: Planificateur.JobType.PURGER_INVITES_INACTIFS,
-    expression: '0 4 1 * *',
+    expression: '0 6 * * *',
     description:
-      'Le 1er de chaque mois à 4h. Purge les invités inactifs (ligne DB + identité connect).'
+      'Tous les jours à 6h. Purge les invités inactifs (ligne DB + identité connect).'
   },
   {
     type: Planificateur.JobType.QUALIFIER_ACTIONS,

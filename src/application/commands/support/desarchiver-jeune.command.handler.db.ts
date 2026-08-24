@@ -495,7 +495,7 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       // idAuthentification null : le compte IDP a été supprimé, il sera réassocié par email à la prochaine connexion
       idAuthentification: null as unknown as string,
       pushNotificationToken: null,
-      dateDerniereActualisationToken: null,
+      dateDerniereActivite: null,
       appVersion: null,
       installationId: null,
       instanceId: null,
