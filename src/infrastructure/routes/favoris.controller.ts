@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -74,6 +75,7 @@ import {
 } from './validation/favoris.inputs'
 
 @Controller('jeunes/:idJeune')
+@UserJourney('favoris')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Favoris')
 export class FavorisController {

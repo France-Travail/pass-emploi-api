@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   GetDetailOffreEmploiQuery,
   GetDetailOffreEmploiQueryHandler
@@ -19,6 +20,7 @@ import { handleResult } from './result.handler'
 import { FindOffresEmploiQueryParams } from './validation/offres-emploi.inputs'
 
 @Controller('offres-emploi')
+@UserJourney('recherche_offres')
 @CustomSwaggerApiOAuth2()
 @ApiTags("Offres d'emploi")
 export class OffresEmploiController {

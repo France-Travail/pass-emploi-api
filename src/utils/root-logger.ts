@@ -36,6 +36,16 @@ const pinoOptions = {
     const jobRunId =
       getWorkerTrackingServiceInstance().getCurrentJobTracking().jobRunId
 
+    const userJourney = getContextValue<string>(ContextKey.USER_JOURNEY)
+
+    // labels construit en amont : deux spreads conditionnels du même bloc
+    // s'écraseraient l'un l'autre (mixinMergeStrategy ne fusionne qu'entre
+    // mixin et payload, pas à l'intérieur du mixin).
+    const labels = {
+      ...(jobRunId && { job_run_id: jobRunId }),
+      ...(userJourney && { user_journey: userJourney })
+    }
+
     return {
       ...apmTraceIds,
       ...(utilisateur && {
@@ -48,9 +58,7 @@ const pinoOptions = {
       ...(httpRequestId && {
         http: { request: { id: httpRequestId } }
       }),
-      ...(jobRunId && {
-        labels: { job_run_id: jobRunId }
-      })
+      ...(Object.keys(labels).length > 0 && { labels })
     }
   },
   formatters: {

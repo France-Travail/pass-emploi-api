@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { EnvoyerMessageGroupeCommandHandler } from '../../application/commands/envoyer-message-groupe.command.handler'
@@ -8,6 +9,7 @@ import { handleResult } from './result.handler'
 import { EnvoyerMessagePayload } from './validation/messages.input'
 
 @Controller('messages')
+@UserJourney('messagerie')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Messages')
 export class MessagesController {

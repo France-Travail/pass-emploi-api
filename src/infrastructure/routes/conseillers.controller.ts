@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -69,6 +70,7 @@ import {
 } from './validation/conseillers.inputs'
 
 @Controller('conseillers')
+@UserJourney('portefeuille_conseiller')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Conseillers')
 export class ConseillersController {
@@ -370,6 +372,7 @@ export class ConseillersController {
       'Autorisé pour le conseiller avec les bénéficiaires de son portefeuille.'
   })
   @Post(':idConseiller/listes-de-diffusion')
+  @UserJourney('messagerie')
   async getListesDeDiffusion(
     @Param('idConseiller')
     idConseiller: string,
@@ -418,6 +421,7 @@ export class ConseillersController {
     description: 'Autorisé pour un conseiller FT et CD'
   })
   @Get(':idConseiller/jeunes/:idJeune/demarches')
+  @UserJourney('suivi_demarches')
   @Header('Cache-Control', 'max-age=1200')
   async getDemarches(
     @Param('idConseiller') idConseiller: string,
@@ -448,6 +452,7 @@ export class ConseillersController {
   }
 
   @Get(':idConseiller/jeunes/:idJeune/rendezvous')
+  @UserJourney('rendez_vous')
   @ApiOperation({
     summary: 'Récupère les rendez-vous d’un jeune Milo',
     description: 'Autorisé pour un jeune Milo'
@@ -474,6 +479,7 @@ export class ConseillersController {
     description: 'Autorisé pour un conseiller'
   })
   @Post(':idConseiller/jeunes/notify-messages')
+  @UserJourney('messagerie')
   async postNotifications(
     @Param('idConseiller') idConseiller: string,
     @Body() envoyerNotificationsPayload: EnvoyerNotificationsPayload,

@@ -1,9 +1,11 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Header } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ApiTags } from '@nestjs/swagger'
 import { Public } from '../decorators/public.decorator'
 
 @Controller('config')
+@UserJourney('configuration_application')
 @ApiTags('Config')
 export class ConfigController {
   constructor(private readonly configService: ConfigService) {}

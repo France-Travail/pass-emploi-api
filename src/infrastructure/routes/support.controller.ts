@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -129,6 +130,7 @@ function toJobSummaryQueryModel(
 }
 
 @Controller('support')
+@UserJourney('support')
 @ApiTags('Support')
 @SkipOidcAuth()
 @UseGuards(ApiKeyAuthGuard)

@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, Param, Post } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
@@ -23,6 +24,7 @@ import {
 } from './validation/recherches.inputs'
 
 @Controller('conseillers/:idConseiller')
+@UserJourney('recherches_sauvegardees')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Recherches')
 export class RecherchesConseillersController {

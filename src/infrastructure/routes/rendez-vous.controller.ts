@@ -12,6 +12,7 @@ import {
   Query
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { DateTime } from 'luxon'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
 import {
@@ -66,6 +67,7 @@ import {
 } from './validation/rendez-vous.inputs'
 
 @Controller()
+@UserJourney('rendez_vous')
 @CustomSwaggerApiOAuth2()
 @ApiTags(
   'Rendez-vous du CEJ pour Milo / Pass Emploi (uniquement GET liste pour PE)'
@@ -199,6 +201,7 @@ export class RendezVousController {
     description: 'Autorisé pour un conseiller'
   })
   @Post('conseillers/:idConseiller/rendezvous')
+  @UserJourney('creation_rendez_vous')
   async createRendezVous(
     @Param('idConseiller') idConseiller: string,
     @Body() createRendezVousPayload: CreateRendezVousPayload,
@@ -281,6 +284,7 @@ export class RendezVousController {
     summary: 'Récupère la liste des animations collectives de l‘agence du jeune'
   })
   @Get('jeunes/:idJeune/animations-collectives')
+  @UserJourney('animations_collectives')
   async getAnimationsCollectivesJeune(
     @Param('idJeune') idJeune: string,
     @Query() queryParams: MaintenantQueryParams,

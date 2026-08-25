@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Param, SetMetadata, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger'
@@ -11,6 +12,7 @@ import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
 import { handleResult } from './result.handler'
 
 @Controller('admin')
+@UserJourney('support')
 @ApiTags('Admin')
 @SkipOidcAuth()
 @UseGuards(ApiKeyAuthGuard)

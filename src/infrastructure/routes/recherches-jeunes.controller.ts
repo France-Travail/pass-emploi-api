@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -46,6 +47,7 @@ import {
 } from './validation/suggestions-inputs'
 
 @Controller('jeunes/:idJeune')
+@UserJourney('recherches_sauvegardees')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Recherches')
 export class RecherchesJeunesController {

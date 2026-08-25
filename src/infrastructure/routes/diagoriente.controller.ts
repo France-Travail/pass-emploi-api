@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, GoneException, Param, Query } from '@nestjs/common'
 import { ApiPropertyOptional, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
@@ -27,6 +28,7 @@ class GetDiagorienteMetiersFavorisQueryParams {
 }
 
 @Controller('jeunes/:idJeune/diagoriente')
+@UserJourney('diagoriente')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Diagoriente')
 export class DiagorienteController {
