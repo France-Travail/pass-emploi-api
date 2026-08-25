@@ -1,5 +1,4 @@
 import { Inject } from '@nestjs/common'
-import { Core } from './core'
 import {
   AnimationCollective,
   AnimationCollectiveRepositoryToken
@@ -12,6 +11,7 @@ import {
 } from '../building-blocks/types/domain-error'
 import { JeuneDuRendezVous } from './rendez-vous/rendez-vous'
 import { ApiProperty } from '@nestjs/swagger'
+import { Profil } from './profil'
 
 export const AgenceRepositoryToken = 'Agence.Repository'
 
@@ -21,10 +21,8 @@ export interface Agence {
 }
 
 export namespace Agence {
-  import Structure = Core.Structure
-
   export interface Repository {
-    get(id: string, structure: Structure): Promise<Agence | undefined>
+    get(id: string, structure: Profil.Structure): Promise<Agence | undefined>
     findAllConseillersByAgence(idAgence: string): Promise<Conseiller[]>
   }
 

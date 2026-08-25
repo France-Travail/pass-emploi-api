@@ -10,8 +10,7 @@ import {
   failure,
   Result
 } from '../../../building-blocks/types/result'
-import { estFranceTravail, getStructureDeReference } from '../../../domain/core'
-import { Profil } from '../../../domain/profil'
+import { estFranceTravail, Profil } from '../../../domain/profil'
 import { AgenceSqlModel } from '../../../infrastructure/sequelize/models/agence.sql-model'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 
@@ -25,8 +24,6 @@ export class ModifierAgenceFTConseillerCommandHandler extends CommandHandler<
   ModifierAgenceFTConseillerCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor() {
     super('ModifierAgenceFTConseillerCommandHandler')
   }
@@ -58,7 +55,7 @@ export class ModifierAgenceFTConseillerCommandHandler extends CommandHandler<
     const agenceSql = await AgenceSqlModel.findOne({
       where: {
         id: command.idAgence,
-        structure: getStructureDeReference(conseillerSql.structure)
+        structure: Profil.Structure.FRANCE_TRAVAIL
       }
     })
     if (!agenceSql) {

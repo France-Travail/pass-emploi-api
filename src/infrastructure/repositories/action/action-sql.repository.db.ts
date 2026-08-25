@@ -23,7 +23,7 @@ export class ActionSqlRepository implements Action.Repository {
   }
 
   async get(
-    id: Action.Id,
+    id: string,
     options?: { avecCommentaires: boolean }
   ): Promise<Action | undefined> {
     const sqlModel = await ActionSqlModel.findByPk(
@@ -34,7 +34,7 @@ export class ActionSqlRepository implements Action.Repository {
     return ActionSqlRepository.actionFromSqlModel(sqlModel)
   }
 
-  async findAll(idsActions: Action.Id[]): Promise<Action[]> {
+  async findAll(idsActions: string[]): Promise<Action[]> {
     const sqlModels = await ActionSqlModel.findAll({
       where: { id: idsActions }
     })
@@ -45,7 +45,7 @@ export class ActionSqlRepository implements Action.Repository {
   }
 
   async getConseillerEtJeune(
-    id: Action.Id
+    id: string
   ): Promise<{ idConseiller: string; idJeune: string } | undefined> {
     const sqlModel = await ActionSqlModel.findByPk(id, {
       attributes: [],

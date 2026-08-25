@@ -169,7 +169,7 @@ export class RecherchesJeunesController {
       {
         idJeune,
         accessToken: accessToken,
-        structure: utilisateur.structure,
+        profil: utilisateur.profil,
         avecDiagoriente
       },
       utilisateur

@@ -2,7 +2,6 @@ import {
   RdvResumeQueryModel,
   GetRendezVousACloreQueryModel
 } from 'src/application/queries/query-models/rendez-vous.query-model'
-import { Core } from 'src/domain/core'
 import { AsSql } from 'src/infrastructure/sequelize/types'
 import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
 import { GetAnimationsCollectivesV2QueryHandler } from '../../../../src/application/queries/rendez-vous/get-animations-collectives-v2.query.handler.db'
@@ -25,6 +24,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
+import { Profil } from '../../../../src/domain/profil'
 
 describe('GetAnimationsCollectivesACloreQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -78,7 +78,7 @@ describe('GetAnimationsCollectivesACloreQueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       agence2Dto = uneAgenceDto({
@@ -86,7 +86,7 @@ describe('GetAnimationsCollectivesACloreQueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       evenementCollectifAClore1Dto = unRendezVousDto({

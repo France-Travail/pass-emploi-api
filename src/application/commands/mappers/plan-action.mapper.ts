@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import { Core, estInvite, estMilo } from '../../../domain/core'
 import {
   ActionDto,
   ActionKindDto,
@@ -26,6 +25,7 @@ import {
   PlanActionQueryModel,
   TypeActionPlan
 } from '../../queries/query-models/plan-action.query-model'
+import { estInvite, estMilo, Profil } from '../../../domain/profil'
 
 const situationVersDto: Record<SituationPayload, SituationDto> = {
   [SituationPayload.COLLEGE]: 'COLLEGE',
@@ -80,7 +80,7 @@ const deepLinkVersDestination: Record<DeepLinkDto, DestinationActionPlan> = {
 
 export function toProfileDto(
   payload: GenererPlanActionPayload,
-  structure: Core.Structure
+  structure: Profil.Structure
 ): ProfileDto {
   const dateNaissance = calculerDateNaissance(payload.dateNaissance)
 
@@ -101,7 +101,7 @@ export function toProfileDto(
   }
 }
 
-function calculerAuthProvider(structure: Core.Structure): AuthProviderDto {
+function calculerAuthProvider(structure: Profil.Structure): AuthProviderDto {
   if (estInvite(structure)) return 'guest'
   if (estMilo(structure)) return 'mission-locale'
   return 'france-travail'

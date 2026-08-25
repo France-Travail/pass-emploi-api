@@ -5,7 +5,6 @@ import {
   GetDetailConseillerQueryHandler
 } from '../../../src/application/queries/get-detail-conseiller.query.handler.db'
 import { Conseiller } from '../../../src/domain/milo/conseiller'
-import { Core } from '../../../src/domain/core'
 import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -24,6 +23,7 @@ import { testConfig } from '../../utils/module-for-testing'
 import { Migration } from '../../../src/domain/migration'
 import { DateTime } from 'luxon'
 import { Authentification } from '../../../src/domain/authentification'
+import { Profil } from '../../../src/domain/profil'
 
 const token = 'un-token'
 
@@ -58,7 +58,7 @@ describe('GetDetailConseillerQueryHandler', () => {
 
   describe('handle', () => {
     describe('Conseiller non Milo', () => {
-      const structure = Core.Structure.POLE_EMPLOI
+      const structure = Profil.Structure.FRANCE_TRAVAIL
 
       it("retourne le conseiller quand il existe avec l'agence + dateDeMigration", async () => {
         // Given
@@ -160,7 +160,7 @@ describe('GetDetailConseillerQueryHandler', () => {
       })
     })
     describe('Conseiller Milo', () => {
-      const structure = Core.Structure.MILO
+      const structure = Profil.Structure.MILO
 
       it('retourne le conseiller quand il existe avec la structure', async () => {
         // Given
@@ -223,7 +223,7 @@ describe('GetDetailConseillerQueryHandler', () => {
 
       const query: GetDetailConseillerQuery = {
         idConseiller: utilisateur.id,
-        structure: Core.Structure.MILO,
+        structure: Profil.Structure.MILO,
         accessToken: token
       }
 

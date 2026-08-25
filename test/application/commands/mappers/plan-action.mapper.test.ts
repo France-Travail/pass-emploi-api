@@ -6,7 +6,6 @@ import {
   DestinationActionPlan,
   TypeActionPlan
 } from '../../../../src/application/queries/query-models/plan-action.query-model'
-import { Core } from '../../../../src/domain/core'
 import {
   ActionDto,
   PlanDto
@@ -19,6 +18,7 @@ import {
   SituationPayload
 } from '../../../../src/infrastructure/routes/validation/plan-action.inputs'
 import { expect } from '../../../utils'
+import { Profil } from '../../../../src/domain/profil'
 
 function unPayload(
   args: Partial<GenererPlanActionPayload> = {}
@@ -45,7 +45,7 @@ describe('plan-action.mapper', () => {
           // When
           const profile = toProfileDto(
             unPayload({ situation }),
-            Core.Structure.INVITE
+            Profil.Structure.INVITE
           )
 
           // Then
@@ -59,7 +59,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ goals: Object.values(GoalPayload) }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -89,7 +89,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ obstacles: freins }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -119,7 +119,7 @@ describe('plan-action.mapper', () => {
               ObstaclePayload.PAS_DE_TRANSPORT
             ]
           }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -135,7 +135,7 @@ describe('plan-action.mapper', () => {
               ObstaclePayload.PAS_DE_TRANSPORT
             ]
           }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -144,7 +144,7 @@ describe('plan-action.mapper', () => {
 
       it('envoie un tableau vide quand le champ est absent', () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profile = toProfileDto(unPayload(), Profil.Structure.INVITE)
 
         // Then
         expect(profile.obstacles).to.deep.equal([])
@@ -156,7 +156,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ dateNaissance: '2006-05-12' }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -167,7 +167,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ dateNaissance: '2006-05-12T00:00:00+02:00' }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -176,7 +176,7 @@ describe('plan-action.mapper', () => {
 
       it("n'envoie pas dateNaissance quand elle est absente", () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profile = toProfileDto(unPayload(), Profil.Structure.INVITE)
 
         // Then
         expect(profile.dateNaissance).to.be.undefined()
@@ -188,7 +188,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ domaine: 'mécanique' }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -199,7 +199,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ domaine: null }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -208,7 +208,7 @@ describe('plan-action.mapper', () => {
 
       it("n'envoie pas domaine quand il n'est pas renseigné", () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profile = toProfileDto(unPayload(), Profil.Structure.INVITE)
 
         // Then
         expect(profile.domaine).to.be.undefined()
@@ -230,7 +230,7 @@ describe('plan-action.mapper', () => {
             villeRecherche: rouen,
             rayonKm: 30
           }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -243,7 +243,7 @@ describe('plan-action.mapper', () => {
         // When
         const profile = toProfileDto(
           unPayload({ habitation: rouen }),
-          Core.Structure.INVITE
+          Profil.Structure.INVITE
         )
 
         // Then
@@ -253,7 +253,7 @@ describe('plan-action.mapper', () => {
 
       it("n'envoie aucune localisation quand rien n'est renseigné", () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profile = toProfileDto(unPayload(), Profil.Structure.INVITE)
 
         // Then
         expect(profile.habitation).to.be.undefined()
@@ -263,12 +263,11 @@ describe('plan-action.mapper', () => {
     })
 
     describe('authProvider', () => {
-      const cas: Array<[Core.Structure, string]> = [
-        [Core.Structure.INVITE, 'guest'],
-        [Core.Structure.MILO, 'mission-locale'],
-        [Core.Structure.POLE_EMPLOI, 'france-travail'],
-        [Core.Structure.POLE_EMPLOI_BRSA, 'france-travail'],
-        [Core.Structure.CONSEIL_DEPT, 'france-travail']
+      const cas: Array<[Profil.Structure, string]> = [
+        [Profil.Structure.INVITE, 'guest'],
+        [Profil.Structure.MILO, 'mission-locale'],
+        [Profil.Structure.FRANCE_TRAVAIL, 'france-travail'],
+        [Profil.Structure.CONSEIL_DEPARTEMENTAL, 'france-travail']
       ]
       cas.forEach(([structure, attendu]) => {
         it(`dérive ${attendu} de la structure ${structure}`, () => {

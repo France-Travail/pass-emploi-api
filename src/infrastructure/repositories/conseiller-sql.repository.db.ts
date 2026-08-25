@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
 import { Conseiller } from '../../domain/milo/conseiller'
-import { Core } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 import { AgenceSqlModel } from '../sequelize/models/agence.sql-model'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 
@@ -10,13 +10,10 @@ import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 export class ConseillerSqlRepository implements Conseiller.Repository {
   async existe(
     idConseiller: string,
-    structure: Core.Structure
+    structure: Profil.Structure
   ): Promise<boolean> {
     const conseillerSqlModel = await ConseillerSqlModel.findOne({
-      where: {
-        id: idConseiller,
-        structure
-      }
+      where: { id: idConseiller, structure }
     })
     return !!conseillerSqlModel
   }
@@ -60,6 +57,7 @@ export class ConseillerSqlRepository implements Conseiller.Repository {
         firstName: conseillerSql.prenom,
         lastName: conseillerSql.nom,
         structure: conseillerSql.structure,
+        dispositif: conseillerSql.dispositif,
         email: conseillerSql.email ?? undefined,
         dateVerificationMessages: DateTime.fromJSDate(
           conseillerSql.dateVerificationMessages
@@ -98,6 +96,7 @@ export class ConseillerSqlRepository implements Conseiller.Repository {
       prenom: conseiller.firstName,
       nom: conseiller.lastName,
       structure: conseiller.structure,
+      dispositif: conseiller.dispositif,
       email: conseiller.email || null,
       dateVerificationMessages:
         conseiller.dateVerificationMessages ?? undefined,
@@ -137,6 +136,7 @@ export function fromSqlConseillerToAggregate(
     firstName: conseillerSqlModel.prenom,
     lastName: conseillerSqlModel.nom,
     structure: conseillerSqlModel.structure,
+    dispositif: conseillerSqlModel.dispositif,
     email: conseillerSqlModel.email || undefined,
     agence: conseillerSqlModel.agence,
     notificationsSonores: conseillerSqlModel.notificationsSonores

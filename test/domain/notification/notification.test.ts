@@ -11,12 +11,12 @@ import { uneNotification } from 'test/fixtures/notification.fixture'
 import { uneRecherche } from 'test/fixtures/recherche.fixture'
 import { unRendezVous } from 'test/fixtures/rendez-vous.fixture'
 import { uneSessionMiloAllegee } from 'test/fixtures/sessions.fixture'
-import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { DateService } from '../../../src/utils/date-service'
 import { resoudreDateMilo } from '../../../src/utils/milo-date'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
+import { Profil } from '../../../src/domain/profil'
 
 describe('Notification', () => {
   describe('Service', () => {
@@ -230,7 +230,7 @@ describe('Notification', () => {
         // Given
         const jeune = {
           id: 'test',
-          structure: Core.Structure.MILO,
+          structure: Profil.Structure.MILO,
           token: 'tok'
         }
         dateService.now.returns(DateTime.fromISO('2020-04-06T12:00:00.000Z'))
@@ -264,7 +264,7 @@ describe('Notification', () => {
         // Given
         const jeune = {
           id: 'test',
-          structure: Core.Structure.POLE_EMPLOI,
+          structure: Profil.Structure.FRANCE_TRAVAIL,
           token: 'tok'
         }
         dateService.now.returns(DateTime.fromISO('2020-04-27T12:00:00.000Z'))
@@ -298,7 +298,7 @@ describe('Notification', () => {
         // Given
         const jeune = {
           id: 'test',
-          structure: Core.Structure.MILO,
+          structure: Profil.Structure.MILO,
           token: 'tok'
         }
         dateService.now.returns(DateTime.fromISO('2020-04-27T12:00:00.000Z'))
@@ -332,7 +332,7 @@ describe('Notification', () => {
         // Given
         const jeune = {
           id: 'test',
-          structure: Core.Structure.POLE_EMPLOI,
+          structure: Profil.Structure.FRANCE_TRAVAIL,
           token: 'tok'
         }
         dateService.now.returns(DateTime.fromISO('2020-04-27T12:00:00.000Z'))
@@ -353,7 +353,7 @@ describe('Notification', () => {
         // Given
         const jeune = {
           id: 'test',
-          structure: Core.Structure.MILO,
+          structure: Profil.Structure.MILO,
           token: 'tok'
         }
         dateService.now.returns(DateTime.fromISO('2020-04-27T12:00:00.000Z'))

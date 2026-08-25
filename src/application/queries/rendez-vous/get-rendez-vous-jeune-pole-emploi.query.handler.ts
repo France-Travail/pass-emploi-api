@@ -5,7 +5,10 @@ import { Cached, Query } from '../../../building-blocks/types/query'
 import { Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
-import { Profil } from '../../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  DISPOSITIFS_FT_AVEC_DEMARCHES
+} from '../../../domain/profil'
 import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
@@ -23,8 +26,8 @@ export class GetRendezVousJeunePoleEmploiQueryHandler extends QueryHandler<
   Result<Cached<RendezVousJeuneQueryModel[]>>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(

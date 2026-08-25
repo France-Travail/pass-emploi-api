@@ -1,8 +1,7 @@
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 
 import { GetCatalogueDemarchesQueryHandler } from 'src/application/queries/get-catalogue-demarches.query.handler'
-import { Profil } from '../../../src/domain/profil'
-import { Core } from '../../../src/domain/core'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 
@@ -23,7 +22,7 @@ xdescribe('GetCatalogueQueryHandler', () => {
       // When
       const result = await handler.handle({
         accessToken: 'un token',
-        structure: Core.Structure.POLE_EMPLOI_BRSA
+        structure: Profil.Structure.FRANCE_TRAVAIL
       })
 
       // Then
@@ -64,7 +63,7 @@ xdescribe('GetCatalogueQueryHandler', () => {
 
       // When
       await handler.authorize(
-        { accessToken: 'un token', structure: utilisateur.structure },
+        { accessToken: 'un token', structure: utilisateur.profil.structure },
         utilisateur
       )
 
@@ -79,8 +78,20 @@ xdescribe('GetCatalogueQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

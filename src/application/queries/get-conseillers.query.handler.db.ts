@@ -5,11 +5,17 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Core, estFranceTravail } from '../../domain/core'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
+import { clauseSqlProfils } from '../../infrastructure/sequelize/filtre-profil'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { ConseillerSimpleQueryModel } from './query-models/conseillers.query-model'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  DISPOSITIFS_FT_HORS_AVENIR_PRO,
+  estFranceTravail,
+  Profil,
+  profilExact
+} from '../../domain/profil'
 
 export interface GetConseillersQuery extends Query {
   recherche: string
@@ -20,7 +26,7 @@ export class GetConseillersQueryHandler extends QueryHandler<
   GetConseillersQuery,
   Result<ConseillerSimpleQueryModel[]>
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -34,6 +40,14 @@ export class GetConseillersQueryHandler extends QueryHandler<
     { recherche }: GetConseillersQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<ConseillerSimpleQueryModel[]>> {
+    // un conseiller FT (hors AVENIR_PRO) cherche parmi tous les dispositifs FT hors AVENIR_PRO
+    const clauseProfils = clauseSqlProfils(
+      estFranceTravail(utilisateur.profil.structure) &&
+        utilisateur.profil.dispositif !== Profil.Dispositif.AVENIR_PRO
+        ? [DISPOSITIFS_FT_HORS_AVENIR_PRO]
+        : [profilExact(utilisateur.profil)],
+      'conseiller'
+    )
     const conseillersRawSql = await this.sequelize.query<{
       id: string
       nom: string
@@ -50,7 +64,7 @@ export class GetConseillersQueryHandler extends QueryHandler<
             conseiller.id_structure_milo as idstructuremilo,
             GREATEST(SIMILARITY(CONCAT(conseiller.nom, ' ', conseiller.prenom), :query), SIMILARITY(conseiller.email, :queryPE), SIMILARITY(conseiller.email, :queryFT)) as greatestscore
       FROM conseiller
-      WHERE structure IN (:structures)
+      WHERE ${clauseProfils.clause}
         AND GREATEST(SIMILARITY(CONCAT(conseiller.nom, ' ', conseiller.prenom), :query), SIMILARITY(conseiller.email, :queryPE), SIMILARITY(conseiller.email, :queryFT)) > 0.1 
       ORDER BY greatestscore DESC
       LIMIT :limit;`,
@@ -59,9 +73,7 @@ export class GetConseillersQueryHandler extends QueryHandler<
           query: recherche,
           queryPE: recherche.replace(/@francetravail.fr/g, '@pole-emploi.fr'),
           queryFT: recherche.replace(/@pole-emploi.fr/g, '@francetravail.fr'),
-          structures: estFranceTravail(utilisateur.structure)
-            ? Core.structuresFT
-            : [utilisateur.structure],
+          ...clauseProfils.remplacements,
           limit: this.confiService.get('values.maxRechercheConseillers')
         },
         type: QueryTypes.SELECT

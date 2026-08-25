@@ -8,7 +8,7 @@ import {
   PoleEmploiPartenaireClient,
   PoleEmploiPartenaireClientToken
 } from '../clients/pole-emploi-partenaire-client.db'
-import { Core } from '../../domain/core'
+import { Profil } from '../../domain/profil'
 
 @Injectable()
 export class DemarcheHttpRepository implements Demarche.Repository {
@@ -22,12 +22,9 @@ export class DemarcheHttpRepository implements Demarche.Repository {
   async update(
     demarcheModifiee: Demarche.Modifiee,
     accessToken: string,
-    structure: Core.Structure
+    structure: Profil.Structure
   ): Promise<Result<Demarche>> {
-    const token = await this.oidcClient.exchangeTokenJeune(
-      accessToken,
-      structure
-    )
+    const token = await this.oidcClient.exchangeToken(accessToken, structure)
     const result = await this.poleEmploiPartenaireClient.updateDemarche(
       demarcheModifiee,
       token
@@ -43,12 +40,9 @@ export class DemarcheHttpRepository implements Demarche.Repository {
   async save(
     demarche: Demarche.Creee,
     accessToken: string,
-    structure: Core.Structure
+    structure: Profil.Structure
   ): Promise<Result<Demarche>> {
-    const token = await this.oidcClient.exchangeTokenJeune(
-      accessToken,
-      structure
-    )
+    const token = await this.oidcClient.exchangeToken(accessToken, structure)
     const result = await this.poleEmploiPartenaireClient.createDemarche(
       demarche,
       token

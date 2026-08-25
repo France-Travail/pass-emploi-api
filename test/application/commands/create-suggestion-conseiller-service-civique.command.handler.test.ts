@@ -8,7 +8,6 @@ import {
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
 import { Failure, isFailure } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
-import { aAccesAuxAlternancesEtServicesCiviques } from '../../../src/domain/core'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -18,6 +17,7 @@ import { unJeune } from '../../fixtures/jeune.fixture'
 import { uneSuggestion } from '../../fixtures/suggestion.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import Suggestion = Recherche.Suggestion
+import { aAccesAuxAlternancesEtServicesCiviques } from '../../../src/domain/profil'
 
 describe('CreateSuggestionDuConseillerServiceCiviqueCommandHandler', () => {
   let createSuggestionDuConseillerServiceCiviqueCommandHandler: CreateSuggestionConseillerServiceCiviqueCommandHandler
@@ -77,7 +77,7 @@ describe('CreateSuggestionDuConseillerServiceCiviqueCommandHandler', () => {
       ).to.have.been.calledWithExactly(
         command.idConseiller,
         utilisateur,
-        aAccesAuxAlternancesEtServicesCiviques(utilisateur.structure)
+        aAccesAuxAlternancesEtServicesCiviques(utilisateur.profil)
       )
     })
   })

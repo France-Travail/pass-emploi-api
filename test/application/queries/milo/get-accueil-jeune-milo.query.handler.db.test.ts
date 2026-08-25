@@ -22,7 +22,7 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
-import { Profil } from 'src/domain/profil'
+import { TOUT_MILO } from 'src/domain/profil'
 import { Core } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { CodeTypeRendezVous } from 'src/domain/rendez-vous/rendez-vous'
@@ -869,7 +869,7 @@ describe('GetAccueilJeuneMiloQueryHandler', () => {
   describe('profilsAutorises', () => {
     it('exige le profil MILO', () => {
       // Then
-      expect(handler.profilsAutorises).to.deep.equal([Profil.Jeune.MILO])
+      expect(handler.profilsAutorises).to.deep.equal(TOUT_MILO)
     })
   })
 })

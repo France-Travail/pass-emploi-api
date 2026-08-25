@@ -11,10 +11,7 @@ import {
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
-import {
-  PROFILS_JEUNES_ACCOMPAGNES,
-  TOUS_LES_CONSEILLERS
-} from 'src/domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, estMilo } from 'src/domain/profil'
 import { fromSqlToActionQueryModelWithJeune } from 'src/infrastructure/repositories/mappers/actions.mappers'
 import { ActionSqlModel } from 'src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -24,7 +21,6 @@ import {
   JeuneMiloSansIdDossier,
   NonTrouveError
 } from '../../building-blocks/types/domain-error'
-import { estMilo } from '../../domain/core'
 import { RendezVousJeuneAssociationSqlModel } from '../../infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
 import { buildError } from '../../utils/logger.module'
 import { ConseillerInterAgenceAuthorizer } from '../authorizers/conseiller-inter-agence-authorizer'
@@ -48,10 +44,7 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
   GetJeuneHomeAgendaQuery,
   Result<JeuneHomeAgendaQueryModel>
 > {
-  readonly profilsAutorises = [
-    ...PROFILS_JEUNES_ACCOMPAGNES,
-    ...TOUS_LES_CONSEILLERS
-  ]
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
@@ -99,7 +92,10 @@ export class GetJeuneHomeAgendaQueryHandler extends QueryHandler<
       estConseiller(utilisateur.type) &&
       jeuneSqlModel.idStructureMilo !==
         jeuneSqlModel.conseiller?.idStructureMilo
-    if (estMilo(utilisateur.structure) && !jeuneStructureDifferenteConseiller) {
+    if (
+      estMilo(utilisateur.profil.structure) &&
+      !jeuneStructureDifferenteConseiller
+    ) {
       if (!jeuneSqlModel.idPartenaire) {
         return failure(new JeuneMiloSansIdDossier(query.idJeune))
       }

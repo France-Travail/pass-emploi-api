@@ -11,12 +11,11 @@ import {
 } from '../../../building-blocks/types/result'
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
-import { getStructureDeReference } from '../../../domain/core'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 
 export interface ModifierConseillerCommand extends Command {
@@ -32,7 +31,7 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
   ModifierConseillerCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -55,7 +54,7 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
     if (command.agence?.id) {
       const agence = await this.agencesRepository.get(
         command.agence.id,
-        getStructureDeReference(conseillerActuel.structure)
+        conseillerActuel.structure
       )
       if (!agence) {
         return failure(new NonTrouveError('Agence', command.agence.id))

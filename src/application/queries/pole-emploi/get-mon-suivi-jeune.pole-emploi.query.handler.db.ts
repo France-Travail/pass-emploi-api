@@ -10,7 +10,10 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  DISPOSITIFS_FT_AVEC_DEMARCHES
+} from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { MonSuiviPoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 
@@ -27,8 +30,8 @@ export class GetMonSuiviPoleEmploiQueryHandler extends QueryHandler<
   Result<Cached<MonSuiviPoleEmploiQueryModel>>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(

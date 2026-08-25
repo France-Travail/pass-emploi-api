@@ -4,8 +4,7 @@ import { IdService } from '../../utils/id-service'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Command } from '../../building-blocks/types/command'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
-import { Core } from '../../domain/core'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import {
   Recherche,
   RecherchesRepositoryToken
@@ -26,9 +25,9 @@ export interface CreateRechercheCommand extends Command {
 @Injectable()
 export class CreateRechercheCommandHandler extends CommandHandler<
   CreateRechercheCommand,
-  Core.Id
+  { id: string }
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(RecherchesRepositoryToken)
@@ -41,7 +40,9 @@ export class CreateRechercheCommandHandler extends CommandHandler<
     super('CreateRechercheCommandHandler')
   }
 
-  async handle(command: CreateRechercheCommand): Promise<Result<Core.Id>> {
+  async handle(
+    command: CreateRechercheCommand
+  ): Promise<Result<{ id: string }>> {
     const criteres = Recherche.normaliserLesCriteres(
       command.type,
       command.criteres

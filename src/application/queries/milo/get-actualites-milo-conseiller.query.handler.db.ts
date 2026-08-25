@@ -6,7 +6,7 @@ import {
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUT_MILO } from '../../../domain/profil'
 import { isFailure, Result } from '../../../building-blocks/types/result'
 import {
   ActualiteMiloConseillerQueryModel,
@@ -25,7 +25,7 @@ export class GetActualitesMiloConseillerQueryHandler extends QueryHandler<
   GetActualitesMiloConseillerQuery,
   ActualitesMiloConseillerQueryModel
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(ActualiteMiloRepositoryToken)

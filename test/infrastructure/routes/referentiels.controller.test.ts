@@ -14,12 +14,11 @@ import { GetMetiersRomeQueryHandler } from '../../../src/application/queries/get
 import { GetMotifsSuppressionJeuneQueryHandler } from '../../../src/application/queries/get-motifs-suppression-jeune.query.handler'
 import { CommuneOuDepartementType } from '../../../src/application/queries/query-models/communes-et-departements.query-model'
 import { success } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { unHeaderAuthorization } from '../../fixtures/authentification.fixture'
 import { StubbedClass, stubClass } from '../../utils'
 import { ensureUserAuthenticationFailsIfInvalid } from '../../utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
-import Structure = Core.Structure
+import { Profil } from '../../../src/domain/profil'
 
 let getCommunesEtDepartementsQueryHandler: StubbedClass<GetCommunesEtDepartementsQueryHandler>
 let getAgencesQueryHandler: StubbedClass<GetAgencesQueryHandler>
@@ -184,7 +183,7 @@ describe('ReferentielsController', () => {
       it('renvoie les agences Pôle emploi', () => {
         // Given
         getAgencesQueryHandler.execute
-          .withArgs({ structure: Structure.POLE_EMPLOI })
+          .withArgs({ structure: Profil.Structure.FRANCE_TRAVAIL })
           .resolves([
             {
               id: 'jean michel id',
@@ -222,7 +221,7 @@ describe('ReferentielsController', () => {
       it('renvoie les agences milo', () => {
         // Given
         getAgencesQueryHandler.execute
-          .withArgs({ structure: Structure.MILO })
+          .withArgs({ structure: Profil.Structure.MILO })
           .resolves([
             {
               id: 'jean michel id',

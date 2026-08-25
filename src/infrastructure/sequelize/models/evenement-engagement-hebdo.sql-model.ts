@@ -7,7 +7,7 @@ import {
   Table
 } from 'sequelize-typescript'
 import { Authentification } from '../../../domain/authentification'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 
 export class EvenementEngagementHebdoDto extends Model {
   @PrimaryKey
@@ -34,7 +34,10 @@ export class EvenementEngagementHebdoDto extends Model {
   typeUtilisateur: Authentification.Type
 
   @Column({ field: 'structure', type: DataType.STRING })
-  structure: Core.Structure
+  structure: Profil.Structure
+
+  @Column({ field: 'dispositif', type: DataType.STRING })
+  dispositif: Profil.Dispositif | null
 
   @Column({ field: 'date_evenement', type: DataType.DATE })
   dateEvenement: Date

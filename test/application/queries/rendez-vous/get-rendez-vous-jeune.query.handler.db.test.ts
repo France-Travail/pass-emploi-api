@@ -1,4 +1,3 @@
-import { Core } from 'src/domain/core'
 import { RendezVousJeuneAssociationSqlModel } from 'src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
 import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
 import { GetRendezVousJeuneQueryHandler } from '../../../../src/application/queries/rendez-vous/get-rendez-vous-jeune.query.handler.db'
@@ -16,6 +15,7 @@ import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetRendezVousJeuneQueryHandler', () => {
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
@@ -127,7 +127,7 @@ describe('GetRendezVousJeuneQueryHandler', () => {
     it('appelle l’authorizer idoine pour un conseiller', async () => {
       // Given
       const conseiller = unUtilisateurConseiller({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       // When

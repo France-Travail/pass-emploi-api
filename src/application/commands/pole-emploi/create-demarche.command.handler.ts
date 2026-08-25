@@ -5,7 +5,10 @@ import { Command } from '../../../building-blocks/types/command'
 import { Result, isFailure } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Demarche, DemarcheRepositoryToken } from '../../../domain/demarche'
-import { Profil } from '../../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  DISPOSITIFS_FT_AVEC_DEMARCHES
+} from '../../../domain/profil'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { estDemarchePerso } from '../../queries/query-mappers/actions-pole-emploi.mappers'
@@ -28,8 +31,8 @@ export class CreateDemarcheCommandHandler extends CommandHandler<
   Demarche
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(
@@ -70,7 +73,7 @@ export class CreateDemarcheCommandHandler extends CommandHandler<
     return this.demarcheRepository.save(
       result.data,
       command.accessToken,
-      utilisateur.structure
+      utilisateur.profil.structure
     )
   }
 

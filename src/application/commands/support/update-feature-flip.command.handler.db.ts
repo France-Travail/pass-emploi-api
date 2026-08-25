@@ -4,7 +4,6 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 
 import { FeatureFlip } from '../../../domain/feature-flip'
-import { Profil } from '../../../domain/profil'
 import { FeatureFlipSqlModel } from '../../../infrastructure/sequelize/models/feature-flip.sql-model'
 import { AsSql } from '../../../infrastructure/sequelize/types'
 
@@ -20,8 +19,6 @@ export class UpdateFeatureFlipCommandHandler extends CommandHandler<
   UpdateFeatureFlipCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor() {
     super('UpdateFeatureFlipCommandHandler')
   }

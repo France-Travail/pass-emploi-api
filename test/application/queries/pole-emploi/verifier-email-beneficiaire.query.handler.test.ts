@@ -1,14 +1,24 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { emptySuccess, success } from 'src/building-blocks/types/result'
+import {
+  emptySuccess,
+  failure,
+  success
+} from 'src/building-blocks/types/result'
+import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
 import {
   VerifierEmailBeneficiaireFTQuery,
   VerifierEmailBeneficiaireQueryHandler
 } from '../../../../src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
-import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { unJeune } from '../../../fixtures/jeune.fixture'
+import {
+  unUtilisateurConseiller,
+  unUtilisateurJeune
+} from '../../../fixtures/authentification.fixture'
 import { createSandbox, expect } from '../../../utils'
+import { Profil } from '../../../../src/domain/profil'
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('VerifierEmailBeneficiaireQueryHandler', () => {
   let verifierEmailBeneficiaireQueryHandler: VerifierEmailBeneficiaireQueryHandler
@@ -46,11 +56,12 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       const query: VerifierEmailBeneficiaireFTQuery = {
         email: 'existant@test.com'
       }
-      jeuneRepository.getByEmail
-        .withArgs('existant@test.com')
-        .resolves(
-          unJeune({ structure: Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL })
-        )
+      jeuneRepository.getByEmail.withArgs('existant@test.com').resolves(
+        unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL
+        })
+      )
 
       // When
       const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
@@ -64,9 +75,12 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       const query: VerifierEmailBeneficiaireFTQuery = {
         email: 'existant@test.com'
       }
-      jeuneRepository.getByEmail
-        .withArgs('existant@test.com')
-        .resolves(unJeune({ structure: Core.Structure.CONSEIL_DEPT }))
+      jeuneRepository.getByEmail.withArgs('existant@test.com').resolves(
+        unJeune({
+          structure: Profil.Structure.CONSEIL_DEPARTEMENTAL,
+          dispositif: null
+        })
+      )
 
       // When
       const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
@@ -77,12 +91,26 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
   })
 
   describe('authorize', () => {
-    it('autorise : le profil FT est déjà garanti par profilsAutorises', async () => {
+    it('autorise un conseiller : le profil FT est garanti par profilsAutorises', async () => {
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.authorize()
+      const result = await verifierEmailBeneficiaireQueryHandler.authorize(
+        { email: 'test@test.fr' },
+        unUtilisateurConseiller()
+      )
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it('refuse un jeune : le type ne relève pas du profil', async () => {
+      // When
+      const result = await verifierEmailBeneficiaireQueryHandler.authorize(
+        { email: 'test@test.fr' },
+        unUtilisateurJeune({ profil: unProfilFT() })
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
   })
 })

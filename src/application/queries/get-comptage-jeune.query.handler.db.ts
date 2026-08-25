@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import {
-  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../building-blocks/types/domain-error'
@@ -9,9 +8,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, isFailure, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { estMilo } from '../../domain/core'
-import { Jeune } from '../../domain/jeune/jeune'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { Profil, TOUT_MILO } from '../../domain/profil'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -38,7 +35,7 @@ export class GetComptageJeuneQueryHandler extends QueryHandler<
   GetComptageJeuneQuery,
   Result<ComptageJeuneQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
@@ -59,7 +56,7 @@ export class GetComptageJeuneQueryHandler extends QueryHandler<
     if (!jeuneSql.idPartenaire) {
       return failure(new MauvaiseCommandeError('Jeune sans idPartenaire'))
     }
-    if (jeuneSql.dispositif !== Jeune.Dispositif.CEJ) {
+    if (jeuneSql.dispositif !== Profil.Dispositif.CEJ) {
       return failure(
         new MauvaiseCommandeError('Le Jeune doit être en dispositif CEJ')
       )
@@ -81,17 +78,10 @@ export class GetComptageJeuneQueryHandler extends QueryHandler<
     return resultComptage
   }
 
-  // Bi-public : reste sur TOUS_LES_PROFILS en attendant la scission en
-  // handlers jeune/conseiller séparés (ticket dédié). La restriction MiLo
-  // ne se réduit à aucun `Profil` déclarable tant que ce handler sert les
-  // deux publics sur une même route : elle reste ici.
   async authorize(
     query: GetComptageJeuneQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (!estMilo(utilisateur.structure)) {
-      return failure(new DroitsInsuffisants())
-    }
     if (Authentification.estJeune(utilisateur.type)) {
       return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
     }

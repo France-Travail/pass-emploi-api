@@ -9,7 +9,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { FindAllOffresServicesCiviqueQueryGetter } from './query-getters/find-all-offres-services-civique.query.getter'
 import { ServicesCiviqueQueryModel } from './query-models/service-civique.query-model'
 
@@ -30,7 +30,7 @@ export class GetOffresServicesCiviqueQueryHandler extends QueryHandler<
   GetServicesCiviqueQuery,
   Result<ServicesCiviqueQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private findAllOffresServicesCiviqueQueryGetter: FindAllOffresServicesCiviqueQueryGetter,

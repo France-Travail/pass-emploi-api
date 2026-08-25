@@ -112,7 +112,8 @@ module.exports = {
         id_conseiller: 'e04bb080-5805-402e-a527-0f9d2ee0840f',
         date_creation: '2021-11-24T10:00:00.000Z',
         date_premiere_connexion: '2021-11-24T10:00:00.000Z',
-        structure: 'POLE_EMPLOI',
+        structure: 'FRANCE_TRAVAIL',
+        dispositif: 'CEJ',
         id_authentification: 'ebd96d6f-195e-470d-9ec3-95feeb9b4d4e'
       }
     ])

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { TIMEZONE_PAR_DEFAUT } from '../../../domain/jeune/configuration-application'
 import { Jeune, JeuneNonAccompagne } from '../../../domain/jeune/jeune'
+import { estDispositifNonAccompagne } from '../../../domain/profil'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 
 function fromSqlToJeuneCommun(
@@ -48,27 +49,30 @@ function fromSqlToJeuneCommun(
   return jeune
 }
 
-// N'utiliser que sur un chemin ne servant que des jeunes accompagnés
-// (`dispositif` garanti) — sinon `fromSqlToJeuneOuNonAccompagne`.
+// N'utiliser que sur un chemin ne servant que des jeunes accompagnés —
+// sinon `fromSqlToJeuneOuNonAccompagne`.
 export function fromSqlToJeune(jeuneSqlModel: JeuneSqlModel): Jeune {
   return {
     ...fromSqlToJeuneCommun(jeuneSqlModel),
-    dispositif: jeuneSqlModel.dispositif!
+    dispositif: jeuneSqlModel.dispositif ?? null
   }
 }
 
-// Le discriminant est `dispositif`, pas la présence d'un conseiller : un
-// jeune historique peut avoir perdu son conseiller sans perdre son
-// dispositif (cf. fixture `unJeuneSansConseiller`), alors qu'un
-// JeuneNonAccompagne n'a jamais eu ni l'un ni l'autre.
+// Le discriminant est la VALEUR du dispositif (DEMANDEUR_D_EMPLOI /
+// ESPACE_CANDIDAT), pas son absence : un jeune Conseil départemental a un
+// dispositif null tout en étant accompagné, et un jeune historique peut
+// avoir perdu son conseiller sans changer de dispositif (cf. fixture
+// `unJeuneSansConseiller`).
 export function fromSqlToJeuneOuNonAccompagne(
   jeuneSqlModel: JeuneSqlModel
 ): Jeune | JeuneNonAccompagne {
-  if (!jeuneSqlModel.dispositif) {
-    // Sans dispositif, ce chemin ne sert que le nouveau public FT non
-    // accompagné, qui n'a jamais de conseiller non plus — le cast traduit
-    // cet invariant, que le typage structurel de `Omit` ne peut pas garantir.
-    return fromSqlToJeuneCommun(jeuneSqlModel) as JeuneNonAccompagne
+  if (estDispositifNonAccompagne(jeuneSqlModel.dispositif)) {
+    // Un non-accompagné n'a jamais de conseiller — le cast traduit cet
+    // invariant, que le typage structurel de `Omit` ne peut pas garantir.
+    return {
+      ...fromSqlToJeuneCommun(jeuneSqlModel),
+      dispositif: jeuneSqlModel.dispositif
+    } as JeuneNonAccompagne
   }
   return fromSqlToJeune(jeuneSqlModel)
 }

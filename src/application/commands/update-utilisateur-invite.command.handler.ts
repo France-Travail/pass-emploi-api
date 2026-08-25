@@ -13,8 +13,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { Core } from '../../domain/core'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { Profil, TOUT_PROFIL } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
 import { rootLogger } from '../../utils/logger.module'
@@ -36,7 +35,7 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
   UpdateUtilisateurInviteCommand,
   UtilisateurQueryModel
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(AuthentificationRepositoryToken)
@@ -98,7 +97,7 @@ export class UpdateUtilisateurInviteCommandHandler extends CommandHandler<
         idAuthentification: command.idUtilisateurAuth,
         prenom: PRENOM_INVITE_PAR_DEFAUT,
         nom: '',
-        structure: Core.Structure.INVITE,
+        profil: { structure: Profil.Structure.INVITE, dispositif: null },
         type: Authentification.Type.JEUNE,
         roles: []
       })

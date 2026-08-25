@@ -10,8 +10,6 @@ import { emptySuccess, Result } from '../../building-blocks/types/result'
 
 @Injectable()
 export class InitCronsCommandHandler extends CommandHandler<Command, void> {
-  readonly profilsAutorises = []
-
   constructor(
     private planificateurService: PlanificateurService,
     @Inject(PlanificateurRepositoryToken)

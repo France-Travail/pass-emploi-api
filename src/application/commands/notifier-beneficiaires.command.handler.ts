@@ -14,7 +14,7 @@ import {
 } from '../../domain/planificateur'
 import { Core } from '../../domain/core'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { Migration } from '../../domain/migration'
 import { DateService } from '../../utils/date-service'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
@@ -38,7 +38,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   NotifierBeneficiairesCommand,
   Planificateur.JobId
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private readonly dateService: DateService,

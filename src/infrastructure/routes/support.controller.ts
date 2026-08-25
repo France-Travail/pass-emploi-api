@@ -47,10 +47,6 @@ import {
   MettreAJourLesJeunesCejPeCommandHandler,
   MettreAJourLesJeunesCEJPoleEmploiCommand
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
-import {
-  RefreshJddCommand,
-  RefreshJddCommandHandler
-} from '../../application/commands/support/refresh-jdd.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
@@ -76,7 +72,6 @@ import {
   ListerJobsQueryParams,
   ModifierAgenceFTConseillerPayload,
   NotifierBeneficiairesPayload,
-  RefreshJDDPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
   TransfererJeunesPayload,
@@ -137,7 +132,6 @@ function toJobSummaryQueryModel(
 @ApiSecurity('api_key')
 export class SupportController {
   constructor(
-    private readonly refreshJddCommandHandler: RefreshJddCommandHandler,
     private readonly mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly modifierAgenceFTConseillerCommandHandler: ModifierAgenceFTConseillerCommandHandler,
@@ -192,24 +186,6 @@ export class SupportController {
       lastName: jeune.lastName,
       idConseiller: jeune.conseiller!.id
     }))
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @Post('jdd')
-  async refresh(@Body() payload: RefreshJDDPayload): Promise<void> {
-    const command: RefreshJddCommand = {
-      idConseiller: payload.idConseiller,
-      menage: payload.menage
-    }
-    const result = await this.refreshJddCommandHandler.execute(
-      command,
-      Authentification.unUtilisateurSupport()
-    )
-
-    return handleResult(result)
   }
 
   @SetMetadata(

@@ -18,7 +18,6 @@ import { Action } from '../../../../src/domain/action/action'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
 import { Chat } from '../../../../src/domain/chat'
 import { Core } from '../../../../src/domain/core'
-import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { CodeTypeRendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import { ActionSqlModel } from '../../../../src/infrastructure/sequelize/models/action.sql-model'
 import { ArchiveJeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/archive-jeune.sql-model'
@@ -42,6 +41,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
+import { Profil } from '../../../../src/domain/profil'
 
 describe('DesarchiverJeuneCommandHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -160,7 +160,7 @@ describe('DesarchiverJeuneCommandHandler', () => {
       prenom: 'John',
       nom: 'Doe',
       structure: Core.Structure.MILO,
-      dispositif: Jeune.Dispositif.CEJ,
+      dispositif: Profil.Dispositif.CEJ,
       idStructureMilo: null,
       idPartenaire: '12345',
       dateCreation: new Date('2022-01-01T08:00:00.000Z'),
@@ -476,7 +476,7 @@ describe('DesarchiverJeuneCommandHandler', () => {
         expect(jeune?.email).to.equal('john.doe@plop.io')
         expect(jeune?.idConseiller).to.equal(idConseiller)
         expect(jeune?.structure).to.equal(Core.Structure.MILO)
-        expect(jeune?.dispositif).to.equal(Jeune.Dispositif.CEJ)
+        expect(jeune?.dispositif).to.equal(Profil.Dispositif.CEJ)
         expect(jeune?.idPartenaire).to.equal('12345')
         expect(jeune?.idAuthentification).to.be.null()
       })

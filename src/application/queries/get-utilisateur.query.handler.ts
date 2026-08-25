@@ -13,7 +13,11 @@ import {
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
 import { Core } from '../../domain/core'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import {
+  memeProfil,
+  structureLegacyVersProfil,
+  TOUT_PROFIL
+} from '../../domain/profil'
 import {
   UtilisateurQueryModel,
   queryModelFromUtilisateur
@@ -22,6 +26,7 @@ import {
 export interface GetUtilisateurQuery extends Query {
   idAuthentification: string
   typeUtilisateur: Authentification.Type
+  // Format d'entrée de connect (rétro-compat) : structure legacy.
   structureUtilisateur: Core.Structure
 }
 
@@ -30,7 +35,7 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
   GetUtilisateurQuery,
   Result<UtilisateurQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(AuthentificationRepositoryToken)
@@ -42,13 +47,14 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
   async handle(
     query: GetUtilisateurQuery
   ): Promise<Result<UtilisateurQueryModel>> {
+    const profilAttendu = structureLegacyVersProfil(query.structureUtilisateur)
     let utilisateur = undefined
 
     switch (query.typeUtilisateur) {
       case Authentification.Type.JEUNE: {
-        utilisateur = await this.authentificationRepository.getJeuneByStructure(
+        utilisateur = await this.authentificationRepository.getJeuneByProfil(
           query.idAuthentification,
-          query.structureUtilisateur
+          profilAttendu
         )
         break
       }
@@ -56,7 +62,7 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
         utilisateur = await this.authentificationRepository.getConseiller(
           query.idAuthentification
         )
-        if (utilisateur?.structure !== query.structureUtilisateur) {
+        if (utilisateur && !memeProfil(profilAttendu, utilisateur.profil)) {
           utilisateur = undefined
         }
         break

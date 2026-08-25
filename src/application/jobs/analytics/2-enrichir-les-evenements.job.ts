@@ -53,7 +53,7 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
       await this.associerChaqueConseillerASonDernierAE(connexion)
       await this.associerChaqueConseillerASonPremierAE(connexion)
 
-      await this.mettreAJourLaStructureSelonDispositif(connexion)
+      await this.completerLeDispositifDesEvenementsJeune(connexion)
 
       await connexion.close()
 
@@ -84,6 +84,7 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
     this.logger.log('Mise à jour du schéma')
     await connexion.query(`
       ALTER TABLE evenement_engagement
+        ADD COLUMN IF NOT EXISTS "dispositif"  varchar,
         ADD COLUMN IF NOT EXISTS "semaine"     DATE,
         ADD COLUMN IF NOT EXISTS "jour"        DATE,
         ADD COLUMN IF NOT EXISTS "agence"      varchar,
@@ -200,6 +201,7 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
       (
         id_utilisateur              varchar(255),
         structure                   varchar,
+        dispositif                  varchar,
         nb_action_cree              integer,
         nb_message_envoye           integer,
         nb_consultation_rdv         integer,
@@ -210,6 +212,9 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
         date_dernier_ae             timestamp with time zone
       );
     `)
+    await connexion.query(
+      `ALTER TABLE evenement_engagement_jeune ADD COLUMN IF NOT EXISTS dispositif varchar;`
+    )
   }
 
   private async enrichirTableAEJeune(connexion: Sequelize): Promise<void> {
@@ -234,6 +239,7 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
     const query = `INSERT INTO evenement_engagement_jeune (
       id_utilisateur, 
       structure, 
+      dispositif, 
       nb_action_cree, 
       nb_message_envoye, 
       nb_consultation_rdv, 
@@ -247,6 +253,7 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
     SELECT
         id_utilisateur,
         structure,
+        dispositif,
         sum(nb_action_cree) AS nb_action_cree,
         sum(nb_message_envoye) AS nb_message_envoye,
         sum(nb_consultation_rdv) AS nb_consultation_rdv,
@@ -258,54 +265,34 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
       FROM ( ${fromTable.join('')} ) AS concat_tables
           GROUP BY
             id_utilisateur,
-            structure;
+            structure,
+            dispositif;
     `
     await connexion.query(query)
   }
 
-  private async mettreAJourLaStructureSelonDispositif(
+  // Les tokens sans claim `userProfile` (repli legacy) ne portent pas le
+  // dispositif des jeunes MiLo : on le complète depuis la table jeune.
+  private async completerLeDispositifDesEvenementsJeune(
     connexion: Sequelize
   ): Promise<void> {
-    this.logger.log('Mise à jour de la structure en fonction du dispositif')
+    this.logger.log('Complément du dispositif des événements jeune')
     await connexion.query(`
-      UPDATE evenement_engagement
-      SET structure = 'MILO_PACEA'
-      FROM (
-        SELECT id 
-        FROM jeune
-        WHERE structure = 'MILO' AND dispositif = 'PACEA'
-        ) AS subquery
-      WHERE evenement_engagement.id_utilisateur = subquery.id
-        AND evenement_engagement.type_utilisateur = 'JEUNE'
-        AND evenement_engagement.structure = 'MILO'
-      ;
-    `)
-    await connexion.query(`
-      UPDATE evenement_engagement
-      SET structure = 'MILO'
-      FROM (
-        SELECT id 
-        FROM jeune
-        WHERE structure = 'MILO' AND dispositif = 'CEJ'
-        ) AS subquery
-      WHERE evenement_engagement.id_utilisateur = subquery.id
-        AND evenement_engagement.type_utilisateur = 'JEUNE'
-        AND evenement_engagement.structure = 'MILO_PACEA'
-      ;
+      UPDATE evenement_engagement ee
+      SET dispositif = j.dispositif
+      FROM jeune j
+      WHERE ee.id_utilisateur = j.id
+        AND ee.type_utilisateur = 'JEUNE'
+        AND ee.dispositif IS NULL
+        AND j.dispositif IS NOT NULL;
     `)
     await connexion.query(`
       UPDATE evenement_engagement_jeune eej
-      SET structure = 'MILO_PACEA'
-      WHERE structure = 'MILO'
-      AND EXISTS 
-        (SELECT 1 FROM jeune j WHERE j.id = eej.id_utilisateur AND j.structure = 'MILO' AND j.dispositif = 'PACEA');
-    `)
-    await connexion.query(`
-      UPDATE evenement_engagement_jeune eej
-      SET structure = 'MILO'
-      WHERE structure = 'MILO_PACEA'
-      AND EXISTS 
-        (SELECT 1 FROM jeune j WHERE j.id = eej.id_utilisateur AND j.structure = 'MILO' AND j.dispositif = 'CEJ');
+      SET dispositif = j.dispositif
+      FROM jeune j
+      WHERE eej.id_utilisateur = j.id
+        AND eej.dispositif IS NULL
+        AND j.dispositif IS NOT NULL;
     `)
   }
 }
@@ -357,6 +344,7 @@ function getQueryTableAEJeune(tableAE: InfoTableAEAnnuelle): string {
       SELECT
         id_utilisateur,
         structure,
+        dispositif,
         date_evenement,
         CASE
           WHEN categorie = 'Action'
@@ -409,12 +397,14 @@ function getQueryTableAEJeune(tableAE: InfoTableAEAnnuelle): string {
         sum(consultation_evenement) AS nb_consultation_evenement,
         min(date_evenement) AS date_premier_ae,
         max(date_evenement) AS date_dernier_ae,
-        structure
+        structure,
+        dispositif
       FROM
         ${tableAEName}
       GROUP BY
         id_utilisateur,
-        structure
+        structure,
+        dispositif
     )
   `
 }

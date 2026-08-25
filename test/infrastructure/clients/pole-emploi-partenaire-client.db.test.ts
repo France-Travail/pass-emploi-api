@@ -12,7 +12,6 @@ import {
   failureApi,
   successApi
 } from '../../../src/building-blocks/types/result-api'
-import { Core } from '../../../src/domain/core'
 import { Demarche } from '../../../src/domain/demarche'
 import { DocumentPoleEmploiDto } from '../../../src/infrastructure/clients/dto/pole-emploi.dto'
 import { PoleEmploiPartenaireClient } from '../../../src/infrastructure/clients/pole-emploi-partenaire-client.db'
@@ -36,6 +35,7 @@ import {
   getDatabase
 } from '../../utils/database-for-testing'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilFT } from '../../fixtures/profil.fixture'
 
 describe('PoleEmploiPartenaireClient', () => {
   let poleEmploiPartenaireClient: PoleEmploiPartenaireClient
@@ -46,7 +46,7 @@ describe('PoleEmploiPartenaireClient', () => {
   let databaseForTesting: DatabaseForTesting
   const utilisateurJeunePE = unUtilisateurJeune({
     id: 'hermione',
-    structure: Core.Structure.POLE_EMPLOI
+    profil: unProfilFT()
   })
 
   beforeEach(async () => {

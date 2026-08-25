@@ -14,7 +14,6 @@ import {
   failure,
   isFailure
 } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -24,6 +23,8 @@ import { unJeune } from '../../fixtures/jeune.fixture'
 import { uneSuggestion } from '../../fixtures/suggestion.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import Suggestion = Recherche.Suggestion
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT } from '../../fixtures/profil.fixture'
 
 describe('CreateSuggestionDuConseillerServiceCiviqueCommandHandler', () => {
   let createSuggestionDuConseillerOffreEmploiCommandHandler: CreateSuggestionConseillerOffreEmploiCommandHandler
@@ -81,7 +82,7 @@ describe('CreateSuggestionDuConseillerServiceCiviqueCommandHandler', () => {
       const idConseiller = 'id-conseiller'
       const utilisateur = unUtilisateurConseiller({
         id: idConseiller,
-        structure: Core.Structure.POLE_EMPLOI_BRSA
+        profil: unProfilFT(Profil.Dispositif.BRSA)
       })
       const command = {
         idConseiller,
@@ -108,7 +109,7 @@ describe('CreateSuggestionDuConseillerServiceCiviqueCommandHandler', () => {
       const idConseiller = 'id-conseiller'
       const utilisateur = unUtilisateurConseiller({
         id: idConseiller,
-        structure: Core.Structure.POLE_EMPLOI_BRSA
+        profil: unProfilFT(Profil.Dispositif.BRSA)
       })
       const command = {
         idConseiller,

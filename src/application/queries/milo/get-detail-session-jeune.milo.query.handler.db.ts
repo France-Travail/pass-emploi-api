@@ -15,13 +15,13 @@ import {
   success
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
 import { MiloClient } from 'src/infrastructure/clients/milo/milo-client'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { SessionMiloSqlModel } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from 'src/utils/date-service'
+import { TOUT_MILO } from 'src/domain/profil'
 
 export interface GetDetailSessionJeuneMiloQuery extends Query {
   idSession: string
@@ -34,7 +34,7 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
   GetDetailSessionJeuneMiloQuery,
   Result<DetailSessionJeuneMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly oidcClient: OidcClient,
@@ -59,7 +59,7 @@ export class GetDetailSessionJeuneMiloQueryHandler extends QueryHandler<
       return failure(new JeuneMiloSansIdDossier(query.idJeune))
     }
 
-    const idpToken = await this.oidcClient.exchangeTokenJeune(
+    const idpToken = await this.oidcClient.exchangeToken(
       query.accessToken,
       jeune.structure
     )

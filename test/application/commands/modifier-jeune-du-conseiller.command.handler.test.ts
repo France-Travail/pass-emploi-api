@@ -10,19 +10,19 @@ import {
   emptySuccess,
   failure
 } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
-import Dispositif = Jeune.Dispositif
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT } from '../../fixtures/profil.fixture'
 
 describe('ModifierJeuneDuConseillerCommandHandler', () => {
   let modifierJeuneDuConseillerCommandHandler: ModifierJeuneDuConseillerCommandHandler
   let conseillerForJeuneAuthorizer: StubbedClass<ConseillerAuthorizer>
   let jeuneRepository: StubbedType<Jeune.Repository>
 
-  const jeune = unJeune({ structure: Core.Structure.POLE_EMPLOI })
+  const jeune = unJeune({ structure: Profil.Structure.FRANCE_TRAVAIL })
   const command: ModifierJeuneDuConseillerCommand = {
     idJeune: jeune.id,
     idPartenaire: 'id-nouveau'
@@ -42,7 +42,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
     it('authorize un conseiller PE du jeune', async () => {
       // Given
       const conseillerPE = unUtilisateurConseiller({
-        structure: Core.Structure.POLE_EMPLOI
+        profil: unProfilFT()
       })
       conseillerForJeuneAuthorizer.autoriserConseillerPourSonJeune
         .withArgs(jeune.id, conseillerPE)
@@ -81,7 +81,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       })
       it('met à jour comptage', async () => {
         // Given
-        const jeune = unJeune({ structure: Core.Structure.MILO })
+        const jeune = unJeune({ structure: Profil.Structure.MILO })
         jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
         const command: ModifierJeuneDuConseillerCommand = {
           idJeune: jeune.id,
@@ -102,13 +102,13 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       })
       it('met à jour dispositif CEJ vers PACEA et modifie peutVoirLeComptageDesHeures à false ', async () => {
         const jeune = unJeune({
-          structure: Core.Structure.MILO,
-          dispositif: Dispositif.CEJ
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ
         })
         jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
         const command: ModifierJeuneDuConseillerCommand = {
           idJeune: jeune.id,
-          dispositif: Dispositif.PACEA
+          dispositif: Profil.Dispositif.PACEA
         }
 
         const result =
@@ -116,7 +116,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
 
         const expected: Jeune = {
           ...jeune,
-          dispositif: Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)

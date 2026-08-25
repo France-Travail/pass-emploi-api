@@ -105,9 +105,13 @@ export class GetDemarchesQueryGetter {
     idAuthentificationJeune: string
   ): Promise<ResultApi<DemarcheDto[]>> {
     try {
-      const idpToken = await this.authClient.exchangeTokenConseillerJeune(
+      const idpToken = await this.authClient.exchangeToken(
         query.accessToken,
-        idAuthentificationJeune
+        undefined,
+        {
+          sub: idAuthentificationJeune,
+          type: Authentification.Type.JEUNE
+        }
       )
 
       return this.poleEmploiPartenaireClient.getDemarches(
@@ -128,9 +132,9 @@ export class GetDemarchesQueryGetter {
   ): Promise<ResultApi<DemarcheDto[]>> {
     const idpToken =
       query.idpToken ??
-      (await this.authClient.exchangeTokenJeune(
+      (await this.authClient.exchangeToken(
         query.accessToken,
-        jeuneUtilisateur.structure
+        jeuneUtilisateur.profil.structure
       ))
 
     return this.poleEmploiPartenaireClient.getDemarches(idpToken)

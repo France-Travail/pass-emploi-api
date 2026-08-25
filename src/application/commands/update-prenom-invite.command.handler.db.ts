@@ -8,7 +8,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { TOUT_INVITE } from '../../domain/profil'
 import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 
@@ -22,7 +22,7 @@ export class UpdatePrenomInviteCommandHandler extends CommandHandler<
   UpdatePrenomInviteCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Jeune.INVITE]
+  readonly profilsAutorises = TOUT_INVITE
 
   constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
     super('UpdatePrenomInviteCommandHandler')

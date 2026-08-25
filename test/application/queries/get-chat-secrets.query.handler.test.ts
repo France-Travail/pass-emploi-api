@@ -5,8 +5,7 @@ import {
   GetChatSecretsQueryHandler
 } from 'src/application/queries/get-chat-secrets.query.handler'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
-import { Core } from 'src/domain/core'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from 'src/domain/profil'
 import {
   unUtilisateurConseiller,
   unUtilisateurJeune
@@ -14,6 +13,7 @@ import {
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { FirebaseClient } from '../../../src/infrastructure/clients/firebase-client'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetChatSecretsQueryHandler', () => {
   let firebaseClient: StubbedClass<FirebaseClient>
@@ -72,7 +72,7 @@ describe('GetChatSecretsQueryHandler', () => {
     it('rejette un invité sans appeler firebase', async () => {
       // Given
       const utilisateur = unUtilisateurJeune({
-        structure: Core.Structure.INVITE
+        profil: unProfilInvite()
       })
       const query: GetChatSecretsQuery = { utilisateur }
 
@@ -86,7 +86,9 @@ describe('GetChatSecretsQueryHandler', () => {
 
     it('autorise un bénéficiaire MiLo', async () => {
       // Given
-      const utilisateur = unUtilisateurJeune({ structure: Core.Structure.MILO })
+      const utilisateur = unUtilisateurJeune({
+        profil: unProfilMilo()
+      })
       const query: GetChatSecretsQuery = { utilisateur }
       firebaseClientLocal.getToken.withArgs(utilisateur).resolves('un-token')
 
@@ -121,12 +123,20 @@ describe('GetChatSecretsQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getChatSecretsQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Conseiller.MILO,
-        Profil.Conseiller.FT,
-        Profil.Conseiller.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

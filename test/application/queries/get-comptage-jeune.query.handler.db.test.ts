@@ -8,7 +8,6 @@ import { ConseillerAuthorizer } from '../../../src/application/authorizers/conse
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetComptageJeuneQueryHandler } from '../../../src/application/queries/get-comptage-jeune.query.handler.db'
 import { GetComptageJeuneQueryGetter } from '../../../src/application/queries/query-getters/get-comptage-jeune.query.getter'
-import { Jeune } from '../../../src/domain/jeune/jeune'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import {
@@ -20,6 +19,7 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
+import { Profil } from '../../../src/domain/profil'
 
 describe('GetComptageJeuneQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -65,7 +65,7 @@ describe('GetComptageJeuneQueryHandler', () => {
         const conseiller = unConseillerDto()
         const jeune = unJeuneDto({
           idConseiller: conseiller.id,
-          dispositif: Jeune.Dispositif.PACEA
+          dispositif: Profil.Dispositif.PACEA
         })
         await ConseillerSqlModel.create(conseiller)
         await JeuneSqlModel.create(jeune)

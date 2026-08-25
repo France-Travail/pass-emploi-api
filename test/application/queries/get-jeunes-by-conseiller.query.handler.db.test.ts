@@ -17,7 +17,6 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Conseiller } from '../../../src/domain/milo/conseiller'
-import { Core } from '../../../src/domain/core'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -27,6 +26,8 @@ import {
 } from '../../utils/database-for-testing'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { DateService } from '../../../src/utils/date-service'
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetJeunesByConseillerQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -342,19 +343,21 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillersRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
         conseillersRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
 
@@ -374,19 +377,21 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.MILO,
+          profil: unProfilMilo(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillersRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
         conseillersRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
 
@@ -406,19 +411,21 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillersRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.POLE_EMPLOI_BRSA
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.BRSA
           })
         )
         conseillersRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.POLE_EMPLOI_AIJ
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.AIJ
           })
         )
 
@@ -438,19 +445,20 @@ describe('GetJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillersRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
         conseillersRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.MILO
+            structure: Profil.Structure.MILO
           })
         )
 

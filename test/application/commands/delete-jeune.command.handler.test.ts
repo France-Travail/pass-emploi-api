@@ -17,7 +17,7 @@ import {
 import { Authentification } from '../../../src/domain/authentification'
 import { Chat } from '../../../src/domain/chat'
 import { Jeune } from '../../../src/domain/jeune/jeune'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import {
   unUtilisateurJeune,
   unUtilisateurSupport
@@ -246,10 +246,20 @@ describe('DeleteJeuneCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(deleteJeuneCommandHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Support.SUPPORT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

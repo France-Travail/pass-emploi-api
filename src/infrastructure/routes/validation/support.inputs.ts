@@ -49,16 +49,6 @@ export class DesarchiverJeunePayload {
   idJeuneRecree?: string
 }
 
-export class RefreshJDDPayload {
-  @ApiProperty()
-  @IsString()
-  idConseiller: string
-
-  @ApiProperty()
-  @IsBoolean()
-  menage: boolean
-}
-
 export class ChangerAgenceConseillerPayload {
   @ApiProperty()
   @IsString()

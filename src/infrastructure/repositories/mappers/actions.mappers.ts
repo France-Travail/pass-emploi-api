@@ -6,9 +6,9 @@ import {
   QualificationActionQueryModel
 } from '../../../application/queries/query-models/actions.query-model'
 import { Action } from '../../../domain/action/action'
-import { Jeune } from '../../../domain/jeune/jeune'
 import { ActionSqlModel } from '../../sequelize/models/action.sql-model'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
+import { Profil } from '../../../domain/profil'
 
 export function fromSqlToActionQueryModelWithJeune(
   actionSqlModel: ActionSqlModel
@@ -31,7 +31,7 @@ export function fromSqlToActionQueryModelWithJeune(
       ? DateService.fromJSDateToISOString(actionSqlModel.dateFinReelle)
       : undefined,
     etat: buildEtat(actionSqlModel, {
-      qualifiable: actionSqlModel.jeune.dispositif === Jeune.Dispositif.CEJ
+      qualifiable: actionSqlModel.jeune.dispositif === Profil.Dispositif.CEJ
     }),
     qualification: buildQualificationQueryModel(actionSqlModel),
     jeune: fromSqlToBeneficiarieActionQueryModel(actionSqlModel.jeune),

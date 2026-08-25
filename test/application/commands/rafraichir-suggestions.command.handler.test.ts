@@ -16,14 +16,14 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
 import { SuggestionPoleEmploiService } from '../../../src/domain/offre/recherche/suggestion/pole-emploi.service'
-import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
-import { Profil } from '../../../src/domain/profil'
+import { Profil, TOUT_CONSEIL_DEPARTEMENTAL } from '../../../src/domain/profil'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { DiagorienteClient } from 'src/infrastructure/clients/diagoriente-client'
 import { Diagoriente } from 'src/domain/offre/recherche/suggestion/diagoriente'
 import { Recherche } from 'src/domain/offre/recherche/recherche'
 import { RafraichirSuggestionsCommandHandler } from 'src/application/commands/rafraichir-suggestions.command.handler'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
   let handler: RafraichirSuggestionsCommandHandler
@@ -66,7 +66,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         {
           idJeune: 'idJeune',
           accessToken: 'token',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           avecDiagoriente: false
         },
         utilisateur
@@ -82,7 +82,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
   describe('handle', () => {
     beforeEach(() => {
       jeuneRepository.get.resolves(jeune)
-      oidcClient.exchangeTokenJeune
+      oidcClient.exchangeToken
         .withArgs('token', jeune.structure)
         .resolves('idpToken')
     })
@@ -138,7 +138,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          structure: Core.Structure.MILO,
+          profil: unProfilMilo(),
           avecDiagoriente: true
         })
 
@@ -160,14 +160,14 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
           .resolves(success([uneSuggestionPE()]))
 
         suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi
-          .withArgs([uneSuggestionPE()], 'idJeune', Core.Structure.POLE_EMPLOI)
+          .withArgs([uneSuggestionPE()], 'idJeune', unProfilFT())
           .returns([uneSuggestion()])
 
         // When
         await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           avecDiagoriente: false
         })
 
@@ -219,7 +219,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         )
 
         suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi
-          .withArgs([uneSuggestionPE()], 'idJeune', Core.Structure.POLE_EMPLOI)
+          .withArgs([uneSuggestionPE()], 'idJeune', unProfilFT())
           .returns([uneSuggestion()])
 
         suggestionFactory.buildListeSuggestionsOffresFromDiagoriente
@@ -233,7 +233,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           avecDiagoriente: true
         })
 
@@ -265,7 +265,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         const result = await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          structure: Core.Structure.POLE_EMPLOI,
+          profil: unProfilFT(),
           avecDiagoriente: true
         })
 
@@ -279,9 +279,20 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

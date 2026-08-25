@@ -13,8 +13,6 @@ import {
   ChangementAgenceQueryModel
 } from '../../../domain/agence'
 
-import { Profil } from '../../../domain/profil'
-
 export interface FusionnerAgencesCommand extends Command {
   idAgenceSource: string
   idAgenceCible: string
@@ -25,8 +23,6 @@ export class FusionnerAgencesCommandHandler extends CommandHandler<
   FusionnerAgencesCommand,
   ChangementAgenceQueryModel[]
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     private readonly agenceService: Agence.Service,
     @Inject(AgenceRepositoryToken)

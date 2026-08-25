@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { CommandHandler } from 'src/building-blocks/types/command-handler'
 import { Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { estInvite } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
-import { Profil } from 'src/domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  estInvite,
+  TOUT_INVITE
+} from 'src/domain/profil'
 import {
   FormulaireImmersionPayloadV3,
   ImmersionClient
@@ -34,12 +37,7 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
   EnvoyerFormulaireContactImmersionCommandV3,
   void
 > {
-  readonly profilsAutorises = [
-    Profil.Jeune.MILO,
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT,
-    Profil.Jeune.INVITE
-  ]
+  readonly profilsAutorises = [...DISPOSITIFS_ACCOMPAGNES, TOUT_INVITE]
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
@@ -57,7 +55,7 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
     command: EnvoyerFormulaireContactImmersionCommandV3,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (estInvite(utilisateur.structure)) {
+    if (estInvite(utilisateur.profil.structure)) {
       return this.jeuneInviteAuthorizer.autoriserLInvite(
         command.idJeune,
         utilisateur

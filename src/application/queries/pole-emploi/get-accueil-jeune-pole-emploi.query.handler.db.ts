@@ -10,11 +10,14 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Core } from '../../../domain/core'
 import { Demarche } from '../../../domain/demarche'
 import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
-import { Profil } from '../../../domain/profil'
+import {
+  DISPOSITIFS_FT_AVEC_DEMARCHES,
+  Profil,
+  TOUT_CONSEIL_DEPARTEMENTAL
+} from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
 import { GetRecherchesSauvegardeesQueryGetter } from '../query-getters/accueil/get-recherches-sauvegardees.query.getter.db'
@@ -28,7 +31,7 @@ import UtilisateurFeature = FeatureFlip.UtilisateurFeature
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
-  structure: Core.Structure
+  structure: Profil.Structure
   maintenant: string
   accessToken: string
 }
@@ -39,8 +42,8 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   Result<AccueilJeunePoleEmploiQueryModel>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(
@@ -60,7 +63,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   async handle(
     query: GetAccueilJeunePoleEmploiQuery
   ): Promise<Result<AccueilJeunePoleEmploiQueryModel>> {
-    const idpToken = await this.oidcClient.exchangeTokenJeune(
+    const idpToken = await this.oidcClient.exchangeToken(
       query.accessToken,
       query.structure
     )

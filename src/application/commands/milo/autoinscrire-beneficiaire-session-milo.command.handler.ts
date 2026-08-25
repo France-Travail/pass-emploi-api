@@ -20,7 +20,6 @@ import {
   AuthentificationRepositoryToken
 } from 'src/domain/authentification'
 import { Chat, ChatRepositoryToken } from 'src/domain/chat'
-import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { JeuneMilo, JeuneMiloRepositoryToken } from 'src/domain/milo/jeune.milo'
 import {
@@ -29,7 +28,7 @@ import {
   SessionMiloRepositoryToken
 } from 'src/domain/milo/session.milo'
 import { Notification } from 'src/domain/notification/notification'
-import { Profil } from 'src/domain/profil'
+import { Profil, TOUT_MILO } from 'src/domain/profil'
 import { ChatCryptoService } from 'src/utils/chat-crypto-service'
 import { DateService } from 'src/utils/date-service'
 
@@ -48,7 +47,7 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
   void,
   JeuneMilo
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(JeuneMiloRepositoryToken)
@@ -245,12 +244,12 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
       await Promise.all([
         this.authentificationRepository.recupererAccesPartenaire(
           accessToken,
-          Core.Structure.MILO
+          Profil.Structure.MILO
         ),
         this.authentificationRepository.seFairePasserPourUnConseiller(
           idConseiller,
           accessToken,
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
       ])
     if (isFailure(resultAccesMiloConseiller)) return resultAccesMiloConseiller

@@ -1,12 +1,37 @@
 import { Core } from '../../../src/domain/core'
-import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil, structureLegacyVersProfil } from '../../../src/domain/profil'
 import { JeuneDto } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { AsSql } from '../../../src/infrastructure/sequelize/types'
 import { uneDate, uneDatetime } from '../date.fixture'
 
-export function unJeuneDto(
-  args: Partial<AsSql<JeuneDto>> = {}
-): AsSql<JeuneDto> {
+// `structure` s'exprime en valeur legacy (12 valeurs) : la fixture la
+// convertit vers les colonnes du modèle Profil (structure × dispositif).
+type JeuneDtoArgs = Partial<Omit<AsSql<JeuneDto>, 'structure'>> & {
+  structure?: Core.Structure
+}
+
+function colonnesProfil(
+  structureLegacy: Core.Structure,
+  dispositifConnu?: Profil.Dispositif | null
+): { structure: Profil.Structure; dispositif: Profil.Dispositif | null } {
+  const profil = structureLegacyVersProfil(structureLegacy)
+  return {
+    structure: profil.structure,
+    dispositif: dispositifConnu ?? profil.dispositif
+  }
+}
+
+export function unJeuneDto(args: JeuneDtoArgs = {}): AsSql<JeuneDto> {
+  const structureLegacy = args.structure ?? Core.Structure.MILO
+  const { structure: _structure, dispositif: _dispositif, ...reste } = args
+  const couple = colonnesProfil(
+    structureLegacy,
+    args.dispositif !== undefined
+      ? args.dispositif
+      : structureLegacy === Core.Structure.MILO
+        ? Profil.Dispositif.CEJ
+        : undefined
+  )
   const defaults: AsSql<JeuneDto> = {
     id: 'ABCDE',
     prenom: 'John',
@@ -19,7 +44,7 @@ export function unJeuneDto(
     pushNotificationToken: 'token',
     dateDerniereActivite: uneDate(),
     email: 'john.doe@plop.io',
-    structure: Core.Structure.MILO,
+    ...couple,
     idAuthentification: 'un-id',
     dateDerniereConnexion: uneDatetime().toJSDate(),
     idPartenaire: '1234',
@@ -36,11 +61,10 @@ export function unJeuneDto(
     timezone: 'Europe/Paris',
     idStructureMilo: null,
     dateSignatureCGU: null,
-    dispositif: Jeune.Dispositif.CEJ,
     peutVoirLeComptageDesHeures: null
   }
 
-  return { ...defaults, ...args }
+  return { ...defaults, ...reste }
 }
 
 export function unJeuneMiloDto(

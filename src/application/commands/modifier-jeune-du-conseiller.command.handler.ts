@@ -8,14 +8,13 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
-import { beneficiaireEstFTConnect } from '../../domain/core'
+import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 
 export interface ModifierJeuneDuConseillerCommand extends Command {
   idPartenaire?: string
-  dispositif?: Jeune.Dispositif
+  dispositif?: Profil.Dispositif
   peutVoirLeComptageDesHeures?: boolean
   idJeune: string
 }
@@ -25,7 +24,7 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
   ModifierJeuneDuConseillerCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -43,7 +42,11 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
     }
 
     let jeuneMisAJour = jeune
-    if (command.idPartenaire && beneficiaireEstFTConnect(jeune.structure)) {
+    const estBeneficiaireFTConnect = [
+      Profil.Structure.FRANCE_TRAVAIL,
+      Profil.Structure.CONSEIL_DEPARTEMENTAL
+    ].includes(jeune.structure)
+    if (command.idPartenaire && estBeneficiaireFTConnect) {
       jeuneMisAJour = Jeune.mettreAJourIdPartenaire(jeune, command.idPartenaire)
     }
     if (command.dispositif) {

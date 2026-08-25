@@ -1,11 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
 import { Mail, MailRepositoryToken, MailServiceToken } from '../../domain/mail'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
+import {
+  Profil,
+  ProfilAutorise,
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_MILO
+} from '../../domain/profil'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
+
+function dispositifFT(dispositif: Profil.Dispositif): ProfilAutorise {
+  return {
+    structure: Profil.Structure.FRANCE_TRAVAIL,
+    dispositifs: [dispositif]
+  }
+}
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.UPDATE_CONTACTS_CONSEILLER_MAILING_LISTS)
@@ -28,9 +40,7 @@ export class MajMailingListConseillerJobHandler extends JobHandler {
 
   async handle(): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
-    const stats: Partial<
-      Record<Core.Structure | 'conseillersSansEmail', number>
-    > = {}
+    const stats: Record<string, number> = {}
 
     const suivi: SuiviJob = {
       jobType: this.jobType,
@@ -41,50 +51,57 @@ export class MajMailingListConseillerJobHandler extends JobHandler {
       resultat: {}
     }
 
-    const mailingLists: Record<
-      Exclude<
-        Core.Structure,
-        | Core.Structure.INVITE
-        | Core.Structure.FT_ESPACE_CANDIDAT
-        | Core.Structure.FT_DEMANDEUR_D_EMPLOI
-      >,
-      { id: string }
-    > = {
-      [Core.Structure.POLE_EMPLOI]: {
-        id: this.configuration.get('brevo').mailingLists.poleEmploi
+    const idsListes = this.configuration.get('brevo').mailingLists
+    const mailingLists: Array<{
+      nom: string
+      profil: ProfilAutorise
+      id: string
+    }> = [
+      { nom: 'milo', profil: TOUT_MILO, id: idsListes.milo },
+      {
+        nom: 'poleEmploi',
+        profil: dispositifFT(Profil.Dispositif.CEJ),
+        id: idsListes.poleEmploi
       },
-      [Core.Structure.MILO]: {
-        id: this.configuration.get('brevo').mailingLists.milo
+      {
+        nom: 'brsa',
+        profil: dispositifFT(Profil.Dispositif.BRSA),
+        id: idsListes.brsa
       },
-      [Core.Structure.POLE_EMPLOI_BRSA]: {
-        id: this.configuration.get('brevo').mailingLists.brsa
+      {
+        nom: 'aij',
+        profil: dispositifFT(Profil.Dispositif.AIJ),
+        id: idsListes.aij
       },
-      [Core.Structure.POLE_EMPLOI_AIJ]: {
-        id: this.configuration.get('brevo').mailingLists.aij
+      { nom: 'cd', profil: TOUT_CONSEIL_DEPARTEMENTAL, id: idsListes.cd },
+      {
+        nom: 'avenirPro',
+        profil: dispositifFT(Profil.Dispositif.AVENIR_PRO),
+        id: idsListes.avenirPro
       },
-      [Core.Structure.CONSEIL_DEPT]: {
-        id: this.configuration.get('brevo').mailingLists.cd
+      {
+        nom: 'accompagnementIntensif',
+        profil: dispositifFT(Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF),
+        id: idsListes.accompagnementIntensif
       },
-      [Core.Structure.AVENIR_PRO]: {
-        id: this.configuration.get('brevo').mailingLists.avenirPro
+      {
+        nom: 'accompagnementGlobal',
+        profil: dispositifFT(Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL),
+        id: idsListes.accompagnementGlobal
       },
-      [Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF]: {
-        id: this.configuration.get('brevo').mailingLists.accompagnementIntensif
-      },
-      [Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL]: {
-        id: this.configuration.get('brevo').mailingLists.accompagnementGlobal
-      },
-      [Core.Structure.FT_EQUIP_EMPLOI_RECRUT]: {
-        id: this.configuration.get('brevo').mailingLists.equipEmploi
+      {
+        nom: 'equipEmploi',
+        profil: dispositifFT(Profil.Dispositif.EQUIP_EMPLOI_RECRUT),
+        id: idsListes.equipEmploi
       }
-    }
+    ]
 
-    for (const [structure, mailingList] of Object.entries(mailingLists)) {
+    for (const mailingList of mailingLists) {
       const contacts =
-        await this.mailRepository.findAllContactsConseillerByStructures([
-          structure as Core.Structure
-        ])
-      stats[structure as Core.Structure] = contacts.length
+        await this.mailRepository.findAllContactsConseillerParProfil(
+          mailingList.profil
+        )
+      stats[mailingList.nom] = contacts.length
 
       await this.mailService.mettreAJourMailingList(
         contacts,

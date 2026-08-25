@@ -8,7 +8,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
+import { TOUT_MILO } from 'src/domain/profil'
 import { SequelizeInjectionToken } from 'src/infrastructure/sequelize/providers'
 
 export interface GetCompteursBeneficiaireMiloQuery extends Query {
@@ -23,7 +23,7 @@ export class GetCompteursBeneficiaireMiloQueryHandler extends QueryHandler<
   GetCompteursBeneficiaireMiloQuery,
   Result<CompteursBeneficiaireQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private getAgendaSessionsConseillerMiloQueryHandler: GetAgendaSessionsConseillerMiloQueryHandler,

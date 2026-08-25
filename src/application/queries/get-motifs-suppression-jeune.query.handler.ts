@@ -7,20 +7,18 @@ import {
 } from '../../building-blocks/types/result'
 import { Injectable } from '@nestjs/common'
 import { ArchiveJeune } from '../../domain/archive-jeune'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { Profil, profilEstAutorise, TOUT_PROFIL } from '../../domain/profil'
 import { MotifSuppressionJeuneQueryModel } from './query-models/jeunes.query-model'
-import { Core } from '../../domain/core'
-import Structure = Core.Structure
 
 export interface GetMotifsSuppressionQuery extends Query {
-  structure: Structure
+  profil: Profil
 }
 @Injectable()
 export class GetMotifsSuppressionJeuneQueryHandler extends QueryHandler<
   Query,
   Result<MotifSuppressionJeuneQueryModel[]>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor() {
     super('GetMotifsSuppressionJeuneQueryHandler')
@@ -31,7 +29,7 @@ export class GetMotifsSuppressionJeuneQueryHandler extends QueryHandler<
   ): Promise<Result<MotifSuppressionJeuneQueryModel[]>> {
     return success(
       Object.entries(ArchiveJeune.motifsSuppression)
-        .filter(([_, { structures }]) => structures.includes(query.structure))
+        .filter(([_, { profils }]) => profilEstAutorise(query.profil, profils))
         .map(([motif, { description }]) => ({
           motif,
           description: description

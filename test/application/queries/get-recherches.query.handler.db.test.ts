@@ -1,9 +1,8 @@
 import { ConseillerInterAgenceAuthorizer } from '../../../src/application/authorizers/conseiller-inter-agence-authorizer'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetRecherchesQueryHandler } from '../../../src/application/queries/get-recherches.query.handler.db'
-import { Core } from '../../../src/domain/core'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { RechercheSqlRepository } from '../../../src/infrastructure/repositories/offre/recherche/recherche-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -21,6 +20,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../utils/database-for-testing'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetRecherchesQueryHandler', () => {
   let database: DatabaseForTesting
@@ -48,7 +48,7 @@ describe('GetRecherchesQueryHandler', () => {
       it('valide le conseiller', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         const query = {
@@ -127,12 +127,20 @@ describe('GetRecherchesQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getRecherchesQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Conseiller.MILO,
-        Profil.Conseiller.FT,
-        Profil.Conseiller.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

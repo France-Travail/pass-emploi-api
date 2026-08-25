@@ -5,10 +5,10 @@ import {
 } from 'src/application/queries/get-demarches.query.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetDemarchesQueryGetter } from '../../../src/application/queries/query-getters/pole-emploi/get-demarches.query.getter'
-import { Profil } from '../../../src/domain/profil'
-import { Core } from '../../../src/domain/core'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetDemarchesQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -65,8 +65,20 @@ describe('GetDemarchesQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getDemarchesQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })
@@ -85,7 +97,7 @@ describe('GetDemarchesQueryHandler', () => {
         accessToken: 'token'
       }
       const utilisateurMilo = unUtilisateurJeune({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       // When

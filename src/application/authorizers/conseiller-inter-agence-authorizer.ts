@@ -7,7 +7,6 @@ import {
 } from '../../building-blocks/types/result'
 import { Action, ActionRepositoryToken } from '../../domain/action/action'
 import { Authentification } from '../../domain/authentification'
-import { estMilo } from '../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -17,6 +16,7 @@ import {
   RendezVous,
   RendezVousRepositoryToken
 } from '../../domain/rendez-vous/rendez-vous'
+import { estMilo } from '../../domain/profil'
 
 @Injectable()
 export class ConseillerInterAgenceAuthorizer {
@@ -98,7 +98,7 @@ export class ConseillerInterAgenceAuthorizer {
   ): Promise<Result> {
     if (
       Authentification.estConseiller(utilisateur.type) &&
-      estMilo(utilisateur.structure)
+      estMilo(utilisateur.profil.structure)
     ) {
       const rendezVous = await this.rendezVousRepository.get(idRendezVous)
       const conseillerUtilisateur = await this.conseillerRepository.get(
@@ -143,7 +143,7 @@ export class ConseillerInterAgenceAuthorizer {
       if (jeune.conseiller?.id === utilisateur.id) {
         return emptySuccess()
       }
-      if (estMilo(utilisateur.structure) && jeune.conseiller?.idAgence) {
+      if (estMilo(utilisateur.profil.structure) && jeune.conseiller?.idAgence) {
         const conseillerUtilisateur = await this.conseillerRepository.get(
           utilisateur.id
         )

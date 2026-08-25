@@ -2,7 +2,7 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Injectable } from '@nestjs/common'
 import { SuggestionQueryModel } from './query-models/suggestion.query-model'
@@ -21,7 +21,7 @@ export class GetSuggestionsQueryHandler extends QueryHandler<
   GetSuggestionsQuery,
   SuggestionQueryModel[]
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetSuggestionsQueryHandler')
