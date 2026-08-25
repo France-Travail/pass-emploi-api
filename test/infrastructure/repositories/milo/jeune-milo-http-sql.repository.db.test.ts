@@ -148,8 +148,7 @@ describe('JeuneMiloHttpRepository', () => {
           id: idJeuneAvecDossier,
           idPartenaire: idDossier,
           configuration: uneConfiguration({
-            idJeune: idJeuneAvecDossier,
-            dateDerniereActualisationToken: uneDatetime().toJSDate()
+            idJeune: idJeuneAvecDossier
           }),
           idStructureMilo: idStructure,
           structureMilo: { id: idStructure, timezone: 'Europe/Paris' },
@@ -167,7 +166,6 @@ describe('JeuneMiloHttpRepository', () => {
             idConseiller: undefined,
             dateCreation: jeuneAttendu.creationDate.toJSDate(),
             pushNotificationToken: 'token',
-            dateDerniereActualisationToken: uneDatetime().toJSDate(),
             idPartenaire: idDossier,
             datePremiereConnexion: uneDatetime().plus({ day: 1 }).toJSDate(),
             installationId: '123456',

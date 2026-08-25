@@ -18,7 +18,7 @@ interface JeuneEtablissementRawSql extends JeuneSqlModel {
   id_conseiller: string
   prenom_conseiller: string
   nom_conseiller: string
-  date_derniere_actualisation_token: Date | null
+  date_derniere_activite: Date | null
   situation_courante: Situation
   count: string
 }
@@ -61,7 +61,7 @@ export class GetJeunesEtablissementV2QueryHandler extends QueryHandler<
             conseiller.id as id_conseiller,
             conseiller.prenom as prenom_conseiller,
             conseiller.nom as nom_conseiller,
-            jeune.date_derniere_actualisation_token,
+            jeune.date_derniere_activite,
             situations_milo.situation_courante,
             SIMILARITY(CONCAT(jeune.nom, ' ', jeune.prenom), ?) AS "score",
             COUNT(*) OVER() AS "count"
@@ -104,8 +104,7 @@ export class GetJeunesEtablissementV2QueryHandler extends QueryHandler<
             nom: jeuneSql.nom_conseiller
           },
           situation: jeuneSql.situation_courante?.categorie,
-          dateDerniereActivite:
-            jeuneSql.date_derniere_actualisation_token?.toISOString()
+          dateDerniereActivite: jeuneSql.date_derniere_activite?.toISOString()
         }
       })
     })

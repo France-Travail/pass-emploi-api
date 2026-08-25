@@ -148,13 +148,13 @@ describe('ArchiveJeuneService', () => {
       })
     })
 
-    describe('quand le compte est inactif (dateDerniereConnexion ou dateDerniereActualisationToken null)', () => {
+    describe('quand le compte est inactif (dateDerniereConnexion ou dateDerniereActivite null)', () => {
       it("le supprime sans créer d'archive ni envoyer d'email", async () => {
         // Given
         const compteInactif = unJeune({
           id: idJeune,
           configuration: uneConfiguration({
-            dateDerniereActualisationToken: undefined
+            dateDerniereActivite: undefined
           })
         })
         jeuneRepository.get.withArgs(idJeune).resolves(compteInactif)

@@ -48,7 +48,7 @@ export interface JeuneNonAccompagne extends JeuneCommun {
 }
 
 export namespace Jeune {
-  export import ConfigurationApplication = _ConfigurationApplication.ConfigurationApplicationJeune
+  export import ConfigurationApplication = _ConfigurationApplication.ConfigurationApplication
 
   export import Preferences = _ConfigurationApplication.ConfigurationApplication.Preferences
 

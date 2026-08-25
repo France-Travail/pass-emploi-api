@@ -49,8 +49,7 @@ describe('RechercheSqlRepository', () => {
         id: idJeune,
         idConseiller: conseillerDto.id,
         dateCreation: uneDatetime().toJSDate(),
-        pushNotificationToken: 'unToken',
-        dateDerniereActualisationToken: uneDatetime().toJSDate()
+        pushNotificationToken: 'unToken'
       })
     )
   })

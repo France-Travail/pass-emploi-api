@@ -58,7 +58,7 @@ export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur
         WHERE jeune.structure = :structure
         AND jeune.dispositif = :dispositif
         AND jeune.push_notification_token IS NOT NULL
-        AND jeune.date_derniere_actualisation_token > :nowLimit
+        AND jeune.date_derniere_activite > :nowLimit
         AND jeune.peut_voir_le_comptage_des_heures = true
         GROUP BY jeune.id
         HAVING COUNT(action.id) = 0

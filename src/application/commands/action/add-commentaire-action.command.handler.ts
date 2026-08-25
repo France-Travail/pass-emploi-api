@@ -11,10 +11,7 @@ import {
 } from '../../../domain/action/action'
 import { Inject } from '@nestjs/common'
 import { ConfigurationApplication } from '../../../domain/jeune/configuration-application'
-import {
-  Jeune,
-  JeuneConfigurationApplicationRepositoryToken
-} from '../../../domain/jeune/jeune'
+import { JeuneConfigurationApplicationRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { TOUS_LES_PROFILS } from '../../../domain/profil'
@@ -39,7 +36,7 @@ export class AddCommentaireActionCommandHandler extends CommandHandler<
     private commentaireActionRepository: Action.Commentaire.Repository,
     private commentaireActionFactory: Action.Commentaire.Factory,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
+    private jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
     private notificationService: Notification.Service,
     private evenementService: EvenementService
   ) {

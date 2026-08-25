@@ -16,15 +16,23 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     Array<{ id: string; idAuthentification: string; dateReference: Date }>
   > {
     const invites = await JeuneInviteSqlModel.findAll({
-      attributes: ['id', 'idAuthentification', 'dateDerniereActivite'],
+      attributes: [
+        'id',
+        'idAuthentification',
+        'dateDerniereActivite',
+        'dateCreation'
+      ],
       where: {
-        dateDerniereActivite: { [Op.lt]: dateSeuil }
+        [Op.or]: [
+          { dateDerniereActivite: { [Op.lt]: dateSeuil } },
+          { dateDerniereActivite: null, dateCreation: { [Op.lt]: dateSeuil } }
+        ]
       }
     })
     return invites.map(invite => ({
       id: invite.id,
       idAuthentification: invite.idAuthentification,
-      dateReference: invite.dateDerniereActivite
+      dateReference: invite.dateDerniereActivite ?? invite.dateCreation
     }))
   }
 

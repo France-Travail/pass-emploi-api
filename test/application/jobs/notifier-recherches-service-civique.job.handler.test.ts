@@ -7,7 +7,6 @@ import { GetServicesCiviqueQuery } from '../../../src/application/queries/get-of
 import { FindAllOffresServicesCiviqueQueryGetter } from '../../../src/application/queries/query-getters/find-all-offres-services-civique.query.getter'
 import { success } from '../../../src/building-blocks/types/result'
 import { ConfigurationApplication } from '../../../src/domain/jeune/configuration-application'
-import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Notification } from '../../../src/domain/notification/notification'
 import { Offre } from '../../../src/domain/offre/offre'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
@@ -20,9 +19,7 @@ import { expect, StubbedClass, stubClass } from '../../utils'
 describe('NotifierRecherchesServiceCiviqueJobHandler', () => {
   describe('handle', () => {
     let rechercheRepository: StubbedType<Recherche.Repository>
-    let jeuneRepository: StubbedType<
-      ConfigurationApplication.Repository<Jeune.ConfigurationApplication>
-    >
+    let jeuneRepository: StubbedType<ConfigurationApplication.Repository>
     let notificationService: StubbedClass<Notification.Service>
     let findAllOffresServicesCiviqueQueryGetter: StubbedClass<FindAllOffresServicesCiviqueQueryGetter>
     let dateService: StubbedClass<DateService>

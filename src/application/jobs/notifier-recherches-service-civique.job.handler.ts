@@ -3,10 +3,7 @@ import { DateTime } from 'luxon'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
 import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
-import {
-  Jeune,
-  JeuneConfigurationApplicationRepositoryToken
-} from '../../domain/jeune/jeune'
+import { JeuneConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune'
 import { Notification } from '../../domain/notification/notification'
 import {
   Recherche,
@@ -27,7 +24,7 @@ export class NotifierRecherchesServiceCiviqueJobHandler extends JobHandler {
     @Inject(RecherchesRepositoryToken)
     private readonly rechercheRepository: Recherche.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository<Jeune.ConfigurationApplication>,
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
     private readonly notificationService: Notification.Service,
     private readonly findAllOffresServicesCiviqueQueryGetter: FindAllOffresServicesCiviqueQueryGetter,
     private readonly dateService: DateService,

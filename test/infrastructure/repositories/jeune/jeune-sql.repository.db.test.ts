@@ -448,8 +448,7 @@ describe('JeuneSqlRepository', () => {
         unJeuneDto({
           idConseiller: conseillerDto.id,
           dateCreation: jeune.creationDate.toJSDate(),
-          pushNotificationToken: 'unToken',
-          dateDerniereActualisationToken: uneDatetime().toJSDate()
+          pushNotificationToken: 'unToken'
         })
       )
     })

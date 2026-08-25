@@ -3,22 +3,15 @@ import { DateService } from '../../utils/date-service'
 
 export const TIMEZONE_PAR_DEFAUT = 'Europe/Paris'
 
-export interface ConfigurationApplicationCommune {
+export interface ConfigurationApplication {
   idJeune: string
   pushNotificationToken?: string
   appVersion?: string
   installationId?: string
   instanceId?: string
   fuseauHoraire: string
-}
-
-export interface ConfigurationApplicationJeune extends ConfigurationApplicationCommune {
-  dateDerniereActualisationToken?: Date
-  preferences?: ConfigurationApplication.Preferences
-}
-
-export interface ConfigurationApplicationInvite extends ConfigurationApplicationCommune {
   dateDerniereActivite?: Date
+  preferences?: ConfigurationApplication.Preferences
 }
 
 export namespace ConfigurationApplication {
@@ -34,52 +27,26 @@ export namespace ConfigurationApplication {
 
   export interface AMettreAJour {
     pushNotificationToken?: string
-    dateDerniereActualisationToken?: Date
     appVersion?: string
     installationId?: string
     instanceId?: string
     fuseauHoraire?: string
   }
 
-  export interface Repository<T> {
-    get(idJeune: string): Promise<T | undefined>
+  export interface Repository {
+    get(idJeune: string): Promise<ConfigurationApplication | undefined>
 
-    save(configurationApplication: T): Promise<void>
+    save(configurationApplication: ConfigurationApplication): Promise<void>
   }
 
   @Injectable()
-  export class FactoryJeune {
-    constructor(private dateService: DateService) {}
+  export class Factory {
+    constructor(private readonly dateService: DateService) {}
 
     mettreAJour(
-      configuration: ConfigurationApplicationJeune,
+      configuration: ConfigurationApplication,
       aMettreAJour: AMettreAJour
-    ): ConfigurationApplicationJeune {
-      return {
-        idJeune: configuration.idJeune,
-        pushNotificationToken:
-          aMettreAJour.pushNotificationToken ??
-          configuration.pushNotificationToken,
-        dateDerniereActualisationToken: aMettreAJour.pushNotificationToken
-          ? this.dateService.nowJs()
-          : configuration.dateDerniereActualisationToken,
-        installationId:
-          aMettreAJour.installationId ?? configuration.installationId,
-        instanceId: aMettreAJour.instanceId ?? configuration.instanceId,
-        appVersion: aMettreAJour.appVersion ?? configuration.appVersion,
-        fuseauHoraire: aMettreAJour.fuseauHoraire ?? configuration.fuseauHoraire
-      }
-    }
-  }
-
-  @Injectable()
-  export class FactoryInvite {
-    constructor(private dateService: DateService) {}
-
-    mettreAJour(
-      configuration: ConfigurationApplicationInvite,
-      aMettreAJour: AMettreAJour
-    ): ConfigurationApplicationInvite {
+    ): ConfigurationApplication {
       return {
         idJeune: configuration.idJeune,
         pushNotificationToken:

@@ -17,7 +17,7 @@ export function unJeuneDto(
     datePremiereConnexion: new Date('2021-11-11T08:03:30.000Z'),
     dateFinCEJ: null,
     pushNotificationToken: 'token',
-    dateDerniereActualisationToken: uneDate(),
+    dateDerniereActivite: uneDate(),
     email: 'john.doe@plop.io',
     structure: Core.Structure.MILO,
     idAuthentification: 'un-id',

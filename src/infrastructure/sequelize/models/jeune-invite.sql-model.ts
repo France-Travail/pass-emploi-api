@@ -41,10 +41,9 @@ export class JeuneInviteDto extends Model {
 
   @Column({
     field: 'date_derniere_activite',
-    type: DataType.DATE,
-    allowNull: false
+    type: DataType.DATE
   })
-  dateDerniereActivite: Date
+  dateDerniereActivite: Date | null
 
   @Column({
     field: 'app_version',

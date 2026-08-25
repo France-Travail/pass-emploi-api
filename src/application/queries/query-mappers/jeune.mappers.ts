@@ -30,13 +30,9 @@ export function fromSqlToDetailJeuneQueryModel(
       : undefined,
     datePremiereConnexion: jeuneSqlModel.datePremiereConnexion?.toISOString(),
     isActivated: Boolean(jeuneSqlModel.datePremiereConnexion),
-    lastActivity: jeuneSqlModel.dateDerniereActualisationToken
-      ? DateService.fromJSDateToISOString(
-          jeuneSqlModel.dateDerniereActualisationToken
-        )
-      : jeuneSqlModel.dateDerniereConnexion
-        ? DateService.fromJSDateToISOString(jeuneSqlModel.dateDerniereConnexion)
-        : undefined,
+    lastActivity: jeuneSqlModel.dateDerniereActivite
+      ? DateService.fromJSDateToISOString(jeuneSqlModel.dateDerniereActivite)
+      : undefined,
     isReaffectationTemporaire: Boolean(jeuneSqlModel.idConseillerInitial),
     conseiller: {
       id: jeuneSqlModel.idConseiller!,
@@ -85,13 +81,8 @@ export function toDetailJeuneConseillerQueryModel(
     dispositif: sqlJeune.dispositif,
     idPartenaire: sqlJeune.id_partenaire ?? undefined
   }
-  if (
-    sqlJeune.date_derniere_actualisation_token ||
-    sqlJeune.date_derniere_connexion
-  ) {
-    jeuneQueryModel.lastActivity =
-      sqlJeune.date_derniere_actualisation_token?.toISOString() ??
-      sqlJeune.date_derniere_connexion?.toISOString()
+  if (sqlJeune.date_derniere_activite) {
+    jeuneQueryModel.lastActivity = sqlJeune.date_derniere_activite.toISOString()
   }
 
   if (
@@ -123,11 +114,11 @@ function estAArchiver(
       return true
     }
   }
-  if (sqlJeune.date_derniere_actualisation_token) {
-    const dateToken = DateTime.fromJSDate(
-      sqlJeune.date_derniere_actualisation_token
+  if (sqlJeune.date_derniere_activite) {
+    const derniereActivite = DateTime.fromJSDate(
+      sqlJeune.date_derniere_activite
     )
-    if (DateService.isGreater(ilYa6mois, dateToken)) {
+    if (DateService.isGreater(ilYa6mois, derniereActivite)) {
       return true
     }
   }
@@ -145,7 +136,7 @@ export interface DetailJeuneRawSql extends JeuneRawSql {
   dispositif: Jeune.Dispositif
   date_creation: Date
   id_authentification: string
-  date_derniere_actualisation_token: Date | null
+  date_derniere_activite: Date | null
   id_conseiller_initial: string
   email_conseiller_precedent: string
   nom_conseiller_precedent: string
@@ -153,7 +144,6 @@ export interface DetailJeuneRawSql extends JeuneRawSql {
   prenom_conseiller_precedent: string
   situation_courante: Situation
   date_premiere_connexion: Date | null
-  date_derniere_connexion: Date | null
   id_structure_milo: string | null
   est_a_archiver: boolean
   id_partenaire: string | null

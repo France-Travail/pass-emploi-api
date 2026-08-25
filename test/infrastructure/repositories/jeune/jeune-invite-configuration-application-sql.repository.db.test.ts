@@ -1,4 +1,4 @@
-import { ConfigurationApplicationInvite } from '../../../../src/domain/jeune/configuration-application'
+import { ConfigurationApplication } from '../../../../src/domain/jeune/configuration-application'
 import { JeuneInviteConfigurationApplicationSqlRepository } from '../../../../src/infrastructure/repositories/jeune/jeune-invite-configuration-application-sql.repository.db'
 import { JeuneInviteSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { uneDatetime } from '../../../fixtures/date.fixture'
@@ -35,7 +35,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
         const result = await repository.get(idInvite)
 
         // Then
-        const expected: ConfigurationApplicationInvite = {
+        const expected: ConfigurationApplication = {
           idJeune: idInvite,
           pushNotificationToken: 'unToken',
           installationId: 'uneInstallationId',
@@ -88,7 +88,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
 
     it("met à jour la configuration de l'invité", async () => {
       // Given
-      const configuration: ConfigurationApplicationInvite = {
+      const configuration: ConfigurationApplication = {
         idJeune: idInvite,
         pushNotificationToken: 'unNouveauToken',
         installationId: 'uneInstallationId',
@@ -123,7 +123,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
         appVersion: undefined,
         dateDerniereActivite: uneDatetime().toJSDate(),
         fuseauHoraire: undefined
-      } as unknown as ConfigurationApplicationInvite
+      } as unknown as ConfigurationApplication
 
       // When
       await repository.save(configuration)
@@ -144,7 +144,7 @@ describe('JeuneInviteConfigurationApplicationSqlRepository', () => {
       const configuration = {
         idJeune: idInvite,
         fuseauHoraire: 'Europe/Paris'
-      } as unknown as ConfigurationApplicationInvite
+      } as unknown as ConfigurationApplication
 
       // When / Then
       await expect(repository.save(configuration)).to.be.rejectedWith(

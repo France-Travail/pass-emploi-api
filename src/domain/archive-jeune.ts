@@ -319,7 +319,7 @@ export namespace ArchiveJeune {
       }
 
       const estCompteActif =
-        Boolean(jeune.configuration.dateDerniereActualisationToken) &&
+        Boolean(jeune.configuration.dateDerniereActivite) &&
         Boolean(jeune.dateDerniereConnexion)
 
       await this.authentificationRepository.deleteUtilisateurIdp(idJeune)

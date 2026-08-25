@@ -120,7 +120,7 @@ describe('GetJeuneEtablissementV2QueryHandler', () => {
         nom: 'Jean',
         prenom: 'Dupont',
         idConseiller: '1',
-        dateDerniereActualisationToken: uneDate()
+        dateDerniereActivite: uneDate()
       })
 
       jeuneAgence2Dto = unJeuneDto({
@@ -128,7 +128,7 @@ describe('GetJeuneEtablissementV2QueryHandler', () => {
         nom: 'Jeanne',
         prenom: 'Claude Van Damme',
         idConseiller: '1',
-        dateDerniereActualisationToken: uneDate()
+        dateDerniereActivite: uneDate()
       })
 
       jeuneEtablissement3Dto = unJeuneDto({
@@ -136,7 +136,7 @@ describe('GetJeuneEtablissementV2QueryHandler', () => {
         nom: 'Jean',
         prenom: 'Dupont',
         idConseiller: '2',
-        dateDerniereActualisationToken: uneDate()
+        dateDerniereActivite: uneDate()
       })
 
       situationJeune1Dto = uneSituationsMiloDto({
@@ -227,6 +227,6 @@ function mapJeuneMiloResume(
       nom: referent.nom
     },
     situation: situation.situationCourante?.categorie,
-    dateDerniereActivite: jeune.dateDerniereActualisationToken?.toISOString()
+    dateDerniereActivite: jeune.dateDerniereActivite?.toISOString()
   }
 }
