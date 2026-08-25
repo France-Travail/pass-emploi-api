@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -80,6 +81,7 @@ import {
 } from '../../application/queries/query-models/actualites-milo.query-model'
 
 @Controller('conseillers/milo')
+@UserJourney('portefeuille_conseiller')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Conseillers Milo')
 export class ConseillersMiloController {
@@ -104,6 +106,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller du jeune'
   })
   @Get('dossiers/:idDossier')
+  @UserJourney('creation_jeune')
   @ApiResponse({
     type: DossierJeuneMiloQueryModel
   })
@@ -124,6 +127,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller du jeune'
   })
   @Get('jeunes/:idDossier')
+  @UserJourney('creation_jeune')
   @ApiResponse({
     type: JeuneQueryModel
   })
@@ -144,6 +148,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller Milo'
   })
   @Post('jeunes')
+  @UserJourney('creation_jeune')
   async postJeuneMilo(
     @Body() creerJeuneMiloPayload: CreerJeuneMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur,
@@ -173,6 +178,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour le conseiller Milo'
   })
   @Get(':idConseiller/sessions')
+  @UserJourney('sessions_milo')
   @ApiResponse({
     type: SessionConseillerMiloQueryModel,
     isArray: true
@@ -207,6 +213,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour le conseiller Milo'
   })
   @Get(':idConseiller/agenda/sessions')
+  @UserJourney('sessions_milo')
   @ApiResponse({
     type: AgendaConseillerMiloSessionListItemQueryModel,
     isArray: true
@@ -236,6 +243,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour le conseiller Milo'
   })
   @Get(':idConseiller/sessions/:idSession')
+  @UserJourney('sessions_milo')
   @ApiResponse({
     type: DetailSessionConseillerMiloQueryModel
   })
@@ -259,6 +267,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour le conseiller Milo'
   })
   @Post(':idConseiller/sessions/:idSession/cloturer')
+  @UserJourney('sessions_milo')
   async emargerSession(
     @Param('idConseiller') idConseiller: string,
     @Param('idSession') idSession: string,
@@ -287,6 +296,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour le conseiller Milo'
   })
   @Patch(':idConseiller/sessions/:idSession')
+  @UserJourney('sessions_milo')
   async updateSession(
     @Param('idConseiller') idConseiller: string,
     @Param('idSession') idSession: string,
@@ -317,6 +327,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller Milo'
   })
   @Post('actions/qualifier')
+  @UserJourney('qualification_actions')
   async qualifierActions(
     @Body() qualifierActionsMiloPayload: QualifierActionsMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
@@ -376,6 +387,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller MILO de la structure'
   })
   @Post(':idConseiller/actualites')
+  @UserJourney('actualites')
   @ApiResponse({
     type: ActualiteMiloConseillerQueryModel
   })
@@ -407,6 +419,7 @@ export class ConseillersMiloController {
   })
   @ApiResponse({ type: ActualitesMiloConseillerQueryModel })
   @Get(':idConseiller/actualites')
+  @UserJourney('actualites')
   async getActualites(
     @Param('idConseiller') idConseiller: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
@@ -422,6 +435,7 @@ export class ConseillersMiloController {
     description: "Autorisé pour le conseiller propriétaire de l'actualité"
   })
   @Put(':idConseiller/actualites/:idActualite')
+  @UserJourney('actualites')
   @ApiResponse({
     type: ActualiteMiloConseillerQueryModel
   })
@@ -453,6 +467,7 @@ export class ConseillersMiloController {
     description: "Autorisé pour le conseiller propriétaire de l'actualité"
   })
   @Delete(':idConseiller/actualites/:idActualite')
+  @UserJourney('actualites')
   @ApiResponse({
     type: ActualiteMiloSuppresionCommandResult
   })

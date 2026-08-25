@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Query } from '@nestjs/common'
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { GetCatalogueDemarchesQueryHandler } from 'src/application/queries/get-catalogue-demarches.query.handler'
@@ -32,6 +33,7 @@ import { handleResult } from './result.handler'
 import { GetAgencesQueryParams } from './validation/agences.inputs'
 
 @Controller('referentiels')
+@UserJourney('referentiels')
 @ApiTags('Referentiels')
 export class ReferentielsController {
   constructor(

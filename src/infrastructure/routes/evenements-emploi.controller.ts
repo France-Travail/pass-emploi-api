@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import {
@@ -16,6 +17,7 @@ import { handleResult } from './result.handler'
 import { FindEvenementsEmploiQueryParams } from './validation/evenements-emploi.inputs'
 
 @Controller('evenements-emploi')
+@UserJourney('evenements_emploi')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Evenements Emploi')
 export class EvenementsEmploiController {

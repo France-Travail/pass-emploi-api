@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -37,6 +38,7 @@ import {
 } from '../../application/queries/get-offres-immersionV3.query.handler'
 
 @Controller()
+@UserJourney('recherche_offres')
 @CustomSwaggerApiOAuth2()
 @ApiTags("Offres d'immersion")
 export class OffresImmersionController {

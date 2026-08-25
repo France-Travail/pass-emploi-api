@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -36,6 +37,7 @@ import {
 } from '../../application/commands/ajouter-jeune-liste-de-diffusion.command.handler'
 
 @Controller()
+@UserJourney('messagerie')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Listes de diffusion')
 export class ListesDeDiffusionController {

@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import {
@@ -10,6 +11,7 @@ import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { CreateEvenementPayload } from './validation/evenements.inputs'
 
 @Controller('evenements')
+@UserJourney('evenement_engagement')
 @CustomSwaggerApiOAuth2()
 @ApiTags("Evenements d'engagement")
 export class EvenementsController {

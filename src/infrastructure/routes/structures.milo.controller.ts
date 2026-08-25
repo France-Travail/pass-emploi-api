@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CloturerAnimationCollectiveCommandHandler } from '../../application/commands/cloturer-animation-collective.command.handler'
@@ -17,6 +18,7 @@ import {
 } from './validation/structures.milo.inputs'
 
 @Controller('structures-milo')
+@UserJourney('portefeuille_conseiller')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Structures Milo')
 export class StructuresMiloController {
@@ -64,6 +66,7 @@ export class StructuresMiloController {
     deprecated: true
   })
   @Post('animations-collectives/:idAnimationCollective/cloturer')
+  @UserJourney('animations_collectives')
   async postCloture(
     @Param('idAnimationCollective') idAnimationCollective: string,
     @Body() payload: ClotureAnimationCollectivePayload,

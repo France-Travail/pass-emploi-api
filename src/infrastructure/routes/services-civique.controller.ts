@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
@@ -17,6 +18,7 @@ import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { GetServicesCiviqueQueryParams } from './validation/services-civique.inputs'
 
 @Controller()
+@UserJourney('recherche_offres')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Services Civique')
 export class ServicesCiviqueController {

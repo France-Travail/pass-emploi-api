@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
@@ -43,6 +44,7 @@ import {
 } from '../../application/commands/pole-emploi/generate-demarches-ia.command.handler'
 
 @Controller()
+@UserJourney('suivi_demarches')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Jeunes Pôle Emploi')
 export class JeunesPoleEmploiController {
@@ -59,6 +61,7 @@ export class JeunesPoleEmploiController {
   ) {}
 
   @Get('jeunes/:idJeune/pole-emploi/accueil')
+  @UserJourney('accueil_jeune')
   @ApiOperation({
     summary:
       "Permet de récupérer les éléments de la page d'accueil d'un jeune Pôle Emploi",
@@ -87,6 +90,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('jeunes/:idJeune/pole-emploi/cv')
+  @UserJourney('compte_jeune')
   @ApiOperation({
     summary: "Permet de récupérer les cvs d'un jeune Pôle Emploi",
     description: 'Autorisé pour un jeune Pole Emploi'
@@ -210,6 +214,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('v2/jeunes/:idJeune/home/agenda/pole-emploi')
+  @UserJourney('agenda')
   @ApiOperation({
     summary: 'Remplacée depuis la 3.14.0 il y a 10 mois par mon-suivi',
     deprecated: true
@@ -238,6 +243,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('jeunes/:idJeune/pole-emploi/idp-token')
+  @UserJourney('authentification')
   @ApiOperation({
     summary:
       "Permet de récupérer le token d’identité d'un jeune Pôle Emploi (à échanger par exemple avec CVM)",
@@ -258,6 +264,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('/jeunes/:idJeune/pole-emploi/mon-suivi')
+  @UserJourney('mon_suivi')
   @ApiOperation({
     description:
       "Récupère les éléments de la page 'Mon Suivi' d'un jeune Pôle emploi"

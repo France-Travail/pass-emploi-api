@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -68,6 +69,7 @@ import { GetActionsConseillerV2QueryParams } from './validation/conseillers.inpu
 import { GetActionsByJeuneQueryParams } from './validation/jeunes.inputs'
 
 @Controller()
+@UserJourney('suivi_actions')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Actions du CEJ pour Milo / Pass Emploi')
 export class ActionsController {
@@ -208,6 +210,7 @@ export class ActionsController {
     description: 'Autorisé pour un conseiller'
   })
   @Post('actions/:idAction/qualifier')
+  @UserJourney('qualification_actions')
   async qualifierAction(
     @Param('idAction', new ParseUUIDPipe()) idAction: string,
     @Body() qualifierActionPayload: QualifierActionPayload,

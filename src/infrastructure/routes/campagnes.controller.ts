@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -34,6 +35,7 @@ import {
 } from './validation/campagnes.inputs'
 
 @Controller()
+@UserJourney('campagnes')
 @CustomSwaggerApiOAuth2()
 export class CampagnesController {
   constructor(

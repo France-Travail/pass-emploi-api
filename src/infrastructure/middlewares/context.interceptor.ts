@@ -28,9 +28,11 @@ export class ContextInterceptor implements NestInterceptor {
     this.context.set(ContextKey.UTILISATEUR, request.authenticated?.utilisateur)
     this.context.set(ContextKey.HTTP_REQUEST_ID, request.id)
 
-    const userJourney = this.reflector.get<string | undefined>(
+    // La méthode prime sur la classe : un controller pose un parcours par
+    // défaut, une route peut le surcharger.
+    const userJourney = this.reflector.getAllAndOverride<string | undefined>(
       USER_JOURNEY_METADATA,
-      executionContext.getHandler()
+      [executionContext.getHandler(), executionContext.getClass()]
     )
     if (userJourney) {
       this.context.set(ContextKey.USER_JOURNEY, userJourney)

@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -29,6 +30,7 @@ import { handleResult } from './result.handler'
 import { TeleverserFichierPayload } from './validation/fichiers.inputs'
 
 @Controller('fichiers')
+@UserJourney('messagerie')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Fichiers')
 export class FilesController {

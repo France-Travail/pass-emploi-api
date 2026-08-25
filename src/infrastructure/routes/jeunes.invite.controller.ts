@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -20,6 +21,7 @@ import { handleResult } from './result.handler'
 import { PutPrenomInvitePayload } from './validation/jeunes.invite.inputs'
 
 @Controller('jeunes')
+@UserJourney('invitation_jeune')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Jeunes Invité')
 export class JeunesInviteController {

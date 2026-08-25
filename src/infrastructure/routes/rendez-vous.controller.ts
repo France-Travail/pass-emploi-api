@@ -67,6 +67,7 @@ import {
 } from './validation/rendez-vous.inputs'
 
 @Controller()
+@UserJourney('rendez_vous')
 @CustomSwaggerApiOAuth2()
 @ApiTags(
   'Rendez-vous du CEJ pour Milo / Pass Emploi (uniquement GET liste pour PE)'
@@ -283,6 +284,7 @@ export class RendezVousController {
     summary: 'Récupère la liste des animations collectives de l‘agence du jeune'
   })
   @Get('jeunes/:idJeune/animations-collectives')
+  @UserJourney('animations_collectives')
   async getAnimationsCollectivesJeune(
     @Param('idJeune') idJeune: string,
     @Query() queryParams: MaintenantQueryParams,

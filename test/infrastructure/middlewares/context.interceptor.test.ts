@@ -13,13 +13,15 @@ describe('ContextInterceptor', () => {
   let reflector: Reflector
 
   const handler = (): void => undefined
+  class UnController {}
 
   const unExecutionContext = (): ExecutionContext =>
     ({
       switchToHttp: () => ({
         getRequest: () => ({ id: 'req-1', authenticated: undefined })
       }),
-      getHandler: () => handler
+      getHandler: () => handler,
+      getClass: () => UnController
     }) as unknown as ExecutionContext
 
   const executer = (interceptor: ContextInterceptor): void => {
@@ -38,6 +40,11 @@ describe('ContextInterceptor', () => {
   })
 
   describe('user journey', () => {
+    afterEach(() => {
+      Reflect.deleteMetadata(USER_JOURNEY_METADATA, handler)
+      Reflect.deleteMetadata(USER_JOURNEY_METADATA, UnController)
+    })
+
     it('pose le parcours dans le contexte quand la route est décorée', () => {
       // Given
       Reflect.defineMetadata(USER_JOURNEY_METADATA, 'accueil_jeune', handler)
@@ -50,16 +57,40 @@ describe('ContextInterceptor', () => {
       expect(context.get(ContextKey.USER_JOURNEY)).to.equal('accueil_jeune')
     })
 
-    it('ne pose rien quand la route ne porte pas le décorateur', () => {
+    it('reprend le parcours du controller quand seule la classe est décorée', () => {
       // Given
-      Reflect.deleteMetadata(USER_JOURNEY_METADATA, handler)
+      Reflect.defineMetadata(USER_JOURNEY_METADATA, 'favoris', UnController)
       const interceptor = new ContextInterceptor(context, reflector)
 
       // When
       executer(interceptor)
 
       // Then
-      expect(context.get(ContextKey.USER_JOURNEY)).to.equal(undefined)
+      expect(context.get(ContextKey.USER_JOURNEY)).to.equal('favoris')
+    })
+
+    it('fait primer le parcours de la route sur celui du controller', () => {
+      // Given
+      Reflect.defineMetadata(USER_JOURNEY_METADATA, 'favoris', UnController)
+      Reflect.defineMetadata(USER_JOURNEY_METADATA, 'accueil_jeune', handler)
+      const interceptor = new ContextInterceptor(context, reflector)
+
+      // When
+      executer(interceptor)
+
+      // Then
+      expect(context.get(ContextKey.USER_JOURNEY)).to.equal('accueil_jeune')
+    })
+
+    it('ne pose rien quand ni la route ni le controller ne portent le décorateur', () => {
+      // Given
+      const interceptor = new ContextInterceptor(context, reflector)
+
+      // When
+      executer(interceptor)
+
+      // Then
+      expect(context.get(ContextKey.USER_JOURNEY)).to.be.undefined()
     })
   })
 

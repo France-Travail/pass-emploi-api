@@ -89,6 +89,7 @@ export class JeunesMiloController {
     description: 'Autorisé pour les jeunes Milo et leurs conseillers'
   })
   @Get('/milo/:idJeune/sessions')
+  @UserJourney('sessions_milo')
   @ApiResponse({
     type: SessionJeuneMiloQueryModel,
     isArray: true
@@ -121,6 +122,7 @@ export class JeunesMiloController {
     description: 'Autorisé pour le jeune Milo'
   })
   @Get('/milo/:idJeune/sessions/:idSession')
+  @UserJourney('sessions_milo')
   @ApiResponse({
     type: DetailSessionJeuneMiloQueryModel
   })
@@ -143,6 +145,7 @@ export class JeunesMiloController {
     description: 'Autorisé pour le bénéficiaire Milo'
   })
   @Post('/milo/:idBeneficiaire/sessions/:idSession/inscrire')
+  @UserJourney('sessions_milo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async inscrireBeneficiaireSession(
     @Param('idBeneficiaire') idBeneficiaire: string,
@@ -164,6 +167,7 @@ export class JeunesMiloController {
     description: 'Autorisé pour le bénéficiaire Milo'
   })
   @Post('/milo/:idBeneficiaire/sessions/:idSession/desinscrire')
+  @UserJourney('sessions_milo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async desinscrireBeneficiaireSession(
     @Param('idBeneficiaire') idBeneficiaire: string,
@@ -182,6 +186,7 @@ export class JeunesMiloController {
   }
 
   @Get('/milo/:idJeune/mon-suivi')
+  @UserJourney('mon_suivi')
   @ApiOperation({
     description: "Récupère les éléments de la page 'Mon Suivi' d'un jeune Milo"
   })
@@ -216,6 +221,7 @@ export class JeunesMiloController {
     description: 'Autorisé pour le jeune'
   })
   @Get('/milo/:idJeune/actualites')
+  @UserJourney('actualites')
   async getActualites(
     @Param('idJeune') idJeune: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur

@@ -20,6 +20,7 @@ import { handleResult } from './result.handler'
 import { FindOffresEmploiQueryParams } from './validation/offres-emploi.inputs'
 
 @Controller('offres-emploi')
+@UserJourney('recherche_offres')
 @CustomSwaggerApiOAuth2()
 @ApiTags("Offres d'emploi")
 export class OffresEmploiController {
@@ -29,7 +30,6 @@ export class OffresEmploiController {
   ) {}
 
   @Get()
-  @UserJourney('recherche_offres')
   @ApiResponse({
     type: OffresEmploiQueryModel
   })

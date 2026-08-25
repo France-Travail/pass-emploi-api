@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
@@ -16,6 +17,7 @@ import {
 } from './validation/conseillers.inputs'
 
 @Controller('conseillers/pole-emploi')
+@UserJourney('creation_jeune')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Conseillers Pôle emploi')
 export class ConseillersPoleEmploiController {

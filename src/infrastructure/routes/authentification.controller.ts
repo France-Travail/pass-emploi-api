@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -41,6 +42,7 @@ import {
 } from './validation/authentification.inputs'
 
 @Controller('auth')
+@UserJourney('authentification')
 @ApiTags('Authentification')
 export class AuthentificationController {
   constructor(

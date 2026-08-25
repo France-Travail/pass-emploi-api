@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
@@ -23,6 +24,7 @@ import {
 } from './validation/etablissements.inputs'
 
 @Controller()
+@UserJourney('portefeuille_conseiller')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Etablissements / Agences Milo')
 export class EtablissementsController {
@@ -39,6 +41,7 @@ export class EtablissementsController {
       "Autorisé pour un conseiller appartenant à l'établissement et ses jeunes"
   })
   @Get('etablissements/:idEtablissement/animations-collectives')
+  @UserJourney('animations_collectives')
   @ApiResponse({
     type: RendezVousConseillerDetailQueryModel,
     isArray: true
@@ -92,6 +95,7 @@ export class EtablissementsController {
       "Autorisé pour un conseiller appartenant à l'établissement et ses jeunes"
   })
   @Get('v2/etablissements/:idEtablissement/animations-collectives')
+  @UserJourney('animations_collectives')
   @ApiResponse({
     type: GetRendezVousACloreQueryModel
   })

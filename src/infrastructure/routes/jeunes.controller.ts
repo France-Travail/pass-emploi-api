@@ -1,3 +1,4 @@
+import { UserJourney } from '../monitoring/user-journey.decorator'
 import {
   Body,
   Controller,
@@ -72,6 +73,7 @@ import {
 } from './validation/jeunes.inputs'
 
 @Controller('jeunes')
+@UserJourney('compte_jeune')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Jeunes')
 export class JeunesController {
@@ -138,6 +140,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/notifications')
+  @UserJourney('notifications')
   @ApiResponse({
     type: NotificationJeuneQueryModel,
     isArray: true
@@ -215,6 +218,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/home/actions')
+  @UserJourney('suivi_actions')
   @ApiOperation({ deprecated: true })
   @ApiResponse({
     type: JeuneHomeActionQueryModel
@@ -230,6 +234,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/home/agenda')
+  @UserJourney('agenda')
   @ApiResponse({
     type: JeuneHomeAgendaQueryModel
   })
@@ -252,6 +257,7 @@ export class JeunesController {
   }
 
   @Post('transferer')
+  @UserJourney('portefeuille_conseiller')
   @HttpCode(200)
   async transfererConseiller(
     @Body() transfererConseillerPayload: TransfererConseillerPayload,
@@ -403,6 +409,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/messages')
+  @UserJourney('messagerie')
   @ApiOperation({
     summary: 'Recherche un mot-clé dans une conversation',
     description: 'Autorisé pour un conseiller'
@@ -427,6 +434,7 @@ export class JeunesController {
   }
 
   @Post(':idJeune/plan-action')
+  @UserJourney('suivi_actions')
   @ApiOperation({
     summary: "Génère une suggestion de plan d'action",
     description: 'Autorisé pour un bénéficiaire, invité compris'
