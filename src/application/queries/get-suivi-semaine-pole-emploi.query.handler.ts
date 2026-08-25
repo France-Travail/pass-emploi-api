@@ -13,7 +13,10 @@ import {
 import { Authentification } from '../../domain/authentification'
 import { Demarche } from '../../domain/demarche'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
-import { Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_FT_AVEC_DEMARCHES,
+  TOUT_CONSEIL_DEPARTEMENTAL
+} from '../../domain/profil'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
@@ -32,8 +35,8 @@ export class GetSuiviSemainePoleEmploiQueryHandler extends QueryHandler<
   Result<Cached<SuiviSemainePoleEmploiQueryModel>>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(
@@ -55,7 +58,7 @@ export class GetSuiviSemainePoleEmploiQueryHandler extends QueryHandler<
     if (!jeune) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
     }
-    const idpToken = await this.oidcClient.exchangeTokenJeune(
+    const idpToken = await this.oidcClient.exchangeToken(
       query.accessToken,
       jeune.structure
     )

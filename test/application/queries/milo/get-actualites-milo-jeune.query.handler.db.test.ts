@@ -21,7 +21,10 @@ import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { DateService } from '../../../../src/utils/date-service'
-import { Profil } from '../../../../src/domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 
 describe('GetActualitesMiloJeuneQueryHandler', () => {
@@ -252,9 +255,20 @@ describe('GetActualitesMiloJeuneQueryHandler', () => {
       // Then
       expect(getActualitesMiloJeuneQueryHandler.profilsAutorises).to.deep.equal(
         [
-          Profil.Jeune.MILO,
-          Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-          Profil.Jeune.CONSEIL_DEPT
+          { structure: Profil.Structure.MILO },
+          {
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositifs: [
+              Profil.Dispositif.CEJ,
+              Profil.Dispositif.BRSA,
+              Profil.Dispositif.AIJ,
+              Profil.Dispositif.AVENIR_PRO,
+              Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+              Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+              Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+            ]
+          },
+          TOUT_CONSEIL_DEPARTEMENTAL
         ]
       )
     })

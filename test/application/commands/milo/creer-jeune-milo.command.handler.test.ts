@@ -22,7 +22,6 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import { Chat } from '../../../../src/domain/chat'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
-import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { DateService } from '../../../../src/utils/date-service'
@@ -33,8 +32,8 @@ import { unJeune } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { unDossierMilo } from '../../../fixtures/milo.fixture'
 import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
-import Structure = Core.Structure
 import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
+import { Profil } from '../../../../src/domain/profil'
 
 const idPartenaire = 'idDossier'
 
@@ -70,9 +69,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
       .withArgs(idPartenaire)
       .resolves(failure(new NonTrouveError('Dossier Milo', idPartenaire)))
     oidcClient = stubClass(OidcClient)
-    oidcClient.exchangeTokenConseillerMilo
-      .withArgs(accessToken)
-      .resolves(idpToken)
+    oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
     creerJeuneMiloCommandHandler = new CreerJeuneMiloCommandHandler(
       conseillerAuthorizer,
       miloRepository,
@@ -95,13 +92,13 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
         jeuneRepository.getByEmail.withArgs(command.email).resolves(
           unJeune({
-            structure: Core.Structure.MILO,
+            structure: Profil.Structure.MILO,
             conseiller: unConseiller({ email: 'mail@conseiller.fr' })
           })
         )
@@ -124,13 +121,16 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
-        jeuneRepository.getByEmail
-          .withArgs(command.email)
-          .resolves(unJeune({ structure: Structure.POLE_EMPLOI_AIJ }))
+        jeuneRepository.getByEmail.withArgs(command.email).resolves(
+          unJeune({
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.AIJ
+          })
+        )
 
         // When
         const result = await creerJeuneMiloCommandHandler.handle(command)
@@ -150,7 +150,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email@mail.fr',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
@@ -186,7 +186,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
@@ -213,7 +213,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
             firstName: 'Nils',
             email: 'nils.tavernier@passemploi.com'
           },
-          structure: Core.Structure.MILO,
+          structure: Profil.Structure.MILO,
           preferences: {
             partageFavoris: true,
             alertesOffres: true,
@@ -228,7 +228,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
             idJeune: 'DFKAL',
             fuseauHoraire: TIMEZONE_PAR_DEFAUT
           },
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(
@@ -263,7 +263,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: true,
           accessToken
         }
@@ -290,7 +290,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
             firstName: 'Nils',
             email: 'nils.tavernier@passemploi.com'
           },
-          structure: Core.Structure.MILO,
+          structure: Profil.Structure.MILO,
           preferences: {
             partageFavoris: true,
             alertesOffres: true,
@@ -305,7 +305,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
             idJeune: 'DFKAL',
             fuseauHoraire: TIMEZONE_PAR_DEFAUT
           },
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: true
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(
@@ -342,7 +342,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
@@ -364,7 +364,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
@@ -391,7 +391,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ,
+          dispositif: Profil.Dispositif.CEJ,
           peutVoirLeCompteurDesHeures: false,
           accessToken
         }
@@ -416,7 +416,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
         prenom: 'prenom',
         email: 'email',
         idConseiller: 'idConseiller',
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeCompteurDesHeures: false,
         accessToken
       }

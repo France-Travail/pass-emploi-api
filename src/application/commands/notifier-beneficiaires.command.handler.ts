@@ -12,9 +12,8 @@ import {
   Planificateur,
   PlanificateurRepositoryToken
 } from '../../domain/planificateur'
-import { Core } from '../../domain/core'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { StructureEtDispositifs, TOUT_PROFIL } from '../../domain/profil'
 import { Migration } from '../../domain/migration'
 import { DateService } from '../../utils/date-service'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
@@ -26,7 +25,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   typeNotification: Notification.Type
   titre: string
   description: string
-  structures?: Core.Structure[]
+  structuresEtDispositifs?: StructureEtDispositifs[]
   phaseDeMigration?: Migration.PhaseDeMigration
   push?: boolean
   batchSize?: number
@@ -38,7 +37,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
   NotifierBeneficiairesCommand,
   Planificateur.JobId
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private readonly dateService: DateService,
@@ -81,7 +80,7 @@ export class NotifierBeneficiairesCommandHandler extends CommandHandler<
       titre: command.titre,
       description: command.description,
       params: {
-        structures: command.structures,
+        structuresEtDispositifs: command.structuresEtDispositifs,
         phaseDeMigration: command.phaseDeMigration,
         push,
         batchSize: command.batchSize,

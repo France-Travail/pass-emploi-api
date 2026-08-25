@@ -13,7 +13,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Jeune } from '../../../domain/jeune/jeune'
-import { Profil } from '../../../domain/profil'
 import { rootLogger } from '../../../utils/root-logger'
 
 export interface CreerJeunePESupportCommand extends CreateJeuneCommand {
@@ -25,8 +24,6 @@ export class CreerJeunePESupportCommandHandler extends CommandHandler<
   CreerJeunePESupportCommand,
   Jeune
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     private readonly creerJeunePoleEmploiCommandHandler: CreerJeunePoleEmploiCommandHandler
   ) {

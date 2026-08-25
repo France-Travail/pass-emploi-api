@@ -3,9 +3,8 @@ import { DateTime } from 'luxon'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetFavorisOffresEmploiJeuneQueryHandler } from '../../../src/application/queries/get-favoris-offres-emploi-jeune.query.handler.db'
 import { emptySuccess } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { Offre } from '../../../src/domain/offre/offre'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { OffresEmploiHttpSqlRepository } from '../../../src/infrastructure/repositories/offre/offre-emploi-http-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -15,6 +14,7 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
+import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetFavorisOffresEmploiJeuneQueryHandler', () => {
   let offresEmploiHttpSqlRepository: Offre.Favori.Emploi.Repository
@@ -70,9 +70,20 @@ describe('GetFavorisOffresEmploiJeuneQueryHandler', () => {
       expect(
         getFavorisOffresEmploiJeuneQueryHandler.profilsAutorises
       ).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })
@@ -86,7 +97,7 @@ describe('GetFavorisOffresEmploiJeuneQueryHandler', () => {
         jeuneAuthorizerLocal
       )
       const utilisateurMilo = unUtilisateurJeune({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       // When
@@ -110,7 +121,7 @@ describe('GetFavorisOffresEmploiJeuneQueryHandler', () => {
         jeuneAuthorizerLocal
       )
       const utilisateurInvite = unUtilisateurJeune({
-        structure: Core.Structure.INVITE
+        profil: unProfilInvite()
       })
 
       // When

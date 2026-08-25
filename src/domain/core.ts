@@ -1,4 +1,6 @@
 export namespace Core {
+  // LEGACY : format d'échange avec les fronts (claim `userStructure`, entrées et sorties d'API). Cible : Profil (structure × dispositif)
+  // Profil se dérive d'ici via structureLegacyVersProfil() et se replie via profilVersStructureLegacy()
   export enum Structure {
     MILO = 'MILO',
     POLE_EMPLOI = 'POLE_EMPLOI',
@@ -13,80 +15,4 @@ export namespace Core {
     INVITE = 'INVITE',
     FT_ESPACE_CANDIDAT = 'FT_ESPACE_CANDIDAT'
   }
-
-  export const structuresFT: readonly Structure[] = [
-    Structure.POLE_EMPLOI,
-    Structure.POLE_EMPLOI_BRSA,
-    Structure.POLE_EMPLOI_AIJ,
-    Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-    Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-    Structure.FT_EQUIP_EMPLOI_RECRUT,
-    Structure.FT_DEMANDEUR_D_EMPLOI,
-    Structure.FT_ESPACE_CANDIDAT
-  ] as const
-
-  export const structuresBeneficiaireFTConnect = [
-    ...structuresFT,
-    Structure.CONSEIL_DEPT,
-    Structure.AVENIR_PRO
-  ]
-
-  export interface Id {
-    id: string
-  }
 }
-
-export function estMilo(structure: Core.Structure): boolean {
-  return structure === Core.Structure.MILO
-}
-
-export function beneficiaireEstFTConnect(structure: Core.Structure): boolean {
-  return Core.structuresBeneficiaireFTConnect.includes(structure)
-}
-
-export function estFranceTravail(structure: Core.Structure): boolean {
-  return Core.structuresFT.includes(structure)
-}
-
-export function estInvite(structure: Core.Structure): boolean {
-  return structure === Core.Structure.INVITE
-}
-
-export function estFranceTravailOuMilo(structure: Core.Structure): boolean {
-  return estFranceTravail(structure) || estMilo(structure)
-}
-
-export function estPassEmploi(structure: Core.Structure): boolean {
-  return (
-    Core.structuresBeneficiaireFTConnect.includes(structure) &&
-    structure !== Core.Structure.POLE_EMPLOI
-  )
-}
-
-export function getStructureDeReference(
-  structure: Core.Structure
-): Core.Structure {
-  if (estFranceTravail(structure)) {
-    return Core.Structure.POLE_EMPLOI
-  }
-  return structure
-}
-
-export function aAccesAuxAlternancesEtServicesCiviques(
-  structure: Core.Structure
-): boolean {
-  return [
-    Core.Structure.MILO,
-    Core.Structure.POLE_EMPLOI,
-    Core.Structure.POLE_EMPLOI_AIJ
-  ].includes(structure)
-}
-
-export const structuresCampagnes = [
-  Core.Structure.MILO,
-  Core.Structure.POLE_EMPLOI,
-  Core.Structure.POLE_EMPLOI_BRSA,
-  Core.Structure.POLE_EMPLOI_AIJ,
-  Core.Structure.CONSEIL_DEPT,
-  Core.Structure.AVENIR_PRO
-]

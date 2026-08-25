@@ -13,7 +13,6 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { Chat } from '../../../../src/domain/chat'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
-import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { DateService } from '../../../../src/utils/date-service'
 import { IdService } from '../../../../src/utils/id-service'
@@ -25,8 +24,9 @@ import {
   unJeuneNonAccompagne
 } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, stubClass } from '../../../utils'
-import Structure = Core.Structure
 import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
+import { Profil } from '../../../../src/domain/profil'
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('CreateJeunePoleEmploiCommandHandler', () => {
   let createJeuneCommandHandler: CreerJeunePoleEmploiCommandHandler
@@ -84,7 +84,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         isActivated: false,
         creationDate: date,
         conseiller: unConseillerDuJeune(),
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
         idPartenaire: undefined,
         preferences: {
           partageFavoris: true,
@@ -99,7 +99,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           idJeune: idNouveauJeune,
           fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: undefined
       }
       expect(result).to.deep.equal(success(expectedJeune))
@@ -179,7 +179,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           idConseiller: conseiller.id
         }
         const jeuneNonAccompagne = unJeuneNonAccompagne({
-          structure: Core.Structure.FT_ESPACE_CANDIDAT
+          structure: Profil.Structure.FRANCE_TRAVAIL
         })
         jeuneRepository.getByEmail
           .withArgs(command.email)
@@ -193,7 +193,9 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         if (isSuccess(result)) {
           expect(result.data.id).to.equal(jeuneNonAccompagne.id)
           expect(result.data.conseiller?.id).to.equal(conseiller.id)
-          expect(result.data.structure).to.equal(conseiller.structure)
+          expect(result.data.structure).to.equal(
+            Profil.Structure.FRANCE_TRAVAIL
+          )
           expect(result.data.preferences.messages).to.equal(true)
         }
         expect(
@@ -214,7 +216,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
       }
 
       const utilisateur = unUtilisateurConseiller({
-        structure: Structure.POLE_EMPLOI
+        profil: unProfilFT()
       })
 
       // When

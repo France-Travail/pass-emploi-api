@@ -23,6 +23,7 @@ import { DateService } from '../../../../src/utils/date-service'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import Suggestion = Recherche.Suggestion
 import { uneDatetime } from '../../../fixtures/date.fixture'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetActualitesMiloConseillerQueryHandler', () => {
   let getActualitesMiloConseillerQueryHandler: GetActualitesMiloConseillerQueryHandler
@@ -41,7 +42,7 @@ describe('GetActualitesMiloConseillerQueryHandler', () => {
   }
   const utilisateur = unUtilisateurConseiller({
     id: idConseiller,
-    structure: Core.Structure.MILO
+    profil: unProfilMilo()
   })
   const maintenant = uneDatetime()
 

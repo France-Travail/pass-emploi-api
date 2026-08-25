@@ -31,7 +31,8 @@ module.exports = {
         id: 'e04bb080-5805-402e-a527-0f9d2ee0840f',
         prenom: 'Recette',
         nom: 'Renoux',
-        structure: 'POLE_EMPLOI',
+        structure: 'FRANCE_TRAVAIL',
+        dispositif: 'CEJ',
         id_authentification: 'e04bb080-5805-402e-a527-0f9d2ee0840f',
         notifications_sonores: false
       },
@@ -59,7 +60,8 @@ module.exports = {
         id: 'cbf8fb13-8438-4981-8bbd-d74fbfb71fda',
         prenom: 'TNAN',
         nom: '0480',
-        structure: 'POLE_EMPLOI',
+        structure: 'FRANCE_TRAVAIL',
+        dispositif: 'CEJ',
         id_authentification: 'TNAN0480',
         notifications_sonores: false
       },
@@ -67,7 +69,8 @@ module.exports = {
         id: '401f0f85-c678-49b6-996a-f9759136d43b',
         prenom: 'TNAN',
         nom: '0500',
-        structure: 'POLE_EMPLOI_BRSA',
+        structure: 'FRANCE_TRAVAIL',
+        dispositif: 'BRSA',
         id_authentification: 'TNAN0500',
         notifications_sonores: false
       },
@@ -75,7 +78,8 @@ module.exports = {
         id: '2d29d1e1-52a5-4d2e-aa40-a2435c5e824a',
         prenom: 'TNAN',
         nom: '0100',
-        structure: 'POLE_EMPLOI_AIJ',
+        structure: 'FRANCE_TRAVAIL',
+        dispositif: 'AIJ',
         id_authentification: 'TNAN0100',
         notifications_sonores: false
       }

@@ -11,7 +11,7 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { failureApi } from '../../../src/building-blocks/types/result-api'
-import { Profil } from '../../../src/domain/profil'
+import { Profil, TOUT_CONSEIL_DEPARTEMENTAL } from '../../../src/domain/profil'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DocumentPoleEmploiDto } from '../../../src/infrastructure/clients/dto/pole-emploi.dto'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -82,7 +82,7 @@ describe('GetCVPoleEmploiQueryHandler', () => {
           url: unCVPoleEmploiDto.url
         }
 
-        oidcClient.exchangeTokenJeune
+        oidcClient.exchangeToken
           .withArgs(query.accessToken, jeune.structure)
           .resolves('idpToken')
         poleEmploiPartenaireClient.getDocuments
@@ -99,7 +99,7 @@ describe('GetCVPoleEmploiQueryHandler', () => {
     describe('quand une erreur client se produit', () => {
       it('renvoie une Failure', async () => {
         // Given
-        oidcClient.exchangeTokenJeune.resolves('un-idp-token')
+        oidcClient.exchangeToken.resolves('un-idp-token')
         poleEmploiPartenaireClient.getDocuments.resolves(
           failureApi(new ErreurHttp('erreur', 400))
         )
@@ -138,8 +138,20 @@ describe('GetCVPoleEmploiQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getCVPoleEmploiQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

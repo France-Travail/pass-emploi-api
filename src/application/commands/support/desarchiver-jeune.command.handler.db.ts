@@ -17,9 +17,6 @@ import {
 import { Action } from '../../../domain/action/action'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { Core } from '../../../domain/core'
-import { Jeune } from '../../../domain/jeune/jeune'
-import { Profil } from '../../../domain/profil'
 import {
   RendezVous,
   TYPES_ANIMATIONS_COLLECTIVES
@@ -48,6 +45,7 @@ import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { AsSql } from '../../../infrastructure/sequelize/types'
 import { IdService } from '../../../utils/id-service'
+import { Profil } from '../../../domain/profil'
 
 export interface DesarchiverJeuneCommand extends Command {
   idArchive: number
@@ -122,8 +120,6 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
   DesarchiverJeuneCommand,
   DesarchivageJeuneQueryModel
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
     @Inject(ChatRepositoryToken)
@@ -476,6 +472,10 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     idConseiller: string,
     idStructureMilo: string | null
   ): AsSql<JeuneDto> {
+    const structureArchive = archive.structure as Profil.Structure
+    const dispositifArchive = Object.values(Profil.Dispositif).find(
+      dispositif => dispositif === archive.dispositif
+    )
     return {
       id: archive.idJeune,
       nom: archive.nom,
@@ -483,8 +483,8 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       idConseiller,
       idConseillerInitial: null,
       email: archive.email,
-      structure: archive.structure as Core.Structure,
-      dispositif: (archive.dispositif as Jeune.Dispositif) ?? null,
+      structure: structureArchive,
+      dispositif: dispositifArchive ?? null,
       idPartenaire: archive.idPartenaire,
       idStructureMilo,
       dateCreation: archive.dateCreation ?? archive.dateArchivage,

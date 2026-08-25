@@ -9,9 +9,12 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { estInvite } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  estInvite,
+  TOUT_INVITE
+} from '../../domain/profil'
 import { PlanActionClient } from '../../infrastructure/clients/plan-action-client'
 import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -32,12 +35,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
   GenererPlanActionCommand,
   PlanActionQueryModel
 > {
-  readonly profilsAutorises = [
-    Profil.Jeune.MILO,
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT,
-    Profil.Jeune.INVITE
-  ]
+  readonly profilsAutorises = [...DISPOSITIFS_ACCOMPAGNES, TOUT_INVITE]
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
@@ -57,7 +55,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
       return failure(new DroitsInsuffisants())
     }
 
-    if (estInvite(utilisateur.structure)) {
+    if (estInvite(utilisateur.profil.structure)) {
       return this.jeuneInviteAuthorizer.autoriserLInvite(
         command.idJeune,
         utilisateur
@@ -70,7 +68,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     command: GenererPlanActionCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
-    const profile = toProfileDto(command.payload, utilisateur.structure)
+    const profile = toProfileDto(command.payload, utilisateur.profil.structure)
     const result = await this.planActionClient.genererPlan(profile)
 
     if (isSuccess(result)) {

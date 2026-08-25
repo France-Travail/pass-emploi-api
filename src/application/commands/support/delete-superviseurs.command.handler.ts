@@ -6,7 +6,6 @@ import {
   Superviseur,
   SuperviseursRepositoryToken
 } from '../../../domain/superviseur'
-import { Profil } from '../../../domain/profil'
 
 export interface DeleteSuperviseursCommand extends Command {
   emails: string[]
@@ -17,8 +16,6 @@ export class DeleteSuperviseursCommandHandler extends CommandHandler<
   DeleteSuperviseursCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     @Inject(SuperviseursRepositoryToken)
     private readonly superviseurRepository: Superviseur.Repository

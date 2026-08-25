@@ -20,7 +20,6 @@ import {
   failure,
   success
 } from 'src/building-blocks/types/result'
-import { Jeune } from 'src/domain/jeune/jeune'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import * as request from 'supertest'
 import {
@@ -50,6 +49,7 @@ import { CreerJeuneMiloPayload } from '../../../src/infrastructure/routes/valida
 import { QualifierActionsMiloPayload } from '../../../src/infrastructure/routes/validation/conseillers.milo.inputs'
 import { unDossierMilo } from '../../fixtures/milo.fixture'
 import { unJeuneQueryModel } from '../../fixtures/query-models/jeunes.query-model.fixtures'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ConseillersMiloController', () => {
   let getDossierMiloJeuneQueryHandler: StubbedClass<GetDossierMiloJeuneQueryHandler>
@@ -176,7 +176,7 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           surcharge: undefined,
           peutVoirLeCompteurDesHeures: false,
           accessToken
@@ -188,7 +188,7 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false
         }
 
@@ -219,7 +219,7 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ,
+          dispositif: Profil.Dispositif.CEJ,
           peutVoirLeCompteurDesHeures: false,
           accessToken: 'accessToken'
         }
@@ -245,7 +245,7 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.CEJ,
+          dispositif: Profil.Dispositif.CEJ,
           peutVoirLeCompteurDesHeures: false,
           accessToken: 'accessToken'
         }
@@ -272,7 +272,7 @@ describe('ConseillersMiloController', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeCompteurDesHeures: false,
           accessToken: 'accessToken'
         }

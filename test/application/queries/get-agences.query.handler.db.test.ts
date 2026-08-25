@@ -1,11 +1,10 @@
 import { ConseillerAuthorizer } from '../../../src/application/authorizers/conseiller-authorizer'
 import { GetAgencesQueryHandler } from '../../../src/application/queries/get-agences.query.handler.db'
-import { Core } from '../../../src/domain/core'
 import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
-import Structure = Core.Structure
+import { Profil } from '../../../src/domain/profil'
 
 describe('GetAgencesQueryHandler', () => {
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
@@ -21,7 +20,7 @@ describe('GetAgencesQueryHandler', () => {
     it("autorise l'utilisateur conseiller de la bonne structure", async () => {
       // When
       await handler.authorize(
-        { structure: Structure.MILO },
+        { structure: Profil.Structure.MILO },
         unUtilisateurConseiller()
       )
 
@@ -46,7 +45,7 @@ describe('GetAgencesQueryHandler', () => {
           id: '1',
           nomAgence: 'Agence normale',
           nomRegion: 'Limousin',
-          structure: 'POLE_EMPLOI',
+          structure: 'FRANCE_TRAVAIL',
           codeDepartement: 87,
           timezone: 'Paris'
         }
@@ -54,7 +53,7 @@ describe('GetAgencesQueryHandler', () => {
 
       // When
       const result = await handler.handle({
-        structure: Structure.POLE_EMPLOI_BRSA
+        structure: Profil.Structure.FRANCE_TRAVAIL
       })
 
       // Then

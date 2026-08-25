@@ -29,6 +29,7 @@ import {
 import { uneSessionJeuneMiloQueryModel } from '../../../../fixtures/sessions.fixture'
 import { unConseillerDto } from '../../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../../fixtures/sql-models/jeune.sql-model'
+import { Profil } from '../../../../../src/domain/profil'
 
 describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
   let getter: GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter
@@ -106,13 +107,11 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
       )
 
       expect(result).to.deep.equal(success([]))
-      expect(oidcClient.exchangeTokenConseillerMilo).not.to.have.been.called()
+      expect(oidcClient.exchangeToken).not.to.have.been.called()
     })
 
     it("utilise le token conseiller pour appeler l'API MILO", async () => {
-      oidcClient.exchangeTokenConseillerMilo
-        .withArgs(accessToken)
-        .resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
       miloClient.getSessionsParDossierJeunePourConseiller
         .withArgs(idpToken, jeune.idPartenaire)
         .resolves(success([]))
@@ -123,16 +122,14 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         accessToken
       )
 
-      expect(
-        oidcClient.exchangeTokenConseillerMilo
-      ).to.have.been.calledOnceWithExactly(accessToken)
-      expect(oidcClient.exchangeTokenJeune).not.to.have.been.called()
+      expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
+        accessToken,
+        Profil.Structure.MILO
+      )
     })
 
     it('renvoie uniquement les sessions auxquelles le jeune est inscrit, présent ou en refus jeune', async () => {
-      oidcClient.exchangeTokenConseillerMilo
-        .withArgs(accessToken)
-        .resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
       miloClient.getSessionsParDossierJeunePourConseiller
         .withArgs(idpToken)
         .resolves(
@@ -207,9 +204,7 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
         dateHeureDebut: '2020-04-06 10:20:00',
         dateHeureFin: '2020-04-08 10:20:00'
       }
-      oidcClient.exchangeTokenConseillerMilo
-        .withArgs(accessToken)
-        .resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
       miloClient.getSessionsParDossierJeunePourConseiller
         .withArgs(idpToken)
         .resolves(
@@ -243,9 +238,7 @@ describe('GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter', () => {
 
     it("propage la failure de l'API", async () => {
       const erreur = { message: 'API error', code: 'ERR' }
-      oidcClient.exchangeTokenConseillerMilo
-        .withArgs(accessToken)
-        .resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
       miloClient.getSessionsParDossierJeunePourConseiller
         .withArgs(idpToken)
         .resolves({ _isSuccess: false, error: erreur } as never)

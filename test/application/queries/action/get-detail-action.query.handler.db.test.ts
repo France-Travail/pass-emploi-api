@@ -28,7 +28,7 @@ import {
   getDatabase
 } from '../../../utils/database-for-testing'
 import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
-import { Core } from '../../../../src/domain/core'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetDetailActionQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -159,7 +159,7 @@ describe('GetDetailActionQueryHandler', () => {
       it('valide le conseiller', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         const query: GetDetailActionQuery = {

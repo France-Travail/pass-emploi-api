@@ -24,8 +24,8 @@ import {
   DatabaseForTesting,
   getDatabase
 } from 'test/utils/database-for-testing'
-import Structure = Core.Structure
 import Statut = SessionMilo.Inscription.Statut
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
   let getCompteursPortefeuilleMiloQueryHandler: GetCompteursBeneficiaireMiloQueryHandler
@@ -74,7 +74,7 @@ describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
       // When
       getCompteursPortefeuilleMiloQueryHandler.authorize(
         query,
-        unUtilisateurConseiller({ structure: Structure.MILO })
+        unUtilisateurConseiller({ profil: unProfilMilo() })
       )
 
       // Then
@@ -82,7 +82,7 @@ describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
         conseillerAuthorizer.autoriserLeConseiller
       ).to.have.been.calledWithExactly(
         'idConseiller',
-        unUtilisateurConseiller({ structure: Structure.MILO })
+        unUtilisateurConseiller({ profil: unProfilMilo() })
       )
     })
   })
@@ -99,7 +99,7 @@ describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
 
     beforeEach(async () => {
       await ConseillerSqlModel.creer(
-        unConseillerDto({ structure: Structure.MILO })
+        unConseillerDto({ structure: Core.Structure.MILO })
       )
 
       await JeuneSqlModel.creer(
@@ -117,7 +117,7 @@ describe('GetCompteursPortefeuilleMiloQueryHandler', () => {
         dateFin: DateTime.fromISO('2024-07-26')
       }
 
-      user = unUtilisateurConseiller({ structure: Structure.MILO })
+      user = unUtilisateurConseiller({ profil: unProfilMilo() })
     })
     describe('quand le bénéficiaire a des actions', () => {
       it('les compte et les retourne', async () => {

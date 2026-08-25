@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import { Core } from 'src/domain/core'
 import { Offre } from 'src/domain/offre/offre'
 import { unUtilisateurConseiller } from 'test/fixtures/authentification.fixture'
 import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
@@ -24,6 +23,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -319,7 +319,7 @@ describe('GetMetadonneesFavorisJeuneQueryHandler', () => {
       it("appelle l'authorizer pour le conseiller", async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         const query: GetMetadonneesFavorisJeuneQuery = {

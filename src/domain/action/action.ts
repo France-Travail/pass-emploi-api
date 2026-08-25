@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { Brand } from '../../building-blocks/types/brand'
 import {
   DomainError,
   MauvaiseCommandeError,
@@ -24,13 +23,13 @@ export const CommentaireActionRepositoryToken =
   'CommentaireActionRepositoryToken'
 
 export interface Action {
-  id: Action.Id
+  id: string
   statut: Action.Statut
   contenu: string
   description: string
   dateCreation: DateTime
   dateDerniereActualisation: DateTime
-  idJeune: Jeune.Id
+  idJeune: string
   createur: Action.Createur
   dateEcheance: DateTime
   dateDebut?: DateTime
@@ -41,7 +40,7 @@ export interface Action {
 }
 
 export type InfosActionAMettreAJour = {
-  idAction: Action.Id
+  idAction: string
   statut?: Action.Statut
   contenu?: string
   description?: string
@@ -58,9 +57,6 @@ export namespace Action {
 
   export import Qualification = _Qualification.Qualification
 
-  export type Id = Brand<string, 'IdAction'>
-  export type IdCreateur = string | Jeune.Id
-
   export interface Terminee extends Action {
     dateFinReelle: DateTime
   }
@@ -74,17 +70,17 @@ export namespace Action {
     save(action: Action): Promise<void>
 
     get(
-      id: Action.Id,
+      id: string,
       options?: { avecCommentaires: boolean }
     ): Promise<Action | undefined>
 
-    findAll(idsActions: Action.Id[]): Promise<Action[]>
+    findAll(idsActions: string[]): Promise<Action[]>
 
     getConseillerEtJeune(
-      id: Action.Id
+      id: string
     ): Promise<{ idConseiller: string; idJeune: string } | undefined>
 
-    delete(id: Action.Id): Promise<void>
+    delete(id: string): Promise<void>
 
     findAllActionsARappeler(): Promise<Action[]>
   }

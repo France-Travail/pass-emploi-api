@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { structuresCampagnes } from '../../domain/core'
 import {
   Notification,
   NotificationRepositoryToken
@@ -11,11 +11,12 @@ import {
   PlanificateurRepositoryToken,
   ProcessJobType
 } from '../../domain/planificateur'
+import { PROFILS_CAMPAGNES } from '../../domain/profil'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
+import { filtreStructuresEtDispositifs } from '../../infrastructure/sequelize/filtre-structures-dispositifs'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { ReponseCampagneSqlModel } from '../../infrastructure/sequelize/models/reponse-campagne.sql-model'
 import { DateService } from '../../utils/date-service'
-import { DateTime } from 'luxon'
 import { buildError } from '../../utils/logger.module'
 
 interface Stats {
@@ -66,9 +67,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
 
       const idsJeunesANotifier = await JeuneSqlModel.findAll({
         where: {
-          structure: {
-            [Op.in]: structuresCampagnes
-          },
+          ...filtreStructuresEtDispositifs(PROFILS_CAMPAGNES),
           pushNotificationToken: {
             [Op.ne]: null
           },

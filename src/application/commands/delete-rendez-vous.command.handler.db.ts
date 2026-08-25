@@ -18,7 +18,7 @@ import {
   ConseillerRepositoryToken
 } from '../../domain/milo/conseiller'
 import { Notification } from '../../domain/notification/notification'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import {
   PlanificateurService,
   supprimerLesRappelsDeRendezVous
@@ -39,7 +39,7 @@ export class DeleteRendezVousCommandHandler extends CommandHandler<
   DeleteRendezVousCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(RendezVousRepositoryToken)

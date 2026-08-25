@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
-import { Jeune } from '../../domain/jeune/jeune'
 import { Notification } from '../../domain/notification/notification'
 import {
   Planificateur,
@@ -12,6 +10,7 @@ import {
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { DateService } from '../../utils/date-service'
+import { Profil } from '../../domain/profil'
 
 interface Stats {
   nbJeunesNotifies: number
@@ -68,8 +67,8 @@ export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur
         {
           type: QueryTypes.SELECT,
           replacements: {
-            structure: Core.Structure.MILO,
-            dispositif: Jeune.Dispositif.CEJ,
+            structure: Profil.Structure.MILO,
+            dispositif: Profil.Dispositif.CEJ,
             debutSemaine: maintenant.startOf('week').toJSDate(),
             maxJeunes: PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM,
             nowLimit: maintenant.minus({ days: 1 }).toJSDate(),

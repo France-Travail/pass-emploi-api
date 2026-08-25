@@ -3,9 +3,9 @@ import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../building-blocks/types/domain-error'
 import { failure, Result, success } from '../building-blocks/types/result'
 import { DateService } from '../utils/date-service'
-import { Core } from './core'
 import { catalogueDemarchesInMemory } from '../infrastructure/clients/utils/demarches-in-memory'
 import { estDemarchePerso } from '../application/queries/query-mappers/actions-pole-emploi.mappers'
+import { Profil } from './profil'
 
 export const DemarcheRepositoryToken = 'DemarcheRepositoryToken'
 
@@ -89,13 +89,13 @@ export namespace Demarche {
     update(
       demarcheModifiee: Demarche.Modifiee,
       accessToken: string,
-      structure: Core.Structure
+      structure: Profil.Structure
     ): Promise<Result<Demarche>>
 
     save(
       demarche: Demarche.Creee,
       accessToken: string,
-      structure: Core.Structure
+      structure: Profil.Structure
     ): Promise<Result<Demarche>>
   }
 

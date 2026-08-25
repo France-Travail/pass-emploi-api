@@ -1,4 +1,3 @@
-import { Core } from '../../../src/domain/core'
 import { AgenceSqlRepository } from '../../../src/infrastructure/repositories/agence-sql.repository.db'
 import {
   AgenceDto,
@@ -8,14 +7,14 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
-import Structure = Core.Structure
+import { Profil } from '../../../src/domain/profil'
 
 describe('AgenceSqlRepository', () => {
   let agenceSqlRepository: AgenceSqlRepository
   const agenceMilo: Partial<AgenceDto> = {
     id: 'Bonjour je suis un id milo',
     nomAgence: 'Bonjour je suis une agence',
-    structure: Structure.MILO,
+    structure: Profil.Structure.MILO,
     codeDepartement: '45',
     nomRegion: 'yolo',
     timezone: 'Paris'
@@ -23,7 +22,7 @@ describe('AgenceSqlRepository', () => {
   const agencePE: Partial<AgenceDto> = {
     id: 'Bonjour je suis un id pe',
     nomAgence: 'Bonjour je suis une agence',
-    structure: Structure.POLE_EMPLOI,
+    structure: Profil.Structure.FRANCE_TRAVAIL,
     codeDepartement: '45',
     nomRegion: 'yolo',
     timezone: 'Paris'
@@ -39,7 +38,7 @@ describe('AgenceSqlRepository', () => {
       // When
       const result = await agenceSqlRepository.get(
         'Bonjour je suis un id pe',
-        Structure.POLE_EMPLOI
+        Profil.Structure.FRANCE_TRAVAIL
       )
 
       // Then
@@ -52,7 +51,7 @@ describe('AgenceSqlRepository', () => {
       // When
       const result = await agenceSqlRepository.get(
         'Bonjour je suis un id pe',
-        Structure.POLE_EMPLOI
+        Profil.Structure.FRANCE_TRAVAIL
       )
 
       // Then
@@ -103,6 +102,7 @@ describe('AgenceSqlRepository', () => {
           firstName: conseiller.prenom,
           lastName: conseiller.nom,
           structure: conseiller.structure,
+          dispositif: conseiller.dispositif,
           email: conseiller.email,
           notificationsSonores: conseiller.notificationsSonores,
           agence: {

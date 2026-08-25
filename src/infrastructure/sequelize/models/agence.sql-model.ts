@@ -5,7 +5,7 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 
 export class AgenceDto extends Model {
   @PrimaryKey
@@ -55,7 +55,7 @@ export class AgenceDto extends Model {
     field: 'structure',
     type: DataType.STRING
   })
-  structure: Core.Structure
+  structure: Profil.Structure
 
   @Column({
     field: 'timezone',

@@ -2,8 +2,6 @@ import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
 import { UpdateUtilisateurInviteCommandHandler } from '../../../src/application/commands/update-utilisateur-invite.command.handler'
 import {
-  StructureUtilisateurAuth,
-  TypeUtilisateurAuth,
   UpdateUtilisateurCommand,
   UpdateUtilisateurCommandHandler
 } from '../../../src/application/commands/update-utilisateur.command.handler'
@@ -28,6 +26,8 @@ import {
   GetUtilisateurQuery,
   GetUtilisateurQueryHandler
 } from '../../../src/application/queries/get-utilisateur.query.handler'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
+import { Profil } from '../../../src/domain/profil'
 
 let updateUtilisateurCommandHandler: StubbedClass<UpdateUtilisateurCommandHandler>
 let updateUtilisateurInviteCommandHandler: StubbedClass<UpdateUtilisateurInviteCommandHandler>
@@ -99,7 +99,7 @@ describe('AuthentificationController', () => {
         prenom: 'Nils',
         type: Authentification.Type.CONSEILLER,
         email: 'nils.tavernier@passemploi.com',
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(),
         username: 'test'
       }
 
@@ -129,9 +129,9 @@ describe('AuthentificationController', () => {
       const body: PutUtilisateurPayload = {
         nom: 'Tavernier',
         prenom: 'Nils',
-        type: 'BENEFICIAIRE',
+        type: Authentification.Type.JEUNE,
         email: 'nils.tavernier@passemploi.com',
-        structure: 'FRANCE_TRAVAIL',
+        profil: unProfilFT(null),
         username: 'test'
       }
 
@@ -162,7 +162,7 @@ describe('AuthentificationController', () => {
         prenom: 'Nils',
         type: Authentification.Type.CONSEILLER,
         email: 'nils.tavernier@passemploi.com',
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       }
 
       const command: UpdateUtilisateurCommand = {
@@ -191,7 +191,7 @@ describe('AuthentificationController', () => {
         prenom: 'Nils',
         type: Authentification.Type.CONSEILLER,
         email: 'nils.tavernier@passemploi.com',
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       }
 
       const command: UpdateUtilisateurCommand = {
@@ -222,7 +222,7 @@ describe('AuthentificationController', () => {
         prenom: 'Nils',
         type: Authentification.Type.CONSEILLER,
         email: 'nils.tavernier@passemploi.com',
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       }
 
       const command: UpdateUtilisateurCommand = {
@@ -257,7 +257,7 @@ describe('AuthentificationController', () => {
         prenom: 'Nils',
         type: Authentification.Type.CONSEILLER,
         email: 'nils.tavernier@passemploi.com',
-        structure: 'MILOU' as StructureUtilisateurAuth,
+        profil: { structure: 'MILOU' as Profil.Structure, dispositif: null },
         username: 'test'
       }
 
@@ -282,7 +282,7 @@ describe('AuthentificationController', () => {
       // Given
       const body: PutUtilisateurPayload = {
         type: Authentification.Type.CONSEILLER,
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       }
 
       const command: UpdateUtilisateurCommand = {
@@ -307,9 +307,9 @@ describe('AuthentificationController', () => {
       const body: PutUtilisateurPayload = {
         nom: 'Tavernier',
         prenom: 'Nils',
-        type: 'BENEF' as TypeUtilisateurAuth,
+        type: 'BENEF' as Authentification.Type,
         email: 'nils.tavernier@passemploi.com',
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(),
         username: 'test'
       }
 
@@ -335,7 +335,7 @@ describe('AuthentificationController', () => {
       const body: PutUtilisateurPayload = {
         email: 'plop',
         type: Authentification.Type.CONSEILLER,
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       }
 
       const command: UpdateUtilisateurCommand = {
@@ -388,11 +388,12 @@ describe('AuthentificationController', () => {
       // Given
       const qp: GetUtilisateurQueryParams = {
         typeUtilisateur: Authentification.Type.CONSEILLER,
-        structureUtilisateur: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       }
       const query: GetUtilisateurQuery = {
-        ...qp,
-        idAuthentification: 'test-sub'
+        idAuthentification: 'test-sub',
+        typeUtilisateur: qp.typeUtilisateur,
+        profil: unProfilMilo()
       }
       const utilisateur = unUtilisateurQueryModel({ username: 'test' })
       getUtilisateurQueryHandler.execute
@@ -413,11 +414,12 @@ describe('AuthentificationController', () => {
       // Given
       const qp: GetUtilisateurQueryParams = {
         typeUtilisateur: Authentification.Type.CONSEILLER,
-        structureUtilisateur: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       }
       const query: GetUtilisateurQuery = {
-        ...qp,
-        idAuthentification: 'test-sub'
+        idAuthentification: 'test-sub',
+        typeUtilisateur: qp.typeUtilisateur,
+        profil: unProfilMilo()
       }
       getUtilisateurQueryHandler.execute
         .withArgs(query)
@@ -437,7 +439,7 @@ describe('AuthentificationController', () => {
       // Given
       const qp = {
         typeUtilisateur: Authentification.Type.CONSEILLER,
-        structureUtilisateur: 'RSA'
+        structure: 'RSA'
       }
 
       // When - Then
@@ -452,7 +454,7 @@ describe('AuthentificationController', () => {
       // Given
       const qp: GetUtilisateurQueryParams = {
         typeUtilisateur: Authentification.Type.SUPPORT,
-        structureUtilisateur: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       }
 
       // When - Then

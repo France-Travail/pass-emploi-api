@@ -4,7 +4,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUT_MILO } from '../../../domain/profil'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
@@ -23,7 +23,7 @@ export class GetRendezVousJeuneQueryHandler extends QueryHandler<
   GetRendezVousJeuneQuery,
   Result<RendezVousJeuneQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerInterAgenceAuthorizer

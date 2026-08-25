@@ -1,7 +1,6 @@
 import { AsSql } from '../../../src/infrastructure/sequelize/types'
 import { AgenceDto } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
-import { Core } from '../../../src/domain/core'
-import Structure = Core.Structure
+import { Profil } from '../../../src/domain/profil'
 
 export function uneAgenceMiloDto(
   args: Partial<AsSql<AgenceDto>> = {}
@@ -12,7 +11,7 @@ export function uneAgenceMiloDto(
     nomUsuel: 'Mission Locale Aubenas',
     nomDepartement: null,
     codeDepartement: '07',
-    structure: Structure.MILO,
+    structure: Profil.Structure.MILO,
     nomRegion: 'Auvergne-Rhône-Alpes',
     codeRegion: null,
     timezone: 'Europe/Paris'
@@ -30,7 +29,7 @@ export function uneAgenceDto(
     nomUsuel: 'Nice',
     nomDepartement: null,
     codeDepartement: '6',
-    structure: Structure.POLE_EMPLOI,
+    structure: Profil.Structure.FRANCE_TRAVAIL,
     nomRegion: 'PACA',
     codeRegion: null,
     timezone: 'Europe/Paris'

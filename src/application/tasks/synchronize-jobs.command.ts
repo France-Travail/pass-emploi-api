@@ -22,8 +22,6 @@ export class SynchronizeJobsCommandHandler extends CommandHandler<
   Command,
   void
 > {
-  readonly profilsAutorises = []
-
   constructor(
     @Inject(RendezVousRepositoryToken)
     private rendezVousRepository: RendezVous.Repository,

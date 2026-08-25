@@ -10,7 +10,10 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
-import { Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_FT_AVEC_DEMARCHES,
+  TOUT_CONSEIL_DEPARTEMENTAL
+} from '../../domain/profil'
 import { DocumentPoleEmploiDto } from '../../infrastructure/clients/dto/pole-emploi.dto'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import {
@@ -31,8 +34,8 @@ export class GetCVPoleEmploiQueryHandler extends QueryHandler<
   Result<CVPoleEmploiQueryModel[]>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(
@@ -59,7 +62,7 @@ export class GetCVPoleEmploiQueryHandler extends QueryHandler<
     if (!jeune) {
       return failure(new NonTrouveError('Jeune', query.idJeune))
     }
-    const idpToken = await this.oidcClient.exchangeTokenJeune(
+    const idpToken = await this.oidcClient.exchangeToken(
       query.accessToken,
       jeune.structure
     )

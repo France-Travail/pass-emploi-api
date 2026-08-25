@@ -5,6 +5,7 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
+import { TOUT_MILO } from '../../../src/domain/profil'
 
 describe('MailSqlRepository', () => {
   let mailSqlRepository: MailSqlRepository
@@ -46,9 +47,7 @@ describe('MailSqlRepository', () => {
 
         // When
         const actual =
-          await mailSqlRepository.findAllContactsConseillerByStructures([
-            Core.Structure.MILO
-          ])
+          await mailSqlRepository.findAllContactsConseillerParProfil(TOUT_MILO)
 
         // Then
         const expected: Mail.Contact[] = [
@@ -79,9 +78,7 @@ describe('MailSqlRepository', () => {
 
         // When
         const actual =
-          await mailSqlRepository.findAllContactsConseillerByStructures([
-            Core.Structure.MILO
-          ])
+          await mailSqlRepository.findAllContactsConseillerParProfil(TOUT_MILO)
 
         // Then
         expect(actual).to.deep.equal([])
@@ -102,9 +99,7 @@ describe('MailSqlRepository', () => {
 
         // When
         const actual =
-          await mailSqlRepository.findAllContactsConseillerByStructures([
-            Core.Structure.MILO
-          ])
+          await mailSqlRepository.findAllContactsConseillerParProfil(TOUT_MILO)
 
         // Then
         expect(actual).to.deep.equal([])

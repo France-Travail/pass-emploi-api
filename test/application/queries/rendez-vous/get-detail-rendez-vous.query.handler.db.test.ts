@@ -10,7 +10,6 @@ import {
   isSuccess,
   success
 } from '../../../../src/building-blocks/types/result'
-import { Core } from '../../../../src/domain/core'
 import {
   CodeTypeRendezVous,
   RendezVous
@@ -29,6 +28,8 @@ import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
+import { unProfilFT } from '../../../fixtures/profil.fixture'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 const queryModel: RendezVousConseillerDetailQueryModel = {
   adresse: undefined,
@@ -426,7 +427,7 @@ describe('GetDetailRendezVousQueryHandler', () => {
       // Given
       const utilisateur = unUtilisateurConseiller({
         id: 'idConseiller',
-        structure: Core.Structure.POLE_EMPLOI
+        profil: unProfilFT()
       })
 
       // When
@@ -446,7 +447,7 @@ describe('GetDetailRendezVousQueryHandler', () => {
       // Given
       const utilisateur = unUtilisateurConseiller({
         id: 'idConseiller',
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       // When

@@ -4,7 +4,7 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { failure, Result } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { Profil, TOUT_MILO } from '../../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
@@ -25,7 +25,7 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
   EnvoyerEmailActivationCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -50,8 +50,9 @@ export class EnvoyerEmailActivationCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
 
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      command.accessToken
+    const idpToken = await this.oidcClient.exchangeToken(
+      command.accessToken,
+      Profil.Structure.MILO
     )
 
     return this.miloClient.envoyerEmailActivation(idpToken, jeune.email)

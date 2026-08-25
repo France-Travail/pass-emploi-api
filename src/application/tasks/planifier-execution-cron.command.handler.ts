@@ -18,8 +18,6 @@ export class PlanifierExecutionCronCommandHandler extends CommandHandler<
   PlanifierExecutionCronCommand,
   void
 > {
-  readonly profilsAutorises = []
-
   constructor(
     @Inject(PlanificateurRepositoryToken)
     private planificateurRepository: Planificateur.Repository,

@@ -16,7 +16,8 @@ export class EvenementSqlRepository implements Evenement.Repository {
       nom: evenement.nom ?? null,
       idUtilisateur: evenement.utilisateur.id,
       typeUtilisateur: evenement.utilisateur.type,
-      structure: evenement.utilisateur.structure,
+      structure: evenement.utilisateur.profil.structure,
+      dispositif: evenement.utilisateur.profil.dispositif,
       dateEvenement: evenement.date
     }
     await this.rateLimiterService.evenementsEngagementRateLimiter.attendreLaProchaineDisponibilite()

@@ -10,7 +10,6 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
-import { Core } from '../../../domain/core'
 import { AsSql } from '../types'
 import { ActionSqlModel } from './action.sql-model'
 import { ConseillerSqlModel } from './conseiller.sql-model'
@@ -19,7 +18,7 @@ import { RendezVousSqlModel } from './rendez-vous.sql-model'
 import { SituationsMiloSqlModel } from './situations-milo.sql-model'
 import { TransfertConseillerSqlModel } from './transfert-conseiller.sql-model'
 import { StructureMiloSqlModel } from './structure-milo.sql-model'
-import { Jeune } from '../../../domain/jeune/jeune'
+import { Profil } from '../../../domain/profil'
 
 export class JeuneDto extends Model {
   @PrimaryKey
@@ -88,7 +87,7 @@ export class JeuneDto extends Model {
     field: 'structure',
     type: DataType.STRING
   })
-  structure: Core.Structure
+  structure: Profil.Structure
 
   @Column({
     field: 'id_authentification',
@@ -197,7 +196,7 @@ export class JeuneDto extends Model {
     field: 'dispositif',
     type: DataType.STRING
   })
-  dispositif: Jeune.Dispositif | null
+  dispositif: Profil.Dispositif | null
 
   @Column({
     field: 'peut_voir_le_comptage_des_heures',

@@ -11,9 +11,9 @@ import { DateService } from '../../../../utils/date-service'
 import { OidcClient } from '../../../../infrastructure/clients/oidc-client.db'
 import { MiloClient } from '../../../../infrastructure/clients/milo/milo-client'
 import { Authentification } from '../../../../domain/authentification'
-import { Core } from '../../../../domain/core'
 import JeuneOuConseiller = Authentification.JeuneOuConseiller
 import Type = Authentification.Type
+import { Profil } from '../../../../domain/profil'
 
 export interface SessionsFetchResult {
   beneficiaire: JeuneSqlModel
@@ -80,9 +80,9 @@ export class SessionsMiloFetcher {
   ): Promise<Result<SessionParDossierJeuneDto[]>> {
     switch (utilisateur) {
       case Type.JEUNE: {
-        const idpToken = await this.oidcClient.exchangeTokenJeune(
+        const idpToken = await this.oidcClient.exchangeToken(
           accessToken,
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
         return this.miloClient.getSessionsParDossierJeune(
           idpToken,
@@ -91,8 +91,10 @@ export class SessionsMiloFetcher {
         )
       }
       case Authentification.Type.CONSEILLER: {
-        const idpToken =
-          await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
+        const idpToken = await this.oidcClient.exchangeToken(
+          accessToken,
+          Profil.Structure.MILO
+        )
         return this.miloClient.getSessionsParDossierJeunePourConseiller(
           idpToken,
           idPartenaire,

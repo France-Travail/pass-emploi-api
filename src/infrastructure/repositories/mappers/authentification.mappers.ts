@@ -1,5 +1,5 @@
 import { Authentification } from '../../../domain/authentification'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { ConseillerSqlModel } from '../../sequelize/models/conseiller.sql-model'
 import { JeuneInviteSqlModel } from '../../sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
@@ -15,7 +15,10 @@ export function fromConseillerSqlToUtilisateur(
     nom: conseillerSqlModel.nom,
     email: conseillerSqlModel.email ? conseillerSqlModel.email : undefined,
     username: conseillerSqlModel.username || undefined,
-    structure: conseillerSqlModel.structure,
+    profil: {
+      structure: conseillerSqlModel.structure,
+      dispositif: conseillerSqlModel.dispositif
+    },
     type: Authentification.Type.CONSEILLER,
     dateDerniereConnexion:
       conseillerSqlModel.dateDerniereConnexion ?? undefined,
@@ -32,7 +35,7 @@ export function fromJeuneInviteSqlToUtilisateur(
     idAuthentification: jeuneInviteSqlModel.idAuthentification,
     prenom: jeuneInviteSqlModel.prenom,
     nom: '',
-    structure: Core.Structure.INVITE,
+    profil: { structure: Profil.Structure.INVITE, dispositif: null },
     type: Authentification.Type.JEUNE,
     appVersion: jeuneInviteSqlModel.appVersion ?? undefined,
     installationId: jeuneInviteSqlModel.installationId ?? undefined,
@@ -49,7 +52,10 @@ export function fromJeuneSqlToUtilisateur(
     prenom: jeuneSqlModel.prenom,
     nom: jeuneSqlModel.nom,
     email: jeuneSqlModel.email ? jeuneSqlModel.email : undefined,
-    structure: jeuneSqlModel.structure,
+    profil: {
+      structure: jeuneSqlModel.structure,
+      dispositif: jeuneSqlModel.dispositif
+    },
     type: Authentification.Type.JEUNE,
     dateDerniereConnexion: jeuneSqlModel.dateDerniereConnexion || undefined,
     datePremiereConnexion: jeuneSqlModel.datePremiereConnexion || undefined,

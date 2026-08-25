@@ -5,7 +5,6 @@ import {
   GetFavorisJeuneQueryHandler
 } from '../../../../src/application/queries/favoris/get-favoris-jeune.query.handler.db'
 import { FavorisQueryModel } from '../../../../src/application/queries/query-models/favoris.query-model'
-import { Core } from '../../../../src/domain/core'
 import { Offre } from '../../../../src/domain/offre/offre'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { FavoriOffreEmploiSqlModel } from '../../../../src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
@@ -25,9 +24,13 @@ import {
   unFavoriOffreImmersion
 } from '../../../fixtures/sql-models/favoris.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { Profil } from '../../../../src/domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 const now = uneDatetime()
 
@@ -449,7 +452,7 @@ describe('GetFavorisJeuneQueryHandler', () => {
       it('valide le conseiller', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         const query = {
@@ -471,12 +474,20 @@ describe('GetFavorisJeuneQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getFavorisJeuneQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Conseiller.MILO,
-        Profil.Conseiller.FT,
-        Profil.Conseiller.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

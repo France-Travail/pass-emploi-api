@@ -1,10 +1,9 @@
 import { MauvaiseCommandeError } from '../../src/building-blocks/types/domain-error'
 import { Failure, isFailure } from '../../src/building-blocks/types/result'
 import { Conseiller } from '../../src/domain/milo/conseiller'
-import { Core } from '../../src/domain/core'
 import { unConseiller } from '../fixtures/conseiller.fixture'
 import { expect } from '../utils'
-import Structure = Core.Structure
+import { Profil } from '../../src/domain/profil'
 
 describe('Conseiller', () => {
   describe('mettreAJour', () => {
@@ -13,7 +12,7 @@ describe('Conseiller', () => {
         // Given
         const conseillerMilo = unConseiller({
           id: 'id-conseiller',
-          structure: Structure.MILO
+          structure: Profil.Structure.MILO
         })
         const agenceHorsReferentiel: Conseiller.InfosDeMiseAJour = {
           agence: {

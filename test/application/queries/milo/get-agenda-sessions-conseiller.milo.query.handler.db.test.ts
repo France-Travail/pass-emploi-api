@@ -122,7 +122,7 @@ describe('GetAgendaSessionsConseillerMiloQueryHandler', () => {
           .withArgs(query.idConseiller)
           .resolves(success(conseiller))
 
-        oidcClient.exchangeTokenConseillerMilo
+        oidcClient.exchangeToken
           .withArgs(query.accessToken)
           .resolves('idpToken')
       })

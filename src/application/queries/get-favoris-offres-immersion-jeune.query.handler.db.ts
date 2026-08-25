@@ -4,14 +4,13 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
-import { Jeune } from '../../domain/jeune/jeune'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { FavoriOffreImmersionSqlModel } from '../../infrastructure/sequelize/models/favori-offre-immersion.sql-model'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { FavoriOffreImmersionQueryModel } from './query-models/offres-immersion.query-model'
 
 export interface GetFavorisOffresImmersionJeuneQuery extends Query {
-  idJeune: Jeune.Id
+  idJeune: string
 }
 
 @Injectable()
@@ -19,7 +18,7 @@ export class GetFavorisOffresImmersionJeuneQueryHandler extends QueryHandler<
   GetFavorisOffresImmersionJeuneQuery,
   FavoriOffreImmersionQueryModel[]
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetFavorisOffresImmersionJeuneQueryHandler')

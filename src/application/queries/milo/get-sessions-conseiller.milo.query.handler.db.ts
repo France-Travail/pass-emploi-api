@@ -6,7 +6,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
+import { Profil, TOUT_MILO } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import {
   ConseillerMilo,
@@ -39,7 +39,7 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
   GetSessionsConseillerMiloQuery,
   Result<SessionConseillerMiloQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
   constructor(
     private readonly configService: ConfigService,
     @Inject(ConseillerMiloRepositoryToken)
@@ -102,8 +102,9 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
     query: GetSessionsConseillerMiloQuery,
     structureMilo: StructureMilo
   ): Promise<Result<SessionConseillerDetailDto[]>> {
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      query.accessToken
+    const idpToken = await this.oidcClient.exchangeToken(
+      query.accessToken,
+      Profil.Structure.MILO
     )
 
     return this.miloClient.getSessionsConseillerParStructure(

@@ -14,7 +14,6 @@ import {
   isSuccess,
   success
 } from 'src/building-blocks/types/result'
-import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { ConseillerMilo } from 'src/domain/milo/conseiller.milo.db'
@@ -23,6 +22,7 @@ import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('CreateActualiteMiloCommandHandler', () => {
   let createActualiteMiloCommandHandler: CreateActualiteMiloCommandHandler
@@ -76,7 +76,7 @@ describe('CreateActualiteMiloCommandHandler', () => {
         contenu: 'Contenu'
       }
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
       conseillerAuthorizer.autoriserLeConseiller.resolves(emptySuccess())
 

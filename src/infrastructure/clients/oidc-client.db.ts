@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config'
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
 import { AxiosResponse, isAxiosError } from 'axios'
 import { Authentification } from 'src/domain/authentification'
-import { beneficiaireEstFTConnect, Core, estMilo } from 'src/domain/core'
+import { Profil } from 'src/domain/profil'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
@@ -32,33 +32,10 @@ export class OidcClient extends ExternalApiClient {
     this.clientSecret = this.configService.get('oidc').clientSecret
   }
 
-  // FIXME remove
-  public async exchangeTokenConseillerMilo(bearer: string): Promise<string> {
-    return this.exchangeToken(bearer, Core.Structure.MILO)
-  }
-
-  // FIXME remove
-  public async exchangeTokenJeune(
-    bearer: string,
-    structure: Core.Structure
-  ): Promise<string> {
-    return this.exchangeToken(bearer, structure)
-  }
-
-  // FIXME remove
-  public async exchangeTokenConseillerJeune(
-    bearer: string,
-    subJeune: string
-  ): Promise<string> {
-    return this.exchangeToken(bearer, undefined, {
-      sub: subJeune,
-      type: Authentification.Type.JEUNE
-    })
-  }
-
+  // La structure ne part pas vers connect : elle ne sert qu'au libellé du 401 (savoir quel IdP a expiré côté front)
   async exchangeToken(
     bearer: string,
-    structure?: Core.Structure,
+    structure?: Profil.Structure,
     target?: { sub: string; type: Authentification.Type }
   ): Promise<string> {
     const url = `${this.issuerUrl}/protocol/openid-connect/token`
@@ -85,12 +62,16 @@ export class OidcClient extends ExternalApiClient {
       if (e.code === 'ECONNABORTED' || e.status >= '500') {
         message = 'token_exchange_error'
       } else {
-        if (!structure) {
-          message = 'token_expired'
-        } else if (beneficiaireEstFTConnect(structure)) {
-          message = 'token_pole_emploi_expired'
-        } else if (estMilo(structure)) {
-          message = 'token_milo_expired'
+        switch (structure) {
+          case Profil.Structure.MILO:
+            message = 'token_milo_expired'
+            break
+          case Profil.Structure.FRANCE_TRAVAIL:
+          case Profil.Structure.CONSEIL_DEPARTEMENTAL:
+            message = 'token_pole_emploi_expired'
+            break
+          default:
+            message = 'token_expired'
         }
       }
 

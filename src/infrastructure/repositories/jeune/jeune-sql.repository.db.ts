@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op, Sequelize } from 'sequelize'
-import { Jeune, JeuneNonAccompagne } from '../../../domain/jeune/jeune'
+import { Jeune } from '../../../domain/jeune/jeune'
 import { DateService } from '../../../utils/date-service'
 import { IdService } from '../../../utils/id-service'
 import { FirebaseClient } from '../../clients/firebase-client'
@@ -12,11 +12,7 @@ import { TYPES_ANIMATIONS_COLLECTIVES } from '../../../domain/rendez-vous/rendez
 import { TransfertConseillerSqlModel } from '../../sequelize/models/transfert-conseiller.sql-model'
 import { SequelizeInjectionToken } from '../../sequelize/providers'
 import { AsSql } from '../../sequelize/types'
-import {
-  fromSqlToJeune,
-  fromSqlToJeuneOuNonAccompagne
-} from '../mappers/jeunes.mappers'
-import { Core } from '../../../domain/core'
+import { fromSqlToJeune } from '../mappers/jeunes.mappers'
 
 @Injectable()
 export class JeuneSqlRepository implements Jeune.Repository {
@@ -62,7 +58,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
   async getByEmail(
     email: string,
     options?: { includeConseiller: boolean }
-  ): Promise<Jeune | JeuneNonAccompagne | undefined> {
+  ): Promise<Jeune | undefined> {
     const normalizedEmail = email.trim().toLowerCase()
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: this.sequelize.where(
@@ -77,7 +73,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     if (!jeuneSqlModel) {
       return undefined
     }
-    return fromSqlToJeuneOuNonAccompagne(jeuneSqlModel)
+    return fromSqlToJeune(jeuneSqlModel)
   }
 
   async transferAndSaveAll(
@@ -125,26 +121,6 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSqlModel.map(fromSqlToJeune)
   }
 
-  async findAllJeunesByIdsAuthentificationAndStructures(
-    idsAuthentificationJeunes: string[],
-    structures: Core.Structure[]
-  ): Promise<Array<Jeune & { idAuthentification: string }>> {
-    const jeunesSqlModel = await JeuneSqlModel.findAll({
-      where: {
-        idAuthentification: {
-          [Op.in]: idsAuthentificationJeunes
-        },
-        structure: {
-          [Op.in]: structures
-        }
-      }
-    })
-    return jeunesSqlModel.map(sqlModel => ({
-      ...fromSqlToJeune(sqlModel),
-      idAuthentification: sqlModel.idAuthentification
-    }))
-  }
-
   async findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]> {
     const jeunesSqlModels = await JeuneSqlModel.findAll({
       where: { idStructureMilo }
@@ -165,7 +141,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSqlModel.map(jeuneSqlModel => fromSqlToJeune(jeuneSqlModel))
   }
 
-  async save(jeune: Jeune | JeuneNonAccompagne): Promise<void> {
+  async save(jeune: Jeune): Promise<void> {
     const jeuneDto: Partial<AsSql<JeuneDto>> = {
       id: jeune.id,
       nom: jeune.lastName,
@@ -203,7 +179,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     )
   }
 
-  async supprimer(idJeune: Jeune.Id): Promise<void> {
+  async supprimer(idJeune: string): Promise<void> {
     await this.sequelize.transaction(async transaction => {
       const associations = await RendezVousJeuneAssociationSqlModel.findAll({
         attributes: ['idRendezVous'],

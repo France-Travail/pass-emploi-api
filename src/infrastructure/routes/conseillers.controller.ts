@@ -153,7 +153,7 @@ export class ConseillersController {
     const result = await this.getDetailConseillerQueryHandler.execute(
       {
         idConseiller,
-        structure: utilisateur.structure,
+        structure: utilisateur.profil.structure,
         accessToken: accessToken
       },
       utilisateur

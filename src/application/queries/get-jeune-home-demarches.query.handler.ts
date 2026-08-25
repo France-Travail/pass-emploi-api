@@ -3,7 +3,10 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Cached, Query } from '../../building-blocks/types/query'
 import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  DISPOSITIFS_FT_AVEC_DEMARCHES
+} from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { GetCampagneQueryGetter } from './query-getters/get-campagne.query.getter.db'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
@@ -20,8 +23,8 @@ export class GetJeuneHomeDemarchesQueryHandler extends QueryHandler<
   Result<Cached<JeuneHomeDemarcheQueryModel>>
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(

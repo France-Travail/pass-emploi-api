@@ -8,9 +8,10 @@ import {
   failure,
   success
 } from '../../../src/building-blocks/types/result'
-import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
-import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
-import { Core } from '../../../src/domain/core'
+import {
+  DroitsInsuffisants,
+  ErreurHttp
+} from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
 import { PlanActionClient } from '../../../src/infrastructure/clients/plan-action-client'
@@ -19,10 +20,11 @@ import {
   SituationPayload
 } from '../../../src/infrastructure/routes/validation/plan-action.inputs'
 import { rootLogger } from '../../../src/utils/logger.module'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, sinon, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -31,7 +33,9 @@ describe('GenererPlanActionCommandHandler', () => {
   let evenementService: StubbedClass<EvenementService>
   let handler: GenererPlanActionCommandHandler
 
-  const utilisateur = unUtilisateurJeune({ structure: Core.Structure.INVITE })
+  const utilisateur = unUtilisateurJeune({
+    profil: unProfilInvite()
+  })
   const command = {
     idJeune: utilisateur.id,
     payload: {
@@ -98,7 +102,9 @@ describe('GenererPlanActionCommandHandler', () => {
 
     it("délègue à l'autorisation jeune standard pour un bénéficiaire accompagné", async () => {
       // Given
-      const jeuneMilo = unUtilisateurJeune({ structure: Core.Structure.MILO })
+      const jeuneMilo = unUtilisateurJeune({
+        profil: unProfilMilo()
+      })
       jeuneAuthorizer.autoriserLeJeune
         .withArgs(command.idJeune, jeuneMilo)
         .resolves(emptySuccess())
@@ -276,10 +282,21 @@ describe('GenererPlanActionCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Jeune.INVITE
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL,
+        { structure: Profil.Structure.INVITE }
       ])
     })
   })

@@ -16,7 +16,7 @@ import {
 import { Action } from 'src/domain/action/action'
 import { Core } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
-import { Profil } from 'src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from 'src/domain/profil'
 import {
   ActionDto,
   ActionSqlModel
@@ -47,6 +47,7 @@ import {
   JeuneMiloSansIdDossier,
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetJeuneHomeAgendaQueryHandler', () => {
   const utilisateurJeune = unUtilisateurJeune()
@@ -432,7 +433,7 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
         // Given
         const jeune = unJeune()
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         // When
@@ -450,12 +451,20 @@ describe('GetJeuneHomeAgendaQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Conseiller.MILO,
-        Profil.Conseiller.FT,
-        Profil.Conseiller.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

@@ -12,8 +12,12 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { Core } from '../../domain/core'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import {
+  memeProfil,
+  Profil,
+  profilExact,
+  TOUT_PROFIL
+} from '../../domain/profil'
 import {
   UtilisateurQueryModel,
   queryModelFromUtilisateur
@@ -22,7 +26,7 @@ import {
 export interface GetUtilisateurQuery extends Query {
   idAuthentification: string
   typeUtilisateur: Authentification.Type
-  structureUtilisateur: Core.Structure
+  profil: Profil
 }
 
 @Injectable()
@@ -30,7 +34,7 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
   GetUtilisateurQuery,
   Result<UtilisateurQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(AuthentificationRepositoryToken)
@@ -46,17 +50,18 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
 
     switch (query.typeUtilisateur) {
       case Authentification.Type.JEUNE: {
-        utilisateur = await this.authentificationRepository.getJeuneByStructure(
-          query.idAuthentification,
-          query.structureUtilisateur
-        )
+        utilisateur =
+          await this.authentificationRepository.getJeuneByStructureEtDispositifs(
+            query.idAuthentification,
+            profilExact(query.profil)
+          )
         break
       }
       case Authentification.Type.CONSEILLER: {
         utilisateur = await this.authentificationRepository.getConseiller(
           query.idAuthentification
         )
-        if (utilisateur?.structure !== query.structureUtilisateur) {
+        if (utilisateur && !memeProfil(query.profil, utilisateur.profil)) {
           utilisateur = undefined
         }
         break

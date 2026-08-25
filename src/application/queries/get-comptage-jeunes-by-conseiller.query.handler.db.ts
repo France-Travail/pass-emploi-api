@@ -4,7 +4,7 @@ import { Op } from 'sequelize'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
-import { Profil } from '../../domain/profil'
+import { memeProfil, Profil, TOUT_MILO } from '../../domain/profil'
 import {
   emptySuccess,
   failure,
@@ -13,7 +13,6 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Jeune } from '../../domain/jeune/jeune'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -48,7 +47,7 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
   GetComptageJeunesByConseillerQuery,
   Result<ComptageJeunesQueryModel>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -69,7 +68,7 @@ export class GetComptageJeunesByConseillerQueryHandler extends QueryHandler<
         idPartenaire: {
           [Op.ne]: null
         },
-        dispositif: Jeune.Dispositif.CEJ
+        dispositif: Profil.Dispositif.CEJ
       },
       attributes: ['id', 'idPartenaire']
     })
@@ -139,7 +138,7 @@ function utilisateurEstSuperviseurDuConseiller(
 ): boolean {
   return (
     Authentification.estSuperviseur(utilisateur) &&
-    conseiller.structure === utilisateur.structure
+    memeProfil(utilisateur.profil, conseiller)
   )
 }
 

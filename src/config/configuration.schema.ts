@@ -119,11 +119,11 @@ export const configurationSchema = Joi.object({
       rappelRendezvous: Joi.number().required(),
       rendezVousSupprime: Joi.number().required(),
       suppressionJeuneMilo: Joi.number().required(),
-      suppressionJeunePE: Joi.number().required(),
+      suppressionJeuneFT: Joi.number().required(),
       suppressionBeneficiairePassEmploi: Joi.number().required(),
       compteJeuneArchiveMILO: Joi.number().required(),
-      compteJeuneArchivePECEJ: Joi.number().required(),
-      compteJeuneArchivePEBRSA: Joi.number().required(),
+      compteJeuneArchiveFTCEJ: Joi.number().required(),
+      compteJeuneArchiveFTNonCEJ: Joi.number().required(),
       compteJeuneArchiveMigration: Joi.number().required()
     }),
     mailingLists: Joi.object({

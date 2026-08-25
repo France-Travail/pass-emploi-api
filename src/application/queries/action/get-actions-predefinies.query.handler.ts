@@ -3,7 +3,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { Action } from '../../../domain/action/action'
-import { TOUS_LES_PROFILS } from '../../../domain/profil'
+import { TOUT_PROFIL } from '../../../domain/profil'
 import { ActionPredefinieQueryModel } from '../query-models/actions.query-model'
 
 @Injectable()
@@ -11,7 +11,7 @@ export class GetActionsPredefiniesQueryHandler extends QueryHandler<
   Query,
   ActionPredefinieQueryModel[]
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor() {
     super('GetActionsPredefiniesQueryHandler')

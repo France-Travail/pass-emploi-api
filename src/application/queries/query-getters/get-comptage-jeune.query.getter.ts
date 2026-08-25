@@ -10,7 +10,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Action } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
-import { Core } from '../../../domain/core'
 import { CodeTypeRendezVous } from '../../../domain/rendez-vous/rendez-vous'
 import {
   MILO_INSCRIT,
@@ -25,6 +24,7 @@ import { ComptageJeuneSqlModel } from '../../../infrastructure/sequelize/models/
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { DateService } from '../../../utils/date-service'
 import { ComptageJeuneQueryModel } from '../get-comptage-jeune.query.handler.db'
+import { Profil } from '../../../domain/profil'
 
 export interface GetComptageJeuneQuery extends Query {
   idJeune: string
@@ -259,7 +259,7 @@ export class GetComptageJeuneQueryGetter {
     if (accessTokenConseiller) {
       const idpToken = await this.oidcClient.exchangeToken(
         accessTokenConseiller,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       resultSessions =
         await this.miloClient.getSessionsParDossierJeunePourConseiller(
@@ -274,7 +274,7 @@ export class GetComptageJeuneQueryGetter {
     if (accessTokenJeune) {
       const idpToken = await this.oidcClient.exchangeToken(
         accessTokenJeune,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       resultSessions = await this.miloClient.getSessionsParDossierJeune(
         idpToken,

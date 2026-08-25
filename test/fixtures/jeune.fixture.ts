@@ -1,5 +1,5 @@
-import { Core } from '../../src/domain/core'
-import { Jeune, JeuneNonAccompagne } from '../../src/domain/jeune/jeune'
+import { Profil } from '../../src/domain/profil'
+import { Jeune } from '../../src/domain/jeune/jeune'
 import { unConseiller } from './conseiller.fixture'
 import { uneDate, uneDatetime } from './date.fixture'
 
@@ -33,10 +33,10 @@ export const unJeune = (
     dateDerniereConnexion: uneDatetime(),
     email: 'john.doe@plop.io',
     idPartenaire: '1234',
-    structure: Core.Structure.MILO,
+    structure: Profil.Structure.MILO,
     configuration: uneConfiguration(),
     preferences: desPreferencesJeune(),
-    dispositif: Jeune.Dispositif.CEJ
+    dispositif: Profil.Dispositif.CEJ
   }
 
   return { ...defaults, ...args }
@@ -53,13 +53,13 @@ export const unJeuneSansPushNotificationToken = (
   creationDate: uneDatetime(),
   email: 'john.doe@plop.io',
   idPartenaire: '1234',
-  structure: Core.Structure.MILO,
+  structure: Profil.Structure.MILO,
   configuration: {
     idJeune: 'ABCDE',
     fuseauHoraire: 'Europe/Paris'
   },
   preferences: desPreferencesJeune(),
-  dispositif: Jeune.Dispositif.CEJ
+  dispositif: Profil.Dispositif.CEJ
 })
 
 export const unJeuneSansConseiller = (
@@ -75,19 +75,17 @@ export const unJeuneSansConseiller = (
     dateDerniereConnexion: uneDatetime(),
     email: 'john.doe@plop.io',
     idPartenaire: '1234',
-    structure: Core.Structure.MILO,
+    structure: Profil.Structure.MILO,
     preferences: desPreferencesJeune(),
     configuration: uneConfiguration(),
-    dispositif: Jeune.Dispositif.CEJ
+    dispositif: Profil.Dispositif.CEJ
   }
 
   return { ...defaults, ...args }
 }
 
-export const unJeuneNonAccompagne = (
-  args: Partial<JeuneNonAccompagne> = {}
-): JeuneNonAccompagne => {
-  const defaults: JeuneNonAccompagne = {
+export const unJeuneNonAccompagne = (args: Partial<Jeune> = {}): Jeune => {
+  const defaults: Jeune = {
     id: 'ABCDE',
     lastName: 'Doe',
     firstName: 'John',
@@ -97,7 +95,8 @@ export const unJeuneNonAccompagne = (
     dateDerniereConnexion: uneDatetime(),
     email: 'john.doe@plop.io',
     idPartenaire: '1234',
-    structure: Core.Structure.FT_ESPACE_CANDIDAT,
+    structure: Profil.Structure.FRANCE_TRAVAIL,
+    dispositif: Profil.Dispositif.ESPACE_CANDIDAT,
     configuration: uneConfiguration(),
     preferences: desPreferencesJeune()
   }

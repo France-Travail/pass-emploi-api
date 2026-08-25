@@ -5,7 +5,6 @@ import { GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter } from 'src/ap
 import { SessionsMiloFetcher } from 'src/application/queries/query-getters/milo/sessions-milo.fetcher'
 import { isSuccess, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Core } from 'src/domain/core'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import {
   MILO_INSCRIT,
@@ -24,6 +23,7 @@ import { SessionMiloSqlModel } from '../../../../../src/infrastructure/sequelize
 import { StructureMiloSqlModel } from '../../../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { unConseillerDto } from '../../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../../fixtures/sql-models/jeune.sql-model'
+import { Profil } from '../../../../../src/domain/profil'
 
 describe('GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter', () => {
   let getter: GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter
@@ -269,8 +269,8 @@ describe('GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter', () => {
     it("propage la failure de l'API MiLo", async () => {
       // Given
       const erreur = { message: 'API error', code: 'ERR' }
-      oidcClient.exchangeTokenJeune
-        .withArgs(accessToken, Core.Structure.MILO)
+      oidcClient.exchangeToken
+        .withArgs(accessToken, Profil.Structure.MILO)
         .resolves(idpToken)
       miloClient.getSessionsParDossierJeune.resolves({
         _isSuccess: false,
@@ -290,8 +290,8 @@ describe('GetSessionsVisiblesOuInscritesPourLeJeuneMiloQueryGetter', () => {
   })
 
   function stubGetSessions(sessions: SessionParDossierJeuneDto[]): void {
-    oidcClient.exchangeTokenJeune
-      .withArgs(accessToken, Core.Structure.MILO)
+    oidcClient.exchangeToken
+      .withArgs(accessToken, Profil.Structure.MILO)
       .resolves(idpToken)
     miloClient.getSessionsParDossierJeune.resolves(success(sessions))
   }

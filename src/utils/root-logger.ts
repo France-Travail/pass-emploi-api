@@ -52,7 +52,8 @@ const pinoOptions = {
         user: {
           id: utilisateur.id,
           type: utilisateur.type,
-          structure: utilisateur.structure
+          structure: utilisateur.profil.structure,
+          dispositif: utilisateur.profil.dispositif
         }
       }),
       ...(httpRequestId && {

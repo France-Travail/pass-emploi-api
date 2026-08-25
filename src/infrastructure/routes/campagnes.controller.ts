@@ -22,7 +22,6 @@ import {
 } from '../../application/commands/campagne/create-evaluation.command.handler'
 import { CreateFeedbackCommandHandler } from '../../application/commands/create-feedback.command.handler'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
 import { Utilisateur } from '../decorators/authenticated.decorator'
 import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
@@ -59,7 +58,7 @@ export class CampagnesController {
   @Post('campagnes')
   async creerCampagne(
     @Body() createCampagnePayload: CreateCampagnePayload
-  ): Promise<Core.Id> {
+  ): Promise<{ id: string }> {
     const command: CreateCampagneCommand = {
       nom: createCampagnePayload.nom,
       dateDebut: DateTime.fromISO(createCampagnePayload.dateDebut),

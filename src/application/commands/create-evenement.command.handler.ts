@@ -10,7 +10,7 @@ import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { structureLegacyVersProfil, TOUT_PROFIL } from '../../domain/profil'
 
 export interface CreateEvenementCommand extends Command {
   type: Evenement.Code
@@ -26,7 +26,7 @@ export class CreateEvenementCommandHandler extends CommandHandler<
   CreateEvenementCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(private evenementService: EvenementService) {
     super('CreateEvenementCommandHandler')
@@ -40,7 +40,9 @@ export class CreateEvenementCommandHandler extends CommandHandler<
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     const memeType = command.emetteur.type === utilisateur.type
-    const memeStructure = command.emetteur.structure === utilisateur.structure
+    const memeStructure =
+      structureLegacyVersProfil(command.emetteur.structure).structure ===
+      utilisateur.profil.structure
     const memeId = command.emetteur.id === utilisateur.id
     if (memeType && memeStructure && memeId) {
       return emptySuccess()

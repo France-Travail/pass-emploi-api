@@ -54,7 +54,6 @@ import { GetActionsConseillerV2QueryModel } from '../../application/queries/quer
 import { Result } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
 import { DateService } from '../../utils/date-service'
 import { Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
@@ -254,7 +253,7 @@ export class ActionsController {
     @Param('idJeune') idJeune: string,
     @Body() createActionPayload: CreateActionPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<{ id: Action.Id }> {
+  ): Promise<{ id: string }> {
     const command: CreateActionCommand = {
       contenu: createActionPayload.content,
       idJeune,
@@ -285,7 +284,7 @@ export class ActionsController {
     @Param('idJeune') idJeune: string,
     @Body() createActionPayload: CreateActionParLeJeunePayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<Core.Id> {
+  ): Promise<{ id: string }> {
     const command: CreateActionCommand = {
       contenu: createActionPayload.content,
       idJeune,

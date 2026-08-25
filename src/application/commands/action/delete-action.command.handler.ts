@@ -13,7 +13,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Authentification } from '../../../domain/authentification'
-import { TOUS_LES_PROFILS } from '../../../domain/profil'
+import { TOUT_PROFIL } from '../../../domain/profil'
 import { ActionAuthorizer } from '../../authorizers/action-authorizer'
 
 export interface DeleteActionCommand extends Command {
@@ -25,7 +25,7 @@ export class DeleteActionCommandHandler extends CommandHandler<
   DeleteActionCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(ActionRepositoryToken)

@@ -17,7 +17,7 @@ import {
 import { FavoriExisteDejaError } from '../../../src/building-blocks/types/domain-error'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { Offre } from '../../../src/domain/offre/offre'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 
 describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
   let addFavoriOffreServiceCiviqueCommandHandler: AddFavoriOffreServiceCiviqueCommandHandler
@@ -160,9 +160,20 @@ describe('AddFavoriOffreServiceCiviqueCommandHandler', () => {
       expect(
         addFavoriOffreServiceCiviqueCommandHandler.profilsAutorises
       ).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

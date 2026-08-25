@@ -13,7 +13,7 @@ import { DateService } from '../../../src/utils/date-service'
 import { SuiviJob } from '../../../src/domain/suivi-job'
 import { Notification } from '../../../src/domain/notification/notification'
 import { Core } from '../../../src/domain/core'
-import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 
 describe('Notifier0HeuresDeclareesJobHandler', () => {
   let jobHandler: Notifier0HeuresDeclareesJobHandler
@@ -50,7 +50,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         idConseiller: undefined,
         id: 'j1',
         structure: Core.Structure.MILO,
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j1',
         dateDerniereActivite: maintenant.minus({ hours: 3 }).toJSDate()
@@ -60,7 +60,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         idConseiller: undefined,
         id: 'j2',
         structure: Core.Structure.MILO,
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j2',
         dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
@@ -70,7 +70,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         idConseiller: undefined,
         id: 'j3',
         structure: Core.Structure.MILO,
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: null,
         dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
@@ -80,7 +80,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         idConseiller: undefined,
         id: 'j4',
         structure: Core.Structure.POLE_EMPLOI,
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j4',
         dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()
@@ -90,7 +90,7 @@ describe('Notifier0HeuresDeclareesJobHandler', () => {
         idConseiller: undefined,
         id: 'j5',
         structure: Core.Structure.MILO,
-        dispositif: Jeune.Dispositif.PACEA,
+        dispositif: Profil.Dispositif.PACEA,
         peutVoirLeComptageDesHeures: true,
         pushNotificationToken: 'token-j5',
         dateDerniereActivite: maintenant.minus({ days: 1 }).toJSDate()

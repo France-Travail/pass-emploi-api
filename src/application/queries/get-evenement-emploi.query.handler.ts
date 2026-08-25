@@ -11,7 +11,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { PoleEmploiClient } from '../../infrastructure/clients/pole-emploi-client'
 
 export class EvenementEmploiDetailQueryModel {
@@ -66,7 +66,7 @@ export class GetEvenementEmploiQueryHandler extends QueryHandler<
   GetEvenementEmploiQuery,
   Result<EvenementEmploiDetailQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private poleEmploiClient: PoleEmploiClient,

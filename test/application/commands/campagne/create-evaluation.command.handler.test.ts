@@ -19,7 +19,10 @@ import {
   success
 } from '../../../../src/building-blocks/types/result'
 import { ReponsesCampagneInvalide } from '../../../../src/building-blocks/types/domain-error'
-import { Profil } from '../../../../src/domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 
 describe('CreateEvaluationCommandHandler', () => {
@@ -117,9 +120,10 @@ describe('CreateEvaluationCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(createEvaluationCommandHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        { structure: Profil.Structure.FRANCE_TRAVAIL },
+        TOUT_CONSEIL_DEPARTEMENTAL,
+        { structure: Profil.Structure.INVITE }
       ])
     })
   })

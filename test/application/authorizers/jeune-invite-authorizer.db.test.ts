@@ -6,7 +6,6 @@ import {
   emptySuccess
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
-import { Core } from '../../../src/domain/core'
 import { JeuneInviteSqlRepository } from '../../../src/infrastructure/repositories/jeune/jeune-invite-sql.repository.db'
 import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
@@ -14,6 +13,7 @@ import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { expect } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilInvite } from '../../fixtures/profil.fixture'
 
 describe('JeuneInviteAuthorizer', () => {
   let jeuneInviteAuthorizer: JeuneInviteAuthorizer
@@ -24,7 +24,7 @@ describe('JeuneInviteAuthorizer', () => {
   ): Authentification.Utilisateur =>
     unUtilisateurJeune({
       id: idInvite,
-      structure: Core.Structure.INVITE,
+      profil: unProfilInvite(),
       ...args
     })
 

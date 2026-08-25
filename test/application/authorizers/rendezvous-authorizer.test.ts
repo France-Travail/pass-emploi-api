@@ -94,7 +94,7 @@ describe('RendezVousAuthorizer', () => {
       it('retourne un success', async () => {
         // Given
         const conseiller = unConseiller()
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         const utilisateur = unUtilisateurConseiller({ id: conseiller.id })
         const rendezVous = {
           ...unRendezVous({ jeunes: [jeune] }),
@@ -118,7 +118,7 @@ describe('RendezVousAuthorizer', () => {
       it('retourne une failure', async () => {
         // Given
         const conseiller = unConseiller()
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         const rendezVous = {
           ...unRendezVous({ jeunes: [jeune] }),
           id: 'rdv-id'

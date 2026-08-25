@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { Brand } from '../../building-blocks/types/brand'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
-import { Core, estMilo } from '../core'
+import { estMilo, Profil } from '../profil'
 import * as _ConfigurationApplication from './configuration-application'
+
+export type DispositifNonAccompagne =
+  Profil.Dispositif.DEMANDEUR_D_EMPLOI | Profil.Dispositif.ESPACE_CANDIDAT
 import { TIMEZONE_PAR_DEFAUT } from './configuration-application'
 import * as _PoleEmploi from './jeune.pole-emploi'
 
@@ -13,7 +15,7 @@ export const JeuneConfigurationApplicationRepositoryToken =
   'JeuneConfigurationApplicationRepositoryToken'
 export const JeunePoleEmploiRepositoryToken = 'JeunePoleEmploiRepositoryToken'
 
-interface JeuneCommun {
+export interface Jeune {
   id: string
   firstName: string
   lastName: string
@@ -21,7 +23,7 @@ interface JeuneCommun {
   datePremiereConnexion?: DateTime
   dateDerniereConnexion?: DateTime
   dateFinCEJ?: DateTime
-  structure: Core.Structure
+  structure: Profil.Structure
   isActivated: boolean
   email?: string
   idPartenaire?: string
@@ -29,22 +31,9 @@ interface JeuneCommun {
   preferences: Jeune.Preferences
   dateSignatureCGU?: DateTime
   peutVoirLeComptageDesHeures?: boolean
-}
-
-// `conseiller` optionnel : contrainte de chargement (jointure Sequelize non
-// systématique), pas d'accompagnement.
-// TODO: exposer `idConseiller` (colonne, toujours chargée) pour porter
-// l'accompagnement, et réserver `conseiller` au conseiller joint.
-export interface Jeune extends JeuneCommun {
   conseiller?: Jeune.Conseiller
   conseillerInitial?: Jeune.ConseillerInitial
-  dispositif: Jeune.Dispositif
-}
-
-export interface JeuneNonAccompagne extends JeuneCommun {
-  conseiller?: undefined
-  conseillerInitial?: undefined
-  dispositif?: undefined
+  dispositif: Profil.Dispositif | null
 }
 
 export namespace Jeune {
@@ -53,7 +42,6 @@ export namespace Jeune {
   export import Preferences = _ConfigurationApplication.ConfigurationApplication.Preferences
 
   export import PoleEmploi = _PoleEmploi.JeunePoleEmploi
-  import Structure = Core.Structure
 
   export interface Conseiller {
     id: string
@@ -75,20 +63,6 @@ export namespace Jeune {
     RECUPERATION = 'RECUPERATION'
   }
 
-  export enum Dispositif {
-    CEJ = 'CEJ',
-    PACEA = 'PACEA',
-    BRSA = 'BRSA',
-    AIJ = 'AIJ',
-    CONSEIL_DEPT = 'CONSEIL_DEPT',
-    AVENIR_PRO = 'AVENIR_PRO',
-    ACCOMPAGNEMENT_INTENSIF = 'ACCOMPAGNEMENT_INTENSIF',
-    ACCOMPAGNEMENT_GLOBAL = 'ACCOMPAGNEMENT_GLOBAL',
-    EQUIP_EMPLOI_RECRUT = 'EQUIP_EMPLOI_RECRUT'
-  }
-
-  export type Id = Brand<string, 'JeuneId'>
-
   export function mettreAJourIdPartenaire(
     jeune: Jeune,
     idPartenaire: string
@@ -100,15 +74,15 @@ export namespace Jeune {
   }
 
   function autoriseAVoirLeComptage(
-    structure: Structure,
-    dispositif: Dispositif
+    structure: Profil.Structure,
+    dispositif: Profil.Dispositif | null
   ): boolean {
-    return estMilo(structure) && dispositif === Jeune.Dispositif.CEJ
+    return estMilo(structure) && dispositif === Profil.Dispositif.CEJ
   }
 
   export function mettreAJourDispositif(
     jeune: Jeune,
-    dispositif: Dispositif
+    dispositif: Profil.Dispositif
   ): Jeune {
     return {
       ...jeune,
@@ -124,7 +98,7 @@ export namespace Jeune {
 
   export function reinitialiserPourChangementDispositif(
     jeune: Jeune,
-    dispositif: Dispositif,
+    dispositif: Profil.Dispositif,
     dateFinAccompagnement: DateTime
   ): Jeune {
     const jeuneAvecNouveauDispositif = mettreAJourDispositif(jeune, dispositif)
@@ -156,14 +130,15 @@ export namespace Jeune {
 
     existe(id: string): Promise<boolean>
 
-    // Seul point de lecture pouvant ramener un JeuneNonAccompagne (cas
-    // reprise en accompagnement).
+    // Peut ramener un jeune non accompagné (reprise en accompagnement) : le
+    // discriminant est estDispositifNonAccompagne(dispositif), pas l'absence de
+    // conseiller — un jeune Conseil départemental a un dispositif null.
     getByEmail(
       email: string,
       options?: { includeConseiller: boolean }
-    ): Promise<Jeune | JeuneNonAccompagne | undefined>
+    ): Promise<Jeune | undefined>
 
-    save(jeune: Jeune | JeuneNonAccompagne): Promise<void>
+    save(jeune: Jeune): Promise<void>
 
     findAllJeunesByConseiller(idConseiller: string): Promise<Jeune[]>
 
@@ -172,16 +147,11 @@ export namespace Jeune {
       idConseiller: string
     ): Promise<Jeune[]>
 
-    findAllJeunesByIdsAuthentificationAndStructures(
-      idsAuthentificationJeunes: string[],
-      structures: Core.Structure[]
-    ): Promise<Array<Jeune & { idAuthentification: string }>>
-
     findAllJeunesByConseillerInitial(idConseiller: string): Promise<Jeune[]>
 
     findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]>
 
-    supprimer(idJeune: Jeune.Id): Promise<void>
+    supprimer(idJeune: string): Promise<void>
 
     transferAndSaveAll(
       jeunes: Jeune[],
@@ -237,6 +207,37 @@ export namespace Jeune {
         peutVoirLeComptageDesHeures: jeuneACreer.peutVoirLeCompteurDesHeures
       }
     }
+
+    // Jeune créé au login FT Connect sans conseiller (demandeur d'emploi, espace candidat)
+    creerNonAccompagne(jeuneACreer: Factory.NonAccompagneACreer): Jeune {
+      const id = this.idService.uuid()
+      const maintenant = this.dateService.now()
+      return {
+        id: id,
+        firstName: jeuneACreer.prenom,
+        lastName: jeuneACreer.nom,
+        email: jeuneACreer.email,
+        isActivated: true,
+        creationDate: maintenant,
+        datePremiereConnexion: maintenant,
+        dateDerniereConnexion: maintenant,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: jeuneACreer.dispositif,
+        preferences: {
+          partageFavoris: true,
+          alertesOffres: true,
+          messages: false,
+          creationActionConseiller: false,
+          rendezVousSessions: true,
+          rappelActions: true,
+          actualitesMilo: false
+        },
+        configuration: {
+          idJeune: id,
+          fuseauHoraire: TIMEZONE_PAR_DEFAUT
+        }
+      }
+    }
   }
 
   export namespace Factory {
@@ -245,10 +246,17 @@ export namespace Jeune {
       nom: string
       email: string
       conseiller: Conseiller
-      structure: Core.Structure
+      structure: Profil.Structure
       idPartenaire?: string
-      dispositif: Jeune.Dispositif
+      dispositif: Profil.Dispositif | null
       peutVoirLeCompteurDesHeures?: boolean
+    }
+
+    export interface NonAccompagneACreer {
+      prenom: string
+      nom: string
+      email?: string
+      dispositif: DispositifNonAccompagne
     }
   }
 
@@ -309,54 +317,6 @@ export namespace Jeune {
 
   export function estSuiviTemporairement(jeune: Jeune): boolean {
     return Boolean(jeune.conseillerInitial)
-  }
-}
-
-export namespace JeuneNonAccompagne {
-  @Injectable()
-  export class Factory {
-    constructor(
-      private dateService: DateService,
-      private idService: IdService
-    ) {}
-
-    creer(jeuneACreer: Factory.ACreer): JeuneNonAccompagne {
-      const id = this.idService.uuid()
-      const maintenant = this.dateService.now()
-      return {
-        id: id,
-        firstName: jeuneACreer.prenom,
-        lastName: jeuneACreer.nom,
-        email: jeuneACreer.email,
-        isActivated: true,
-        creationDate: maintenant,
-        datePremiereConnexion: maintenant,
-        dateDerniereConnexion: maintenant,
-        structure: jeuneACreer.structure,
-        preferences: {
-          partageFavoris: true,
-          alertesOffres: true,
-          messages: false,
-          creationActionConseiller: false,
-          rendezVousSessions: true,
-          rappelActions: true,
-          actualitesMilo: false
-        },
-        configuration: {
-          idJeune: id,
-          fuseauHoraire: TIMEZONE_PAR_DEFAUT
-        }
-      }
-    }
-  }
-
-  export namespace Factory {
-    export interface ACreer {
-      prenom: string
-      nom: string
-      email?: string
-      structure: Core.Structure
-    }
   }
 }
 
