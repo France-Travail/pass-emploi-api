@@ -83,11 +83,6 @@ export const testConfig = (): ConfigService => {
       clientId: 'diagoriente-client-id',
       clientSecret: 'diagoriente-client-secret'
     },
-    planAction: {
-      url: 'https://plan-action.beta.gouv.op',
-      apiKey: 'plan-action-api-key',
-      timeoutMs: 15000
-    },
     jecliqueoupas: {
       url: 'https://jecliqueoupas.fr/api',
       token: 'token-jecliqueoupas',

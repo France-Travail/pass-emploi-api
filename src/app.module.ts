@@ -320,6 +320,11 @@ import {
   SuggestionsRepositoryToken
 } from './domain/offre/recherche/suggestion/suggestion'
 import {
+  PlanAction,
+  PlanActionCatalogueRepositoryToken,
+  PlanActionGenerateurToken
+} from './domain/plan-action'
+import {
   PlanificateurRepositoryToken,
   PlanificateurService
 } from './domain/planificateur'
@@ -346,8 +351,9 @@ import { MiloClientV1 } from './infrastructure/clients/milo/milo-client-v1'
 import { MiloClientV2 } from './infrastructure/clients/milo/milo-client-v2'
 import { CacheApiPartenaireService } from './infrastructure/clients/cache-api-partenaire.service.db'
 import { ObjectStorageClient } from './infrastructure/clients/object-storage.client'
-import { PlanActionClient } from './infrastructure/clients/plan-action-client'
 import { PoleEmploiClient } from './infrastructure/clients/pole-emploi-client'
+import { CatalogueSolutionsStatique } from './infrastructure/plan-action/catalogue-solutions-statique'
+import { GenerateurPlanActionLlm } from './infrastructure/plan-action/generateur-plan-action-llm'
 import {
   PoleEmploiPartenaireClient,
   PoleEmploiPartenaireClientToken,
@@ -538,7 +544,15 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVousMilo.Factory,
     ActualiteMilo.Factory,
     DiagorienteClient,
-    PlanActionClient,
+    PlanAction.Service,
+    {
+      provide: PlanActionCatalogueRepositoryToken,
+      useClass: CatalogueSolutionsStatique
+    },
+    {
+      provide: PlanActionGenerateurToken,
+      useClass: GenerateurPlanActionLlm
+    },
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard
