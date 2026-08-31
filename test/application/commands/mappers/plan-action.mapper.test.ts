@@ -1,16 +1,13 @@
 import {
   toPlanActionQueryModel,
-  toProfileDto
+  toProfil
 } from '../../../../src/application/commands/mappers/plan-action.mapper'
 import {
   DestinationActionPlan,
   TypeActionPlan
 } from '../../../../src/application/queries/query-models/plan-action.query-model'
 import { Core } from '../../../../src/domain/core'
-import {
-  ActionDto,
-  PlanDto
-} from '../../../../src/infrastructure/clients/dto/plan-action.dto'
+import { PlanAction } from '../../../../src/domain/plan-action'
 import {
   CommunePayload,
   ObstaclePayload,
@@ -31,7 +28,7 @@ function unPayload(
 }
 
 describe('plan-action.mapper', () => {
-  describe('toProfileDto', () => {
+  describe('toProfil', () => {
     describe('situation', () => {
       const cas: Array<[SituationPayload, string]> = [
         [SituationPayload.COLLEGE, 'COLLEGE'],
@@ -43,27 +40,27 @@ describe('plan-action.mapper', () => {
       cas.forEach(([situation, attendu]) => {
         it(`mappe ${situation} vers ${attendu}`, () => {
           // When
-          const profile = toProfileDto(
+          const profil = toProfil(
             unPayload({ situation }),
             Core.Structure.INVITE
           )
 
           // Then
-          expect(profile.situation).to.equal(attendu)
+          expect(profil.situation).to.equal(attendu)
         })
       })
     })
 
     describe('goals', () => {
-      it('mappe chaque objectif du questionnaire vers le référentiel du service', () => {
+      it('mappe chaque envie du questionnaire vers le vocabulaire du domaine', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ goals: Object.values(GoalPayload) }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.goals).to.deep.equal([
+        expect(profil.goals).to.deep.equal([
           'ORIENTER',
           'DECOUVRIR_METIERS',
           'FORMER',
@@ -80,20 +77,20 @@ describe('plan-action.mapper', () => {
     })
 
     describe('obstacles', () => {
-      it('mappe chaque frein du questionnaire vers le référentiel du service', () => {
+      it('mappe chaque frein du questionnaire vers le vocabulaire du domaine', () => {
         // Given
         const freins = Object.values(ObstaclePayload).filter(
           obstacle => obstacle !== ObstaclePayload.RIEN_NE_ME_BLOQUE
         )
 
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ obstacles: freins }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.obstacles).to.deep.equal([
+        expect(profil.obstacles).to.deep.equal([
           'PAS_DE_TRANSPORT',
           'PAS_DE_PERMIS',
           'PAS_DE_LOGEMENT',
@@ -112,7 +109,7 @@ describe('plan-action.mapper', () => {
 
       it('rend RIEN_NE_ME_BLOQUE exclusif quand il est combiné à un autre frein', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({
             obstacles: [
               ObstaclePayload.RIEN_NE_ME_BLOQUE,
@@ -123,12 +120,12 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.obstacles).to.deep.equal(['RIEN_NE_ME_BLOQUE'])
+        expect(profil.obstacles).to.deep.equal(['RIEN_NE_ME_BLOQUE'])
       })
 
       it('dédoublonne les freins', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({
             obstacles: [
               ObstaclePayload.PAS_DE_TRANSPORT,
@@ -139,79 +136,79 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.obstacles).to.deep.equal(['PAS_DE_TRANSPORT'])
+        expect(profil.obstacles).to.deep.equal(['PAS_DE_TRANSPORT'])
       })
 
-      it('envoie un tableau vide quand le champ est absent', () => {
+      it('produit un tableau vide quand le champ est absent', () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profil = toProfil(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.obstacles).to.deep.equal([])
+        expect(profil.obstacles).to.deep.equal([])
       })
     })
 
     describe('dateNaissance', () => {
       it('relaie la date de naissance', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ dateNaissance: '2006-05-12' }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.dateNaissance).to.equal('2006-05-12')
+        expect(profil.dateNaissance).to.equal('2006-05-12')
       })
 
       it('tronque un ISO complet en date civile, sans glissement de fuseau', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ dateNaissance: '2006-05-12T00:00:00+02:00' }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.dateNaissance).to.equal('2006-05-12')
+        expect(profil.dateNaissance).to.equal('2006-05-12')
       })
 
-      it("n'envoie pas dateNaissance quand elle est absente", () => {
+      it('ne produit pas dateNaissance quand elle est absente', () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profil = toProfil(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.dateNaissance).to.be.undefined()
+        expect(profil.dateNaissance).to.be.undefined()
       })
     })
 
     describe('domaine', () => {
       it('relaie le domaine renseigné', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ domaine: 'mécanique' }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.domaine).to.equal('mécanique')
+        expect(profil.domaine).to.equal('mécanique')
       })
 
       it('relaie null quand le jeune ne sait pas', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ domaine: null }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.domaine).to.be.null()
+        expect(profil.domaine).to.be.null()
       })
 
-      it("n'envoie pas domaine quand il n'est pas renseigné", () => {
+      it("ne produit pas domaine quand il n'est pas renseigné", () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profil = toProfil(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.domaine).to.be.undefined()
+        expect(profil.domaine).to.be.undefined()
       })
     })
 
@@ -224,7 +221,7 @@ describe('plan-action.mapper', () => {
 
       it('relaie les deux communes et le rayon', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({
             habitation: fortDeFrance,
             villeRecherche: rouen,
@@ -234,31 +231,31 @@ describe('plan-action.mapper', () => {
         )
 
         // Then
-        expect(profile.habitation).to.deep.equal(fortDeFrance)
-        expect(profile.villeRecherche).to.deep.equal(rouen)
-        expect(profile.rayonKm).to.equal(30)
+        expect(profil.habitation).to.deep.equal(fortDeFrance)
+        expect(profil.villeRecherche).to.deep.equal(rouen)
+        expect(profil.rayonKm).to.equal(30)
       })
 
       it('relaie une seule commune quand le jeune ne renseigne que celle-là', () => {
         // When
-        const profile = toProfileDto(
+        const profil = toProfil(
           unPayload({ habitation: rouen }),
           Core.Structure.INVITE
         )
 
         // Then
-        expect(profile.habitation).to.deep.equal(rouen)
-        expect(profile.villeRecherche).to.be.undefined()
+        expect(profil.habitation).to.deep.equal(rouen)
+        expect(profil.villeRecherche).to.be.undefined()
       })
 
-      it("n'envoie aucune localisation quand rien n'est renseigné", () => {
+      it("ne produit aucune localisation quand rien n'est renseigné", () => {
         // When
-        const profile = toProfileDto(unPayload(), Core.Structure.INVITE)
+        const profil = toProfil(unPayload(), Core.Structure.INVITE)
 
         // Then
-        expect(profile.habitation).to.be.undefined()
-        expect(profile.villeRecherche).to.be.undefined()
-        expect(profile.rayonKm).to.be.undefined()
+        expect(profil.habitation).to.be.undefined()
+        expect(profil.villeRecherche).to.be.undefined()
+        expect(profil.rayonKm).to.be.undefined()
       })
     })
 
@@ -273,27 +270,28 @@ describe('plan-action.mapper', () => {
       cas.forEach(([structure, attendu]) => {
         it(`dérive ${attendu} de la structure ${structure}`, () => {
           // When
-          const profile = toProfileDto(unPayload(), structure)
+          const profil = toProfil(unPayload(), structure)
 
           // Then
-          expect(profile.authProvider).to.equal(attendu)
+          expect(profil.authProvider).to.equal(attendu)
         })
       })
     })
   })
 
   describe('toPlanActionQueryModel', () => {
-    function uneAction(args: Partial<ActionDto> = {}): ActionDto {
+    function uneAction(
+      args: Partial<PlanAction.Action> = {}
+    ): PlanAction.Action {
       return {
         id: 'p-1',
         label: 'Je fais une action',
         kind: 'advice',
-        done: false,
         ...args
       }
     }
 
-    function unPlan(actions: ActionDto[]): PlanDto {
+    function unPlan(actions: PlanAction.Action[]): PlanAction.Plan {
       return {
         id: 'plan-1',
         greeting: 'Salut !',
@@ -303,7 +301,7 @@ describe('plan-action.mapper', () => {
           {
             id: 'objective-1',
             title: 'Trouver une alternance',
-            theme: 'apprenticeship',
+            theme: 'ALTERNANCE',
             actions
           }
         ]
@@ -326,17 +324,7 @@ describe('plan-action.mapper', () => {
       const queryModel = toPlanActionQueryModel(unPlan([]))
 
       // Then
-      expect(queryModel.objectives[0].theme).to.equal('apprenticeship')
-    })
-
-    it('ne relaie jamais le champ done', () => {
-      // When
-      const queryModel = toPlanActionQueryModel(
-        unPlan([uneAction({ kind: 'advice' })])
-      )
-
-      // Then
-      expect(queryModel.objectives[0].actions[0]).to.not.have.property('done')
+      expect(queryModel.objectives[0].theme).to.equal('ALTERNANCE')
     })
 
     describe('kind', () => {
@@ -379,8 +367,8 @@ describe('plan-action.mapper', () => {
         const queryModel = toPlanActionQueryModel(
           unPlan([
             uneAction({
-              // valeur non documentée par le POC
-              kind: 'unknown-kind' as ActionDto['kind']
+              // valeur hors référentiel
+              kind: 'unknown-kind' as PlanAction.TypeSolution
             })
           ])
         )
@@ -396,7 +384,7 @@ describe('plan-action.mapper', () => {
         const queryModel = toPlanActionQueryModel(
           unPlan([
             uneAction({
-              kind: 'unknown-kind' as ActionDto['kind'],
+              kind: 'unknown-kind' as PlanAction.TypeSolution,
               url: 'https://exemple.fr'
             })
           ])
@@ -422,10 +410,14 @@ describe('plan-action.mapper', () => {
     })
 
     describe('deepLink', () => {
-      const cas: Array<[ActionDto['deepLink'], DestinationActionPlan]> = [
-        ['apprenticeship-offers', DestinationActionPlan.OFFRES_ALTERNANCE],
-        ['civic-service-offers', DestinationActionPlan.OFFRES_SERVICE_CIVIQUE],
-        ['events', DestinationActionPlan.EVENEMENTS]
+      // Valeurs réelles du référentiel Grist (écrans normalisés en français)
+      const cas: Array<[string, DestinationActionPlan]> = [
+        ['offres-alternance', DestinationActionPlan.OFFRES_ALTERNANCE],
+        [
+          'offres-services-civiques',
+          DestinationActionPlan.OFFRES_SERVICE_CIVIQUE
+        ],
+        ['evenements', DestinationActionPlan.EVENEMENTS]
       ]
       cas.forEach(([deepLink, attendu]) => {
         it(`mappe ${deepLink} vers ${attendu}`, () => {
@@ -441,14 +433,14 @@ describe('plan-action.mapper', () => {
         })
       })
 
-      it('dégrade un deepLink inconnu en CONSEIL en conservant le libellé', () => {
-        // When
+      it("dégrade un écran sans destination dans l'app en CONSEIL en conservant le libellé", () => {
+        // When : messagerie existe dans le référentiel mais pas dans l'app
         const queryModel = toPlanActionQueryModel(
           unPlan([
             uneAction({
               kind: 'app',
-              deepLink: 'unknown-deeplink' as ActionDto['deepLink'],
-              label: 'Je consulte les offres'
+              deepLink: 'messagerie',
+              label: 'Je contacte mon conseiller'
             })
           ])
         )
@@ -456,7 +448,7 @@ describe('plan-action.mapper', () => {
         // Then
         const action = queryModel.objectives[0].actions[0]
         expect(action.type).to.equal(TypeActionPlan.CONSEIL)
-        expect(action.libelle).to.equal('Je consulte les offres')
+        expect(action.libelle).to.equal('Je contacte mon conseiller')
       })
     })
   })

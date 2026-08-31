@@ -1,17 +1,6 @@
 import { DateTime } from 'luxon'
-import { Core, estInvite, estMilo } from '../../../domain/core'
-import {
-  ActionDto,
-  ActionKindDto,
-  AuthProviderDto,
-  CommuneDto,
-  DeepLinkDto,
-  GoalDto,
-  ObstacleDto,
-  PlanDto,
-  ProfileDto,
-  SituationDto
-} from '../../../infrastructure/clients/dto/plan-action.dto'
+import { Core } from '../../../domain/core'
+import { PlanAction } from '../../../domain/plan-action'
 import {
   ObstaclePayload,
   CommunePayload,
@@ -27,7 +16,12 @@ import {
   TypeActionPlan
 } from '../../queries/query-models/plan-action.query-model'
 
-const situationVersDto: Record<SituationPayload, SituationDto> = {
+// Anticorruption entre le payload HTTP (enums swagger/class-validator) et le
+// vocabulaire du domaine plan-action. Les valeurs sont identiques depuis
+// l'alignement du contrat, les tables restent explicites pour que la
+// prochaine divergence se règle ici.
+
+const situationVersDomaine: Record<SituationPayload, PlanAction.Situation> = {
   [SituationPayload.COLLEGE]: 'COLLEGE',
   [SituationPayload.LYCEE]: 'LYCEE',
   [SituationPayload.ETUDES_SUPERIEURES]: 'ETUDES_SUPERIEURES',
@@ -35,7 +29,7 @@ const situationVersDto: Record<SituationPayload, SituationDto> = {
   [SituationPayload.AUTRE]: 'AUTRE'
 }
 
-const goalVersDto: Record<GoalPayload, GoalDto> = {
+const goalVersDomaine: Record<GoalPayload, PlanAction.Envie> = {
   [GoalPayload.ORIENTER]: 'ORIENTER',
   [GoalPayload.DECOUVRIR_METIERS]: 'DECOUVRIR_METIERS',
   [GoalPayload.FORMER]: 'FORMER',
@@ -49,7 +43,7 @@ const goalVersDto: Record<GoalPayload, GoalDto> = {
   [GoalPayload.VIE_QUOTIDIENNE]: 'VIE_QUOTIDIENNE'
 }
 
-const obstacleVersDto: Record<ObstaclePayload, ObstacleDto> = {
+const obstacleVersDomaine: Record<ObstaclePayload, PlanAction.Blocage> = {
   [ObstaclePayload.PAS_DE_TRANSPORT]: 'PAS_DE_TRANSPORT',
   [ObstaclePayload.PAS_DE_PERMIS]: 'PAS_DE_PERMIS',
   [ObstaclePayload.PAS_DE_LOGEMENT]: 'PAS_DE_LOGEMENT',
@@ -66,75 +60,79 @@ const obstacleVersDto: Record<ObstaclePayload, ObstacleDto> = {
   [ObstaclePayload.RIEN_NE_ME_BLOQUE]: 'RIEN_NE_ME_BLOQUE'
 }
 
-const kindVersType: Record<ActionKindDto, TypeActionPlan> = {
+const kindVersType: Record<PlanAction.TypeSolution, TypeActionPlan> = {
   link: TypeActionPlan.LIEN,
   app: TypeActionPlan.NAVIGATION,
   advice: TypeActionPlan.CONSEIL
 }
 
-const deepLinkVersDestination: Record<DeepLinkDto, DestinationActionPlan> = {
-  'apprenticeship-offers': DestinationActionPlan.OFFRES_ALTERNANCE,
-  'civic-service-offers': DestinationActionPlan.OFFRES_SERVICE_CIVIQUE,
-  events: DestinationActionPlan.EVENEMENTS
+// Écrans de l'app par valeur de deepLink du référentiel (normalisées en
+// français par la sync Grist). Les écrans sans destination dans l'app
+// (offres-emploi, aller-vers, messagerie…) sont dégradés en CONSEIL.
+const deepLinkVersDestination: Record<
+  string,
+  DestinationActionPlan | undefined
+> = {
+  'offres-alternance': DestinationActionPlan.OFFRES_ALTERNANCE,
+  'offres-services-civiques': DestinationActionPlan.OFFRES_SERVICE_CIVIQUE,
+  evenements: DestinationActionPlan.EVENEMENTS
 }
 
-export function toProfileDto(
+export function toProfil(
   payload: GenererPlanActionPayload,
   structure: Core.Structure
-): ProfileDto {
+): PlanAction.Profil {
   const dateNaissance = calculerDateNaissance(payload.dateNaissance)
 
   return {
-    authProvider: calculerAuthProvider(structure),
-    situation: situationVersDto[payload.situation],
-    goals: payload.goals.map(goal => goalVersDto[goal]),
+    authProvider: PlanAction.authProviderDe(structure),
+    situation: situationVersDomaine[payload.situation],
+    goals: payload.goals.map(goal => goalVersDomaine[goal]),
     obstacles: calculerObstacles(payload.obstacles ?? []),
     ...(dateNaissance !== undefined ? { dateNaissance } : {}),
     ...(payload.domaine !== undefined ? { domaine: payload.domaine } : {}),
     ...(payload.habitation
-      ? { habitation: toCommuneDto(payload.habitation) }
+      ? { habitation: toCommune(payload.habitation) }
       : {}),
     ...(payload.villeRecherche
-      ? { villeRecherche: toCommuneDto(payload.villeRecherche) }
+      ? { villeRecherche: toCommune(payload.villeRecherche) }
       : {}),
     ...(payload.rayonKm !== undefined ? { rayonKm: payload.rayonKm } : {})
   }
 }
 
-function calculerAuthProvider(structure: Core.Structure): AuthProviderDto {
-  if (estInvite(structure)) return 'guest'
-  if (estMilo(structure)) return 'mission-locale'
-  return 'france-travail'
-}
-
-function calculerObstacles(obstaclesPayload: ObstaclePayload[]): ObstacleDto[] {
-  // RIEN_NE_ME_BLOQUE est exclusif côté service : accompagné d'un autre
-  // obstacle, il fait échouer la validation du profil.
+function calculerObstacles(
+  obstaclesPayload: ObstaclePayload[]
+): PlanAction.Blocage[] {
+  // RIEN_NE_ME_BLOQUE est exclusif : accompagné d'un autre blocage, il est
+  // réduit au seul RIEN_NE_ME_BLOQUE
   if (obstaclesPayload.includes(ObstaclePayload.RIEN_NE_ME_BLOQUE)) {
-    return [obstacleVersDto[ObstaclePayload.RIEN_NE_ME_BLOQUE]]
+    return [obstacleVersDomaine[ObstaclePayload.RIEN_NE_ME_BLOQUE]]
   }
 
   return Array.from(
-    new Set(obstaclesPayload.map(obstacle => obstacleVersDto[obstacle]))
+    new Set(obstaclesPayload.map(obstacle => obstacleVersDomaine[obstacle]))
   )
 }
 
 function calculerDateNaissance(dateNaissance?: string): string | undefined {
   if (!dateNaissance) return undefined
 
-  // Le service n'accepte que YYYY-MM-DD, là où IsDateString laisse passer un
-  // ISO complet. setZone conserve le décalage écrit dans la chaîne, pour que la
+  // Le domaine attend YYYY-MM-DD, là où IsDateString laisse passer un ISO
+  // complet. setZone conserve le décalage écrit dans la chaîne, pour que la
   // date civile ne glisse pas d'un jour au passage dans le fuseau du serveur.
   const date = DateTime.fromISO(dateNaissance, { setZone: true })
 
   return date.isValid ? date.toISODate()! : undefined
 }
 
-function toCommuneDto(commune: CommunePayload): CommuneDto {
+function toCommune(commune: CommunePayload): PlanAction.Commune {
   return { codeInsee: commune.codeInsee, nom: commune.nom }
 }
 
-export function toPlanActionQueryModel(plan: PlanDto): PlanActionQueryModel {
+export function toPlanActionQueryModel(
+  plan: PlanAction.Plan
+): PlanActionQueryModel {
   return {
     id: plan.id,
     accroche: plan.greeting,
@@ -151,9 +149,11 @@ export function toPlanActionQueryModel(plan: PlanDto): PlanActionQueryModel {
   }
 }
 
-function toActionPlanQueryModel(action: ActionDto): ActionPlanQueryModel {
-  // deepLink inconnu du proxy : dégradé en CONSEIL, le libellé est conservé,
-  // seule la navigation est perdue.
+function toActionPlanQueryModel(
+  action: PlanAction.Action
+): ActionPlanQueryModel {
+  // deepLink sans destination dans l'app : dégradé en CONSEIL, le libellé
+  // est conservé, seule la navigation est perdue.
   if (action.deepLink) {
     const destination = deepLinkVersDestination[action.deepLink]
     return destination
@@ -169,18 +169,18 @@ function toActionPlanQueryModel(action: ActionDto): ActionPlanQueryModel {
 
   const type = kindVersType[action.kind]
 
-  // kind inconnu du proxy avec une url exploitable : on ouvre quand même le
-  // lien plutôt que de perdre le contenu.
+  // kind inconnu avec une url exploitable : on ouvre quand même le lien
+  // plutôt que de perdre le contenu.
   if (type === TypeActionPlan.LIEN || (!type && action.url)) {
     return toLienQueryModel(action)
   }
 
-  // kind = CONSEIL, kind = NAVIGATION sans deepLink (rien à naviguer), ou kind
-  // inconnu sans url exploitable : dégradé en CONSEIL.
+  // kind = CONSEIL, kind = NAVIGATION sans deepLink (rien à naviguer), ou
+  // kind inconnu sans url exploitable : dégradé en CONSEIL.
   return degraderEnConseil(action)
 }
 
-function toLienQueryModel(action: ActionDto): ActionPlanQueryModel {
+function toLienQueryModel(action: PlanAction.Action): ActionPlanQueryModel {
   return {
     id: action.id,
     libelle: action.label,
@@ -193,7 +193,7 @@ function toLienQueryModel(action: ActionDto): ActionPlanQueryModel {
   }
 }
 
-function degraderEnConseil(action: ActionDto): ActionPlanQueryModel {
+function degraderEnConseil(action: PlanAction.Action): ActionPlanQueryModel {
   return {
     id: action.id,
     libelle: action.label,
