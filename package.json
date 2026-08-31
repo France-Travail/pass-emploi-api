@@ -200,7 +200,8 @@
     "lodash": ">=4.18.0",
     "nanoid": ">=3.3.18 <4",
     "js-cookie": "^3.0.7",
-    "websocket-driver": ">=0.7.5"
+    "websocket-driver": ">=0.7.5",
+    "node-jq": ">=6.3.1"
   },
   "mocha": {
     "require": [
