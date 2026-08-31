@@ -29,6 +29,11 @@ export class PutUtilisateurPayload {
   @IsOptional()
   username?: string
 
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  installationId?: string
+
   @ApiProperty()
   @IsString()
   @IsIn([

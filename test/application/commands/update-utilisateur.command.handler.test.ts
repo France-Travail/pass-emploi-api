@@ -107,6 +107,30 @@ describe('UpdateUtilisateurCommandHandler', () => {
               expect(result.data).to.deep.equal(unUtilisateurQueryModel())
             }
           })
+          it("ne persiste pas l'installationId pour un conseiller", async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.CONSEILLER,
+              structure: Core.Structure.MILO,
+              installationId: 'installation-uuid'
+            }
+
+            const utilisateur = unUtilisateurConseiller()
+            authentificationRepository.getConseiller
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(isSuccess(result)).equal(true)
+            expect(
+              authentificationRepository.updateInstallationIdJeune
+            ).to.have.callCount(0)
+          })
           describe('conseiller connu avec mauvaise structure', async () => {
             it('retourne failure', async () => {
               // Given
@@ -663,6 +687,86 @@ describe('UpdateUtilisateurCommandHandler', () => {
             if (isSuccess(result)) {
               expect(result.data.email).to.deep.equal('new@email.com')
             }
+          })
+          it("persiste l'installationId transmis au login", async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO,
+              installationId: 'installation-uuid'
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.MILO
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(isSuccess(result)).equal(true)
+            expect(
+              authentificationRepository.updateInstallationIdJeune
+            ).to.have.been.calledWithExactly(
+              utilisateur.id,
+              'installation-uuid'
+            )
+          })
+          it("ne touche pas à l'installationId quand il n'est pas transmis", async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.MILO
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(isSuccess(result)).equal(true)
+            expect(
+              authentificationRepository.updateInstallationIdJeune
+            ).to.have.callCount(0)
+          })
+          it("n'échoue pas quand la persistance de l'installationId échoue", async () => {
+            // Given
+            const command: UpdateUtilisateurCommand = {
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              structure: Core.Structure.MILO,
+              installationId: 'installation-uuid'
+            }
+
+            const utilisateur = unUtilisateurJeune({
+              structure: Core.Structure.MILO
+            })
+            authentificationRepository.getJeuneByIdAuthentification
+              .withArgs(command.idUtilisateurAuth)
+              .resolves(utilisateur)
+            authentificationRepository.updateInstallationIdJeune.rejects(
+              new Error('db down')
+            )
+
+            // When
+            const result =
+              await updateUtilisateurCommandHandler.execute(command)
+
+            // Then
+            expect(isSuccess(result)).equal(true)
           })
           it("retourne une failure quand le jeune trouvé n'est pas Milo", async () => {
             // Given

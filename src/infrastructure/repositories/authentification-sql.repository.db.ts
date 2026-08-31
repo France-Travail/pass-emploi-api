@@ -215,6 +215,13 @@ export class AuthentificationSqlOidcRepository
     )
   }
 
+  async updateInstallationIdJeune(
+    idJeune: string,
+    installationId: string
+  ): Promise<void> {
+    await JeuneSqlModel.update({ installationId }, { where: { id: idJeune } })
+  }
+
   async deleteUtilisateurIdp(idUserCEJ: string): Promise<void> {
     try {
       await this.oidcClient.deleteAccount(idUserCEJ)

@@ -51,6 +51,7 @@ export interface UpdateUtilisateurCommand extends Command {
   type: TypeUtilisateurAuth
   structure: StructureUtilisateurAuth
   federatedToken?: string
+  installationId?: string
 }
 
 @Injectable()
@@ -131,6 +132,22 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
+
+    if (
+      isSuccess(result) &&
+      commandSanitized.installationId &&
+      result.data.type === Authentification.Type.JEUNE
+    ) {
+      try {
+        await this.authentificationRepository.updateInstallationIdJeune(
+          result.data.id,
+          commandSanitized.installationId
+        )
+      } catch (e) {
+        this.logger.error(e)
+      }
+    }
+
     return result
   }
 

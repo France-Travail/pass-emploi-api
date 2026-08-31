@@ -108,6 +108,11 @@ export namespace Authentification {
       utilisateur: Partial<Authentification.Utilisateur>
     ): Promise<void>
 
+    updateInstallationIdJeune(
+      idJeune: string,
+      installationId: string
+    ): Promise<void>
+
     deleteUtilisateurIdp(idUserCEJ: string): Promise<void>
 
     supprimerCompteIdpInvite(idAuthentification: string): Promise<void>
