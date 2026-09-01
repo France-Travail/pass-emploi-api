@@ -98,9 +98,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1120.0":
-  version: 3.1120.0
-  resolution: "@aws-sdk/client-s3@npm:3.1120.0"
+"@aws-sdk/client-s3@npm:^3.1121.0":
+  version: 3.1121.0
+  resolution: "@aws-sdk/client-s3@npm:3.1121.0"
   dependencies:
     "@aws-sdk/checksums": "npm:^3.1000.29"
     "@aws-sdk/core": "npm:^3.977.9"
@@ -113,7 +113,7 @@ __metadata:
     "@smithy/node-http-handler": "npm:^4.11.3"
     "@smithy/types": "npm:^4.17.2"
     tslib: "npm:^2.6.2"
-  checksum: 10/e6fb1ca2d1bac0b299bac4e29e8fd2ad39930ee85c7e59f20ec6170deb96682b49885902028070c4f5fcf45c73c88d0ba23acfd3da52362653784a042837912c
+  checksum: 10/0b62ac8cac689179cfe329f494c5a1838a16b19ec40e69b1b3947c4a5c7815d3bc9031a04516610dfdf6a311435a7c23f3861d4a4bdbc607ce7ea1893cf5a068
   languageName: node
   linkType: hard
 
@@ -197,8 +197,8 @@ __metadata:
   linkType: hard
 
 "@aws-sdk/credential-provider-node@npm:^3.972.81":
-  version: 3.972.81
-  resolution: "@aws-sdk/credential-provider-node@npm:3.972.81"
+  version: 3.972.82
+  resolution: "@aws-sdk/credential-provider-node@npm:3.972.82"
   dependencies:
     "@aws-sdk/credential-provider-env": "npm:^3.972.70"
     "@aws-sdk/credential-provider-http": "npm:^3.972.72"
@@ -211,7 +211,7 @@ __metadata:
     "@smithy/credential-provider-imds": "npm:^4.4.16"
     "@smithy/types": "npm:^4.17.2"
     tslib: "npm:^2.6.2"
-  checksum: 10/adc322099542d8a05954c7f9715f3db85172270500d2f2b12c115fc2d36a890ceea87d13ad55c2b43f4696079aca7633c7c17ed883a7e6f9d1f7c285119953f8
+  checksum: 10/14075a6bed1a3b0a05b9764b4024e485ac918378e470e7ea9ce12303f3fd5b60142c923d2b0b6ca247c66f63e28e217216734ceb5fe120bf91ae144253030b78
   languageName: node
   linkType: hard
 
@@ -287,9 +287,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/s3-request-presigner@npm:^3.1120.0":
-  version: 3.1120.0
-  resolution: "@aws-sdk/s3-request-presigner@npm:3.1120.0"
+"@aws-sdk/s3-request-presigner@npm:^3.1121.0":
+  version: 3.1121.0
+  resolution: "@aws-sdk/s3-request-presigner@npm:3.1121.0"
   dependencies:
     "@aws-sdk/core": "npm:^3.977.9"
     "@aws-sdk/signature-v4-multi-region": "npm:^3.996.46"
@@ -297,7 +297,7 @@ __metadata:
     "@smithy/core": "npm:^3.33.3"
     "@smithy/types": "npm:^4.17.2"
     tslib: "npm:^2.6.2"
-  checksum: 10/a64cd118452b227c063f303e59f5ba8f92e6c45e87948f2e43bfbc540983fd4fca089be5642e7a429fe1c867fd29b4f2aa45b8b6d3ae488e921957424b1a8a70
+  checksum: 10/6f8d30565cc8078a698f17eb6056b1796fa875db4b45a89f3b1c8ea8325012d2ad6e9cbacd495c73c777970fd27f6518618dcd9caa701a2e9d762036832a44fc
   languageName: node
   linkType: hard
 
@@ -7603,8 +7603,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nest-pass-emploi-api@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.1120.0"
-    "@aws-sdk/s3-request-presigner": "npm:^3.1120.0"
+    "@aws-sdk/client-s3": "npm:^3.1121.0"
+    "@aws-sdk/s3-request-presigner": "npm:^3.1121.0"
     "@nestjs/axios": "npm:^4.0.1"
     "@nestjs/cli": "npm:^11.0.24"
     "@nestjs/common": "npm:11.2.1"
