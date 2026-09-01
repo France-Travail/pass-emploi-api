@@ -57,7 +57,7 @@ export class JeunesMiloController {
   ) {}
 
   @Get(':idJeune/milo/accueil')
-  @UserJourney('accueil_jeune')
+  @UserJourney('accueil_jeune_milo')
   @ApiOperation({
     description:
       "Permet de récupérer les éléments de la page d'accueil d'un jeune MILO"
@@ -186,7 +186,7 @@ export class JeunesMiloController {
   }
 
   @Get('/milo/:idJeune/mon-suivi')
-  @UserJourney('mon_suivi')
+  @UserJourney('mon_suivi_milo')
   @ApiOperation({
     description: "Récupère les éléments de la page 'Mon Suivi' d'un jeune Milo"
   })

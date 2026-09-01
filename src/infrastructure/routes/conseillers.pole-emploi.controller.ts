@@ -17,7 +17,7 @@ import {
 } from './validation/conseillers.inputs'
 
 @Controller('conseillers/pole-emploi')
-@UserJourney('creation_jeune')
+@UserJourney('creation_jeune_france_travail')
 @CustomSwaggerApiOAuth2()
 @ApiTags('Conseillers Pôle emploi')
 export class ConseillersPoleEmploiController {

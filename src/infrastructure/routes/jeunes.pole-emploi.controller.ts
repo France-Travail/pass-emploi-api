@@ -61,7 +61,7 @@ export class JeunesPoleEmploiController {
   ) {}
 
   @Get('jeunes/:idJeune/pole-emploi/accueil')
-  @UserJourney('accueil_jeune')
+  @UserJourney('accueil_jeune_france_travail')
   @ApiOperation({
     summary:
       "Permet de récupérer les éléments de la page d'accueil d'un jeune Pôle Emploi",
@@ -90,7 +90,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('jeunes/:idJeune/pole-emploi/cv')
-  @UserJourney('compte_jeune')
+  @UserJourney('compte_jeune_france_travail')
   @ApiOperation({
     summary: "Permet de récupérer les cvs d'un jeune Pôle Emploi",
     description: 'Autorisé pour un jeune Pole Emploi'
@@ -214,7 +214,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('v2/jeunes/:idJeune/home/agenda/pole-emploi')
-  @UserJourney('agenda')
+  @UserJourney('agenda_france_travail')
   @ApiOperation({
     summary: 'Remplacée depuis la 3.14.0 il y a 10 mois par mon-suivi',
     deprecated: true
@@ -243,7 +243,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('jeunes/:idJeune/pole-emploi/idp-token')
-  @UserJourney('authentification')
+  @UserJourney('authentification_france_travail')
   @ApiOperation({
     summary:
       "Permet de récupérer le token d’identité d'un jeune Pôle Emploi (à échanger par exemple avec CVM)",
@@ -264,7 +264,7 @@ export class JeunesPoleEmploiController {
   }
 
   @Get('/jeunes/:idJeune/pole-emploi/mon-suivi')
-  @UserJourney('mon_suivi')
+  @UserJourney('mon_suivi_france_travail')
   @ApiOperation({
     description:
       "Récupère les éléments de la page 'Mon Suivi' d'un jeune Pôle emploi"

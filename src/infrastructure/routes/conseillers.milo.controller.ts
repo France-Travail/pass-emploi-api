@@ -106,7 +106,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller du jeune'
   })
   @Get('dossiers/:idDossier')
-  @UserJourney('creation_jeune')
+  @UserJourney('creation_jeune_milo')
   @ApiResponse({
     type: DossierJeuneMiloQueryModel
   })
@@ -127,7 +127,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller du jeune'
   })
   @Get('jeunes/:idDossier')
-  @UserJourney('creation_jeune')
+  @UserJourney('creation_jeune_milo')
   @ApiResponse({
     type: JeuneQueryModel
   })
@@ -148,7 +148,7 @@ export class ConseillersMiloController {
     description: 'Autorisé pour un conseiller Milo'
   })
   @Post('jeunes')
-  @UserJourney('creation_jeune')
+  @UserJourney('creation_jeune_milo')
   async postJeuneMilo(
     @Body() creerJeuneMiloPayload: CreerJeuneMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur,
