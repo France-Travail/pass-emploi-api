@@ -274,6 +274,9 @@ export default () => {
         pourcentageInactifsMax:
           process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20'
       },
+      reconciliationAgencesFT: {
+        dryRun: process.env.JOB_RECONCILIATION_AGENCES_FT_DRY_RUN !== 'false'
+      },
       majAgencesFT: {
         dryRun: process.env.JOB_MAJ_AGENCES_FT_DRY_RUN === 'true',
         pourcentageSuppressionsMax:
