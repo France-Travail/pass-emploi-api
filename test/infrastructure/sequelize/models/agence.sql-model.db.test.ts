@@ -1,8 +1,11 @@
+import { ForeignKeyConstraintError } from 'sequelize'
 import { AgenceSqlModel } from 'src/infrastructure/sequelize/models/agence.sql-model'
+import { RegionSqlModel } from 'src/infrastructure/sequelize/models/region.sql-model'
 import {
   uneAgenceDto,
   uneAgenceMiloDto
 } from 'test/fixtures/sql-models/agence.sql-model'
+import { uneRegionDto } from 'test/fixtures/sql-models/region.sql-model'
 import { expect } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
 
@@ -43,5 +46,40 @@ describe('AgenceSqlModel code_safir', () => {
 
     // Then
     await expect(promesse).to.be.rejected()
+  })
+})
+
+describe('AgenceSqlModel code_region', () => {
+  beforeEach(async () => {
+    await getDatabase().cleanPG()
+    await RegionSqlModel.create(uneRegionDto({ code: '52' }))
+  })
+
+  it('accepte un code region present dans le referentiel', async () => {
+    // When
+    await AgenceSqlModel.create(uneAgenceDto({ id: '1', codeRegion: '52' }))
+
+    // Then
+    const agence = await AgenceSqlModel.findByPk('1')
+    expect(agence!.codeRegion).to.equal('52')
+  })
+
+  it('accepte une agence sans code region', async () => {
+    // When
+    await AgenceSqlModel.create(uneAgenceDto({ id: '2', codeRegion: null }))
+
+    // Then
+    const agence = await AgenceSqlModel.findByPk('2')
+    expect(agence!.codeRegion).to.equal(null)
+  })
+
+  it('refuse un code region absent du referentiel', async () => {
+    // When
+    const promise = AgenceSqlModel.create(
+      uneAgenceDto({ id: '3', codeRegion: 'ZZ' })
+    )
+
+    // Then
+    await expect(promise).to.be.rejectedWith(ForeignKeyConstraintError)
   })
 })
