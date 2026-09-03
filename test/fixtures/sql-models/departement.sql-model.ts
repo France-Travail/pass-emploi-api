@@ -7,7 +7,8 @@ export function unDepartementDto(
   const defaults: AsSql<DepartementDto> = {
     id: '12345',
     code: '12345',
-    libelle: 'abcde'
+    libelle: 'abcde',
+    codeRegion: '84'
   }
   return { ...defaults, ...args }
 }

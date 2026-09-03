@@ -13,6 +13,9 @@ export class DepartementDto extends Model {
 
   @Column({ field: 'libelle', type: DataType.STRING })
   libelle!: string
+
+  @Column({ field: 'code_region', type: DataType.STRING })
+  codeRegion!: string
 }
 
 @Table({ timestamps: false, tableName: 'departement' })

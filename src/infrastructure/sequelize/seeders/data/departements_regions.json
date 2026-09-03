@@ -1,0 +1,522 @@
+[
+  {
+    "code": "01",
+    "libelle": "Ain",
+    "code_region": "84"
+  },
+  {
+    "code": "02",
+    "libelle": "Aisne",
+    "code_region": "32"
+  },
+  {
+    "code": "03",
+    "libelle": "Allier",
+    "code_region": "84"
+  },
+  {
+    "code": "04",
+    "libelle": "Alpes-de-Haute-Provence",
+    "code_region": "93"
+  },
+  {
+    "code": "05",
+    "libelle": "Hautes-Alpes",
+    "code_region": "93"
+  },
+  {
+    "code": "06",
+    "libelle": "Alpes-Maritimes",
+    "code_region": "93"
+  },
+  {
+    "code": "07",
+    "libelle": "Ardeche",
+    "code_region": "84"
+  },
+  {
+    "code": "08",
+    "libelle": "Ardennes",
+    "code_region": "44"
+  },
+  {
+    "code": "09",
+    "libelle": "Ariege",
+    "code_region": "76"
+  },
+  {
+    "code": "10",
+    "libelle": "Aube",
+    "code_region": "44"
+  },
+  {
+    "code": "11",
+    "libelle": "Aude",
+    "code_region": "76"
+  },
+  {
+    "code": "12",
+    "libelle": "Aveyron",
+    "code_region": "76"
+  },
+  {
+    "code": "13",
+    "libelle": "Bouches-du-Rhone",
+    "code_region": "93"
+  },
+  {
+    "code": "14",
+    "libelle": "Calvados",
+    "code_region": "28"
+  },
+  {
+    "code": "15",
+    "libelle": "Cantal",
+    "code_region": "84"
+  },
+  {
+    "code": "16",
+    "libelle": "Charente",
+    "code_region": "75"
+  },
+  {
+    "code": "17",
+    "libelle": "Charente-Maritime",
+    "code_region": "75"
+  },
+  {
+    "code": "18",
+    "libelle": "Cher",
+    "code_region": "24"
+  },
+  {
+    "code": "19",
+    "libelle": "Correze",
+    "code_region": "75"
+  },
+  {
+    "code": "2A",
+    "libelle": "Corse-du-Sud",
+    "code_region": "94"
+  },
+  {
+    "code": "2B",
+    "libelle": "Haute-Corse",
+    "code_region": "94"
+  },
+  {
+    "code": "21",
+    "libelle": "Cote-d'Or",
+    "code_region": "27"
+  },
+  {
+    "code": "22",
+    "libelle": "Cotes-d'Armor",
+    "code_region": "53"
+  },
+  {
+    "code": "23",
+    "libelle": "Creuse",
+    "code_region": "75"
+  },
+  {
+    "code": "24",
+    "libelle": "Dordogne",
+    "code_region": "75"
+  },
+  {
+    "code": "25",
+    "libelle": "Doubs",
+    "code_region": "27"
+  },
+  {
+    "code": "26",
+    "libelle": "Drome",
+    "code_region": "84"
+  },
+  {
+    "code": "27",
+    "libelle": "Eure",
+    "code_region": "28"
+  },
+  {
+    "code": "28",
+    "libelle": "Eure-et-Loir",
+    "code_region": "24"
+  },
+  {
+    "code": "29",
+    "libelle": "Finistere",
+    "code_region": "53"
+  },
+  {
+    "code": "30",
+    "libelle": "Gard",
+    "code_region": "76"
+  },
+  {
+    "code": "31",
+    "libelle": "Haute-Garonne",
+    "code_region": "76"
+  },
+  {
+    "code": "32",
+    "libelle": "Gers",
+    "code_region": "76"
+  },
+  {
+    "code": "33",
+    "libelle": "Gironde",
+    "code_region": "75"
+  },
+  {
+    "code": "34",
+    "libelle": "Herault",
+    "code_region": "76"
+  },
+  {
+    "code": "35",
+    "libelle": "Ille-et-Vilaine",
+    "code_region": "53"
+  },
+  {
+    "code": "36",
+    "libelle": "Indre",
+    "code_region": "24"
+  },
+  {
+    "code": "37",
+    "libelle": "Indre-et-Loire",
+    "code_region": "24"
+  },
+  {
+    "code": "38",
+    "libelle": "Isere",
+    "code_region": "84"
+  },
+  {
+    "code": "39",
+    "libelle": "Jura",
+    "code_region": "27"
+  },
+  {
+    "code": "40",
+    "libelle": "Landes",
+    "code_region": "75"
+  },
+  {
+    "code": "41",
+    "libelle": "Loir-et-Cher",
+    "code_region": "24"
+  },
+  {
+    "code": "42",
+    "libelle": "Loire",
+    "code_region": "84"
+  },
+  {
+    "code": "43",
+    "libelle": "Haute-Loire",
+    "code_region": "84"
+  },
+  {
+    "code": "44",
+    "libelle": "Loire-Atlantique",
+    "code_region": "52"
+  },
+  {
+    "code": "45",
+    "libelle": "Loiret",
+    "code_region": "24"
+  },
+  {
+    "code": "46",
+    "libelle": "Lot",
+    "code_region": "76"
+  },
+  {
+    "code": "47",
+    "libelle": "Lot-et-Garonne",
+    "code_region": "75"
+  },
+  {
+    "code": "48",
+    "libelle": "Lozere",
+    "code_region": "76"
+  },
+  {
+    "code": "49",
+    "libelle": "Maine-et-Loire",
+    "code_region": "52"
+  },
+  {
+    "code": "50",
+    "libelle": "Manche",
+    "code_region": "28"
+  },
+  {
+    "code": "51",
+    "libelle": "Marne",
+    "code_region": "44"
+  },
+  {
+    "code": "52",
+    "libelle": "Haute-Marne",
+    "code_region": "44"
+  },
+  {
+    "code": "53",
+    "libelle": "Mayenne",
+    "code_region": "52"
+  },
+  {
+    "code": "54",
+    "libelle": "Meurthe-et-Moselle",
+    "code_region": "44"
+  },
+  {
+    "code": "55",
+    "libelle": "Meuse",
+    "code_region": "44"
+  },
+  {
+    "code": "56",
+    "libelle": "Morbihan",
+    "code_region": "53"
+  },
+  {
+    "code": "57",
+    "libelle": "Moselle",
+    "code_region": "44"
+  },
+  {
+    "code": "58",
+    "libelle": "Nievre",
+    "code_region": "27"
+  },
+  {
+    "code": "59",
+    "libelle": "Nord",
+    "code_region": "32"
+  },
+  {
+    "code": "60",
+    "libelle": "Oise",
+    "code_region": "32"
+  },
+  {
+    "code": "61",
+    "libelle": "Orne",
+    "code_region": "28"
+  },
+  {
+    "code": "62",
+    "libelle": "Pas-de-Calais",
+    "code_region": "32"
+  },
+  {
+    "code": "63",
+    "libelle": "Puy-de-Dome",
+    "code_region": "84"
+  },
+  {
+    "code": "64",
+    "libelle": "Pyrenees-Atlantiques",
+    "code_region": "75"
+  },
+  {
+    "code": "65",
+    "libelle": "Hautes-Pyrenees",
+    "code_region": "76"
+  },
+  {
+    "code": "66",
+    "libelle": "Pyrenees-Orientales",
+    "code_region": "76"
+  },
+  {
+    "code": "67",
+    "libelle": "Bas-Rhin",
+    "code_region": "44"
+  },
+  {
+    "code": "68",
+    "libelle": "Haut-Rhin",
+    "code_region": "44"
+  },
+  {
+    "code": "69",
+    "libelle": "Rhone",
+    "code_region": "84"
+  },
+  {
+    "code": "70",
+    "libelle": "Haute-Saone",
+    "code_region": "27"
+  },
+  {
+    "code": "71",
+    "libelle": "Saone-et-Loire",
+    "code_region": "27"
+  },
+  {
+    "code": "72",
+    "libelle": "Sarthe",
+    "code_region": "52"
+  },
+  {
+    "code": "73",
+    "libelle": "Savoie",
+    "code_region": "84"
+  },
+  {
+    "code": "74",
+    "libelle": "Haute-Savoie",
+    "code_region": "84"
+  },
+  {
+    "code": "75",
+    "libelle": "Paris",
+    "code_region": "11"
+  },
+  {
+    "code": "76",
+    "libelle": "Seine-Maritime",
+    "code_region": "28"
+  },
+  {
+    "code": "77",
+    "libelle": "Seine-et-Marne",
+    "code_region": "11"
+  },
+  {
+    "code": "78",
+    "libelle": "Yvelines",
+    "code_region": "11"
+  },
+  {
+    "code": "79",
+    "libelle": "Deux-Sevres",
+    "code_region": "75"
+  },
+  {
+    "code": "80",
+    "libelle": "Somme",
+    "code_region": "32"
+  },
+  {
+    "code": "81",
+    "libelle": "Tarn",
+    "code_region": "76"
+  },
+  {
+    "code": "82",
+    "libelle": "Tarn-et-Garonne",
+    "code_region": "76"
+  },
+  {
+    "code": "83",
+    "libelle": "Var",
+    "code_region": "93"
+  },
+  {
+    "code": "84",
+    "libelle": "Vaucluse",
+    "code_region": "93"
+  },
+  {
+    "code": "85",
+    "libelle": "Vendee",
+    "code_region": "52"
+  },
+  {
+    "code": "86",
+    "libelle": "Vienne",
+    "code_region": "75"
+  },
+  {
+    "code": "87",
+    "libelle": "Haute-Vienne",
+    "code_region": "75"
+  },
+  {
+    "code": "88",
+    "libelle": "Vosges",
+    "code_region": "44"
+  },
+  {
+    "code": "89",
+    "libelle": "Yonne",
+    "code_region": "27"
+  },
+  {
+    "code": "90",
+    "libelle": "Territoire de Belfort",
+    "code_region": "27"
+  },
+  {
+    "code": "91",
+    "libelle": "Essonne",
+    "code_region": "11"
+  },
+  {
+    "code": "92",
+    "libelle": "Hauts-de-Seine",
+    "code_region": "11"
+  },
+  {
+    "code": "93",
+    "libelle": "Seine-Saint-Denis",
+    "code_region": "11"
+  },
+  {
+    "code": "94",
+    "libelle": "Val-de-Marne",
+    "code_region": "11"
+  },
+  {
+    "code": "95",
+    "libelle": "Val-d'Oise",
+    "code_region": "11"
+  },
+  {
+    "code": "971",
+    "libelle": "Guadeloupe",
+    "code_region": "01"
+  },
+  {
+    "code": "972",
+    "libelle": "Martinique",
+    "code_region": "02"
+  },
+  {
+    "code": "973",
+    "libelle": "Guyane",
+    "code_region": "03"
+  },
+  {
+    "code": "974",
+    "libelle": "La Reunion",
+    "code_region": "04"
+  },
+  {
+    "code": "976",
+    "libelle": "Mayotte",
+    "code_region": "06"
+  },
+  {
+    "code": "975",
+    "libelle": "Saint-Pierre-et-Miquelon",
+    "code_region": "05"
+  },
+  {
+    "code": "977",
+    "libelle": "Saint-Barthélemy",
+    "code_region": "01"
+  },
+  {
+    "code": "978",
+    "libelle": "Saint-Martin",
+    "code_region": "01"
+  }
+]

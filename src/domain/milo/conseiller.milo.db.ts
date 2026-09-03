@@ -219,6 +219,7 @@ export namespace ConseillerMilo {
           nomDepartement: nomDepartementSansPrefixe,
           codeDepartement:
             structureDansLeDepartementSql.codeDepartement ?? '99',
+          codeSafir: null,
           timezone: structureDansLeDepartementSql.timezone,
           structure: Profil.Structure.MILO
         }
