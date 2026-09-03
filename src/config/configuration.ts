@@ -273,6 +273,13 @@ export default () => {
         retentionJours: process.env.JOB_PURGE_INVITES_RETENTION_JOURS ?? '180',
         pourcentageInactifsMax:
           process.env.JOB_PURGE_INVITES_POURCENTAGE_INACTIFS_MAX ?? '20'
+      },
+      majAgencesFT: {
+        dryRun: process.env.JOB_MAJ_AGENCES_FT_DRY_RUN === 'true',
+        pourcentageSuppressionsMax:
+          process.env.JOB_MAJ_AGENCES_FT_POURCENTAGE_SUPPRESSIONS_MAX ?? '2',
+        nombreSuppressionsMin:
+          process.env.JOB_MAJ_AGENCES_FT_NOMBRE_SUPPRESSIONS_MIN ?? '5'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',
