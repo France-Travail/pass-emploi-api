@@ -2,7 +2,12 @@ import axios from 'axios'
 import { DateTime } from 'luxon'
 import * as nock from 'nock'
 import { ErreurHttp } from 'src/building-blocks/types/domain-error'
-import { failure, isSuccess, success } from 'src/building-blocks/types/result'
+import {
+  failure,
+  isFailure,
+  isSuccess,
+  success
+} from 'src/building-blocks/types/result'
 import { PoleEmploiClient } from 'src/infrastructure/clients/pole-emploi-client'
 import { DateService } from 'src/utils/date-service'
 import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
@@ -451,6 +456,61 @@ describe('PoleEmploiClient', () => {
 
       // Then
       expect(evenementEmploi).to.deep.equal(success({ id: 123 }))
+    })
+  })
+
+  describe('getAgencesFT', () => {
+    it('retourne les agences renvoyees par le referentiel', async () => {
+      // Given
+      poleEmploiClient.inMemoryToken = {
+        token: 'test-token',
+        tokenDate: uneDatetimeDeMaintenant.minus({ minutes: 20 })
+      }
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .reply(200, [
+          {
+            code: 'PDL0092',
+            codeSafir: '44155',
+            libelle: 'NANTES MALAKOFF',
+            libelleEtendu: 'Agence France Travail NANTES MALAKOFF',
+            type: 'APE',
+            codeRegionINSEE: '52',
+            adressePrincipale: { communeImplantation: '44109' }
+          }
+        ])
+        .isDone()
+
+      // When
+      const result = await poleEmploiClient.getAgencesFT()
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      if (isSuccess(result)) {
+        expect(result.data.length).to.equal(1)
+        expect(result.data[0].codeSafir).to.equal('44155')
+        expect(result.data[0].adressePrincipale.communeImplantation).to.equal(
+          '44109'
+        )
+      }
+    })
+
+    it('remonte un echec quand le referentiel repond en erreur', async () => {
+      // Given
+      poleEmploiClient.inMemoryToken = {
+        token: 'test-token',
+        tokenDate: uneDatetimeDeMaintenant.minus({ minutes: 20 })
+      }
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .reply(404)
+        .isDone()
+
+      // When
+      const result = await poleEmploiClient.getAgencesFT()
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
     })
   })
 
