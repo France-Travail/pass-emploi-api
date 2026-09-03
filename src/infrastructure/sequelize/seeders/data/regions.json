@@ -1,0 +1,22 @@
+[
+  { "code": "01", "libelle": "Guadeloupe" },
+  { "code": "02", "libelle": "Martinique" },
+  { "code": "03", "libelle": "Guyane" },
+  { "code": "04", "libelle": "La Réunion" },
+  { "code": "05", "libelle": "Saint-Pierre-et-Miquelon" },
+  { "code": "06", "libelle": "Mayotte" },
+  { "code": "10", "libelle": "Saint-Martin" },
+  { "code": "11", "libelle": "Île-de-France" },
+  { "code": "24", "libelle": "Centre-Val de Loire" },
+  { "code": "27", "libelle": "Bourgogne-Franche-Comté" },
+  { "code": "28", "libelle": "Normandie" },
+  { "code": "32", "libelle": "Hauts-de-France" },
+  { "code": "44", "libelle": "Grand Est" },
+  { "code": "52", "libelle": "Pays de la Loire" },
+  { "code": "53", "libelle": "Bretagne" },
+  { "code": "75", "libelle": "Nouvelle-Aquitaine" },
+  { "code": "76", "libelle": "Occitanie" },
+  { "code": "84", "libelle": "Auvergne-Rhône-Alpes" },
+  { "code": "93", "libelle": "Provence-Alpes-Côte d'Azur" },
+  { "code": "94", "libelle": "Corse" }
+]
