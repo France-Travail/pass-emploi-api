@@ -1,4 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
 import {
   ModifierConseillerCommand,
@@ -12,6 +13,7 @@ import { Failure } from '../../../../src/building-blocks/types/result'
 import { Agence } from '../../../../src/domain/agence'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
+import { DateService } from '../../../../src/utils/date-service'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../../utils'
@@ -22,7 +24,9 @@ describe('ModifierConseillerCommandHandler', () => {
   let agencesRepository: StubbedType<Agence.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
+  let dateService: StubbedClass<DateService>
   let modifierConseillerCommandHandler: ModifierConseillerCommandHandler
+  const maintenant = DateTime.fromISO('2026-09-04T10:00:00.000Z')
 
   const conseillerQuiExiste: Conseiller = {
     id: 'id qui existe',
@@ -48,11 +52,14 @@ describe('ModifierConseillerCommandHandler', () => {
     agencesRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
+    dateService = stubClass(DateService)
+    dateService.now.returns(maintenant)
     modifierConseillerCommandHandler = new ModifierConseillerCommandHandler(
       conseillerRepository,
       agencesRepository,
       jeuneRepository,
-      conseillerAuthorizer
+      conseillerAuthorizer,
+      dateService
     )
   })
 
@@ -122,7 +129,7 @@ describe('ModifierConseillerCommandHandler', () => {
         }
       })
       describe('quand le conseiller vient de Pôle Emploi', () => {
-        it('modifie le conseiller', async () => {
+        it('modifie le conseiller et stampe la date de mise a jour d‘agence', async () => {
           // Given
           const conseillerPE = unConseiller({
             id: idConseiller,
@@ -134,7 +141,8 @@ describe('ModifierConseillerCommandHandler', () => {
             structure: Profil.Structure.FRANCE_TRAVAIL,
             dispositif: Profil.Dispositif.CEJ,
             agence: { id: 'id-agence' },
-            notificationsSonores: true
+            notificationsSonores: true,
+            dateMajAgence: maintenant
           })
 
           conseillerRepository.get
@@ -224,6 +232,35 @@ describe('ModifierConseillerCommandHandler', () => {
           expect(
             jeuneRepository.changerDispositifDesJeunesDuConseiller
           ).not.to.have.been.called()
+        })
+        it('autorise un conseiller Pôle Emploi a changer d‘agence deja renseignee', async () => {
+          // Given
+          const conseillerPEAvecAgence = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            agence: { id: 'ancienne-agence' }
+          })
+          const conseillerPEmaj = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            agence: { id: 'id-agence' },
+            notificationsSonores: true,
+            dateMajAgence: maintenant
+          })
+
+          conseillerRepository.get
+            .withArgs('id-conseiller')
+            .resolves(conseillerPEAvecAgence)
+          agencesRepository.get.withArgs('id-agence').resolves(agenceQuiExiste)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle(command)
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(conseillerRepository.save).to.have.been.calledWithExactly(
+            conseillerPEmaj
+          )
         })
       })
       describe('quand le conseiller vient de Mission Locale', () => {

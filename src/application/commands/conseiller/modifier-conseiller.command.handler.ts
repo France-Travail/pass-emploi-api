@@ -12,12 +12,17 @@ import {
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
-import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../../domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  estFranceTravail,
+  Profil
+} from '../../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
+import { DateService } from '../../../utils/date-service'
 
 export interface ModifierConseillerCommand extends Command {
   idConseiller: string
@@ -42,7 +47,8 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
     private agencesRepository: Agence.Repository,
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,
-    private readonly conseillerAuthorizer: ConseillerAuthorizer
+    private readonly conseillerAuthorizer: ConseillerAuthorizer,
+    private readonly dateService: DateService
   ) {
     super('ModifierConseillerCommandHandler')
   }
@@ -65,6 +71,10 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
       }
     }
 
+    const conseillerFTReconfirmeSonAgence =
+      estFranceTravail(conseillerActuel.structure) &&
+      Boolean(command.agence?.id)
+
     const infosDeMiseAJour: Conseiller.InfosDeMiseAJour = {
       notificationsSonores:
         command.notificationsSonores ?? conseillerActuel.notificationsSonores,
@@ -75,7 +85,10 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
         : conseillerActuel.dateSignatureCGU,
       dateVisionnageActus: command.dateVisionnageActus
         ? DateTime.fromISO(command.dateVisionnageActus)
-        : conseillerActuel.dateVisionnageActus
+        : conseillerActuel.dateVisionnageActus,
+      dateMajAgence: conseillerFTReconfirmeSonAgence
+        ? this.dateService.now()
+        : conseillerActuel.dateMajAgence
     }
 
     const conseillerResult = Conseiller.mettreAJour(
