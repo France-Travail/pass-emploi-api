@@ -208,6 +208,14 @@ export const configurationSchema = Joi.object({
     purgeInvites: Joi.object({
       retentionJours: Joi.number().required(),
       pourcentageInactifsMax: Joi.number().required()
+    }),
+    reconciliationAgencesFT: Joi.object({
+      dryRun: Joi.boolean().required()
+    }),
+    majAgencesFT: Joi.object({
+      dryRun: Joi.boolean().required(),
+      pourcentageSuppressionsMax: Joi.number().required(),
+      nombreSuppressionsMin: Joi.number().required()
     })
   }),
   version: Joi.string().required(),
