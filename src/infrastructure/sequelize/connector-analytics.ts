@@ -3,6 +3,7 @@ import { buildError } from '../../utils/logger.module'
 import { parse } from 'pg-connection-string'
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript'
 import { Pool, PoolClient, PoolConfig } from 'pg'
+import { requiresSsl } from './ssl'
 
 export async function createSequelizeForAnalytics(): Promise<Sequelize> {
   const databaseUrl = process.env.DUMP_RESTORE_DB_TARGET as string
@@ -18,11 +19,7 @@ export async function createSequelizeForAnalytics(): Promise<Sequelize> {
     logging: false
   }
 
-  if (
-    (['staging', 'perf'] as Array<string | undefined>).includes(
-      process.env.ENVIRONMENT
-    )
-  ) {
+  if (requiresSsl(process.env.ENVIRONMENT)) {
     options.dialectOptions = {
       ssl: {
         require: true,
@@ -65,11 +62,7 @@ async function getPGConnexion(databaseUrl: string): Promise<PgConnexion> {
     database: database as string
   }
 
-  if (
-    (['staging', 'perf'] as Array<string | undefined>).includes(
-      process.env.ENVIRONMENT
-    )
-  ) {
+  if (requiresSsl(process.env.ENVIRONMENT)) {
     options.ssl = true
   }
   const pool = new Pool(options)

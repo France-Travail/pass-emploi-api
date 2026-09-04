@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { Sequelize } from 'sequelize-typescript'
 import { buildError } from '../../utils/logger.module'
 import { sqlModels } from './models'
+import { requiresSsl } from './ssl'
 
 export const SequelizeInjectionToken = 'SEQUELIZE'
 
@@ -12,11 +13,7 @@ export const databaseProviders = [
     inject: [ConfigService],
     useFactory: async (configService: ConfigService): Promise<Sequelize> => {
       let otherOptions = {}
-      if (
-        (['staging', 'perf'] as Array<string | undefined>).includes(
-          configService.get('environment')
-        )
-      ) {
+      if (requiresSsl(configService.get('environment'))) {
         otherOptions = {
           dialectOptions: {
             ssl: {
