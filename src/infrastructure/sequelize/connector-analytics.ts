@@ -18,7 +18,11 @@ export async function createSequelizeForAnalytics(): Promise<Sequelize> {
     logging: false
   }
 
-  if (process.env.ENVIRONMENT === 'staging') {
+  if (
+    (['staging', 'perf'] as Array<string | undefined>).includes(
+      process.env.ENVIRONMENT
+    )
+  ) {
     options.dialectOptions = {
       ssl: {
         require: true,
@@ -61,7 +65,11 @@ async function getPGConnexion(databaseUrl: string): Promise<PgConnexion> {
     database: database as string
   }
 
-  if (process.env.ENVIRONMENT === 'staging') {
+  if (
+    (['staging', 'perf'] as Array<string | undefined>).includes(
+      process.env.ENVIRONMENT
+    )
+  ) {
     options.ssl = true
   }
   const pool = new Pool(options)
