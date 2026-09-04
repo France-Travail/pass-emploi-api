@@ -19,8 +19,8 @@ import {
   unUtilisateurJeune
 } from '../../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../../fixtures/date.fixture'
-import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { uneAgenceDto } from '../../../fixtures/sql-models/agence.sql-model'
+import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
 import { StubbedClass, expect, stubClass } from '../../../utils'
@@ -142,7 +142,7 @@ describe('GetUnRendezVousJeuneQueryHandler', () => {
           duration: rendezVous.duree,
           type: {
             code: rendezVous.type,
-            label: 'Entretien individuel conseiller'
+            label: 'Entretien individuel'
           },
           isLocaleDate: false,
           estInscrit: true,

@@ -6,7 +6,7 @@ METHOD:CANCEL
 X-PUBLISHED-TTL:PT1H
 BEGIN:VEVENT
 UID:20c8ca73-fd8b-4194-8d3c-80b6c9949deb
-SUMMARY:Entretien individuel conseiller
+SUMMARY:Entretien individuel
 DTSTAMP:20220405T083500Z
 DTSTART:20211111T080300Z
 DESCRIPTION:Création d'un nouveau rendez-vous\nVous avez créé un rendez-vou

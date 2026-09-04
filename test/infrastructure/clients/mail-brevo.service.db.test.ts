@@ -300,7 +300,7 @@ describe('MailBrevoService', () => {
           dateRdv: 'jeudi 11 novembre 2021',
           heureRdv: '09h03',
           lienPortail: 'http://frontend.com',
-          typeRdv: 'Entretien individuel conseiller'
+          typeRdv: 'Entretien individuel'
         },
         templateId: 300,
         to: [
@@ -341,7 +341,7 @@ describe('MailBrevoService', () => {
           dateRdv: 'jeudi 11 novembre 2021',
           heureRdv: '09h03',
           lienPortail: 'http://frontend.com',
-          typeRdv: 'Entretien individuel conseiller'
+          typeRdv: 'Entretien individuel'
         },
         templateId: 400,
         to: [
@@ -385,7 +385,7 @@ describe('MailBrevoService', () => {
           dateRdv: 'jeudi 11 novembre 2021',
           heureRdv: '09h03',
           lienPortail: 'http://frontend.com',
-          typeRdv: 'Entretien individuel conseiller'
+          typeRdv: 'Entretien individuel'
         },
         templateId: parseInt(config.get('brevo').templates.rendezVousSupprime),
         to: [

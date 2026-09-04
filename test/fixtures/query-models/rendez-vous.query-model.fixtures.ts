@@ -1,11 +1,11 @@
 import {
-  CodeTypeRendezVous,
-  RendezVous
-} from '../../../src/domain/rendez-vous/rendez-vous'
-import {
   RendezVousJeuneDetailQueryModel,
   RendezVousJeuneQueryModel
 } from '../../../src/application/queries/query-models/rendez-vous.query-model'
+import {
+  CodeTypeRendezVous,
+  RendezVous
+} from '../../../src/domain/rendez-vous/rendez-vous'
 import { uneDate } from '../date.fixture'
 
 export function unRendezVousQueryModel(
@@ -36,7 +36,7 @@ export function unRendezVousQueryModel(
     title: 'rdv',
     type: {
       code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-      label: 'Entretien individuel conseiller'
+      label: 'Entretien individuel'
     },
     source: RendezVous.Source.PASS_EMPLOI,
     futPresent: undefined,

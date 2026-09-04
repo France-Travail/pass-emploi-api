@@ -39,7 +39,7 @@ describe('GetTypesRendezVousQueryHandler', () => {
         },
         {
           code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-          label: 'Entretien individuel conseiller',
+          label: 'Entretien individuel',
           categorie: CategorieRendezVous.CEJ_RDV
         },
         {

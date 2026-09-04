@@ -1,8 +1,8 @@
-import { RendezVousPoleEmploiDto } from '../../../../src/infrastructure/clients/dto/pole-emploi.dto'
-import { expect, StubbedClass, stubClass } from '../../../utils'
 import { fromRendezVousDtoToRendezVousQueryModel } from '../../../../src/application/queries/query-mappers/rendez-vous-pole-emploi.mappers'
-import { IdService } from '../../../../src/utils/id-service'
 import { Core } from '../../../../src/domain/core'
+import { RendezVousPoleEmploiDto } from '../../../../src/infrastructure/clients/dto/pole-emploi.dto'
+import { IdService } from '../../../../src/utils/id-service'
+import { expect, StubbedClass, stubClass } from '../../../utils'
 
 describe('RendezVousPrestationMappers', () => {
   let idService: StubbedClass<IdService>
@@ -59,7 +59,7 @@ describe('RendezVousPrestationMappers', () => {
         title: '',
         type: {
           code: 'ENTRETIEN_INDIVIDUEL_CONSEILLER',
-          label: 'Entretien individuel conseiller'
+          label: 'Entretien individuel'
         },
         visio: true,
         lienVisio: 'lien',
