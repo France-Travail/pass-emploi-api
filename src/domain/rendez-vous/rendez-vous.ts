@@ -64,7 +64,7 @@ export const mapCodeCategorieTypeRendezVous: Record<
 export const mapCodeLabelTypeRendezVous: Record<CodeTypeRendezVous, string> = {
   ACTIVITE_EXTERIEURES: 'Activités extérieures',
   ATELIER: 'Atelier',
-  ENTRETIEN_INDIVIDUEL_CONSEILLER: 'Entretien individuel conseiller',
+  ENTRETIEN_INDIVIDUEL_CONSEILLER: 'Entretien individuel',
   ENTRETIEN_PARTENAIRE: 'Entretien par un partenaire',
   INFORMATION_COLLECTIVE: 'Information collective',
   VISITE: 'Visite',
@@ -79,7 +79,7 @@ export const mapCodeLabelTypeRendezVousJeune: Record<
 > = {
   ACTIVITE_EXTERIEURES: 'Activités extérieures',
   ATELIER: 'Atelier',
-  ENTRETIEN_INDIVIDUEL_CONSEILLER: 'Entretien individuel conseiller',
+  ENTRETIEN_INDIVIDUEL_CONSEILLER: 'Entretien individuel',
   ENTRETIEN_PARTENAIRE: 'Entretien par un partenaire',
   INFORMATION_COLLECTIVE: 'Information collective',
   VISITE: 'Visite',

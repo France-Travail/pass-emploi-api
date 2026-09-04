@@ -1,43 +1,43 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { SinonSandbox } from 'sinon'
+import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
+import {
+  GetRendezVousJeunePoleEmploiQueryGetter,
+  Query
+} from '../../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
+import { RendezVousJeuneQueryModel } from '../../../../../src/application/queries/query-models/rendez-vous.query-model'
 import { GetRendezVousJeunePoleEmploiQuery } from '../../../../../src/application/queries/rendez-vous/get-rendez-vous-jeune-pole-emploi.query.handler'
-import { unJeune } from '../../../../fixtures/jeune.fixture'
-import { uneDatetime } from '../../../../fixtures/date.fixture'
+import {
+  ErreurHttp,
+  NonTrouveError
+} from '../../../../../src/building-blocks/types/domain-error'
+import { Cached } from '../../../../../src/building-blocks/types/query'
+import {
+  failure,
+  isSuccess,
+  success
+} from '../../../../../src/building-blocks/types/result'
+import { failureApi } from '../../../../../src/building-blocks/types/result-api'
+import { Jeune } from '../../../../../src/domain/jeune/jeune'
 import {
   CodeTypeRendezVous,
   RendezVous
 } from '../../../../../src/domain/rendez-vous/rendez-vous'
+import {
+  PrestationDto,
+  RendezVousPoleEmploiDto
+} from '../../../../../src/infrastructure/clients/dto/pole-emploi.dto'
+import { PoleEmploiPartenaireClient } from '../../../../../src/infrastructure/clients/pole-emploi-partenaire-client.db'
+import { DateService } from '../../../../../src/utils/date-service'
+import { IdService } from '../../../../../src/utils/id-service'
+import { uneDatetime } from '../../../../fixtures/date.fixture'
+import { unJeune } from '../../../../fixtures/jeune.fixture'
 import {
   createSandbox,
   expect,
   StubbedClass,
   stubClass
 } from '../../../../utils'
-import {
-  PrestationDto,
-  RendezVousPoleEmploiDto
-} from '../../../../../src/infrastructure/clients/dto/pole-emploi.dto'
-import {
-  failure,
-  isSuccess,
-  success
-} from '../../../../../src/building-blocks/types/result'
-import {
-  ErreurHttp,
-  NonTrouveError
-} from '../../../../../src/building-blocks/types/domain-error'
-import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { Jeune } from '../../../../../src/domain/jeune/jeune'
-import { DateService } from '../../../../../src/utils/date-service'
-import { IdService } from '../../../../../src/utils/id-service'
-import { PoleEmploiPartenaireClient } from '../../../../../src/infrastructure/clients/pole-emploi-partenaire-client.db'
-import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
-import { SinonSandbox } from 'sinon'
-import {
-  GetRendezVousJeunePoleEmploiQueryGetter,
-  Query
-} from '../../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
-import { RendezVousJeuneQueryModel } from '../../../../../src/application/queries/query-models/rendez-vous.query-model'
-import { failureApi } from '../../../../../src/building-blocks/types/result-api'
-import { Cached } from '../../../../../src/building-blocks/types/query'
 
 describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
   let jeunesRepository: StubbedType<Jeune.Repository>
@@ -519,7 +519,7 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 title: '',
                 type: {
                   code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-                  label: 'Entretien individuel conseiller'
+                  label: 'Entretien individuel'
                 },
                 isLocaleDate: true,
                 visio: false,
@@ -635,7 +635,7 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 title: '',
                 type: {
                   code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-                  label: 'Entretien individuel conseiller'
+                  label: 'Entretien individuel'
                 },
                 isLocaleDate: true,
                 visio: true,
@@ -771,7 +771,7 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
                 title: '',
                 type: {
                   code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-                  label: 'Entretien individuel conseiller'
+                  label: 'Entretien individuel'
                 },
                 isLocaleDate: true,
                 visio: true,

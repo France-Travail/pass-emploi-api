@@ -1,34 +1,34 @@
+import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
+import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
+import { RendezVousAuthorizer } from '../../../../src/application/authorizers/rendezvous-authorizer'
+import { RendezVousConseillerDetailQueryModel } from '../../../../src/application/queries/query-models/rendez-vous.query-model'
 import { GetDetailRendezVousQueryHandler } from '../../../../src/application/queries/rendez-vous/get-detail-rendez-vous.query.handler.db'
-import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
+import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
 import {
   failure,
   isSuccess,
   success
 } from '../../../../src/building-blocks/types/result'
-import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
-import { unJeune } from '../../../fixtures/jeune.fixture'
-import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
-import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
-import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
-import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
-import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
-import { RendezVousSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous.sql-model'
-import { uneDate, uneDatetime } from '../../../fixtures/date.fixture'
-import { RendezVousConseillerDetailQueryModel } from '../../../../src/application/queries/query-models/rendez-vous.query-model'
+import { Core } from '../../../../src/domain/core'
 import {
   CodeTypeRendezVous,
   RendezVous
 } from '../../../../src/domain/rendez-vous/rendez-vous'
-import { RendezVousJeuneAssociationSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
-import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
-import { RendezVousAuthorizer } from '../../../../src/application/authorizers/rendezvous-authorizer'
+import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { LogModificationRendezVousSqlModel } from '../../../../src/infrastructure/sequelize/models/log-modification-rendez-vous-sql.model'
+import { RendezVousJeuneAssociationSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous-jeune-association.sql-model'
+import { RendezVousSqlModel } from '../../../../src/infrastructure/sequelize/models/rendez-vous.sql-model'
 import { DateService } from '../../../../src/utils/date-service'
-import { DateTime } from 'luxon'
+import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
+import { uneDate, uneDatetime } from '../../../fixtures/date.fixture'
+import { unJeune } from '../../../fixtures/jeune.fixture'
+import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
+import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
+import { unRendezVousDto } from '../../../fixtures/sql-models/rendez-vous.sql-model'
+import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
-import { ConseillerInterAgenceAuthorizer } from '../../../../src/application/authorizers/conseiller-inter-agence-authorizer'
-import { Core } from '../../../../src/domain/core'
 
 const queryModel: RendezVousConseillerDetailQueryModel = {
   adresse: undefined,
@@ -51,7 +51,7 @@ const queryModel: RendezVousConseillerDetailQueryModel = {
   historique: [],
   type: {
     code: CodeTypeRendezVous.ENTRETIEN_INDIVIDUEL_CONSEILLER,
-    label: 'Entretien individuel conseiller'
+    label: 'Entretien individuel'
   },
   source: RendezVous.Source.PASS_EMPLOI,
   nombreMaxParticipants: undefined,
