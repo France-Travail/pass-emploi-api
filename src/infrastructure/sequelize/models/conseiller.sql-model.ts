@@ -113,6 +113,12 @@ export class ConseillerDto extends Model {
   })
   nomManuelAgence: string | null
 
+  @Column({
+    field: 'date_maj_agence',
+    type: DataType.DATE
+  })
+  dateMajAgence: Date | null
+
   @ForeignKey(() => StructureMiloSqlModel)
   @Column({
     field: 'id_structure_milo',

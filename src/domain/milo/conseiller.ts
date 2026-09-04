@@ -23,6 +23,7 @@ export interface Conseiller {
   dateVisionnageActus?: DateTime
   agence?: Agence
   notificationsSonores: boolean
+  dateMajAgence?: DateTime
 }
 
 export const ConseillerRepositoryToken = 'ConseillerRepositoryToken'
@@ -86,6 +87,7 @@ export namespace Conseiller {
     }
 
     if (
+      !estFranceTravail(conseiller.structure) &&
       conseiller.agence?.id &&
       infosDeMiseAJour.agence?.id &&
       conseiller.agence.id !== infosDeMiseAJour.agence.id
@@ -124,7 +126,8 @@ export namespace Conseiller {
       dispositif: infosDeMiseAJour.dispositif ?? conseiller.dispositif,
       notificationsSonores: Boolean(infosDeMiseAJour.notificationsSonores),
       dateSignatureCGU: infosDeMiseAJour.dateSignatureCGU,
-      dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus
+      dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus,
+      dateMajAgence: infosDeMiseAJour.dateMajAgence
     })
   }
 
@@ -138,5 +141,6 @@ export namespace Conseiller {
     dateSignatureCGU?: DateTime
     dateVisionnageActus?: DateTime
     notificationsSonores?: boolean
+    dateMajAgence?: DateTime
   }
 }
