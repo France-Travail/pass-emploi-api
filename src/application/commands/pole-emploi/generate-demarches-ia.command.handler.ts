@@ -9,7 +9,10 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { PoleEmploiClient } from '../../../infrastructure/clients/pole-emploi-client'
-import { Profil } from '../../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  DISPOSITIFS_FT_AVEC_DEMARCHES
+} from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 
@@ -33,8 +36,8 @@ export class GenerateDemarchesIACommandHandler extends CommandHandler<
   DemarcheIAQueryModel[]
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(

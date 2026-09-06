@@ -21,7 +21,7 @@ import {
 } from 'src/building-blocks/types/result'
 import { Action } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
+import { TOUT_MILO } from 'src/domain/profil'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { TYPES_ANIMATIONS_COLLECTIVES } from 'src/domain/rendez-vous/rendez-vous'
 import { DateService } from 'src/utils/date-service'
@@ -50,7 +50,7 @@ export class GetAccueilJeuneMiloQueryHandler extends QueryHandler<
   GetAccueilJeuneMiloQuery,
   Result<AccueilJeuneMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

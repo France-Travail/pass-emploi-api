@@ -3,7 +3,7 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { isFailure, Result, success } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
+import { Profil, TOUT_MILO } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from 'src/domain/milo/conseiller.milo.db'
 import { PlanificateurService } from 'src/domain/planificateur'
@@ -28,7 +28,7 @@ export class GetDetailSessionConseillerMiloQueryHandler extends QueryHandler<
   GetDetailSessionConseillerMiloQuery,
   Result<DetailSessionConseillerMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
@@ -54,8 +54,9 @@ export class GetDetailSessionConseillerMiloQueryHandler extends QueryHandler<
     }
     const { structure } = resultConseiller.data
 
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      query.accessToken
+    const idpToken = await this.oidcClient.exchangeToken(
+      query.accessToken,
+      Profil.Structure.MILO
     )
 
     const resultatSession = await this.sessionRepository.getForConseiller(

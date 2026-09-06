@@ -5,7 +5,6 @@ import {
 import { success } from '../../../../src/building-blocks/types/result'
 import { Action } from '../../../../src/domain/action/action'
 import { Qualification } from '../../../../src/domain/action/qualification'
-import { Core } from '../../../../src/domain/core'
 import { CodeTypeRendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import {
   MILO_INSCRIT,
@@ -33,6 +32,7 @@ import {
   getDatabase
 } from '../../../utils/database-for-testing'
 import { testConfig } from '../../../utils/module-for-testing'
+import { Profil } from '../../../../src/domain/profil'
 
 const conseiller = unConseillerDto()
 const jeune = unJeuneDto({ idConseiller: conseiller.id })
@@ -129,7 +129,7 @@ describe('GetComptageJeuneQueryGetter', () => {
       )
       expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
         query.accessTokenJeune,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       expect(
         miloClient.getSessionsParDossierJeune
@@ -191,7 +191,7 @@ describe('GetComptageJeuneQueryGetter', () => {
       )
       expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
         query.accessTokenJeune,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       expect(
         miloClient.getSessionsParDossierJeune
@@ -297,7 +297,7 @@ describe('GetComptageJeuneQueryGetter', () => {
       )
       expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
         query.accessTokenConseiller,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       expect(
         miloClient.getSessionsParDossierJeunePourConseiller

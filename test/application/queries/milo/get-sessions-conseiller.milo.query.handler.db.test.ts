@@ -29,6 +29,7 @@ import { SessionConseillerMiloQueryModel } from 'src/application/queries/query-m
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { getDatabase } from 'test/utils/database-for-testing'
 import { testConfig } from '../../../utils/test-config'
+import { Profil } from '../../../../src/domain/profil'
 
 describe('GetSessionsConseillerMiloQueryHandler', () => {
   const maintenantEn2023 = DateTime.local(2023)
@@ -143,7 +144,7 @@ describe('GetSessionsConseillerMiloQueryHandler', () => {
           dateModification: DateTime.now().toJSDate()
         })
         conseillerRepository.get.resolves(success(conseiller))
-        oidcClient.exchangeTokenConseillerMilo.resolves(idpToken)
+        oidcClient.exchangeToken.resolves(idpToken)
       })
 
       it('récupère la liste des sessions de sa structure Milo avec une visibilité', async () => {
@@ -156,9 +157,10 @@ describe('GetSessionsConseillerMiloQueryHandler', () => {
         const result = await getSessionsQueryHandler.handle(query)
 
         // Then
-        expect(
-          oidcClient.exchangeTokenConseillerMilo
-        ).to.have.been.calledOnceWithExactly('bearer un-token')
+        expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
+          'bearer un-token',
+          Profil.Structure.MILO
+        )
         expect(
           miloClient.getSessionsConseillerParStructure
         ).to.have.been.calledOnceWithExactly(

@@ -31,7 +31,6 @@ import {
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
 import { ArchiveJeune } from 'src/domain/archive-jeune'
-import { Jeune } from 'src/domain/jeune/jeune'
 import { EnvoyerNotificationsPayload } from 'src/infrastructure/routes/validation/conseillers.inputs'
 import * as request from 'supertest'
 import { uneAgence } from 'test/fixtures/agence.fixture'
@@ -50,6 +49,7 @@ import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.quer
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { EnvoyerEmailActivationCommandHandler } from '../../../src/application/commands/milo/envoyer-email-activation.command.handler'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ConseillersController', () => {
   let getDetailConseillerQueryHandler: StubbedClass<GetDetailConseillerQueryHandler>
@@ -790,7 +790,7 @@ describe('ConseillersController', () => {
     const idConseiller = 'id-conseiller'
     const idJeune = 'id-jeune'
     const payload = {
-      dispositif: Jeune.Dispositif.PACEA,
+      dispositif: Profil.Dispositif.PACEA,
       motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
       dateFinAccompagnement: '2026-03-01T00:00:00.000Z'
     }
@@ -799,7 +799,7 @@ describe('ConseillersController', () => {
       // Given
       const command: ChangerDispositifJeuneCommand = {
         idJeune,
-        dispositif: Jeune.Dispositif.PACEA,
+        dispositif: Profil.Dispositif.PACEA,
         motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
         dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
       }

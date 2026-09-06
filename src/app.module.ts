@@ -16,7 +16,6 @@ import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/c
 import AutodesinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import { EmargerSessionMiloCommandHandler } from 'src/application/commands/milo/emarger-session-milo.command.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
-import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
 import { GetAgendaSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-agenda-sessions-conseiller.milo.query.handler.db'
 import { GetCompteursBeneficiaireMiloQueryHandler } from 'src/application/queries/milo/get-compteurs-portefeuille-milo.query.handler.db'
 import { GetDetailSessionConseillerMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-conseiller.milo.query.handler.db'
@@ -112,7 +111,6 @@ import { DeleteSuperviseursCommandHandler } from './application/commands/support
 import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from './application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
-import { RefreshJddCommandHandler } from './application/commands/support/refresh-jdd.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from './application/commands/support/update-feature-flip.command.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
@@ -140,7 +138,6 @@ import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initi
 import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
-import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
 import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evenements.job.handler'
 import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
@@ -867,7 +864,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateListeDeDiffusionCommandHandler,
     DeleteListeDeDiffusionCommandHandler,
     GetDetailListeDeDiffusionQueryHandler,
-    RefreshJddCommandHandler,
     EnvoyerMessageGroupeCommandHandler,
     MettreAJourLesJeunesCejPeCommandHandler,
     UpdateAgenceConseillerCommandHandler,
@@ -900,7 +896,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     EvenementEmploiCodePostalQueryGetter,
     GetCatalogueDemarchesQueryHandler,
     GetMonSuiviMiloQueryHandler,
-    GetTokenPoleEmploiQueryHandler,
     GetMonSuiviPoleEmploiQueryHandler,
     VerifierEmailBeneficiaireQueryHandler,
     GetCompteursBeneficiaireMiloQueryHandler,
@@ -947,7 +942,6 @@ export const JobHandlerProviders = [
   NettoyerLesDonneesJobHandler,
   PurgerInvitesInactifsJobHandler,
   MonitorJobsJobHandler,
-  HandleJobGenererJDDCommandHandler,
   SuivreEvenementsMiloCronJobHandler,
   TraiterEvenementMiloJobHandler,
   DumpForAnalyticsJobHandler,

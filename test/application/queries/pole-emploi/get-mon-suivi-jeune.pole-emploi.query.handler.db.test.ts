@@ -13,8 +13,10 @@ import {
   Result,
   success
 } from '../../../../src/building-blocks/types/result'
-import { Profil } from '../../../../src/domain/profil'
-import { Core } from '../../../../src/domain/core'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -22,7 +24,7 @@ import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vo
 import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
-import Structure = Core.Structure
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('GetMonSuiviPoleEmploiQueryHandler', () => {
   let getRendezVousJeuneQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
@@ -31,7 +33,7 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
 
   const utilisateurJeunePE = unUtilisateurJeune({
-    structure: Structure.POLE_EMPLOI
+    profil: unProfilFT()
   })
   const dateDebut = DateTime.fromISO('2024-01-14T12:00:00Z', {
     setZone: true
@@ -162,8 +164,20 @@ describe('GetMonSuiviPoleEmploiQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

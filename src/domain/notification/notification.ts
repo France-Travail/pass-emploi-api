@@ -3,11 +3,11 @@ import { DateTime } from 'luxon'
 import { SessionMiloBeneficiaire } from 'src/domain/milo/session.milo'
 import { DateService } from '../../utils/date-service'
 import { Action } from '../action/action'
-import { beneficiaireEstFTConnect, Core, estMilo } from '../core'
 import { Jeune } from '../jeune/jeune'
 import { Recherche } from '../offre/recherche/recherche'
 import { RendezVous } from '../rendez-vous/rendez-vous'
 import * as _PoleEmploi from './notification.pole-emploi'
+import { estMilo, Profil } from '../profil'
 
 export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 
@@ -321,7 +321,7 @@ export namespace Notification {
 
     async notifierRappelCreationActionDemarche(
       id: string,
-      structure: Core.Structure,
+      structure: Profil.Structure,
       token: string,
       nbActionsCreees: number,
       peutVoirLeComptageDesHeures?: boolean
@@ -401,7 +401,7 @@ export namespace Notification {
     }
 
     async notifierNouveauCommentaireAction(
-      idAction: Action.Id,
+      idAction: string,
       configurationApplication?: Jeune.ConfigurationApplication
     ): Promise<void> {
       if (configurationApplication) {
@@ -780,10 +780,10 @@ export namespace Notification {
   }
 
   function getBodyNotificationRappelCreationActionDemarche(
-    structure: Core.Structure,
+    structure: Profil.Structure,
     dateService: DateService
   ): { title: string; body: string } {
-    const trucs = beneficiaireEstFTConnect(structure) ? 'démarches' : 'actions'
+    const trucs = !estMilo(structure) ? 'démarches' : 'actions'
     const messages: Array<{ title: string; body: string }> = [
       {
         title: `Le saviez-vous ?`,
@@ -808,7 +808,7 @@ export namespace Notification {
 
   function creerNotificationRappelCreationActionDemarche(
     token: string,
-    structure: Core.Structure,
+    structure: Profil.Structure,
     dateService: DateService
   ): Notification.Message {
     return {
@@ -818,7 +818,7 @@ export namespace Notification {
         dateService
       ),
       data: {
-        type: beneficiaireEstFTConnect(structure)
+        type: !estMilo(structure)
           ? Type.RAPPEL_CREATION_DEMARCHE
           : Type.RAPPEL_CREATION_ACTION
       }

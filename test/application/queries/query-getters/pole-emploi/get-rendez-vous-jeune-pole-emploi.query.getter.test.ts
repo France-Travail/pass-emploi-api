@@ -57,7 +57,7 @@ describe('GetRendezVousJeunePoleEmploiQueryGetter', () => {
     dateService = stubClass(DateService)
     idService = stubClass(IdService)
     idService.uuid.returns('random-id')
-    oidcClient.exchangeTokenJeune.resolves(idpToken)
+    oidcClient.exchangeToken.resolves(idpToken)
 
     queryGetter = new GetRendezVousJeunePoleEmploiQueryGetter(
       jeunesRepository,

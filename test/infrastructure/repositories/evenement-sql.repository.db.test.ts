@@ -1,6 +1,5 @@
 import { Authentification } from '../../../src/domain/authentification'
 import { expect } from '../../utils'
-import { Core } from '../../../src/domain/core'
 import { emptySuccess } from '../../../src/building-blocks/types/result'
 import { uneDatetime } from 'test/fixtures/date.fixture'
 import { Evenement } from '../../../src/domain/evenement'
@@ -9,6 +8,7 @@ import { getDatabase } from '../../utils/database-for-testing'
 import { EvenementEngagementHebdoSqlModel } from '../../../src/infrastructure/sequelize/models/evenement-engagement-hebdo.sql-model'
 import { RateLimiterService } from '../../../src/utils/rate-limiter.service'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('EvenementSqlRepository', () => {
   let evenementHttpSqlRepository: EvenementSqlRepository
@@ -28,7 +28,7 @@ describe('EvenementSqlRepository', () => {
         prenom: 'Kevin',
         nom: 'DeBrun',
         email: 'kd@gmail.com',
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(),
         type: Authentification.Type.CONSEILLER,
         roles: []
       }
@@ -56,7 +56,8 @@ describe('EvenementSqlRepository', () => {
         nom: null,
         idUtilisateur: utilisateur.id,
         typeUtilisateur: utilisateur.type,
-        structure: utilisateur.structure,
+        structure: utilisateur.profil.structure,
+        dispositif: utilisateur.profil.dispositif,
         dateEvenement: uneDatetime().toJSDate()
       })
       expect(result).to.deep.equal(emptySuccess())

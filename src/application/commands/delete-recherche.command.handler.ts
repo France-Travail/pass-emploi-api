@@ -7,7 +7,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import {
   Recherche,
   RecherchesRepositoryToken
@@ -29,7 +29,7 @@ export class DeleteRechercheCommandHandler extends CommandHandler<
   DeleteRechercheCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(RecherchesRepositoryToken)

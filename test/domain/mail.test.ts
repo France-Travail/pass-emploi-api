@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { Mail } from 'src/domain/mail'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
-import { Core } from '../../src/domain/core'
+import { Profil } from '../../src/domain/profil'
 
 describe('Mail', () => {
   describe('Factory', () => {
@@ -46,7 +46,10 @@ describe('Mail', () => {
       describe("Quand c'est un bénéficiaire Pass Emploi", () => {
         it('crée une action avec le statut fourni', async () => {
           // Given
-          const jeune = unJeune({ structure: Core.Structure.POLE_EMPLOI_BRSA })
+          const jeune = unJeune({
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.BRSA
+          })
 
           // When
           const actual = mailFactory.creerMailSuppressionJeune(jeune)

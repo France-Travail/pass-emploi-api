@@ -37,6 +37,12 @@ import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
 import { Jeune, JeuneNonAccompagne } from '../../../src/domain/jeune/jeune'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import { Profil, structureLegacyVersProfil } from '../../../src/domain/profil'
+import {
+  unProfilCD,
+  unProfilFT,
+  unProfilMilo
+} from '../../fixtures/profil.fixture'
 
 describe('UpdateUtilisateurCommandHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -141,7 +147,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -173,7 +179,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -204,7 +210,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -241,7 +247,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -449,7 +455,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 email: command.email,
                 username: command.username,
                 type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
+                profil: structureLegacyVersProfil(
+                  command.structure as Core.Structure
+                ),
                 roles: []
               }
               authentificationRepository.save
@@ -527,7 +535,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 email: command.email,
                 username: command.username,
                 type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
+                profil: structureLegacyVersProfil(
+                  command.structure as Core.Structure
+                ),
                 roles: []
               }
               authentificationRepository.save
@@ -573,7 +583,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 email: command.email,
                 username: command.username,
                 type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
+                profil: structureLegacyVersProfil(
+                  command.structure as Core.Structure
+                ),
                 roles: []
               }
               authentificationRepository.save
@@ -635,7 +647,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -654,6 +666,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'MILO',
+                profil: unProfilMilo(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -698,7 +711,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -726,7 +739,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -752,7 +765,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -779,7 +792,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
             const utilisateurPasMilo = unUtilisateurJeune({
               idAuthentification: command.idUtilisateurAuth,
-              structure: Core.Structure.POLE_EMPLOI
+              profil: unProfilFT()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -809,7 +822,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               '2021-02-03T04:05:06.000Z'
             )
             const utilisateur = unUtilisateurJeunePasConnecte({
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               datePremiereConnexion: datePremiereConnexionHistorique
             })
             const command: UpdateUtilisateurCommand = {
@@ -841,6 +854,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'prenom jeune',
                 roles: [],
                 structure: 'MILO',
+                profil: unProfilMilo(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -862,7 +876,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
           it("ne réassocie pas un jeune Milo déjà lié à un autre id d'authentification", async () => {
             // Given
             const utilisateurActif = unUtilisateurJeune({
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               idAuthentification: 'id-authentification-actif'
             })
             const command: UpdateUtilisateurCommand = {
@@ -986,8 +1000,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
           expect(jeuneRepository.save).to.have.been.calledOnce()
           const jeuneCree = jeuneRepository.save.getCall(0).args[0]
           expect(jeuneCree.conseiller).to.be.undefined()
-          expect(jeuneCree.structure).to.equal(
-            Core.Structure.FT_DEMANDEUR_D_EMPLOI
+          expect(jeuneCree.structure).to.equal(Profil.Structure.FRANCE_TRAVAIL)
+          expect(jeuneCree.dispositif).to.equal(
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
           )
           expect(
             authentificationRepository.update
@@ -1011,7 +1026,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             structure: Core.Structure.FT_ESPACE_CANDIDAT
           }
           const utilisateur = unUtilisateurJeune({
-            structure: Core.Structure.FT_ESPACE_CANDIDAT
+            profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
           })
           authentificationRepository.getJeuneByIdAuthentification
             .withArgs(command.idUtilisateurAuth)
@@ -1039,7 +1054,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1065,6 +1080,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1079,7 +1095,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1117,7 +1133,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI,
+                profil: unProfilFT(),
                 email: 'nils.tavernier@pole-emploi.fr'
               })
               authentificationRepository.getJeuneByIdAuthentification
@@ -1147,6 +1163,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1163,7 +1180,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1197,7 +1214,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
               // Given
               const utilisateur = unUtilisateurJeunePasConnecte({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
 
               const command: UpdateUtilisateurCommand = {
@@ -1229,6 +1246,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'prenom jeune',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1248,7 +1266,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             it('retourne une failure quand jeune trouvé pas de la bonne structure', async () => {
               // Given
               const utilisateurMauvaiseStructure = unUtilisateurJeune({
-                structure: Core.Structure.MILO
+                profil: unProfilMilo()
               })
 
               const command: UpdateUtilisateurCommand = {
@@ -1393,7 +1411,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1412,6 +1430,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1426,7 +1445,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.MILO
+                profil: unProfilMilo()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1457,7 +1476,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI_BRSA
+              profil: unProfilFT(Profil.Dispositif.BRSA)
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1476,6 +1495,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'POLE_EMPLOI_BRSA',
+                profil: unProfilFT(Profil.Dispositif.BRSA),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -1490,7 +1510,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.CONSEIL_DEPT
+              profil: unProfilCD()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1509,6 +1529,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'CONSEIL_DEPT',
+                profil: unProfilCD(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -1523,7 +1544,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.AVENIR_PRO
+              profil: unProfilFT(Profil.Dispositif.AVENIR_PRO)
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1542,6 +1563,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'AVENIR_PRO',
+                profil: unProfilFT(Profil.Dispositif.AVENIR_PRO),
                 type: 'JEUNE',
                 username: undefined
               })

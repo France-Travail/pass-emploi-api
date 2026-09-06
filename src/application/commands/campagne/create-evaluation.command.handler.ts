@@ -8,7 +8,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Campagne, CampagneRepositoryToken } from '../../../domain/campagne'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../../domain/profil'
+import { TOUT_PROFIL } from '../../../domain/profil'
 import { Inject } from '@nestjs/common'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 
@@ -26,7 +26,7 @@ export class CreateEvaluationCommandHandler extends CommandHandler<
   CreateEvaluationCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private campagneFactory: Campagne.Factory,

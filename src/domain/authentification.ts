@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { ConseillerNonValide } from '../building-blocks/types/domain-error'
 import { failure, Result, success } from '../building-blocks/types/result'
 import { IdService } from '../utils/id-service'
-import { Core } from './core'
 import { Profil } from './profil'
 
 export const AuthentificationRepositoryToken = 'Authentification.Repository'
@@ -35,9 +34,11 @@ export namespace Authentification {
       id: 'SUPPORT',
       prenom: 'support',
       nom: 'cej',
-      // @ts-expect-error structure utilisateur SUPPORT inutile ailleurs
-      structure: 'SUPPORT',
-      profil: Profil.Support.SUPPORT,
+      profil: {
+        // @ts-expect-error le support est hors modèle de profil (cf. verifierProfils)
+        structure: 'SUPPORT',
+        dispositif: null
+      },
       type: Authentification.Type.SUPPORT,
       roles: []
     }
@@ -48,8 +49,7 @@ export namespace Authentification {
     idAuthentification?: string
     prenom: string
     nom: string
-    structure: Core.Structure
-    profil?: Profil
+    profil: Profil
     type: Authentification.Type
     roles: Authentification.Role[]
     email?: string
@@ -75,9 +75,9 @@ export namespace Authentification {
   export interface Repository {
     getConseiller(idAuthentification: string): Promise<Utilisateur | undefined>
 
-    getJeuneByStructure(
+    getJeuneByProfil(
       idAuthentification: string,
-      structure: Core.Structure
+      profil: Profil
     ): Promise<Utilisateur | undefined>
 
     getJeuneByIdAuthentification(
@@ -88,7 +88,7 @@ export namespace Authentification {
 
     getJeuneByEmail(
       email: string,
-      structure?: Core.Structure
+      structure?: Profil.Structure
     ): Promise<Utilisateur | undefined>
 
     getJeuneInvite(idAuthentification: string): Promise<Utilisateur | undefined>
@@ -118,19 +118,19 @@ export namespace Authentification {
     supprimerCompteIdpInvite(idAuthentification: string): Promise<void>
 
     estConseillerSuperviseur(
-      structure: Core.Structure,
+      profil: Profil,
       email?: string | null
     ): Promise<boolean>
 
     recupererAccesPartenaire(
       bearer: string,
-      structure: Core.Structure
+      structure: Profil.Structure
     ): Promise<string>
 
     seFairePasserPourUnConseiller(
       idConseiller: string,
       bearer: string,
-      structure: Core.Structure
+      structure: Profil.Structure
     ): Promise<Result<string>>
   }
 
@@ -144,7 +144,7 @@ export namespace Authentification {
       prenom: string | undefined,
       email: string | undefined,
       username: string | undefined,
-      structure: Core.Structure,
+      profil: Profil,
       superviseur: boolean
     ): Result<Utilisateur> {
       if (!nom || !prenom) {
@@ -161,7 +161,7 @@ export namespace Authentification {
         email: email,
         username,
         type: Type.CONSEILLER,
-        structure: structure,
+        profil,
         roles
       }
       return success(utilisateur)

@@ -27,7 +27,7 @@ export const uneActionQueryModelFromDomain = (
     lastName: jeune.lastName,
     firstName: jeune.firstName,
     idConseiller: jeune.conseiller!.id,
-    dispositif: jeune.dispositif
+    dispositif: jeune.dispositif ?? undefined
   },
   etat,
   qualification,

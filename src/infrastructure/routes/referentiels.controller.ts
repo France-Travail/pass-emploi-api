@@ -31,6 +31,7 @@ import { Public } from '../decorators/public.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import { GetAgencesQueryParams } from './validation/agences.inputs'
+import { structureLegacyVersProfil } from '../../domain/profil'
 
 @Controller('referentiels')
 @UserJourney('referentiels')
@@ -93,7 +94,7 @@ export class ReferentielsController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<ThematiqueQueryModel[]> {
     return this.getCatalogueDemarchesQueryHandler.execute(
-      { accessToken, structure: utilisateur.structure },
+      { accessToken, structure: utilisateur.profil.structure },
       utilisateur
     )
   }
@@ -105,10 +106,13 @@ export class ReferentielsController {
     isArray: true
   })
   async getAgences(
-    @Query() structure: GetAgencesQueryParams,
+    @Query() queryParams: GetAgencesQueryParams,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<AgenceQueryModel[]> {
-    return this.getAgencesQueryHandler.execute(structure, utilisateur)
+    return this.getAgencesQueryHandler.execute(
+      { structure: structureLegacyVersProfil(queryParams.structure).structure },
+      utilisateur
+    )
   }
 
   @Get('motifs-suppression-jeune')
@@ -121,7 +125,7 @@ export class ReferentielsController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<MotifSuppressionJeuneQueryModel[]> {
     const result = await this.getMotifsSuppressionJeuneQueryHandler.execute({
-      structure: utilisateur.structure
+      profil: utilisateur.profil
     })
 
     return handleResult(result)

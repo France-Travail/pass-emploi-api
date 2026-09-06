@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
@@ -23,7 +23,7 @@ export class GetOffresImmersionQueryHandlerV3 extends QueryHandler<
   GetOffresImmersionQueryV3,
   Result<ResultatRechercheOffresImmersionQueryModelV3>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private readonly findAllOffresImmersionQueryGetterV3: FindAllOffresImmersionQueryGetterV3,

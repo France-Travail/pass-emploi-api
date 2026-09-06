@@ -16,7 +16,6 @@ import {
   fromSqlToJeune,
   fromSqlToJeuneOuNonAccompagne
 } from '../mappers/jeunes.mappers'
-import { Core } from '../../../domain/core'
 
 @Injectable()
 export class JeuneSqlRepository implements Jeune.Repository {
@@ -125,26 +124,6 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSqlModel.map(fromSqlToJeune)
   }
 
-  async findAllJeunesByIdsAuthentificationAndStructures(
-    idsAuthentificationJeunes: string[],
-    structures: Core.Structure[]
-  ): Promise<Array<Jeune & { idAuthentification: string }>> {
-    const jeunesSqlModel = await JeuneSqlModel.findAll({
-      where: {
-        idAuthentification: {
-          [Op.in]: idsAuthentificationJeunes
-        },
-        structure: {
-          [Op.in]: structures
-        }
-      }
-    })
-    return jeunesSqlModel.map(sqlModel => ({
-      ...fromSqlToJeune(sqlModel),
-      idAuthentification: sqlModel.idAuthentification
-    }))
-  }
-
   async findAllByIdStructureMilo(idStructureMilo: string): Promise<Jeune[]> {
     const jeunesSqlModels = await JeuneSqlModel.findAll({
       where: { idStructureMilo }
@@ -203,7 +182,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
     )
   }
 
-  async supprimer(idJeune: Jeune.Id): Promise<void> {
+  async supprimer(idJeune: string): Promise<void> {
     await this.sequelize.transaction(async transaction => {
       const associations = await RendezVousJeuneAssociationSqlModel.findAll({
         attributes: ['idRendezVous'],

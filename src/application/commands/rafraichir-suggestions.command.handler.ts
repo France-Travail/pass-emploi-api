@@ -10,8 +10,11 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
-import { Core, beneficiaireEstFTConnect } from '../../domain/core'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  estBeneficiaireFTConnect,
+  Profil
+} from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { SuggestionPoleEmploiService } from '../../domain/offre/recherche/suggestion/pole-emploi.service'
 import {
@@ -25,7 +28,7 @@ import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 export interface RafraichirSuggestionsCommand extends Command {
   idJeune: string
   accessToken: string
-  structure: Core.Structure
+  profil: Profil
   avecDiagoriente: boolean
 }
 
@@ -34,7 +37,7 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
   RafraichirSuggestionsCommand,
   void
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -58,12 +61,12 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
 
     let suggestionsPE: Suggestion[] = []
     let suggestionsDiagoriente: Suggestion[] = []
-    const rafraichirSuggestionsPE = beneficiaireEstFTConnect(command.structure)
+    const rafraichirSuggestionsPE = estBeneficiaireFTConnect(command.profil)
     const rafraichirSuggestionsDiagoriente = command.avecDiagoriente
 
     if (rafraichirSuggestionsPE) {
       try {
-        const idpToken = await this.oidcClient.exchangeTokenJeune(
+        const idpToken = await this.oidcClient.exchangeToken(
           command.accessToken,
           jeune.structure
         )
@@ -83,7 +86,7 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
             this.suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi(
               suggestionsPEResult.data,
               command.idJeune,
-              command.structure
+              command.profil
             )
         }
       } catch (e) {

@@ -11,7 +11,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DiagorienteClient } from '../../infrastructure/clients/diagoriente-client'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -44,7 +44,7 @@ export class GetDiagorienteMetiersFavorisQueryHandler extends QueryHandler<
   GetDiagorienteMetiersFavorisQuery,
   Result<DiagorienteMetiersFavorisQueryModel>
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

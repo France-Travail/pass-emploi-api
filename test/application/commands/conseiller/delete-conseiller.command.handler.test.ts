@@ -8,7 +8,6 @@ import {
 import { MauvaiseCommandeError } from '../../../../src/building-blocks/types/domain-error'
 import { failure } from '../../../../src/building-blocks/types/result'
 import { Authentification } from '../../../../src/domain/authentification'
-import { Core } from '../../../../src/domain/core'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
@@ -16,6 +15,8 @@ import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixt
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { unJeune } from '../../../fixtures/jeune.fixture'
 import { StubbedClass, expect, stubClass } from '../../../utils'
+import { Profil } from '../../../../src/domain/profil'
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('DeleteConseillerCommandHandler', () => {
   let deleteConseillerCommandHandler: DeleteConseillerCommandHandler
@@ -45,7 +46,7 @@ describe('DeleteConseillerCommandHandler', () => {
     it('autorise un conseiller pour son jeune', async () => {
       // Given
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.POLE_EMPLOI_BRSA
+        profil: unProfilFT(Profil.Dispositif.BRSA)
       })
       const command: DeleteConseillerCommand = {
         idConseiller: 'idConseiller'

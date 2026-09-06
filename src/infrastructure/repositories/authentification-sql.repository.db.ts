@@ -6,8 +6,9 @@ import {
 } from 'src/building-blocks/types/domain-error'
 import { failure, Result, success } from 'src/building-blocks/types/result'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
+import { estInvite, estMilo, Profil, profilExact } from '../../domain/profil'
+import { filtreProfil } from '../sequelize/filtre-profil'
 import { Authentification } from '../../domain/authentification'
-import { Core, estInvite, estMilo } from '../../domain/core'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 import { JeuneInviteSqlModel } from '../sequelize/models/jeune-invite.sql-model'
 import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
@@ -40,7 +41,10 @@ export class AuthentificationSqlOidcRepository
     if (conseillerSqlModel) {
       const roles = []
       const estSuperviseur = await this.estConseillerSuperviseur(
-        conseillerSqlModel.structure,
+        {
+          structure: conseillerSqlModel.structure,
+          dispositif: conseillerSqlModel.dispositif
+        },
         conseillerSqlModel.email
       )
       if (estSuperviseur) roles.push(Authentification.Role.SUPERVISEUR)
@@ -51,18 +55,18 @@ export class AuthentificationSqlOidcRepository
     return undefined
   }
 
-  async getJeuneByStructure(
+  async getJeuneByProfil(
     idUtilisateurAuth: string,
-    structure: Core.Structure
+    profil: Profil
   ): Promise<Authentification.Utilisateur | undefined> {
-    if (estInvite(structure)) {
+    if (estInvite(profil.structure)) {
       return this.getJeuneInvite(idUtilisateurAuth)
     }
 
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: {
         idAuthentification: idUtilisateurAuth,
-        structure
+        ...filtreProfil(profilExact(profil))
       }
     })
 
@@ -140,7 +144,7 @@ export class AuthentificationSqlOidcRepository
 
   async getJeuneByEmail(
     email: string,
-    structure?: Core.Structure
+    structure?: Profil.Structure
   ): Promise<Authentification.Utilisateur | undefined> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
       where: {
@@ -196,7 +200,8 @@ export class AuthentificationSqlOidcRepository
         prenom: utilisateur.prenom,
         email: utilisateur.email ?? null,
         username: utilisateur.username ?? null,
-        structure: utilisateur.structure,
+        structure: utilisateur.profil.structure,
+        dispositif: utilisateur.profil.dispositif,
         idAuthentification: utilisateur.idAuthentification,
         dateCreation: dateCreation ?? undefined,
         dateDerniereConnexion: utilisateur.dateDerniereConnexion
@@ -236,10 +241,10 @@ export class AuthentificationSqlOidcRepository
   }
 
   async estConseillerSuperviseur(
-    structure: Core.Structure,
+    profil: Profil,
     email?: string | null
   ): Promise<boolean> {
-    if (estMilo(structure)) return true
+    if (estMilo(profil.structure)) return true
     if (!email) return false
 
     const superviseursParEmail = await SuperviseurSqlModel.findAll({
@@ -251,7 +256,7 @@ export class AuthentificationSqlOidcRepository
 
   async recupererAccesPartenaire(
     bearer: string,
-    structure: Core.Structure
+    structure: Profil.Structure
   ): Promise<string> {
     return this.oidcClient.exchangeToken(bearer, structure)
   }
@@ -259,7 +264,7 @@ export class AuthentificationSqlOidcRepository
   async seFairePasserPourUnConseiller(
     idConseiller: string,
     bearer: string,
-    structure: Core.Structure
+    structure: Profil.Structure
   ): Promise<Result<string>> {
     const conseillerSqlModel = await ConseillerSqlModel.findByPk(idConseiller)
     if (!conseillerSqlModel)

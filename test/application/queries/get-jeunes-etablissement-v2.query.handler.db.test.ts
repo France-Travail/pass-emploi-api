@@ -17,7 +17,6 @@ import { AsSql } from '../../../src/infrastructure/sequelize/types'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { JeuneMiloResumeQueryModel } from '../../../src/application/queries/query-models/jeunes.query-model'
 import { uneDate, uneDatetime } from '../../fixtures/date.fixture'
-import { Core } from '../../../src/domain/core'
 import {
   JeuneDto,
   JeuneSqlModel
@@ -32,6 +31,7 @@ import { GetJeunesEtablissementV2QueryModel } from '../../../src/application/que
 import { DateService } from '../../../src/utils/date-service'
 import { GetJeunesEtablissementV2QueryHandler } from '../../../src/application/queries/get-jeunes-etablissement-v2.query.handler.db'
 import { ConseillerInterAgenceAuthorizer } from '../../../src/application/authorizers/conseiller-inter-agence-authorizer'
+import { Profil } from '../../../src/domain/profil'
 
 describe('GetJeuneEtablissementV2QueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -90,7 +90,7 @@ describe('GetJeuneEtablissementV2QueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       agence2Dto = uneAgenceDto({
@@ -98,7 +98,7 @@ describe('GetJeuneEtablissementV2QueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       conseillerAgence1Dto = unConseillerDto({

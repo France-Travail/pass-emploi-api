@@ -2,7 +2,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
-import { Core, estPassEmploi } from '../../domain/core'
 import { Jeune } from '../../domain/jeune/jeune'
 import { Mail, MailDataDto } from '../../domain/mail'
 import { Conseiller } from '../../domain/milo/conseiller'
@@ -14,6 +13,11 @@ import {
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ExternalApiClient } from './external-api-client'
 import { InvitationIcsClient } from './invitation-ics.client'
+import {
+  estDispositifNonAccompagne,
+  estPassEmploi,
+  Profil
+} from '../../domain/profil'
 
 export type ICS = string
 
@@ -79,7 +83,7 @@ export class MailBrevoService
           name: `${conseiller.firstName} ${conseiller.lastName}`
         }
       ],
-      templateId: estPassEmploi(conseiller.structure)
+      templateId: estPassEmploi(conseiller)
         ? parseInt(this.templates.conversationsNonLuesPassEmploi)
         : parseInt(this.templates.conversationsNonLues),
       params: {
@@ -154,25 +158,21 @@ export class MailBrevoService
     } else {
       templateId = ((): number => {
         switch (jeune.structure) {
-          case Core.Structure.MILO:
+          case Profil.Structure.MILO:
             return Number.parseInt(this.templates.compteJeuneArchiveMILO)
-          case Core.Structure.POLE_EMPLOI:
-            return Number.parseInt(this.templates.compteJeuneArchivePECEJ)
-          case Core.Structure.POLE_EMPLOI_BRSA:
-          case Core.Structure.POLE_EMPLOI_AIJ:
-          case Core.Structure.CONSEIL_DEPT:
-          case Core.Structure.AVENIR_PRO:
-          case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-          case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-          case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
+          case Profil.Structure.CONSEIL_DEPARTEMENTAL:
             return Number.parseInt(this.templates.compteJeuneArchivePEBRSA)
-          case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-          case Core.Structure.FT_ESPACE_CANDIDAT:
-          case Core.Structure.INVITE:
-            throw new Error(
-              `Le jeune ${jeune.id} n'est pas un bénéficiaire accompagné : pas de mail d'archivage`
-            )
+          case Profil.Structure.FRANCE_TRAVAIL:
+            if (estDispositifNonAccompagne(jeune.dispositif)) break
+            return jeune.dispositif === Profil.Dispositif.CEJ
+              ? Number.parseInt(this.templates.compteJeuneArchivePECEJ)
+              : Number.parseInt(this.templates.compteJeuneArchivePEBRSA)
+          case Profil.Structure.INVITE:
+            break
         }
+        throw new Error(
+          `Le jeune ${jeune.id} n'est pas un bénéficiaire accompagné : pas de mail d'archivage`
+        )
       })()
     }
 

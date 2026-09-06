@@ -1,13 +1,11 @@
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../src/domain/authentification'
-import { Core } from '../../src/domain/core'
-import { profilConseillerDe, profilJeuneDe } from '../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from './profil.fixture'
 import { uneDatetime } from './date.fixture'
 
 export const unUtilisateurConseiller = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
-  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: '1',
     idAuthentification: 'id-authentification-conseiller',
@@ -15,8 +13,7 @@ export const unUtilisateurConseiller = (
     prenom: 'Nils',
     type: Authentification.Type.CONSEILLER,
     email: 'nils.tavernier@passemploi.com',
-    structure,
-    profil: profilConseillerDe(structure),
+    profil: unProfilMilo(),
     roles: [],
     dateDerniereConnexion: undefined,
     datePremiereConnexion: uneDatetime().toJSDate(),
@@ -33,7 +30,6 @@ export const unUtilisateurConseiller = (
 export const unUtilisateurJeune = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
-  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: 'ABCDE',
     idAuthentification: 'id-authentification-jeune',
@@ -41,8 +37,7 @@ export const unUtilisateurJeune = (
     prenom: 'John',
     type: Authentification.Type.JEUNE,
     email: 'john.doe@plop.io',
-    structure,
-    profil: profilJeuneDe(structure),
+    profil: unProfilMilo(),
     roles: [],
     dateDerniereConnexion: uneDatetime().toJSDate(),
     datePremiereConnexion: undefined
@@ -58,15 +53,13 @@ export const unUtilisateurJeune = (
 export const unUtilisateurJeunePasConnecte = (
   args: Partial<Authentification.Utilisateur> = {}
 ): Authentification.Utilisateur => {
-  const structure = args.structure ?? Core.Structure.MILO
   const defaults: Authentification.Utilisateur = {
     id: 'ABCDE',
     nom: 'Doe',
     prenom: 'John',
     type: Authentification.Type.JEUNE,
     email: 'john.doe@plop.io',
-    structure,
-    profil: profilJeuneDe(structure),
+    profil: unProfilMilo(),
     roles: [],
     dateDerniereConnexion: undefined,
     datePremiereConnexion: undefined
@@ -89,8 +82,11 @@ export const unUtilisateurSupport = (
     prenom: 'John',
     type: Authentification.Type.SUPPORT,
     email: 'john.doe@plop.io',
-    // @ts-expect-error structure utilisateur SUPPORT inutile ailleurs
-    structure: 'SUPPORT',
+    profil: {
+      // @ts-expect-error le support est hors modèle de profil (cf. verifierProfils)
+      structure: 'SUPPORT',
+      dispositif: null
+    },
     roles: []
   }
 
@@ -225,8 +221,7 @@ export const unUtilisateurDecode = (): Authentification.Utilisateur => ({
   prenom: 'Albert',
   username: 'a.durant',
   type: Authentification.Type.CONSEILLER,
-  structure: Core.Structure.MILO,
-  profil: profilConseillerDe(Core.Structure.MILO),
+  profil: unProfilMilo(),
   roles: []
 })
 
@@ -238,8 +233,7 @@ export const unUtilisateurDecodePoleEmploi =
     prenom: 'Albert',
     username: 'a.durant',
     type: Authentification.Type.JEUNE,
-    structure: Core.Structure.POLE_EMPLOI,
-    profil: profilJeuneDe(Core.Structure.POLE_EMPLOI),
+    profil: unProfilFT(),
     roles: []
   })
 

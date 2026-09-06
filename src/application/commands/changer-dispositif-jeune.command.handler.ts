@@ -8,7 +8,6 @@ import {
   failure,
   isFailure
 } from '../../building-blocks/types/result'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
@@ -19,10 +18,11 @@ import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DateTime } from 'luxon'
+import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
 
 export interface ChangerDispositifJeuneCommand extends Command {
   idJeune: string
-  dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
+  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
   motif: ArchiveJeune.MotifSuppression
   dateFinAccompagnement: Date
 }
@@ -33,7 +33,7 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
   void,
   Jeune
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -79,7 +79,7 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
         prenomJeune: jeune.firstName,
         nomJeune: jeune.lastName,
         structure: jeune.structure,
-        dispositif: jeune.dispositif,
+        dispositif: jeune.dispositif ?? undefined,
         idPartenaire: jeune.idPartenaire,
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),

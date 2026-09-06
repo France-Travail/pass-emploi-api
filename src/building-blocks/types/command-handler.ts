@@ -1,11 +1,10 @@
 import { Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { ProfilAutorise, verifierProfils } from '../../domain/profil'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import { logHandlerExecuted } from '../../utils/logger.module'
 import { failure, isFailure, isSuccess, Result } from './result'
-import { verifierProfils } from './verifier-profils'
 
 /**
  * Implémente la logique nécessaire à la réalisation de la commande envoyée au système.
@@ -16,7 +15,8 @@ import { verifierProfils } from './verifier-profils'
 export abstract class CommandHandler<Command, Data, Aggregat = void> {
   protected logger: Logger
   protected apmService: APM.Agent
-  abstract readonly profilsAutorises: readonly Profil[]
+  // Fermé par défaut sauf pour support et tasks. A surcharger sinon.
+  readonly profilsAutorises: ProfilAutorise | readonly ProfilAutorise[] = []
   private commandName: string
 
   constructor(commandName: string) {

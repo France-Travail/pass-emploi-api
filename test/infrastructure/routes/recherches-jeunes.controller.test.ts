@@ -41,8 +41,9 @@ import { expect, StubbedClass } from '../../utils'
 import { ensureUserAuthenticationFailsIfInvalid } from '../../utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
 import Suggestion = Recherche.Suggestion
-import { Core } from '../../../src/domain/core'
 import { RafraichirSuggestionsCommandHandler } from 'src/application/commands/rafraichir-suggestions.command.handler'
+import { unProfilFT } from '../../fixtures/profil.fixture'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('RecherchesController', () => {
   let createRechercheCommandHandler: StubbedClass<CreateRechercheCommandHandler>
@@ -403,7 +404,7 @@ describe('RecherchesController', () => {
             {
               idJeune: '1',
               accessToken: 'coucou',
-              structure: Core.Structure.POLE_EMPLOI,
+              profil: unProfilFT(),
               avecDiagoriente: false
             },
             unUtilisateurDecodePoleEmploi()
@@ -455,7 +456,7 @@ describe('RecherchesController', () => {
           {
             idJeune: '1',
             accessToken: 'coucou',
-            structure: Core.Structure.MILO,
+            profil: unProfilMilo(),
             avecDiagoriente: true
           },
           unUtilisateurDecode()

@@ -14,7 +14,7 @@ import {
   Result,
   success
 } from '../../../building-blocks/types/result'
-import { Profil } from '../../../domain/profil'
+import { estMilo, Profil, TOUT_MILO } from '../../../domain/profil'
 import {
   Authentification,
   AuthentificationRepositoryToken
@@ -24,7 +24,6 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
-import { Core, estMilo } from '../../../domain/core'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   JeuneMilo,
@@ -40,7 +39,7 @@ export interface CreerJeuneMiloCommand extends Command {
   prenom: string
   email: string
   idConseiller: string
-  dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
+  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
   surcharge?: boolean
   peutVoirLeCompteurDesHeures: boolean
   accessToken: string
@@ -51,7 +50,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
   CreerJeuneMiloCommand,
   IdentiteJeuneQueryModel
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
@@ -109,8 +108,9 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       )
     }
 
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      command.accessToken
+    const idpToken = await this.oidcClient.exchangeToken(
+      command.accessToken,
+      Profil.Structure.MILO
     )
     const result = await this.miloJeuneRepository.creerJeune(
       command.idPartenaire,
@@ -124,9 +124,12 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
 
     if (result.data.existeDejaChezMilo && result.data.idAuthentification) {
       const utilisateurMilo =
-        await this.authentificationRepository.getJeuneByStructure(
+        await this.authentificationRepository.getJeuneByProfil(
           result.data.idAuthentification,
-          Core.Structure.MILO
+          {
+            structure: Profil.Structure.MILO,
+            dispositif: null
+          }
         )
       if (utilisateurMilo) {
         return failure(
@@ -183,7 +186,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       nom: command.nom,
       prenom: command.prenom,
       email: lowerCaseEmail,
-      structure: Core.Structure.MILO,
+      structure: Profil.Structure.MILO,
       conseiller,
       idPartenaire: command.idPartenaire,
       dispositif: command.dispositif,

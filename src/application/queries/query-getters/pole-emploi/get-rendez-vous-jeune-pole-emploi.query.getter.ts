@@ -57,10 +57,7 @@ export class GetRendezVousJeunePoleEmploiQueryGetter {
     }
     const idpToken =
       query.idpToken ??
-      (await this.oidcClient.exchangeTokenJeune(
-        query.accessToken,
-        jeune.structure
-      ))
+      (await this.oidcClient.exchangeToken(query.accessToken, jeune.structure))
 
     const dateDebut = query.dateDebut ?? jeune.creationDate
     const [responsePrestations, responseRendezVous] = await Promise.all([

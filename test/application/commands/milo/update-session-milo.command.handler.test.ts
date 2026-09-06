@@ -52,7 +52,7 @@ describe('EnvoyerEmailActivationCommandHandler', () => {
     oidcClient = stubClass(OidcClient)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     miloClient = stubClass(MiloClient)
-    oidcClient.exchangeTokenConseillerMilo.resolves(idpToken)
+    oidcClient.exchangeToken.resolves(idpToken)
     envoyerEmailActivationCommandHandler =
       new EnvoyerEmailActivationCommandHandler(
         conseillerRepository,
@@ -124,7 +124,7 @@ describe('UpdateSessionMiloCommandHandler', () => {
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     notificationService = stubClass(Notification.Service)
     evenementService = stubClass(EvenementService)
-    oidcClient.exchangeTokenConseillerMilo.resolves('idpToken')
+    oidcClient.exchangeToken.resolves('idpToken')
 
     handler = new UpdateSessionMiloCommandHandler(
       conseillerMiloRepository,

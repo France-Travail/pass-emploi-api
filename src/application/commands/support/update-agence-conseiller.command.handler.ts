@@ -4,8 +4,6 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { Result, emptySuccess } from '../../../building-blocks/types/result'
 import { Agence, ChangementAgenceQueryModel } from '../../../domain/agence'
 
-import { Profil } from '../../../domain/profil'
-
 export interface UpdateAgenceConseillerCommand extends Command {
   idConseiller: string
   idNouvelleAgence: string
@@ -16,8 +14,6 @@ export class UpdateAgenceConseillerCommandHandler extends CommandHandler<
   UpdateAgenceConseillerCommand,
   ChangementAgenceQueryModel
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(private readonly agenceService: Agence.Service) {
     super('UpdateAgenceConseillerCommandHandler')
   }

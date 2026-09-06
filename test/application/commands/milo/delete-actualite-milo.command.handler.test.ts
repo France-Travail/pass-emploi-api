@@ -15,11 +15,11 @@ import {
   isFailure,
   isSuccess
 } from 'src/building-blocks/types/result'
-import { Core } from 'src/domain/core'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ActualiteMilo } from 'src/domain/milo/actualite.milo'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('DeleteActualiteMiloCommandHandler', () => {
   let deleteActualiteMiloCommandHandler: DeleteActualiteMiloCommandHandler
@@ -60,7 +60,7 @@ describe('DeleteActualiteMiloCommandHandler', () => {
       // Given
       const command: DeleteActualiteMiloCommand = { idActualite, idConseiller }
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
       conseillerAuthorizer.autoriserLeConseiller.resolves(emptySuccess())
 

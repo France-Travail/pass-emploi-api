@@ -24,13 +24,13 @@ import {
   QualificationActionQueryModel
 } from '../../../../src/application/queries/query-models/actions.query-model'
 import { Action } from '../../../../src/domain/action/action'
-import { Core } from '../../../../src/domain/core'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('GetActionsByJeuneQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -232,7 +232,7 @@ describe('GetActionsByJeuneQueryHandler', () => {
     it('valide le conseiller', async () => {
       // Given
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       const query: GetActionsJeuneQuery = {

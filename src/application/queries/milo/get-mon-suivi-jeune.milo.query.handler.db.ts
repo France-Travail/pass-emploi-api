@@ -9,7 +9,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUT_MILO } from '../../../domain/profil'
 import { GetMonSuiviMiloQueryModel } from '../query-models/jeunes.milo.query-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
@@ -41,7 +41,7 @@ export class GetMonSuiviMiloQueryHandler extends QueryHandler<
   GetMonSuiviMiloQuery,
   Result<GetMonSuiviMiloQueryModel>
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

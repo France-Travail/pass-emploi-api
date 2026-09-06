@@ -18,6 +18,7 @@ import { IdService } from '../../../src/utils/id-service'
 import { uneDate } from '../../fixtures/date.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
+import { unProfilInvite } from '../../fixtures/profil.fixture'
 
 describe('UpdateUtilisateurInviteCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -106,6 +107,7 @@ describe('UpdateUtilisateurInviteCommandHandler', () => {
           email: undefined,
           username: undefined,
           structure: Core.Structure.INVITE,
+          profil: unProfilInvite(),
           type: Authentification.Type.JEUNE,
           roles: []
         })
@@ -120,7 +122,7 @@ describe('UpdateUtilisateurInviteCommandHandler', () => {
           idAuthentification: idUtilisateurAuth,
           prenom: 'Malek',
           nom: '',
-          structure: Core.Structure.INVITE,
+          profil: unProfilInvite(),
           type: Authentification.Type.JEUNE,
           roles: []
         }

@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
 import {
   Notification,
   NotificationRepositoryToken
@@ -14,6 +13,8 @@ import {
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../utils/date-service'
+import { filtreProfils } from '../../infrastructure/sequelize/filtre-profil'
+import { PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE } from '../../domain/profil'
 
 interface Stats {
   nbPersonnesNotifiees: number
@@ -48,19 +49,11 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
     const maintenant = this.dateService.now()
 
     try {
-      const structuresConcernees = [
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.POLE_EMPLOI_AIJ
-      ]
-
       const offset = job.contenu?.offset || 0
 
       const idsJeunesANotifier = await JeuneSqlModel.findAll({
         where: {
-          structure: {
-            [Op.in]: structuresConcernees
-          },
+          ...filtreProfils(PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE),
           pushNotificationToken: {
             [Op.ne]: null
           }

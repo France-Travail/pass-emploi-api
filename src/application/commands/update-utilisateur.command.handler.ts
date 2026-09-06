@@ -21,15 +21,25 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { Core, estMilo } from '../../domain/core'
+import { Core } from '../../domain/core'
 import {
+  DispositifNonAccompagne,
   Jeune,
   JeuneNonAccompagne,
   JeuneRepositoryToken
 } from '../../domain/jeune/jeune'
 import { Migration } from '../../domain/migration'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
 import { MailServiceToken } from '../../domain/mail'
+import {
+  estConseilDepartemental,
+  estDispositifNonAccompagne,
+  estFranceTravail,
+  estMilo,
+  memeProfil,
+  Profil,
+  structureLegacyVersProfil,
+  TOUT_PROFIL
+} from '../../domain/profil'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
 import {
@@ -39,6 +49,8 @@ import {
 import Type = Authentification.Type
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
+// Format d'entrée de connect (rétro-compat) : structure legacy, ou
+// 'FRANCE_TRAVAIL' pour le bouton unique FT Connect (dispositif inconnu).
 export type StructureUtilisateurAuth = Core.Structure | 'FRANCE_TRAVAIL'
 export type TypeUtilisateurAuth = Authentification.Type | 'BENEFICIAIRE'
 
@@ -59,7 +71,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   UpdateUtilisateurCommand,
   UtilisateurQueryModel
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(AuthentificationRepositoryToken)
@@ -162,62 +174,58 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private recupererConseiller(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
-    switch (commandSanitized.structure) {
-      case Core.Structure.MILO:
-      case Core.Structure.POLE_EMPLOI:
-      case Core.Structure.POLE_EMPLOI_BRSA:
-      case Core.Structure.POLE_EMPLOI_AIJ:
-      case Core.Structure.CONSEIL_DEPT:
-      case Core.Structure.AVENIR_PRO:
-      case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-      case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-      case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-        return this.recupererOuCreerUtilisateurConseiller(commandSanitized)
-      case 'FRANCE_TRAVAIL':
-        return this.recupererUtilisateurConseillerExistant(commandSanitized)
-      case Core.Structure.FT_ESPACE_CANDIDAT:
-      case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-      case Core.Structure.INVITE:
-        return Promise.resolve(
-          failure(
-            new NonTraitableError(
-              'Utilisateur',
-              commandSanitized.idUtilisateurAuth,
-              NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
-            )
-          )
-        )
+    if (commandSanitized.structure === 'FRANCE_TRAVAIL') {
+      return this.recupererUtilisateurConseillerExistant(commandSanitized)
     }
+
+    const profil = profilAttendu(commandSanitized)
+    const estConseillerTraitable =
+      estMilo(profil.structure) ||
+      estConseilDepartemental(profil.structure) ||
+      (estFranceTravail(profil.structure) &&
+        !estDispositifNonAccompagne(profil.dispositif))
+    if (estConseillerTraitable) {
+      return this.recupererOuCreerUtilisateurConseiller(
+        commandSanitized,
+        profil
+      )
+    }
+    return Promise.resolve(
+      failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+        )
+      )
+    )
   }
 
   private async recupererBeneficiaire(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
-    switch (commandSanitized.structure) {
-      case Core.Structure.MILO:
-        return this.authentificationJeuneMilo(commandSanitized)
-      case Core.Structure.POLE_EMPLOI:
-      case Core.Structure.POLE_EMPLOI_BRSA:
-      case Core.Structure.POLE_EMPLOI_AIJ:
-      case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-      case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-      case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-      case 'FRANCE_TRAVAIL':
-        return this.authentificationBeneficiaireFT(commandSanitized)
-      case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-      case Core.Structure.FT_ESPACE_CANDIDAT:
-        return this.authentificationBeneficiaireNonAccompagne(commandSanitized)
-      case Core.Structure.CONSEIL_DEPT:
-      case Core.Structure.AVENIR_PRO:
-      case Core.Structure.INVITE:
-        return failure(
-          new NonTraitableError(
-            'Utilisateur',
-            commandSanitized.idUtilisateurAuth,
-            NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
-          )
-        )
+    const profil = profilAttendu(commandSanitized)
+    if (estMilo(profil.structure)) {
+      return this.authentificationJeuneMilo(commandSanitized)
     }
+    if (estFranceTravail(profil.structure)) {
+      if (estDispositifNonAccompagne(profil.dispositif)) {
+        return this.authentificationBeneficiaireNonAccompagne(
+          commandSanitized,
+          profil
+        )
+      }
+      if (profil.dispositif !== Profil.Dispositif.AVENIR_PRO) {
+        return this.authentificationBeneficiaireFT(commandSanitized)
+      }
+    }
+    return failure(
+      new NonTraitableError(
+        'Utilisateur',
+        commandSanitized.idUtilisateurAuth,
+        NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+      )
+    )
   }
 
   private async authentifierJeuneParEmail(
@@ -248,10 +256,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
-    const verificationUtilisateur = verifierStructureBeneficiaire(
+    const verificationUtilisateur = verifierProfilBeneficiaire(
       utilisateurInitialTrouve,
-      command.idUtilisateurAuth,
-      command.structure
+      command
     )
     if (isFailure(verificationUtilisateur)) {
       return verificationUtilisateur
@@ -263,7 +270,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       id: utilisateurInitialTrouve.id,
       prenom: command.prenom ?? utilisateurInitialTrouve.prenom,
       nom: command.nom ?? utilisateurInitialTrouve.nom,
-      structure: utilisateurInitialTrouve.structure,
+      profil: utilisateurInitialTrouve.profil,
       type: Authentification.Type.JEUNE,
       roles: [],
       email: command.email ?? utilisateurInitialTrouve.email,
@@ -276,11 +283,12 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   }
 
   private async creerNouveauConseiller(
-    command: UpdateUtilisateurCommand
+    command: UpdateUtilisateurCommand,
+    profil: Profil
   ): Promise<Result<UtilisateurQueryModel>> {
     const estSuperviseur =
       await this.authentificationRepository.estConseillerSuperviseur(
-        command.structure as Core.Structure,
+        profil,
         command.email
       )
 
@@ -290,7 +298,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       command.prenom,
       command.email,
       command.username,
-      command.structure as Core.Structure,
+      profil,
       estSuperviseur
     )
 
@@ -306,7 +314,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       utilisateurConseiller,
       this.dateService.nowJs()
     )
-    if (estMilo(utilisateurConseiller.structure)) {
+    if (estMilo(utilisateurConseiller.profil.structure)) {
       await this.mailBrevoService.envoyerEmailCreationConseillerMilo(
         utilisateurConseiller
       )
@@ -333,7 +341,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     await this.authentificationRepository.update(utilisateurMisAJour)
 
     const estUnConseillerMilo =
-      estMilo(utilisateur.structure) &&
+      estMilo(utilisateur.profil.structure) &&
       Authentification.estConseiller(utilisateur.type)
 
     if (estUnConseillerMilo) {
@@ -376,13 +384,12 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
-    const verificationStructureUtilisateur = verifierStructureBeneficiaire(
+    const verificationProfilUtilisateur = verifierProfilBeneficiaire(
       utilisateurTrouve,
-      commandSanitized.idUtilisateurAuth,
-      commandSanitized.structure
+      commandSanitized
     )
-    if (isFailure(verificationStructureUtilisateur)) {
-      return verificationStructureUtilisateur
+    if (isFailure(verificationProfilUtilisateur)) {
+      return verificationProfilUtilisateur
     }
     const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
       utilisateurTrouve,
@@ -402,7 +409,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     const utilisateurTrouve =
       await this.authentificationRepository.getJeuneByEmail(
         command.email,
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
     if (!utilisateurTrouve || utilisateurTrouve.idAuthentification) {
       return undefined
@@ -425,10 +432,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (!utilisateurTrouve) {
       return this.authentifierJeuneParEmail(commandSanitized)
     }
-    const verificationUtilisateur = verifierStructureBeneficiaire(
+    const verificationUtilisateur = verifierProfilBeneficiaire(
       utilisateurTrouve,
-      commandSanitized.idUtilisateurAuth,
-      commandSanitized.structure
+      commandSanitized
     )
     if (isFailure(verificationUtilisateur)) {
       return verificationUtilisateur
@@ -436,14 +442,15 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
 
     const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
       utilisateurTrouve,
-      { ...commandSanitized, structure: utilisateurTrouve.structure }
+      commandSanitized
     )
 
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
   private async authentificationBeneficiaireNonAccompagne(
-    commandSanitized: UpdateUtilisateurCommand
+    commandSanitized: UpdateUtilisateurCommand,
+    profil: Profil
   ): Promise<Result<UtilisateurQueryModel>> {
     const utilisateurTrouve =
       await this.authentificationRepository.getJeuneByIdAuthentification(
@@ -453,7 +460,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (utilisateurTrouve) {
       const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
         utilisateurTrouve,
-        { ...commandSanitized, structure: utilisateurTrouve.structure }
+        commandSanitized
       )
       return success(queryModelFromUtilisateur(utilisateurMisAJour))
     }
@@ -462,7 +469,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       prenom: commandSanitized.prenom ?? '',
       nom: commandSanitized.nom ?? '',
       email: commandSanitized.email,
-      structure: commandSanitized.structure as Core.Structure
+      dispositif: profil.dispositif as DispositifNonAccompagne
     })
     await this.jeuneRepository.save(nouveauJeune)
 
@@ -473,7 +480,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       prenom: nouveauJeune.firstName,
       nom: nouveauJeune.lastName,
       email: commandSanitized.email,
-      structure: commandSanitized.structure as Core.Structure,
+      profil: {
+        structure: nouveauJeune.structure,
+        dispositif: nouveauJeune.dispositif
+      },
       type: Authentification.Type.JEUNE,
       roles: [],
       dateDerniereConnexion: maintenant,
@@ -485,22 +495,22 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   }
 
   private async recupererOuCreerUtilisateurConseiller(
-    commandSanitized: UpdateUtilisateurCommand
+    commandSanitized: UpdateUtilisateurCommand,
+    profil: Profil
   ): Promise<Result<UtilisateurQueryModel>> {
     const utilisateurTrouve =
       await this.authentificationRepository.getConseiller(
         commandSanitized.idUtilisateurAuth
       )
     if (!utilisateurTrouve) {
-      return this.creerNouveauConseiller(commandSanitized)
+      return this.creerNouveauConseiller(commandSanitized, profil)
     }
-    if (utilisateurTrouve.structure !== commandSanitized.structure) {
-      const reason = reasonFromStructure(utilisateurTrouve.structure)
+    if (!memeProfil(profil, utilisateurTrouve.profil)) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
-          reason
+          reasonFromProfil(utilisateurTrouve.profil)
         )
       )
     }
@@ -560,19 +570,34 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   }
 }
 
-function verifierStructureBeneficiaire(
+// Le bouton unique FT Connect ne dit pas le dispositif : profil FT sans dispositif.
+function profilAttendu(command: UpdateUtilisateurCommand): Profil {
+  if (command.structure === 'FRANCE_TRAVAIL') {
+    return { structure: Profil.Structure.FRANCE_TRAVAIL, dispositif: null }
+  }
+  return structureLegacyVersProfil(command.structure)
+}
+
+function verifierProfilBeneficiaire(
   utilisateurTrouve: Authentification.Utilisateur,
-  idUtilisateur: string,
-  structureAttendue: StructureUtilisateurAuth
+  command: UpdateUtilisateurCommand
 ): Result {
   // TODO : ne garder que cette partie pour FT quand le mobile sera en prod avec bouton unique FT
-  if (structureAttendue === 'FRANCE_TRAVAIL') {
-    return autoriseUtilisateurFTConnectOnly(utilisateurTrouve, idUtilisateur)
+  if (command.structure === 'FRANCE_TRAVAIL') {
+    return autoriseUtilisateurFTConnectOnly(
+      utilisateurTrouve,
+      command.idUtilisateurAuth
+    )
   }
 
-  if (utilisateurTrouve.structure !== structureAttendue) {
-    const reason = reasonFromStructure(utilisateurTrouve.structure)
-    return failure(new NonTraitableError('Utilisateur', idUtilisateur, reason))
+  if (!memeProfil(profilAttendu(command), utilisateurTrouve.profil)) {
+    return failure(
+      new NonTraitableError(
+        'Utilisateur',
+        command.idUtilisateurAuth,
+        reasonFromProfil(utilisateurTrouve.profil)
+      )
+    )
   }
 
   return emptySuccess()
@@ -582,8 +607,8 @@ function autoriseUtilisateurFTConnectOnly(
   utilisateurTrouve: Authentification.Utilisateur,
   idUtilisateur: string
 ): Result {
-  switch (utilisateurTrouve.structure) {
-    case Core.Structure.MILO:
+  switch (utilisateurTrouve.profil.structure) {
+    case Profil.Structure.MILO:
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -591,18 +616,10 @@ function autoriseUtilisateurFTConnectOnly(
           NonTraitableReason.UTILISATEUR_DEJA_MILO
         )
       )
-    case Core.Structure.POLE_EMPLOI:
-    case Core.Structure.POLE_EMPLOI_AIJ:
-    case Core.Structure.POLE_EMPLOI_BRSA:
-    case Core.Structure.CONSEIL_DEPT:
-    case Core.Structure.AVENIR_PRO:
-    case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-    case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-    case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-    case Core.Structure.FT_ESPACE_CANDIDAT:
+    case Profil.Structure.FRANCE_TRAVAIL:
+    case Profil.Structure.CONSEIL_DEPARTEMENTAL:
       return emptySuccess()
-    case Core.Structure.INVITE:
+    case Profil.Structure.INVITE:
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -613,29 +630,32 @@ function autoriseUtilisateurFTConnectOnly(
   }
 }
 
-function reasonFromStructure(structure: Core.Structure): NonTraitableReason {
-  switch (structure) {
-    case Core.Structure.MILO:
+function reasonFromProfil(profil: Profil): NonTraitableReason {
+  switch (profil.structure) {
+    case Profil.Structure.MILO:
       return NonTraitableReason.UTILISATEUR_DEJA_MILO
-    case Core.Structure.POLE_EMPLOI:
-      return NonTraitableReason.UTILISATEUR_DEJA_PE
-    case Core.Structure.POLE_EMPLOI_BRSA:
-      return NonTraitableReason.UTILISATEUR_DEJA_PE_BRSA
-    case Core.Structure.POLE_EMPLOI_AIJ:
-      return NonTraitableReason.UTILISATEUR_DEJA_PE_AIJ
-    case Core.Structure.CONSEIL_DEPT:
+    case Profil.Structure.CONSEIL_DEPARTEMENTAL:
       return NonTraitableReason.UTILISATEUR_DEJA_CONSEIL_DEPT
-    case Core.Structure.AVENIR_PRO:
-      return NonTraitableReason.UTILISATEUR_DEJA_AVENIR_PRO
-    case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-      return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_INTENSIF
-    case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-      return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL
-    case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-      return NonTraitableReason.UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT
-    case Core.Structure.FT_ESPACE_CANDIDAT:
-    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-    case Core.Structure.INVITE:
+    case Profil.Structure.INVITE:
       return NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+    case Profil.Structure.FRANCE_TRAVAIL:
+      switch (profil.dispositif) {
+        case Profil.Dispositif.CEJ:
+          return NonTraitableReason.UTILISATEUR_DEJA_PE
+        case Profil.Dispositif.BRSA:
+          return NonTraitableReason.UTILISATEUR_DEJA_PE_BRSA
+        case Profil.Dispositif.AIJ:
+          return NonTraitableReason.UTILISATEUR_DEJA_PE_AIJ
+        case Profil.Dispositif.AVENIR_PRO:
+          return NonTraitableReason.UTILISATEUR_DEJA_AVENIR_PRO
+        case Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF:
+          return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_INTENSIF
+        case Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL:
+          return NonTraitableReason.UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL
+        case Profil.Dispositif.EQUIP_EMPLOI_RECRUT:
+          return NonTraitableReason.UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT
+        default:
+          return NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+      }
   }
 }

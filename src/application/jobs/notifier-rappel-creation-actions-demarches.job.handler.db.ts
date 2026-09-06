@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
 import { Evenement } from '../../domain/evenement'
 import { Notification } from '../../domain/notification/notification'
 import {
@@ -12,7 +11,8 @@ import {
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { DateService } from '../../utils/date-service'
-import { Jeune } from '../../domain/jeune/jeune'
+import { Profil, TOUT_MILO } from '../../domain/profil'
+import { clauseSqlProfils } from '../../infrastructure/sequelize/filtre-profil'
 
 interface Stats {
   nbJeunesNotifies: number
@@ -52,32 +52,38 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
     const maintenant = this.dateService.now()
 
     try {
-      const structuresConcernees = [
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI
-      ]
+      const profilsConcernes = clauseSqlProfils(
+        [
+          TOUT_MILO,
+          {
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositifs: [Profil.Dispositif.CEJ]
+          }
+        ],
+        'e'
+      )
 
       const offset = job.contenu?.offset || 0
 
       const idsJeunesANotifier: Array<{
         id: string
-        structure: Core.Structure
+        structure: Profil.Structure
         token: string
         nb_actions: number
         peut_voir_le_comptage_des_heures: boolean | null
       }> = await this.sequelize.query(
         `SELECT j.id as id,
-            j.structure as structure,
+            e.structure as structure,
             j.push_notification_token AS token,
             j.peut_voir_le_comptage_des_heures as peut_voir_le_comptage_des_heures,
             SUM(CASE WHEN e.code IN (:codesAECreationActionsDemarches) THEN 1 ELSE 0 END) AS nb_actions
           FROM evenement_engagement_hebdo e
           JOIN jeune j ON j.id = e.id_utilisateur
-          WHERE e.structure IN (:structuresConcernees)
+          WHERE ${profilsConcernes.clause}
             AND e.type_utilisateur = 'JEUNE'
             AND j.push_notification_token IS NOT NULL
             AND j.dispositif != :dispositifExclu
-          GROUP BY j.id, j.structure, j.push_notification_token
+          GROUP BY j.id, e.structure, j.push_notification_token
           HAVING SUM(CASE WHEN e.code IN (:codesAECreationActionsDemarches) THEN 1 ELSE 0 END) <= 3
           ORDER BY j.id ASC
           LIMIT :maxJeunes
@@ -85,7 +91,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
         {
           type: QueryTypes.SELECT,
           replacements: {
-            structuresConcernees,
+            ...profilsConcernes.remplacements,
             codesAECreationActionsDemarches: [
               Evenement.Code.ACTION_CREEE,
               Evenement.Code.ACTION_CREEE_HORS_REFERENTIEL,
@@ -96,7 +102,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
               Evenement.Code.ACTION_DUPLIQUEE_HORS_REFERENTIEL,
               Evenement.Code.ACTION_DUPLIQUEE_REFERENTIEL
             ],
-            dispositifExclu: Jeune.Dispositif.PACEA,
+            dispositifExclu: Profil.Dispositif.PACEA,
             maxJeunes: PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM,
             offset
           }

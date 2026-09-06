@@ -5,13 +5,13 @@ import { ConseillerSqlModel } from 'src/infrastructure/sequelize/models/conseill
 import { JeuneMiloAArchiverSqlModel } from 'src/infrastructure/sequelize/models/jeune-milo-a-archiver.sql-model'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../../building-blocks/types/result'
-import { Core } from '../../../domain/core'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import { JeuneSqlModel } from '../../sequelize/models/jeune.sql-model'
 import { SituationsMiloSqlModel } from '../../sequelize/models/situations-milo.sql-model'
 import { StructureMiloSqlModel } from '../../sequelize/models/structure-milo.sql-model'
 import { fromSqlToJeune } from '../mappers/jeunes.mappers'
 import { MiloClient } from '../../clients/milo/milo-client'
+import { Profil } from '../../../domain/profil'
 
 @Injectable()
 export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
@@ -23,7 +23,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
 
   async get(id: string): Promise<Result<JeuneMilo>> {
     const jeuneSqlModel = await JeuneSqlModel.findOne({
-      where: { id, structure: Core.Structure.MILO },
+      where: { id, structure: Profil.Structure.MILO },
       include: [
         { model: ConseillerSqlModel, required: false },
         { model: StructureMiloSqlModel, required: false }
@@ -100,7 +100,7 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   ): Promise<JeuneMilo[]> {
     const jeunesMiloSqlModel = await JeuneSqlModel.findAll({
       where: {
-        structure: Core.Structure.MILO,
+        structure: Profil.Structure.MILO,
         idPartenaire: { [Op.ne]: null }
       },
       order: [['id', 'ASC']],

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { structuresCampagnes } from '../../domain/core'
+import { filtreProfils } from '../../infrastructure/sequelize/filtre-profil'
 import {
   Notification,
   NotificationRepositoryToken
@@ -17,6 +17,7 @@ import { ReponseCampagneSqlModel } from '../../infrastructure/sequelize/models/r
 import { DateService } from '../../utils/date-service'
 import { DateTime } from 'luxon'
 import { buildError } from '../../utils/logger.module'
+import { PROFILS_CAMPAGNES } from '../../domain/profil'
 
 interface Stats {
   nbNotifsEnvoyees: number
@@ -66,9 +67,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
 
       const idsJeunesANotifier = await JeuneSqlModel.findAll({
         where: {
-          structure: {
-            [Op.in]: structuresCampagnes
-          },
+          ...filtreProfils(PROFILS_CAMPAGNES),
           pushNotificationToken: {
             [Op.ne]: null
           },

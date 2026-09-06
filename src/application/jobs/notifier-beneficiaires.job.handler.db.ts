@@ -12,12 +12,14 @@ import {
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
+import { filtreProfils } from '../../infrastructure/sequelize/filtre-profil'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { DateTime, WeekdayNumbers } from 'luxon'
 import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
 import { Migration } from '../../domain/migration'
 import StatsJobNotif = Planificateur.StatsJobNotif
 import ParamsJobNotif = Planificateur.ParamsJobNotif
+import { profilExact, structureLegacyVersProfil } from '../../domain/profil'
 
 const MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF = 500
 
@@ -207,7 +209,14 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
       }
     }
     if (params.structures && params.structures.length > 0) {
-      where.structure = { [Op.in]: params.structures }
+      Object.assign(
+        where,
+        filtreProfils(
+          params.structures.map(structure =>
+            profilExact(structureLegacyVersProfil(structure))
+          )
+        )
+      )
     }
     if (params.phaseDeMigration) {
       const idsBeneficiairesMigration =

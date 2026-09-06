@@ -10,22 +10,21 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Mail, MailServiceToken } from '../../domain/mail'
 
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
-import { Core } from '../../domain/core'
 
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 
 export interface DeleteJeuneCommand {
-  idJeune: Jeune.Id
+  idJeune: string
   jeune?: {
     firstName: string
     lastName: string
-    structure: Core.Structure
+    structure: Profil.Structure
     email?: string
     idPartenaire?: string
   }
@@ -38,12 +37,7 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
 > {
   // Bi-public : suppression par le jeune lui-même ou déclenchée par le
   // support (cf. authorize()).
-  readonly profilsAutorises = [
-    Profil.Jeune.MILO,
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT,
-    Profil.Support.SUPPORT
-  ]
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)

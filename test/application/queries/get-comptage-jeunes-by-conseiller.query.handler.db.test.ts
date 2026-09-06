@@ -9,8 +9,6 @@ import {
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { GetComptageJeuneQueryGetter } from '../../../src/application/queries/query-getters/get-comptage-jeune.query.getter'
 import { Authentification } from '../../../src/domain/authentification'
-import { Core } from '../../../src/domain/core'
-import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Conseiller } from '../../../src/domain/milo/conseiller'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -22,6 +20,8 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
+import { Profil } from '../../../src/domain/profil'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetComptageJeunesByConseillerQueryHandler', () => {
   let conseillerRepository: StubbedType<Conseiller.Repository>
@@ -61,7 +61,7 @@ describe('GetComptageJeunesByConseillerQueryHandler', () => {
       const jeunePacea = unJeuneDto({
         id: 'PACEA',
         idConseiller: conseiller.id,
-        dispositif: Jeune.Dispositif.PACEA
+        dispositif: Profil.Dispositif.PACEA
       })
       await ConseillerSqlModel.create(conseiller)
       await JeuneSqlModel.create(jeune)
@@ -177,19 +177,19 @@ describe('GetComptageJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.MILO,
+          profil: unProfilMilo(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillerRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.MILO
+            structure: Profil.Structure.MILO
           })
         )
         conseillerRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.MILO
+            structure: Profil.Structure.MILO
           })
         )
 
@@ -210,19 +210,21 @@ describe('GetComptageJeunesByConseillerQueryHandler', () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
           id: 'un-autre-id',
-          structure: Core.Structure.MILO,
+          profil: unProfilMilo(),
           roles: [Authentification.Role.SUPERVISEUR]
         })
         conseillerRepository.get.withArgs(utilisateur.id).resolves(
           unConseiller({
             id: utilisateur.id,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
         conseillerRepository.get.withArgs(query.idConseiller).resolves(
           unConseiller({
             id: query.idConseiller,
-            structure: Core.Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
         )
 

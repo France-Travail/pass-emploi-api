@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
+import { filtreProfil } from '../../infrastructure/sequelize/filtre-profil'
 import {
   Notification,
   NotificationRepositoryToken
@@ -17,6 +17,7 @@ import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-m
 import { DateService } from '../../utils/date-service'
 import { buildError } from '../../utils/logger.module'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
+import { DISPOSITIFS_FT_HORS_AVENIR_PRO } from '../../domain/profil'
 
 interface Stats {
   nbNotifsEnvoyees: number
@@ -161,7 +162,7 @@ async function recupererBeneficiairesANotifier(
 ): Promise<{ rows: JeuneSqlModel[]; count: number }> {
   return await JeuneSqlModel.findAndCountAll({
     where: {
-      structure: Core.structuresFT,
+      ...filtreProfil(DISPOSITIFS_FT_HORS_AVENIR_PRO),
       pushNotificationToken: {
         [Op.ne]: null
       }

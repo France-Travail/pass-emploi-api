@@ -1,7 +1,6 @@
 import { emptySuccess, failure } from 'src/building-blocks/types/result'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ImmersionClient } from 'src/infrastructure/clients/immersion-client'
-import { Core } from 'src/domain/core'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
@@ -12,8 +11,9 @@ import {
 } from '../../../src/application/commands/envoyer-formulaire-contact-immersionV3.command.handler.db'
 import { PartenaireImmersion } from '../../../src/infrastructure/repositories/dto/immersion.dto'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import ContactMode = PartenaireImmersion.ContactMode
+import { unProfilInvite } from '../../fixtures/profil.fixture'
 
 describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -190,7 +190,7 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
       } as EnvoyerFormulaireContactImmersionCommandV3
       const utilisateur = unUtilisateurJeune({
         id: 'idInvite',
-        structure: Core.Structure.INVITE
+        profil: unProfilInvite()
       })
 
       // When
@@ -225,10 +225,21 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
       expect(
         envoyerFormulaireContactImmersionCommandHandler.profilsAutorises
       ).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT,
-        Profil.Jeune.INVITE
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL,
+        { structure: Profil.Structure.INVITE }
       ])
     })
   })

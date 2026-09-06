@@ -14,6 +14,7 @@ import { Core } from '../../../src/domain/core'
 import { createSandbox, expect } from '../../utils'
 import { queryModelFromUtilisateur } from '../../../src/application/queries/query-models/authentification.query-model'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import { structureLegacyVersProfil } from '../../../src/domain/profil'
 
 describe('GetUtilisateurQueryHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -41,8 +42,11 @@ describe('GetUtilisateurQueryHandler', () => {
         typeUtilisateur: Authentification.Type.JEUNE,
         structureUtilisateur: Core.Structure.MILO
       }
-      authentificationRepository.getJeuneByStructure
-        .withArgs(query.idAuthentification, query.structureUtilisateur)
+      authentificationRepository.getJeuneByProfil
+        .withArgs(
+          query.idAuthentification,
+          structureLegacyVersProfil(query.structureUtilisateur)
+        )
         .returns(unUtilisateurJeune())
 
       // When
@@ -98,8 +102,11 @@ describe('GetUtilisateurQueryHandler', () => {
         typeUtilisateur: Authentification.Type.JEUNE,
         structureUtilisateur: Core.Structure.POLE_EMPLOI_BRSA
       }
-      authentificationRepository.getJeuneByStructure
-        .withArgs(query.idAuthentification, query.structureUtilisateur)
+      authentificationRepository.getJeuneByProfil
+        .withArgs(
+          query.idAuthentification,
+          structureLegacyVersProfil(query.structureUtilisateur)
+        )
         .returns(undefined)
 
       // When

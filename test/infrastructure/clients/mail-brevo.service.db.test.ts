@@ -5,7 +5,6 @@ import * as nock from 'nock'
 import * as path from 'path'
 import { SinonSandbox } from 'sinon'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Core } from '../../../src/domain/core'
 import { MailDataDto } from '../../../src/domain/mail'
 import { RendezVous } from '../../../src/domain/rendez-vous/rendez-vous'
 import { InvitationIcsClient } from '../../../src/infrastructure/clients/invitation-ics.client'
@@ -21,6 +20,7 @@ import {
   getDatabase
 } from '../../utils/database-for-testing'
 import { testConfig } from '../../utils/module-for-testing'
+import { Profil } from '../../../src/domain/profil'
 
 describe('MailBrevoService', () => {
   let databaseForTesting: DatabaseForTesting
@@ -86,7 +86,8 @@ describe('MailBrevoService', () => {
         // Given
         const conseiller = unConseiller({
           email: 'isabelle.cerutti@pole-emploi.fr',
-          structure: Core.Structure.POLE_EMPLOI_BRSA
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.BRSA
         })
         const expectedBody = {
           to: [
@@ -190,7 +191,7 @@ describe('MailBrevoService', () => {
     })
     it('envoie un email PE CEJ avec les bons paramètres', async () => {
       // Given
-      const jeune = unJeune({ structure: Core.Structure.POLE_EMPLOI })
+      const jeune = unJeune({ structure: Profil.Structure.FRANCE_TRAVAIL })
       const command = {
         jeune,
         motif: ArchiveJeune.MotifSuppression.CONTRAT_ARRIVE_A_ECHEANCE,
@@ -229,7 +230,10 @@ describe('MailBrevoService', () => {
     })
     it('envoie un email PE BRSA avec les bons paramètres', async () => {
       // Given
-      const jeune = unJeune({ structure: Core.Structure.POLE_EMPLOI_BRSA })
+      const jeune = unJeune({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.BRSA
+      })
       const command = {
         jeune,
         motif: ArchiveJeune.MotifSuppression.CONTRAT_ARRIVE_A_ECHEANCE,

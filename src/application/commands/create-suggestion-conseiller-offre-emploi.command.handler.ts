@@ -11,8 +11,10 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
-import { aAccesAuxAlternancesEtServicesCiviques } from '../../domain/core'
+import {
+  aAccesAuxAlternancesEtServicesCiviques,
+  DISPOSITIFS_ACCOMPAGNES
+} from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Recherche } from '../../domain/offre/recherche/recherche'
@@ -35,7 +37,7 @@ export class CreateSuggestionConseillerOffreEmploiCommandHandler extends Command
   CreateSuggestionConseillerOffreEmploiCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
@@ -54,7 +56,7 @@ export class CreateSuggestionConseillerOffreEmploiCommandHandler extends Command
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     if (
-      !aAccesAuxAlternancesEtServicesCiviques(utilisateur.structure) &&
+      !aAccesAuxAlternancesEtServicesCiviques(utilisateur.profil) &&
       command.criteres.alternance
     ) {
       return failure(new DroitsInsuffisants())

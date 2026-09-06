@@ -1,7 +1,6 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
 import { Chat } from 'src/domain/chat'
-import { Core } from 'src/domain/core'
 import { Jeune } from 'src/domain/jeune/jeune'
 import { RendezVous } from 'src/domain/rendez-vous/rendez-vous'
 import { unJeune } from 'test/fixtures/jeune.fixture'
@@ -23,11 +22,12 @@ import { Conseiller } from '../../../src/domain/milo/conseiller'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { Authentification } from '../../../src/domain/authentification'
-import Structure = Core.Structure
 import {
   unUtilisateurConseiller,
   unUtilisateurSupport
 } from '../../fixtures/authentification.fixture'
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT } from '../../fixtures/profil.fixture'
 
 describe('TransfererJeunesConseillerCommandHandler', () => {
   let transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler
@@ -110,10 +110,10 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
       provenanceUtilisateur: Authentification.Type.CONSEILLER
     }
     const utilisateur = unUtilisateurConseiller({
-      structure: Core.Structure.POLE_EMPLOI
+      profil: unProfilFT()
     })
     const utilisateurSuperviseurFT = unUtilisateurConseiller({
-      structure: Core.Structure.POLE_EMPLOI,
+      profil: unProfilFT(),
       roles: [Authentification.Role.SUPERVISEUR]
     })
 
@@ -399,7 +399,8 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
             id: '1',
             nom: 'Pôle emploi PARIS'
           },
-          structure: Core.Structure.POLE_EMPLOI_BRSA
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.BRSA
         })
 
         const conseillerCibleAIJ = unConseiller({
@@ -408,7 +409,8 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
             id: '1',
             nom: 'Pôle emploi PARIS'
           },
-          structure: Core.Structure.POLE_EMPLOI_AIJ
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.AIJ
         })
         const command: TransfererJeunesConseillerCommand = {
           idConseillerSource: conseillerSourceBRSA.id,
@@ -448,9 +450,11 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
           it('retourne une MauvaiseCommandeError', async () => {
             // Given
             const conseillerSource = unConseiller({
-              structure: Structure.MILO
+              structure: Profil.Structure.MILO
             })
-            const conseillerCible = unConseiller({ structure: Structure.MILO })
+            const conseillerCible = unConseiller({
+              structure: Profil.Structure.MILO
+            })
 
             const command: TransfererJeunesConseillerCommand = {
               idConseillerSource: conseillerSource.id,
@@ -492,11 +496,12 @@ describe('TransfererJeunesConseillerCommandHandler', () => {
           it('retourne une MauvaiseCommandeError', async () => {
             const conseillerSource = unConseiller({
               id: '1',
-              structure: Structure.POLE_EMPLOI
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif: Profil.Dispositif.CEJ
             })
             const conseillerCible = unConseiller({
               id: '2',
-              structure: Structure.MILO
+              structure: Profil.Structure.MILO
             })
 
             // Given

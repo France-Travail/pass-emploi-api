@@ -11,7 +11,7 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -22,7 +22,6 @@ import {
 } from './query-mappers/jeune.mappers'
 import { DetailJeuneConseillerQueryModel } from './query-models/jeunes.query-model'
 import { DateService } from '../../utils/date-service'
-import { estFranceTravail } from '../../domain/core'
 
 export interface GetJeunesByConseillerQuery extends Query {
   idConseiller: string
@@ -33,7 +32,7 @@ export class GetJeunesByConseillerQueryHandler extends QueryHandler<
   GetJeunesByConseillerQuery,
   Result<DetailJeuneConseillerQueryModel[]>
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
@@ -122,9 +121,7 @@ function utilisateurEstSuperviseurDuConseiller(
 ): boolean {
   return (
     Authentification.estSuperviseur(utilisateur) &&
-    (conseiller.structure === utilisateur.structure ||
-      (estFranceTravail(conseiller.structure) &&
-        estFranceTravail(utilisateur.structure)))
+    conseiller.structure === utilisateur.profil.structure
   )
 }
 

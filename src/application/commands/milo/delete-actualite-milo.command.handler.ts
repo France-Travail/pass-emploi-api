@@ -3,7 +3,7 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
+import { TOUT_MILO } from '../../../domain/profil'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import {
   ActualiteMilo,
@@ -27,7 +27,7 @@ export class DeleteActualiteMiloCommandHandler extends CommandHandler<
   DeleteActualiteMiloCommand,
   ActualiteMiloSuppresionCommandResult
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly conseillerAuthorizer: ConseillerAuthorizer,

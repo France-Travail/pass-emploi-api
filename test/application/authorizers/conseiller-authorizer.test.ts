@@ -4,15 +4,15 @@ import { ConseillerAuthorizer } from '../../../src/application/authorizers/conse
 import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Authentification } from '../../../src/domain/authentification'
 import { Conseiller } from '../../../src/domain/milo/conseiller'
-import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import {
   unUtilisateurConseiller,
   unUtilisateurJeune
 } from '../../fixtures/authentification.fixture'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
-import { unJeune } from '../../fixtures/jeune.fixture'
+import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
 import { createSandbox, expect } from '../../utils'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ConseillerAuthorizer', () => {
   let jeuneRepository: StubbedType<Jeune.Repository>
@@ -56,14 +56,15 @@ describe('ConseillerAuthorizer', () => {
           id: 'un-autre-conseiller',
           lastName: 'Dylan',
           firstName: 'Bob',
-          structure: Core.Structure.POLE_EMPLOI,
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ,
           notificationsSonores: false
         }
         conseillerRepository.get
           .withArgs(unAutreConseiller.id)
           .resolves(unAutreConseiller)
 
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         jeuneRepository.get.withArgs(jeune.id).resolves(undefined)
 
         // When
@@ -102,7 +103,7 @@ describe('ConseillerAuthorizer', () => {
         const utilisateur = unUtilisateurConseiller({ id: conseiller.id })
         conseillerRepository.get.withArgs(utilisateur.id).resolves(conseiller)
 
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
 
         // When
@@ -124,7 +125,7 @@ describe('ConseillerAuthorizer', () => {
         const utilisateur = unUtilisateurConseiller({ id: conseiller.id })
         conseillerRepository.get.withArgs(utilisateur.id).resolves(conseiller)
 
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         jeuneRepository.get.withArgs(jeune.id).resolves(undefined)
 
         // When
@@ -202,7 +203,7 @@ describe('ConseillerAuthorizer', () => {
         const conseiller = unConseiller()
         const utilisateur = unUtilisateurConseiller({ id: conseiller.id })
 
-        const jeune = unJeune(conseiller)
+        const jeune = unJeune({ conseiller: unConseillerDuJeune(conseiller) })
         jeuneRepository.get.withArgs('un-jeune').resolves(jeune)
 
         // When

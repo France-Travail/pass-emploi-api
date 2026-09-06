@@ -4,7 +4,7 @@ import { Cached, Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { TOUT_FRANCE_TRAVAIL } from '../../domain/profil'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { GetDemarchesQueryGetter } from './query-getters/pole-emploi/get-demarches.query.getter'
 import { DemarcheQueryModel } from './query-models/actions.query-model'
@@ -22,7 +22,7 @@ export class GetDemarchesConseillerQueryHandler extends QueryHandler<
   GetDemarchesConseillerQuery,
   Result<Cached<DemarcheQueryModel[]>>
 > {
-  readonly profilsAutorises = [Profil.Conseiller.FT]
+  readonly profilsAutorises = TOUT_FRANCE_TRAVAIL
 
   constructor(
     private getDemarchesQueryGetter: GetDemarchesQueryGetter,

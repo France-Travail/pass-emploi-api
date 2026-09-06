@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
-import { Core } from 'src/domain/core'
 import { FavoriOffreEmploiSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import { FavoriOffreImmersionSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-immersion.sql-model'
@@ -34,6 +33,7 @@ import { unRendezVousDto } from '../../fixtures/sql-models/rendez-vous.sql-model
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import Statut = Action.Statut
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetIndicateursPourConseillerQueryHandler', () => {
   let sandbox: sinon.SinonSandbox
@@ -45,7 +45,7 @@ describe('GetIndicateursPourConseillerQueryHandler', () => {
   const idConseiller = 'id-conseiller'
   const idJeune = 'id-jeune'
   const utilisateur = unUtilisateurConseiller({
-    structure: Core.Structure.MILO
+    profil: unProfilMilo()
   })
 
   before(async () => {

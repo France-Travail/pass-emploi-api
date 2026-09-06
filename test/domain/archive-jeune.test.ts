@@ -10,8 +10,8 @@ import { emptySuccess, failure } from '../../src/building-blocks/types/result'
 import { NonTrouveError } from 'src/building-blocks/types/domain-error'
 import { expect, StubbedClass, stubClass } from 'test/utils'
 import { uneConfiguration, unJeune } from '../fixtures/jeune.fixture'
-import { Core } from '../../src/domain/core'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import { Profil } from '../../src/domain/profil'
 
 describe('ArchiveJeuneService', () => {
   let archiverJeuneService: ArchiveJeune.Service
@@ -70,8 +70,8 @@ describe('ArchiveJeuneService', () => {
           email: jeune.email,
           prenomJeune: jeune.firstName,
           nomJeune: jeune.lastName,
-          structure: Core.Structure.MILO,
-          dispositif: Jeune.Dispositif.CEJ,
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),
           motif: motifSuppression,
@@ -118,8 +118,8 @@ describe('ArchiveJeuneService', () => {
           email: jeune.email,
           prenomJeune: jeune.firstName,
           nomJeune: jeune.lastName,
-          structure: Core.Structure.MILO,
-          dispositif: Jeune.Dispositif.CEJ,
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),
           motif: motifSuppressionMigration,

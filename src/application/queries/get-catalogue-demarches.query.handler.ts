@@ -3,8 +3,11 @@ import { Query } from 'src/building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
-import { Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_FT_AVEC_DEMARCHES,
+  Profil,
+  TOUT_CONSEIL_DEPARTEMENTAL
+} from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { ThematiqueQueryModel } from './query-models/catalogue.query-model'
 
@@ -12,7 +15,7 @@ import { catalogueDemarchesInMemory } from 'src/infrastructure/clients/utils/dem
 
 export interface GetCatalogueDemarchesQuery extends Query {
   accessToken: string
-  structure: Core.Structure
+  structure: Profil.Structure
 }
 
 @Injectable()
@@ -21,8 +24,8 @@ export class GetCatalogueDemarchesQueryHandler extends QueryHandler<
   ThematiqueQueryModel[]
 > {
   readonly profilsAutorises = [
-    Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-    Profil.Jeune.CONSEIL_DEPT
+    DISPOSITIFS_FT_AVEC_DEMARCHES,
+    TOUT_CONSEIL_DEPARTEMENTAL
   ]
 
   constructor(private readonly jeuneAuthorizer: JeuneAuthorizer) {

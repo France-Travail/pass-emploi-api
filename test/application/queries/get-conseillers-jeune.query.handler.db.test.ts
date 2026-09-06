@@ -7,7 +7,6 @@ import {
   GetConseillersJeuneQueryHandler
 } from '../../../src/application/queries/get-conseillers-jeune.query.handler.db'
 import { HistoriqueConseillerJeuneQueryModel } from '../../../src/application/queries/query-models/jeunes.query-model'
-import { Core } from '../../../src/domain/core'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import {
@@ -22,6 +21,7 @@ import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetConseillersJeuneQueryHandler', () => {
   let conseillerAgenceAuthorizer: StubbedClass<ConseillerInterAgenceAuthorizer>
@@ -217,7 +217,7 @@ describe('GetConseillersJeuneQueryHandler', () => {
     it('valide le conseiller', async () => {
       // Given
       const utilisateur = unUtilisateurConseiller({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       const query = {

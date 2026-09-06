@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { estMilo } from 'src/domain/core'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, estMilo } from '../../../domain/profil'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { LogModificationRendezVousSqlModel } from '../../../infrastructure/sequelize/models/log-modification-rendez-vous-sql.model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
@@ -24,7 +23,7 @@ export class GetDetailRendezVousQueryHandler extends QueryHandler<
   GetDetailRendezVousQuery,
   Result<RendezVousConseillerDetailQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private rendezVousAuthorizer: RendezVousAuthorizer,
@@ -77,7 +76,7 @@ export class GetDetailRendezVousQueryHandler extends QueryHandler<
     query: GetDetailRendezVousQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (estMilo(utilisateur.structure)) {
+    if (estMilo(utilisateur.profil.structure)) {
       return this.conseillerAgenceAuthorizer.autoriserConseillerMiloPourUnRdvDeSonAgenceOuAvecUnJeuneDansLeRdv(
         query.idRendezVous,
         utilisateur

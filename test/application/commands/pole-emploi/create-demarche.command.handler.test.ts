@@ -13,14 +13,17 @@ import {
   isSuccess,
   success
 } from '../../../../src/building-blocks/types/result'
-import { Profil } from '../../../../src/domain/profil'
-import { Core } from '../../../../src/domain/core'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import { uneDemarche } from '../../../fixtures/demarche.fixture'
 import { StubbedClass, expect, stubClass } from '../../../utils'
+import { unProfilMilo } from '../../../fixtures/profil.fixture'
 
 describe('CreateDemarcheCommandHandler', () => {
   let createDemarcheCommandHandler: CreateDemarcheCommandHandler
@@ -139,8 +142,20 @@ describe('CreateDemarcheCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(createDemarcheCommandHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })
@@ -149,7 +164,7 @@ describe('CreateDemarcheCommandHandler', () => {
     it("rejette un profil sans la capacité SERVICES_FT sans appeler l'authorizer ni le repository", async () => {
       // Given
       const utilisateurMilo = unUtilisateurJeune({
-        structure: Core.Structure.MILO
+        profil: unProfilMilo()
       })
 
       // When

@@ -4,14 +4,13 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Jeune } from '../../domain/jeune/jeune'
-import { PROFILS_JEUNES_ACCOMPAGNES } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { FavoriOffreEmploiSqlModel } from '../../infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { FavoriOffreEmploiQueryModel } from './query-models/offres-emploi.query-model'
 
 interface GetFavorisOffresEmploiJeuneQuery extends Query {
-  idJeune: Jeune.Id
+  idJeune: string
 }
 
 @Injectable()
@@ -19,7 +18,7 @@ export class GetFavorisOffresEmploiJeuneQueryHandler extends QueryHandler<
   GetFavorisOffresEmploiJeuneQuery,
   FavoriOffreEmploiQueryModel[]
 > {
-  readonly profilsAutorises = PROFILS_JEUNES_ACCOMPAGNES
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetFavorisOffresEmploiJeuneQueryHandler')

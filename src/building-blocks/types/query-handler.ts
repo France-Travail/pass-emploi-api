@@ -1,12 +1,11 @@
 import { ForbiddenException, Logger } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
-import { Profil } from '../../domain/profil'
+import { ProfilAutorise, verifierProfils } from '../../domain/profil'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import { logHandlerExecuted } from '../../utils/logger.module'
 import { Query } from './query'
 import { failure, Failure, isFailure, Result } from './result'
-import { verifierProfils } from './verifier-profils'
 
 /**
  * Implémente la logique liée à la query envoyée au système.
@@ -16,7 +15,8 @@ import { verifierProfils } from './verifier-profils'
  */
 export abstract class QueryHandler<Q extends Query | void, R> {
   protected logger: Logger
-  abstract readonly profilsAutorises: readonly Profil[]
+  // Fermé par défaut sauf pour support et tasks. A surcharger sinon.
+  readonly profilsAutorises: ProfilAutorise | readonly ProfilAutorise[] = []
   private queryHandlerName: string
   private apmService: APM.Agent
 

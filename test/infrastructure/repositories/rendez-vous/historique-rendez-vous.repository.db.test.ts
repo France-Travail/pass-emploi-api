@@ -8,7 +8,6 @@ import { LogModificationRendezVousSqlModel } from '../../../../src/infrastructur
 import { expect } from '../../../utils'
 import { HistoriqueRendezVousRepositorySql } from '../../../../src/infrastructure/repositories/rendez-vous/historique-rendez-vous.repository.db'
 import { getDatabase } from '../../../utils/database-for-testing'
-import Structure = Core.Structure
 
 describe('LogModificationRendezVousRepositorySql', () => {
   let historiqueRendezVousRepositorySql: HistoriqueRendezVousRepositorySql
@@ -22,7 +21,7 @@ describe('LogModificationRendezVousRepositorySql', () => {
     it('crée l‘historique de la modification', async () => {
       //Given
       const conseiller = unConseillerDto({
-        structure: Structure.MILO
+        structure: Core.Structure.MILO
       })
       await ConseillerSqlModel.creer(conseiller)
 

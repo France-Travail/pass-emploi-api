@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import { Jeune } from '../../../domain/jeune/jeune'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { Situation } from '../../../infrastructure/sequelize/models/situations-milo.sql-model'
 import { DateService } from '../../../utils/date-service'
@@ -7,6 +6,7 @@ import {
   DetailJeuneConseillerQueryModel,
   DetailJeuneQueryModel
 } from '../query-models/jeunes.query-model'
+import { Profil } from '../../../domain/profil'
 
 export function fromSqlToDetailJeuneQueryModel(
   jeuneSqlModel: JeuneSqlModel,
@@ -78,7 +78,7 @@ export function toDetailJeuneConseillerQueryModel(
       ? { id: sqlJeune.id_structure_milo }
       : undefined,
     estAArchiver: estAArchiver(sqlJeune, maintenant),
-    dispositif: sqlJeune.dispositif,
+    dispositif: sqlJeune.dispositif ?? undefined,
     idPartenaire: sqlJeune.id_partenaire ?? undefined
   }
   if (sqlJeune.date_derniere_activite) {
@@ -133,7 +133,7 @@ export interface JeuneRawSql {
 
 export interface DetailJeuneRawSql extends JeuneRawSql {
   email: string
-  dispositif: Jeune.Dispositif
+  dispositif: Profil.Dispositif | null
   date_creation: Date
   id_authentification: string
   date_derniere_activite: Date | null

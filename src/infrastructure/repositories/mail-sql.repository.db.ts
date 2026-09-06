@@ -1,22 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
-import { Core } from '../../domain/core'
 import { Mail } from '../../domain/mail'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
+import { filtreProfil } from '../sequelize/filtre-profil'
+import { ProfilAutorise } from '../../domain/profil'
 
 @Injectable()
 export class MailSqlRepository implements Mail.Repository {
-  async findAllContactsConseillerByStructures(
-    structures: Core.Structure[]
+  async findAllContactsConseillerParProfil(
+    profil: ProfilAutorise
   ): Promise<Mail.Contact[]> {
     const conseillersSQL = await ConseillerSqlModel.findAll({
       raw: true,
       attributes: ['nom', 'prenom', 'email'],
       where: {
-        [Op.and]: [
-          { structure: { [Op.in]: structures } },
-          { email: { [Op.not]: null } }
-        ]
+        [Op.and]: [filtreProfil(profil), { email: { [Op.not]: null } }]
       }
     })
     // Solution plus lisible/maintenable mais moins performante

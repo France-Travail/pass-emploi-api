@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Authentification } from '../../domain/authentification'
-import {
-  PROFILS_JEUNES_ACCOMPAGNES,
-  TOUS_LES_CONSEILLERS
-} from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { ChatSecretsQueryModel } from './query-models/authentification.query-model'
@@ -22,10 +19,7 @@ export class GetChatSecretsQueryHandler extends QueryHandler<
 > {
   // Bi-public : le jeune et le conseiller récupèrent chacun leurs propres
   // secrets Firebase pour la messagerie (cf. authentification.controller.ts).
-  readonly profilsAutorises = [
-    ...PROFILS_JEUNES_ACCOMPAGNES,
-    ...TOUS_LES_CONSEILLERS
-  ]
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private firebaseClient: FirebaseClient,

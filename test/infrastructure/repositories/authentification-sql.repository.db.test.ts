@@ -27,16 +27,12 @@ import {
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
-
-// `profil` est résolu uniquement dans le guard OIDC depuis le JWT : les
-// mappers SQL ne le posent jamais, contrairement au défaut de la fixture
-// `unUtilisateurJeune`, pensé pour les tests de handlers.
-function sansProfil(
-  utilisateur: Authentification.Utilisateur
-): Authentification.Utilisateur {
-  const { profil: _profil, ...reste } = utilisateur
-  return reste
-}
+import { Profil } from '../../../src/domain/profil'
+import {
+  unProfilFT,
+  unProfilInvite,
+  unProfilMilo
+} from '../../fixtures/profil.fixture'
 
 describe('AuthentificationSqlRepository', () => {
   let repository: AuthentificationSqlOidcRepository
@@ -74,14 +70,12 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              id: conseillerDtoPE.id,
-              email: conseillerDtoPE.email!,
-              idAuthentification: conseillerDtoPE.idAuthentification,
-              structure: Core.Structure.POLE_EMPLOI
-            })
-          )
+          unUtilisateurConseiller({
+            id: conseillerDtoPE.id,
+            email: conseillerDtoPE.email!,
+            idAuthentification: conseillerDtoPE.idAuthentification,
+            profil: unProfilFT()
+          })
         )
       })
       it("retourne l'utilisateur quand il existe avec role SUPERVISEUR quand c'est un MILO", async () => {
@@ -92,12 +86,10 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              structure: Core.Structure.MILO,
-              roles: [Authentification.Role.SUPERVISEUR]
-            })
-          )
+          unUtilisateurConseiller({
+            profil: unProfilMilo(),
+            roles: [Authentification.Role.SUPERVISEUR]
+          })
         )
       })
 
@@ -127,15 +119,13 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              id: conseillerDtoPE.id,
-              email: conseillerDtoPE.email!,
-              idAuthentification: conseillerDtoPE.idAuthentification,
-              structure: Core.Structure.POLE_EMPLOI,
-              roles: [Authentification.Role.SUPERVISEUR]
-            })
-          )
+          unUtilisateurConseiller({
+            id: conseillerDtoPE.id,
+            email: conseillerDtoPE.email!,
+            idAuthentification: conseillerDtoPE.idAuthentification,
+            profil: unProfilFT(),
+            roles: [Authentification.Role.SUPERVISEUR]
+          })
         )
       })
     })
@@ -157,15 +147,13 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              id: conseillerDtoPE.id,
-              email: conseillerDtoPE.email!,
-              idAuthentification: conseillerDtoPE.idAuthentification,
-              structure: Core.Structure.POLE_EMPLOI,
-              roles: [Authentification.Role.SUPERVISEUR]
-            })
-          )
+          unUtilisateurConseiller({
+            id: conseillerDtoPE.id,
+            email: conseillerDtoPE.email!,
+            idAuthentification: conseillerDtoPE.idAuthentification,
+            profil: unProfilFT(),
+            roles: [Authentification.Role.SUPERVISEUR]
+          })
         )
       })
     })
@@ -190,22 +178,25 @@ describe('AuthentificationSqlRepository', () => {
     })
     it("retourne l'utilisateur quand il existe", async () => {
       // When
-      const utilisateur = await repository.getJeuneByStructure(
+      const utilisateur = await repository.getJeuneByProfil(
         'id-authentification-jeune',
-        Core.Structure.MILO
+        unProfilMilo()
       )
 
       // Then
       expect(utilisateur).to.deep.equal(
-        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
+        unUtilisateurJeune({
+          datePremiereConnexion: uneDate(),
+          profil: unProfilMilo(Profil.Dispositif.CEJ)
+        })
       )
     })
 
     it("retourne undefined quand il n'existe pas", async () => {
       // When
-      const utilisateur = await repository.getJeuneByStructure(
+      const utilisateur = await repository.getJeuneByProfil(
         'plop',
-        Core.Structure.MILO
+        unProfilMilo()
       )
 
       // Then
@@ -223,9 +214,9 @@ describe('AuthentificationSqlRepository', () => {
       )
 
       // When
-      const utilisateur = await repository.getJeuneByStructure(
+      const utilisateur = await repository.getJeuneByProfil(
         'sub-invite',
-        Core.Structure.INVITE
+        unProfilInvite()
       )
 
       // Then : c'est ce chemin qui permet à Connect de retrouver l'invité au refresh
@@ -234,7 +225,7 @@ describe('AuthentificationSqlRepository', () => {
         idAuthentification: 'sub-invite',
         prenom: 'Malek',
         nom: '',
-        structure: Core.Structure.INVITE,
+        profil: unProfilInvite(),
         type: Authentification.Type.JEUNE,
         appVersion: '1.8.1',
         installationId: '123456',
@@ -255,7 +246,7 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur?.type).to.equal(Authentification.Type.JEUNE)
-      expect(utilisateur?.structure).to.equal(Core.Structure.INVITE)
+      expect(utilisateur?.profil).to.deep.equal(unProfilInvite())
       expect(utilisateur?.nom).to.equal('')
     })
 
@@ -311,7 +302,10 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(
-        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
+        unUtilisateurJeune({
+          datePremiereConnexion: uneDate(),
+          profil: unProfilMilo(Profil.Dispositif.CEJ)
+        })
       )
     })
 
@@ -346,7 +340,10 @@ describe('AuthentificationSqlRepository', () => {
 
       // Then
       expect(utilisateur).to.deep.equal(
-        sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
+        unUtilisateurJeune({
+          datePremiereConnexion: uneDate(),
+          profil: unProfilMilo(Profil.Dispositif.CEJ)
+        })
       )
     })
 
@@ -384,7 +381,10 @@ describe('AuthentificationSqlRepository', () => {
 
         // Then
         expect(utilisateur).to.deep.equal(
-          sansProfil(unUtilisateurJeune({ datePremiereConnexion: uneDate() }))
+          unUtilisateurJeune({
+            datePremiereConnexion: uneDate(),
+            profil: unProfilMilo(Profil.Dispositif.CEJ)
+          })
         )
       })
       it("retourne undefined quand l'email n'existe pas", async () => {
@@ -400,11 +400,11 @@ describe('AuthentificationSqlRepository', () => {
         // When
         const utilisateurMilo = await repository.getJeuneByEmail(
           'john.doe@plop.io',
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
         const utilisateurPE = await repository.getJeuneByEmail(
           'john.doe@plop.io',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
@@ -435,7 +435,7 @@ describe('AuthentificationSqlRepository', () => {
       const unJeuneMisAJour: Authentification.Utilisateur = {
         id: unJeune.id,
         type: Authentification.Type.JEUNE,
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(Profil.Dispositif.CEJ),
         roles: [],
         nom: 'nouveauNom',
         prenom: 'nouveauPrenom',
@@ -447,9 +447,9 @@ describe('AuthentificationSqlRepository', () => {
       await repository.update(unJeuneMisAJour)
 
       // Then
-      const utilisateur = await repository.getJeuneByStructure(
+      const utilisateur = await repository.getJeuneByProfil(
         'nouvelIdAuthentification',
-        Core.Structure.MILO
+        unProfilMilo()
       )
       expect(utilisateur).to.deep.equal(unJeuneMisAJour)
     })
@@ -461,7 +461,7 @@ describe('AuthentificationSqlRepository', () => {
       const unJeuneMisAJour: Authentification.Utilisateur = {
         id: unJeune.id,
         type: Authentification.Type.JEUNE,
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(),
         roles: [],
         nom: 'nouveauNom',
         prenom: 'nouveauPrenom',
@@ -480,7 +480,7 @@ describe('AuthentificationSqlRepository', () => {
       const unConseillerMisAJour: Authentification.Utilisateur = {
         id: unConseiller.id,
         type: Authentification.Type.CONSEILLER,
-        structure: Core.Structure.MILO,
+        profil: unProfilMilo(),
         roles: [],
         nom: 'nouveauNom',
         prenom: 'nouveauPrenom',
@@ -517,12 +517,10 @@ describe('AuthentificationSqlRepository', () => {
         )
 
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              roles: [Authentification.Role.SUPERVISEUR],
-              datePremiereConnexion: uneDate()
-            })
-          )
+          unUtilisateurConseiller({
+            roles: [Authentification.Role.SUPERVISEUR],
+            datePremiereConnexion: uneDate()
+          })
         )
       })
     })
@@ -550,12 +548,10 @@ describe('AuthentificationSqlRepository', () => {
           : undefined
 
         expect(utilisateur).to.deep.equal(
-          sansProfil(
-            unUtilisateurConseiller({
-              email: nouvelEmail,
-              roles: [Authentification.Role.SUPERVISEUR]
-            })
-          )
+          unUtilisateurConseiller({
+            email: nouvelEmail,
+            roles: [Authentification.Role.SUPERVISEUR]
+          })
         )
 
         expect(conseiller?.dateCreation).to.deep.equal(dateCreation)
@@ -594,13 +590,13 @@ describe('AuthentificationSqlRepository', () => {
       // When
       const accesPartenaire = await repository.recupererAccesPartenaire(
         'bearer',
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
 
       // Then
       expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
         'bearer',
-        Core.Structure.MILO
+        Profil.Structure.MILO
       )
       expect(accesPartenaire).to.equal('accesPartenaire')
     })
@@ -622,13 +618,13 @@ describe('AuthentificationSqlRepository', () => {
         await repository.seFairePasserPourUnConseiller(
           'id-conseiller',
           'bearer',
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
 
       // Then
       expect(oidcClient.exchangeToken).to.have.been.calledOnceWithExactly(
         'bearer',
-        Core.Structure.MILO,
+        Profil.Structure.MILO,
         { sub: 'id-authentification-conseiller', type: 'CONSEILLER' }
       )
       expect(isSuccess(resultAccesPartenaireConseiller)).to.equal(true)
@@ -643,7 +639,7 @@ describe('AuthentificationSqlRepository', () => {
         await repository.seFairePasserPourUnConseiller(
           'id-conseiller',
           'bearer',
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
 
       // Then
@@ -669,7 +665,7 @@ describe('AuthentificationSqlRepository', () => {
         await repository.seFairePasserPourUnConseiller(
           'id-conseiller',
           'bearer',
-          Core.Structure.MILO
+          Profil.Structure.MILO
         )
 
       // Then

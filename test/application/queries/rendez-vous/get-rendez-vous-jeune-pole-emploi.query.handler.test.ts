@@ -10,7 +10,10 @@ import { expect, StubbedClass, stubClass } from '../../../utils'
 import { RendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { GetRendezVousJeunePoleEmploiQueryGetter } from '../../../../src/application/queries/query-getters/pole-emploi/get-rendez-vous-jeune-pole-emploi.query.getter'
-import { Profil } from '../../../../src/domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 
 describe('GetRendezVousJeunePoleEmploiQueryHandler', () => {
   let queryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
@@ -157,8 +160,20 @@ describe('GetRendezVousJeunePoleEmploiQueryHandler', () => {
       expect(
         getRendezVousJeunePoleEmploiQueryHandler.profilsAutorises
       ).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

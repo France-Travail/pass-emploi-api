@@ -1,28 +1,23 @@
 import { Injectable } from '@nestjs/common'
-import { Op } from 'sequelize'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Core, getStructureDeReference } from '../../domain/core'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
-import Structure = Core.Structure
 import { AgenceQueryModel } from './query-models/agence.query-model'
 
 export interface GetAgenceQuery extends Query {
-  structure: Structure
+  structure: Profil.Structure
 }
-
-export const ID_AGENCE_MILO_JDD = '9999'
 
 @Injectable()
 export class GetAgencesQueryHandler extends QueryHandler<
   GetAgenceQuery,
   AgenceQueryModel[]
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(private readonly conseillerAuthorizer: ConseillerAuthorizer) {
     super('GetAgencesQueryHandler')
@@ -31,10 +26,7 @@ export class GetAgencesQueryHandler extends QueryHandler<
   async handle(query: GetAgenceQuery): Promise<AgenceQueryModel[]> {
     const sqlModels = await AgenceSqlModel.findAll({
       where: {
-        structure: getStructureDeReference(query.structure),
-        id: {
-          [Op.not]: ID_AGENCE_MILO_JDD
-        }
+        structure: query.structure
       }
     })
     return sqlModels.map(sql => {
@@ -52,7 +44,7 @@ export class GetAgencesQueryHandler extends QueryHandler<
   ): Promise<Result> {
     return this.conseillerAuthorizer.autoriserToutConseiller(
       utilisateur,
-      query.structure === utilisateur.structure
+      query.structure === utilisateur.profil.structure
     )
   }
 

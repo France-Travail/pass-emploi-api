@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Migration } from '../../domain/migration'
-import { Profil } from '../../domain/profil'
 import PhaseDeMigration = Migration.PhaseDeMigration
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
@@ -14,8 +13,6 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   RebasculerJeunesOrphelinsMigrationCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(private readonly migrationService: Migration.Service) {
     super('RebasculerJeunesOrphelinsMigrationCommandHandler')
   }

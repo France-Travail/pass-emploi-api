@@ -1,5 +1,4 @@
 import { emptySuccess, failure, Result } from '../building-blocks/types/result'
-import { Core } from './core'
 import { Jeune, JeuneRepositoryToken } from './jeune/jeune'
 import { Offre } from './offre/offre'
 import { Recherche } from './offre/recherche/recherche'
@@ -16,6 +15,12 @@ import {
 } from './authentification'
 import { DateService } from '../utils/date-service'
 import { Mail, MailServiceToken } from './mail'
+import {
+  Profil,
+  ProfilAutorise,
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_MILO
+} from './profil'
 
 export const ArchiveJeuneRepositoryToken = 'ArchiveJeune.Repository'
 
@@ -47,6 +52,10 @@ export interface ArchiveJeune {
 }
 
 export namespace ArchiveJeune {
+  function ft(...dispositifs: Profil.Dispositif[]): ProfilAutorise {
+    return { structure: Profil.Structure.FRANCE_TRAVAIL, dispositifs }
+  }
+
   export enum MotifSuppression {
     EMPLOI_DURABLE = 'Emploi durable (plus de 6 mois)',
     FORMATION = 'Formation',
@@ -79,141 +88,158 @@ export namespace ArchiveJeune {
   export const motifsSuppression: Record<
     MotifSuppression,
     {
-      structures: Core.Structure[]
+      profils: readonly ProfilAutorise[]
       description?: string
     }
   > = {
     [MotifSuppression.EMPLOI_DURABLE]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        TOUT_MILO,
+        ft(
+          Profil.Dispositif.CEJ,
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ],
       description:
         'CDI, CDD de plus de 6 mois dont alternance, titularisation dans la fonction publique'
     },
     [MotifSuppression.CDI]: {
-      structures: [Core.Structure.POLE_EMPLOI_AIJ, Core.Structure.AVENIR_PRO]
+      profils: [ft(Profil.Dispositif.AIJ, Profil.Dispositif.AVENIR_PRO)]
     },
     [MotifSuppression.CDD_CTT]: {
-      structures: [Core.Structure.POLE_EMPLOI_AIJ, Core.Structure.AVENIR_PRO]
+      profils: [ft(Profil.Dispositif.AIJ, Profil.Dispositif.AVENIR_PRO)]
     },
     [MotifSuppression.EMPLOI_COURT]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.AVENIR_PRO
+      profils: [
+        TOUT_MILO,
+        ft(
+          Profil.Dispositif.CEJ,
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO
+        )
       ]
     },
     [MotifSuppression.FORMATION]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.AVENIR_PRO,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        ft(
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        )
       ]
     },
     [MotifSuppression.SERVICE_CIVIQUE]: {
-      structures: [Core.Structure.POLE_EMPLOI_AIJ, Core.Structure.AVENIR_PRO]
+      profils: [ft(Profil.Dispositif.AIJ, Profil.Dispositif.AVENIR_PRO)]
     },
     [MotifSuppression.CONTRAT_ARRIVE_A_ECHEANCE]: {
-      structures: [Core.Structure.POLE_EMPLOI, Core.Structure.MILO]
+      profils: [TOUT_MILO, ft(Profil.Dispositif.CEJ)]
     },
     [MotifSuppression.CESSATION_INSCRIPTION]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.CONSEIL_DEPT
+      profils: [
+        ft(Profil.Dispositif.BRSA, Profil.Dispositif.AIJ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ]
     },
     [MotifSuppression.LIMITE_AGE]: {
-      structures: [Core.Structure.POLE_EMPLOI, Core.Structure.MILO],
+      profils: [TOUT_MILO, ft(Profil.Dispositif.CEJ)],
       description:
         "Motif valable uniquement à partir de la fin du premier mois des 26 ans. A noter : dans le cas oû le jeune est considéré en tant que travailleur handicapé, l'âge passe à 30 ans."
     },
     [MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.AVENIR_PRO,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        ft(
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ]
     },
     [MotifSuppression.DEMANDE_DU_JEUNE]: {
-      structures: [Core.Structure.POLE_EMPLOI, Core.Structure.MILO]
+      profils: [TOUT_MILO, ft(Profil.Dispositif.CEJ)]
     },
     [MotifSuppression.DEMANDE_DU_CONSEILLER]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        ft(
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ]
     },
     [MotifSuppression.DEMANDE_DU_BENEFICIAIRE_BRSA]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        ft(
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ]
     },
     [MotifSuppression.NON_RESPECT_OU_ABANDON]: {
-      structures: [Core.Structure.POLE_EMPLOI, Core.Structure.MILO]
+      profils: [TOUT_MILO, ft(Profil.Dispositif.CEJ)]
     },
     [MotifSuppression.CONSEILLER_OU_ABANDON]: {
-      structures: [Core.Structure.POLE_EMPLOI_AIJ]
+      profils: [ft(Profil.Dispositif.AIJ)]
     },
     [MotifSuppression.DEMENAGEMENT]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.AVENIR_PRO,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        TOUT_MILO,
+        ft(
+          Profil.Dispositif.CEJ,
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ]
     },
     [MotifSuppression.DEMENAGEMENT_TERRITOIRE_HORS_EXPERIMENTATION]: {
-      structures: [Core.Structure.POLE_EMPLOI_BRSA, Core.Structure.CONSEIL_DEPT]
+      profils: [ft(Profil.Dispositif.BRSA), TOUT_CONSEIL_DEPARTEMENTAL]
     },
     [MotifSuppression.CHANGEMENT_CONSEILLER]: {
-      structures: [Core.Structure.POLE_EMPLOI, Core.Structure.MILO]
+      profils: [TOUT_MILO, ft(Profil.Dispositif.CEJ)]
     },
     [MotifSuppression.CREATION_ENTREPRISE]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.AVENIR_PRO,
-        Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
-        Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL,
-        Core.Structure.FT_EQUIP_EMPLOI_RECRUT
+      profils: [
+        ft(
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO,
+          Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+          Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+          Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+        )
       ]
     },
     [MotifSuppression.ESAT]: {
-      structures: [Core.Structure.POLE_EMPLOI_AIJ]
+      profils: [ft(Profil.Dispositif.AIJ)]
     },
     [MotifSuppression.AUTRE]: {
-      structures: [
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI_BRSA,
-        Core.Structure.POLE_EMPLOI_AIJ,
-        Core.Structure.CONSEIL_DEPT,
-        Core.Structure.AVENIR_PRO
+      profils: [
+        TOUT_MILO,
+        ft(
+          Profil.Dispositif.CEJ,
+          Profil.Dispositif.BRSA,
+          Profil.Dispositif.AIJ,
+          Profil.Dispositif.AVENIR_PRO
+        ),
+        TOUT_CONSEIL_DEPARTEMENTAL
       ],
       description: 'Champ libre'
     }
@@ -224,8 +250,8 @@ export namespace ArchiveJeune {
     email?: string
     prenomJeune: string
     nomJeune: string
-    structure: Core.Structure
-    dispositif?: Jeune.Dispositif
+    structure: Profil.Structure
+    dispositif?: Profil.Dispositif
     idPartenaire?: string
     dateCreation: Date
     datePremiereConnexion?: Date
@@ -336,7 +362,7 @@ export namespace ArchiveJeune {
           motif: motifSuppression,
           commentaire: commentaireSuppressionSupport,
           dateArchivage: this.dateService.nowJs(),
-          dispositif: jeune.dispositif
+          dispositif: jeune.dispositif ?? undefined
         }
         try {
           await this.archiveJeuneRepository.archiver(metaDonneesArchive)
