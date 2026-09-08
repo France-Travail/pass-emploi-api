@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
+  failure,
   isFailure,
   Result
 } from '../../building-blocks/types/result'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { Migration } from '../../domain/migration'
+import { Migration, MigrationRepositoryToken } from '../../domain/migration'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
-import PhaseDeMigration = Migration.PhaseDeMigration
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
@@ -24,7 +25,7 @@ export interface ArchiverJeuneCommand {
 }
 
 export interface ArchiverJeunesMigrationCommand {
-  phaseDeMigration: PhaseDeMigration
+  idPopulationQuiMigre: string
 }
 
 @Injectable()
@@ -34,7 +35,9 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 > {
   constructor(
     private readonly evenementService: EvenementService,
-    private readonly featureFlipService: Migration.Service,
+    private readonly migrationService: Migration.Service,
+    @Inject(MigrationRepositoryToken)
+    private readonly migrationRepository: Migration.Repository,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
     super('ArchiverJeuneCommandHandler')
@@ -45,9 +48,19 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   }
 
   async handle(command: ArchiverJeunesMigrationCommand): Promise<Result> {
+    const migrationExiste =
+      await this.migrationRepository.populationConcerneeParUneMigration(
+        command.idPopulationQuiMigre
+      )
+    if (!migrationExiste) {
+      return failure(
+        new NonTrouveError('Migration', command.idPopulationQuiMigre)
+      )
+    }
+
     const idJeunes =
-      await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
-        command.phaseDeMigration
+      await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
+        command.idPopulationQuiMigre
       )
 
     ;(async (): Promise<void> => {
@@ -66,7 +79,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 
       this.logger.log(
         {
-          phaseDeMigration: command.phaseDeMigration,
+          idPopulationQuiMigre: command.idPopulationQuiMigre,
           total: idJeunes.length,
           succes: idJeunes.length - echecs.length,
           echecs: echecs.length,

@@ -8,7 +8,6 @@ import {
   HttpStatus,
   Inject,
   Param,
-  ParseEnumPipe,
   ParseIntPipe,
   Post,
   Query,
@@ -51,7 +50,6 @@ import {
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
@@ -75,13 +73,9 @@ import {
   NotifierBeneficiairesPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
-  TransfererJeunesPayload,
-  UpdateFeatureFlipPayload
+  TransfererJeunesPayload
 } from './validation/support.inputs'
-import { Migration } from '../../domain/migration'
-import PhaseDeMigration = Migration.PhaseDeMigration
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
-import { Profil } from '../../domain/profil'
 
 export class JobSummaryQueryModel {
   @ApiProperty()
@@ -144,7 +138,6 @@ export class SupportController {
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
-    private readonly updateFeatureFlipCommandHandler: UpdateFeatureFlipCommandHandler,
     private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
@@ -432,32 +425,9 @@ export class SupportController {
     Authentification.Partenaire.SUPPORT
   )
   @ApiOperation({
-    summary:
-      'Enregistre la liste des conseillers (via leur email) qui accèdent à une fonctionnalité (les jeunes associés seront calculés automatiquement à la volée)',
-    description: 'Autorisé pour le support'
-  })
-  @Post('feature-flip')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async updateFeatureFlip(
-    @Body() payload: UpdateFeatureFlipPayload
-  ): Promise<void> {
-    const result = await this.updateFeatureFlipCommandHandler.execute(
-      payload,
-      Authentification.unUtilisateurSupport()
-    )
-
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary:
-      'Notifie un groupe de bénéficiaires ciblé par structure et dispositif.',
+    summary: 'Notifie les bénéficiaires, tous ou ceux d’une population.',
     description: `
-Notifie un groupe de bénéficiaires ciblé par structure et dispositif
+Notifie tous les bénéficiaires, ou ceux d’une population
 (crée un job de type NOTIFIER_BENEFICIAIRES).
 
 **Champs du body :**
@@ -467,12 +437,7 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
     )}
 - \`titre\` : titre de la notification - maximum 50 caractères
 - \`description\` : texte corps de la notification - maximum 150 caractères
-- \`structuresEtDispositifs\` (optionnel, défaut = tous les bénéficiaires) : liste de cibles \`{ structure, dispositifs? }\`, un bénéficiaire est notifié s'il correspond à l'une d'elles.
-<br>\`structure\` : ${Object.values(Profil.Structure).join(', ')}
-<br>\`dispositifs\` (optionnel, défaut = tous les dispositifs de la structure) : ${Object.values(Profil.Dispositif).join(', ')}
-- \`PhaseDeMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
-      Migration.PhaseDeMigration
-    ).join(', ')}
+- \`idPopulation\` (optionnel, défaut = tous les bénéficiaires) : id d'une population pour ne cibler que ses bénéficiaires
 - \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
 - \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
 - \`minutesEntreLesBatch\` (optionnel, défaut = 5) : minutes entre chaque batch
@@ -484,11 +449,7 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
         typeNotification: 'OUTILS',
         titre: '1000 immersions sur la vente et la logistique !',
         description: 'Explorez les métiers de vente et de la logistique',
-        structuresEtDispositifs: [
-          { structure: 'MILO' },
-          { structure: 'FRANCE_TRAVAIL', dispositifs: ['CEJ', 'AIJ'] }
-        ],
-        PhaseDeMigration: 'PHASE_A',
+        idPopulation: 'PHASE_A',
         push: true
       }
     }
@@ -623,17 +584,16 @@ L'API support pour archiver les jeunes d'une phase de migration
   - Suppression du chat firebase
   - Envoi d'un email au jeune
   
-PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
+\`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
  `
   })
-  @Post('archiver-jeunes-migration/:phaseDeMigration')
+  @Post('archiver-jeunes-migration/:idPopulationQuiMigre')
   @HttpCode(HttpStatus.NO_CONTENT)
   async archiverJeuneRegion(
-    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
-    phaseDeMigration: PhaseDeMigration
+    @Param('idPopulationQuiMigre') idPopulationQuiMigre: string
   ): Promise<void> {
     const result = await this.archiverJeunesMigrationCommandHandler.handle({
-      phaseDeMigration
+      idPopulationQuiMigre
     })
 
     return handleResult(result)
@@ -651,18 +611,17 @@ Identifie les jeunes en transfert temporaire dont le conseiller actuel migre pou
 mais dont le conseiller initial n'est pas concerné par cette migration, et les remet sous leur
 conseiller initial (récupération définitive).
 
-PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
+\`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
 `
   })
-  @Post('rebasculer-jeunes-orphelins-migration/:phaseDeMigration')
+  @Post('rebasculer-jeunes-orphelins-migration/:idPopulationQuiMigre')
   @HttpCode(HttpStatus.NO_CONTENT)
   async rebasculerJeunesOrphelinsMigration(
-    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
-    phaseDeMigration: PhaseDeMigration
+    @Param('idPopulationQuiMigre') idPopulationQuiMigre: string
   ): Promise<void> {
     const result =
       await this.rebasculerJeunesOrphelinsMigrationCommandHandler.handle({
-        phaseDeMigration
+        idPopulationQuiMigre
       })
 
     return handleResult(result)

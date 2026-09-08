@@ -1,21 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
-import { Authentification } from './authentification'
-import { FeatureFlip, FeatureFlipRepositoryToken } from './feature-flip'
 import { DateService } from '../utils/date-service'
+import { Authentification } from './authentification'
 
 export const MigrationRepositoryToken = 'MigrationRepositoryToken'
 
 export class BeneficiaireMigration {
-  constructor(id: string) {
-    this.id = id
-  }
-
-  id: string
-}
-
-export class ConseillerMigration {
   constructor(id: string) {
     this.id = id
   }
@@ -30,152 +20,79 @@ export interface RebasculementOrphelin {
 }
 
 export namespace Migration {
-  export enum PhaseDeMigration {
-    PHASE_A = 'PHASE_A',
-    PHASE_B = 'PHASE_B',
-    PHASE_TEST = 'PHASE_TEST'
-  }
-
-  interface PhaseConfig {
-    tag: FeatureFlip.Tag
-    configKey: string
-  }
-
-  export const PHASES_CONFIG: Record<PhaseDeMigration, PhaseConfig> = {
-    [PhaseDeMigration.PHASE_A]: {
-      tag: FeatureFlip.Tag.MIGRATION_PHASE_A,
-      configKey: 'features.dateDeMigrationPhaseA'
-    },
-    [PhaseDeMigration.PHASE_B]: {
-      tag: FeatureFlip.Tag.MIGRATION_PHASE_B,
-      configKey: 'features.dateDeMigrationPhaseB'
-    },
-    [PhaseDeMigration.PHASE_TEST]: {
-      tag: FeatureFlip.Tag.MIGRATION_PHASE_TEST,
-      configKey: 'features.dateDeMigrationPhaseTest'
-    }
-  }
-
-  const TAG_TO_PHASE: Partial<Record<FeatureFlip.Tag, PhaseDeMigration>> =
-    Object.fromEntries(
-      Object.entries(PHASES_CONFIG).map(([phase, config]) => [
-        config.tag,
-        phase
-      ])
-    )
-
-  export function getTagPourPhase(phase: PhaseDeMigration): FeatureFlip.Tag {
-    return PHASES_CONFIG[phase].tag
-  }
-
-  export function getPhasePourTag(
-    tag: FeatureFlip.Tag
-  ): PhaseDeMigration | undefined {
-    return TAG_TO_PHASE[tag]
+  // Une migration est un déploiement de nature MIGRATION, désigné par l'id de sa population.
+  export interface Utilisateur {
+    id: string
+    type: Authentification.Type.JEUNE | Authentification.Type.CONSEILLER
   }
 
   export interface Repository {
-    getBeneficiairesDeLaFeatureDuConseillerInitial(
-      tag: FeatureFlip.Tag
+    populationConcerneeParUneMigration(idPopulation: string): Promise<boolean>
+    // Jeunes dont le profil correspond à la population qui migre, ou dont le conseiller de référence y est cité par email.
+    getBeneficiairesAMigrerParProfilOuConseillerCite(
+      idPopulation: string
     ): Promise<BeneficiaireMigration[]>
-    rebasculerOrphelinsDePhase(
-      tag: FeatureFlip.Tag
-    ): Promise<RebasculementOrphelin[]>
+    rebasculerOrphelins(idPopulation: string): Promise<RebasculementOrphelin[]>
+    getDateDeMigrationDuConseiller(
+      idConseiller: string
+    ): Promise<DateTime | undefined>
+    // Date de la migration qui vise le jeune, par son propre profil ou par son conseiller de référence cité par email.
+    getDateDeMigrationDuBeneficiaire(
+      idBeneficiaire: string
+    ): Promise<DateTime | undefined>
   }
 
   @Injectable()
   export class Service {
-    private readonly datesDeMigration: Map<PhaseDeMigration, DateTime>
-
     constructor(
       @Inject(MigrationRepositoryToken)
       private readonly migrationRepository: Repository,
-      @Inject(FeatureFlipRepositoryToken)
-      private readonly featureFlipRepository: FeatureFlip.Repository,
-      private readonly configService: ConfigService,
       private readonly dateService: DateService
-    ) {
-      this.datesDeMigration = new Map()
+    ) {}
 
-      for (const [phase, config] of Object.entries(PHASES_CONFIG)) {
-        const date = this.configService.get(config.configKey)
-        if (date) {
-          this.datesDeMigration.set(
-            phase as PhaseDeMigration,
-            DateTime.fromISO(date).startOf('day')
+    async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+      utilisateur: Utilisateur
+    ): Promise<DateTime | undefined> {
+      switch (utilisateur.type) {
+        case Authentification.Type.CONSEILLER:
+          return this.migrationRepository.getDateDeMigrationDuConseiller(
+            utilisateur.id
           )
-        }
+        case Authentification.Type.JEUNE:
+          return this.migrationRepository.getDateDeMigrationDuBeneficiaire(
+            utilisateur.id
+          )
       }
     }
 
-    async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-      utilisateur: FeatureFlip.UtilisateurFeature
-    ): Promise<DateTime | undefined> {
-      const phase = await this.faitPartieDeLaMigration(utilisateur)
-      return phase ? this.datesDeMigration.get(phase) : undefined
-    }
-
     async recupererIdsDesBeneficiaireAMigrer(
-      phase: PhaseDeMigration
+      idPopulation: string
     ): Promise<string[]> {
-      const tag = getTagPourPhase(phase)
       const beneficiairesMigration =
-        await this.migrationRepository.getBeneficiairesDeLaFeatureDuConseillerInitial(
-          tag
+        await this.migrationRepository.getBeneficiairesAMigrerParProfilOuConseillerCite(
+          idPopulation
         )
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)
     }
 
-    async rebasculerOrphelinsDePhase(
-      phase: PhaseDeMigration
+    async rebasculerOrphelins(
+      idPopulation: string
     ): Promise<RebasculementOrphelin[]> {
-      const tag = getTagPourPhase(phase)
-      return this.migrationRepository.rebasculerOrphelinsDePhase(tag)
+      return this.migrationRepository.rebasculerOrphelins(idPopulation)
     }
 
     async faitPartieDeLaMigrationEtLaDateEstPassee(
-      utilisateur: FeatureFlip.UtilisateurFeature
+      utilisateur: Utilisateur
     ): Promise<boolean> {
       const dateDeMigration =
         await this.recupererDateDeMigrationSiLUtilisateurDoitMigrer(utilisateur)
 
-      if (
-        dateDeMigration &&
-        DateService.isGreaterOrEqualAtTheStartOfDay(
-          this.dateService.now(),
-          dateDeMigration
-        )
-      ) {
-        return true
-      }
+      if (!dateDeMigration) return false
 
-      return false
-    }
-
-    private async faitPartieDeLaMigration(
-      utilisateur: FeatureFlip.UtilisateurFeature
-    ): Promise<PhaseDeMigration | undefined> {
-      const allPhaseTags = Object.values(PhaseDeMigration).map(getTagPourPhase)
-
-      let tag: FeatureFlip.Tag | undefined
-      switch (utilisateur.type) {
-        case Authentification.Type.CONSEILLER:
-          tag =
-            await this.featureFlipRepository.getTagSiFeatureActivePourLeConseiller(
-              allPhaseTags,
-              utilisateur.id
-            )
-          break
-        case Authentification.Type.JEUNE:
-          tag =
-            await this.featureFlipRepository.getTagSiFeatureActivePourLeConseillerDuJeune(
-              allPhaseTags,
-              utilisateur.id
-            )
-          break
-      }
-
-      return tag ? getPhasePourTag(tag) : undefined
+      return DateService.isGreaterOrEqualAtTheStartOfDay(
+        this.dateService.now(),
+        dateDeMigration
+      )
     }
   }
 }

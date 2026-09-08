@@ -3,7 +3,7 @@ import { DateTime, WeekdayNumbers } from 'luxon'
 import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
-import { Migration } from '../../domain/migration'
+import { Population, PopulationRepositoryToken } from '../../domain/population'
 import {
   Notification,
   NotificationRepositoryToken
@@ -14,7 +14,6 @@ import {
   ProcessJobType
 } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
-import { filtreStructuresEtDispositifs } from '../../infrastructure/sequelize/filtre-structures-dispositifs'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../utils/date-service'
 import StatsJobNotif = Planificateur.StatsJobNotif
@@ -33,7 +32,8 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     private readonly dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
-    private readonly migrationService: Migration.Service
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository
   ) {
     super(Planificateur.JobType.NOTIFIER_BENEFICIAIRES, suiviJobService)
   }
@@ -207,18 +207,12 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
         [Op.ne]: null
       }
     }
-    if (params.structuresEtDispositifs?.length) {
-      Object.assign(
-        where,
-        filtreStructuresEtDispositifs(params.structuresEtDispositifs)
-      )
-    }
-    if (params.phaseDeMigration) {
-      const idsBeneficiairesMigration =
-        await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
-          params.phaseDeMigration
+    if (params.idPopulation) {
+      const idsBeneficiaires =
+        await this.populationRepository.getIdsDesJeunesParProfilOuConseillerCite(
+          params.idPopulation
         )
-      where.id = { [Op.in]: idsBeneficiairesMigration }
+      where.id = { [Op.in]: idsBeneficiaires }
     }
     return where
   }
