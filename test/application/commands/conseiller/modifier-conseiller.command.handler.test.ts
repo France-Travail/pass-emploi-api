@@ -148,6 +148,34 @@ describe('ModifierConseillerCommandHandler', () => {
             conseillerPEmaj
           )
         })
+        it('choisit le dispositif du conseiller', async () => {
+          // Given
+          const conseillerSansDispositif = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: null
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerSansDispositif)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            dispositif: Profil.Dispositif.BRSA
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(conseillerRepository.save).to.have.been.calledWithExactly(
+            unConseiller({
+              id: idConseiller,
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif: Profil.Dispositif.BRSA,
+              agence: undefined
+            })
+          )
+        })
       })
       describe('quand le conseiller vient de Mission Locale', () => {
         it('modifie le conseiller avec une agence du référentiel', async () => {

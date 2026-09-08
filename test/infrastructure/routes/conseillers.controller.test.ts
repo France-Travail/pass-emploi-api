@@ -476,6 +476,7 @@ describe('ConseillersController', () => {
         const command: ModifierConseillerCommand = {
           notificationsSonores: true,
           agence: agence,
+          dispositif: undefined,
           idConseiller: conseiller.id,
           dateSignatureCGU: nouvelleDateSignatureCGU,
           dateVisionnageActus: nouvellesDateVisionnageActus
@@ -496,6 +497,39 @@ describe('ConseillersController', () => {
           })
           .set('authorization', unHeaderAuthorization())
           .expect(HttpStatus.OK)
+      })
+    })
+
+    describe('quand le conseiller choisit son dispositif', () => {
+      it('met à jour le conseiller', async () => {
+        // Given
+        const command: ModifierConseillerCommand = {
+          idConseiller: conseiller.id,
+          agence: undefined,
+          dispositif: Profil.Dispositif.BRSA,
+          notificationsSonores: undefined,
+          dateSignatureCGU: undefined,
+          dateVisionnageActus: undefined
+        }
+        modifierConseillerCommandHandler.execute
+          .withArgs(command, unUtilisateurDecode())
+          .resolves(emptySuccess())
+
+        // When - Then
+        await request(app.getHttpServer())
+          .put(`/conseillers/${conseiller.id}`)
+          .send({ dispositif: Profil.Dispositif.BRSA })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.OK)
+      })
+
+      it('refuse un dispositif hors accompagnement France Travail', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .put(`/conseillers/${conseiller.id}`)
+          .send({ dispositif: Profil.Dispositif.PACEA })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.BAD_REQUEST)
       })
     })
 
@@ -520,6 +554,7 @@ describe('ConseillersController', () => {
         const command: ModifierConseillerCommand = {
           notificationsSonores: true,
           agence: agence,
+          dispositif: undefined,
           idConseiller: conseiller.id,
           dateSignatureCGU: nouvelleDateSignatureCGU,
           dateVisionnageActus: nouvellesDateVisionnageActus

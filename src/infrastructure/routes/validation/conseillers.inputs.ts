@@ -28,7 +28,7 @@ import {
   transformStringToArray,
   transformStringToBoolean
 } from './utils/transformers'
-import { Profil } from '../../../domain/profil'
+import { DISPOSITIFS_FT_ACCOMPAGNES, Profil } from '../../../domain/profil'
 
 export class GetConseillersQueryParams {
   @ApiProperty()
@@ -148,6 +148,11 @@ export class DetailConseillerPayload {
   @ValidateNested({ each: true })
   @Type(() => AgenceInput)
   agence?: AgenceInput
+
+  @ApiPropertyOptional({ enum: DISPOSITIFS_FT_ACCOMPAGNES.dispositifs })
+  @IsOptional()
+  @IsIn(DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!)
+  dispositif?: Profil.Dispositif
 
   @IsOptional()
   @IsDateString()

@@ -29,6 +29,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: undefined,
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
@@ -57,6 +58,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: {
           id: undefined,
           nom: "nom d'agence"
@@ -101,6 +103,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: {
           id: "id d'agence",
           nom: 'Bonjour je suis une agence'

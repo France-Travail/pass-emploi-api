@@ -204,7 +204,7 @@ export class ConseillersController {
 
   @ApiOperation({
     summary:
-      "Permet d'ajouter l'agence ou de modifier les notifications sonores, la date de signature des CGU, ou la date de visionnage des actus d'un conseiller",
+      "Permet d'ajouter l'agence, de choisir le dispositif (conseiller France Travail uniquement), ou de modifier les notifications sonores, la date de signature des CGU, ou la date de visionnage des actus d'un conseiller",
     description:
       'Autorisé pour un conseiller - Ne supprime pas les champs quand ils sont vides'
   })
@@ -224,6 +224,7 @@ export class ConseillersController {
       {
         idConseiller: idConseiller,
         agence: modifierConseillerPayload.agence,
+        dispositif: modifierConseillerPayload.dispositif,
         notificationsSonores: modifierConseillerPayload.notificationsSonores,
         dateSignatureCGU: modifierConseillerPayload.dateSignatureCGU,
         dateVisionnageActus: modifierConseillerPayload.dateVisionnageActus

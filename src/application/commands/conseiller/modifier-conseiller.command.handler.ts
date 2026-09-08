@@ -11,7 +11,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -21,6 +21,7 @@ import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 export interface ModifierConseillerCommand extends Command {
   idConseiller: string
   agence?: Agence
+  dispositif?: Profil.Dispositif
   dateSignatureCGU?: string
   dateVisionnageActus?: string
   notificationsSonores?: boolean
@@ -65,6 +66,7 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
       notificationsSonores:
         command.notificationsSonores ?? conseillerActuel.notificationsSonores,
       agence: command.agence ?? conseillerActuel.agence,
+      dispositif: command.dispositif,
       dateSignatureCGU: command.dateSignatureCGU
         ? DateTime.fromISO(command.dateSignatureCGU)
         : conseillerActuel.dateSignatureCGU,

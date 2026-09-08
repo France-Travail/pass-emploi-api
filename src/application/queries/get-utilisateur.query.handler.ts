@@ -12,12 +12,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import {
-  memeProfil,
-  Profil,
-  profilExact,
-  TOUT_PROFIL
-} from '../../domain/profil'
+import { Profil, profilExact, TOUT_PROFIL } from '../../domain/profil'
 import {
   UtilisateurQueryModel,
   queryModelFromUtilisateur
@@ -61,7 +56,11 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
         utilisateur = await this.authentificationRepository.getConseiller(
           query.idAuthentification
         )
-        if (utilisateur && !memeProfil(query.profil, utilisateur.profil)) {
+        // Le dispositif d’un conseiller peut changer : seule sa structure l’identifie.
+        if (
+          utilisateur &&
+          utilisateur.profil.structure !== query.profil.structure
+        ) {
           utilisateur = undefined
         }
         break

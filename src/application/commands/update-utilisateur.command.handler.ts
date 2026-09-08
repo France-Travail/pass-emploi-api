@@ -165,16 +165,14 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private recupererConseiller(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
+    // Un conseiller FT se connecte sans dispositif : il le choisit ensuite sur le web.
     const profil = commandSanitized.profil
-    if (estBoutonUniqueFTConnect(profil)) {
-      return this.recupererUtilisateurConseillerExistant(commandSanitized)
-    }
-
     const estConseillerTraitable =
       estMilo(profil.structure) ||
       estConseilDepartemental(profil.structure) ||
       (estFranceTravail(profil.structure) &&
         !estDispositifNonAccompagne(profil.dispositif))
+
     if (estConseillerTraitable) {
       return this.recupererOuCreerUtilisateurConseiller(
         commandSanitized,
@@ -206,9 +204,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
           profil
         )
       }
-      if (profil.dispositif !== Profil.Dispositif.AVENIR_PRO) {
-        return this.authentificationBeneficiaireFT(commandSanitized)
-      }
+      return this.authentificationBeneficiaireFT(commandSanitized)
     }
     return failure(
       new NonTraitableError(
@@ -513,30 +509,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async recupererUtilisateurConseillerExistant(
-    commandSanitized: UpdateUtilisateurCommand
-  ): Promise<Result<UtilisateurQueryModel>> {
-    const utilisateurTrouve =
-      await this.authentificationRepository.getConseiller(
-        commandSanitized.idUtilisateurAuth
-      )
-    if (!utilisateurTrouve) {
-      return failure(
-        new NonTraitableError(
-          'Utilisateur',
-          commandSanitized.idUtilisateurAuth,
-          NonTraitableReason.UTILISATEUR_INEXISTANT
-        )
-      )
-    }
-
-    const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
-      utilisateurTrouve,
-      commandSanitized
-    )
-    return success(queryModelFromUtilisateur(utilisateurMisAJour))
-  }
-
   private async lUtilisateurDoitMigrerVersParcoursEmploi(
     utilisateur: UtilisateurQueryModel
   ): Promise<boolean> {
@@ -559,11 +531,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       MotifSuppressionSupport.MIGRATION
     )
   }
-}
-
-// Le bouton unique FT Connect ne dit pas le dispositif : profil FT sans dispositif.
-function estBoutonUniqueFTConnect(profil: Profil): boolean {
-  return estFranceTravail(profil.structure) && profil.dispositif === null
 }
 
 function verifierProfilBeneficiaire(

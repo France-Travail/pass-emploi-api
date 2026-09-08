@@ -506,8 +506,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               })
             })
           })
-          describe('quand il est valide mais vient du bouton connexion unique (structure FRANCE_TRAVAIL)', () => {
-            let result: Result<UtilisateurQueryModel>
+          describe('quand il est un conseiller France Travail (connexion sans dispositif)', () => {
             const command: UpdateUtilisateurCommand = {
               nom: 'Tavernier',
               prenom: 'Nils',
@@ -523,36 +522,41 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
-              authentificationRepository.estConseillerSuperviseur.resolves(true)
-
-              const utilisateur: Authentification.Utilisateur = {
-                id: '1',
-                prenom: command.prenom || '',
-                nom: command.nom || '',
-                email: command.email,
-                username: command.username,
-                type: command.type as Authentification.Type,
-                profil: command.profil,
-                roles: []
-              }
-              authentificationRepository.save
-                .withArgs(utilisateur, command.idUtilisateurAuth)
-                .resolves()
+              authentificationRepository.estConseillerSuperviseur.resolves(
+                false
+              )
             })
-            it('retourne erreur utilisateur inexistant', async () => {
+            it('crée le conseiller sans dispositif, à choisir sur le web', async () => {
               // When
-              result = await updateUtilisateurCommandHandler.execute(command)
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              expect(result).to.deep.equal(
-                failure(
-                  new NonTraitableError(
-                    'Utilisateur',
-                    command.idUtilisateurAuth,
-                    NonTraitableReason.UTILISATEUR_INEXISTANT
-                  )
+              const utilisateurCree: Authentification.Utilisateur = {
+                id: '1',
+                idAuthentification: 'nilstavernier',
+                prenom: 'Nils',
+                nom: 'Tavernier',
+                email: 'nils.tavernier@passemploi.com',
+                username: 'milou',
+                type: Authentification.Type.CONSEILLER,
+                profil: unProfilFT(null),
+                roles: [],
+                dateDerniereConnexion: uneDate()
+              }
+              expect(
+                authentificationRepository.save
+              ).to.have.been.calledOnceWithExactly(utilisateurCree, uneDate())
+              expect(isSuccess(result)).equal(true)
+              if (isSuccess(result)) {
+                expect(result.data).to.deep.equal(
+                  unUtilisateurQueryModel({
+                    structure: Core.Structure.POLE_EMPLOI,
+                    profil: unProfilFT(null),
+                    username: 'milou'
+                  })
                 )
-              )
+              }
             })
           })
           describe("quand il est valide mais il manque l'email", () => {

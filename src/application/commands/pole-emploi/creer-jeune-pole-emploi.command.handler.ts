@@ -4,6 +4,7 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
   EmailExisteDejaError,
+  MauvaiseCommandeError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../../building-blocks/types/result'
@@ -54,6 +55,13 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
     const conseiller = await this.conseillerRepository.get(command.idConseiller)
     if (!conseiller) {
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
+    }
+    if (Conseiller.doitChoisirSonDispositif(conseiller)) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Le conseiller doit choisir son dispositif avant de créer un bénéficiaire'
+        )
+      )
     }
 
     const jeune = await this.jeuneRepository.getByEmail(command.email)

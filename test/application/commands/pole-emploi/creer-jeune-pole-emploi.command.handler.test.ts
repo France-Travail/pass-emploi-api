@@ -9,6 +9,7 @@ import {
 } from '../../../../src/application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
 import {
   EmailExisteDejaError,
+  MauvaiseCommandeError,
   NonTrouveError
 } from '../../../../src/building-blocks/types/domain-error'
 import { Chat } from '../../../../src/domain/chat'
@@ -107,6 +108,37 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         idNouveauJeune,
         conseiller.id
       )
+    })
+
+    it("retourne une erreur quand le conseiller France Travail n'a pas encore choisi son dispositif", async () => {
+      // Given
+      const conseillerSansDispositif = unConseiller({
+        id: 'id-conseiller-sans-dispositif',
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: null
+      })
+      conseillerRepository.get
+        .withArgs(conseillerSansDispositif.id)
+        .resolves(conseillerSansDispositif)
+      const command: CreateJeuneCommand = {
+        firstName: 'Kenji',
+        lastName: 'Lefameux',
+        email: 'kenji.lefameur@poleemploi.fr',
+        idConseiller: conseillerSansDispositif.id
+      }
+
+      // When
+      const result = await createJeuneCommandHandler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Le conseiller doit choisir son dispositif avant de créer un bénéficiaire'
+          )
+        )
+      )
+      expect(jeuneRepository.save).not.to.have.been.called()
     })
 
     it("retourne une erreur quand le conseiller n'existe pas", async () => {
