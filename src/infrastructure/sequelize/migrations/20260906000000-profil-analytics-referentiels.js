@@ -79,6 +79,12 @@ module.exports = {
          WHERE dispositif IS NULL OR dispositif = 'CONSEIL_DEPT'`,
         { transaction }
       )
+      // Archives MiLo antérieures au dispositif (janvier 2025) : tous en CEJ.
+      await queryInterface.sequelize.query(
+        `UPDATE archive_jeune SET dispositif = 'CEJ'
+         WHERE structure = 'MILO' AND dispositif IS NULL`,
+        { transaction }
+      )
       await queryInterface.sequelize.query(
         `UPDATE archive_jeune SET structure = ${VERS_STRUCTURE}`,
         { transaction }

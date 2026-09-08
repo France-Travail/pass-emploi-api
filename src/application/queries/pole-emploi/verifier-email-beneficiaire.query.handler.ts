@@ -9,7 +9,11 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { TOUT_FRANCE_TRAVAIL } from '../../../domain/profil'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_FRANCE_TRAVAIL,
+  TOUT_PROFIL
+} from '../../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 
 export interface VerifierEmailBeneficiaireFTQuery extends Query {
@@ -25,7 +29,7 @@ export class VerifierEmailBeneficiaireQueryHandler extends QueryHandler<
   VerifierEmailBeneficiaireFTQuery,
   Result<EmailBeneficiaireFTQueryModel>
 > {
-  readonly profilsAutorises = TOUT_FRANCE_TRAVAIL
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(JeuneRepositoryToken)

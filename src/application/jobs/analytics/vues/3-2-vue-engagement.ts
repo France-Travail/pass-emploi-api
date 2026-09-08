@@ -20,20 +20,22 @@ export async function chargerLaVueEngagement(
   await connexion.query(
     `insert into analytics_engagement(semaine,
                                       structure,
+                                      dispositif,
                                       type_utilisateur,
                                       region,
                                       departement,
                                       nombre_utilisateurs_2_mois)
      SELECT '${semaine}',
             structure,
+            dispositif,
             type_utilisateur,
             COALESCE(region, 'NON RENSEIGNE') AS region,
             COALESCE(departement, 'NON RENSEIGNE') AS departement,
             count(distinct id_utilisateur) as nombre_utilisateurs_2_mois
      from ${analyticsTableName}
      where date_evenement between '${semaine}'::timestamp - interval '2 months' and '${semaine}'::timestamp + interval '1 week'
-     group by structure, type_utilisateur, departement, region
-     order by structure, type_utilisateur, region, departement;`
+     group by structure, dispositif, type_utilisateur, departement, region
+     order by structure, dispositif, type_utilisateur, region, departement;`
   )
 
   logger.log('Insertion des utilisateurs du dernier mois')
@@ -44,18 +46,20 @@ export async function chargerLaVueEngagement(
       SELECT 
         '${semaine}',
         structure,
+        dispositif,
         type_utilisateur,
         COALESCE(region, 'NON RENSEIGNE') AS region,
         COALESCE(departement, 'NON RENSEIGNE') AS departement,
         count(distinct id_utilisateur) as nombre_utilisateurs_1_mois
      from ${analyticsTableName}
      where date_evenement between '${semaine}'::timestamp - interval '1 months' and '${semaine}'::timestamp + interval '1 week'
-     group by structure, type_utilisateur, departement, region
-     order by structure, type_utilisateur, region, departement) as subquery
+     group by structure, dispositif, type_utilisateur, departement, region
+     order by structure, dispositif, type_utilisateur, region, departement) as subquery
      WHERE analytics_engagement.semaine = '${semaine}'
        AND analytics_engagement.departement = subquery.departement
        AND analytics_engagement.region = subquery.region
        AND analytics_engagement.structure = subquery.structure
+       AND analytics_engagement.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -68,23 +72,26 @@ export async function chargerLaVueEngagement(
                   x.departement,
                   x.region,
                   x.structure,
+                  x.dispositif,
                   x.type_utilisateur
            FROM (SELECT count(distinct jour) as nb_day_ae,
                         semaine,
                         COALESCE(region, 'NON RENSEIGNE') AS region,
                         COALESCE(departement, 'NON RENSEIGNE') AS departement,
                         structure,
+                        dispositif,
                         type_utilisateur,
                         id_utilisateur
                  FROM ${analyticsTableName}
                  WHERE semaine = '${semaine}'
-                 GROUP BY semaine, id_utilisateur, semaine, departement, region, structure, type_utilisateur) x
+                 GROUP BY semaine, id_utilisateur, semaine, departement, region, structure, dispositif, type_utilisateur) x
            WHERE nb_day_ae >= 2
-           GROUP BY x.semaine, x.departement, x.region, x.structure, x.type_utilisateur) as subquery
+           GROUP BY x.semaine, x.departement, x.region, x.structure, x.dispositif, x.type_utilisateur) as subquery
      WHERE analytics_engagement.semaine = '${semaine}'
        AND analytics_engagement.departement = subquery.departement
        AND analytics_engagement.region = subquery.region
        AND analytics_engagement.structure = subquery.structure
+       AND analytics_engagement.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -93,6 +100,7 @@ export async function chargerLaVueEngagement(
     `update analytics_engagement
      SET nb_actifs_3_semaines_sur_6 = subquery.nb_actifs_3_semaines_sur_6
      FROM (SELECT structure,
+                  dispositif,
                   type_utilisateur,
                   region,
                   departement,
@@ -100,28 +108,31 @@ export async function chargerLaVueEngagement(
            FROM (SELECT count(distinct week_ae) as nb_week,
                         id_utilisateur,
                         structure,
+                        dispositif,
                         type_utilisateur,
                         region,
                         departement
                  FROM (SELECT count(distinct jour) as nb_day_ae,
                               semaine              as week_ae,
                               structure,
+                              dispositif,
                               type_utilisateur,
                               COALESCE(region, 'NON RENSEIGNE') AS region,
                               COALESCE(departement, 'NON RENSEIGNE') AS departement,
                               id_utilisateur
                        FROM ${analyticsTableName}
                        WHERE date_evenement between '${semaine}'::timestamp - interval '5 week' and '${semaine}'::timestamp + interval '1 week'
-                       GROUP BY week_ae, id_utilisateur, structure, region, departement, type_utilisateur) ee
+                       GROUP BY week_ae, id_utilisateur, structure, dispositif, region, departement, type_utilisateur) ee
                  WHERE nb_day_ae >= 2
-                 GROUP BY id_utilisateur, structure, region, departement, type_utilisateur) x
+                 GROUP BY id_utilisateur, structure, dispositif, region, departement, type_utilisateur) x
            WHERE nb_week >= 3
-           GROUP BY structure, type_utilisateur, region, departement
-           ORDER BY structure, type_utilisateur, region, departement) as subquery
+           GROUP BY structure, dispositif, type_utilisateur, region, departement
+           ORDER BY structure, dispositif, type_utilisateur, region, departement) as subquery
      WHERE analytics_engagement.semaine = '${semaine}'
        AND analytics_engagement.departement = subquery.departement
        AND analytics_engagement.region = subquery.region
        AND analytics_engagement.structure = subquery.structure
+       AND analytics_engagement.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -130,6 +141,7 @@ export async function chargerLaVueEngagement(
     `update analytics_engagement
      SET nb_actifs_4_semaines_sur_6 = subquery.nb_actifs_4_semaines_sur_6
      FROM (SELECT structure,
+                  dispositif,
                   type_utilisateur,
                   region,
                   departement,
@@ -137,28 +149,31 @@ export async function chargerLaVueEngagement(
            FROM (SELECT count(distinct week_ae) as nb_week,
                         id_utilisateur,
                         structure,
+                        dispositif,
                         type_utilisateur,
                         region,
                         departement
                  FROM (SELECT count(distinct jour) as nb_day_ae,
                               semaine              as week_ae,
                               structure,
+                              dispositif,
                               type_utilisateur,
                               COALESCE(region, 'NON RENSEIGNE') AS region,
                               COALESCE(departement, 'NON RENSEIGNE') AS departement,
                               id_utilisateur
                        FROM ${analyticsTableName}
                        WHERE date_evenement between '${semaine}'::timestamp - interval '5 week' and '${semaine}'::timestamp + interval '1 week'
-                       GROUP BY week_ae, id_utilisateur, structure, region, departement, type_utilisateur) ee
+                       GROUP BY week_ae, id_utilisateur, structure, dispositif, region, departement, type_utilisateur) ee
                  WHERE nb_day_ae >= 2
-                 GROUP BY id_utilisateur, structure, region, departement, type_utilisateur) x
+                 GROUP BY id_utilisateur, structure, dispositif, region, departement, type_utilisateur) x
            WHERE nb_week >= 4
-           GROUP BY structure, type_utilisateur, region, departement
-           ORDER BY structure, type_utilisateur, region, departement) as subquery
+           GROUP BY structure, dispositif, type_utilisateur, region, departement
+           ORDER BY structure, dispositif, type_utilisateur, region, departement) as subquery
      WHERE analytics_engagement.semaine = '${semaine}'
        AND analytics_engagement.departement = subquery.departement
        AND analytics_engagement.region = subquery.region
        AND analytics_engagement.structure = subquery.structure
+       AND analytics_engagement.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -202,16 +217,18 @@ export async function chargerLaVueEngagementNational(
   await connexion.query(
     `insert into analytics_engagement_national(semaine,
                                               structure,
+                                              dispositif,
                                               type_utilisateur,
                                               nombre_utilisateurs_2_mois)
      SELECT '${semaine}',
             structure,
+            dispositif,
             type_utilisateur,
             count(distinct id_utilisateur) as nombre_utilisateurs_2_mois
      from ${analyticsTableName}
      where date_evenement between '${semaine}'::timestamp - interval '2 months' and '${semaine}'::timestamp + interval '1 week'
-     group by structure, type_utilisateur
-     order by structure, type_utilisateur;`
+     group by structure, dispositif, type_utilisateur
+     order by structure, dispositif, type_utilisateur;`
   )
 
   logger.log('Insertion des utilisateurs du dernier mois')
@@ -222,14 +239,16 @@ export async function chargerLaVueEngagementNational(
       SELECT 
         '${semaine}',
         structure,
+        dispositif,
         type_utilisateur,
         count(distinct id_utilisateur) as nombre_utilisateurs_1_mois
      from ${analyticsTableName}
      where date_evenement between '${semaine}'::timestamp - interval '1 months' and '${semaine}'::timestamp + interval '1 week'
-     group by structure, type_utilisateur
-     order by structure, type_utilisateur) as subquery
+     group by structure, dispositif, type_utilisateur
+     order by structure, dispositif, type_utilisateur) as subquery
      WHERE analytics_engagement_national.semaine = '${semaine}'
        AND analytics_engagement_national.structure = subquery.structure
+       AND analytics_engagement_national.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement_national.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -240,19 +259,22 @@ export async function chargerLaVueEngagementNational(
      FROM (SELECT count(distinct x.id_utilisateur) as nombre_utilisateurs_engages_2_jours_dans_la_semaine,
                   x.semaine,
                   x.structure,
+                  x.dispositif,
                   x.type_utilisateur
            FROM (SELECT count(distinct jour) as nb_day_ae,
                         semaine,
                         structure,
+                        dispositif,
                         type_utilisateur,
                         id_utilisateur
                  FROM ${analyticsTableName}
                  WHERE semaine = '${semaine}'
-                 GROUP BY semaine, id_utilisateur, semaine, structure, type_utilisateur) x
+                 GROUP BY semaine, id_utilisateur, semaine, structure, dispositif, type_utilisateur) x
            WHERE nb_day_ae >= 2
-           GROUP BY x.semaine, x.structure, x.type_utilisateur) as subquery
+           GROUP BY x.semaine, x.structure, x.dispositif, x.type_utilisateur) as subquery
      WHERE analytics_engagement_national.semaine = '${semaine}'
        AND analytics_engagement_national.structure = subquery.structure
+       AND analytics_engagement_national.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement_national.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -261,27 +283,31 @@ export async function chargerLaVueEngagementNational(
     `update analytics_engagement_national
      SET nb_actifs_3_semaines_sur_6 = subquery.nb_actifs_3_semaines_sur_6
      FROM (SELECT structure,
+                  dispositif,
                   type_utilisateur,
                   count(*) as nb_actifs_3_semaines_sur_6
            FROM (SELECT count(distinct week_ae) as nb_week,
                         id_utilisateur,
                         structure,
+                        dispositif,
                         type_utilisateur
                  FROM (SELECT count(distinct jour) as nb_day_ae,
                               semaine              as week_ae,
                               structure,
+                              dispositif,
                               type_utilisateur,
                               id_utilisateur
                        FROM ${analyticsTableName}
                        WHERE date_evenement between '${semaine}'::timestamp - interval '5 week' and '${semaine}'::timestamp + interval '1 week'
-                       GROUP BY week_ae, id_utilisateur, structure, type_utilisateur) ee
+                       GROUP BY week_ae, id_utilisateur, structure, dispositif, type_utilisateur) ee
                  WHERE nb_day_ae >= 2
-                 GROUP BY id_utilisateur, structure, type_utilisateur) x
+                 GROUP BY id_utilisateur, structure, dispositif, type_utilisateur) x
            WHERE nb_week >= 3
-           GROUP BY structure, type_utilisateur
-           ORDER BY structure, type_utilisateur) as subquery
+           GROUP BY structure, dispositif, type_utilisateur
+           ORDER BY structure, dispositif, type_utilisateur) as subquery
      WHERE analytics_engagement_national.semaine = '${semaine}'
        AND analytics_engagement_national.structure = subquery.structure
+       AND analytics_engagement_national.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement_national.type_utilisateur = subquery.type_utilisateur;`
   )
 
@@ -290,27 +316,31 @@ export async function chargerLaVueEngagementNational(
     `update analytics_engagement_national
      SET nb_actifs_4_semaines_sur_6 = subquery.nb_actifs_4_semaines_sur_6
      FROM (SELECT structure,
+                  dispositif,
                   type_utilisateur,
                   count(*) as nb_actifs_4_semaines_sur_6
            FROM (SELECT count(distinct week_ae) as nb_week,
                         id_utilisateur,
                         structure,
+                        dispositif,
                         type_utilisateur
                  FROM (SELECT count(distinct jour) as nb_day_ae,
                               semaine              as week_ae,
                               structure,
+                              dispositif,
                               type_utilisateur,
                               id_utilisateur
                        FROM ${analyticsTableName}
                        WHERE date_evenement between '${semaine}'::timestamp - interval '5 week' and '${semaine}'::timestamp + interval '1 week'
-                       GROUP BY week_ae, id_utilisateur, structure, type_utilisateur) ee
+                       GROUP BY week_ae, id_utilisateur, structure, dispositif, type_utilisateur) ee
                  WHERE nb_day_ae >= 2
-                 GROUP BY id_utilisateur, structure, type_utilisateur) x
+                 GROUP BY id_utilisateur, structure, dispositif, type_utilisateur) x
            WHERE nb_week >= 4
-           GROUP BY structure, type_utilisateur
-           ORDER BY structure, type_utilisateur) as subquery
+           GROUP BY structure, dispositif, type_utilisateur
+           ORDER BY structure, dispositif, type_utilisateur) as subquery
      WHERE analytics_engagement_national.semaine = '${semaine}'
        AND analytics_engagement_national.structure = subquery.structure
+       AND analytics_engagement_national.dispositif IS NOT DISTINCT FROM subquery.dispositif
        AND analytics_engagement_national.type_utilisateur = subquery.type_utilisateur;`
   )
 

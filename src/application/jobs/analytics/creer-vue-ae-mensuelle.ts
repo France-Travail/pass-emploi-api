@@ -125,6 +125,7 @@ export class CreerVueAEMensuelleJobHandler extends JobHandler {
       create index if not exists evenement_engagement_${mois}_id_utilisateur_index on evenement_engagement_${mois} (id_utilisateur);
       create index if not exists evenement_engagement_${mois}_type_utilisateur_index on evenement_engagement_${mois} (type_utilisateur);
       create index if not exists evenement_engagement_${mois}_structure_index on evenement_engagement_${mois} (structure);
+      create index if not exists evenement_engagement_${mois}_dispositif_index on evenement_engagement_${mois} (dispositif);
       create index if not exists evenement_engagement_${mois}_code_index on evenement_engagement_${mois} (code);
       create index if not exists evenement_engagement_${mois}_semaine_index on evenement_engagement_${mois} (semaine);
       create index if not exists evenement_engagement_${mois}_jour_index on evenement_engagement_${mois} (jour);

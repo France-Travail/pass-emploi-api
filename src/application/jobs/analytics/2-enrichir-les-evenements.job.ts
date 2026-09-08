@@ -91,6 +91,14 @@ export class EnrichirEvenementsJobHandler extends JobHandler {
         ADD COLUMN IF NOT EXISTS "departement" varchar,
         ADD COLUMN IF NOT EXISTS "region"      varchar;
     `)
+    // Les tables annuelles sont des copies figées du schéma d'evenement_engagement.
+    for (const tableAnnuelle of infosTablesAEAnnuelles) {
+      if (tableAnnuelle.suffix === '') continue
+      await connexion.query(`
+        ALTER TABLE evenement_engagement${tableAnnuelle.suffix}
+          ADD COLUMN IF NOT EXISTS "dispositif" varchar;
+      `)
+    }
     await connexion.query(`
       ALTER TABLE conseiller
         ADD COLUMN IF NOT EXISTS "date_dernier_ae"     TIMESTAMP,

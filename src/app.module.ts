@@ -134,6 +134,7 @@ import { ChargerLesVuesJobHandler } from './application/jobs/analytics/3-charger
 import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/creer-tables-ae-annuelles'
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
 import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
+import { InitialiserLaVueDemarchesIAJobHandler } from './application/jobs/analytics/initialiser-la-vue-demarches-ia.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
 import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
@@ -949,6 +950,7 @@ export const JobHandlerProviders = [
   ChargerLesVuesJobHandler,
   InitialiserLesVuesJobHandler,
   InitialiserLesVuesSurLaDerniereAnneeJobHandler,
+  InitialiserLaVueDemarchesIAJobHandler,
   CreerTablesAEAnnuellesJobHandler,
   CreerVueAEMensuelleJobHandler,
   QualifierActionsJobHandler,
