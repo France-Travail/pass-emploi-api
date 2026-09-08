@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize-typescript'
+import { sqlConseillerDansPopulation } from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_MIGRATION_TABLE_NAME } from './3-0-migrate-schema'
 
 export async function chargerLaVueFonctionnaliteMigration(
@@ -14,9 +15,9 @@ export async function chargerLaVueFonctionnaliteMigration(
   await connexion.query(`
     WITH conseillers_migration AS (
       SELECT DISTINCT c.id AS id_utilisateur
-      FROM feature_flip ff
-      JOIN conseiller c ON c.email = ff.email_conseiller
-      WHERE ff.feature_tag ILIKE '%migration%'
+      FROM deploiement d
+      JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'd.id_population')}
+      WHERE d.nature = 'MIGRATION'
     ),
     jeunes_migration AS (
       SELECT DISTINCT aj.id_jeune AS id_utilisateur

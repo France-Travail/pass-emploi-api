@@ -18,7 +18,6 @@ import {
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
 import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler.db'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
@@ -34,7 +33,6 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
@@ -46,7 +44,6 @@ import {
 import { createSandbox, SinonStub } from 'sinon'
 import Bull from 'bull'
 import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
-import { Profil } from '../../../src/domain/profil'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -59,7 +56,6 @@ describe('SupportController', () => {
   let deleteSuperviseursCommandHandler: StubbedClass<DeleteSuperviseursCommandHandler>
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
   let creerNotificationCommandHandler: StubbedClass<NotifierBeneficiairesCommandHandler>
-  let updateFeatureFlipCommandHandler: StubbedClass<UpdateFeatureFlipCommandHandler>
   let oidcClient: StubbedClass<OidcClient>
   let planificateurRepository: Planificateur.Repository
   let app: INestApplication
@@ -85,7 +81,6 @@ describe('SupportController', () => {
     transfererJeunesConseillerCommandHandler = app.get(
       TransfererJeunesConseillerCommandHandler
     )
-    updateFeatureFlipCommandHandler = app.get(UpdateFeatureFlipCommandHandler)
     creerNotificationCommandHandler = app.get(
       NotifierBeneficiairesCommandHandler
     )
@@ -621,12 +616,6 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structuresEtDispositifs: [
-            {
-              structure: Profil.Structure.FRANCE_TRAVAIL,
-              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-            }
-          ],
           push: true,
           batchSize: 2000
         }
@@ -651,7 +640,6 @@ describe('SupportController', () => {
           type: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          dispositifs: ['PAS_BON'],
           push: 'true',
           batchSize: 2000
         }
@@ -663,11 +651,10 @@ describe('SupportController', () => {
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)
       })
-      it('renvoie 400 quand les dispositifs sont vides', async () => {
+      it('renvoie 400 sans titre ni description', async () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          dispositifs: [],
           push: true,
           batchSize: 2000
         }
@@ -683,7 +670,6 @@ describe('SupportController', () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          structuresEtDispositifs: [{ structure: 'MILO' }],
           push: true,
           batchSize: -1
         }
@@ -695,13 +681,14 @@ describe('SupportController', () => {
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)
       })
-      it("renvoie 400 quand le phaseDeMigration n'existe pas", async () => {
+      it('renvoie 400 quand idPopulation est vide', async () => {
         // Given
         const payload = {
-          texte: 'Nouvelle notification !',
-          structuresEtDispositifs: [{ structure: 'MILO' }],
+          type: Notification.Type.OUTILS,
+          titre: "Les offres d'immersion sont disponibles",
+          description: 'Rendez-vous sur la page des offres.',
           push: true,
-          phaseDeMigration: 'test'
+          idPopulation: ''
         }
 
         // When - Then
@@ -719,12 +706,6 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structuresEtDispositifs: [
-            {
-              structure: Profil.Structure.FRANCE_TRAVAIL,
-              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-            }
-          ],
           push: true,
           batchSize: 2000
         }
@@ -792,68 +773,6 @@ describe('SupportController', () => {
         // When - Then
         await request(app.getHttpServer())
           .delete('/support/superviseurs')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-    })
-  })
-
-  describe('POST /feature-flip', () => {
-    describe('quand le payload est valide', () => {
-      it('renvoie 204', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test']
-        }
-        const command = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: undefined
-        }
-        updateFeatureFlipCommandHandler.execute
-          .withArgs(command)
-          .resolves(emptySuccess())
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 204 avec supprimerExistants à false', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: false
-        }
-        const command = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: false
-        }
-        updateFeatureFlipCommandHandler.execute
-          .withArgs(command)
-          .resolves(emptySuccess())
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 400 qd supprimerExistants est autre que true', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: 'true'
-        }
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
           .send(payload)
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)

@@ -84,8 +84,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
 
   describe('execute', () => {
     describe('Conseiller', () => {
-      describe("conseiller venant de l'idp MILO ou Pole Emploi", async () => {
-        describe('conseiller connu', async () => {
+      describe("conseiller venant de l'idp MILO ou Pole Emploi", () => {
+        describe('conseiller connu', () => {
           it('retourne le conseiller', async () => {
             // Given
             const command: UpdateUtilisateurCommand = {
@@ -136,7 +136,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.updateInstallationIdJeune
             ).to.have.callCount(0)
           })
-          describe('conseiller connu avec mauvaise structure', async () => {
+          describe('conseiller connu avec mauvaise structure', () => {
             it('retourne failure', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -168,7 +168,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             })
           })
-          describe('conseiller connu avec structure FRANCE_TRAVAIL', async () => {
+          describe('conseiller connu avec structure FRANCE_TRAVAIL', () => {
             it('retourne le conseiller', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -199,7 +199,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
-          describe('conseiller connu qui doit migrer vers Parcours Emploi', async () => {
+          describe('conseiller connu qui doit migrer vers Parcours Emploi', () => {
             it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -236,7 +236,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
-          describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', async () => {
+          describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', () => {
             it('retourne le conseiller', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -276,7 +276,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
           })
         })
 
-        describe('conseiller connu avec nouvel email, nom et prenom', async () => {
+        describe('conseiller connu avec nouvel email, nom et prenom', () => {
           it('met à jour ses infos et retourne le conseiller sans envoi email quand date trop passée', async () => {
             // Given
             const command: UpdateUtilisateurCommand = {
@@ -427,7 +427,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             }
           })
         })
-        describe('conseiller inconnu', async () => {
+        describe('conseiller inconnu', () => {
           describe('quand il est valide', () => {
             let result: Result<UtilisateurQueryModel>
             const command: UpdateUtilisateurCommand = {
@@ -633,8 +633,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
     })
 
     describe('Jeune', () => {
-      describe("jeune venant de l'idp MILO", async () => {
-        describe("jeune connu par son id d'authentification", async () => {
+      describe("jeune venant de l'idp MILO", () => {
+        describe("jeune connu par son id d'authentification", () => {
           it('retourne le jeune', async () => {
             // Given
             const command: UpdateUtilisateurCommand = {
@@ -812,7 +812,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
           })
         })
 
-        describe("jeune non connu par son id d'authentification", async () => {
+        describe("jeune non connu par son id d'authentification", () => {
           it("réassocie par email un jeune Milo orphelin d'id d'authentification en préservant sa date de première connexion", async () => {
             // Given
             const datePremiereConnexionHistorique = new Date(
@@ -1039,9 +1039,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
         })
       })
 
-      describe("jeune venant de l'idp Pole Emploi / BRSA", async () => {
-        describe("jeune connu par son id d'authentification", async () => {
-          describe("quand le jeune n'a pas migré vers Parcours Emploi", async () => {
+      describe("jeune venant de l'idp Pole Emploi / BRSA", () => {
+        describe("jeune connu par son id d'authentification", () => {
+          describe("quand le jeune n'a pas migré vers Parcours Emploi", () => {
             it('retourne le jeune', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -1130,7 +1130,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             })
           })
-          describe('quand le jeune a migré vers Parcours Emploi (Feature Flip MIGRATION_PHASE_X pour son conseiller)', async () => {
+          describe('quand le jeune a migré vers Parcours Emploi (vague de migration pour son conseiller)', () => {
             it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune a migré vers Parcours Emploi', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -1170,7 +1170,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
-          describe('jeune connu par son email (première connexion)', async () => {
+          describe('jeune connu par son email (première connexion)', () => {
             it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
               // Given
               const utilisateur = unUtilisateurJeunePasConnecte({
@@ -1261,7 +1261,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             })
           })
-          describe("jeune non connu par son id d'authentification ou email", async () => {
+          describe("jeune non connu par son id d'authentification ou email", () => {
             it("retourne une failure quand l'email PE n'est pas fournie", async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
@@ -1360,8 +1360,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
           })
         })
 
-        describe('BENEFICIAIRE FRANCE_TRAVAIL', async () => {
-          describe("benef connu par son id d'authentification", async () => {
+        describe('BENEFICIAIRE FRANCE_TRAVAIL', () => {
+          describe("benef connu par son id d'authentification", () => {
             it('retourne le benef', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {

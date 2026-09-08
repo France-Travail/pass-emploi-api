@@ -11,8 +11,6 @@ import { uneDatetime } from '../../fixtures/date.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import { Migration } from '../../../src/domain/migration'
-import { Profil } from '../../../src/domain/profil'
 
 describe('NotifierBeneficiairesCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -46,13 +44,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structuresEtDispositifs: [
-          {
-            structure: Profil.Structure.FRANCE_TRAVAIL,
-            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-          }
-        ],
-        phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+        idPopulation: 'PHASE_A',
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15
@@ -72,13 +64,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
           params: {
-            structuresEtDispositifs: [
-              {
-                structure: Profil.Structure.FRANCE_TRAVAIL,
-                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-              }
-            ],
-            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+            idPopulation: 'PHASE_A',
             push: true,
             batchSize: 2000,
             minutesEntreLesBatchs: 15
@@ -114,8 +100,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structuresEtDispositifs: undefined,
-            phaseDeMigration: undefined,
+            idPopulation: undefined,
             push: false,
             batchSize: undefined,
             minutesEntreLesBatchs: 5
@@ -158,12 +143,6 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structuresEtDispositifs: [
-          {
-            structure: Profil.Structure.FRANCE_TRAVAIL,
-            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-          }
-        ],
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15

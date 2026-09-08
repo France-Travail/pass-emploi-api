@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { emptySuccess, Result } from '../../building-blocks/types/result'
-import { Migration } from '../../domain/migration'
-import PhaseDeMigration = Migration.PhaseDeMigration
+import { NonTrouveError } from '../../building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure,
+  Result
+} from '../../building-blocks/types/result'
+import { Migration, MigrationRepositoryToken } from '../../domain/migration'
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
-  phaseDeMigration: PhaseDeMigration
+  idPopulationQuiMigre: string
 }
 
 @Injectable()
@@ -13,7 +17,11 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   RebasculerJeunesOrphelinsMigrationCommand,
   void
 > {
-  constructor(private readonly migrationService: Migration.Service) {
+  constructor(
+    private readonly migrationService: Migration.Service,
+    @Inject(MigrationRepositoryToken)
+    private readonly migrationRepository: Migration.Repository
+  ) {
     super('RebasculerJeunesOrphelinsMigrationCommandHandler')
   }
 
@@ -24,10 +32,19 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   async handle(
     command: RebasculerJeunesOrphelinsMigrationCommand
   ): Promise<Result> {
-    const rebasculements =
-      await this.migrationService.rebasculerOrphelinsDePhase(
-        command.phaseDeMigration
+    const migrationExiste =
+      await this.migrationRepository.populationConcerneeParUneMigration(
+        command.idPopulationQuiMigre
       )
+    if (!migrationExiste) {
+      return failure(
+        new NonTrouveError('Migration', command.idPopulationQuiMigre)
+      )
+    }
+
+    const rebasculements = await this.migrationService.rebasculerOrphelins(
+      command.idPopulationQuiMigre
+    )
     rebasculements.forEach(
       ({ idJeune, ancienIdConseiller, nouveauIdConseiller }) =>
         this.logger.log(
@@ -37,7 +54,7 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
     )
     this.logger.log(
       {
-        phaseDeMigration: command.phaseDeMigration,
+        idPopulationQuiMigre: command.idPopulationQuiMigre,
         count: rebasculements.length
       },
       'Rebasculement orphelins terminé'
