@@ -11,6 +11,7 @@ import {
 } from '../../../building-blocks/types/result'
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
 import { Authentification } from '../../../domain/authentification'
+import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../../domain/profil'
 import {
   Conseiller,
@@ -39,6 +40,8 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
     private conseillerRepository: Conseiller.Repository,
     @Inject(AgenceRepositoryToken)
     private agencesRepository: Agence.Repository,
+    @Inject(JeuneRepositoryToken)
+    private jeuneRepository: Jeune.Repository,
     private readonly conseillerAuthorizer: ConseillerAuthorizer
   ) {
     super('ModifierConseillerCommandHandler')
@@ -84,6 +87,13 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
       return conseillerResult
     }
     await this.conseillerRepository.save(conseillerResult.data)
+
+    if (command.dispositif) {
+      await this.jeuneRepository.changerDispositifDesJeunesDuConseiller(
+        command.idConseiller,
+        command.dispositif
+      )
+    }
     return emptySuccess()
   }
 

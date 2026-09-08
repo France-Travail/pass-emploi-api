@@ -164,6 +164,11 @@ export namespace Jeune {
     saveAllJeuneTransferes(jeunes: Jeune[]): Promise<void>
 
     reinitialiserDatePremiereConnexion(idJeune: string): Promise<void>
+
+    changerDispositifDesJeunesDuConseiller(
+      idConseiller: string,
+      dispositif: Profil.Dispositif
+    ): Promise<void>
   }
 
   @Injectable()

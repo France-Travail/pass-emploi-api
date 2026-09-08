@@ -19,6 +19,7 @@ import {
 } from 'test/fixtures/sql-models/favoris.sql-model'
 import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
+import { Profil } from '../../../../src/domain/profil'
 import { CodeTypeRendezVous } from '../../../../src/domain/rendez-vous/rendez-vous'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { FirebaseClient } from '../../../../src/infrastructure/clients/firebase-client'
@@ -198,6 +199,57 @@ describe('JeuneSqlRepository', () => {
       // Then
       const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
       expect(jeuneSql!.datePremiereConnexion).to.be.null()
+    })
+  })
+
+  describe('changerDispositifDesJeunesDuConseiller', () => {
+    it('rattache tous les jeunes du conseiller au dispositif, et eux seuls', async () => {
+      // Given
+      const conseillerDto = unConseillerDto({
+        id: 'conseiller-ft',
+        structure: Core.Structure.POLE_EMPLOI
+      })
+      const autreConseillerDto = unConseillerDto({
+        id: 'autre-conseiller-ft',
+        structure: Core.Structure.POLE_EMPLOI
+      })
+      await ConseillerSqlModel.bulkCreate([conseillerDto, autreConseillerDto])
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeune-1',
+          idConseiller: conseillerDto.id,
+          structure: Core.Structure.POLE_EMPLOI
+        }),
+        unJeuneDto({
+          id: 'jeune-2',
+          idConseiller: conseillerDto.id,
+          structure: Core.Structure.POLE_EMPLOI
+        }),
+        unJeuneDto({
+          id: 'jeune-autre-conseiller',
+          idConseiller: autreConseillerDto.id,
+          structure: Core.Structure.POLE_EMPLOI
+        })
+      ])
+
+      // When
+      await jeuneSqlRepository.changerDispositifDesJeunesDuConseiller(
+        conseillerDto.id,
+        Profil.Dispositif.BRSA
+      )
+
+      // Then
+      const jeunesDuConseiller = await JeuneSqlModel.findAll({
+        where: { idConseiller: conseillerDto.id }
+      })
+      expect(jeunesDuConseiller).to.have.length(2)
+      jeunesDuConseiller.forEach(jeune =>
+        expect(jeune.dispositif).to.equal(Profil.Dispositif.BRSA)
+      )
+      const jeuneAutreConseiller = await JeuneSqlModel.findByPk(
+        'jeune-autre-conseiller'
+      )
+      expect(jeuneAutreConseiller!.dispositif).to.equal(Profil.Dispositif.CEJ)
     })
   })
 

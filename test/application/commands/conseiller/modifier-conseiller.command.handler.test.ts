@@ -10,6 +10,7 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { Failure } from '../../../../src/building-blocks/types/result'
 import { Agence } from '../../../../src/domain/agence'
+import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
@@ -19,6 +20,7 @@ import { Profil } from '../../../../src/domain/profil'
 describe('ModifierConseillerCommandHandler', () => {
   let conseillerRepository: StubbedType<Conseiller.Repository>
   let agencesRepository: StubbedType<Agence.Repository>
+  let jeuneRepository: StubbedType<Jeune.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let modifierConseillerCommandHandler: ModifierConseillerCommandHandler
 
@@ -44,10 +46,12 @@ describe('ModifierConseillerCommandHandler', () => {
     const sandbox = createSandbox()
     conseillerRepository = stubInterface(sandbox)
     agencesRepository = stubInterface(sandbox)
+    jeuneRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     modifierConseillerCommandHandler = new ModifierConseillerCommandHandler(
       conseillerRepository,
       agencesRepository,
+      jeuneRepository,
       conseillerAuthorizer
     )
   })
@@ -175,6 +179,51 @@ describe('ModifierConseillerCommandHandler', () => {
               agence: undefined
             })
           )
+        })
+        it('rattache les jeunes du conseiller à son nouveau dispositif', async () => {
+          // Given
+          const conseillerCEJ = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerCEJ)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            dispositif: Profil.Dispositif.AIJ
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(
+            jeuneRepository.changerDispositifDesJeunesDuConseiller
+          ).to.have.been.calledOnceWithExactly(
+            idConseiller,
+            Profil.Dispositif.AIJ
+          )
+        })
+        it("ne touche pas aux jeunes quand le dispositif n'est pas modifié", async () => {
+          // Given
+          const conseillerPE = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
+          })
+          conseillerRepository.get.withArgs(idConseiller).resolves(conseillerPE)
+          agencesRepository.get.withArgs('id-agence').resolves(agenceQuiExiste)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle(command)
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(
+            jeuneRepository.changerDispositifDesJeunesDuConseiller
+          ).not.to.have.been.called()
         })
       })
       describe('quand le conseiller vient de Mission Locale', () => {

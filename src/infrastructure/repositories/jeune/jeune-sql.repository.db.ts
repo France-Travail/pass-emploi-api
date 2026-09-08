@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op, Sequelize } from 'sequelize'
 import { Jeune } from '../../../domain/jeune/jeune'
+import { Profil } from '../../../domain/profil'
 import { DateService } from '../../../utils/date-service'
 import { IdService } from '../../../utils/id-service'
 import { FirebaseClient } from '../../clients/firebase-client'
@@ -177,6 +178,13 @@ export class JeuneSqlRepository implements Jeune.Repository {
       { datePremiereConnexion: null },
       { where: { id: idJeune } }
     )
+  }
+
+  async changerDispositifDesJeunesDuConseiller(
+    idConseiller: string,
+    dispositif: Profil.Dispositif
+  ): Promise<void> {
+    await JeuneSqlModel.update({ dispositif }, { where: { idConseiller } })
   }
 
   async supprimer(idJeune: string): Promise<void> {
