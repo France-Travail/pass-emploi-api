@@ -203,7 +203,7 @@ describe('JeuneSqlRepository', () => {
   })
 
   describe('changerDispositifDesJeunesDuConseiller', () => {
-    it('rattache tous les jeunes du conseiller au dispositif, et eux seuls', async () => {
+    it('rattache au dispositif les jeunes du conseiller hors réaffectation temporaire, et eux seuls', async () => {
       // Given
       const conseillerDto = unConseillerDto({
         id: 'conseiller-ft',
@@ -226,6 +226,12 @@ describe('JeuneSqlRepository', () => {
           structure: Core.Structure.POLE_EMPLOI
         }),
         unJeuneDto({
+          id: 'jeune-reaffecte-temporairement',
+          idConseiller: conseillerDto.id,
+          idConseillerInitial: autreConseillerDto.id,
+          structure: Core.Structure.POLE_EMPLOI
+        }),
+        unJeuneDto({
           id: 'jeune-autre-conseiller',
           idConseiller: autreConseillerDto.id,
           structure: Core.Structure.POLE_EMPLOI
@@ -239,17 +245,18 @@ describe('JeuneSqlRepository', () => {
       )
 
       // Then
-      const jeunesDuConseiller = await JeuneSqlModel.findAll({
-        where: { idConseiller: conseillerDto.id }
-      })
-      expect(jeunesDuConseiller).to.have.length(2)
-      jeunesDuConseiller.forEach(jeune =>
-        expect(jeune.dispositif).to.equal(Profil.Dispositif.BRSA)
-      )
-      const jeuneAutreConseiller = await JeuneSqlModel.findByPk(
-        'jeune-autre-conseiller'
-      )
-      expect(jeuneAutreConseiller!.dispositif).to.equal(Profil.Dispositif.CEJ)
+      const jeunes = await JeuneSqlModel.findAll({ order: [['id', 'ASC']] })
+      expect(
+        jeunes.map(({ id, dispositif }) => ({ id, dispositif }))
+      ).to.deep.equal([
+        { id: 'jeune-1', dispositif: Profil.Dispositif.BRSA },
+        { id: 'jeune-2', dispositif: Profil.Dispositif.BRSA },
+        { id: 'jeune-autre-conseiller', dispositif: Profil.Dispositif.CEJ },
+        {
+          id: 'jeune-reaffecte-temporairement',
+          dispositif: Profil.Dispositif.CEJ
+        }
+      ])
     })
   })
 

@@ -75,6 +75,15 @@ export const DISPOSITIFS_ACCOMPAGNES: readonly StructureEtDispositifs[] = [
   TOUT_CONSEIL_DEPARTEMENTAL
 ]
 
+// Dispositifs qu'un conseiller peut attribuer à un bénéficiaire qu'il accompagne.
+export const DISPOSITIFS_ATTRIBUABLES: readonly StructureEtDispositifs[] = [
+  {
+    structure: Profil.Structure.MILO,
+    dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
+  },
+  DISPOSITIFS_FT_ACCOMPAGNES
+]
+
 export const TOUT_PROFIL: readonly StructureEtDispositifs[] = [
   TOUT_MILO,
   TOUT_FRANCE_TRAVAIL,

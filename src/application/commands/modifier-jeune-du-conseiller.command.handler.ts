@@ -1,14 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { NonTrouveError } from '../../building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../building-blocks/types/domain-error'
 import {
   Result,
   emptySuccess,
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  DISPOSITIFS_ATTRIBUABLES,
+  Profil,
+  profilEstAutorise
+} from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 
@@ -50,6 +58,17 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
       jeuneMisAJour = Jeune.mettreAJourIdPartenaire(jeune, command.idPartenaire)
     }
     if (command.dispositif) {
+      const dispositifAttribuable = profilEstAutorise(
+        { structure: jeune.structure, dispositif: command.dispositif },
+        DISPOSITIFS_ATTRIBUABLES
+      )
+      if (!dispositifAttribuable) {
+        return failure(
+          new MauvaiseCommandeError(
+            'Ce dispositif n’est pas proposé pour ce bénéficiaire'
+          )
+        )
+      }
       jeuneMisAJour = Jeune.mettreAJourDispositif(jeune, command.dispositif)
     }
 

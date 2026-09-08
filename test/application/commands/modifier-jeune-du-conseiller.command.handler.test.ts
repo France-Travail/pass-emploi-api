@@ -5,7 +5,10 @@ import {
   ModifierJeuneDuConseillerCommand,
   ModifierJeuneDuConseillerCommandHandler
 } from '../../../src/application/commands/modifier-jeune-du-conseiller.command.handler'
-import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure
@@ -121,6 +124,52 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(result).to.deep.equal(emptySuccess())
+      })
+      it('met à jour le dispositif d’un bénéficiaire France Travail', async () => {
+        // Given
+        const jeuneFT = unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
+
+        // When
+        const result = await modifierJeuneDuConseillerCommandHandler.handle({
+          idJeune: jeuneFT.id,
+          dispositif: Profil.Dispositif.BRSA
+        })
+
+        // Then
+        expect(jeuneRepository.save).to.have.been.calledWithExactly({
+          ...jeuneFT,
+          dispositif: Profil.Dispositif.BRSA,
+          peutVoirLeComptageDesHeures: false
+        })
+        expect(result).to.deep.equal(emptySuccess())
+      })
+      it('refuse un dispositif qui n’est pas proposé pour la structure du bénéficiaire', async () => {
+        // Given
+        const jeuneFT = unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
+
+        // When
+        const result = await modifierJeuneDuConseillerCommandHandler.handle({
+          idJeune: jeuneFT.id,
+          dispositif: Profil.Dispositif.PACEA
+        })
+
+        // Then
+        expect(jeuneRepository.save).not.to.have.been.called()
+        expect(result).to.deep.equal(
+          failure(
+            new MauvaiseCommandeError(
+              'Ce dispositif n’est pas proposé pour ce bénéficiaire'
+            )
+          )
+        )
       })
     })
 
