@@ -24,6 +24,7 @@ export namespace FeatureFlip {
       tags: Tag[],
       idBeneficiaire: string
     ): Promise<Tag | undefined>
+    getTagsActifsPourLeConseillerDuJeune(idBeneficiaire: string): Promise<Tag[]>
   }
 
   @Injectable()

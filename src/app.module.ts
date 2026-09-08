@@ -215,6 +215,7 @@ import { GetOffresEmploiQueryHandler } from './application/queries/get-offres-em
 import { GetOffresImmersionQueryHandlerV3 } from './application/queries/get-offres-immersionV3.query.handler'
 import { GetOffresServicesCiviqueQueryHandler } from './application/queries/get-offres-services-civique.query.handler'
 import { GetPreferencesJeuneQueryHandler } from './application/queries/get-preferences-jeune.query.handler.db'
+import { GetFeaturesJeuneQueryHandler } from './application/queries/get-features-jeune.query.handler'
 import { GetRecherchesQueryHandler } from './application/queries/get-recherches.query.handler.db'
 import { GetSuggestionsQueryHandler } from './application/queries/get-suggestions.query.handler.db'
 import { GetSuiviSemainePoleEmploiQueryHandler } from './application/queries/get-suivi-semaine-pole-emploi.query.handler'
@@ -827,6 +828,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     PlanifierExecutionCronCommandHandler,
     UpdateJeunePreferencesCommandHandler,
     GetPreferencesJeuneQueryHandler,
+    GetFeaturesJeuneQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
     ModifierJeuneDuConseillerCommandHandler,
     ChangerDispositifJeuneCommandHandler,

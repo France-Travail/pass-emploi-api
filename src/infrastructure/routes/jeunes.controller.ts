@@ -33,6 +33,10 @@ import { UpdateJeuneConfigurationApplicationCommandHandler } from 'src/applicati
 import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/update-preferences-jeune.command.handler'
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
+import {
+  GetFeaturesJeuneQuery,
+  GetFeaturesJeuneQueryHandler
+} from 'src/application/queries/get-features-jeune.query.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
 import {
@@ -43,6 +47,7 @@ import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/
 import { JeuneHomeActionQueryModel } from 'src/application/queries/query-models/home-jeune.query-model'
 import {
   DetailJeuneQueryModel,
+  FeatureJeuneQueryModel,
   HistoriqueConseillerJeuneQueryModel,
   PreferencesJeuneQueryModel
 } from 'src/application/queries/query-models/jeunes.query-model'
@@ -90,6 +95,7 @@ export class JeunesController {
     private readonly getConseillersJeuneQueryHandler: GetConseillersJeuneQueryHandler,
     private readonly updateJeunePreferencesCommandHandler: UpdateJeunePreferencesCommandHandler,
     private readonly getPreferencesJeuneQueryHandler: GetPreferencesJeuneQueryHandler,
+    private readonly getFeaturesJeuneQueryHandler: GetFeaturesJeuneQueryHandler,
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
@@ -401,6 +407,25 @@ export class JeunesController {
       idJeune
     }
     const result = await this.getPreferencesJeuneQueryHandler.execute(
+      query,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les features du jeune avec leur état actif ou non',
+    description: 'Autorisé pour un jeune'
+  })
+  @ApiResponse({ type: FeatureJeuneQueryModel, isArray: true })
+  @Get(':idJeune/features')
+  async getFeaturesJeune(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<FeatureJeuneQueryModel[]> {
+    const query: GetFeaturesJeuneQuery = { idJeune }
+    const result = await this.getFeaturesJeuneQueryHandler.execute(
       query,
       utilisateur
     )

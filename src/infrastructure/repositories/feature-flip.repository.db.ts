@@ -37,6 +37,25 @@ export class FeatureFlipSqlRepository implements FeatureFlip.Repository {
     return rows[0].feature_tag
   }
 
+  async getTagsActifsPourLeConseillerDuJeune(
+    idBeneficiaire: string
+  ): Promise<FeatureFlip.Tag[]> {
+    const rows = await this.sequelize.query<{ feature_tag: FeatureFlip.Tag }>(
+      `
+        SELECT DISTINCT ff.feature_tag
+        FROM feature_flip ff
+               JOIN jeune j ON j.id = :idJeune
+               JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+        WHERE ff.email_conseiller = c.email
+      `,
+      {
+        replacements: { idJeune: idBeneficiaire },
+        type: QueryTypes.SELECT
+      }
+    )
+    return rows.map(row => row.feature_tag)
+  }
+
   async getTagSiFeatureActivePourLeConseiller(
     tags: FeatureFlip.Tag[],
     idConseiller: string

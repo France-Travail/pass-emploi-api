@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { FeatureFlip } from '../../../domain/feature-flip'
 import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import { Profil } from '../../../domain/profil'
 
@@ -237,6 +238,13 @@ export class PreferencesJeuneQueryModel {
   rappelActions: boolean
   @ApiProperty()
   actuMilo: boolean
+}
+
+export class FeatureJeuneQueryModel {
+  @ApiProperty({ enum: FeatureFlip.Tag })
+  featureTag: FeatureFlip.Tag
+  @ApiProperty()
+  active: boolean
 }
 
 export class MotifSuppressionJeuneQueryModel {

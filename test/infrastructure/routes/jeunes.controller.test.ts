@@ -8,11 +8,15 @@ import { UpdateJeuneConfigurationApplicationCommandHandler } from 'src/applicati
 import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/update-preferences-jeune.command.handler'
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
+import { GetFeaturesJeuneQueryHandler } from 'src/application/queries/get-features-jeune.query.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
 import { GetPreferencesJeuneQueryHandler } from 'src/application/queries/get-preferences-jeune.query.handler.db'
 import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/home-jeune-suivi.query-model'
-import { PreferencesJeuneQueryModel } from 'src/application/queries/query-models/jeunes.query-model'
+import {
+  FeatureJeuneQueryModel,
+  PreferencesJeuneQueryModel
+} from 'src/application/queries/query-models/jeunes.query-model'
 import { ResultatsRechercheMessageQueryModel } from 'src/application/queries/query-models/resultats-recherche-message-query.model'
 import {
   RechercherMessageQuery,
@@ -33,6 +37,7 @@ import {
 } from 'src/building-blocks/types/result'
 import { ArchiveJeune } from 'src/domain/archive-jeune'
 import { Authentification } from 'src/domain/authentification'
+import { FeatureFlip } from 'src/domain/feature-flip'
 import { JwtService } from 'src/infrastructure/auth/jwt.service'
 import {
   TransfererConseillerPayload,
@@ -68,6 +73,7 @@ describe('JeunesController', () => {
   let archiverJeuneCommandHandler: StubbedClass<ArchiverJeuneCommandHandler>
   let updateJeunePreferencesCommandHandler: StubbedClass<UpdateJeunePreferencesCommandHandler>
   let getPreferencesJeuneQueryHandler: StubbedClass<GetPreferencesJeuneQueryHandler>
+  let getFeaturesJeuneQueryHandler: StubbedClass<GetFeaturesJeuneQueryHandler>
   let rechercherMessageQueryHandler: StubbedClass<RechercherMessageQueryHandler>
   let getComptageJeuneQueryHandler: StubbedClass<GetComptageJeuneQueryHandler>
 
@@ -97,6 +103,7 @@ describe('JeunesController', () => {
       UpdateJeunePreferencesCommandHandler
     )
     getPreferencesJeuneQueryHandler = app.get(GetPreferencesJeuneQueryHandler)
+    getFeaturesJeuneQueryHandler = app.get(GetFeaturesJeuneQueryHandler)
     rechercherMessageQueryHandler = app.get(RechercherMessageQueryHandler)
     getComptageJeuneQueryHandler = app.get(GetComptageJeuneQueryHandler)
 
@@ -829,6 +836,34 @@ describe('JeunesController', () => {
     })
 
     ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/preferences')
+  })
+
+  describe('GET /jeunes/:idJeune/features', () => {
+    const idJeune = '1'
+
+    describe("quand c'est en succès", () => {
+      it('renvoie les features du jeune avec leur état', async () => {
+        // Given
+        const queryModel: FeatureJeuneQueryModel[] = [
+          { featureTag: FeatureFlip.Tag.MIGRATION_PHASE_A, active: true },
+          { featureTag: FeatureFlip.Tag.MIGRATION_PHASE_B, active: false },
+          { featureTag: FeatureFlip.Tag.MIGRATION_PHASE_TEST, active: false }
+        ]
+        getFeaturesJeuneQueryHandler.execute
+          .withArgs({ idJeune }, unUtilisateurDecode())
+          .resolves(success(queryModel))
+
+        // When
+        await request(app.getHttpServer())
+          .get(`/jeunes/${idJeune}/features`)
+          .set('authorization', unHeaderAuthorization())
+          // Then
+          .expect(HttpStatus.OK)
+          .expect(queryModel)
+      })
+    })
+
+    ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/features')
   })
 
   describe('GET /jeunes/:idJeune/messages', () => {
