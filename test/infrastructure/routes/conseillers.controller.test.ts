@@ -31,7 +31,10 @@ import {
 } from 'src/building-blocks/types/result'
 import { Core } from 'src/domain/core'
 import { ArchiveJeune } from 'src/domain/archive-jeune'
-import { EnvoyerNotificationsPayload } from 'src/infrastructure/routes/validation/conseillers.inputs'
+import {
+  EnvoyerNotificationsPayload,
+  VerifierEmailJeunePayload
+} from 'src/infrastructure/routes/validation/conseillers.inputs'
 import * as request from 'supertest'
 import { uneAgence } from 'test/fixtures/agence.fixture'
 import {
@@ -45,6 +48,7 @@ import { expect, StubbedClass } from 'test/utils'
 import { ensureUserAuthenticationFailsIfInvalid } from 'test/utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
 import { GetDemarchesConseillerQueryHandler } from '../../../src/application/queries/get-demarches-conseiller.query.handler'
+import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -67,6 +71,7 @@ describe('ConseillersController', () => {
   let getComptageJeunesByConseillerQueryHandler: StubbedClass<GetComptageJeunesByConseillerQueryHandler>
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
   let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
+  let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
 
   let app: INestApplication
 
@@ -105,6 +110,7 @@ describe('ConseillersController', () => {
     changerDispositifJeuneCommandHandler = app.get(
       ChangerDispositifJeuneCommandHandler
     )
+    verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
   })
 
   describe('DELETE /conseillers/:idConseiller', () => {
@@ -866,6 +872,42 @@ describe('ConseillersController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'post',
       `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+    )
+  })
+
+  describe('POST /conseillers/verifier-email-jeune', () => {
+    it('renvoie si l’email existe déjà', async () => {
+      // Given
+      const payload: VerifierEmailJeunePayload = { email: 'existant@test.com' }
+      verifierEmailJeuneQueryHandler.execute.resolves(
+        success({ emailExistant: true })
+      )
+
+      // When - Then
+      const response = await request(app.getHttpServer())
+        .post('/conseillers/verifier-email-jeune')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.OK)
+
+      expect(response.body).to.deep.equal({ emailExistant: true })
+      expect(
+        verifierEmailJeuneQueryHandler.execute
+      ).to.have.been.calledWithExactly(payload, unUtilisateurDecode())
+    })
+
+    it('renvoie une 400 si l’email est invalide', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/conseillers/verifier-email-jeune')
+        .set('authorization', unHeaderAuthorization())
+        .send({ email: 'pas-un-email' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'post',
+      '/conseillers/verifier-email-jeune'
     )
   })
 })

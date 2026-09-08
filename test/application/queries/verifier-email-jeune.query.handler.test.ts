@@ -7,27 +7,28 @@ import {
 } from 'src/building-blocks/types/result'
 import { DroitsInsuffisants } from 'src/building-blocks/types/domain-error'
 import {
-  VerifierEmailBeneficiaireFTQuery,
-  VerifierEmailBeneficiaireQueryHandler
-} from '../../../../src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
-import { Jeune } from '../../../../src/domain/jeune/jeune'
-import { unJeune } from '../../../fixtures/jeune.fixture'
+  VerifierEmailJeuneQuery,
+  VerifierEmailJeuneQueryHandler
+} from '../../../src/application/queries/verifier-email-jeune.query.handler'
+import { Jeune } from '../../../src/domain/jeune/jeune'
+import { unJeune } from '../../fixtures/jeune.fixture'
 import {
   unUtilisateurConseiller,
   unUtilisateurJeune
-} from '../../../fixtures/authentification.fixture'
-import { createSandbox, expect } from '../../../utils'
-import { Profil } from '../../../../src/domain/profil'
-import { unProfilFT } from '../../../fixtures/profil.fixture'
+} from '../../fixtures/authentification.fixture'
+import { createSandbox, expect } from '../../utils'
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT } from '../../fixtures/profil.fixture'
 
-describe('VerifierEmailBeneficiaireQueryHandler', () => {
-  let verifierEmailBeneficiaireQueryHandler: VerifierEmailBeneficiaireQueryHandler
+describe('VerifierEmailJeuneQueryHandler', () => {
+  let verifierEmailJeuneQueryHandler: VerifierEmailJeuneQueryHandler
   const sandbox: SinonSandbox = createSandbox()
   const jeuneRepository: StubbedType<Jeune.Repository> = stubInterface(sandbox)
 
   before(async () => {
-    verifierEmailBeneficiaireQueryHandler =
-      new VerifierEmailBeneficiaireQueryHandler(jeuneRepository)
+    verifierEmailJeuneQueryHandler = new VerifierEmailJeuneQueryHandler(
+      jeuneRepository
+    )
   })
 
   afterEach(() => {
@@ -37,7 +38,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
   describe('handle', () => {
     it("renvoie emailExistant false si l'email n'existe pas", async () => {
       // Given
-      const query: VerifierEmailBeneficiaireFTQuery = {
+      const query: VerifierEmailJeuneQuery = {
         email: 'nouveau@test.com'
       }
       jeuneRepository.getByEmail
@@ -45,7 +46,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
         .resolves(undefined)
 
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
+      const result = await verifierEmailJeuneQueryHandler.handle(query)
 
       // Then
       expect(result).to.deep.equal(success({ emailExistant: false }))
@@ -53,7 +54,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
 
     it("renvoie emailExistant true si l'email existe déjà", async () => {
       // Given
-      const query: VerifierEmailBeneficiaireFTQuery = {
+      const query: VerifierEmailJeuneQuery = {
         email: 'existant@test.com'
       }
       jeuneRepository.getByEmail.withArgs('existant@test.com').resolves(
@@ -64,7 +65,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       )
 
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
+      const result = await verifierEmailJeuneQueryHandler.handle(query)
 
       // Then
       expect(result).to.deep.equal(success({ emailExistant: true }))
@@ -72,7 +73,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
 
     it('retourne un succès si le bénéficiaire du mail est conseiller départemental', async () => {
       // Given
-      const query: VerifierEmailBeneficiaireFTQuery = {
+      const query: VerifierEmailJeuneQuery = {
         email: 'existant@test.com'
       }
       jeuneRepository.getByEmail.withArgs('existant@test.com').resolves(
@@ -83,7 +84,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
       )
 
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.handle(query)
+      const result = await verifierEmailJeuneQueryHandler.handle(query)
 
       // Then
       expect(result).to.deep.equal(success({ emailExistant: true }))
@@ -93,7 +94,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
   describe('authorize', () => {
     it('autorise un conseiller : le profil FT est garanti par profilsAutorises', async () => {
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.authorize(
+      const result = await verifierEmailJeuneQueryHandler.authorize(
         { email: 'test@test.fr' },
         unUtilisateurConseiller()
       )
@@ -104,7 +105,7 @@ describe('VerifierEmailBeneficiaireQueryHandler', () => {
 
     it('refuse un jeune : le type ne relève pas du profil', async () => {
       // When
-      const result = await verifierEmailBeneficiaireQueryHandler.authorize(
+      const result = await verifierEmailJeuneQueryHandler.authorize(
         { email: 'test@test.fr' },
         unUtilisateurJeune({ profil: unProfilFT() })
       )

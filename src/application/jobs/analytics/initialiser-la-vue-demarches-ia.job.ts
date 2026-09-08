@@ -67,7 +67,7 @@ export class InitialiserLaVueDemarchesIAJobHandler extends JobHandler {
     return {
       jobType: this.jobType,
       nbErreurs: 0,
-      succes: erreur ? false : true,
+      succes: !erreur,
       dateExecution: maintenant,
       tempsExecution: DateService.calculerTempsExecution(maintenant),
       resultat: {}
