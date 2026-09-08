@@ -8,7 +8,7 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { AsSql } from '../types'
 import { AgenceSqlModel } from './agence.sql-model'
 import { JeuneSqlModel } from './jeune.sql-model'
@@ -50,7 +50,13 @@ export class ConseillerDto extends Model {
     field: 'structure',
     type: DataType.STRING
   })
-  structure: Core.Structure
+  structure: Profil.Structure
+
+  @Column({
+    field: 'dispositif',
+    type: DataType.STRING
+  })
+  dispositif: Profil.Dispositif | null
 
   @Column({
     field: 'id_authentification',

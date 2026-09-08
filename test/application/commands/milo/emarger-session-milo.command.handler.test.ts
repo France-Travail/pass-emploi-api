@@ -85,7 +85,7 @@ describe('EmargerSessionMiloCommandHandler', () => {
         .withArgs(commandSansEmargement.idConseiller)
         .resolves(success(conseiller))
       const erreurHttp = new ErreurHttp('', 404)
-      oidcClient.exchangeTokenConseillerMilo
+      oidcClient.exchangeToken
         .withArgs(commandSansEmargement.accessToken)
         .resolves(idpToken)
       sessionMiloRepository.getForConseiller
@@ -133,7 +133,7 @@ describe('EmargerSessionMiloCommandHandler', () => {
         conseillerMiloRepository.get
           .withArgs(commandSansEmargement.idConseiller)
           .resolves(success(conseiller))
-        oidcClient.exchangeTokenConseillerMilo
+        oidcClient.exchangeToken
           .withArgs(commandSansEmargement.accessToken)
           .resolves(idpToken)
         sessionMiloRepository.getForConseiller

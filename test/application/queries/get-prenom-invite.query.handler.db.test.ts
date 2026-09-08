@@ -9,11 +9,11 @@ import {
   isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
 import { getDatabase } from '../../utils/database-for-testing'
+import { unProfilInvite } from '../../fixtures/profil.fixture'
 
 describe('GetPrenomInviteQueryHandler', () => {
   let getPrenomInviteQueryHandler: GetPrenomInviteQueryHandler
@@ -22,7 +22,7 @@ describe('GetPrenomInviteQueryHandler', () => {
   const idInvite = 'un-invite'
   const utilisateur = unUtilisateurJeune({
     id: idInvite,
-    structure: Core.Structure.INVITE
+    profil: unProfilInvite()
   })
 
   beforeEach(async () => {

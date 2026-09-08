@@ -18,7 +18,7 @@ import {
 } from 'src/infrastructure/sequelize/models/session-milo.sql-model'
 import { StructureMiloSqlModel } from 'src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { AsSql } from 'src/infrastructure/sequelize/types'
-import { Profil } from 'src/domain/profil'
+import { Profil, TOUT_MILO } from 'src/domain/profil'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
 import { unJeune } from 'test/fixtures/jeune.fixture'
 import { uneOffreDto, uneSessionDto } from 'test/fixtures/milo-dto.fixture'
@@ -90,9 +90,9 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
   describe('profilsAutorises', () => {
     it('exige le profil MILO', () => {
       // Then
-      expect(getDetailSessionQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO
-      ])
+      expect(getDetailSessionQueryHandler.profilsAutorises).to.deep.equal(
+        TOUT_MILO
+      )
     })
   })
 
@@ -176,8 +176,8 @@ describe('GetDetailSessionJeuneMiloQueryHandler', () => {
             idStructureMilo: 'paris'
           })
         )
-        oidcClient.exchangeTokenJeune
-          .withArgs(query.accessToken, jeune.structure)
+        oidcClient.exchangeToken
+          .withArgs(query.accessToken, Profil.Structure.MILO)
           .resolves(idpToken)
       })
 

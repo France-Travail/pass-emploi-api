@@ -123,9 +123,7 @@ describe('GetDetailSessionConseillerMiloQueryHandler', () => {
         conseillerRepository.get
           .withArgs(query.idConseiller)
           .resolves(success(unConseillerMilo()))
-        oidcClient.exchangeTokenConseillerMilo
-          .withArgs(query.accessToken)
-          .resolves(tokenMilo)
+        oidcClient.exchangeToken.withArgs(query.accessToken).resolves(tokenMilo)
 
         sessionMilo.inscriptions = sessionMilo.inscriptions.filter(
           ({ statut }) => statut !== SessionMilo.Inscription.Statut.INSCRIT

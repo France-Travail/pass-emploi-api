@@ -4,7 +4,7 @@ import { Query } from '../../../building-blocks/types/query'
 import { QueryHandler } from '../../../building-blocks/types/query-handler'
 import { Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../../domain/profil'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../../infrastructure/sequelize/models/rendez-vous.sql-model'
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
@@ -32,7 +32,7 @@ export class GetRendezVousConseillerPaginesQueryHandler extends QueryHandler<
   GetRendezVousConseillerPaginesQuery,
   Result<RendezVousConseillerQueryModel[]>
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,

@@ -10,8 +10,6 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Campagne, CampagneRepositoryToken } from '../../../domain/campagne'
-import { Core } from '../../../domain/core'
-import { Profil } from '../../../domain/profil'
 import {
   Planificateur,
   PlanificateurRepositoryToken
@@ -27,10 +25,8 @@ export interface CreateCampagneCommand extends Command {
 
 export class CreateCampagneCommandHandler extends CommandHandler<
   CreateCampagneCommand,
-  Core.Id
+  { id: string }
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     @Inject(CampagneRepositoryToken)
     private campagneRepository: Campagne.Repository,
@@ -46,7 +42,9 @@ export class CreateCampagneCommandHandler extends CommandHandler<
     return emptySuccess()
   }
 
-  async handle(command: CreateCampagneCommand): Promise<Result<Core.Id>> {
+  async handle(
+    command: CreateCampagneCommand
+  ): Promise<Result<{ id: string }>> {
     const campagneExistanteSurLIntervalleOuLeNom =
       await this.campagneRepository.getByIntervalOrName(
         command.dateDebut,

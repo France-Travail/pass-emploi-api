@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Core } from '../../domain/core'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
@@ -18,7 +17,7 @@ import {
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Mail, MailServiceToken } from '../../domain/mail'
 import { Notification } from '../../domain/notification/notification'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import {
   PlanificateurService,
   replanifierLesRappelsDeRendezVous
@@ -49,9 +48,9 @@ export interface UpdateRendezVousCommand extends Command {
 @Injectable()
 export class UpdateRendezVousCommandHandler extends CommandHandler<
   UpdateRendezVousCommand,
-  Core.Id
+  { id: string }
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(RendezVousRepositoryToken)
@@ -77,7 +76,7 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
   async handle(
     command: UpdateRendezVousCommand,
     utilisateur: Authentification.Utilisateur
-  ): Promise<Result<Core.Id>> {
+  ): Promise<Result<{ id: string }>> {
     const rendezVous = await this.rendezVousRepository.get(command.idRendezVous)
     if (!rendezVous) {
       return failure(new NonTrouveError('RendezVous', command.idRendezVous))

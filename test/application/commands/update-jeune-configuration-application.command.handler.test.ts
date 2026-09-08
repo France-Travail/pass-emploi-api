@@ -1,6 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { SinonSandbox } from 'sinon'
-import { Core } from 'src/domain/core'
 import { ConfigurationApplication } from 'src/domain/jeune/configuration-application'
 import { Jeune } from 'src/domain/jeune/jeune'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
@@ -15,10 +14,11 @@ import {
   isSuccess
 } from '../../../src/building-blocks/types/result'
 import { DateService } from '../../../src/utils/date-service'
-import { TOUS_LES_JEUNES } from '../../../src/domain/profil'
+import { TOUT_PROFIL } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
+import { unProfilInvite } from '../../fixtures/profil.fixture'
 
 describe('UpdateJeuneConfigurationApplicationCommand', () => {
   let updateJeuneConfigurationApplicationCommandHandler: UpdateJeuneConfigurationApplicationCommandHandler
@@ -123,7 +123,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
     describe("quand c'est un invité", () => {
       const utilisateurInvite = unUtilisateurJeune({
         id: 'idInvite',
-        structure: Core.Structure.INVITE
+        profil: unProfilInvite()
       })
 
       it('écrit dans jeune_invite et rafraîchit la date de dernière activité', async () => {
@@ -191,7 +191,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
         // Given
         const utilisateurInvite = unUtilisateurJeune({
           id: 'idInvite',
-          structure: Core.Structure.INVITE
+          profil: unProfilInvite()
         })
         jeuneInviteConfigurationApplicationRepository.get
           .withArgs('idInvite')
@@ -227,7 +227,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
       }
       const utilisateur = unUtilisateurJeune({
         id: 'idInvite',
-        structure: Core.Structure.INVITE
+        profil: unProfilInvite()
       })
 
       // When
@@ -271,7 +271,7 @@ describe('UpdateJeuneConfigurationApplicationCommand', () => {
       // Then
       expect(
         updateJeuneConfigurationApplicationCommandHandler.profilsAutorises
-      ).to.deep.equal(TOUS_LES_JEUNES)
+      ).to.deep.equal(TOUT_PROFIL)
     })
   })
 })

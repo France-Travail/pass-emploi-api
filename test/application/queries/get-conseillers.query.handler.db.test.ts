@@ -18,6 +18,8 @@ import {
   getDatabase
 } from '../../utils/database-for-testing'
 import { testConfig } from '../../utils/module-for-testing'
+import { Profil } from '../../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetConseillersQueryHandler', () => {
   let databaseForTesting: DatabaseForTesting
@@ -73,7 +75,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne le conseiller seul quand le mail est exacte', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -98,7 +100,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne le conseiller seul quand le mail est exact PE France Travail', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.POLE_EMPLOI
+          profil: unProfilFT()
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -123,7 +125,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne le conseiller seul quand le mail est exact FT', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.POLE_EMPLOI
+          profil: unProfilFT()
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -148,7 +150,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne le conseiller seul quand le mail est exact PE', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.POLE_EMPLOI
+          profil: unProfilFT()
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -174,7 +176,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne plusieurs conseillers quand le conseiller existe avec email approchant', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -207,7 +209,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne conseiller pour une autre structure FT', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.POLE_EMPLOI_BRSA
+          profil: unProfilFT(Profil.Dispositif.BRSA)
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -240,7 +242,7 @@ describe('GetConseillersQueryHandler', () => {
       it("retourne une liste vide quand le conseiller n'existe pas avec cette structure", async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.AVENIR_PRO
+          profil: unProfilFT(Profil.Dispositif.AVENIR_PRO)
         })
         // When
         const actual = await getConseillersQueryHandler.handle(
@@ -256,7 +258,7 @@ describe('GetConseillersQueryHandler', () => {
       it('retourne les conseillers classés par pertinence', async () => {
         // Given
         const utilisateur = unUtilisateurConseiller({
-          structure: Core.Structure.MILO
+          profil: unProfilMilo()
         })
 
         await ConseillerSqlModel.bulkCreate([

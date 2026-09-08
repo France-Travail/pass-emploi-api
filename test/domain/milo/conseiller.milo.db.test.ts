@@ -60,7 +60,7 @@ describe('Conseiller.Milo', () => {
               structure: Core.Structure.MILO
             })
           )
-          oidcClient.exchangeTokenConseillerMilo.withArgs(token).rejects(
+          oidcClient.exchangeToken.withArgs(token).rejects(
             new UnauthorizedException({
               statusCode: 401,
               code: 'Unauthorized',
@@ -115,9 +115,7 @@ describe('Conseiller.Milo', () => {
               structure: Core.Structure.MILO
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
           miloClient.getStructureConseiller
             .withArgs(idpToken)
             .resolves(failure(new ErreurHttp('test', 400)))
@@ -183,9 +181,7 @@ describe('Conseiller.Milo', () => {
             })
           )
 
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
           miloClient.getStructureConseiller
             .withArgs(idpToken)
             .resolves(
@@ -225,9 +221,7 @@ describe('Conseiller.Milo', () => {
           )
           const token = 'tok'
           const idpToken = 'idpTok'
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '11'
           miloClient.getStructureConseiller
@@ -285,9 +279,7 @@ describe('Conseiller.Milo', () => {
           )
           const token = 'tok'
           const idpToken = 'idpTok'
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '11'
           miloClient.getStructureConseiller
@@ -336,9 +328,7 @@ describe('Conseiller.Milo', () => {
             })
           )
 
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
           miloClient.getStructureConseiller
             .withArgs(idpToken)
             .resolves(
@@ -383,9 +373,7 @@ describe('Conseiller.Milo', () => {
             })
           )
 
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
           miloClient.getStructureConseiller
             .withArgs(idpToken)
             .resolves(
@@ -428,9 +416,7 @@ describe('Conseiller.Milo', () => {
             })
           )
 
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
           miloClient.getStructureConseiller
             .withArgs(idpToken)
             .resolves(
@@ -471,9 +457,7 @@ describe('Conseiller.Milo', () => {
               idStructureMilo
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '92063S00'
           miloClient.getStructureConseiller
@@ -522,9 +506,7 @@ describe('Conseiller.Milo', () => {
               idStructureMilo
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '92063S00'
           miloClient.getStructureConseiller
@@ -589,9 +571,7 @@ describe('Conseiller.Milo', () => {
               idAgence: idStructureMilo
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '92063S00'
           miloClient.getStructureConseiller
@@ -638,9 +618,7 @@ describe('Conseiller.Milo', () => {
               idStructureMilo
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '97213S00'
           miloClient.getStructureConseiller
@@ -688,9 +666,7 @@ describe('Conseiller.Milo', () => {
               idStructureMilo
             })
           )
-          oidcClient.exchangeTokenConseillerMilo
-            .withArgs(token)
-            .resolves(idpToken)
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
 
           const idNouvelleStructure = '94063S00'
           miloClient.getStructureConseiller

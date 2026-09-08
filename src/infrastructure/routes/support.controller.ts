@@ -22,6 +22,8 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiProperty,
+  ApiPropertyOptional,
   ApiResponse,
   ApiSecurity,
   ApiTags
@@ -47,10 +49,6 @@ import {
   MettreAJourLesJeunesCejPeCommandHandler,
   MettreAJourLesJeunesCEJPoleEmploiCommand
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
-import {
-  RefreshJddCommand,
-  RefreshJddCommandHandler
-} from '../../application/commands/support/refresh-jdd.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
@@ -58,7 +56,6 @@ import { TransfererJeunesConseillerCommandHandler } from '../../application/comm
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
 import { Notification } from '../../domain/notification/notification'
 import {
   Planificateur,
@@ -76,7 +73,6 @@ import {
   ListerJobsQueryParams,
   ModifierAgenceFTConseillerPayload,
   NotifierBeneficiairesPayload,
-  RefreshJDDPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
   TransfererJeunesPayload,
@@ -84,8 +80,8 @@ import {
 } from './validation/support.inputs'
 import { Migration } from '../../domain/migration'
 import PhaseDeMigration = Migration.PhaseDeMigration
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
+import { Profil } from '../../domain/profil'
 
 export class JobSummaryQueryModel {
   @ApiProperty()
@@ -137,7 +133,6 @@ function toJobSummaryQueryModel(
 @ApiSecurity('api_key')
 export class SupportController {
   constructor(
-    private readonly refreshJddCommandHandler: RefreshJddCommandHandler,
     private readonly mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly modifierAgenceFTConseillerCommandHandler: ModifierAgenceFTConseillerCommandHandler,
@@ -192,24 +187,6 @@ export class SupportController {
       lastName: jeune.lastName,
       idConseiller: jeune.conseiller!.id
     }))
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @Post('jdd')
-  async refresh(@Body() payload: RefreshJDDPayload): Promise<void> {
-    const command: RefreshJddCommand = {
-      idConseiller: payload.idConseiller,
-      menage: payload.menage
-    }
-    const result = await this.refreshJddCommandHandler.execute(
-      command,
-      Authentification.unUtilisateurSupport()
-    )
-
-    return handleResult(result)
   }
 
   @SetMetadata(
@@ -478,9 +455,9 @@ export class SupportController {
   )
   @ApiOperation({
     summary:
-      'Notifie un groupe de bénéficiaires appartenants à une ou plusieures structures.',
+      'Notifie un groupe de bénéficiaires ciblé par structure et dispositif.',
     description: `
-Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
+Notifie un groupe de bénéficiaires ciblé par structure et dispositif
 (crée un job de type NOTIFIER_BENEFICIAIRES).
 
 **Champs du body :**
@@ -490,9 +467,9 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
     )}
 - \`titre\` : titre de la notification - maximum 50 caractères
 - \`description\` : texte corps de la notification - maximum 150 caractères
-- \`structures\` (optionnel, défaut = toutes les structures) : ${Object.values(
-      Core.Structure
-    ).join(', ')}
+- \`structuresEtDispositifs\` (optionnel, défaut = tous les bénéficiaires) : liste de cibles \`{ structure, dispositifs? }\`, un bénéficiaire est notifié s'il correspond à l'une d'elles.
+<br>\`structure\` : ${Object.values(Profil.Structure).join(', ')}
+<br>\`dispositifs\` (optionnel, défaut = tous les dispositifs de la structure) : ${Object.values(Profil.Dispositif).join(', ')}
 - \`PhaseDeMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
       Migration.PhaseDeMigration
     ).join(', ')}
@@ -507,7 +484,10 @@ Notifie un groupe de bénéficiaires appartenant à une ou plusieurs structures
         typeNotification: 'OUTILS',
         titre: '1000 immersions sur la vente et la logistique !',
         description: 'Explorez les métiers de vente et de la logistique',
-        structures: ['MILO', 'POLE_EMPLOI_AIJ'],
+        structuresEtDispositifs: [
+          { structure: 'MILO' },
+          { structure: 'FRANCE_TRAVAIL', dispositifs: ['CEJ', 'AIJ'] }
+        ],
         PhaseDeMigration: 'PHASE_A',
         push: true
       }

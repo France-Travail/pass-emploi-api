@@ -15,15 +15,15 @@ import { Evenement, EvenementService } from '../../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { PlanificateurService } from '../../../domain/planificateur'
-import { TOUS_LES_PROFILS } from '../../../domain/profil'
+import { TOUT_PROFIL } from '../../../domain/profil'
 import { buildError } from '../../../utils/logger.module'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 
 export interface CreateActionCommand extends Command {
-  idJeune: Jeune.Id
+  idJeune: string
   contenu: string
-  idCreateur: Action.IdCreateur
+  idCreateur: string
   typeCreateur: Action.TypeCreateur
   statut?: Action.Statut
   commentaire?: string
@@ -38,7 +38,7 @@ export class CreateActionCommandHandler extends CommandHandler<
   CreateActionCommand,
   string
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(ActionRepositoryToken)

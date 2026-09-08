@@ -127,7 +127,10 @@ export class AuthentificationController {
     const result = await this.getUtilisateurQueryHandler.execute({
       idAuthentification: idAuthentification,
       typeUtilisateur: queryParams.typeUtilisateur,
-      structureUtilisateur: queryParams.structureUtilisateur
+      profil: {
+        structure: queryParams.structure,
+        dispositif: queryParams.dispositif ?? null
+      }
     })
 
     return handleResult(result)

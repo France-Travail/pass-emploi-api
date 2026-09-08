@@ -5,12 +5,21 @@ export const ANALYTICS_FCT_DEMARCHES_IA_TABLE_NAME =
 export const ANALYTICS_FCT_MIGRATION_TABLE_NAME =
   'analytics_fonctionnalites_migration'
 
+const TABLES_ANALYTICS = [
+  'analytics_fonctionnalites',
+  ANALYTICS_FCT_DEMARCHES_IA_TABLE_NAME,
+  ANALYTICS_FCT_MIGRATION_TABLE_NAME,
+  'analytics_engagement',
+  'analytics_engagement_national'
+]
+
 export async function migrate(connexion: Sequelize): Promise<void> {
   await connexion.query(`
     CREATE TABLE IF NOT EXISTS analytics_fonctionnalites
     (
       semaine            date,
       structure          varchar,
+      dispositif         varchar,
       type_utilisateur   varchar,
       categorie          varchar,
       action             varchar,
@@ -31,6 +40,7 @@ export async function migrate(connexion: Sequelize): Promise<void> {
     (
       semaine            date,
       structure          varchar,
+      dispositif         varchar,
       type_utilisateur   varchar,
       categorie          varchar,
       action             varchar,
@@ -51,6 +61,7 @@ export async function migrate(connexion: Sequelize): Promise<void> {
     (
       semaine            date,
       structure          varchar,
+      dispositif         varchar,
       type_utilisateur   varchar,
       categorie          varchar,
       action             varchar,
@@ -71,6 +82,7 @@ export async function migrate(connexion: Sequelize): Promise<void> {
       (
           semaine                                             date,
           structure                                           varchar,
+          dispositif                                          varchar,
           type_utilisateur                                    varchar,
           region                                              varchar,
           departement                                         varchar,
@@ -87,6 +99,7 @@ export async function migrate(connexion: Sequelize): Promise<void> {
     (
         semaine                                             date,
         structure                                           varchar,
+        dispositif                                          varchar,
         type_utilisateur                                    varchar,
         nombre_utilisateurs_2_mois                          integer,
         nombre_utilisateurs_1_mois                          integer,
@@ -95,6 +108,16 @@ export async function migrate(connexion: Sequelize): Promise<void> {
         nb_actifs_4_semaines_sur_6                          integer
     );
 `)
+
+  // Maille dispositif ajoutée après coup : les tables existent déjà en analytics.
+  for (const table of TABLES_ANALYTICS) {
+    await connexion.query(
+      `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS dispositif varchar;`
+    )
+    await connexion.query(
+      `create index if not exists ${table}_dispositif_index on ${table} (dispositif);`
+    )
+  }
 
   await connexion.query(`
     create index if not exists analytics_fonctionnalites_semaine_index on analytics_fonctionnalites (semaine);

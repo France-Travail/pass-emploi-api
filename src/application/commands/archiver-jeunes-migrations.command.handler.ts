@@ -9,9 +9,7 @@ import {
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { Jeune } from '../../domain/jeune/jeune'
 import { Migration } from '../../domain/migration'
-import { Profil } from '../../domain/profil'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 import PhaseDeMigration = Migration.PhaseDeMigration
 
@@ -19,7 +17,7 @@ const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
 
 export interface ArchiverJeuneCommand {
-  idJeune: Jeune.Id
+  idJeune: string
   motif: ArchiveJeune.MotifSuppression
   dateFinAccompagnement?: DateTime
   commentaire?: string
@@ -34,8 +32,6 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   ArchiverJeunesMigrationCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(
     private readonly evenementService: EvenementService,
     private readonly featureFlipService: Migration.Service,

@@ -14,6 +14,10 @@ export function fromSqlToDetailConseillerQueryModel(
     firstName: conseillerSqlModel.prenom,
     lastName: conseillerSqlModel.nom,
     email: conseillerSqlModel.email ?? undefined,
+    profil: {
+      structure: conseillerSqlModel.structure,
+      dispositif: conseillerSqlModel.dispositif
+    },
     dateSignatureCGU: conseillerSqlModel.dateSignatureCGU?.toISOString(),
     dateVisionnageActus: conseillerSqlModel.dateVisionnageActus?.toISOString(),
     agence: undefined,

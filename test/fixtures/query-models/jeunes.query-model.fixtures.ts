@@ -4,7 +4,7 @@ import {
   DetailJeuneQueryModel,
   JeuneQueryModel
 } from 'src/application/queries/query-models/jeunes.query-model'
-import { Jeune } from '../../../src/domain/jeune/jeune'
+import { Profil } from '../../../src/domain/profil'
 
 export function unConseillerJeuneQueryModel(
   args: Partial<ConseillerJeuneQueryModel> = {}
@@ -39,7 +39,7 @@ export function unDetailJeuneQueryModel(
     dateFinCEJ: undefined,
     estAArchiver: undefined,
     dateSignatureCGU: undefined,
-    dispositif: Jeune.Dispositif.CEJ,
+    dispositif: Profil.Dispositif.CEJ,
     peutVoirLeComptageDesHeures: undefined
   }
 
@@ -62,7 +62,7 @@ export function unDetailJeuneConseillerQueryModel(
     structureMilo: undefined,
     lastActivity: '2022-03-01T02:24:00.000Z',
     estAArchiver: false,
-    dispositif: Jeune.Dispositif.CEJ
+    dispositif: Profil.Dispositif.CEJ
   }
 
   return { ...defaults, ...args }

@@ -58,7 +58,7 @@ describe('GetSuiviCetteSemainePoleEmploiQueryHandler', () => {
     idService.uuid.returns('random-id')
 
     oidcClient = stubClass(OidcClient)
-    oidcClient.exchangeTokenJeune.resolves(idpToken)
+    oidcClient.exchangeToken.resolves(idpToken)
 
     getDemarchesQueryGetter = new GetDemarchesQueryGetter(
       authRepository,
@@ -102,7 +102,7 @@ describe('GetSuiviCetteSemainePoleEmploiQueryHandler', () => {
       await handler.handle(query)
 
       // Then
-      expect(oidcClient.exchangeTokenJeune).to.have.callCount(1)
+      expect(oidcClient.exchangeToken).to.have.callCount(1)
     })
   })
 })

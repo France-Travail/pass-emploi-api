@@ -9,10 +9,10 @@ import { Planificateur } from '../../../src/domain/planificateur'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { DateService } from '../../../src/utils/date-service'
-import { Core } from '../../../src/domain/core'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
 import { Migration } from '../../../src/domain/migration'
+import { Profil } from '../../../src/domain/profil'
 
 describe('NotifierBeneficiairesCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -46,9 +46,11 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structures: [
-          Core.Structure.POLE_EMPLOI_AIJ,
-          Core.Structure.POLE_EMPLOI_BRSA
+        structuresEtDispositifs: [
+          {
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+          }
         ],
         phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
         push: true,
@@ -70,9 +72,11 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
           params: {
-            structures: [
-              Core.Structure.POLE_EMPLOI_AIJ,
-              Core.Structure.POLE_EMPLOI_BRSA
+            structuresEtDispositifs: [
+              {
+                structure: Profil.Structure.FRANCE_TRAVAIL,
+                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+              }
             ],
             phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
             push: true,
@@ -110,7 +114,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structures: undefined,
+            structuresEtDispositifs: undefined,
             phaseDeMigration: undefined,
             push: false,
             batchSize: undefined,
@@ -154,9 +158,11 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structures: [
-          Core.Structure.POLE_EMPLOI_AIJ,
-          Core.Structure.POLE_EMPLOI_BRSA
+        structuresEtDispositifs: [
+          {
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+          }
         ],
         push: true,
         batchSize: 2000,

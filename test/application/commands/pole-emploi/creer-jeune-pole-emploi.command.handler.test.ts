@@ -9,11 +9,11 @@ import {
 } from '../../../../src/application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
 import {
   EmailExisteDejaError,
+  MauvaiseCommandeError,
   NonTrouveError
 } from '../../../../src/building-blocks/types/domain-error'
 import { Chat } from '../../../../src/domain/chat'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
-import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { DateService } from '../../../../src/utils/date-service'
 import { IdService } from '../../../../src/utils/id-service'
@@ -25,8 +25,9 @@ import {
   unJeuneNonAccompagne
 } from '../../../fixtures/jeune.fixture'
 import { createSandbox, expect, stubClass } from '../../../utils'
-import Structure = Core.Structure
 import { TIMEZONE_PAR_DEFAUT } from 'src/domain/jeune/configuration-application'
+import { Profil } from '../../../../src/domain/profil'
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('CreateJeunePoleEmploiCommandHandler', () => {
   let createJeuneCommandHandler: CreerJeunePoleEmploiCommandHandler
@@ -84,7 +85,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         isActivated: false,
         creationDate: date,
         conseiller: unConseillerDuJeune(),
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
         idPartenaire: undefined,
         preferences: {
           partageFavoris: true,
@@ -99,7 +100,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           idJeune: idNouveauJeune,
           fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
-        dispositif: Jeune.Dispositif.CEJ,
+        dispositif: Profil.Dispositif.CEJ,
         peutVoirLeComptageDesHeures: undefined
       }
       expect(result).to.deep.equal(success(expectedJeune))
@@ -107,6 +108,37 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         idNouveauJeune,
         conseiller.id
       )
+    })
+
+    it("retourne une erreur quand le conseiller France Travail n'a pas encore choisi son dispositif", async () => {
+      // Given
+      const conseillerSansDispositif = unConseiller({
+        id: 'id-conseiller-sans-dispositif',
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: null
+      })
+      conseillerRepository.get
+        .withArgs(conseillerSansDispositif.id)
+        .resolves(conseillerSansDispositif)
+      const command: CreateJeuneCommand = {
+        firstName: 'Kenji',
+        lastName: 'Lefameux',
+        email: 'kenji.lefameur@poleemploi.fr',
+        idConseiller: conseillerSansDispositif.id
+      }
+
+      // When
+      const result = await createJeuneCommandHandler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Le conseiller doit choisir son dispositif avant de créer un bénéficiaire'
+          )
+        )
+      )
+      expect(jeuneRepository.save).not.to.have.been.called()
     })
 
     it("retourne une erreur quand le conseiller n'existe pas", async () => {
@@ -179,7 +211,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           idConseiller: conseiller.id
         }
         const jeuneNonAccompagne = unJeuneNonAccompagne({
-          structure: Core.Structure.FT_ESPACE_CANDIDAT
+          structure: Profil.Structure.FRANCE_TRAVAIL
         })
         jeuneRepository.getByEmail
           .withArgs(command.email)
@@ -193,7 +225,9 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
         if (isSuccess(result)) {
           expect(result.data.id).to.equal(jeuneNonAccompagne.id)
           expect(result.data.conseiller?.id).to.equal(conseiller.id)
-          expect(result.data.structure).to.equal(conseiller.structure)
+          expect(result.data.structure).to.equal(
+            Profil.Structure.FRANCE_TRAVAIL
+          )
           expect(result.data.preferences.messages).to.equal(true)
         }
         expect(
@@ -214,7 +248,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
       }
 
       const utilisateur = unUtilisateurConseiller({
-        structure: Structure.POLE_EMPLOI
+        profil: unProfilFT()
       })
 
       // When

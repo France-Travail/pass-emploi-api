@@ -18,8 +18,8 @@ import { buildError } from '../../utils/logger.module'
 import { Conseiller } from './conseiller'
 import { AsSql } from '../../infrastructure/sequelize/types'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
-import { Core } from '../core'
 import { StructureMilo } from './structure.milo'
+import { Profil } from '../profil'
 
 export const ConseillerMiloRepositoryToken = 'ConseillerMiloRepositoryToken'
 
@@ -93,8 +93,10 @@ export namespace ConseillerMilo {
           : true
 
         if (moinsDe30sPasseesDepuisConnexion || passees24hDepuisVerification) {
-          const idpToken =
-            await this.oidcClient.exchangeTokenConseillerMilo(accessToken)
+          const idpToken = await this.oidcClient.exchangeToken(
+            accessToken,
+            Profil.Structure.MILO
+          )
           const resultStructureMiloConseiller =
             await this.miloClient.getStructureConseiller(idpToken)
 
@@ -218,7 +220,7 @@ export namespace ConseillerMilo {
           codeDepartement:
             structureDansLeDepartementSql.codeDepartement ?? '99',
           timezone: structureDansLeDepartementSql.timezone,
-          structure: Core.Structure.MILO
+          structure: Profil.Structure.MILO
         }
 
         await StructureMiloSqlModel.create(structureACreer)

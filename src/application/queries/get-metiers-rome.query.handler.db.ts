@@ -4,7 +4,7 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { CommuneSqlModel } from '../../infrastructure/sequelize/models/commune.sql-model'
 import { SequelizeInjectionToken } from '../../infrastructure/sequelize/providers'
 import { MetiersRomeQueryModel } from './query-models/metiers-rome.query-model'
@@ -18,7 +18,7 @@ export class GetMetiersRomeQueryHandler extends QueryHandler<
   GetMetiersRomeQuery,
   MetiersRomeQueryModel[]
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize

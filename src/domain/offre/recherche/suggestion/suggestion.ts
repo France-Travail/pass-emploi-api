@@ -13,9 +13,9 @@ import {
   Result,
   success
 } from '../../../../building-blocks/types/result'
-import { aAccesAuxAlternancesEtServicesCiviques, Core } from '../../../core'
 import { Diagoriente } from './diagoriente'
 import { DiagorienteInformationsPayload } from 'src/infrastructure/routes/validation/suggestions-inputs'
+import { aAccesAuxAlternancesEtServicesCiviques, Profil } from '../../../profil'
 
 type CriteresSuggestion =
   Recherche.Emploi | Recherche.Immersion | Recherche.ServiceCivique
@@ -175,7 +175,7 @@ export namespace Suggestion {
     buildListeSuggestionsOffresFromPoleEmploi(
       suggestionsPoleEmploi: PoleEmploi[],
       idJeune: string,
-      structureDuJeune: Core.Structure
+      profil: Profil
     ): Suggestion[] {
       const maintenant = this.dateService.now()
       const suggestionsEmploi = suggestionsPoleEmploi
@@ -199,7 +199,7 @@ export namespace Suggestion {
           )
         )
       const suggestionsServiceCivique = aAccesAuxAlternancesEtServicesCiviques(
-        structureDuJeune
+        profil
       )
         ? suggestionsPoleEmploi
             .filter(this.estUneSuggestionServiceCivique.bind(this))

@@ -14,10 +14,11 @@ import {
   Max,
   MaxLength,
   Min,
-  ValidateIf
+  ValidateIf,
+  ValidateNested
 } from 'class-validator'
 import { Type } from 'class-transformer'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
 import { Notification } from '../../../domain/notification/notification'
@@ -47,16 +48,6 @@ export class DesarchiverJeunePayload {
   @IsString()
   @IsNotEmpty()
   idJeuneRecree?: string
-}
-
-export class RefreshJDDPayload {
-  @ApiProperty()
-  @IsString()
-  idConseiller: string
-
-  @ApiProperty()
-  @IsBoolean()
-  menage: boolean
 }
 
 export class ChangerAgenceConseillerPayload {
@@ -208,6 +199,22 @@ export class ListerJobsQueryParams {
   fin?: number
 }
 
+export class StructureEtDispositifsPayload {
+  @ApiProperty({ enum: Profil.Structure })
+  @IsEnum(Profil.Structure)
+  structure: Profil.Structure
+
+  @ApiPropertyOptional({
+    enum: Profil.Dispositif,
+    isArray: true,
+    description: 'Absent = tous les dispositifs de la structure'
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Profil.Dispositif, { each: true })
+  dispositifs?: Profil.Dispositif[]
+}
+
 export class NotifierBeneficiairesPayload {
   @ApiProperty({
     enum: Notification.TypeNotifManuelle,
@@ -235,14 +242,16 @@ export class NotifierBeneficiairesPayload {
   @MaxLength(150)
   description: string
 
-  @ApiProperty({
-    enum: Core.Structure,
-    isArray: true
+  @ApiPropertyOptional({
+    type: StructureEtDispositifsPayload,
+    isArray: true,
+    description: 'Cibles de la notification, absent = tous les bénéficiaires'
   })
   @IsOptional()
   @IsArray()
-  @IsEnum(Core.Structure, { each: true })
-  structures?: Core.Structure[]
+  @ValidateNested({ each: true })
+  @Type(() => StructureEtDispositifsPayload)
+  structuresEtDispositifs?: StructureEtDispositifsPayload[]
 
   @ApiPropertyOptional({
     enum: Migration.PhaseDeMigration,

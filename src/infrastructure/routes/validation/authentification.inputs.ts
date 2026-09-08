@@ -1,11 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsEmail, IsIn, IsOptional, IsString } from 'class-validator'
-import { Authentification } from '../../../domain/authentification'
-import { Core } from '../../../domain/core'
+import { Type } from 'class-transformer'
 import {
-  StructureUtilisateurAuth,
-  TypeUtilisateurAuth
-} from '../../../application/commands/update-utilisateur.command.handler'
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsOptional,
+  IsString,
+  ValidateNested
+} from 'class-validator'
+import { Authentification } from '../../../domain/authentification'
+import { Profil } from '../../../domain/profil'
+
+export class ProfilPayload {
+  @ApiProperty({ enum: Profil.Structure })
+  @IsEnum(Profil.Structure)
+  structure: Profil.Structure
+
+  @ApiProperty({ enum: Profil.Dispositif, nullable: true })
+  @IsOptional()
+  @IsEnum(Profil.Dispositif)
+  dispositif: Profil.Dispositif | null
+}
 
 export class PutUtilisateurPayload {
   @ApiProperty()
@@ -36,17 +51,13 @@ export class PutUtilisateurPayload {
 
   @ApiProperty()
   @IsString()
-  @IsIn([
-    Authentification.Type.JEUNE,
-    Authentification.Type.CONSEILLER,
-    'BENEFICIAIRE'
-  ])
-  type: TypeUtilisateurAuth
+  @IsIn([Authentification.Type.JEUNE, Authentification.Type.CONSEILLER])
+  type: Authentification.Type
 
-  @ApiProperty()
-  @IsString()
-  @IsIn([...Object.values(Core.Structure), 'FRANCE_TRAVAIL'])
-  structure: StructureUtilisateurAuth
+  @ApiProperty({ type: ProfilPayload })
+  @ValidateNested()
+  @Type(() => ProfilPayload)
+  profil: ProfilPayload
 }
 
 export class GetUtilisateurQueryParams {
@@ -55,8 +66,12 @@ export class GetUtilisateurQueryParams {
   @IsIn([Authentification.Type.JEUNE, Authentification.Type.CONSEILLER])
   typeUtilisateur: Authentification.Type
 
-  @ApiProperty()
-  @IsString()
-  @IsIn(Object.values(Core.Structure))
-  structureUtilisateur: Core.Structure
+  @ApiProperty({ enum: Profil.Structure })
+  @IsEnum(Profil.Structure)
+  structure: Profil.Structure
+
+  @ApiProperty({ enum: Profil.Dispositif, required: false })
+  @IsOptional()
+  @IsEnum(Profil.Dispositif)
+  dispositif?: Profil.Dispositif
 }

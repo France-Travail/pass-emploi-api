@@ -6,10 +6,9 @@ import {
   AgenceDto,
   AgenceSqlModel
 } from '../../../../src/infrastructure/sequelize/models/agence.sql-model'
-import { Core } from '../../../../src/domain/core'
 import { DetailConseillerQueryModel } from '../../../../src/application/queries/query-models/conseillers.query-model'
 import { getDatabase } from '../../../utils/database-for-testing'
-import Structure = Core.Structure
+import { Profil } from '../../../../src/domain/profil'
 
 describe('fromSqlToDetailConseillerQueryModel', () => {
   beforeEach(async () => {
@@ -30,6 +29,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: undefined,
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
@@ -58,6 +58,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: {
           id: undefined,
           nom: "nom d'agence"
@@ -77,7 +78,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
       const uneAgence: Partial<AgenceDto> = {
         id: "id d'agence",
         nomAgence: 'Bonjour je suis une agence',
-        structure: Structure.MILO,
+        structure: Profil.Structure.MILO,
         codeDepartement: '45',
         nomRegion: 'yolo',
         timezone: 'test'
@@ -102,6 +103,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         firstName: 'Nils',
         lastName: 'Tavernier',
         email: 'nils.tavernier@passemploi.com',
+        profil: { structure: Profil.Structure.MILO, dispositif: null },
         agence: {
           id: "id d'agence",
           nom: 'Bonjour je suis une agence'

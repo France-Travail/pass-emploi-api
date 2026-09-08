@@ -4,6 +4,8 @@
 /scripts/node_modules
 
 # Logs
+logs.txt
+logs/
 logs
 *.log
 npm-debug.log*

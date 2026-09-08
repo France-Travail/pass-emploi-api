@@ -52,7 +52,7 @@ describe('GetDemarchesQueryGetter', () => {
     dateService = stubClass(DateService)
     dateService.now.returns(maintenant)
     oidcClient = stubClass(OidcClient)
-    oidcClient.exchangeTokenJeune.resolves(idpToken)
+    oidcClient.exchangeToken.resolves(idpToken)
 
     getDemarchesQueryGetter = new GetDemarchesQueryGetter(
       authRepository,
@@ -339,8 +339,11 @@ describe('GetDemarchesQueryGetter', () => {
           pourConseiller: true
         }
         authRepository.getJeuneById.withArgs(query.idJeune).resolves(jeune)
-        oidcClient.exchangeTokenConseillerJeune
-          .withArgs(query.accessToken, jeune.idAuthentification!)
+        oidcClient.exchangeToken
+          .withArgs(query.accessToken, undefined, {
+            sub: jeune.idAuthentification!,
+            type: Authentification.Type.JEUNE
+          })
           .resolves(idpToken)
         poleEmploiPartenaireClient.getDemarches
           .withArgs(idpToken, query.idJeune)
@@ -378,8 +381,11 @@ describe('GetDemarchesQueryGetter', () => {
           pourConseiller: true
         }
         authRepository.getJeuneById.withArgs(query.idJeune).resolves(jeune)
-        oidcClient.exchangeTokenConseillerJeune
-          .withArgs(query.accessToken, jeune.idAuthentification!)
+        oidcClient.exchangeToken
+          .withArgs(query.accessToken, undefined, {
+            sub: jeune.idAuthentification!,
+            type: Authentification.Type.JEUNE
+          })
           .rejects(new Error())
         poleEmploiPartenaireClient.getDemarchesEnCache
           .withArgs(query.idJeune)

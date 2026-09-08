@@ -163,15 +163,15 @@ export default () => {
           process.env.SENDINBLUE_RENDEZVOUS_SUPPRIME_TEMPLATE_ID ?? '19',
         suppressionJeuneMilo:
           process.env.SENDINBLUE_SUPPRESSION_JEUNE_MILO_ID ?? '14',
-        suppressionJeunePE:
+        suppressionJeuneFT:
           process.env.SENDINBLUE_SUPPRESSION_JEUNE_PE_ID ?? '17',
         suppressionBeneficiairePassEmploi:
           process.env.SENDINBLUE_BENEFICIAIRE_PASSEMPLOI_ID ?? '469',
         compteJeuneArchiveMILO:
           process.env.SENDINBLUE_COMPTE_JEUNE_ARCHIVE_MILO_ID ?? '51',
-        compteJeuneArchivePECEJ:
+        compteJeuneArchiveFTCEJ:
           process.env.SENDINBLUE_COMPTE_JEUNE_ARCHIVE_PE_CEJ_ID ?? '369',
-        compteJeuneArchivePEBRSA:
+        compteJeuneArchiveFTNonCEJ:
           process.env.SENDINBLUE_COMPTE_JEUNE_ARCHIVE_PE_BRSA_ID ?? '386',
         creationConseillerMilo:
           process.env.BREVO_CREATION_CONSEILLER_MILO_ID ?? '264',

@@ -3,14 +3,11 @@ import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 
-import { Jeune } from '../../../domain/jeune/jeune'
-import { Profil } from '../../../domain/profil'
-
 const COMMENTAIRE_SUPPRESSION_SUPPORT =
   "Pour des raisons techniques nous avons procédé à l'archivage de votre compte."
 
 export interface ArchiverJeuneSupportCommand {
-  idJeune: Jeune.Id
+  idJeune: string
 }
 
 @Injectable()
@@ -18,8 +15,6 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
   ArchiverJeuneSupportCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor(private readonly archiverJeuneService: ArchiveJeune.Service) {
     super('ArchiverJeuneSupportCommandHandler')
   }

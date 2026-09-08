@@ -3,12 +3,12 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 
 import { uneDatetime } from 'test/fixtures/date.fixture'
 import { Conseiller } from '../../../src/domain/milo/conseiller'
-import { Core } from '../../../src/domain/core'
 import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { expect } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ConseillerSqlRepository', () => {
   let conseillerSqlRepository: ConseillerSqlRepository
@@ -25,7 +25,8 @@ describe('ConseillerSqlRepository', () => {
         id: '1',
         lastName: 'Tavernier',
         firstName: 'Nils',
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ,
         email: 'nils.tavernier@passemploi.com',
         notificationsSonores: false,
         agence: {
@@ -52,7 +53,8 @@ describe('ConseillerSqlRepository', () => {
         id: '1',
         lastName: 'Tavernier',
         firstName: 'Nils',
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ,
         email: 'nils.tavernier@passemploi.com',
         agence: {
           id: 'id',
@@ -71,7 +73,8 @@ describe('ConseillerSqlRepository', () => {
         id: '1',
         lastName: 'Tavernier',
         firstName: 'Nils',
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ,
         email: 'nils.tavernier@passemploi.com',
         notificationsSonores: false,
         agence: {
@@ -106,7 +109,8 @@ describe('ConseillerSqlRepository', () => {
         id: '1',
         lastName: 'Tavernier',
         firstName: 'Nils',
-        structure: Core.Structure.POLE_EMPLOI,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ,
         email: 'nils.tavernier@passemploi.com',
         agence: {
           id: 'id',

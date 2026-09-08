@@ -54,7 +54,6 @@ import {
 import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../application/queries/rendez-vous/get-rendez-vous-jeune-pole-emploi.query.handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Core } from '../../domain/core'
 import { Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { GetRendezVousConseillerV2QueryParams } from './validation/conseillers.inputs'
@@ -126,7 +125,7 @@ export class RendezVousController {
     @Param('idRendezVous', new ParseUUIDPipe()) idRendezVous: string,
     @Body() updateRendezVousPayload: UpdateRendezVousPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<Core.Id> {
+  ): Promise<{ id: string }> {
     const command: UpdateRendezVousCommand = {
       idRendezVous: idRendezVous,
       idsJeunes: updateRendezVousPayload.jeunesIds,
@@ -206,7 +205,7 @@ export class RendezVousController {
     @Param('idConseiller') idConseiller: string,
     @Body() createRendezVousPayload: CreateRendezVousPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<Core.Id> {
+  ): Promise<{ id: string }> {
     const command: CreateRendezVousCommand = {
       idsJeunes: createRendezVousPayload.jeunesIds,
       commentaire: createRendezVousPayload.comment,

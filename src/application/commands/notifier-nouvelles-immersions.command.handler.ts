@@ -13,7 +13,7 @@ import {
   Recherche,
   RecherchesRepositoryToken
 } from '../../domain/offre/recherche/recherche'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 
 export interface NotifierNouvellesImmersionsCommand extends Command {
@@ -34,7 +34,7 @@ export class NotifierNouvellesImmersionsCommandHandler extends CommandHandler<
   NotifierNouvellesImmersionsCommand,
   Stats
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(RecherchesRepositoryToken)

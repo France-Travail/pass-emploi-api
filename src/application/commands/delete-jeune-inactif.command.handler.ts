@@ -11,7 +11,7 @@ import {
   failure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../domain/chat'
 import {
   Conseiller,
@@ -22,7 +22,7 @@ import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 
 export interface DeleteJeuneInactifCommand {
   idConseiller: string
-  idJeune: Jeune.Id
+  idJeune: string
 }
 
 @Injectable()
@@ -30,7 +30,7 @@ export class DeleteJeuneInactifCommandHandler extends CommandHandler<
   DeleteJeuneInactifCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(ConseillerRepositoryToken)

@@ -6,10 +6,10 @@ import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { PoleEmploiPartenaireClient } from 'src/infrastructure/clients/pole-emploi-partenaire-client.db'
 import { DemarcheHttpRepository } from 'src/infrastructure/repositories/demarche-http.repository'
 import { uneDemarcheDto } from 'test/fixtures/demarches-dto.fixtures'
-import { Core } from '../../../src/domain/core'
 import { DateService } from '../../../src/utils/date-service'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
+import { Profil } from '../../../src/domain/profil'
 
 describe('DemarcheHttpRepository', () => {
   let demarcheRepository: Demarche.Repository
@@ -22,7 +22,7 @@ describe('DemarcheHttpRepository', () => {
     dateService.now.returns(maintenant)
     dateService.nowJs.returns(maintenant.toJSDate())
     oidcClient = stubClass(OidcClient)
-    oidcClient.exchangeTokenJeune.resolves('token')
+    oidcClient.exchangeToken.resolves('token')
     poleEmploiPartenaireClient = stubClass(PoleEmploiPartenaireClient)
 
     demarcheRepository = new DemarcheHttpRepository(
@@ -59,13 +59,13 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.update(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
-        expect(oidcClient.exchangeTokenJeune).to.have.been.calledWith(
+        expect(oidcClient.exchangeToken).to.have.been.calledWith(
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
         expect(isSuccess(result) && result.data).to.deep.equal({
           attributs: [],
@@ -112,13 +112,13 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.update(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI_BRSA
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
-        expect(oidcClient.exchangeTokenJeune).to.have.been.calledWith(
+        expect(oidcClient.exchangeToken).to.have.been.calledWith(
           'token',
-          Core.Structure.POLE_EMPLOI_BRSA
+          Profil.Structure.FRANCE_TRAVAIL
         )
         expect(isSuccess(result) && result.data).to.deep.equal({
           attributs: [],
@@ -160,7 +160,7 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.update(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
@@ -197,13 +197,13 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.save(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
-        expect(oidcClient.exchangeTokenJeune).to.have.been.calledWith(
+        expect(oidcClient.exchangeToken).to.have.been.calledWith(
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
         expect(isSuccess(result) && result.data).to.deep.equal({
           attributs: [],
@@ -251,13 +251,13 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.save(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI_BRSA
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then
-        expect(oidcClient.exchangeTokenJeune).to.have.been.calledWith(
+        expect(oidcClient.exchangeToken).to.have.been.calledWith(
           'token',
-          Core.Structure.POLE_EMPLOI_BRSA
+          Profil.Structure.FRANCE_TRAVAIL
         )
         expect(isSuccess(result) && result.data).to.deep.equal({
           attributs: [],
@@ -299,7 +299,7 @@ describe('DemarcheHttpRepository', () => {
         const result = await demarcheRepository.save(
           demarche,
           'token',
-          Core.Structure.POLE_EMPLOI
+          Profil.Structure.FRANCE_TRAVAIL
         )
 
         // Then

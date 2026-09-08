@@ -16,7 +16,6 @@ import AutoinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/c
 import AutodesinscrireBeneficiaireSessionMiloCommandHandler from 'src/application/commands/milo/autodesinscription-beneficiaire-session-milo.command.handler'
 import { EmargerSessionMiloCommandHandler } from 'src/application/commands/milo/emarger-session-milo.command.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
-import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
 import { GetAgendaSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-agenda-sessions-conseiller.milo.query.handler.db'
 import { GetCompteursBeneficiaireMiloQueryHandler } from 'src/application/queries/milo/get-compteurs-portefeuille-milo.query.handler.db'
 import { GetDetailSessionConseillerMiloQueryHandler } from 'src/application/queries/milo/get-detail-session-conseiller.milo.query.handler.db'
@@ -24,7 +23,7 @@ import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/m
 import { GetSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-sessions-conseiller.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
-import { VerifierEmailBeneficiaireQueryHandler } from 'src/application/queries/pole-emploi/verifier-email-beneficiaire.query.handler'
+import { VerifierEmailJeuneQueryHandler } from 'src/application/queries/verifier-email-jeune.query.handler'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
@@ -112,7 +111,6 @@ import { DeleteSuperviseursCommandHandler } from './application/commands/support
 import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from './application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
-import { RefreshJddCommandHandler } from './application/commands/support/refresh-jdd.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
 import { UpdateFeatureFlipCommandHandler } from './application/commands/support/update-feature-flip.command.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
@@ -136,11 +134,11 @@ import { ChargerLesVuesJobHandler } from './application/jobs/analytics/3-charger
 import { CreerTablesAEAnnuellesJobHandler } from './application/jobs/analytics/creer-tables-ae-annuelles'
 import { CreerVueAEMensuelleJobHandler } from './application/jobs/analytics/creer-vue-ae-mensuelle'
 import { InitialiserLesVuesSurLaDerniereAnneeJobHandler } from './application/jobs/analytics/initialiser-les-vues-derniere-annee.job'
+import { InitialiserLaVueDemarchesIAJobHandler } from './application/jobs/analytics/initialiser-la-vue-demarches-ia.job'
 import { InitialiserLesVuesJobHandler } from './application/jobs/analytics/initialiser-les-vues.job'
 import { CloreSessionsJobHandler } from './application/jobs/clore-sessions.job.handler.db'
 import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/envoyer-emails-messages-conseillers.job.handler'
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
-import { HandleJobGenererJDDCommandHandler } from './application/jobs/generer-jdd.job.handler'
 import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evenements.job.handler'
 import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
@@ -276,7 +274,6 @@ import { ConfigurationApplication } from './domain/jeune/configuration-applicati
 import {
   Jeune,
   JeuneConfigurationApplicationRepositoryToken,
-  JeuneNonAccompagne,
   JeunePoleEmploiRepositoryToken,
   JeuneRepositoryToken
 } from './domain/jeune/jeune'
@@ -516,7 +513,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVous.Historique.Factory,
     RendezVous.Factory,
     Jeune.Factory,
-    JeuneNonAccompagne.Factory,
     ConfigurationApplication.Factory,
     Fichier.Factory,
     Suggestion.Factory,
@@ -867,7 +863,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateListeDeDiffusionCommandHandler,
     DeleteListeDeDiffusionCommandHandler,
     GetDetailListeDeDiffusionQueryHandler,
-    RefreshJddCommandHandler,
     EnvoyerMessageGroupeCommandHandler,
     MettreAJourLesJeunesCejPeCommandHandler,
     UpdateAgenceConseillerCommandHandler,
@@ -900,9 +895,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     EvenementEmploiCodePostalQueryGetter,
     GetCatalogueDemarchesQueryHandler,
     GetMonSuiviMiloQueryHandler,
-    GetTokenPoleEmploiQueryHandler,
     GetMonSuiviPoleEmploiQueryHandler,
-    VerifierEmailBeneficiaireQueryHandler,
+    VerifierEmailJeuneQueryHandler,
     GetCompteursBeneficiaireMiloQueryHandler,
     GetDemarchesConseillerQueryHandler,
     GetNotificationsJeuneQueryHandler,
@@ -947,7 +941,6 @@ export const JobHandlerProviders = [
   NettoyerLesDonneesJobHandler,
   PurgerInvitesInactifsJobHandler,
   MonitorJobsJobHandler,
-  HandleJobGenererJDDCommandHandler,
   SuivreEvenementsMiloCronJobHandler,
   TraiterEvenementMiloJobHandler,
   DumpForAnalyticsJobHandler,
@@ -957,6 +950,7 @@ export const JobHandlerProviders = [
   ChargerLesVuesJobHandler,
   InitialiserLesVuesJobHandler,
   InitialiserLesVuesSurLaDerniereAnneeJobHandler,
+  InitialiserLaVueDemarchesIAJobHandler,
   CreerTablesAEAnnuellesJobHandler,
   CreerVueAEMensuelleJobHandler,
   QualifierActionsJobHandler,

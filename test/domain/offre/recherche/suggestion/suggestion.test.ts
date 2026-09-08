@@ -15,8 +15,9 @@ import {
 import { describe } from 'mocha'
 import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../../../../src/building-blocks/types/domain-error'
-import { Core } from '../../../../../src/domain/core'
 import { Offre } from 'src/domain/offre/offre'
+import { Profil } from '../../../../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from '../../../../fixtures/profil.fixture'
 
 describe('Suggestion', () => {
   let factory: Recherche.Suggestion.Factory
@@ -49,7 +50,7 @@ describe('Suggestion', () => {
         const suggestion = factory.buildListeSuggestionsOffresFromPoleEmploi(
           [suggestionPESurUnDepartement],
           'ABCDE',
-          Core.Structure.MILO
+          unProfilMilo()
         )
 
         // Then
@@ -93,7 +94,7 @@ describe('Suggestion', () => {
         const suggestion = factory.buildListeSuggestionsOffresFromPoleEmploi(
           [suggestionPESurUneCommune],
           'ABCDE',
-          Core.Structure.MILO
+          unProfilMilo()
         )
 
         // Then
@@ -187,7 +188,7 @@ describe('Suggestion', () => {
         const suggestion = factory.buildListeSuggestionsOffresFromPoleEmploi(
           [suggestionPESurUneCommune],
           'ABCDE',
-          Core.Structure.POLE_EMPLOI_BRSA
+          unProfilFT(Profil.Dispositif.BRSA)
         )
 
         // Then
@@ -261,7 +262,7 @@ describe('Suggestion', () => {
         const suggestion = factory.buildListeSuggestionsOffresFromPoleEmploi(
           [suggestionPESurUneCommune],
           'ABCDE',
-          Core.Structure.MILO
+          unProfilMilo()
         )
 
         // Then
@@ -311,7 +312,7 @@ describe('Suggestion', () => {
         const suggestion = factory.buildListeSuggestionsOffresFromPoleEmploi(
           [suggestionPESurUneCommune],
           'ABCDE',
-          Core.Structure.MILO
+          unProfilMilo()
         )
 
         // Then

@@ -6,7 +6,7 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
-import { Core } from '../../../domain/core'
+import { Profil } from '../../../domain/profil'
 
 @Table({
   timestamps: false,
@@ -28,7 +28,10 @@ export class FeedbackSqlModel extends Model {
   idUtilisateur: string | null
 
   @Column({ field: 'structure', type: DataType.STRING })
-  structure: Core.Structure
+  structure: Profil.Structure
+
+  @Column({ field: 'dispositif', type: DataType.STRING })
+  dispositif: Profil.Dispositif | null
 
   @Column({ field: 'tag', type: DataType.STRING })
   tag: string

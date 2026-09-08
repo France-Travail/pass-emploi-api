@@ -10,7 +10,6 @@ import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
 import { Authentification } from '../../../src/domain/authentification'
 import { Chat } from '../../../src/domain/chat'
-import { Core } from '../../../src/domain/core'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Mail } from '../../../src/domain/mail'
@@ -19,11 +18,11 @@ import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
-import Structure = Core.Structure
 import {
   emptySuccess,
   failure
 } from '../../../src/building-blocks/types/result'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ArchiverJeuneCommandHandler', () => {
   let archiverJeuneCommandHandler: ArchiverJeuneCommandHandler
@@ -108,8 +107,8 @@ describe('ArchiverJeuneCommandHandler', () => {
           email: jeune.email,
           prenomJeune: jeune.firstName,
           nomJeune: jeune.lastName,
-          structure: Structure.MILO,
-          dispositif: Jeune.Dispositif.CEJ,
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ,
           idPartenaire: jeune.idPartenaire,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),

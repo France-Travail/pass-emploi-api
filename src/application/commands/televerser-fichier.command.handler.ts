@@ -23,7 +23,7 @@ import {
   ListeDeDiffusion,
   ListeDeDiffusionRepositoryToken
 } from '../../domain/milo/liste-de-diffusion'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import estJeune = Authentification.estJeune
 import estConseiller = Authentification.estConseiller
 import { buildError } from '../../utils/logger.module'
@@ -50,7 +50,7 @@ export class TeleverserFichierCommandHandler extends CommandHandler<
   TeleverserFichierCommand,
   TeleverserFichierCommandOutput
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(FichierRepositoryToken)

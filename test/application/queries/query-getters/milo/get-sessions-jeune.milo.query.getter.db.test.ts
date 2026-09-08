@@ -112,11 +112,11 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
       )
 
       expect(result).to.deep.equal(success([]))
-      expect(oidcClient.exchangeTokenJeune).not.to.have.been.called()
+      expect(oidcClient.exchangeToken).not.to.have.been.called()
     })
 
     it('renvoie sessions visibles non inscrites + sessions inscrites même non visibles, triées, sans doublons', async () => {
-      oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
 
       const sessionVisible1 = {
         ...uneSessionDto,
@@ -177,7 +177,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
     })
 
     it('applique la bonne timezone', async () => {
-      oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+      oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
 
       const sessionVisible1 = {
         ...uneSessionDto,
@@ -245,7 +245,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
           dateHeureDebut: '2020-03-30 10:00:00',
           dateMaxInscription: '2020-03-28'
         }
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
         miloClient.getSessionsParDossierJeune
           .withArgs(idpToken)
           .resolves(success([{ session: sessionExpiree, offre: uneOffreDto }]))
@@ -266,7 +266,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
           dateHeureDebut: '2020-03-30 10:00:00',
           dateMaxInscription: '2020-03-28'
         }
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
         miloClient.getSessionsParDossierJeune.withArgs(idpToken).resolves(
           success([
             {
@@ -318,7 +318,7 @@ describe('GetSessionsVisiblesPourLeJeuneMiloQueryGetter', () => {
           dateHeureFin: '2020-03-30 12:00:00',
           dateMaxInscription: null
         }
-        oidcClient.exchangeTokenJeune.withArgs(accessToken).resolves(idpToken)
+        oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
         miloClient.getSessionsParDossierJeune
           .withArgs(idpToken)
           .resolves(success([{ session: sessionDepassee, offre: uneOffreDto }]))

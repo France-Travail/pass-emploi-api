@@ -10,8 +10,8 @@ import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import { Notification } from './notification/notification'
 import Bull from 'bull'
-import { Core } from './core'
 import { Migration } from './migration'
+import { StructureEtDispositifs } from './profil'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -91,7 +91,6 @@ export namespace Planificateur {
     MAJ_CODES_EVENEMENTS = 'MAJ_CODES_EVENEMENTS',
     MAJ_SEGMENTS = 'MAJ_SEGMENTS',
     MONITORER_JOBS = 'MONITORER_JOBS',
-    GENERER_JDD = 'GENERER_JDD',
     SUIVRE_FILE_EVENEMENTS_MILO = 'SUIVRE_FILE_EVENEMENTS_MILO',
     TRAITER_EVENEMENT_MILO = 'TRAITER_EVENEMENT_MILO',
     DUMP_ANALYTICS = 'DUMP_ANALYTICS',
@@ -101,6 +100,7 @@ export namespace Planificateur {
     CHARGER_LES_VUES_ANALYTICS = 'CHARGER_LES_VUES_ANALYTICS',
     INITIALISER_LES_VUES = 'INITIALISER_LES_VUES',
     INITIALISER_LES_VUES_DERNIERE_ANNEE = 'INITIALISER_LES_VUES_DERNIERE_ANNEE',
+    INITIALISER_LA_VUE_DEMARCHES_IA = 'INITIALISER_LA_VUE_DEMARCHES_IA',
     CREER_TABLES_AE_ANNUELLES_ANALYTICS = 'CREER_TABLES_AE_ANNUELLES_ANALYTICS',
     CREER_VUE_AE_MENSUELLE = 'CREER_VUE_AE_MENSUELLE',
     QUALIFIER_ACTIONS = 'QUALIFIER_ACTIONS',
@@ -151,11 +151,6 @@ export namespace Planificateur {
     idAction: string
   }
 
-  export interface JobGenererJDD {
-    idConseiller: string
-    menage: boolean
-  }
-
   export type JobRecupererAnalyseAntivirus = {
     idFichier: string
   }
@@ -178,7 +173,7 @@ export namespace Planificateur {
   }
 
   export interface ParamsJobNotif {
-    structures?: Core.Structure[]
+    structuresEtDispositifs?: StructureEtDispositifs[]
     phaseDeMigration?: Migration.PhaseDeMigration
     push: boolean
     minutesEntreLesBatchs: number

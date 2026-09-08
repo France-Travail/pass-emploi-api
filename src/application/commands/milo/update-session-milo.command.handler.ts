@@ -7,7 +7,7 @@ import {
   Result
 } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
+import { Profil, TOUT_MILO } from 'src/domain/profil'
 import { Conseiller } from 'src/domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from 'src/domain/milo/conseiller.milo.db'
 import {
@@ -37,7 +37,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
   UpdateSessionMiloCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(ConseillerMiloRepositoryToken)
@@ -67,8 +67,9 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
     }
     const { structure: structureConseiller } = conseillerMiloResult.data
 
-    const idpToken = await this.oidcClient.exchangeTokenConseillerMilo(
-      command.accessToken
+    const idpToken = await this.oidcClient.exchangeToken(
+      command.accessToken,
+      Profil.Structure.MILO
     )
 
     const resultSession = await this.sessionMiloRepository.getForConseiller(

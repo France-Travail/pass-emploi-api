@@ -18,10 +18,13 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../domain/milo/conseiller'
-import { Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  estFranceTravail,
+  memeProfil
+} from '../../domain/profil'
 import { RendezVous } from '../../domain/rendez-vous/rendez-vous'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
-import { estFranceTravail } from '../../domain/core'
 
 export interface TransfererJeunesConseillerCommand extends Command {
   idConseillerSource: string
@@ -37,12 +40,7 @@ export class TransfererJeunesConseillerCommandHandler extends CommandHandler<
   TransfererJeunesConseillerCommand,
   void
 > {
-  readonly profilsAutorises = [
-    Profil.Conseiller.MILO,
-    Profil.Conseiller.FT,
-    Profil.Conseiller.CONSEIL_DEPT,
-    Profil.Support.SUPPORT
-  ]
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(ConseillerRepositoryToken)
@@ -191,29 +189,18 @@ function verifierStructuresPourConseiller(
   conseillerSource: Conseiller,
   conseillerCible: Conseiller
 ): Result {
-  if (estFranceTravail(utilisateur.structure)) {
-    const conseillerSourceEtCibleSontFranceTravail =
-      estFranceTravail(conseillerSource.structure) &&
-      estFranceTravail(conseillerCible.structure)
+  const superviseurDansLaMemeStructureQueConseillerSourceEtCible =
+    utilisateur.profil.structure === conseillerSource.structure &&
+    utilisateur.profil.structure === conseillerCible.structure
 
-    if (!conseillerSourceEtCibleSontFranceTravail)
-      return failure(
-        new MauvaiseCommandeError(
-          'Les conseillers source et cible doivent être rattachés à France Travail'
-        )
+  if (!superviseurDansLaMemeStructureQueConseillerSourceEtCible) {
+    return failure(
+      new MauvaiseCommandeError(
+        estFranceTravail(utilisateur.profil.structure)
+          ? 'Les conseillers source et cible doivent être rattachés à France Travail'
+          : 'Les informations de structure ne correspondent pas'
       )
-  } else {
-    const superviseurDansLaMemeStructureQueConseillerSourceEtCible =
-      utilisateur.structure === conseillerSource.structure &&
-      utilisateur.structure === conseillerCible.structure
-
-    if (!superviseurDansLaMemeStructureQueConseillerSourceEtCible) {
-      return failure(
-        new MauvaiseCommandeError(
-          'Les informations de structure ne correspondent pas'
-        )
-      )
-    }
+    )
   }
 
   return emptySuccess()
@@ -223,7 +210,7 @@ function verifierStructuresPourSupport(
   conseillerSource: Conseiller,
   conseillerCible: Conseiller
 ): Result {
-  if (conseillerSource.structure !== conseillerCible.structure) {
+  if (!memeProfil(conseillerSource, conseillerCible)) {
     return failure(
       new MauvaiseCommandeError(
         'Les informations de structure ne correspondent pas'

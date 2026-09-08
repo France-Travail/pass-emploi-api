@@ -3,7 +3,6 @@ import { SinonSandbox } from 'sinon'
 import { RecupererSituationsJeunesMiloJobHandler } from 'src/application/jobs/recuperer-situations-jeunes-milo.job.handler'
 import { ErreurHttp } from 'src/building-blocks/types/domain-error'
 import { failure, success } from 'src/building-blocks/types/result'
-import { Core } from 'src/domain/core'
 import { SuiviJob } from 'src/domain/suivi-job'
 import { uneDatetime } from 'test/fixtures/date.fixture'
 import { unJeune } from 'test/fixtures/jeune.fixture'
@@ -11,6 +10,7 @@ import { unDossierMilo } from 'test/fixtures/milo.fixture'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
 import { DateService } from '../../../src/utils/date-service'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
+import { Profil } from '../../../src/domain/profil'
 
 describe('RecupererSituationsJeunesMiloJobHandler', () => {
   let recupererSituationsJeunesMiloJobHandler: RecupererSituationsJeunesMiloJobHandler
@@ -20,13 +20,13 @@ describe('RecupererSituationsJeunesMiloJobHandler', () => {
 
   const jeune1 = unJeune({
     id: 'jeune1',
-    structure: Core.Structure.MILO,
+    structure: Profil.Structure.MILO,
     idPartenaire: '1',
     dateFinCEJ: undefined
   })
   const jeune2 = unJeune({
     id: 'jeune2',
-    structure: Core.Structure.MILO,
+    structure: Profil.Structure.MILO,
     idPartenaire: '2',
     dateFinCEJ: undefined
   })

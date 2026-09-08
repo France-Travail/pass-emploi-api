@@ -14,7 +14,7 @@ import { ConfigurationApplication } from '../../../domain/jeune/configuration-ap
 import { JeuneConfigurationApplicationRepositoryToken } from '../../../domain/jeune/jeune'
 import { Notification } from '../../../domain/notification/notification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../../domain/profil'
+import { TOUT_PROFIL } from '../../../domain/profil'
 
 export interface AddCommentaireActionCommand extends Command {
   idAction: string
@@ -26,7 +26,7 @@ export class AddCommentaireActionCommandHandler extends CommandHandler<
   AddCommentaireActionCommand,
   Action.Commentaire
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private actionAuthorizer: ActionAuthorizer,

@@ -3,7 +3,6 @@ import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { DateTime } from 'luxon'
-import { GetTokenPoleEmploiQueryHandler } from 'src/application/queries/get-token-pole-emploi.query.handler'
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { handleResult } from 'src/infrastructure/routes/result.handler'
 import { GetMonSuiviQueryParams } from 'src/infrastructure/routes/validation/jeunes.pole-emploi.inputs'
@@ -53,7 +52,6 @@ export class JeunesPoleEmploiController {
     private readonly getCVPoleEmploiQueryHandler: GetCVPoleEmploiQueryHandler,
     private readonly getJeuneHomeDemarchesQueryHandler: GetJeuneHomeDemarchesQueryHandler,
     private readonly getJeuneHomeAgendaPoleEmploiQueryHandler: GetSuiviSemainePoleEmploiQueryHandler,
-    private readonly getTokenPoleEmploiQueryHandler: GetTokenPoleEmploiQueryHandler,
     private readonly updateStatutDemarcheCommandHandler: UpdateStatutDemarcheCommandHandler,
     private readonly createDemarcheCommandHandler: CreateDemarcheCommandHandler,
     private readonly getMonSuiviPoleEmploiQueryHandler: GetMonSuiviPoleEmploiQueryHandler,
@@ -81,7 +79,7 @@ export class JeunesPoleEmploiController {
         idJeune,
         maintenant: queryParams.maintenant,
         accessToken,
-        structure: utilisateur.structure
+        structure: utilisateur.profil.structure
       },
       utilisateur
     )
@@ -240,27 +238,6 @@ export class JeunesPoleEmploiController {
       resultat: queryModel,
       dateDerniereMiseAJour: dateDuCache?.toJSDate()
     }))
-  }
-
-  @Get('jeunes/:idJeune/pole-emploi/idp-token')
-  @UserJourney('authentification_france_travail')
-  @ApiOperation({
-    summary:
-      "Permet de récupérer le token d’identité d'un jeune Pôle Emploi (à échanger par exemple avec CVM)",
-    description: 'Autorisé pour un jeune Pole Emploi'
-  })
-  @ApiResponse({ type: String })
-  async getTokenPoleEmploi(
-    @Param('idJeune') idJeune: string,
-    @AccessToken() accessToken: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<string> {
-    const result = await this.getTokenPoleEmploiQueryHandler.execute(
-      { idJeune, accessToken },
-      utilisateur
-    )
-
-    return handleResult(result)
   }
 
   @Get('/jeunes/:idJeune/pole-emploi/mon-suivi')

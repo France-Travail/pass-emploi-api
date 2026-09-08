@@ -46,6 +46,7 @@ import {
 import { createSandbox, SinonStub } from 'sinon'
 import Bull from 'bull'
 import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
+import { Profil } from '../../../src/domain/profil'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
@@ -620,9 +621,11 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
+          structuresEtDispositifs: [
+            {
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+            }
           ],
           push: true,
           batchSize: 2000
@@ -680,7 +683,7 @@ describe('SupportController', () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          structures: ['MILO', 'POLE_EMPLOI'],
+          structuresEtDispositifs: [{ structure: 'MILO' }],
           push: true,
           batchSize: -1
         }
@@ -696,7 +699,7 @@ describe('SupportController', () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          structures: ['MILO', 'POLE_EMPLOI'],
+          structuresEtDispositifs: [{ structure: 'MILO' }],
           push: true,
           phaseDeMigration: 'test'
         }
@@ -716,9 +719,11 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structures: [
-            Core.Structure.POLE_EMPLOI_AIJ,
-            Core.Structure.POLE_EMPLOI_BRSA
+          structuresEtDispositifs: [
+            {
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+            }
           ],
           push: true,
           batchSize: 2000

@@ -10,7 +10,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import {
   Conseiller,
   ConseillerRepositoryToken
@@ -51,7 +51,7 @@ export class CreateRendezVousCommandHandler extends CommandHandler<
   CreateRendezVousCommand,
   string
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(RendezVousRepositoryToken)

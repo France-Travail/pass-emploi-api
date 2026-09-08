@@ -12,7 +12,6 @@ import {
   failure
 } from '../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Core } from '../../../src/domain/core'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DateService } from '../../../src/utils/date-service'
@@ -20,6 +19,7 @@ import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture
 import { uneAutreDate, uneDate } from '../../fixtures/date.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
+import { Profil } from '../../../src/domain/profil'
 
 describe('ChangerDispositifJeuneCommandHandler', () => {
   let handler: ChangerDispositifJeuneCommandHandler
@@ -32,12 +32,12 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   const dateFinAccompagnement = uneAutreDate()
   const utilisateur = unUtilisateurConseiller()
   const jeune = unJeune({
-    structure: Core.Structure.MILO,
-    dispositif: Jeune.Dispositif.CEJ
+    structure: Profil.Structure.MILO,
+    dispositif: Profil.Dispositif.CEJ
   })
   const command: ChangerDispositifJeuneCommand = {
     idJeune: jeune.id,
-    dispositif: Jeune.Dispositif.PACEA,
+    dispositif: Profil.Dispositif.PACEA,
     motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
     dateFinAccompagnement
   }
@@ -115,8 +115,8 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
           email: jeune.email,
           prenomJeune: jeune.firstName,
           nomJeune: jeune.lastName,
-          structure: jeune.structure,
-          dispositif: jeune.dispositif,
+          structure: Profil.Structure.MILO,
+          dispositif: jeune.dispositif ?? undefined,
           idPartenaire: jeune.idPartenaire,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
@@ -130,7 +130,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
 
         const jeuneAttendu: Jeune = {
           ...jeune,
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false,
           creationDate: DateTime.fromJSDate(dateFinAccompagnement)
         }
@@ -148,8 +148,8 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
       it("ne crée pas d'archive mais réinitialise le compte et bascule le dispositif", async () => {
         // Given
         const jeuneNonActive = unJeune({
-          structure: Core.Structure.MILO,
-          dispositif: Jeune.Dispositif.CEJ,
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ,
           isActivated: false,
           datePremiereConnexion: undefined
         })
@@ -168,7 +168,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
 
         const jeuneAttendu: Jeune = {
           ...jeuneNonActive,
-          dispositif: Jeune.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.PACEA,
           peutVoirLeComptageDesHeures: false,
           creationDate: DateTime.fromJSDate(dateFinAccompagnement)
         }

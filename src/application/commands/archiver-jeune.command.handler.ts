@@ -7,7 +7,6 @@ import {
   failure,
   isFailure
 } from '../../building-blocks/types/result'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
 import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
@@ -28,9 +27,10 @@ import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Mail, MailServiceToken } from '../../domain/mail'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 
 export interface ArchiverJeuneCommand {
-  idJeune: Jeune.Id
+  idJeune: string
   motif: ArchiveJeune.MotifSuppression
   dateFinAccompagnement?: DateTime
   commentaire?: string
@@ -41,7 +41,7 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
   ArchiverJeuneCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -95,7 +95,7 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
       commentaire: command.commentaire,
       dateArchivage: this.dateService.nowJs(),
       idPartenaire: jeune.idPartenaire,
-      dispositif: jeune.dispositif
+      dispositif: jeune.dispositif ?? undefined
     }
 
     try {

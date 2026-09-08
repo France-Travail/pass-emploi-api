@@ -4,7 +4,7 @@ import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { FeedbackSqlModel } from '../../infrastructure/sequelize/models/feedback.sql-model'
 
 export interface CreateFeedbackCommand extends Command {
@@ -18,7 +18,7 @@ export class CreateFeedbackCommandHandler extends CommandHandler<
   CreateFeedbackCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(private readonly dateService: DateService) {
     super('CreateFeedbackCommandHandler')
@@ -31,7 +31,8 @@ export class CreateFeedbackCommandHandler extends CommandHandler<
     await FeedbackSqlModel.create({
       idUtilisateur: utilisateur.id,
       dateCreation: this.dateService.nowJs(),
-      structure: utilisateur.structure,
+      structure: utilisateur.profil.structure,
+      dispositif: utilisateur.profil.dispositif,
       tag: command.tag,
       note: command.note,
       commentaire: command.commentaire

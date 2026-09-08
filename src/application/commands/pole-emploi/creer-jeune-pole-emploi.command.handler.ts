@@ -4,23 +4,25 @@ import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
   EmailExisteDejaError,
+  MauvaiseCommandeError,
   NonTrouveError
 } from '../../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
-import { Profil } from '../../../domain/profil'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
-import { Core } from '../../../domain/core'
-import {
-  Jeune,
-  JeuneNonAccompagne,
-  JeuneRepositoryToken
-} from '../../../domain/jeune/jeune'
+import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
+import {
+  estConseilDepartemental,
+  estDispositifNonAccompagne,
+  estFranceTravail,
+  Profil,
+  TOUT_FRANCE_TRAVAIL
+} from '../../../domain/profil'
 
 export interface CreateJeuneCommand extends Command {
   idConseiller: string
@@ -34,7 +36,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   CreateJeuneCommand,
   Jeune
 > {
-  readonly profilsAutorises = [Profil.Conseiller.FT]
+  readonly profilsAutorises = TOUT_FRANCE_TRAVAIL
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -54,10 +56,17 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
     if (!conseiller) {
       return failure(new NonTrouveError('Conseiller', command.idConseiller))
     }
+    if (Conseiller.doitChoisirSonDispositif(conseiller)) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Le conseiller doit choisir son dispositif avant de créer un bénéficiaire'
+        )
+      )
+    }
 
     const jeune = await this.jeuneRepository.getByEmail(command.email)
     if (jeune) {
-      if (jeune.conseiller || jeune.dispositif) {
+      if (jeune.conseiller || !estDispositifNonAccompagne(jeune.dispositif)) {
         return failure(new EmailExisteDejaError(command.email))
       }
       return this.reprendreEnAccompagnement(jeune, conseiller)
@@ -74,7 +83,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
         email: conseiller.email
       },
       structure: conseiller.structure,
-      dispositif: fromStructureFTToDispositif(conseiller.structure)
+      dispositif: dispositifDuJeuneAccompagnePar(conseiller)
     }
     const nouveauJeune = this.jeuneFactory.creer(jeuneACreer)
     await this.jeuneRepository.save(nouveauJeune)
@@ -86,7 +95,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   }
 
   private async reprendreEnAccompagnement(
-    jeune: JeuneNonAccompagne,
+    jeune: Jeune,
     conseiller: Conseiller
   ): Promise<Result<Jeune>> {
     const jeuneAccompagne: Jeune = {
@@ -98,7 +107,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
         email: conseiller.email
       },
       structure: conseiller.structure,
-      dispositif: fromStructureFTToDispositif(conseiller.structure),
+      dispositif: dispositifDuJeuneAccompagnePar(conseiller),
       preferences: {
         ...jeune.preferences,
         messages: true,
@@ -130,30 +139,16 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   }
 }
 
-function fromStructureFTToDispositif(
-  structure: Core.Structure
-): Jeune.Dispositif {
-  switch (structure) {
-    case Core.Structure.POLE_EMPLOI:
-      return Jeune.Dispositif.CEJ
-    case Core.Structure.POLE_EMPLOI_AIJ:
-      return Jeune.Dispositif.AIJ
-    case Core.Structure.POLE_EMPLOI_BRSA:
-      return Jeune.Dispositif.BRSA
-    case Core.Structure.CONSEIL_DEPT:
-      return Jeune.Dispositif.CONSEIL_DEPT
-    case Core.Structure.AVENIR_PRO:
-      return Jeune.Dispositif.AVENIR_PRO
-    case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-      return Jeune.Dispositif.ACCOMPAGNEMENT_INTENSIF
-    case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-      return Jeune.Dispositif.ACCOMPAGNEMENT_GLOBAL
-    case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-      return Jeune.Dispositif.EQUIP_EMPLOI_RECRUT
-    case Core.Structure.MILO:
-    case Core.Structure.FT_ESPACE_CANDIDAT:
-    case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-    case Core.Structure.INVITE:
-      throw new RuntimeException()
+// Le jeune hérite du dispositif de son conseiller FT (null pour le Conseil départemental).
+function dispositifDuJeuneAccompagnePar(
+  conseiller: Conseiller
+): Profil.Dispositif | null {
+  const conseillerFTConnectAccompagnant =
+    (estFranceTravail(conseiller.structure) ||
+      estConseilDepartemental(conseiller.structure)) &&
+    !estDispositifNonAccompagne(conseiller.dispositif)
+  if (!conseillerFTConnectAccompagnant) {
+    throw new RuntimeException()
   }
+  return conseiller.dispositif
 }

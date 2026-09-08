@@ -114,7 +114,7 @@ describe('JeunesControllerE2E', () => {
     it('retourne la page Mon suivi > Cette semaine du jeune', async () => {
       // Given
       jeuneAuthorizer.autoriserLeJeune.resolves(emptySuccess())
-      oidcClient.exchangeTokenJeune.resolves('idpToken')
+      oidcClient.exchangeToken.resolves('idpToken')
       jeuneRepository.get.resolves(jeune)
       authRepository.getJeuneById.resolves(unUtilisateurJeune())
 

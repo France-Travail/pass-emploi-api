@@ -11,11 +11,11 @@ import { QueryHandler } from 'src/building-blocks/types/query-handler'
 import { Query } from 'src/building-blocks/types/query'
 import { failure, Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
-import { Profil } from 'src/domain/profil'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../infrastructure/sequelize/models/jeune.sql-model'
 import { ConseillerInterStructureMiloAuthorizer } from '../../authorizers/conseiller-inter-structure-milo-authorizer'
 import { GetSessionsAuxquellesLeJeuneEstInscritMiloQueryGetter } from '../query-getters/milo/get-sessions-jeune-inscrit.milo.query.getter.db'
+import { TOUT_MILO } from 'src/domain/profil'
 
 export interface GetSessionsJeuneMiloQuery extends Query {
   idJeune: string
@@ -29,7 +29,7 @@ export class GetSessionsJeuneMiloQueryHandler extends QueryHandler<
   GetSessionsJeuneMiloQuery,
   Result<SessionJeuneMiloQueryModel[]>
 > {
-  readonly profilsAutorises = [Profil.Jeune.MILO, Profil.Conseiller.MILO]
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     private readonly getSessionsPourLeJeuneQueryGetter: GetSessionsVisiblesPourLeJeuneMiloQueryGetter,

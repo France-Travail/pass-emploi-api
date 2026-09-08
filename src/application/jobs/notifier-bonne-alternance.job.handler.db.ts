@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Op } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
-import { Core } from '../../domain/core'
 import {
   Notification,
   NotificationRepositoryToken
@@ -11,7 +10,9 @@ import {
   PlanificateurRepositoryToken,
   ProcessJobType
 } from '../../domain/planificateur'
+import { PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE } from '../../domain/profil'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
+import { filtreStructuresEtDispositifs } from '../../infrastructure/sequelize/filtre-structures-dispositifs'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../utils/date-service'
 
@@ -48,19 +49,13 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
     const maintenant = this.dateService.now()
 
     try {
-      const structuresConcernees = [
-        Core.Structure.MILO,
-        Core.Structure.POLE_EMPLOI,
-        Core.Structure.POLE_EMPLOI_AIJ
-      ]
-
       const offset = job.contenu?.offset || 0
 
       const idsJeunesANotifier = await JeuneSqlModel.findAll({
         where: {
-          structure: {
-            [Op.in]: structuresConcernees
-          },
+          ...filtreStructuresEtDispositifs(
+            PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE
+          ),
           pushNotificationToken: {
             [Op.ne]: null
           }

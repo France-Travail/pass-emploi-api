@@ -3,7 +3,6 @@ import * as os from 'os'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../../building-blocks/types/result'
-import { Profil } from '../../../domain/profil'
 import { SuiviPeCejSqlModel } from '../../../infrastructure/sequelize/models/suivi-pe-cej.sql-model'
 
 export interface MettreAJourLesJeunesCEJPoleEmploiCommand extends Command {
@@ -15,8 +14,6 @@ export class MettreAJourLesJeunesCejPeCommandHandler extends CommandHandler<
   MettreAJourLesJeunesCEJPoleEmploiCommand,
   void
 > {
-  readonly profilsAutorises = [Profil.Support.SUPPORT]
-
   constructor() {
     super('MettreAJourLesJeunesCejPeCommandHandler')
   }

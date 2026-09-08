@@ -8,10 +8,9 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { estInvite } from '../../domain/core'
 import { JeuneConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune'
 import { JeuneInviteConfigurationApplicationRepositoryToken } from '../../domain/jeune/jeune-invite'
-import { TOUS_LES_JEUNES } from '../../domain/profil'
+import { estInvite, TOUT_PROFIL } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { ConfigurationApplication } from '../../domain/jeune/configuration-application'
@@ -30,7 +29,7 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
   UpdateJeuneConfigurationApplicationCommand,
   void
 > {
-  readonly profilsAutorises = TOUS_LES_JEUNES
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(JeuneConfigurationApplicationRepositoryToken)
@@ -48,7 +47,7 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
     command: UpdateJeuneConfigurationApplicationCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (estInvite(utilisateur.structure)) {
+    if (estInvite(utilisateur.profil.structure)) {
       const configurationExistante =
         await this.jeuneInviteConfigurationApplicationRepository.get(
           command.idJeune
@@ -89,7 +88,7 @@ export class UpdateJeuneConfigurationApplicationCommandHandler extends CommandHa
     command: UpdateJeuneConfigurationApplicationCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    if (estInvite(utilisateur.structure)) {
+    if (estInvite(utilisateur.profil.structure)) {
       return this.jeuneInviteAuthorizer.autoriserLInvite(
         command.idJeune,
         utilisateur

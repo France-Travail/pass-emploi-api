@@ -11,7 +11,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { TOUS_LES_PROFILS } from '../../domain/profil'
+import { TOUT_PROFIL } from '../../domain/profil'
 import { PoleEmploiClient } from '../../infrastructure/clients/pole-emploi-client'
 import { OffreEmploiDto } from '../../infrastructure/repositories/dto/pole-emploi.dto'
 import { mapOrigine } from '../../infrastructure/repositories/mappers/offres-emploi.mappers'
@@ -26,7 +26,7 @@ export class GetDetailOffreEmploiQueryHandler extends QueryHandler<
   GetDetailOffreEmploiQuery,
   Result<OffreEmploiQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private poleEmploiClient: PoleEmploiClient,

@@ -83,6 +83,22 @@ Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#or
 3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
 4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
 
+### Maintenance — reprise de l'historique vers le modèle Profil (septembre 2026)
+
+Les événements et toutes les vues capturent désormais `structure` (MILO, FRANCE_TRAVAIL,
+CONSEIL_DEPARTEMENTAL, INVITE) **et** `dispositif` (CEJ, PACEA, BRSA, AIJ, AVENIR_PRO, ...).
+L'ancienne structure à 12 valeurs (`POLE_EMPLOI_BRSA`, `MILO_PACEA`, ...) n'est plus produite.
+Les tables métier recopiées par le dump sont converties par la migration Sequelize de l'API.
+L'historique de `evenement_engagement`, ses copies annuelles et les vues `analytics_*`, eux,
+ne vivent qu'en analytics : ils se reprennent une fois, **en place et sans recalcul**, avec
+[scripts/analytics/migrer-historique-vers-profil.sql](../scripts/analytics/migrer-historique-vers-profil.sql),
+puis un run du job 2 (`TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS`) qui reconstruit
+`evenement_engagement_jeune`, et enfin `yarn tasks:initialiser-la-vue-demarches-ia` qui
+recalcule la vue démarches IA avec sa règle avant / après généralisation. Ne pas relancer
+`initialiser-les-vues` pour cette reprise : l'ancienne structure encodait déjà le dispositif,
+la conversion ligne à ligne donne le même résultat qu'un recalcul, et un recalcul de la vue
+`migration` utiliserait les feature flips d'aujourd'hui, pas la population pilote de l'époque.
+
 ### Maintenance — recalcul des vues
 
 Pour reconstruire les vues agrégées sur l'historique — évolution des actes d'engagement, ajout
@@ -173,9 +189,9 @@ Afin d'avoir des dashboards qui répondent vite, on fait des calculs d'indicateu
 **_analytics_fonctionnalites_**
 Détaille l'utilisation des fonctionnalités aux mailles :
 
-- categorie-action-nom-structure-type-utilisateur-semaine
-- categorie-action-structure-type-utilisateur-semaine
-- categorie-structure-type-utilisateur-semaine
+- categorie-action-nom-structure-dispositif-type-utilisateur-semaine
+- categorie-action-structure-dispositif-type-utilisateur-semaine
+- categorie-structure-dispositif-type-utilisateur-semaine
 
 Pour cette maille les indicateurs suivants sont calculés :
 
@@ -183,7 +199,12 @@ Pour cette maille les indicateurs suivants sont calculés :
 - nombre d'utilisateurs
 
 **_analytics_fonctionnalites_demarches_ia_**
-Même chose que **_analytics_fonctionnalites_** sauf que c'est filtré uniquement sur les bénéficiaires qui ont la fonctionnalité `DEMARCHES_IA` active (voir la table `feature_flip`).
+Même chose que **_analytics_fonctionnalites_**, restreint aux bénéficiaires. Avant la
+généralisation des démarches IA (`DATE_GENERALISATION_DEMARCHES_IA`, 2026-04-01), seuls les
+bêta-testeurs comptent : bénéficiaires des conseillers porteurs du feature flip `DEMARCHES_IA`,
+bénéficiaires transférés depuis ces conseillers, et bénéficiaires ayant utilisé une
+fonctionnalité IA dans la semaine. Depuis, tous les bénéficiaires sans exception.
+Recalcul de cette seule vue sur tout l'historique : `yarn tasks:initialiser-la-vue-demarches-ia`.
 
 **_analytics_fonctionnalites_migration_**
 Même chose que **_analytics_fonctionnalites_** (mêmes mailles et indicateurs), filtré sur les
@@ -197,7 +218,7 @@ utilisateurs liés à une migration :
 **_analytics_engagement_**
 Détaille l'engagement des utilisateurs aux mailles :
 
-- structure-type_utilisateur-semaine-departement-region
+- structure-dispositif-type_utilisateur-semaine-departement-region
 
 Pour cette maille les indicateurs suivants sont calculés :
 
@@ -209,7 +230,7 @@ Pour cette maille les indicateurs suivants sont calculés :
 **_analytics_engagement_national_**
 Détaille l'engagement des utilisateurs aux mailles :
 
-- structure-type_utilisateur-semaine
+- structure-dispositif-type_utilisateur-semaine
   Le retrait des niveaux departement-region permet d'avoir des chiffres exacts à l'échelle nationale.
 
 Les indicateurs sont les mêmes que pour la table analytics_engagement

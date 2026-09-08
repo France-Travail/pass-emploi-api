@@ -24,11 +24,11 @@ import { TriRendezVous } from 'src/application/queries/rendez-vous/get-rendez-vo
 import { Action } from 'src/domain/action/action'
 import { AgenceInput } from 'src/infrastructure/routes/validation/agences.inputs'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
-import { Jeune } from '../../../domain/jeune/jeune'
 import {
   transformStringToArray,
   transformStringToBoolean
 } from './utils/transformers'
+import { DISPOSITIFS_FT_ACCOMPAGNES, Profil } from '../../../domain/profil'
 
 export class GetConseillersQueryParams {
   @ApiProperty()
@@ -60,7 +60,7 @@ export class CreateJeunePoleEmploiPayload {
   idConseiller: string
 }
 
-export class VerifierEmailBeneficiairePayload {
+export class VerifierEmailJeunePayload {
   @ApiProperty()
   @IsEmail()
   @IsNotEmpty()
@@ -93,10 +93,10 @@ export class CreerJeuneMiloPayload {
   @IsNotEmpty()
   idConseiller: string
 
-  @ApiProperty({ enum: [Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA] })
+  @ApiProperty({ enum: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA] })
   @IsString()
   @IsNotEmpty()
-  dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
+  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
 
   @ApiPropertyOptional()
   @IsBoolean()
@@ -149,6 +149,11 @@ export class DetailConseillerPayload {
   @Type(() => AgenceInput)
   agence?: AgenceInput
 
+  @ApiPropertyOptional({ enum: DISPOSITIFS_FT_ACCOMPAGNES.dispositifs })
+  @IsOptional()
+  @IsIn(DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!)
+  dispositif?: Profil.Dispositif
+
   @IsOptional()
   @IsDateString()
   @IsNotEmpty()
@@ -166,9 +171,9 @@ export class DetailConseillerPayload {
 }
 
 export class ChangerDispositifJeunePayload {
-  @ApiProperty({ enum: [Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA] })
-  @IsIn([Jeune.Dispositif.CEJ, Jeune.Dispositif.PACEA])
-  dispositif: Jeune.Dispositif.CEJ | Jeune.Dispositif.PACEA
+  @ApiProperty({ enum: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA] })
+  @IsIn([Profil.Dispositif.CEJ, Profil.Dispositif.PACEA])
+  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
 
   @ApiProperty({ enum: ArchiveJeune.MotifSuppression })
   @IsEnum(ArchiveJeune.MotifSuppression)
@@ -188,11 +193,11 @@ export class UpdateJeuneDuConseillerPayload {
   @Length(1, 11)
   idPartenaire?: string
 
-  @ApiProperty({ enum: Jeune.Dispositif })
+  @ApiProperty({ enum: Profil.Dispositif })
   @IsOptional()
   @IsString()
-  @IsEnum(Jeune.Dispositif)
-  dispositif?: Jeune.Dispositif
+  @IsEnum(Profil.Dispositif)
+  dispositif?: Profil.Dispositif
 
   @ApiPropertyOptional()
   @IsOptional()

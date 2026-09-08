@@ -26,7 +26,6 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
-import Structure = Core.Structure
 
 describe('RendezVousRepositorySql', () => {
   let databaseForTesting: DatabaseForTesting
@@ -53,7 +52,7 @@ describe('RendezVousRepositorySql', () => {
     // Given
     await ConseillerSqlModel.creer(
       unConseillerDto({
-        structure: Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI
       })
     )
     jeune = unJeuneDuRendezVous({

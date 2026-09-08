@@ -10,7 +10,7 @@ import { Request } from 'express'
 import { JWTPayload } from 'jose'
 import { Authentification } from '../../domain/authentification'
 import { Core } from '../../domain/core'
-import { Profil, profilConseillerDe, profilJeuneDe } from '../../domain/profil'
+import { Profil, structureLegacyVersProfil } from '../../domain/profil'
 import { rootLogger } from '../../utils/logger.module'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 import {
@@ -68,7 +68,7 @@ export class OidcAuthGuard implements CanActivate {
       }
       const userAPM: UserObject = {
         id: utilisateur.id,
-        username: `${utilisateur.prenom}-${utilisateur.nom}-${utilisateur.type}-${utilisateur.structure}`,
+        username: `${utilisateur.prenom}-${utilisateur.nom}-${utilisateur.type}-${utilisateur.profil.structure}`,
         email: utilisateur.email
       }
       getAPMInstance().setUserContext(userAPM)
@@ -81,7 +81,8 @@ export class OidcAuthGuard implements CanActivate {
           user: {
             id: utilisateur.id,
             type: utilisateur.type,
-            structure: utilisateur.structure
+            structure: utilisateur.profil.structure,
+            dispositif: utilisateur.profil.dispositif
           }
         },
         'auth_succeeded'
@@ -107,32 +108,15 @@ export class OidcAuthGuard implements CanActivate {
     payload: JWTPayload
   ): Authentification.Utilisateur {
     const type = payload.userType as Authentification.Type
-    const structure = payload.userStructure as Core.Structure
-    const profil = OidcAuthGuard.profilDeLUtilisateur(type, structure)
     return {
       id: payload.userId as string,
       email: payload.email as string,
       nom: payload.family_name as string,
       prenom: payload.given_name as string,
       type,
-      structure,
-      profil,
+      profil: profilDuClaim(payload),
       username: (payload.preferred_username as string) ?? undefined,
       roles: getRoles(payload.userRoles as Authentification.Role[] | undefined)
-    }
-  }
-
-  private static profilDeLUtilisateur(
-    type: Authentification.Type,
-    structure: Core.Structure
-  ): Profil | undefined {
-    switch (type) {
-      case Authentification.Type.CONSEILLER:
-        return profilConseillerDe(structure)
-      case Authentification.Type.SUPPORT:
-        return Profil.Support.SUPPORT
-      case Authentification.Type.JEUNE:
-        return profilJeuneDe(structure)
     }
   }
 
@@ -162,4 +146,18 @@ function getRoles(
   roles: Authentification.Role[] | undefined
 ): Authentification.Role[] {
   return roles ?? []
+}
+
+// Le claim `userProfile` (structure × dispositif) est la cible ; `userStructure`
+// (legacy) reste émis par connect pour l'app mobile et sert de repli tant que
+// le token ne porte pas encore le profil.
+function profilDuClaim(payload: JWTPayload): Profil {
+  const claim = payload.userProfile as Partial<Profil> | undefined
+  if (
+    claim?.structure &&
+    Object.values(Profil.Structure).includes(claim.structure)
+  ) {
+    return { structure: claim.structure, dispositif: claim.dispositif ?? null }
+  }
+  return structureLegacyVersProfil(payload.userStructure as Core.Structure)
 }

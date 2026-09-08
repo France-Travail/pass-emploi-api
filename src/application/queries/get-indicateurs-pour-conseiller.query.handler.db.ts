@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
 import { SessionJeuneMiloQueryModel } from 'src/application/queries/query-models/sessions.milo.query.model'
-import { estMilo } from 'src/domain/core'
 import { FavoriOffreEmploiSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-emploi.sql-model'
 import { FavoriOffreEngagementSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import { FavoriOffreImmersionSqlModel } from 'src/infrastructure/sequelize/models/favori-offre-immersion.sql-model'
@@ -11,7 +10,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { Authentification } from '../../domain/authentification'
-import { TOUS_LES_CONSEILLERS } from '../../domain/profil'
+import { DISPOSITIFS_ACCOMPAGNES, estMilo } from '../../domain/profil'
 import { ActionSqlModel } from '../../infrastructure/sequelize/models/action.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { RendezVousSqlModel } from '../../infrastructure/sequelize/models/rendez-vous.sql-model'
@@ -33,7 +32,7 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
   GetIndicateursPourConseillerQuery,
   Result<IndicateursPourConseillerQueryModel>
 > {
-  readonly profilsAutorises = TOUS_LES_CONSEILLERS
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private readonly dateService: DateService,
@@ -68,7 +67,7 @@ export class GetIndicateursPourConseillerQueryHandler extends QueryHandler<
     let actionsSqlDuJeune: ActionSqlModel[] = []
     let rendezVousSqlDuJeune: RendezVousSqlModel[] = []
     let sessionsDuJeune: SessionJeuneMiloQueryModel[] = []
-    if (estMilo(utilisateur.structure)) {
+    if (estMilo(utilisateur.profil.structure)) {
       ;[actionsSqlDuJeune, rendezVousSqlDuJeune, sessionsDuJeune] =
         await Promise.all([
           findAllActions(query),

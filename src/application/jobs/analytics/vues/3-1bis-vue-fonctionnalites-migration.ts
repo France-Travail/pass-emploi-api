@@ -38,6 +38,7 @@ export async function chargerLaVueFonctionnaliteMigration(
     )
     insert into ${ANALYTICS_FCT_MIGRATION_TABLE_NAME}(semaine,
                                                         structure,
+                                                        dispositif,
                                                         type_utilisateur,
                                                         categorie,
                                                         action,
@@ -52,6 +53,7 @@ export async function chargerLaVueFonctionnaliteMigration(
                                                         nb_users_total)
     SELECT table_nom.semaine,
            table_nom.structure,
+           table_nom.dispositif,
            table_nom.type_utilisateur,
            table_nom.categorie,
            table_nom.action,
@@ -71,20 +73,23 @@ export async function chargerLaVueFonctionnaliteMigration(
                  action,
                  nom,
                  structure,
+                 dispositif,
                  type_utilisateur
           FROM analytics_utilisateurs_migration
-          GROUP BY semaine, structure, categorie, action, nom, type_utilisateur) as table_nom
+          GROUP BY semaine, structure, dispositif, categorie, action, nom, type_utilisateur) as table_nom
            INNER JOIN (SELECT COUNT(distinct id_utilisateur) as nb_users_action,
                               count(*)                       as nb_ae_action,
                               semaine,
                               type_utilisateur,
                               structure,
+                              dispositif,
                               categorie,
                               action
                        FROM analytics_utilisateurs_migration
-                       GROUP BY semaine, structure, categorie, action, type_utilisateur) as table_action
+                       GROUP BY semaine, structure, dispositif, categorie, action, type_utilisateur) as table_action
                       ON table_nom.semaine = table_action.semaine and
                          table_nom.structure = table_action.structure and
+                         table_nom.dispositif IS NOT DISTINCT FROM table_action.dispositif and
                          table_nom.type_utilisateur = table_action.type_utilisateur and
                          table_nom.categorie = table_action.categorie and
                          table_nom.action = table_action.action
@@ -92,26 +97,30 @@ export async function chargerLaVueFonctionnaliteMigration(
                               count(*)                       as nb_ae_categorie,
                               semaine,
                               structure,
+                              dispositif,
                               type_utilisateur,
                               categorie
                        FROM analytics_utilisateurs_migration
-                       GROUP BY semaine, structure, categorie, type_utilisateur) as table_cat
+                       GROUP BY semaine, structure, dispositif, categorie, type_utilisateur) as table_cat
                       ON table_nom.semaine = table_cat.semaine and
                          table_nom.structure = table_cat.structure and
+                         table_nom.dispositif IS NOT DISTINCT FROM table_cat.dispositif and
                          table_nom.type_utilisateur = table_cat.type_utilisateur and
                          table_nom.categorie = table_cat.categorie
            INNER JOIN (SELECT count(*)                       as nb_ae,
                               COUNT(distinct id_utilisateur) as nb_users_tot,
                               semaine,
                               structure,
+                              dispositif,
                               type_utilisateur
                        FROM analytics_utilisateurs_migration
-                       GROUP BY semaine, structure, type_utilisateur) as table_tot
+                       GROUP BY semaine, structure, dispositif, type_utilisateur) as table_tot
                       ON table_nom.semaine = table_tot.semaine and
                          table_nom.structure = table_tot.structure and
+                         table_nom.dispositif IS NOT DISTINCT FROM table_tot.dispositif and
                          table_nom.type_utilisateur = table_tot.type_utilisateur
-    GROUP BY table_nom.semaine, table_nom.structure, table_nom.categorie, table_nom.action, table_nom.nom,
+    GROUP BY table_nom.semaine, table_nom.structure, table_nom.dispositif, table_nom.categorie, table_nom.action, table_nom.nom,
              table_nom.type_utilisateur
-    ORDER BY table_nom.structure, table_nom.type_utilisateur, table_nom.categorie, table_nom.action, table_nom.nom;
+    ORDER BY table_nom.structure, table_nom.dispositif, table_nom.type_utilisateur, table_nom.categorie, table_nom.action, table_nom.nom;
   `)
 }

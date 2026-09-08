@@ -5,11 +5,6 @@ import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import {
-  PROFILS_JEUNES_ACCOMPAGNES,
-  TOUS_LES_CONSEILLERS
-} from '../../domain/profil'
-import { estMilo } from '../../domain/core'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneMiloAArchiverSqlModel } from '../../infrastructure/sequelize/models/jeune-milo-a-archiver.sql-model'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
@@ -19,6 +14,7 @@ import { ConseillerInterAgenceAuthorizer } from '../authorizers/conseiller-inter
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { fromSqlToDetailJeuneQueryModel } from './query-mappers/jeune.mappers'
 import { DetailJeuneQueryModel } from './query-models/jeunes.query-model'
+import { DISPOSITIFS_ACCOMPAGNES, estMilo } from '../../domain/profil'
 
 export interface GetDetailJeuneQuery extends Query {
   idJeune: string
@@ -29,10 +25,7 @@ export class GetDetailJeuneQueryHandler extends QueryHandler<
   GetDetailJeuneQuery,
   Result<DetailJeuneQueryModel>
 > {
-  readonly profilsAutorises = [
-    ...PROFILS_JEUNES_ACCOMPAGNES,
-    ...TOUS_LES_CONSEILLERS
-  ]
+  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
@@ -64,7 +57,6 @@ export class GetDetailJeuneQueryHandler extends QueryHandler<
 
     if (estMilo(jeuneSqlModel.structure)) {
       const baseUrlDossier = this.configService.get('milo.urlWeb')
-      // TODO estAArchiver -> prendre en compte date dernière activité et date fin cej OU renommer
       const estAArchiver = await JeuneMiloAArchiverSqlModel.findByPk(
         jeuneSqlModel.id
       )

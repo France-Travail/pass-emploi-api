@@ -10,10 +10,11 @@ import {
   GetUtilisateurQueryHandler
 } from '../../../src/application/queries/get-utilisateur.query.handler'
 import { failure, success } from '../../../src/building-blocks/types/result'
-import { Core } from '../../../src/domain/core'
 import { createSandbox, expect } from '../../utils'
 import { queryModelFromUtilisateur } from '../../../src/application/queries/query-models/authentification.query-model'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import { Profil, profilExact } from '../../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetUtilisateurQueryHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -39,10 +40,10 @@ describe('GetUtilisateurQueryHandler', () => {
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: Authentification.Type.JEUNE,
-        structureUtilisateur: Core.Structure.MILO
+        profil: unProfilMilo()
       }
-      authentificationRepository.getJeuneByStructure
-        .withArgs(query.idAuthentification, query.structureUtilisateur)
+      authentificationRepository.getJeuneByStructureEtDispositifs
+        .withArgs(query.idAuthentification, profilExact(query.profil))
         .returns(unUtilisateurJeune())
 
       // When
@@ -58,7 +59,7 @@ describe('GetUtilisateurQueryHandler', () => {
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: Authentification.Type.CONSEILLER,
-        structureUtilisateur: Core.Structure.MILO
+        profil: unProfilMilo()
       }
       authentificationRepository.getConseiller
         .withArgs(query.idAuthentification)
@@ -72,12 +73,34 @@ describe('GetUtilisateurQueryHandler', () => {
         success(queryModelFromUtilisateur(unUtilisateurConseiller()))
       )
     })
-    it('retourne undefined quand conseiller avec mauvaise structure', async () => {
+    it('retourne le conseiller France Travail quel que soit le dispositif demandé', async () => {
       // Given
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: Authentification.Type.CONSEILLER,
-        structureUtilisateur: Core.Structure.POLE_EMPLOI
+        profil: unProfilFT(Profil.Dispositif.CEJ)
+      }
+      const conseillerBRSA = unUtilisateurConseiller({
+        profil: unProfilFT(Profil.Dispositif.BRSA)
+      })
+      authentificationRepository.getConseiller
+        .withArgs(query.idAuthentification)
+        .returns(conseillerBRSA)
+
+      // When
+      const result = await getUtilisateurQueryHandler.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        success(queryModelFromUtilisateur(conseillerBRSA))
+      )
+    })
+    it('retourne non trouvé quand conseiller avec mauvaise structure', async () => {
+      // Given
+      const query: GetUtilisateurQuery = {
+        idAuthentification: 'test-sub',
+        typeUtilisateur: Authentification.Type.CONSEILLER,
+        profil: unProfilFT()
       }
       authentificationRepository.getConseiller
         .withArgs(query.idAuthentification)
@@ -96,10 +119,10 @@ describe('GetUtilisateurQueryHandler', () => {
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: Authentification.Type.JEUNE,
-        structureUtilisateur: Core.Structure.POLE_EMPLOI_BRSA
+        profil: unProfilFT(Profil.Dispositif.BRSA)
       }
-      authentificationRepository.getJeuneByStructure
-        .withArgs(query.idAuthentification, query.structureUtilisateur)
+      authentificationRepository.getJeuneByStructureEtDispositifs
+        .withArgs(query.idAuthentification, profilExact(query.profil))
         .returns(undefined)
 
       // When

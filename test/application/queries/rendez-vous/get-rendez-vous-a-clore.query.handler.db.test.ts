@@ -3,7 +3,6 @@ import {
   GetRendezVousACloreQueryModel,
   RdvResumeQueryModel
 } from 'src/application/queries/query-models/rendez-vous.query-model'
-import { Core } from 'src/domain/core'
 import { AsSql } from 'src/infrastructure/sequelize/types'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
 import { GetRendezVousACloreQueryHandler } from '../../../../src/application/queries/rendez-vous/get-rendez-vous-a-clore.query.handler.db'
@@ -42,6 +41,7 @@ import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
+import { Profil } from '../../../../src/domain/profil'
 
 describe('GetRendezVousACloreQueryHandler', () => {
   let queryHandler: GetRendezVousACloreQueryHandler
@@ -101,7 +101,7 @@ describe('GetRendezVousACloreQueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       structureMiloDto = uneStructureMiloDto({
@@ -113,7 +113,7 @@ describe('GetRendezVousACloreQueryHandler', () => {
         nomAgence: 'Paris',
         nomRegion: 'Île-de-France',
         codeDepartement: '75',
-        structure: Core.Structure.MILO
+        structure: Profil.Structure.MILO
       })
 
       conseillerDto = unConseillerDto({

@@ -1,5 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime, WeekdayNumbers } from 'luxon'
+import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
 import { JobHandler } from '../../building-blocks/types/job-handler'
+import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
+import { Migration } from '../../domain/migration'
 import {
   Notification,
   NotificationRepositoryToken
@@ -10,12 +14,9 @@ import {
   ProcessJobType
 } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
-import { DateService } from '../../utils/date-service'
+import { filtreStructuresEtDispositifs } from '../../infrastructure/sequelize/filtre-structures-dispositifs'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
-import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
-import { DateTime, WeekdayNumbers } from 'luxon'
-import { Op, WhereAttributeHash, WhereOptions } from 'sequelize'
-import { Migration } from '../../domain/migration'
+import { DateService } from '../../utils/date-service'
 import StatsJobNotif = Planificateur.StatsJobNotif
 import ParamsJobNotif = Planificateur.ParamsJobNotif
 
@@ -206,8 +207,11 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
         [Op.ne]: null
       }
     }
-    if (params.structures && params.structures.length > 0) {
-      where.structure = { [Op.in]: params.structures }
+    if (params.structuresEtDispositifs?.length) {
+      Object.assign(
+        where,
+        filtreStructuresEtDispositifs(params.structuresEtDispositifs)
+      )
     }
     if (params.phaseDeMigration) {
       const idsBeneficiairesMigration =

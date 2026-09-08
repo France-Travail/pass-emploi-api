@@ -35,8 +35,14 @@ import { Migration } from '../../../src/domain/migration'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Jeune, JeuneNonAccompagne } from '../../../src/domain/jeune/jeune'
+import { Jeune } from '../../../src/domain/jeune/jeune'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import { Profil } from '../../../src/domain/profil'
+import {
+  unProfilCD,
+  unProfilFT,
+  unProfilMilo
+} from '../../fixtures/profil.fixture'
 
 describe('UpdateUtilisateurCommandHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
@@ -55,8 +61,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
   let migrationService: StubbedClass<Migration.Service>
   let archiverJeuneRepository: StubbedType<ArchiveJeune.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
-  const jeuneNonAccompagneFactory: JeuneNonAccompagne.Factory =
-    new JeuneNonAccompagne.Factory(dateService, idService)
+  const jeuneFactory: Jeune.Factory = new Jeune.Factory(dateService, idService)
 
   beforeEach(() => {
     const sandbox: SinonSandbox = createSandbox()
@@ -73,7 +78,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
       migrationService,
       archiverJeuneRepository,
       jeuneRepository,
-      jeuneNonAccompagneFactory
+      jeuneFactory
     )
   })
 
@@ -86,7 +91,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.CONSEILLER,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             const utilisateur = unUtilisateurConseiller()
@@ -112,7 +117,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.CONSEILLER,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               installationId: 'installation-uuid'
             }
 
@@ -137,11 +142,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.CONSEILLER,
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -169,11 +174,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
+                profil: unProfilFT(null)
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -200,11 +205,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
+                profil: unProfilFT(null)
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -237,11 +242,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.CONSEILLER,
-                structure: 'FRANCE_TRAVAIL'
+                profil: unProfilFT(null)
               }
 
               const utilisateur = unUtilisateurConseiller({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
@@ -277,7 +282,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.CONSEILLER,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               email: 'New@email.com',
               nom: 'newNom',
               prenom: 'newPrenom',
@@ -324,7 +329,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.CONSEILLER,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               email: 'New@email.com',
               nom: 'newNom',
               prenom: 'newPrenom',
@@ -371,7 +376,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.CONSEILLER,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               email: 'New@email.com',
               nom: 'newNom',
               prenom: 'newPrenom',
@@ -431,7 +436,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               type: Authentification.Type.CONSEILLER,
               email: 'Nils.Tavernier@Passemploi.com',
               idUtilisateurAuth: 'nilstavernier',
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               username: 'milou'
             }
 
@@ -449,7 +454,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 email: command.email,
                 username: command.username,
                 type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
+                profil: command.profil,
                 roles: []
               }
               authentificationRepository.save
@@ -480,7 +485,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   type: Authentification.Type.CONSEILLER,
                   email: 'Nils.Tavernier@Passemploi.com',
                   idUtilisateurAuth: 'nilstavernier',
-                  structure: Core.Structure.POLE_EMPLOI
+                  profil: unProfilFT()
                 }
                 // When
                 result = await updateUtilisateurCommandHandler.execute(command)
@@ -501,15 +506,14 @@ describe('UpdateUtilisateurCommandHandler', () => {
               })
             })
           })
-          describe('quand il est valide mais vient du bouton connexion unique (structure FRANCE_TRAVAIL)', () => {
-            let result: Result<UtilisateurQueryModel>
+          describe('quand il est un conseiller France Travail (connexion sans dispositif)', () => {
             const command: UpdateUtilisateurCommand = {
               nom: 'Tavernier',
               prenom: 'Nils',
               type: Authentification.Type.CONSEILLER,
               email: 'Nils.Tavernier@Passemploi.com',
               idUtilisateurAuth: 'nilstavernier',
-              structure: 'FRANCE_TRAVAIL',
+              profil: unProfilFT(null),
               username: 'milou'
             }
 
@@ -518,36 +522,41 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
-              authentificationRepository.estConseillerSuperviseur.resolves(true)
-
-              const utilisateur: Authentification.Utilisateur = {
-                id: '1',
-                prenom: command.prenom || '',
-                nom: command.nom || '',
-                email: command.email,
-                username: command.username,
-                type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
-                roles: []
-              }
-              authentificationRepository.save
-                .withArgs(utilisateur, command.idUtilisateurAuth)
-                .resolves()
+              authentificationRepository.estConseillerSuperviseur.resolves(
+                false
+              )
             })
-            it('retourne erreur utilisateur inexistant', async () => {
+            it('crée le conseiller sans dispositif, à choisir sur le web', async () => {
               // When
-              result = await updateUtilisateurCommandHandler.execute(command)
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              expect(result).to.deep.equal(
-                failure(
-                  new NonTraitableError(
-                    'Utilisateur',
-                    command.idUtilisateurAuth,
-                    NonTraitableReason.UTILISATEUR_INEXISTANT
-                  )
+              const utilisateurCree: Authentification.Utilisateur = {
+                id: '1',
+                idAuthentification: 'nilstavernier',
+                prenom: 'Nils',
+                nom: 'Tavernier',
+                email: 'nils.tavernier@passemploi.com',
+                username: 'milou',
+                type: Authentification.Type.CONSEILLER,
+                profil: unProfilFT(null),
+                roles: [],
+                dateDerniereConnexion: uneDate()
+              }
+              expect(
+                authentificationRepository.save
+              ).to.have.been.calledOnceWithExactly(utilisateurCree, uneDate())
+              expect(isSuccess(result)).equal(true)
+              if (isSuccess(result)) {
+                expect(result.data).to.deep.equal(
+                  unUtilisateurQueryModel({
+                    structure: Core.Structure.POLE_EMPLOI,
+                    profil: unProfilFT(null),
+                    username: 'milou'
+                  })
                 )
-              )
+              }
             })
           })
           describe("quand il est valide mais il manque l'email", () => {
@@ -558,7 +567,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'Nils',
                 type: Authentification.Type.CONSEILLER,
                 idUtilisateurAuth: 'nilstavernier',
-                structure: Core.Structure.MILO
+                profil: unProfilMilo()
               }
 
               authentificationRepository.getConseiller
@@ -573,7 +582,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 email: command.email,
                 username: command.username,
                 type: command.type as Authentification.Type,
-                structure: command.structure as Core.Structure,
+                profil: command.profil,
                 roles: []
               }
               authentificationRepository.save
@@ -600,7 +609,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 type: Authentification.Type.CONSEILLER,
                 idUtilisateurAuth: 'nilstavernier',
-                structure: Core.Structure.MILO,
+                profil: unProfilMilo(),
                 email: 'Un-Email@valide.fr'
               }
 
@@ -631,11 +640,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -654,6 +663,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'MILO',
+                profil: unProfilMilo(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -664,7 +674,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               email: 'New@email.com',
               nom: 'newNom',
               prenom: 'newPrenom'
@@ -693,12 +703,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               installationId: 'installation-uuid'
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -722,11 +732,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -747,12 +757,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               installationId: 'installation-uuid'
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -774,12 +784,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               idUtilisateurAuth: 'nilstavernier',
               email: 'abc@test.com',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             const utilisateurPasMilo = unUtilisateurJeune({
               idAuthentification: command.idUtilisateurAuth,
-              structure: Core.Structure.POLE_EMPLOI
+              profil: unProfilFT()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -809,7 +819,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               '2021-02-03T04:05:06.000Z'
             )
             const utilisateur = unUtilisateurJeunePasConnecte({
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               datePremiereConnexion: datePremiereConnexionHistorique
             })
             const command: UpdateUtilisateurCommand = {
@@ -818,7 +828,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               prenom: 'prenom jeune',
               email: 'abc@test.com',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             authentificationRepository.getJeuneByIdAuthentification
@@ -841,6 +851,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'prenom jeune',
                 roles: [],
                 structure: 'MILO',
+                profil: unProfilMilo(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -862,14 +873,14 @@ describe('UpdateUtilisateurCommandHandler', () => {
           it("ne réassocie pas un jeune Milo déjà lié à un autre id d'authentification", async () => {
             // Given
             const utilisateurActif = unUtilisateurJeune({
-              structure: Core.Structure.MILO,
+              profil: unProfilMilo(),
               idAuthentification: 'id-authentification-actif'
             })
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'sub-inconnu',
               email: 'abc@test.com',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             authentificationRepository.getJeuneByIdAuthentification
@@ -903,7 +914,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               idUtilisateurAuth: 'nilstavernier',
               email: 'abc@test.com',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             authentificationRepository.getJeuneByIdAuthentification
@@ -935,7 +946,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
               type: Authentification.Type.JEUNE,
-              structure: Core.Structure.MILO
+              profil: unProfilMilo()
             }
 
             authentificationRepository.getJeuneByIdAuthentification
@@ -972,8 +983,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
             prenom: 'Jean',
             nom: 'Dupont',
             email: 'jean.dupont@test.com',
-            type: 'BENEFICIAIRE',
-            structure: Core.Structure.FT_DEMANDEUR_D_EMPLOI
+            type: Authentification.Type.JEUNE,
+            profil: unProfilFT(Profil.Dispositif.DEMANDEUR_D_EMPLOI)
           }
           authentificationRepository.getJeuneByIdAuthentification
             .withArgs(command.idUtilisateurAuth)
@@ -986,8 +997,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
           expect(jeuneRepository.save).to.have.been.calledOnce()
           const jeuneCree = jeuneRepository.save.getCall(0).args[0]
           expect(jeuneCree.conseiller).to.be.undefined()
-          expect(jeuneCree.structure).to.equal(
-            Core.Structure.FT_DEMANDEUR_D_EMPLOI
+          expect(jeuneCree.structure).to.equal(Profil.Structure.FRANCE_TRAVAIL)
+          expect(jeuneCree.dispositif).to.equal(
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
           )
           expect(
             authentificationRepository.update
@@ -1007,11 +1019,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
           // Given
           const command: UpdateUtilisateurCommand = {
             idUtilisateurAuth: 'un-sub-ft',
-            type: 'BENEFICIAIRE',
-            structure: Core.Structure.FT_ESPACE_CANDIDAT
+            type: Authentification.Type.JEUNE,
+            profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
           }
           const utilisateur = unUtilisateurJeune({
-            structure: Core.Structure.FT_ESPACE_CANDIDAT
+            profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
           })
           authentificationRepository.getJeuneByIdAuthentification
             .withArgs(command.idUtilisateurAuth)
@@ -1035,11 +1047,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1065,46 +1077,10 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
-              )
-            })
-            it("retourne une failure quand la structure du jeune trouvé n'est pas PE", async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI
-              }
-
-              const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI_BRSA
-              })
-              authentificationRepository.getJeuneByIdAuthentification
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
-                .withArgs({
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                })
-                .resolves(false)
-
-              // When
-              const result =
-                await updateUtilisateurCommandHandler.execute(command)
-
-              // Then
-              expect(result).to.deep.equal(
-                failure(
-                  new NonTraitableError(
-                    'Utilisateur',
-                    command.idUtilisateurAuth,
-                    NonTraitableReason.UTILISATEUR_DEJA_PE_BRSA
-                  )
-                )
               )
             })
             it("retourne le jeune même s'il est archivé avec le motif MIGRATION - cas nouveau compte", async () => {
@@ -1112,12 +1088,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI,
+                profil: unProfilFT(),
                 email: 'nils.tavernier@pole-emploi.fr'
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI,
+                profil: unProfilFT(),
                 email: 'nils.tavernier@pole-emploi.fr'
               })
               authentificationRepository.getJeuneByIdAuthentification
@@ -1147,6 +1123,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1159,11 +1136,11 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1197,7 +1174,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
               // Given
               const utilisateur = unUtilisateurJeunePasConnecte({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
 
               const command: UpdateUtilisateurCommand = {
@@ -1206,7 +1183,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'prenom jeune',
                 email: 'email jeune',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               }
 
               authentificationRepository.getJeuneByIdAuthentification
@@ -1229,6 +1206,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'prenom jeune',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1248,7 +1226,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
             it('retourne une failure quand jeune trouvé pas de la bonne structure', async () => {
               // Given
               const utilisateurMauvaiseStructure = unUtilisateurJeune({
-                structure: Core.Structure.MILO
+                profil: unProfilMilo()
               })
 
               const command: UpdateUtilisateurCommand = {
@@ -1257,7 +1235,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'prenom jeune',
                 email: 'email jeune',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               }
 
               authentificationRepository.getJeuneByIdAuthentification
@@ -1289,7 +1267,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI,
+                profil: unProfilFT(),
                 email: undefined
               }
 
@@ -1318,14 +1296,14 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 idUtilisateurAuth: 'nilstavernier',
                 email: 'abc@test.com',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               }
 
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
               authentificationRepository.getJeuneByEmail
-                .withArgs(command.email, command.structure)
+                .withArgs(command.email)
                 .resolves(undefined)
 
               // When
@@ -1350,14 +1328,14 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 idUtilisateurAuth: 'nilstavernier',
                 email: 'abc@test.com',
                 type: Authentification.Type.JEUNE,
-                structure: Core.Structure.POLE_EMPLOI_BRSA
+                profil: unProfilFT(Profil.Dispositif.BRSA)
               }
 
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
               authentificationRepository.getJeuneByEmail
-                .withArgs(command.email, command.structure)
+                .withArgs(command.email)
                 .resolves(undefined)
               archiverJeuneRepository.estArchiveAvecMotif
                 .withArgs('abc@test.com', MotifSuppressionSupport.MIGRATION)
@@ -1388,12 +1366,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
-                type: 'BENEFICIAIRE',
-                structure: 'FRANCE_TRAVAIL'
+                type: Authentification.Type.JEUNE,
+                profil: unProfilFT(null)
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.POLE_EMPLOI
+                profil: unProfilFT()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1412,6 +1390,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   prenom: 'John',
                   roles: [],
                   structure: 'POLE_EMPLOI',
+                  profil: unProfilFT(),
                   type: 'JEUNE',
                   username: undefined
                 })
@@ -1421,12 +1400,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
-                type: 'BENEFICIAIRE',
-                structure: 'FRANCE_TRAVAIL'
+                type: Authentification.Type.JEUNE,
+                profil: unProfilFT(null)
               }
 
               const utilisateur = unUtilisateurJeune({
-                structure: Core.Structure.MILO
+                profil: unProfilMilo()
               })
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
@@ -1452,12 +1431,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
             // Given
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
-              type: 'BENEFICIAIRE',
-              structure: 'FRANCE_TRAVAIL'
+              type: Authentification.Type.JEUNE,
+              profil: unProfilFT(null)
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.POLE_EMPLOI_BRSA
+              profil: unProfilFT(Profil.Dispositif.BRSA)
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1476,6 +1455,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'POLE_EMPLOI_BRSA',
+                profil: unProfilFT(Profil.Dispositif.BRSA),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -1485,12 +1465,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
             // Given
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
-              type: 'BENEFICIAIRE',
-              structure: 'FRANCE_TRAVAIL'
+              type: Authentification.Type.JEUNE,
+              profil: unProfilFT(null)
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.CONSEIL_DEPT
+              profil: unProfilCD()
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1509,6 +1489,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'CONSEIL_DEPT',
+                profil: unProfilCD(),
                 type: 'JEUNE',
                 username: undefined
               })
@@ -1518,12 +1499,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
             // Given
             const command: UpdateUtilisateurCommand = {
               idUtilisateurAuth: 'nilstavernier',
-              type: 'BENEFICIAIRE',
-              structure: 'FRANCE_TRAVAIL'
+              type: Authentification.Type.JEUNE,
+              profil: unProfilFT(null)
             }
 
             const utilisateur = unUtilisateurJeune({
-              structure: Core.Structure.AVENIR_PRO
+              profil: unProfilFT(Profil.Dispositif.AVENIR_PRO)
             })
             authentificationRepository.getJeuneByIdAuthentification
               .withArgs(command.idUtilisateurAuth)
@@ -1542,6 +1523,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 prenom: 'John',
                 roles: [],
                 structure: 'AVENIR_PRO',
+                profil: unProfilFT(Profil.Dispositif.AVENIR_PRO),
                 type: 'JEUNE',
                 username: undefined
               })

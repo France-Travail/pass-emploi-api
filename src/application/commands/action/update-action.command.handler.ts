@@ -13,10 +13,10 @@ import {
 import { Action, ActionRepositoryToken } from 'src/domain/action/action'
 import { Authentification } from 'src/domain/authentification'
 import { EvenementService, Evenement } from 'src/domain/evenement'
-import { TOUS_LES_PROFILS } from 'src/domain/profil'
+import { TOUT_PROFIL } from 'src/domain/profil'
 
 export interface UpdateActionCommand extends Command {
-  idAction: Action.Id
+  idAction: string
   statut?: Action.Statut
   contenu?: string
   description?: string
@@ -31,7 +31,7 @@ export class UpdateActionCommandHandler extends CommandHandler<
   void,
   Action
 > {
-  readonly profilsAutorises = TOUS_LES_PROFILS
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     @Inject(ActionRepositoryToken)

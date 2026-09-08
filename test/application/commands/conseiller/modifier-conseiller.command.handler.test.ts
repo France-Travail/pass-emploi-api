@@ -11,11 +11,10 @@ import {
 import { Failure } from '../../../../src/building-blocks/types/result'
 import { Agence } from '../../../../src/domain/agence'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
-import { Core } from '../../../../src/domain/core'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
 import { unConseiller } from '../../../fixtures/conseiller.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../../utils'
-import Structure = Core.Structure
+import { Profil } from '../../../../src/domain/profil'
 
 describe('ModifierConseillerCommandHandler', () => {
   let conseillerRepository: StubbedType<Conseiller.Repository>
@@ -27,7 +26,8 @@ describe('ModifierConseillerCommandHandler', () => {
     id: 'id qui existe',
     firstName: 'Jean michel',
     lastName: 'Conseiller',
-    structure: Structure.MILO,
+    structure: Profil.Structure.MILO,
+    dispositif: null,
     email: 'mail@mail.mail',
     dateVerificationMessages: undefined,
     dateVisionnageActus: undefined,
@@ -122,11 +122,13 @@ describe('ModifierConseillerCommandHandler', () => {
           // Given
           const conseillerPE = unConseiller({
             id: idConseiller,
-            structure: Structure.POLE_EMPLOI
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
           })
           const conseillerPEmaj = unConseiller({
             id: idConseiller,
-            structure: Structure.POLE_EMPLOI,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ,
             agence: { id: 'id-agence' },
             notificationsSonores: true
           })
@@ -146,17 +148,45 @@ describe('ModifierConseillerCommandHandler', () => {
             conseillerPEmaj
           )
         })
+        it('choisit le dispositif du conseiller', async () => {
+          // Given
+          const conseillerSansDispositif = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: null
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerSansDispositif)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            dispositif: Profil.Dispositif.BRSA
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(conseillerRepository.save).to.have.been.calledWithExactly(
+            unConseiller({
+              id: idConseiller,
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif: Profil.Dispositif.BRSA,
+              agence: undefined
+            })
+          )
+        })
       })
       describe('quand le conseiller vient de Mission Locale', () => {
         it('modifie le conseiller avec une agence du référentiel', async () => {
           // Given
           const conseillerMilo = unConseiller({
             id: idConseiller,
-            structure: Structure.MILO
+            structure: Profil.Structure.MILO
           })
           const conseillerMiloMaj = unConseiller({
             id: idConseiller,
-            structure: Structure.MILO,
+            structure: Profil.Structure.MILO,
             agence: { id: 'id-agence' },
             notificationsSonores: true
           })
@@ -179,7 +209,7 @@ describe('ModifierConseillerCommandHandler', () => {
           // Given
           const conseillerMilo = unConseiller({
             id: idConseiller,
-            structure: Structure.MILO
+            structure: Profil.Structure.MILO
           })
           command = {
             idConseiller,

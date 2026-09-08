@@ -1,6 +1,6 @@
 import { expect, StubbedClass, stubClass } from '../../utils'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
-import { Profil } from '../../../src/domain/profil'
+import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { success } from '../../../src/building-blocks/types/result'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { GetPreferencesJeuneQueryHandler } from '../../../src/application/queries/get-preferences-jeune.query.handler.db'
@@ -93,9 +93,20 @@ describe('GetPreferencesJeuneQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(getPreferencesJeuneQueryHandler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.MILO,
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        { structure: Profil.Structure.MILO },
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

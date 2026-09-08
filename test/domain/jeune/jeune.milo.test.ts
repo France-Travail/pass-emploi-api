@@ -2,8 +2,8 @@ import { expect } from '../../utils'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unJeune } from '../../fixtures/jeune.fixture'
-import Dispositif = Jeune.Dispositif
 import { unConseiller } from '../../fixtures/conseiller.fixture'
+import { Profil } from '../../../src/domain/profil'
 
 describe('Milo', () => {
   const situationsPrevuEmploi = {
@@ -122,9 +122,12 @@ describe('Milo', () => {
         peutVoirLeComptageDesHeures: true
       })
 
-      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+      const jeuneAJour = Jeune.mettreAJourDispositif(
+        jeune,
+        Profil.Dispositif.PACEA
+      )
 
-      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.dispositif).equal(Profil.Dispositif.PACEA)
       expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
     })
 
@@ -133,9 +136,12 @@ describe('Milo', () => {
         peutVoirLeComptageDesHeures: false
       })
 
-      const jeuneAJour = Jeune.mettreAJourDispositif(jeune, Dispositif.PACEA)
+      const jeuneAJour = Jeune.mettreAJourDispositif(
+        jeune,
+        Profil.Dispositif.PACEA
+      )
 
-      expect(jeuneAJour.dispositif).equal(Dispositif.PACEA)
+      expect(jeuneAJour.dispositif).equal(Profil.Dispositif.PACEA)
       expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
     })
 

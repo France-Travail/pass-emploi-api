@@ -111,6 +111,7 @@ export class ChargerEvenementsJobHandler extends JobHandler {
         id_utilisateur   varchar(255),
         type_utilisateur varchar(255),
         structure        varchar(255),
+        dispositif       varchar(255),
         code             varchar(255)
       );
     `)
@@ -126,6 +127,7 @@ export class ChargerEvenementsJobHandler extends JobHandler {
       create index if not exists evenement_engagement_id_utilisateur_index on evenement_engagement (id_utilisateur);
       create index if not exists evenement_engagement_type_utilisateur_index on evenement_engagement (type_utilisateur);
       create index if not exists evenement_engagement_structure_index on evenement_engagement (structure);
+      create index if not exists evenement_engagement_dispositif_index on evenement_engagement (dispositif);
       create index if not exists evenement_engagement_code_index on evenement_engagement (code);
     `)
   }
@@ -153,17 +155,18 @@ export class ChargerEvenementsJobHandler extends JobHandler {
     ) {
       const streamCopyToStdout = clientSource.query(
         copyTo(
-          `COPY (SELECT * FROM evenement_engagement_hebdo
+          String.raw`COPY (SELECT id, date_evenement, categorie, action, nom, id_utilisateur, type_utilisateur, structure, code, dispositif
+                   FROM evenement_engagement_hebdo
                    WHERE date_evenement>'${dateDernierEvenementCharge}'
                    ORDER BY date_evenement ASC
                    LIMIT ${TAILLE_DU_BATCH}
                    OFFSET ${numeroBatchActuel * TAILLE_DU_BATCH})
-             TO STDOUT WITH NULL '\\LA_VALEUR_NULL'`
+             TO STDOUT WITH NULL '\LA_VALEUR_NULL'`
         )
       )
       const streamCopyFromStdin = clientTarget.query(
         copyFrom(
-          `COPY evenement_engagement (id,
+          String.raw`COPY evenement_engagement (id,
                            date_evenement,
                            categorie,
                            action,
@@ -171,7 +174,8 @@ export class ChargerEvenementsJobHandler extends JobHandler {
                            id_utilisateur,
                            type_utilisateur,
                            structure,
-                           code) FROM STDIN WITH NULL AS '\\LA_VALEUR_NULL'`
+                           code,
+                           dispositif) FROM STDIN WITH NULL AS '\LA_VALEUR_NULL'`
         )
       )
       await pipeline(streamCopyToStdout, streamCopyFromStdin)

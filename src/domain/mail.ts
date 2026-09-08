@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ArchiveJeune } from './archive-jeune'
-import { Core } from './core'
 import { Jeune } from './jeune/jeune'
 import { Conseiller } from './milo/conseiller'
 import { RendezVous } from './rendez-vous/rendez-vous'
+import {
+  estDispositifNonAccompagne,
+  Profil,
+  StructureEtDispositifs
+} from './profil'
 
 export const MailServiceToken = 'MailServiceToken'
 export const MailRepositoryToken = 'MailRepositoryToken'
@@ -62,8 +66,8 @@ export namespace Mail {
   }
 
   export interface Repository {
-    findAllContactsConseillerByStructures(
-      structure: Core.Structure[]
+    findAllContactsConseillerParProfil(
+      structureEtDispositifs: StructureEtDispositifs
     ): Promise<Mail.Contact[]>
 
     countContactsConseillerSansEmail(): Promise<number>
@@ -76,7 +80,7 @@ export namespace Mail {
       nouveauRendezvous: string
       rendezVousSupprime: string
       suppressionJeuneMilo: string
-      suppressionJeunePE: string
+      suppressionJeuneFT: string
       suppressionBeneficiairePassEmploi: string
     }
 
@@ -91,25 +95,25 @@ export namespace Mail {
 
       const templateId = ((): number => {
         switch (jeune.structure) {
-          case Core.Structure.MILO:
-            return parseInt(this.templates.suppressionJeuneMilo)
-          case Core.Structure.POLE_EMPLOI:
-            return parseInt(this.templates.suppressionJeunePE)
-          case Core.Structure.POLE_EMPLOI_BRSA:
-          case Core.Structure.POLE_EMPLOI_AIJ:
-          case Core.Structure.CONSEIL_DEPT:
-          case Core.Structure.AVENIR_PRO:
-          case Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF:
-          case Core.Structure.FT_ACCOMPAGNEMENT_GLOBAL:
-          case Core.Structure.FT_EQUIP_EMPLOI_RECRUT:
-            return parseInt(this.templates.suppressionBeneficiairePassEmploi)
-          case Core.Structure.FT_DEMANDEUR_D_EMPLOI:
-          case Core.Structure.FT_ESPACE_CANDIDAT:
-          case Core.Structure.INVITE:
-            throw new Error(
-              `Le jeune ${jeune.id} n'est pas un bénéficiaire accompagné : pas de mail de suppression`
+          case Profil.Structure.MILO:
+            return Number.parseInt(this.templates.suppressionJeuneMilo)
+          case Profil.Structure.CONSEIL_DEPARTEMENTAL:
+            return Number.parseInt(
+              this.templates.suppressionBeneficiairePassEmploi
             )
+          case Profil.Structure.FRANCE_TRAVAIL:
+            if (estDispositifNonAccompagne(jeune.dispositif)) break
+            return jeune.dispositif === Profil.Dispositif.CEJ
+              ? Number.parseInt(this.templates.suppressionJeuneFT)
+              : Number.parseInt(
+                  this.templates.suppressionBeneficiairePassEmploi
+                )
+          case Profil.Structure.INVITE:
+            break
         }
+        throw new Error(
+          `Le jeune ${jeune.id} n'est pas accompagné : pas de mail de suppression`
+        )
       })()
 
       return {

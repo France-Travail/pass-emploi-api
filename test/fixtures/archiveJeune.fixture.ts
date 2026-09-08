@@ -1,9 +1,7 @@
-import { Jeune } from '../../src/domain/jeune/jeune'
 import { ArchiveJeune } from '../../src/domain/archive-jeune'
 import { uneDate } from './date.fixture'
-import { Core } from '../../src/domain/core'
-import Structure = Core.Structure
 import { DateTime } from 'luxon'
+import { Profil } from '../../src/domain/profil'
 
 export const uneArchiveJeuneMetadonnees = (
   args: Partial<ArchiveJeune.Metadonnees> = {}
@@ -14,8 +12,8 @@ export const uneArchiveJeuneMetadonnees = (
     commentaire: 'Il a loupé un rdv',
     nomJeune: 'test',
     prenomJeune: 'test',
-    structure: Structure.MILO,
-    dispositif: Jeune.Dispositif.PACEA,
+    structure: Profil.Structure.MILO,
+    dispositif: Profil.Dispositif.PACEA,
     dateCreation: DateTime.fromJSDate(uneDate()).minus({ month: 1 }).toJSDate(),
     dateArchivage: uneDate()
   }

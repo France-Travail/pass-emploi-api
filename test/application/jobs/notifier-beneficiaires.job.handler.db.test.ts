@@ -17,6 +17,7 @@ import { Core } from '../../../src/domain/core'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
 import { Migration } from '../../../src/domain/migration'
 import JobType = Planificateur.JobType
+import { Profil, TOUT_MILO } from '../../../src/domain/profil'
 
 const idJeune1 = 'j1'
 const idJeune2 = 'j2'
@@ -116,9 +117,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structures: [
-              Core.Structure.POLE_EMPLOI_AIJ,
-              Core.Structure.POLE_EMPLOI_BRSA
+            structuresEtDispositifs: [
+              {
+                structure: Profil.Structure.FRANCE_TRAVAIL,
+                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+              }
             ],
             push: true,
             minutesEntreLesBatchs: 5,
@@ -179,9 +182,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structures: [
-              Core.Structure.POLE_EMPLOI_AIJ,
-              Core.Structure.POLE_EMPLOI_BRSA
+            structuresEtDispositifs: [
+              {
+                structure: Profil.Structure.FRANCE_TRAVAIL,
+                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+              }
             ],
             push: true,
             batchSize: 2,
@@ -289,9 +294,11 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structures: [
-              Core.Structure.POLE_EMPLOI_AIJ,
-              Core.Structure.POLE_EMPLOI_BRSA
+            structuresEtDispositifs: [
+              {
+                structure: Profil.Structure.FRANCE_TRAVAIL,
+                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
+              }
             ],
             push: false,
             minutesEntreLesBatchs: 5,
@@ -409,7 +416,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structures: [Core.Structure.MILO],
+            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: undefined
@@ -437,7 +444,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structures: [Core.Structure.MILO],
+            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             batchSize: 2,
             minutesEntreLesBatchs: 5
@@ -496,7 +503,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structures: [Core.Structure.MILO],
+            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
@@ -550,7 +557,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structures: [Core.Structure.MILO],
+            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
@@ -614,7 +621,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -637,7 +644,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -687,7 +694,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -711,7 +718,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -761,7 +768,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -785,7 +792,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -835,7 +842,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -859,7 +866,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structures: [Core.Structure.MILO],
+              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5

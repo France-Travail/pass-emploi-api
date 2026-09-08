@@ -21,8 +21,10 @@ import {
   success
 } from '../../../../src/building-blocks/types/result'
 import { Authentification } from '../../../../src/domain/authentification'
-import { Profil } from '../../../../src/domain/profil'
-import { Core } from '../../../../src/domain/core'
+import {
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  Profil
+} from '../../../../src/domain/profil'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Migration } from '../../../../src/domain/migration'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
@@ -30,7 +32,7 @@ import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
 import { unRendezVousQueryModel } from '../../../fixtures/query-models/rendez-vous.query-model.fixtures'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import Structure = Core.Structure
+import { unProfilFT } from '../../../fixtures/profil.fixture'
 
 describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let handler: GetAccueilJeunePoleEmploiQueryHandler
@@ -58,7 +60,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     )
 
     oidcClient = stubClass(OidcClient)
-    oidcClient.exchangeTokenJeune.resolves(idpToken)
+    oidcClient.exchangeToken.resolves(idpToken)
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     dateService = stubClass(DateService)
 
@@ -80,7 +82,7 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     const maintenant = DateTime.fromISO(maintenantString)
     const query: GetAccueilJeunePoleEmploiQuery = {
       idJeune: 'idJeune',
-      structure: Structure.POLE_EMPLOI,
+      structure: Profil.Structure.FRANCE_TRAVAIL,
       maintenant: maintenantString,
       accessToken: 'accessToken'
     }
@@ -370,13 +372,13 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     it('autorise un jeune PE', () => {
       // Given
       const utilisateur = unUtilisateurJeune({
-        structure: Structure.POLE_EMPLOI
+        profil: unProfilFT()
       })
       const query: GetAccueilJeunePoleEmploiQuery = {
         idJeune: 'idJeune',
         maintenant: '2023-03-30T15:00:00Z',
         accessToken: 'accessToken',
-        structure: Structure.POLE_EMPLOI
+        structure: Profil.Structure.FRANCE_TRAVAIL
       }
 
       // When
@@ -394,8 +396,20 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        Profil.Jeune.FT_DEMANDEUR_EMPLOI_ACCOMPAGNE,
-        Profil.Jeune.CONSEIL_DEPT
+        {
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositifs: [
+            Profil.Dispositif.CEJ,
+            Profil.Dispositif.BRSA,
+            Profil.Dispositif.AIJ,
+            Profil.Dispositif.AVENIR_PRO,
+            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+            Profil.Dispositif.DEMANDEUR_D_EMPLOI
+          ]
+        },
+        TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
   })

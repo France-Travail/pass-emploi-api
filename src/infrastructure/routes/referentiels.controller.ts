@@ -93,7 +93,7 @@ export class ReferentielsController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<ThematiqueQueryModel[]> {
     return this.getCatalogueDemarchesQueryHandler.execute(
-      { accessToken, structure: utilisateur.structure },
+      { accessToken, structure: utilisateur.profil.structure },
       utilisateur
     )
   }
@@ -105,10 +105,10 @@ export class ReferentielsController {
     isArray: true
   })
   async getAgences(
-    @Query() structure: GetAgencesQueryParams,
+    @Query() queryParams: GetAgencesQueryParams,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<AgenceQueryModel[]> {
-    return this.getAgencesQueryHandler.execute(structure, utilisateur)
+    return this.getAgencesQueryHandler.execute(queryParams, utilisateur)
   }
 
   @Get('motifs-suppression-jeune')
@@ -121,7 +121,7 @@ export class ReferentielsController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<MotifSuppressionJeuneQueryModel[]> {
     const result = await this.getMotifsSuppressionJeuneQueryHandler.execute({
-      structure: utilisateur.structure
+      profil: utilisateur.profil
     })
 
     return handleResult(result)

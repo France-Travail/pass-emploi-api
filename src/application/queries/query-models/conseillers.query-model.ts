@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Action } from 'src/domain/action/action'
+import { ProfilQueryModel } from './authentification.query-model'
 import { PaginationQueryModel } from './common/pagination.query-model'
 
 class AgenceDuConseillerQueryModel {
@@ -47,6 +48,9 @@ export class DetailConseillerQueryModel {
 
   @ApiPropertyOptional()
   email?: string
+
+  @ApiProperty({ type: ProfilQueryModel })
+  profil: ProfilQueryModel
 
   @ApiProperty({ required: false })
   agence?: AgenceDuConseillerQueryModel

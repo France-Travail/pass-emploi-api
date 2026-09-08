@@ -2,16 +2,21 @@ import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Agence } from '../agence'
-import { Core } from '../core'
+import {
+  DISPOSITIFS_FT_ACCOMPAGNES,
+  estFranceTravail,
+  estMilo,
+  Profil
+} from '../profil'
 import * as _ListeDeDiffusion from './liste-de-diffusion'
 import * as _Conseiller from './conseiller.milo.db'
-import Structure = Core.Structure
 
 export interface Conseiller {
   id: string
   firstName: string
   lastName: string
-  structure: Core.Structure
+  structure: Profil.Structure
+  dispositif: Profil.Dispositif | null
   email?: string
   dateVerificationMessages?: DateTime
   dateSignatureCGU?: DateTime
@@ -36,7 +41,7 @@ export namespace Conseiller {
 
     getAllIds(): Promise<string[]>
 
-    existe(idConseiller: string, structure: Core.Structure): Promise<boolean>
+    existe(idConseiller: string, structure: Profil.Structure): Promise<boolean>
 
     findConseillersMessagesNonVerifies(
       nombreConseillers: number,
@@ -68,7 +73,7 @@ export namespace Conseiller {
     infosDeMiseAJour: InfosDeMiseAJour
   ): Result<Conseiller> {
     const conseilleMiloARenseigneUneAgenceManuelle =
-      conseiller.structure === Structure.MILO &&
+      estMilo(conseiller.structure) &&
       infosDeMiseAJour.agence &&
       !infosDeMiseAJour.agence.id
 
@@ -90,17 +95,46 @@ export namespace Conseiller {
       )
     }
 
+    const dispositifChoisiHorsFranceTravail =
+      infosDeMiseAJour.dispositif && !estFranceTravail(conseiller.structure)
+    if (dispositifChoisiHorsFranceTravail) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Seul un conseiller France Travail choisit son dispositif'
+        )
+      )
+    }
+
+    const dispositifInterditPourUnConseillerFT =
+      infosDeMiseAJour.dispositif &&
+      !DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!.includes(
+        infosDeMiseAJour.dispositif
+      )
+    if (dispositifInterditPourUnConseillerFT) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Ce dispositif n’est pas proposé aux conseillers France Travail'
+        )
+      )
+    }
+
     return success({
       ...conseiller,
       agence: infosDeMiseAJour.agence,
+      dispositif: infosDeMiseAJour.dispositif ?? conseiller.dispositif,
       notificationsSonores: Boolean(infosDeMiseAJour.notificationsSonores),
       dateSignatureCGU: infosDeMiseAJour.dateSignatureCGU,
       dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus
     })
   }
 
+  export function doitChoisirSonDispositif(conseiller: Conseiller): boolean {
+    return estFranceTravail(conseiller.structure) && !conseiller.dispositif
+  }
+
   export interface InfosDeMiseAJour {
     agence?: Agence
+    dispositif?: Profil.Dispositif
     dateSignatureCGU?: DateTime
     dateVisionnageActus?: DateTime
     notificationsSonores?: boolean

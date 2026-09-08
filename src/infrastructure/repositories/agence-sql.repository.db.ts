@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { Agence } from '../../domain/agence'
-import { Core } from '../../domain/core'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { AgenceSqlModel } from '../sequelize/models/agence.sql-model'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
-import Structure = Core.Structure
+import { Profil } from '../../domain/profil'
 
 @Injectable()
 export class AgenceSqlRepository implements Agence.Repository {
-  async get(id: string, structure: Structure): Promise<Agence | undefined> {
+  async get(
+    id: string,
+    structure: Profil.Structure
+  ): Promise<Agence | undefined> {
     const agenceSql = await AgenceSqlModel.findOne({
       where: {
         id: id,
@@ -35,6 +37,7 @@ export class AgenceSqlRepository implements Agence.Repository {
         firstName: conseillerSql.prenom,
         lastName: conseillerSql.nom,
         structure: conseillerSql.structure,
+        dispositif: conseillerSql.dispositif,
         email: conseillerSql.email ?? undefined,
         notificationsSonores: conseillerSql.notificationsSonores,
         agence: {
