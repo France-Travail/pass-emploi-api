@@ -5,6 +5,7 @@ import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { success } from '../../../src/building-blocks/types/result'
+import { Profil } from '../../../src/domain/profil'
 
 describe('GetDemarchesConseillerQueryHandler', () => {
   let authorizer: StubbedClass<ConseillerAuthorizer>
@@ -75,6 +76,18 @@ describe('GetDemarchesConseillerQueryHandler', () => {
         query.idConseiller,
         query.idJeune,
         utilisateur
+      )
+    })
+  })
+
+  describe('profilsAutorises', () => {
+    it('autorise les conseillers France Travail et Conseil départemental', () => {
+      // Then
+      expect(getDemarchesConseillerQueryHandler.profilsAutorises).to.deep.equal(
+        [
+          { structure: Profil.Structure.FRANCE_TRAVAIL },
+          { structure: Profil.Structure.CONSEIL_DEPARTEMENTAL }
+        ]
       )
     })
   })

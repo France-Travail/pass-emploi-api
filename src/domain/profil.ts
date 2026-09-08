@@ -122,7 +122,8 @@ export function estInvite(structure: Profil.Structure): boolean {
 
 // Règles métier exprimées sur le profil (structure × dispositif).
 
-// Bénéficiaires dont l'IdP est FT Connect (le Conseil départemental inclus).
+// Utilisateurs (bénéficiaires comme conseillers) dont l'IdP est FT Connect,
+// le Conseil départemental inclus.
 export const PROFILS_FT_CONNECT: readonly StructureEtDispositifs[] = [
   TOUT_FRANCE_TRAVAIL,
   TOUT_CONSEIL_DEPARTEMENTAL

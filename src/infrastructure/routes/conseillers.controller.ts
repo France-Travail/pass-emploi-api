@@ -4,16 +4,17 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
   HttpCode,
   HttpStatus,
   Param,
   Patch,
   Post,
   Put,
-  Query
+  Query,
+  Res
 } from '@nestjs/common'
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { Response } from 'express'
 import { DateTime } from 'luxon'
 import { RendezVousJeuneQueryModel } from 'src/application/queries/query-models/rendez-vous.query-model'
 import { GetRendezVousJeuneQueryHandler } from 'src/application/queries/rendez-vous/get-rendez-vous-jeune.query.handler.db'
@@ -429,13 +430,13 @@ export class ConseillersController {
   })
   @Get(':idConseiller/jeunes/:idJeune/demarches')
   @UserJourney('suivi_demarches')
-  @Header('Cache-Control', 'max-age=1200')
   async getDemarches(
     @Param('idConseiller') idConseiller: string,
     @Param('idJeune') idJeune: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur,
     @AccessToken() accessToken: string,
-    @Query() queryParams: GetDemarchesConseillerQueryParams
+    @Query() queryParams: GetDemarchesConseillerQueryParams,
+    @Res({ passthrough: true }) response: Response
   ): Promise<Cached<DemarcheQueryModel[]>> {
     const result = await this.getDemarchesConseillerQueryHandler.execute(
       {
@@ -455,7 +456,12 @@ export class ConseillersController {
       },
       utilisateur
     )
-    return handleResult(result)
+    const demarches = handleResult(result)
+
+    // Seule une réponse en succès est mise en cache : une erreur (bénéficiaire
+    // jamais connecté, FT indisponible…) ne doit pas être resservie 20 minutes.
+    response.header('Cache-Control', 'max-age=1200')
+    return demarches
   }
 
   @Get(':idConseiller/jeunes/:idJeune/rendezvous')

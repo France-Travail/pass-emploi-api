@@ -21,7 +21,7 @@ import {
   estDispositifNonAccompagne,
   estFranceTravail,
   Profil,
-  TOUT_FRANCE_TRAVAIL
+  PROFILS_FT_CONNECT
 } from '../../../domain/profil'
 
 export interface CreateJeuneCommand extends Command {
@@ -36,7 +36,7 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   CreateJeuneCommand,
   Jeune
 > {
-  readonly profilsAutorises = TOUT_FRANCE_TRAVAIL
+  readonly profilsAutorises = PROFILS_FT_CONNECT
 
   constructor(
     @Inject(JeuneRepositoryToken)

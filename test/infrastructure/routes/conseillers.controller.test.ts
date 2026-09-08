@@ -755,6 +755,7 @@ describe('ConseillersController', () => {
         .get(`/conseillers/${idConseiller}/jeunes/${idJeune}/demarches`)
         .set('authorization', unHeaderAuthorization())
         .expect(HttpStatus.OK)
+        .expect('Cache-Control', 'max-age=1200')
         .expect({ queryModel: [uneDemarcheQueryModel()] })
 
       expect(
@@ -766,6 +767,24 @@ describe('ConseillersController', () => {
         dateDebut: undefined,
         dateFin: undefined
       })
+    })
+
+    it('ne met pas en cache une réponse en erreur', async () => {
+      // Given
+      getDemarchesConseillerQueryHandler.execute.resolves(
+        failure(new NonTrouveError('Jeune', 'id-jeune'))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .get('/conseillers/idConseiller/jeunes/id-jeune/demarches')
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.NOT_FOUND)
+        .expect(response =>
+          expect(response.headers['cache-control'] ?? '').not.to.include(
+            'max-age=1200'
+          )
+        )
     })
 
     ensureUserAuthenticationFailsIfInvalid(

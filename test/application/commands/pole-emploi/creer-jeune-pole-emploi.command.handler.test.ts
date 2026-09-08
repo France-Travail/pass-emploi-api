@@ -260,4 +260,14 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
       ).to.have.been.calledWithExactly(command.idConseiller, utilisateur)
     })
   })
+
+  describe('profilsAutorises', () => {
+    it('autorise les conseillers France Travail et Conseil départemental', () => {
+      // Then
+      expect(createJeuneCommandHandler.profilsAutorises).to.deep.equal([
+        { structure: Profil.Structure.FRANCE_TRAVAIL },
+        { structure: Profil.Structure.CONSEIL_DEPARTEMENTAL }
+      ])
+    })
+  })
 })
