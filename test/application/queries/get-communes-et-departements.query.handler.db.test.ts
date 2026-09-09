@@ -2,8 +2,10 @@ import { GetCommunesEtDepartementsQueryHandler } from '../../../src/application/
 import { CommuneOuDepartementType } from '../../../src/application/queries/query-models/communes-et-departements.query-model'
 import { CommuneSqlModel } from '../../../src/infrastructure/sequelize/models/commune.sql-model'
 import { DepartementSqlModel } from '../../../src/infrastructure/sequelize/models/departement.sql-model'
+import { RegionSqlModel } from '../../../src/infrastructure/sequelize/models/region.sql-model'
 import { uneCommuneDto } from '../../fixtures/sql-models/commune.sql-model'
 import { unDepartementDto } from '../../fixtures/sql-models/departement.sql-model'
+import { uneRegionDto } from '../../fixtures/sql-models/region.sql-model'
 import { expect } from '../../utils'
 import {
   DatabaseForTesting,
@@ -21,6 +23,7 @@ describe('GetCommunesEtDepartementsQueryHandler', () => {
 
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
+    await RegionSqlModel.create(uneRegionDto({ code: '84' }))
   })
 
   describe('Avec que des départements', () => {

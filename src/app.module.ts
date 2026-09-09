@@ -141,6 +141,8 @@ import { EnvoyerEmailsMessagesConseillersJobHandler } from './application/jobs/e
 import { FakeJobHandler } from './application/jobs/fake.job.handler'
 import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evenements.job.handler'
 import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
+import { ReconcilierAgencesFTJobHandler } from './application/jobs/reconcilier-agences-ft.job.handler.db'
+import { MajReferentielAgencesFTJobHandler } from './application/jobs/maj-referentiel-agences-ft.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
 import { MonitorJobsJobHandler } from './application/jobs/monitor-jobs.job.handler.db'
 import { NettoyerLesDonneesJobHandler } from './application/jobs/nettoyer-les-donnees.job.handler.db'
@@ -962,7 +964,9 @@ export const JobHandlerProviders = [
   Notifier0HeuresDeclareesJobHandler,
   NotifierBeneficiairesJobHandler,
   NotifierNouvelleActualiteMiloJobHandler,
-  MajReferentielRomeJobHandler
+  MajReferentielRomeJobHandler,
+  ReconcilierAgencesFTJobHandler,
+  MajReferentielAgencesFTJobHandler
 ]
 
 @Module(buildModuleMetadata())

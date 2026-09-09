@@ -100,6 +100,7 @@ describe('GetDetailConseillerQueryHandler', () => {
               notificationsSonores: false,
               dateSignatureCGU: undefined,
               dateVisionnageActus: undefined,
+              dateMajAgence: undefined,
               dateDeMigration: '2024-09-01T00:00:00.000Z'
             })
           )
@@ -141,7 +142,8 @@ describe('GetDetailConseillerQueryHandler', () => {
               notificationsSonores: false,
               aDesBeneficiairesARecuperer: true,
               dateSignatureCGU: undefined,
-              dateVisionnageActus: undefined
+              dateVisionnageActus: undefined,
+              dateMajAgence: undefined
             })
           )
         )
@@ -205,7 +207,8 @@ describe('GetDetailConseillerQueryHandler', () => {
               dateSignatureCGU: undefined,
               notificationsSonores: false,
               agence: undefined,
-              dateVisionnageActus: undefined
+              dateVisionnageActus: undefined,
+              dateMajAgence: undefined
             })
           )
         )

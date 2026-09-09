@@ -17,6 +17,8 @@ import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { StubbedClass, stubClass } from '../../utils'
 import { getDatabase } from '../../utils/database-for-testing'
 import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { RegionSqlModel } from '../../../src/infrastructure/sequelize/models/region.sql-model'
+import { uneRegionDto } from '../../fixtures/sql-models/region.sql-model'
 
 const maintenant = uneDatetime()
 
@@ -489,14 +491,21 @@ describe('Conseiller.Milo', () => {
             conseillerMiloRepository.save
           ).to.have.been.calledOnceWithExactly(conseillerMiloAvecStructure)
         })
-        it('crée et met à jour la structure Milo du Conseiller dont la région comporte un prefixe', async () => {
+        it('prend le libelle de region dans le referentiel plutot que dans la structure', async () => {
           // Given
+          await RegionSqlModel.create(
+            uneRegionDto({
+              code: '93',
+              libelle: "Provence-Alpes-Côte d'Azur"
+            })
+          )
           const idStructureMilo = '92073S00'
           await StructureMiloSqlModel.create({
             id: idStructureMilo,
             codeDepartement: '92',
             nomOfficiel: 'test',
             nomRegion: "Structure régionale Provence-Alpes-Côte-d'Azur",
+            codeRegion: '93',
             timezone: 'Europe/Paris'
           })
           await ConseillerSqlModel.create(
@@ -545,6 +554,51 @@ describe('Conseiller.Milo', () => {
           expect(agenceApres?.nomRegion).to.deep.equal(
             "Provence-Alpes-Côte d'Azur"
           )
+        })
+        it("n'applique pas de correction figee absente du referentiel", async () => {
+          // Given
+          await RegionSqlModel.create(
+            uneRegionDto({ code: '52', libelle: 'Pays de la Loire' })
+          )
+          const idStructureMilo = '44073S00'
+          await StructureMiloSqlModel.create({
+            id: idStructureMilo,
+            codeDepartement: '44',
+            nomOfficiel: 'test',
+            nomRegion: 'Structure régionale Pays-de-la-Loire',
+            codeRegion: '52',
+            timezone: 'Europe/Paris'
+          })
+          await ConseillerSqlModel.create(
+            unConseillerDto({
+              id: idConseiller,
+              structure: Core.Structure.MILO,
+              idStructureMilo
+            })
+          )
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
+
+          const idNouvelleStructure = '44063S00'
+          miloClient.getStructureConseiller
+            .withArgs(idpToken)
+            .resolves(
+              success(
+                uneStructureConseillerMiloDto({ code: idNouvelleStructure })
+              )
+            )
+          conseillerMiloRepository.structureExiste
+            .withArgs(idNouvelleStructure)
+            .resolves(false)
+
+          // When
+          await conseillerMiloService.recupererEtMettreAJourStructure(
+            idConseiller,
+            token
+          )
+
+          // Then
+          const agenceApres = await AgenceSqlModel.findByPk(idNouvelleStructure)
+          expect(agenceApres?.nomRegion).to.deep.equal('Pays de la Loire')
         })
         it('crée et met à jour la structure Milo du Conseiller sans mettre à jour agence', async () => {
           // Given

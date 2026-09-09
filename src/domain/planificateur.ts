@@ -113,7 +113,9 @@ export namespace Planificateur {
     CLORE_SESSIONS = 'CLORE_SESSIONS',
     NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES',
     NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
-    MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME'
+    MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
+    RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
+    MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT'
   }
 
   export interface JobRendezVous {
@@ -322,6 +324,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     type: Planificateur.JobType.MAJ_REFERENTIEL_ROME,
     expression: '0 3 1 * *',
     description: 'Le 1er de chaque mois à 3h. Mise à jour du référentiel ROME.'
+  },
+  {
+    type: Planificateur.JobType.MAJ_REFERENTIEL_AGENCES_FT,
+    expression: '0 4 1 * *',
+    description:
+      'Le 1er de chaque mois à 4h. Mise à jour du référentiel des agences France Travail.'
   }
 ]
 

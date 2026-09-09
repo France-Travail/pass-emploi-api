@@ -14,6 +14,7 @@ import { RechercheSqlModel } from './recherche.sql-model'
 import { TransfertConseillerSqlModel } from './transfert-conseiller.sql-model'
 import { SuperviseurSqlModel } from './superviseur.sql-model'
 import { AgenceSqlModel } from './agence.sql-model'
+import { RegionSqlModel } from './region.sql-model'
 import { RendezVousJeuneAssociationSqlModel } from './rendez-vous-jeune-association.sql-model'
 import { SituationsMiloSqlModel } from './situations-milo.sql-model'
 import { CampagneSqlModel } from './campagne.sql-model'
@@ -53,6 +54,7 @@ export const sqlModels = [
   SuperviseurSqlModel,
   FavoriOffreEngagementSqlModel,
   AgenceSqlModel,
+  RegionSqlModel,
   RendezVousJeuneAssociationSqlModel,
   SituationsMiloSqlModel,
   CampagneSqlModel,

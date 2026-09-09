@@ -33,6 +33,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         agence: undefined,
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
+        dateMajAgence: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
@@ -65,6 +66,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         },
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
+        dateMajAgence: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
@@ -110,6 +112,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         },
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
+        dateMajAgence: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }

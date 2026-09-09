@@ -14,6 +14,7 @@ export function uneAgenceMiloDto(
     structure: Profil.Structure.MILO,
     nomRegion: 'Auvergne-Rhône-Alpes',
     codeRegion: null,
+    codeSafir: null,
     timezone: 'Europe/Paris'
   }
 
@@ -32,6 +33,7 @@ export function uneAgenceDto(
     structure: Profil.Structure.FRANCE_TRAVAIL,
     nomRegion: 'PACA',
     codeRegion: null,
+    codeSafir: null,
     timezone: 'Europe/Paris'
   }
 
