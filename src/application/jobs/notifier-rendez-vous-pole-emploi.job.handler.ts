@@ -7,6 +7,7 @@ import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { Jeune, JeunePoleEmploiRepositoryToken } from '../../domain/jeune/jeune'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 import Type = Notification.Type
 
 const NOMBRE_JEUNES_EN_PARALLELE = 100
@@ -101,7 +102,10 @@ export class NotifierRendezVousPEJobHandler extends JobHandler {
           }
         } catch (e) {
           stats.erreurs++
-          this.logger.error(e)
+          rootLogger.error(
+            { context: this.jobType, error: toEcsError(e) },
+            'Échec de la notification des RDV pour un lot de jeunes'
+          )
         }
       } while (jeunesPoleEmploi.length === NOMBRE_JEUNES_EN_PARALLELE)
       return {

@@ -3,7 +3,11 @@ import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
 import { StructureEtDispositifs, verifierProfils } from '../../domain/profil'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { logHandlerExecuted } from '../../utils/logger.module'
+import {
+  logHandlerExecuted,
+  rootLogger,
+  toEcsError
+} from '../../utils/logger.module'
 import { Query } from './query'
 import { failure, Failure, isFailure, Result } from './result'
 
@@ -49,7 +53,10 @@ export abstract class QueryHandler<Q extends Query | void, R> {
 
       this.monitor(utilisateur, query, result).catch(error => {
         this.apmService.captureError(error)
-        this.logger.error(error)
+        rootLogger.error(
+          { context: this.queryHandlerName, error: toEcsError(error) },
+          'Le monitoring de la query a échoué'
+        )
       })
 
       this.logExecution(startNs, result)
