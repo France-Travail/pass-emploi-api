@@ -3,7 +3,11 @@ import * as APM from 'elastic-apm-node'
 import { Authentification } from '../../domain/authentification'
 import { StructureEtDispositifs, verifierProfils } from '../../domain/profil'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { logHandlerExecuted } from '../../utils/logger.module'
+import {
+  logHandlerExecuted,
+  rootLogger,
+  toEcsError
+} from '../../utils/logger.module'
 import { failure, isFailure, isSuccess, Result } from './result'
 
 /**
@@ -55,7 +59,10 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
       if (isSuccess(result)) {
         this.monitor(utilisateur, command, aggregate).catch(error => {
           this.apmService.captureError(error)
-          this.logger.error(error)
+          rootLogger.error(
+            { context: this.commandName, error: toEcsError(error) },
+            'Le monitoring de la command a échoué'
+          )
         })
       }
       this.logExecution(startNs, result, command)
