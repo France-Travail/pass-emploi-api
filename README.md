@@ -1,4 +1,4 @@
-## Lancer l'app
+## Lancer l'application
 
 ### Pré-requis <a name="pré-requis"></a>
 
