@@ -12,7 +12,7 @@ const DATABASE_URL = process.env.DATABASE_URL || defaultUrl
 const { host, port, database, user, password } = parse(DATABASE_URL)
 
 let otherOptions = {}
-if (process.env.ENVIRONMENT === 'staging') {
+if (['staging', 'perf'].includes(process.env.ENVIRONMENT || '')) {
   otherOptions = {
     dialectOptions: {
       ssl: {
