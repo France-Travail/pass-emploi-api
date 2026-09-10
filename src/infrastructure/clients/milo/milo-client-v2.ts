@@ -248,9 +248,10 @@ export class MiloClientV2 implements MiloClientPort {
           },
           params
         })
-      if (isSuccess(dtoPage2Result)) {
-        sessions.push(...dtoPage2Result.data.sessions)
+      if (isFailure(dtoPage2Result)) {
+        return dtoPage2Result
       }
+      sessions.push(...dtoPage2Result.data.sessions)
     }
     return success(sessions)
   }
@@ -479,9 +480,10 @@ export class MiloClientV2 implements MiloClientPort {
           },
           params
         })
-      if (isSuccess(dtoPage2Result)) {
-        sessions.push(...dtoPage2Result.data.sessions)
+      if (isFailure(dtoPage2Result)) {
+        return dtoPage2Result
       }
+      sessions.push(...dtoPage2Result.data.sessions)
     }
     return success(sessions)
   }

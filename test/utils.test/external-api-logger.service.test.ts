@@ -59,7 +59,10 @@ describe('attachExternalApiLogger', () => {
           status: 401,
           statusText: 'Unauthorized',
           data: { code: 'INVALID_TOKEN', message: 'token expiré' },
-          headers: {},
+          headers: {
+            'WWW-Authenticate': 'Bearer error="invalid_token"',
+            'set-cookie': 'secret=should-not-be-logged'
+          },
           config: {
             method: 'get',
             url: 'https://api.example.com/secret'
@@ -90,11 +93,15 @@ describe('attachExternalApiLogger', () => {
         action: 'external_api_call',
         outcome: 'failure'
       })
+      // www-authenticate capturé (cause du 401) ; set-cookie ignoré (hors allowlist)
       expect(obj.http).to.deep.equal({
         request: { method: 'GET' },
         response: {
           status_code: 401,
-          body: { content: '{"code":"INVALID_TOKEN","message":"token expiré"}' }
+          body: {
+            content: '{"code":"INVALID_TOKEN","message":"token expiré"}'
+          },
+          headers: { www_authenticate: 'Bearer error="invalid_token"' }
         }
       })
       expect(obj.error).to.deep.include({
