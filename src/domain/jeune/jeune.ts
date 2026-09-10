@@ -168,7 +168,7 @@ export namespace Jeune {
     changerDispositifDesJeunesDuConseiller(
       idConseiller: string,
       dispositif: Profil.Dispositif
-    ): Promise<void>
+    ): Promise<string[]>
   }
 
   @Injectable()

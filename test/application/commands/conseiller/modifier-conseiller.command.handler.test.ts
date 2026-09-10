@@ -10,6 +10,7 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { Failure } from '../../../../src/building-blocks/types/result'
 import { Agence } from '../../../../src/domain/agence'
+import { Authentification } from '../../../../src/domain/authentification'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Conseiller } from '../../../../src/domain/milo/conseiller'
 import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
@@ -21,6 +22,7 @@ describe('ModifierConseillerCommandHandler', () => {
   let conseillerRepository: StubbedType<Conseiller.Repository>
   let agencesRepository: StubbedType<Agence.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
+  let authentificationRepository: StubbedType<Authentification.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let modifierConseillerCommandHandler: ModifierConseillerCommandHandler
 
@@ -47,11 +49,14 @@ describe('ModifierConseillerCommandHandler', () => {
     conseillerRepository = stubInterface(sandbox)
     agencesRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
+    jeuneRepository.changerDispositifDesJeunesDuConseiller.resolves([])
+    authentificationRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     modifierConseillerCommandHandler = new ModifierConseillerCommandHandler(
       conseillerRepository,
       agencesRepository,
       jeuneRepository,
+      authentificationRepository,
       conseillerAuthorizer
     )
   })
@@ -180,7 +185,7 @@ describe('ModifierConseillerCommandHandler', () => {
             })
           )
         })
-        it('rattache les jeunes du conseiller à son nouveau dispositif', async () => {
+        it('rattache les jeunes du conseiller à son nouveau dispositif et les déconnecte', async () => {
           // Given
           const conseillerCEJ = unConseiller({
             id: idConseiller,
@@ -190,6 +195,10 @@ describe('ModifierConseillerCommandHandler', () => {
           conseillerRepository.get
             .withArgs(idConseiller)
             .resolves(conseillerCEJ)
+          jeuneRepository.changerDispositifDesJeunesDuConseiller.resolves([
+            'jeune-1',
+            'jeune-2'
+          ])
 
           // When
           const result = await modifierConseillerCommandHandler.handle({
@@ -205,6 +214,41 @@ describe('ModifierConseillerCommandHandler', () => {
             idConseiller,
             Profil.Dispositif.AIJ
           )
+          expect(
+            authentificationRepository.deleteUtilisateurIdp
+          ).to.have.been.calledTwice()
+          expect(
+            authentificationRepository.deleteUtilisateurIdp
+          ).to.have.been.calledWithExactly('jeune-1')
+          expect(
+            authentificationRepository.deleteUtilisateurIdp
+          ).to.have.been.calledWithExactly('jeune-2')
+        })
+        it('ne déconnecte personne quand le dispositif choisi est déjà le sien', async () => {
+          // Given
+          const conseillerCEJ = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerCEJ)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            dispositif: Profil.Dispositif.CEJ
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(
+            jeuneRepository.changerDispositifDesJeunesDuConseiller
+          ).not.to.have.been.called()
+          expect(
+            authentificationRepository.deleteUtilisateurIdp
+          ).not.to.have.been.called()
         })
         it("ne touche pas aux jeunes quand le dispositif n'est pas modifié", async () => {
           // Given

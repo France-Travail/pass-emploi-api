@@ -12,7 +12,10 @@ import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
 } from '../../domain/archive-jeune'
-import { Authentification } from '../../domain/authentification'
+import {
+  Authentification,
+  AuthentificationRepositoryToken
+} from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DateService } from '../../utils/date-service'
@@ -40,6 +43,8 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
     private readonly jeuneRepository: Jeune.Repository,
     @Inject(ArchiveJeuneRepositoryToken)
     private readonly archiveJeuneRepository: ArchiveJeune.Repository,
+    @Inject(AuthentificationRepositoryToken)
+    private readonly authentificationRepository: Authentification.Repository,
     private readonly evenementService: EvenementService,
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     private readonly dateService: DateService
@@ -98,6 +103,8 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
       DateTime.fromJSDate(command.dateFinAccompagnement)
     )
     await this.jeuneRepository.save(jeuneMisAJour)
+    // Le dispositif est dans le token donc obliger l'user à se reco
+    await this.authentificationRepository.deleteUtilisateurIdp(jeune.id)
 
     return emptySuccess()
   }

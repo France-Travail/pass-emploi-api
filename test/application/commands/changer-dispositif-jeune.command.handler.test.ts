@@ -13,6 +13,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
+import { Authentification } from '../../../src/domain/authentification'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
@@ -25,6 +26,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   let handler: ChangerDispositifJeuneCommandHandler
   let jeuneRepository: StubbedType<Jeune.Repository>
   let archiveJeuneRepository: StubbedType<ArchiveJeune.Repository>
+  let authentificationRepository: StubbedType<Authentification.Repository>
   let evenementService: StubbedClass<EvenementService>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let dateService: StubbedClass<DateService>
@@ -45,6 +47,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   beforeEach(() => {
     jeuneRepository = stubInterface(createSandbox())
     archiveJeuneRepository = stubInterface(createSandbox())
+    authentificationRepository = stubInterface(createSandbox())
     evenementService = stubClass(EvenementService)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     dateService = stubClass(DateService)
@@ -54,6 +57,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
     handler = new ChangerDispositifJeuneCommandHandler(
       jeuneRepository,
       archiveJeuneRepository,
+      authentificationRepository,
       evenementService,
       conseillerAuthorizer,
       dateService
@@ -140,6 +144,9 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
         expect(
           jeuneRepository.reinitialiserDatePremiereConnexion
         ).not.to.have.been.called()
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledOnceWithExactly(jeune.id)
         expect(result).to.deep.equal(emptySuccess())
       })
     })

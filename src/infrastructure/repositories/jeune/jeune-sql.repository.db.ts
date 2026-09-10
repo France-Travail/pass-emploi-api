@@ -180,16 +180,24 @@ export class JeuneSqlRepository implements Jeune.Repository {
     )
   }
 
-  // Les bénéficiaires en réaffectation temporaire (avec un conseiller initial)
-  // gardent leur dispositif.
+  // Suivis ou transférés temporairement par lui ; pas ceux suivis pour un autre temporairement
   async changerDispositifDesJeunesDuConseiller(
     idConseiller: string,
     dispositif: Profil.Dispositif
-  ): Promise<void> {
-    await JeuneSqlModel.update(
+  ): Promise<string[]> {
+    const [, jeunesSql] = await JeuneSqlModel.update(
       { dispositif },
-      { where: { idConseiller, idConseillerInitial: null } }
+      {
+        where: {
+          [Op.or]: [
+            { idConseiller, idConseillerInitial: null },
+            { idConseillerInitial: idConseiller }
+          ]
+        },
+        returning: ['id']
+      }
     )
+    return jeunesSql.map(({ id }) => id)
   }
 
   async supprimer(idJeune: string): Promise<void> {

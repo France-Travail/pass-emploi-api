@@ -24,6 +24,7 @@ import { GetSessionsConseillerMiloQueryHandler } from 'src/application/queries/m
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { VerifierEmailJeuneQueryHandler } from 'src/application/queries/verifier-email-jeune.query.handler'
+import { GetImpactChangementDispositifQueryHandler } from 'src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
@@ -897,6 +898,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetMonSuiviMiloQueryHandler,
     GetMonSuiviPoleEmploiQueryHandler,
     VerifierEmailJeuneQueryHandler,
+    GetImpactChangementDispositifQueryHandler,
     GetCompteursBeneficiaireMiloQueryHandler,
     GetDemarchesConseillerQueryHandler,
     GetNotificationsJeuneQueryHandler,

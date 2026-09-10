@@ -10,7 +10,10 @@ import {
   emptySuccess,
   failure
 } from '../../building-blocks/types/result'
-import { Authentification } from '../../domain/authentification'
+import {
+  Authentification,
+  AuthentificationRepositoryToken
+} from '../../domain/authentification'
 import {
   DISPOSITIFS_ACCOMPAGNES,
   DISPOSITIFS_ATTRIBUABLES,
@@ -37,6 +40,8 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
   constructor(
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,
+    @Inject(AuthentificationRepositoryToken)
+    private authentificationRepository: Authentification.Repository,
     private conseillerAuthorizer: ConseillerAuthorizer
   ) {
     super('ModifierJeuneDuConseillerCommandHandler')
@@ -79,6 +84,11 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
       )
     }
     await this.jeuneRepository.save(jeuneMisAJour)
+
+    // Le dispositif est dans le token donc obliger l'user à se reconnecter
+    if (command.dispositif && command.dispositif !== jeune.dispositif) {
+      await this.authentificationRepository.deleteUtilisateurIdp(jeune.id)
+    }
 
     return emptySuccess()
   }

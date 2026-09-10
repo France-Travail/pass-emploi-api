@@ -13,6 +13,7 @@ import {
   emptySuccess,
   failure
 } from '../../../src/building-blocks/types/result'
+import { Authentification } from '../../../src/domain/authentification'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
@@ -24,6 +25,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
   let modifierJeuneDuConseillerCommandHandler: ModifierJeuneDuConseillerCommandHandler
   let conseillerForJeuneAuthorizer: StubbedClass<ConseillerAuthorizer>
   let jeuneRepository: StubbedType<Jeune.Repository>
+  let authentificationRepository: StubbedType<Authentification.Repository>
 
   const jeune = unJeune({ structure: Profil.Structure.FRANCE_TRAVAIL })
   const command: ModifierJeuneDuConseillerCommand = {
@@ -34,9 +36,11 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
   beforeEach(() => {
     conseillerForJeuneAuthorizer = stubClass(ConseillerAuthorizer)
     jeuneRepository = stubInterface(createSandbox())
+    authentificationRepository = stubInterface(createSandbox())
     modifierJeuneDuConseillerCommandHandler =
       new ModifierJeuneDuConseillerCommandHandler(
         jeuneRepository,
+        authentificationRepository,
         conseillerForJeuneAuthorizer
       )
   })
@@ -145,6 +149,29 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           dispositif: Profil.Dispositif.BRSA,
           peutVoirLeComptageDesHeures: false
         })
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledOnceWithExactly(jeuneFT.id)
+        expect(result).to.deep.equal(emptySuccess())
+      })
+      it('ne déconnecte pas le bénéficiaire quand le dispositif ne change pas', async () => {
+        // Given
+        const jeuneFT = unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
+
+        // When
+        const result = await modifierJeuneDuConseillerCommandHandler.handle({
+          idJeune: jeuneFT.id,
+          dispositif: Profil.Dispositif.CEJ
+        })
+
+        // Then
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).not.to.have.been.called()
         expect(result).to.deep.equal(emptySuccess())
       })
       it('refuse un dispositif qui n’est pas proposé pour la structure du bénéficiaire', async () => {
