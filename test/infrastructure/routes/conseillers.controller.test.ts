@@ -49,6 +49,7 @@ import { ensureUserAuthenticationFailsIfInvalid } from 'test/utils/ensure-user-a
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
 import { GetDemarchesConseillerQueryHandler } from '../../../src/application/queries/get-demarches-conseiller.query.handler'
 import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
+import { GetImpactChangementDispositifQueryHandler } from '../../../src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -72,6 +73,7 @@ describe('ConseillersController', () => {
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
   let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
   let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
+  let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
 
   let app: INestApplication
 
@@ -111,6 +113,9 @@ describe('ConseillersController', () => {
       ChangerDispositifJeuneCommandHandler
     )
     verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
+    getImpactChangementDispositifQueryHandler = app.get(
+      GetImpactChangementDispositifQueryHandler
+    )
   })
 
   describe('DELETE /conseillers/:idConseiller', () => {
@@ -217,6 +222,32 @@ describe('ConseillersController', () => {
     })
 
     ensureUserAuthenticationFailsIfInvalid('get', '/conseillers/123')
+  })
+
+  describe('GET /conseillers/:idConseiller/changement-dispositif', () => {
+    it('renvoie les bénéficiaires concernés par un changement de dispositif', async () => {
+      // Given
+      const impact = {
+        nbBeneficiairesConcernes: 3,
+        nbBeneficiairesTransferesTemporairement: 1,
+        nbBeneficiairesSuivisTemporairement: 1
+      }
+      getImpactChangementDispositifQueryHandler.execute
+        .withArgs({ idConseiller: '1' }, unUtilisateurDecode())
+        .resolves(success(impact))
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/conseillers/1/changement-dispositif')
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.OK)
+        .expect(impact)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/conseillers/1/changement-dispositif'
+    )
   })
 
   describe('GET /conseillers/:idConseiller/jeunes/comptage', () => {

@@ -44,6 +44,10 @@ import {
   VerifierEmailJeuneQueryHandler
 } from '../../application/queries/verifier-email-jeune.query.handler'
 import { GetDetailConseillerQueryHandler } from '../../application/queries/get-detail-conseiller.query.handler.db'
+import {
+  GetImpactChangementDispositifQueryHandler,
+  ImpactChangementDispositifQueryModel
+} from '../../application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetIndicateursPourConseillerQueryHandler } from '../../application/queries/get-indicateurs-pour-conseiller.query.handler.db'
 import { GetJeunesByConseillerQueryHandler } from '../../application/queries/get-jeunes-by-conseiller.query.handler.db'
 import { GetJeunesIdentitesQueryHandler } from '../../application/queries/get-jeunes-identites.query.handler.db'
@@ -94,6 +98,7 @@ export class ConseillersController {
     private readonly deleteConseillerCommandHandler: DeleteConseillerCommandHandler,
     private readonly getDemarchesConseillerQueryHandler: GetDemarchesConseillerQueryHandler,
     private readonly verifierEmailJeuneQueryHandler: VerifierEmailJeuneQueryHandler,
+    private readonly getImpactChangementDispositifQueryHandler: GetImpactChangementDispositifQueryHandler,
     private readonly getRendezVousJeuneQueryHandler: GetRendezVousJeuneQueryHandler,
     private readonly sendNotificationsNouveauxMessages: SendNotificationsNouveauxMessagesCommandHandler,
     private readonly envoyerEmailActivationCommandHandler: EnvoyerEmailActivationCommandHandler,
@@ -203,6 +208,25 @@ export class ConseillersController {
   ): Promise<ComptageJeunesQueryModel> {
     const result = await this.getComptageJeunesByConseillerQueryHandler.execute(
       { idConseiller, accessToken },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary:
+      'Bénéficiaires concernés si le conseiller change de dispositif : ceux qui le suivront et ceux qui gardent le leur',
+    description: 'Autorisé pour un conseiller France Travail'
+  })
+  @Get(':idConseiller/changement-dispositif')
+  @ApiResponse({ type: ImpactChangementDispositifQueryModel })
+  async getImpactChangementDispositif(
+    @Param('idConseiller') idConseiller: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<ImpactChangementDispositifQueryModel> {
+    const result = await this.getImpactChangementDispositifQueryHandler.execute(
+      { idConseiller },
       utilisateur
     )
 

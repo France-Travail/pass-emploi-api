@@ -203,7 +203,7 @@ describe('JeuneSqlRepository', () => {
   })
 
   describe('changerDispositifDesJeunesDuConseiller', () => {
-    it('rattache au dispositif les jeunes du conseiller hors réaffectation temporaire, et eux seuls', async () => {
+    it("rattache au dispositif les jeunes du conseiller, dont ceux qu'il a transférés temporairement, mais pas ceux qu'il suit pour un autre", async () => {
       // Given
       const conseillerDto = unConseillerDto({
         id: 'conseiller-ft',
@@ -232,6 +232,12 @@ describe('JeuneSqlRepository', () => {
           structure: Core.Structure.POLE_EMPLOI
         }),
         unJeuneDto({
+          id: 'jeune-transfere-temporairement',
+          idConseiller: autreConseillerDto.id,
+          idConseillerInitial: conseillerDto.id,
+          structure: Core.Structure.POLE_EMPLOI
+        }),
+        unJeuneDto({
           id: 'jeune-autre-conseiller',
           idConseiller: autreConseillerDto.id,
           structure: Core.Structure.POLE_EMPLOI
@@ -239,12 +245,18 @@ describe('JeuneSqlRepository', () => {
       ])
 
       // When
-      await jeuneSqlRepository.changerDispositifDesJeunesDuConseiller(
-        conseillerDto.id,
-        Profil.Dispositif.BRSA
-      )
+      const idsJeunes =
+        await jeuneSqlRepository.changerDispositifDesJeunesDuConseiller(
+          conseillerDto.id,
+          Profil.Dispositif.BRSA
+        )
 
       // Then
+      expect(idsJeunes.sort()).to.deep.equal([
+        'jeune-1',
+        'jeune-2',
+        'jeune-transfere-temporairement'
+      ])
       const jeunes = await JeuneSqlModel.findAll({ order: [['id', 'ASC']] })
       expect(
         jeunes.map(({ id, dispositif }) => ({ id, dispositif }))
@@ -255,6 +267,10 @@ describe('JeuneSqlRepository', () => {
         {
           id: 'jeune-reaffecte-temporairement',
           dispositif: Profil.Dispositif.CEJ
+        },
+        {
+          id: 'jeune-transfere-temporairement',
+          dispositif: Profil.Dispositif.BRSA
         }
       ])
     })

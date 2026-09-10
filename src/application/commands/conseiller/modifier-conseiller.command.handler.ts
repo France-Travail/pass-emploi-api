@@ -10,7 +10,10 @@ import {
   isFailure
 } from '../../../building-blocks/types/result'
 import { Agence, AgenceRepositoryToken } from '../../../domain/agence'
-import { Authentification } from '../../../domain/authentification'
+import {
+  Authentification,
+  AuthentificationRepositoryToken
+} from '../../../domain/authentification'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../../domain/profil'
 import {
@@ -42,6 +45,8 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
     private agencesRepository: Agence.Repository,
     @Inject(JeuneRepositoryToken)
     private jeuneRepository: Jeune.Repository,
+    @Inject(AuthentificationRepositoryToken)
+    private authentificationRepository: Authentification.Repository,
     private readonly conseillerAuthorizer: ConseillerAuthorizer
   ) {
     super('ModifierConseillerCommandHandler')
@@ -88,13 +93,25 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
     }
     await this.conseillerRepository.save(conseillerResult.data)
 
-    if (command.dispositif) {
-      await this.jeuneRepository.changerDispositifDesJeunesDuConseiller(
-        command.idConseiller,
-        command.dispositif
-      )
+    if (
+      command.dispositif &&
+      command.dispositif !== conseillerActuel.dispositif
+    ) {
+      const idsJeunes =
+        await this.jeuneRepository.changerDispositifDesJeunesDuConseiller(
+          command.idConseiller,
+          command.dispositif
+        )
+      await this.deconnecter(idsJeunes)
     }
     return emptySuccess()
+  }
+
+  // Le dispositif voyage dans le token : les jeunes se reconnectent, le conseiller l'est par le web.
+  private async deconnecter(idsUtilisateurs: string[]): Promise<void> {
+    for (const idUtilisateur of idsUtilisateurs) {
+      await this.authentificationRepository.deleteUtilisateurIdp(idUtilisateur)
+    }
   }
 
   async authorize(
