@@ -15,6 +15,9 @@ les données brutes dans la base Analytics, et on transforme ensuite en SQL dire
 cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboards à garder
 < 1 min) est détaillé dans [ADR-004](./decisions/ADR-004-pipeline-analytics.md).
 
+**Architecture (état actuel → cible v1.x, marts) :**
+[ANALYTICS-ARCHI.md](./ANALYTICS-ARCHI.md).
+
 ## Vue d'ensemble
 
 ```
