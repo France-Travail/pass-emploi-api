@@ -12,7 +12,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { Profil, profilExact, TOUT_PROFIL } from '../../domain/profil'
+import { Profil, TOUT_PROFIL } from '../../domain/profil'
 import {
   UtilisateurQueryModel,
   queryModelFromUtilisateur
@@ -45,10 +45,11 @@ export class GetUtilisateurQueryHandler extends QueryHandler<
 
     switch (query.typeUtilisateur) {
       case Authentification.Type.JEUNE: {
+        // Le dispositif d’un jeune peut changer : seule sa structure l’identifie.
         utilisateur =
           await this.authentificationRepository.getJeuneByStructureEtDispositifs(
             query.idAuthentification,
-            profilExact(query.profil)
+            { structure: query.profil.structure }
           )
         break
       }

@@ -13,7 +13,7 @@ import { failure, success } from '../../../src/building-blocks/types/result'
 import { createSandbox, expect } from '../../utils'
 import { queryModelFromUtilisateur } from '../../../src/application/queries/query-models/authentification.query-model'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
-import { Profil, profilExact } from '../../../src/domain/profil'
+import { Profil } from '../../../src/domain/profil'
 import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetUtilisateurQueryHandler', () => {
@@ -43,7 +43,9 @@ describe('GetUtilisateurQueryHandler', () => {
         profil: unProfilMilo()
       }
       authentificationRepository.getJeuneByStructureEtDispositifs
-        .withArgs(query.idAuthentification, profilExact(query.profil))
+        .withArgs(query.idAuthentification, {
+          structure: query.profil.structure
+        })
         .returns(unUtilisateurJeune())
 
       // When
@@ -52,6 +54,30 @@ describe('GetUtilisateurQueryHandler', () => {
       // Then
       expect(result).to.deep.equal(
         success(queryModelFromUtilisateur(unUtilisateurJeune()))
+      )
+    })
+    it('retourne le jeune France Travail quel que soit le dispositif demandé', async () => {
+      // Given
+      const query: GetUtilisateurQuery = {
+        idAuthentification: 'test-sub',
+        typeUtilisateur: Authentification.Type.JEUNE,
+        profil: unProfilFT(Profil.Dispositif.CEJ)
+      }
+      const jeuneBRSA = unUtilisateurJeune({
+        profil: unProfilFT(Profil.Dispositif.BRSA)
+      })
+      authentificationRepository.getJeuneByStructureEtDispositifs
+        .withArgs(query.idAuthentification, {
+          structure: Profil.Structure.FRANCE_TRAVAIL
+        })
+        .returns(jeuneBRSA)
+
+      // When
+      const result = await getUtilisateurQueryHandler.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        success(queryModelFromUtilisateur(jeuneBRSA))
       )
     })
     it('retourne le conseiller utilisateur', async () => {
@@ -122,7 +148,9 @@ describe('GetUtilisateurQueryHandler', () => {
         profil: unProfilFT(Profil.Dispositif.BRSA)
       }
       authentificationRepository.getJeuneByStructureEtDispositifs
-        .withArgs(query.idAuthentification, profilExact(query.profil))
+        .withArgs(query.idAuthentification, {
+          structure: query.profil.structure
+        })
         .returns(undefined)
 
       // When
