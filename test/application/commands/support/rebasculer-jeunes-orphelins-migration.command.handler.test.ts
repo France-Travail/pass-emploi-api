@@ -3,13 +3,16 @@ import {
   RebasculerJeunesOrphelinsMigrationCommand,
   RebasculerJeunesOrphelinsMigrationCommandHandler
 } from '../../../../src/application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
-import { emptySuccess } from '../../../../src/building-blocks/types/result'
+import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure
+} from '../../../../src/building-blocks/types/result'
 import {
   Migration,
   RebasculementOrphelin
 } from '../../../../src/domain/migration'
 import { expect, StubbedClass, stubClass } from '../../../utils'
-import PhaseDeMigration = Migration.PhaseDeMigration
 
 describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
   let handler: RebasculerJeunesOrphelinsMigrationCommandHandler
@@ -52,26 +55,46 @@ describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
     it('rebasculer les jeunes orphelins et retourner un succès', async () => {
       // Given
       const command: RebasculerJeunesOrphelinsMigrationCommand = {
-        phaseDeMigration: PhaseDeMigration.PHASE_B
+        phaseDeMigration: 'PHASE_B'
       }
-      migrationService.rebasculerOrphelinsDePhase.resolves(rebasculements)
+      migrationService.migrationExiste.withArgs('PHASE_B').resolves(true)
+      migrationService.rebasculerOrphelins.resolves(rebasculements)
 
       // When
       const result = await handler.handle(command)
 
       // Then
       expect(
-        migrationService.rebasculerOrphelinsDePhase
-      ).to.have.been.calledWithExactly(PhaseDeMigration.PHASE_B)
+        migrationService.rebasculerOrphelins
+      ).to.have.been.calledWithExactly('PHASE_B')
       expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it("échoue quand la vague de migration n'existe pas", async () => {
+      // Given
+      migrationService.migrationExiste
+        .withArgs('PHASE_INCONNUE')
+        .resolves(false)
+
+      // When
+      const result = await handler.handle({
+        phaseDeMigration: 'PHASE_INCONNUE'
+      })
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('Migration', 'PHASE_INCONNUE'))
+      )
+      expect(migrationService.rebasculerOrphelins).not.to.have.been.called()
     })
 
     it('log chaque jeune rebasculé avec son ancien et nouveau conseiller', async () => {
       // Given
       const command: RebasculerJeunesOrphelinsMigrationCommand = {
-        phaseDeMigration: PhaseDeMigration.PHASE_B
+        phaseDeMigration: 'PHASE_B'
       }
-      migrationService.rebasculerOrphelinsDePhase.resolves(rebasculements)
+      migrationService.migrationExiste.withArgs('PHASE_B').resolves(true)
+      migrationService.rebasculerOrphelins.resolves(rebasculements)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const logStub = sandbox.stub((handler as any).logger, 'log')
 
@@ -96,7 +119,7 @@ describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
         'Jeune rebasculé'
       )
       expect(logStub).to.have.been.calledWith(
-        { phaseDeMigration: PhaseDeMigration.PHASE_B, count: 2 },
+        { phaseDeMigration: 'PHASE_B', count: 2 },
         'Rebasculement orphelins terminé'
       )
     })

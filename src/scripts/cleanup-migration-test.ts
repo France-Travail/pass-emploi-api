@@ -48,10 +48,10 @@ async function main(): Promise<void> {
     )
     logger.log(`Conseillers supprimés : ${conseillerCount}`)
 
-    const [, ffCount] = await sequelize.query(
-      `DELETE FROM feature_flip WHERE feature_tag = 'MIGRATION_PHASE_TEST'`
+    const [, migrationCount] = await sequelize.query(
+      `DELETE FROM migration WHERE id = 'PHASE_TEST'`
     )
-    logger.log(`Feature flips supprimés : ${ffCount}`)
+    logger.log(`Migrations de test supprimées : ${migrationCount}`)
 
     logger.log('Cleanup migration test terminé')
   } finally {

@@ -23,9 +23,9 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
   await connexion.query(`
     WITH conseillers_demarches_ia AS (
       SELECT DISTINCT c.id
-      FROM feature_flip ff
-      JOIN conseiller c ON c.email = ff.email_conseiller
-      WHERE ff.feature_tag = 'DEMARCHES_IA'
+      FROM fonctionnalite_conseillers fc
+      JOIN conseiller c ON c.email = fc.email_conseiller
+      WHERE fc.id_fonctionnalite = 'DEMARCHES_IA'
     ),
     utilisateurs_demarches_ia AS (
       SELECT DISTINCT j.id AS id_jeune

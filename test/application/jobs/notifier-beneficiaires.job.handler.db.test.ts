@@ -232,7 +232,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: "C'est bientôt la fin",
           description: 'Parcours Emploi vous tend la main',
           params: {
-            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+            phaseDeMigration: 'PHASE_A',
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
