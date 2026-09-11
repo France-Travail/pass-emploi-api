@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsISO8601,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -19,8 +20,7 @@ import {
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Profil } from '../../../domain/profil'
-import { FeatureFlip } from '../../../domain/feature-flip'
-import { Migration } from '../../../domain/migration'
+import { Deploiement } from '../../../domain/deploiement'
 import { Notification } from '../../../domain/notification/notification'
 import { Planificateur } from '../../../domain/planificateur'
 
@@ -133,33 +133,113 @@ export class SuperviseursPayload {
   emails: string[]
 }
 
-export class UpdateFeatureFlipPayload {
+export class CreerFonctionnalitePayload {
   @ApiProperty({
-    enum: FeatureFlip.Tag,
-    description: Object.values(FeatureFlip.Tag).join(', ')
+    description:
+      'Identifiant de la fonctionnalité, choisi à la création. Rejouer la route avec le même id ne change rien.'
   })
   @IsString()
   @IsNotEmpty()
-  @IsEnum(FeatureFlip.Tag)
-  tagFeature: FeatureFlip.Tag
+  @MaxLength(100)
+  id: string
+}
 
-  @ApiProperty()
+export class CreerPopulationPayload {
+  @ApiProperty({
+    description: 'Identifiant de la population, choisi à la création'
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  id: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  description?: string
+}
+
+export class ConseillersPopulationPayload {
+  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @IsString()
+  @IsNotEmpty()
+  id: string
+
+  @ApiProperty({ type: String, isArray: true })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEmail({}, { each: true })
+  emailConseillers: string[]
+}
+
+export class SupprimerConseillersPopulationPayload {
+  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @IsString()
+  @IsNotEmpty()
+  id: string
+
+  @ApiPropertyOptional({
+    type: String,
+    isArray: true,
+    description: 'Requis sauf si supprimerTous vaut true'
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEmail({}, { each: true })
+  emailConseillers?: string[]
+
+  @ApiPropertyOptional({
+    description: 'Retire tous les conseillers de la population'
+  })
   @IsOptional()
   @IsBoolean()
   @IsIn([false, true])
-  supprimerExistants?: boolean
+  supprimerTous?: boolean
+}
 
-  @ApiProperty({ type: String, isArray: true, required: false })
-  @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
-  emailsConseillersAjout?: string[]
+export class ProfilPopulationPayload {
+  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @IsString()
+  @IsNotEmpty()
+  id: string
 
-  @ApiProperty({ type: String, isArray: true, required: false })
+  @ApiProperty({ enum: Profil.Structure })
+  @IsEnum(Profil.Structure)
+  structure: Profil.Structure
+
+  @ApiPropertyOptional({
+    enum: Profil.Dispositif,
+    description: 'Absent = tous les dispositifs de la structure'
+  })
   @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
-  emailsConseillersSuppression?: string[]
+  @IsEnum(Profil.Dispositif)
+  dispositif?: Profil.Dispositif
+}
+
+export class CreerDeploiementPayload {
+  @ApiProperty({ enum: Deploiement.Nature })
+  @IsEnum(Deploiement.Nature)
+  nature: Deploiement.Nature
+
+  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiPropertyOptional({
+    description: 'Requis pour la nature FONCTIONNALITE, interdit pour MIGRATION'
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  idFonctionnalite?: string
+
+  @ApiProperty({
+    description: 'Date à partir de laquelle le déploiement est actif'
+  })
+  @IsISO8601()
+  dateActivation: string
 }
 
 export class ListerJobsQueryParams {
@@ -254,15 +334,12 @@ export class NotifierBeneficiairesPayload {
   structuresEtDispositifs?: StructureEtDispositifsPayload[]
 
   @ApiPropertyOptional({
-    enum: Migration.PhaseDeMigration,
-    description: `Tag de feature flip pour cibler les bénéficiaires de la migration. Valeurs possibles : ${Object.values(
-      Migration.PhaseDeMigration
-    ).join(', ')}`
+    description: "Id d'une population pour ne cibler que ses bénéficiaires"
   })
   @IsOptional()
   @IsString()
-  @IsEnum(Migration.PhaseDeMigration)
-  phaseDeMigration?: Migration.PhaseDeMigration
+  @IsNotEmpty()
+  idPopulation?: string
 
   @ApiPropertyOptional()
   @IsOptional()

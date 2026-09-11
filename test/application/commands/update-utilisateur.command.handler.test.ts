@@ -1130,7 +1130,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             })
           })
-          describe('quand le jeune a migré vers Parcours Emploi (Feature Flip MIGRATION_PHASE_X pour son conseiller)', async () => {
+          describe('quand le jeune a migré vers Parcours Emploi (vague de migration pour son conseiller)', async () => {
             it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune a migré vers Parcours Emploi', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {

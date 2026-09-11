@@ -34,7 +34,11 @@ import { SessionMiloSqlModel } from './session-milo.sql-model'
 import { NotificationJeuneSqlModel } from './notification-jeune.sql-model'
 import { ComptageJeuneSqlModel } from './comptage-jeune.sql-model'
 import { FeedbackSqlModel } from './feedback.sql-model'
-import { FeatureFlipSqlModel } from './feature-flip.sql-model'
+import { FonctionnaliteSqlModel } from './fonctionnalite.sql-model'
+import { PopulationSqlModel } from './population.sql-model'
+import { PopulationConseillerSqlModel } from './population-conseiller.sql-model'
+import { PopulationProfilSqlModel } from './population-profil.sql-model'
+import { DeploiementSqlModel } from './deploiement.sql-model'
 import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 
 export const sqlModels = [
@@ -74,6 +78,10 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
-  FeatureFlipSqlModel,
+  FonctionnaliteSqlModel,
+  PopulationSqlModel,
+  PopulationConseillerSqlModel,
+  PopulationProfilSqlModel,
+  DeploiementSqlModel,
   ActualiteMiloSqlModel
 ]

@@ -91,12 +91,21 @@ async function main(): Promise<void> {
     }
 
     await sequelize.query(
-      `INSERT INTO feature_flip (email_conseiller, feature_tag)
-       VALUES (:email, 'MIGRATION_PHASE_TEST')
-       ON CONFLICT (feature_tag, email_conseiller) DO NOTHING`,
+      `INSERT INTO population (id, description) VALUES ('PHASE_TEST', 'Migration de test')
+       ON CONFLICT (id) DO NOTHING`
+    )
+    await sequelize.query(
+      `INSERT INTO population_conseiller (id_population, email_conseiller)
+       VALUES ('PHASE_TEST', :email)
+       ON CONFLICT DO NOTHING`,
       { replacements: { email: CONSEILLER_EMAIL } }
     )
-    logger.log('Feature flip créée')
+    await sequelize.query(
+      `INSERT INTO deploiement (nature, id_population, id_fonctionnalite, date_activation)
+       SELECT 'MIGRATION', 'PHASE_TEST', NULL, NOW()
+       WHERE NOT EXISTS (SELECT 1 FROM deploiement WHERE nature = 'MIGRATION' AND id_population = 'PHASE_TEST')`
+    )
+    logger.log('Migration de test créée')
 
     logger.log('Seed migration test terminé')
   } finally {

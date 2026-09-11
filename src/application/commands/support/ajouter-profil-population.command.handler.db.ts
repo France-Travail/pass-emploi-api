@@ -1,0 +1,57 @@
+import { Injectable } from '@nestjs/common'
+import { Command } from '../../../building-blocks/types/command'
+import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { NonTrouveError } from '../../../building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure,
+  Result
+} from '../../../building-blocks/types/result'
+import { Profil } from '../../../domain/profil'
+import { PopulationProfilSqlModel } from '../../../infrastructure/sequelize/models/population-profil.sql-model'
+import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
+
+export interface AjouterProfilPopulationCommand extends Command {
+  idPopulation: string
+  structure: Profil.Structure
+  dispositif?: Profil.Dispositif
+}
+
+@Injectable()
+export class AjouterProfilPopulationCommandHandler extends CommandHandler<
+  AjouterProfilPopulationCommand,
+  void
+> {
+  constructor() {
+    super('AjouterProfilPopulationCommandHandler')
+  }
+
+  async authorize(): Promise<Result> {
+    return emptySuccess()
+  }
+
+  async monitor(): Promise<void> {
+    return
+  }
+
+  // Sans dispositif le profil couvre toute la structure ; l'index unique absorbe le doublon, on l'ignore.
+  async handle(command: AjouterProfilPopulationCommand): Promise<Result> {
+    const population = await PopulationSqlModel.findByPk(command.idPopulation)
+    if (!population) {
+      return failure(new NonTrouveError('Population', command.idPopulation))
+    }
+
+    await PopulationProfilSqlModel.bulkCreate(
+      [
+        {
+          idPopulation: command.idPopulation,
+          structure: command.structure,
+          dispositif: command.dispositif ?? null
+        }
+      ],
+      { ignoreDuplicates: true }
+    )
+
+    return emptySuccess()
+  }
+}

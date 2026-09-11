@@ -1,13 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { QueryTypes, Sequelize } from 'sequelize'
-import { FeatureFlip } from '../../domain/feature-flip'
+import { Deploiement } from '../../domain/deploiement'
 import {
   BeneficiaireMigration,
   Migration,
   RebasculementOrphelin
 } from '../../domain/migration'
+import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import Tag = FeatureFlip.Tag
+import { SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE } from './fonctionnalite.repository.db'
+import { sqlConseillerDansPopulation } from './population.repository.db'
 
 @Injectable()
 export class MigrationSqlRepository implements Migration.Repository {
@@ -15,59 +18,58 @@ export class MigrationSqlRepository implements Migration.Repository {
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize
   ) {}
 
-  async getBeneficiairesDeLaFeatureDuConseillerInitial(
-    tag: Tag
+  async populationConcerneeParUneMigration(
+    idPopulation: string
+  ): Promise<boolean> {
+    const deploiement = await DeploiementSqlModel.findOne({
+      where: { idPopulation, nature: Deploiement.Nature.MIGRATION }
+    })
+    return deploiement !== null
+  }
+
+  async getBeneficiairesDeLaMigrationDuConseillerInitial(
+    idPopulation: string
   ): Promise<BeneficiaireMigration[]> {
-    // on veut que le conseiller initial : si on est dans un cas de transfert temporaire il est dans le champ id_conseiller_initial, sinon dans le champ id_conseiller
     const rows = await this.sequelize.query<{ id: string }>(
       `
-      SELECT j.id
-      FROM jeune j
-      JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
-      JOIN feature_flip ff ON ff.email_conseiller = c.email
-      WHERE ff.feature_tag = :featureTag
+        SELECT j.id
+        FROM jeune j
+        JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+        WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
       `,
-      {
-        replacements: {
-          featureTag: tag
-        },
-        type: QueryTypes.SELECT
-      }
+      { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )
     return rows.map(row => new BeneficiaireMigration(row.id))
   }
 
-  async rebasculerOrphelinsDePhase(tag: Tag): Promise<RebasculementOrphelin[]> {
+  async rebasculerOrphelins(
+    idPopulation: string
+  ): Promise<RebasculementOrphelin[]> {
     const rows = await this.sequelize.query<{
       id_jeune: string
       ancien_id_conseiller: string
       nouveau_id_conseiller: string
     }>(
       `
-      UPDATE jeune
-      SET id_conseiller = jeune.id_conseiller_initial,
-          id_conseiller_initial = NULL
-      FROM conseiller c_actuel
-      JOIN feature_flip ff ON ff.email_conseiller = c_actuel.email
-                          AND ff.feature_tag = :featureTag
-      WHERE c_actuel.id = jeune.id_conseiller
-        AND jeune.id_conseiller_initial IS NOT NULL
-        AND NOT EXISTS (
-          SELECT 1
-          FROM conseiller c_initial
-          JOIN feature_flip ff2 ON ff2.email_conseiller = c_initial.email
-                               AND ff2.feature_tag = :featureTag
-          WHERE c_initial.id = jeune.id_conseiller_initial
-        )
-      RETURNING
-        jeune.id AS id_jeune,
-        c_actuel.id AS ancien_id_conseiller,
-        jeune.id_conseiller AS nouveau_id_conseiller
+        UPDATE jeune
+        SET id_conseiller = jeune.id_conseiller_initial,
+            id_conseiller_initial = NULL
+        FROM conseiller c_actuel
+        WHERE c_actuel.id = jeune.id_conseiller
+          AND jeune.id_conseiller_initial IS NOT NULL
+          AND ${sqlConseillerDansPopulation('c_actuel', ':idPopulation')}
+          AND NOT EXISTS (
+            SELECT 1
+            FROM conseiller c_initial
+            WHERE c_initial.id = jeune.id_conseiller_initial
+              AND ${sqlConseillerDansPopulation('c_initial', ':idPopulation')}
+          )
+        RETURNING
+          jeune.id AS id_jeune,
+          c_actuel.id AS ancien_id_conseiller,
+          jeune.id_conseiller AS nouveau_id_conseiller
       `,
-      {
-        replacements: { featureTag: tag },
-        type: QueryTypes.SELECT
-      }
+      { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )
     return rows.map(row => ({
       idJeune: row.id_jeune,
@@ -75,4 +77,53 @@ export class MigrationSqlRepository implements Migration.Repository {
       nouveauIdConseiller: row.nouveau_id_conseiller
     }))
   }
+
+  async getDateDeMigrationDuConseiller(
+    idConseiller: string
+  ): Promise<DateTime | undefined> {
+    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
+      `
+        SELECT MIN(d.date_activation) AS date_activation
+        FROM deploiement d
+        JOIN conseiller c ON c.id = :idConseiller
+        WHERE d.nature = :nature
+          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
+      `,
+      {
+        replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },
+        type: QueryTypes.SELECT
+      }
+    )
+    return fromSqlToDateDeMigration(rows)
+  }
+
+  async getDateDeMigrationDuConseillerDuBeneficiaire(
+    idBeneficiaire: string
+  ): Promise<DateTime | undefined> {
+    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
+      `
+        SELECT MIN(d.date_activation) AS date_activation
+        FROM deploiement d
+        ${SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE}
+        WHERE d.nature = :nature
+          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
+      `,
+      {
+        replacements: {
+          idJeune: idBeneficiaire,
+          nature: Deploiement.Nature.MIGRATION
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+    return fromSqlToDateDeMigration(rows)
+  }
+}
+
+// MIN sur un ensemble vide renvoie une ligne dont la date est nulle.
+function fromSqlToDateDeMigration(
+  rows: Array<{ date_activation: Date | null }>
+): DateTime | undefined {
+  const dateActivation = rows[0]?.date_activation
+  return dateActivation ? DateTime.fromJSDate(dateActivation) : undefined
 }

@@ -113,7 +113,17 @@ import { FusionnerAgencesCommandHandler } from './application/commands/support/f
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from './application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from './application/commands/support/update-feature-flip.command.handler.db'
+import { CreerFonctionnaliteCommandHandler } from './application/commands/support/creer-fonctionnalite.command.handler.db'
+import { SupprimerFonctionnaliteCommandHandler } from './application/commands/support/supprimer-fonctionnalite.command.handler.db'
+import { CreerPopulationCommandHandler } from './application/commands/support/creer-population.command.handler.db'
+import { SupprimerPopulationCommandHandler } from './application/commands/support/supprimer-population.command.handler.db'
+import { AjouterConseillersPopulationCommandHandler } from './application/commands/support/ajouter-conseillers-population.command.handler.db'
+import { SupprimerConseillersPopulationCommandHandler } from './application/commands/support/supprimer-conseillers-population.command.handler.db'
+import { AjouterProfilPopulationCommandHandler } from './application/commands/support/ajouter-profil-population.command.handler.db'
+import { SupprimerProfilPopulationCommandHandler } from './application/commands/support/supprimer-profil-population.command.handler.db'
+import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
+import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
+import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
 import { TeleverserFichierCommandHandler } from './application/commands/televerser-fichier.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from './application/commands/transferer-jeunes-conseiller.command.handler'
@@ -215,7 +225,7 @@ import { GetOffresEmploiQueryHandler } from './application/queries/get-offres-em
 import { GetOffresImmersionQueryHandlerV3 } from './application/queries/get-offres-immersionV3.query.handler'
 import { GetOffresServicesCiviqueQueryHandler } from './application/queries/get-offres-services-civique.query.handler'
 import { GetPreferencesJeuneQueryHandler } from './application/queries/get-preferences-jeune.query.handler.db'
-import { GetFeaturesJeuneQueryHandler } from './application/queries/get-features-jeune.query.handler'
+import { GetFonctionnalitesJeuneQueryHandler } from './application/queries/get-fonctionnalites-jeune.query.handler'
 import { GetRecherchesQueryHandler } from './application/queries/get-recherches.query.handler.db'
 import { GetSuggestionsQueryHandler } from './application/queries/get-suggestions.query.handler.db'
 import { GetSuiviSemainePoleEmploiQueryHandler } from './application/queries/get-suivi-semaine-pole-emploi.query.handler'
@@ -269,8 +279,9 @@ import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
 import { Demarche, DemarcheRepositoryToken } from './domain/demarche'
 import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
-import { FeatureFlip, FeatureFlipRepositoryToken } from './domain/feature-flip'
+import { FonctionnaliteRepositoryToken } from './domain/fonctionnalite'
 import { Migration, MigrationRepositoryToken } from './domain/migration'
+import { PopulationRepositoryToken } from './domain/population'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import { ConfigurationApplication } from './domain/jeune/configuration-application'
 import {
@@ -364,8 +375,9 @@ import { ConseillerSqlRepository } from './infrastructure/repositories/conseille
 import { ListeDeDiffusionSqlRepository } from './infrastructure/repositories/conseiller/liste-de-diffusion-sql.repository.db'
 import { DemarcheHttpRepository } from './infrastructure/repositories/demarche-http.repository'
 import { EvenementSqlRepository } from './infrastructure/repositories/evenement-sql.repository.db'
-import { FeatureFlipSqlRepository } from './infrastructure/repositories/feature-flip.repository.db'
+import { FonctionnaliteSqlRepository } from './infrastructure/repositories/fonctionnalite.repository.db'
 import { MigrationSqlRepository } from './infrastructure/repositories/migration.repository.db'
+import { PopulationSqlRepository } from './infrastructure/repositories/population.repository.db'
 import { FichierSqlS3Repository } from './infrastructure/repositories/fichier-sql-s3.repository.db'
 import { JeuneConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-configuration-application-sql.repository.db'
 import { JeunePoleEmploiSqlRepository } from './infrastructure/repositories/jeune/jeune-pole-emploi-sql.repository.db'
@@ -520,7 +532,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     Suggestion.Factory,
     SuggestionPoleEmploiService,
     Notification.Service,
-    FeatureFlip.Service,
     Migration.Service,
     ArchiveJeune.Service,
     Agence.Service,
@@ -558,12 +569,16 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
       useClass: ConseillerMiloSqlRepository
     },
     {
-      provide: FeatureFlipRepositoryToken,
-      useClass: FeatureFlipSqlRepository
+      provide: FonctionnaliteRepositoryToken,
+      useClass: FonctionnaliteSqlRepository
     },
     {
       provide: MigrationRepositoryToken,
       useClass: MigrationSqlRepository
+    },
+    {
+      provide: PopulationRepositoryToken,
+      useClass: PopulationSqlRepository
     },
     {
       provide: SessionMiloRepositoryToken,
@@ -828,7 +843,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     PlanifierExecutionCronCommandHandler,
     UpdateJeunePreferencesCommandHandler,
     GetPreferencesJeuneQueryHandler,
-    GetFeaturesJeuneQueryHandler,
+    GetFonctionnalitesJeuneQueryHandler,
+    GetPopulationSupportQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
     ModifierJeuneDuConseillerCommandHandler,
     ChangerDispositifJeuneCommandHandler,
@@ -913,7 +929,16 @@ export function buildQueryCommandsProviders(): Provider[] {
     AjouterJeuneListeDeDiffusionCommandHandler,
     GenerateDemarchesIACommandHandler,
     CreateFeedbackCommandHandler,
-    UpdateFeatureFlipCommandHandler,
+    CreerFonctionnaliteCommandHandler,
+    SupprimerFonctionnaliteCommandHandler,
+    CreerPopulationCommandHandler,
+    SupprimerPopulationCommandHandler,
+    AjouterConseillersPopulationCommandHandler,
+    SupprimerConseillersPopulationCommandHandler,
+    AjouterProfilPopulationCommandHandler,
+    SupprimerProfilPopulationCommandHandler,
+    CreerDeploiementCommandHandler,
+    SupprimerDeploiementCommandHandler,
     NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
     UpdateActualiteMiloCommandHandler,

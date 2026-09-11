@@ -15,7 +15,7 @@ import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { Core } from '../../../src/domain/core'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
-import { Migration } from '../../../src/domain/migration'
+import { Population } from '../../../src/domain/population'
 import JobType = Planificateur.JobType
 import { Profil, TOUT_MILO } from '../../../src/domain/profil'
 
@@ -33,7 +33,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
   let notificationRepository: StubbedClass<Notification.Repository>
   let planificateurRepository: StubbedType<Planificateur.Repository>
   let sandbox: SinonSandbox
-  let migrationService: StubbedClass<Migration.Service>
+  let populationRepository: StubbedType<Population.Repository>
 
   before(async () => {
     const databaseForTesting = getDatabase()
@@ -45,14 +45,14 @@ describe('NotifierBeneficiairesJobHandler', () => {
     dateService.now.returns(maintenant)
     suiviJobService = stubInterface(sandbox)
     planificateurRepository = stubInterface(sandbox)
-    migrationService = stubClass(Migration.Service)
+    populationRepository = stubInterface(sandbox)
 
     handler = new NotifierBeneficiairesJobHandler(
       notificationRepository,
       suiviJobService,
       dateService,
       planificateurRepository,
-      migrationService
+      populationRepository
     )
   })
 
@@ -222,7 +222,9 @@ describe('NotifierBeneficiairesJobHandler', () => {
 
       const maintenant = uneDatetime()
 
-      migrationService.recupererIdsDesBeneficiaireAMigrer.resolves([idJeune1])
+      populationRepository.getIdsDesBeneficiaires
+        .withArgs('PHASE_A')
+        .resolves([idJeune1])
 
       const job: Planificateur.Job<Planificateur.JobNotifierBeneficiaires> = {
         dateExecution: maintenant.toJSDate(),
@@ -232,7 +234,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: "C'est bientôt la fin",
           description: 'Parcours Emploi vous tend la main',
           params: {
-            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+            idPopulation: 'PHASE_A',
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2

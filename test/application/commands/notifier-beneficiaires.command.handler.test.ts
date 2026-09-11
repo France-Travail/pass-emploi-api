@@ -11,7 +11,6 @@ import { uneDatetime } from '../../fixtures/date.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import { Migration } from '../../../src/domain/migration'
 import { Profil } from '../../../src/domain/profil'
 
 describe('NotifierBeneficiairesCommandHandler', () => {
@@ -52,7 +51,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
             dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
           }
         ],
-        phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+        idPopulation: 'PHASE_A',
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15
@@ -78,7 +77,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
                 dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
               }
             ],
-            phaseDeMigration: Migration.PhaseDeMigration.PHASE_A,
+            idPopulation: 'PHASE_A',
             push: true,
             batchSize: 2000,
             minutesEntreLesBatchs: 15
@@ -115,7 +114,7 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           description: 'Description',
           params: {
             structuresEtDispositifs: undefined,
-            phaseDeMigration: undefined,
+            idPopulation: undefined,
             push: false,
             batchSize: undefined,
             minutesEntreLesBatchs: 5
