@@ -4,7 +4,11 @@ import {
   ArchiverJeunesMigrationCommand,
   ArchiverJeunesMigrationCommandHandler
 } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
-import { emptySuccess } from '../../../../src/building-blocks/types/result'
+import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure
+} from '../../../../src/building-blocks/types/result'
 import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { DateService } from '../../../../src/utils/date-service'
@@ -15,12 +19,11 @@ import { Authentification } from '../../../../src/domain/authentification'
 import { Migration } from '../../../../src/domain/migration'
 import { EvenementService } from '../../../../src/domain/evenement'
 import Service = ArchiveJeune.Service
-import PhaseDeMigration = Migration.PhaseDeMigration
 
 describe('ArchiverJeunesMigrationCommandHandler', () => {
   let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
   let serviceMock: Service
-  let featureFlipService: StubbedClass<Migration.Service>
+  let migrationService: StubbedClass<Migration.Service>
   let evenementService: StubbedClass<EvenementService>
 
   const maintenant = new Date('2022-03-01T03:24:00Z')
@@ -48,12 +51,12 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
       archiver: sandbox.stub().resolves(emptySuccess())
     } as unknown as Service
 
-    featureFlipService = stubClass(Migration.Service)
+    migrationService = stubClass(Migration.Service)
     evenementService = stubClass(EvenementService)
     archiverJeunesMigrationSupportCommandHandler =
       new ArchiverJeunesMigrationCommandHandler(
         evenementService,
-        featureFlipService,
+        migrationService,
         serviceMock
       )
   })
@@ -70,14 +73,35 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
   })
 
   describe('handle', () => {
+    it("échoue quand la vague de migration n'existe pas", async () => {
+      // Given
+      migrationService.migrationExiste
+        .withArgs('PHASE_INCONNUE')
+        .resolves(false)
+
+      // When
+      const result = await archiverJeunesMigrationSupportCommandHandler.handle({
+        phaseDeMigration: 'PHASE_INCONNUE'
+      })
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('Migration', 'PHASE_INCONNUE'))
+      )
+      expect(
+        migrationService.recupererIdsDesBeneficiaireAMigrer
+      ).not.to.have.been.called()
+    })
+
     describe('quand le jeune existe', () => {
       it('archive le jeune', async () => {
         // Given
         const command: ArchiverJeunesMigrationCommand = {
-          phaseDeMigration: PhaseDeMigration.PHASE_A
+          phaseDeMigration: 'PHASE_A'
         }
         const idJeunes = ['1', '2', '3']
-        featureFlipService.recupererIdsDesBeneficiaireAMigrer.resolves(idJeunes)
+        migrationService.migrationExiste.withArgs('PHASE_A').resolves(true)
+        migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(idJeunes)
 
         // When
         const result =

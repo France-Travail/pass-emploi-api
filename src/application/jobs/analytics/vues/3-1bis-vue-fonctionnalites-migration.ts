@@ -14,9 +14,8 @@ export async function chargerLaVueFonctionnaliteMigration(
   await connexion.query(`
     WITH conseillers_migration AS (
       SELECT DISTINCT c.id AS id_utilisateur
-      FROM feature_flip ff
-      JOIN conseiller c ON c.email = ff.email_conseiller
-      WHERE ff.feature_tag ILIKE '%migration%'
+      FROM migration_conseillers mc
+      JOIN conseiller c ON c.email = mc.email_conseiller
     ),
     jeunes_migration AS (
       SELECT DISTINCT aj.id_jeune AS id_utilisateur

@@ -14,7 +14,6 @@ import {
 } from '../../domain/planificateur'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { StructureEtDispositifs, TOUT_PROFIL } from '../../domain/profil'
-import { Migration } from '../../domain/migration'
 import { DateService } from '../../utils/date-service'
 import JobNotifierBeneficiaires = Planificateur.JobNotifierBeneficiaires
 
@@ -26,7 +25,7 @@ export interface NotifierBeneficiairesCommand extends Command {
   titre: string
   description: string
   structuresEtDispositifs?: StructureEtDispositifs[]
-  phaseDeMigration?: Migration.PhaseDeMigration
+  phaseDeMigration?: string
   push?: boolean
   batchSize?: number
   minutesEntreLesBatchs?: number

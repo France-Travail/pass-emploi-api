@@ -34,7 +34,10 @@ import { SessionMiloSqlModel } from './session-milo.sql-model'
 import { NotificationJeuneSqlModel } from './notification-jeune.sql-model'
 import { ComptageJeuneSqlModel } from './comptage-jeune.sql-model'
 import { FeedbackSqlModel } from './feedback.sql-model'
-import { FeatureFlipSqlModel } from './feature-flip.sql-model'
+import { FonctionnaliteSqlModel } from './fonctionnalite.sql-model'
+import { FonctionnaliteConseillerSqlModel } from './fonctionnalite-conseiller.sql-model'
+import { MigrationSqlModel } from './migration.sql-model'
+import { MigrationConseillerSqlModel } from './migration-conseiller.sql-model'
 import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 
 export const sqlModels = [
@@ -74,6 +77,9 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
-  FeatureFlipSqlModel,
+  FonctionnaliteSqlModel,
+  FonctionnaliteConseillerSqlModel,
+  MigrationSqlModel,
+  MigrationConseillerSqlModel,
   ActualiteMiloSqlModel
 ]

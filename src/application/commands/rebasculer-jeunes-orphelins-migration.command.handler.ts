@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { emptySuccess, Result } from '../../building-blocks/types/result'
+import { NonTrouveError } from '../../building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure,
+  Result
+} from '../../building-blocks/types/result'
 import { Migration } from '../../domain/migration'
-import PhaseDeMigration = Migration.PhaseDeMigration
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
-  phaseDeMigration: PhaseDeMigration
+  phaseDeMigration: string
 }
 
 @Injectable()
@@ -24,10 +28,18 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
   async handle(
     command: RebasculerJeunesOrphelinsMigrationCommand
   ): Promise<Result> {
-    const rebasculements =
-      await this.migrationService.rebasculerOrphelinsDePhase(
-        command.phaseDeMigration
-      )
+    // La route déplace des bénéficiaires : on refuse un id inconnu plutôt que
+    // de rapporter zéro rebasculement.
+    const migrationExiste = await this.migrationService.migrationExiste(
+      command.phaseDeMigration
+    )
+    if (!migrationExiste) {
+      return failure(new NonTrouveError('Migration', command.phaseDeMigration))
+    }
+
+    const rebasculements = await this.migrationService.rebasculerOrphelins(
+      command.phaseDeMigration
+    )
     rebasculements.forEach(
       ({ idJeune, ancienIdConseiller, nouveauIdConseiller }) =>
         this.logger.log(

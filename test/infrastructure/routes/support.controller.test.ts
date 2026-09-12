@@ -18,7 +18,10 @@ import {
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
 import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from '../../../src/application/commands/support/update-feature-flip.command.handler.db'
+import { CreerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/creer-fonctionnalite.command.handler.db'
+import { SupprimerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/supprimer-fonctionnalite.command.handler.db'
+import { AjouterConseillersFonctionnaliteCommandHandler } from '../../../src/application/commands/support/ajouter-conseillers-fonctionnalite.command.handler.db'
+import { SupprimerConseillersFonctionnaliteCommandHandler } from '../../../src/application/commands/support/supprimer-conseillers-fonctionnalite.command.handler.db'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
@@ -34,7 +37,6 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
-import { FeatureFlip } from '../../../src/domain/feature-flip'
 import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
@@ -59,7 +61,10 @@ describe('SupportController', () => {
   let deleteSuperviseursCommandHandler: StubbedClass<DeleteSuperviseursCommandHandler>
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
   let creerNotificationCommandHandler: StubbedClass<NotifierBeneficiairesCommandHandler>
-  let updateFeatureFlipCommandHandler: StubbedClass<UpdateFeatureFlipCommandHandler>
+  let creerFonctionnaliteCommandHandler: StubbedClass<CreerFonctionnaliteCommandHandler>
+  let supprimerFonctionnaliteCommandHandler: StubbedClass<SupprimerFonctionnaliteCommandHandler>
+  let ajouterConseillersFonctionnaliteCommandHandler: StubbedClass<AjouterConseillersFonctionnaliteCommandHandler>
+  let supprimerConseillersFonctionnaliteCommandHandler: StubbedClass<SupprimerConseillersFonctionnaliteCommandHandler>
   let oidcClient: StubbedClass<OidcClient>
   let planificateurRepository: Planificateur.Repository
   let app: INestApplication
@@ -85,7 +90,18 @@ describe('SupportController', () => {
     transfererJeunesConseillerCommandHandler = app.get(
       TransfererJeunesConseillerCommandHandler
     )
-    updateFeatureFlipCommandHandler = app.get(UpdateFeatureFlipCommandHandler)
+    creerFonctionnaliteCommandHandler = app.get(
+      CreerFonctionnaliteCommandHandler
+    )
+    supprimerFonctionnaliteCommandHandler = app.get(
+      SupprimerFonctionnaliteCommandHandler
+    )
+    ajouterConseillersFonctionnaliteCommandHandler = app.get(
+      AjouterConseillersFonctionnaliteCommandHandler
+    )
+    supprimerConseillersFonctionnaliteCommandHandler = app.get(
+      SupprimerConseillersFonctionnaliteCommandHandler
+    )
     creerNotificationCommandHandler = app.get(
       NotifierBeneficiairesCommandHandler
     )
@@ -799,65 +815,151 @@ describe('SupportController', () => {
     })
   })
 
-  describe('POST /feature-flip', () => {
-    describe('quand le payload est valide', () => {
-      it('renvoie 204', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test']
-        }
-        const command = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: undefined
-        }
-        updateFeatureFlipCommandHandler.execute
-          .withArgs(command)
-          .resolves(emptySuccess())
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 204 avec supprimerExistants à false', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: false
-        }
-        const command = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: false
-        }
-        updateFeatureFlipCommandHandler.execute
-          .withArgs(command)
-          .resolves(emptySuccess())
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 400 qd supprimerExistants est autre que true', async () => {
-        // Given
-        const payload = {
-          tagFeature: FeatureFlip.Tag.MIGRATION_PHASE_B,
-          emailsConseillersAjout: ['test'],
-          supprimerExistants: 'true'
-        }
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/feature-flip')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
+  describe('POST /support/fonctionnalites', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      creerFonctionnaliteCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites')
+        .send({ id: 'PLAN_D_ACTION' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it("renvoie 400 quand l'id est absent", async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites')
+        .send({})
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+  })
+
+  describe('DELETE /support/fonctionnalites/:idFonctionnalite', () => {
+    it('renvoie 204 quand la fonctionnalité existe', async () => {
+      // Given
+      supprimerFonctionnaliteCommandHandler.execute
+        .withArgs(
+          { id: 'PLAN_D_ACTION' },
+          Authentification.unUtilisateurSupport()
+        )
+        .resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/fonctionnalites/PLAN_D_ACTION')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+  })
+
+  describe('POST /support/fonctionnalites/conseillers', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      ajouterConseillersFonctionnaliteCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          emailConseillers: ['conseiller@email.com'],
+          dateActivation: '2026-11-20T00:00:00.000Z'
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it("accepte l'absence de dateActivation", async () => {
+      // Given
+      ajouterConseillersFonctionnaliteCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          emailConseillers: ['conseiller@email.com']
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it("renvoie 400 quand un email n'en est pas un", async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites/conseillers')
+        .send({ id: 'PHASE_B', emailConseillers: ['test'] })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 400 quand la date d'activation n'est pas une date", async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          emailConseillers: ['conseiller@email.com'],
+          dateActivation: 'demain'
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+  })
+
+  describe('DELETE /support/fonctionnalites/conseillers', () => {
+    it('renvoie 204 avec une liste emails', async () => {
+      // Given
+      supprimerConseillersFonctionnaliteCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          emailConseillers: ['conseiller@email.com']
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it('renvoie 204 avec supprimerTousLesConseillers', async () => {
+      // Given
+      supprimerConseillersFonctionnaliteCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          supprimerTousLesConseillers: true
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it('renvoie 400 qd supprimerTousLesConseillers est autre que booléen', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/fonctionnalites/conseillers')
+        .send({
+          id: 'PHASE_B',
+          supprimerTousLesConseillers: 'true'
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
     })
   })
 

@@ -8,7 +8,6 @@ import {
   HttpStatus,
   Inject,
   Param,
-  ParseEnumPipe,
   ParseIntPipe,
   Post,
   Query,
@@ -29,6 +28,7 @@ import {
   ApiTags
 } from '@nestjs/swagger'
 import Bull from 'bull'
+import { DateTime } from 'luxon'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
@@ -51,7 +51,10 @@ import {
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
-import { UpdateFeatureFlipCommandHandler } from '../../application/commands/support/update-feature-flip.command.handler.db'
+import { CreerFonctionnaliteCommandHandler } from '../../application/commands/support/creer-fonctionnalite.command.handler.db'
+import { SupprimerFonctionnaliteCommandHandler } from '../../application/commands/support/supprimer-fonctionnalite.command.handler.db'
+import { AjouterConseillersFonctionnaliteCommandHandler } from '../../application/commands/support/ajouter-conseillers-fonctionnalite.command.handler.db'
+import { SupprimerConseillersFonctionnaliteCommandHandler } from '../../application/commands/support/supprimer-conseillers-fonctionnalite.command.handler.db'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
@@ -76,10 +79,10 @@ import {
   SuperviseursPayload,
   TeleverserCsvPayload,
   TransfererJeunesPayload,
-  UpdateFeatureFlipPayload
+  CreerFonctionnalitePayload,
+  AjouterConseillersFonctionnalitePayload,
+  SupprimerConseillersFonctionnalitePayload
 } from './validation/support.inputs'
-import { Migration } from '../../domain/migration'
-import PhaseDeMigration = Migration.PhaseDeMigration
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
 import { Profil } from '../../domain/profil'
 
@@ -144,7 +147,10 @@ export class SupportController {
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
-    private readonly updateFeatureFlipCommandHandler: UpdateFeatureFlipCommandHandler,
+    private readonly creerFonctionnaliteCommandHandler: CreerFonctionnaliteCommandHandler,
+    private readonly supprimerFonctionnaliteCommandHandler: SupprimerFonctionnaliteCommandHandler,
+    private readonly ajouterConseillersFonctionnaliteCommandHandler: AjouterConseillersFonctionnaliteCommandHandler,
+    private readonly supprimerConseillersFonctionnaliteCommandHandler: SupprimerConseillersFonctionnaliteCommandHandler,
     private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
@@ -432,17 +438,102 @@ export class SupportController {
     Authentification.Partenaire.SUPPORT
   )
   @ApiOperation({
-    summary:
-      'Enregistre la liste des conseillers (via leur email) qui accèdent à une fonctionnalité (les jeunes associés seront calculés automatiquement à la volée)',
-    description: 'Autorisé pour le support'
+    summary: 'Crée une fonctionnalité dans le référentiel',
+    description: `
+Autorisé pour le support. Une fonctionnalité n'est qu'un identifiant : les conseillers
+qui y accèdent s'ajoutent ensuite via POST /support/fonctionnalites/conseillers.
+Les bénéficiaires concernés sont calculés à la volée depuis leur conseiller.`
   })
-  @Post('feature-flip')
+  @Post('fonctionnalites')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updateFeatureFlip(
-    @Body() payload: UpdateFeatureFlipPayload
+  async creerFonctionnalite(
+    @Body() payload: CreerFonctionnalitePayload
   ): Promise<void> {
-    const result = await this.updateFeatureFlipCommandHandler.execute(
-      payload,
+    const result = await this.creerFonctionnaliteCommandHandler.execute(
+      { id: payload.id },
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: 'Donne accès à une fonctionnalité à des conseillers',
+    description: `
+Autorisé pour le support. La fonctionnalité doit exister.
+
+\`dateActivation\` est optionnelle : absente, la fonctionnalité est active
+immédiatement pour ces conseillers. Rejouer la route sur un conseiller déjà
+affecté remplace sa date, ce qui permet de replanifier une vague.`
+  })
+  @Post('fonctionnalites/conseillers')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async ajouterConseillersFonctionnalite(
+    @Body() payload: AjouterConseillersFonctionnalitePayload
+  ): Promise<void> {
+    const result =
+      await this.ajouterConseillersFonctionnaliteCommandHandler.execute(
+        {
+          idFonctionnalite: payload.id,
+          emailConseillers: payload.emailConseillers,
+          dateActivation: payload.dateActivation
+            ? DateTime.fromISO(payload.dateActivation)
+            : undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: 'Retire une fonctionnalité à des conseillers',
+    description: `
+Autorisé pour le support. Renseigner soit \`emailConseillers\`, soit
+\`supprimerTousLesConseillers\` à true pour vider la fonctionnalité.`
+  })
+  @Delete('fonctionnalites/conseillers')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async supprimerConseillersFonctionnalite(
+    @Body() payload: SupprimerConseillersFonctionnalitePayload
+  ): Promise<void> {
+    const result =
+      await this.supprimerConseillersFonctionnaliteCommandHandler.execute(
+        {
+          idFonctionnalite: payload.id,
+          emailConseillers: payload.emailConseillers,
+          supprimerTousLesConseillers: payload.supprimerTousLesConseillers
+        },
+        Authentification.unUtilisateurSupport()
+      )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: 'Supprime une fonctionnalité du référentiel',
+    description:
+      'Autorisé pour le support. Les accès des conseillers à cette fonctionnalité partent avec elle.'
+  })
+  @Delete('fonctionnalites/:idFonctionnalite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async supprimerFonctionnalite(
+    @Param('idFonctionnalite') idFonctionnalite: string
+  ): Promise<void> {
+    const result = await this.supprimerFonctionnaliteCommandHandler.execute(
+      { id: idFonctionnalite },
       Authentification.unUtilisateurSupport()
     )
 
@@ -470,9 +561,7 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
 - \`structuresEtDispositifs\` (optionnel, défaut = tous les bénéficiaires) : liste de cibles \`{ structure, dispositifs? }\`, un bénéficiaire est notifié s'il correspond à l'une d'elles.
 <br>\`structure\` : ${Object.values(Profil.Structure).join(', ')}
 <br>\`dispositifs\` (optionnel, défaut = tous les dispositifs de la structure) : ${Object.values(Profil.Dispositif).join(', ')}
-- \`PhaseDeMigration\` (optionnel) : tag de feature flip pour cibler les bénéficiaires d'une phase de migration Parcours Emploi. Valeurs possibles : ${Object.values(
-      Migration.PhaseDeMigration
-    ).join(', ')}
+- \`phaseDeMigration\` (optionnel) : id d'une vague de migration (table \`migration\`) pour ne cibler que ses bénéficiaires
 - \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
 - \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
 - \`minutesEntreLesBatch\` (optionnel, défaut = 5) : minutes entre chaque batch
@@ -488,7 +577,7 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
           { structure: 'MILO' },
           { structure: 'FRANCE_TRAVAIL', dispositifs: ['CEJ', 'AIJ'] }
         ],
-        PhaseDeMigration: 'PHASE_A',
+        phaseDeMigration: 'PHASE_A',
         push: true
       }
     }
@@ -623,14 +712,13 @@ L'API support pour archiver les jeunes d'une phase de migration
   - Suppression du chat firebase
   - Envoi d'un email au jeune
   
-PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
+\`phaseDeMigration\` est l'id d'une ligne de la table \`migration\`. Un id inconnu renvoie 404.
  `
   })
   @Post('archiver-jeunes-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async archiverJeuneRegion(
-    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
-    phaseDeMigration: PhaseDeMigration
+    @Param('phaseDeMigration') phaseDeMigration: string
   ): Promise<void> {
     const result = await this.archiverJeunesMigrationCommandHandler.handle({
       phaseDeMigration
@@ -651,14 +739,13 @@ Identifie les jeunes en transfert temporaire dont le conseiller actuel migre pou
 mais dont le conseiller initial n'est pas concerné par cette migration, et les remet sous leur
 conseiller initial (récupération définitive).
 
-PhaseDeMigration : ${Object.values(Migration.PhaseDeMigration).join(', ')}
+\`phaseDeMigration\` est l'id d'une ligne de la table \`migration\`. Un id inconnu renvoie 404.
 `
   })
   @Post('rebasculer-jeunes-orphelins-migration/:phaseDeMigration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async rebasculerJeunesOrphelinsMigration(
-    @Param('phaseDeMigration', new ParseEnumPipe(Migration.PhaseDeMigration))
-    phaseDeMigration: PhaseDeMigration
+    @Param('phaseDeMigration') phaseDeMigration: string
   ): Promise<void> {
     const result =
       await this.rebasculerJeunesOrphelinsMigrationCommandHandler.handle({

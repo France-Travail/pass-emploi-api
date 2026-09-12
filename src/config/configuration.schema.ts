@@ -215,20 +215,6 @@ export const configurationSchema = Joi.object({
     envoyerStatsMatomo: Joi.boolean(),
     notifierRendezVousMilo: Joi.boolean(),
     recupererStructureMilo: Joi.boolean(),
-    dateDeMigrationPhaseA: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
-      .allow(null)
-      .messages({
-        'string.pattern.base':
-          'dateDeMigrationPhaseA doit être au format YYYY-MM-DD'
-      }),
-    dateDeMigrationPhaseB: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
-      .allow(null)
-      .messages({
-        'string.pattern.base':
-          'dateDeMigrationPhaseB doit être au format YYYY-MM-DD'
-      }),
     activerRecuperationChat: Joi.boolean()
   }),
   values: Joi.object({

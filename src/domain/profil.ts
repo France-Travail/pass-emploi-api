@@ -84,10 +84,14 @@ export const DISPOSITIFS_ATTRIBUABLES: readonly StructureEtDispositifs[] = [
   DISPOSITIFS_FT_ACCOMPAGNES
 ]
 
-export const TOUT_PROFIL: readonly StructureEtDispositifs[] = [
+export const TOUT_PROFIL_SAUF_INVITE: readonly StructureEtDispositifs[] = [
   TOUT_MILO,
   TOUT_FRANCE_TRAVAIL,
-  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_CONSEIL_DEPARTEMENTAL
+]
+
+export const TOUT_PROFIL: readonly StructureEtDispositifs[] = [
+  ...TOUT_PROFIL_SAUF_INVITE,
   TOUT_INVITE
 ]
 

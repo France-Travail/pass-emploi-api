@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
+import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
+  failure,
   isFailure,
   Result
 } from '../../building-blocks/types/result'
@@ -11,7 +13,6 @@ import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Migration } from '../../domain/migration'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
-import PhaseDeMigration = Migration.PhaseDeMigration
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
@@ -24,7 +25,7 @@ export interface ArchiverJeuneCommand {
 }
 
 export interface ArchiverJeunesMigrationCommand {
-  phaseDeMigration: PhaseDeMigration
+  phaseDeMigration: string
 }
 
 @Injectable()
@@ -34,7 +35,7 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
 > {
   constructor(
     private readonly evenementService: EvenementService,
-    private readonly featureFlipService: Migration.Service,
+    private readonly migrationService: Migration.Service,
     private readonly archiverJeuneService: ArchiveJeune.Service
   ) {
     super('ArchiverJeuneCommandHandler')
@@ -45,8 +46,17 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
   }
 
   async handle(command: ArchiverJeunesMigrationCommand): Promise<Result> {
+    // La route archive des comptes : mieux vaut refuser un id inconnu que
+    // rapporter un archivage de zéro bénéficiaire.
+    const migrationExiste = await this.migrationService.migrationExiste(
+      command.phaseDeMigration
+    )
+    if (!migrationExiste) {
+      return failure(new NonTrouveError('Migration', command.phaseDeMigration))
+    }
+
     const idJeunes =
-      await this.featureFlipService.recupererIdsDesBeneficiaireAMigrer(
+      await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
         command.phaseDeMigration
       )
 

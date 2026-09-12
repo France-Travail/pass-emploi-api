@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsISO8601,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -19,8 +20,6 @@ import {
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Profil } from '../../../domain/profil'
-import { FeatureFlip } from '../../../domain/feature-flip'
-import { Migration } from '../../../domain/migration'
 import { Notification } from '../../../domain/notification/notification'
 import { Planificateur } from '../../../domain/planificateur'
 
@@ -133,33 +132,61 @@ export class SuperviseursPayload {
   emails: string[]
 }
 
-export class UpdateFeatureFlipPayload {
+export class CreerFonctionnalitePayload {
   @ApiProperty({
-    enum: FeatureFlip.Tag,
-    description: Object.values(FeatureFlip.Tag).join(', ')
+    description:
+      'Identifiant de la fonctionnalité, choisi à la création. Rejouer la route avec le même id ne change rien.'
   })
   @IsString()
   @IsNotEmpty()
-  @IsEnum(FeatureFlip.Tag)
-  tagFeature: FeatureFlip.Tag
+  @MaxLength(100)
+  id: string
+}
 
-  @ApiProperty()
+export class AjouterConseillersFonctionnalitePayload {
+  @ApiProperty({ description: "Identifiant d'une fonctionnalité existante" })
+  @IsString()
+  @IsNotEmpty()
+  id: string
+
+  @ApiProperty({ type: String, isArray: true })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEmail({}, { each: true })
+  emailConseillers: string[]
+
+  @ApiPropertyOptional({
+    description:
+      'Date à partir de laquelle la fonctionnalité est active pour ces conseillers. Absente = active immédiatement. Rejouer la route sur un conseiller déjà affecté remplace sa date.'
+  })
+  @IsOptional()
+  @IsISO8601()
+  dateActivation?: string
+}
+
+export class SupprimerConseillersFonctionnalitePayload {
+  @ApiProperty({ description: "Identifiant d'une fonctionnalité existante" })
+  @IsString()
+  @IsNotEmpty()
+  id: string
+
+  @ApiPropertyOptional({
+    type: String,
+    isArray: true,
+    description: 'Requis sauf si supprimerTousLesConseillers vaut true'
+  })
+  @IsOptional()
+  @IsArray()
+  @IsEmail({}, { each: true })
+  emailConseillers?: string[]
+
+  @ApiPropertyOptional({
+    description: 'Retire tous les conseillers de la fonctionnalité'
+  })
   @IsOptional()
   @IsBoolean()
   @IsIn([false, true])
-  supprimerExistants?: boolean
-
-  @ApiProperty({ type: String, isArray: true, required: false })
-  @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
-  emailsConseillersAjout?: string[]
-
-  @ApiProperty({ type: String, isArray: true, required: false })
-  @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
-  emailsConseillersSuppression?: string[]
+  supprimerTousLesConseillers?: boolean
 }
 
 export class ListerJobsQueryParams {
@@ -254,15 +281,13 @@ export class NotifierBeneficiairesPayload {
   structuresEtDispositifs?: StructureEtDispositifsPayload[]
 
   @ApiPropertyOptional({
-    enum: Migration.PhaseDeMigration,
-    description: `Tag de feature flip pour cibler les bénéficiaires de la migration. Valeurs possibles : ${Object.values(
-      Migration.PhaseDeMigration
-    ).join(', ')}`
+    description:
+      "Id d'une vague de migration (table `migration`) pour ne cibler que ses bénéficiaires"
   })
   @IsOptional()
   @IsString()
-  @IsEnum(Migration.PhaseDeMigration)
-  phaseDeMigration?: Migration.PhaseDeMigration
+  @IsNotEmpty()
+  phaseDeMigration?: string
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -11,7 +11,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Demarche } from '../../../domain/demarche'
-import { FeatureFlip } from '../../../domain/feature-flip'
 import { Migration } from '../../../domain/migration'
 import {
   DISPOSITIFS_FT_AVEC_DEMARCHES,
@@ -27,7 +26,6 @@ import { GetRendezVousJeunePoleEmploiQueryGetter } from '../query-getters/pole-e
 import { DemarcheQueryModel } from '../query-models/actions.query-model'
 import { AccueilJeunePoleEmploiQueryModel } from '../query-models/jeunes.pole-emploi.query-model'
 import { RendezVousJeuneQueryModel } from '../query-models/rendez-vous.query-model'
-import UtilisateurFeature = FeatureFlip.UtilisateurFeature
 
 export interface GetAccueilJeunePoleEmploiQuery extends Query {
   idJeune: string
@@ -169,7 +167,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
           )[0]
         : undefined
 
-    const utilisateur: UtilisateurFeature = {
+    const utilisateur: Migration.Utilisateur = {
       id: query.idJeune,
       type: Authentification.Type.JEUNE
     }
