@@ -65,7 +65,7 @@ export class ModifierAgenceFTConseillerCommandHandler extends CommandHandler<
     }
 
     await ConseillerSqlModel.update(
-      { idAgence: agenceSql.id, nomManuelAgence: null },
+      { idAgence: agenceSql.id },
       { where: { id: conseillerSql.id } }
     )
 

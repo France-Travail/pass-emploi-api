@@ -136,6 +136,31 @@ describe('Conseiller', () => {
         )
       })
 
+      it('n‘autorise pas la saisie manuelle d‘une agence hors référentiel', async () => {
+        // Given
+        const conseillerFT = unConseiller({
+          id: 'id-conseiller',
+          structure: Profil.Structure.FRANCE_TRAVAIL
+        })
+        const agenceHorsReferentiel: Conseiller.InfosDeMiseAJour = {
+          agence: {
+            nom: 'une agence, hors référentiel, renseignée manuellement'
+          }
+        }
+
+        // When
+        const result = Conseiller.mettreAJour(
+          conseillerFT,
+          agenceHorsReferentiel
+        )
+
+        // Then
+        expect(isFailure(result)).to.equal(true)
+        expect((result as Failure).error).to.be.an.instanceOf(
+          MauvaiseCommandeError
+        )
+      })
+
       it('autorise un conseiller France Travail à changer d‘agence', async () => {
         // Given
         const conseillerFT = unConseiller({

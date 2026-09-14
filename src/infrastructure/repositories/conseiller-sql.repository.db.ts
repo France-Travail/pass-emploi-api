@@ -104,10 +104,6 @@ export class ConseillerSqlRepository implements Conseiller.Repository {
       dateVisionnageActus: conseiller.dateVisionnageActus?.toJSDate() ?? null,
       dateMajAgence: conseiller.dateMajAgence?.toJSDate() ?? null,
       idAgence: conseiller.agence?.id ?? null,
-      nomManuelAgence:
-        !conseiller.agence?.id && conseiller.agence?.nom
-          ? conseiller.agence.nom
-          : null,
       notificationsSonores: conseiller.notificationsSonores
     })
   }
@@ -146,11 +142,6 @@ export function fromSqlConseillerToAggregate(
     conseiller.agence = {
       id: conseillerSqlModel.agence.id,
       nom: conseillerSqlModel.agence.nomAgence
-    }
-  } else if (conseillerSqlModel.nomManuelAgence) {
-    conseiller.agence = {
-      id: undefined,
-      nom: conseillerSqlModel.nomManuelAgence
     }
   }
 

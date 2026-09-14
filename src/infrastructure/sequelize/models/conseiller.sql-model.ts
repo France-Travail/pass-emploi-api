@@ -108,12 +108,6 @@ export class ConseillerDto extends Model {
   dateVisionnageActus: Date | null
 
   @Column({
-    field: 'nom_manuel_agence',
-    type: DataType.STRING
-  })
-  nomManuelAgence: string | null
-
-  @Column({
     field: 'date_maj_agence',
     type: DataType.DATE
   })
