@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { estInvite, estMilo, Profil } from '../../../domain/profil'
 import {
   ActionDto,
   ActionKindDto,
@@ -12,10 +13,10 @@ import {
   SituationDto
 } from '../../../infrastructure/clients/dto/plan-action.dto'
 import {
-  ObstaclePayload,
   CommunePayload,
   GenererPlanActionPayload,
   GoalPayload,
+  ObstaclePayload,
   SituationPayload
 } from '../../../infrastructure/routes/validation/plan-action.inputs'
 import {
@@ -25,7 +26,6 @@ import {
   PlanActionQueryModel,
   TypeActionPlan
 } from '../../queries/query-models/plan-action.query-model'
-import { estInvite, estMilo, Profil } from '../../../domain/profil'
 
 const situationVersDto: Record<SituationPayload, SituationDto> = {
   [SituationPayload.COLLEGE]: 'COLLEGE',
@@ -145,13 +145,18 @@ export function toPlanActionQueryModel(plan: PlanDto): PlanActionQueryModel {
         id: objective.id,
         titre: objective.title,
         theme: objective.theme,
-        actions: objective.actions.map(toActionPlanQueryModel)
+        actions: objective.actions.map(action =>
+          toActionPlanQueryModel(action, objective.theme)
+        )
       })
     )
   }
 }
 
-function toActionPlanQueryModel(action: ActionDto): ActionPlanQueryModel {
+function toActionPlanQueryModel(
+  action: ActionDto,
+  theme: string
+): ActionPlanQueryModel {
   // deepLink inconnu du proxy : dégradé en CONSEIL, le libellé est conservé,
   // seule la navigation est perdue.
   if (action.deepLink) {
@@ -160,11 +165,12 @@ function toActionPlanQueryModel(action: ActionDto): ActionPlanQueryModel {
       ? {
           id: action.id,
           libelle: action.label,
+          theme,
           type: TypeActionPlan.NAVIGATION,
           destination,
           ...(action.serviceName ? { nomService: action.serviceName } : {})
         }
-      : degraderEnConseil(action)
+      : degraderEnConseil(action, theme)
   }
 
   const type = kindVersType[action.kind]
@@ -172,18 +178,22 @@ function toActionPlanQueryModel(action: ActionDto): ActionPlanQueryModel {
   // kind inconnu du proxy avec une url exploitable : on ouvre quand même le
   // lien plutôt que de perdre le contenu.
   if (type === TypeActionPlan.LIEN || (!type && action.url)) {
-    return toLienQueryModel(action)
+    return toLienQueryModel(action, theme)
   }
 
   // kind = CONSEIL, kind = NAVIGATION sans deepLink (rien à naviguer), ou kind
   // inconnu sans url exploitable : dégradé en CONSEIL.
-  return degraderEnConseil(action)
+  return degraderEnConseil(action, theme)
 }
 
-function toLienQueryModel(action: ActionDto): ActionPlanQueryModel {
+function toLienQueryModel(
+  action: ActionDto,
+  theme: string
+): ActionPlanQueryModel {
   return {
     id: action.id,
     libelle: action.label,
+    theme,
     type: TypeActionPlan.LIEN,
     ...(action.url ? { url: action.url } : {}),
     ...(action.serviceName ? { nomService: action.serviceName } : {}),
@@ -193,10 +203,14 @@ function toLienQueryModel(action: ActionDto): ActionPlanQueryModel {
   }
 }
 
-function degraderEnConseil(action: ActionDto): ActionPlanQueryModel {
+function degraderEnConseil(
+  action: ActionDto,
+  theme: string
+): ActionPlanQueryModel {
   return {
     id: action.id,
     libelle: action.label,
+    theme,
     type: TypeActionPlan.CONSEIL,
     ...(action.serviceName ? { nomService: action.serviceName } : {})
   }

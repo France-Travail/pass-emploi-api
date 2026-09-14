@@ -168,6 +168,7 @@ describe('GenererPlanActionCommandHandler', () => {
                 {
                   id: 'p-1',
                   libelle: 'Je fais une action',
+                  theme: 'apprenticeship',
                   type: TypeActionPlan.CONSEIL
                 }
               ]

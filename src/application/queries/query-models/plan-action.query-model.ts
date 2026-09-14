@@ -19,6 +19,9 @@ export class ActionPlanQueryModel {
   @ApiProperty()
   libelle: string
 
+  @ApiProperty()
+  theme: string
+
   @ApiProperty({ enum: TypeActionPlan })
   type: TypeActionPlan
 

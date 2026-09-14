@@ -338,6 +338,16 @@ describe('plan-action.mapper', () => {
       expect(queryModel.objectives[0].actions[0]).to.not.have.property('done')
     })
 
+    it("relaie le theme de l'objectif source sur chaque action", () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan([uneAction({ kind: 'advice' })])
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].theme).to.equal('apprenticeship')
+    })
+
     describe('kind', () => {
       it('mappe link vers LIEN avec url', () => {
         // When
@@ -355,6 +365,7 @@ describe('plan-action.mapper', () => {
         expect(queryModel.objectives[0].actions[0]).to.deep.equal({
           id: 'p-1',
           libelle: 'Je fais une action',
+          theme: 'apprenticeship',
           type: TypeActionPlan.LIEN,
           url: 'https://exemple.fr',
           nomService: 'Exemple'
