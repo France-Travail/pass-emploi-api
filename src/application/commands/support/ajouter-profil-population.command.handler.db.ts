@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
@@ -8,8 +8,11 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { Profil } from '../../../domain/profil'
+import {
+  Population,
+  PopulationRepositoryToken
+} from '../../../domain/population'
 import { PopulationProfilSqlModel } from '../../../infrastructure/sequelize/models/population-profil.sql-model'
-import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
 
 export interface AjouterProfilPopulationCommand extends Command {
   idPopulation: string
@@ -22,7 +25,10 @@ export class AjouterProfilPopulationCommandHandler extends CommandHandler<
   AjouterProfilPopulationCommand,
   void
 > {
-  constructor() {
+  constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository
+  ) {
     super('AjouterProfilPopulationCommandHandler')
   }
 
@@ -36,8 +42,7 @@ export class AjouterProfilPopulationCommandHandler extends CommandHandler<
 
   // Sans dispositif le profil couvre toute la structure ; l'index unique absorbe le doublon, on l'ignore.
   async handle(command: AjouterProfilPopulationCommand): Promise<Result> {
-    const population = await PopulationSqlModel.findByPk(command.idPopulation)
-    if (!population) {
+    if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
 

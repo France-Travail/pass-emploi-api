@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
@@ -13,9 +13,12 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Deploiement } from '../../../domain/deploiement'
+import {
+  Population,
+  PopulationRepositoryToken
+} from '../../../domain/population'
 import { DeploiementSqlModel } from '../../../infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../infrastructure/sequelize/models/fonctionnalite.sql-model'
-import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
 
 export interface CreerDeploiementCommand extends Command {
   nature: Deploiement.Nature
@@ -33,7 +36,10 @@ export class CreerDeploiementCommandHandler extends CommandHandler<
   CreerDeploiementCommand,
   DeploiementCree
 > {
-  constructor() {
+  constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository
+  ) {
     super('CreerDeploiementCommandHandler')
   }
 
@@ -52,8 +58,7 @@ export class CreerDeploiementCommandHandler extends CommandHandler<
     const coherenceResult = verifierCoherence(command)
     if (coherenceResult) return coherenceResult
 
-    const population = await PopulationSqlModel.findByPk(command.idPopulation)
-    if (!population) {
+    if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
     if (command.idFonctionnalite) {

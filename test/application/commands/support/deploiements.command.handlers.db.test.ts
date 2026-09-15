@@ -8,6 +8,7 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { isSuccess } from '../../../../src/building-blocks/types/result'
 import { Deploiement } from '../../../../src/domain/deploiement'
+import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -33,7 +34,9 @@ describe('Déploiements : handlers support', () => {
   })
 
   describe('CreerDeploiementCommandHandler', () => {
-    const handler = new CreerDeploiementCommandHandler()
+    const handler = new CreerDeploiementCommandHandler(
+      new PopulationSqlRepository(getDatabase().sequelize)
+    )
 
     it('crée un déploiement de fonctionnalité', async () => {
       // When

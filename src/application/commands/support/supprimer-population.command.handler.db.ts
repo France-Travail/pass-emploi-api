@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
@@ -10,6 +10,10 @@ import {
   failure,
   Result
 } from '../../../building-blocks/types/result'
+import {
+  Population,
+  PopulationRepositoryToken
+} from '../../../domain/population'
 import { DeploiementSqlModel } from '../../../infrastructure/sequelize/models/deploiement.sql-model'
 import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
 
@@ -22,7 +26,10 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
   SupprimerPopulationCommand,
   void
 > {
-  constructor() {
+  constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository
+  ) {
     super('SupprimerPopulationCommandHandler')
   }
 
@@ -36,8 +43,7 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
 
   // Les cibles partent en cascade, pas un déploiement : le supprimer d'abord évite une désactivation par accident.
   async handle(command: SupprimerPopulationCommand): Promise<Result> {
-    const population = await PopulationSqlModel.findByPk(command.id)
-    if (!population) {
+    if (!(await this.populationRepository.existe(command.id))) {
       return failure(new NonTrouveError('Population', command.id))
     }
 
@@ -52,7 +58,7 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
       )
     }
 
-    await population.destroy()
+    await PopulationSqlModel.destroy({ where: { id: command.id } })
     return emptySuccess()
   }
 }

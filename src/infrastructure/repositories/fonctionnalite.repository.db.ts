@@ -4,12 +4,10 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { Deploiement } from '../../domain/deploiement'
 import { Fonctionnalite } from '../../domain/fonctionnalite'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import { sqlConseillerDansPopulation } from './population.repository.db'
-
-// Jointure du jeune `:idJeune` vers son conseiller de référence `c` : l'initial en cas de transfert temporaire, sinon le courant.
-export const SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE = `
-  JOIN jeune j ON j.id = :idJeune
-  JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)`
+import {
+  sqlConseillerDansPopulation,
+  sqlJoinConseillerDeReferenceDuJeune
+} from './sql-helpers'
 
 @Injectable()
 export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
@@ -25,7 +23,7 @@ export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
       `
         SELECT DISTINCT d.id_fonctionnalite
         FROM deploiement d
-        ${SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE}
+        ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE d.nature = :nature
           AND d.date_activation <= :maintenant
           AND ${sqlConseillerDansPopulation('c', 'd.id_population')}

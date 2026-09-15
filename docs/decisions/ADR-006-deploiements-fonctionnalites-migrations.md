@@ -91,7 +91,7 @@ métier violée 400, une ressource inconnue 404.
 | `POST /support/populations/conseillers` | `{ id, emailConseillers: string[] }` | 204. Doublons ignorés. |
 | `DELETE /support/populations/conseillers` | `{ id, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
 | `POST /support/populations/profils` | `{ id, structure, dispositif? }` | 204. Doublon ignoré. |
-| `DELETE /support/populations/profils` | `{ id, structure, dispositif? }` | 204. |
+| `DELETE /support/populations/profils` | `{ id, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
 | `POST /support/deploiements` | `{ nature, idPopulation, idFonctionnalite?, dateActivation }` | 201 `{ id }`. 400 si `FONCTIONNALITE` sans `idFonctionnalite` ou `MIGRATION` avec. Rejouer sur la même population et la même fonctionnalité déplace la date. |
 | `DELETE /support/deploiements/:id` | | 204. |
 | `POST /support/archiver-jeunes-migration/:idPopulationQuiMigre` | | 204. 404 si aucune migration ne vise la population. |
@@ -223,7 +223,7 @@ communication { id PK, id_population FK, destinataire JEUNE | CONSEILLER, type I
 
 * `src/domain/population.ts`, `src/domain/deploiement.ts`,
   `src/domain/fonctionnalite.ts`, `src/domain/migration.ts`,
-  `src/infrastructure/repositories/population.repository.db.ts` (appartenance),
+  `src/infrastructure/repositories/helpers.ts` (appartenance),
   `src/application/commands/update-utilisateur.command.handler.ts`
   (`lUtilisateurDoitMigrerVersParcoursEmploi`),
   `src/application/jobs/notifier-beneficiaires.job.handler.db.ts`.

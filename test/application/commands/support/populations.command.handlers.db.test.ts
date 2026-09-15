@@ -11,6 +11,7 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { Deploiement } from '../../../../src/domain/deploiement'
 import { Profil } from '../../../../src/domain/profil'
+import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
@@ -23,6 +24,9 @@ import {
 } from '../../../utils/database-for-testing'
 
 describe('Populations : handlers support', () => {
+  const populationRepository = new PopulationSqlRepository(
+    getDatabase().sequelize
+  )
   let databaseForTesting: DatabaseForTesting
 
   before(async () => {
@@ -68,7 +72,7 @@ describe('Populations : handlers support', () => {
   })
 
   describe('SupprimerPopulationCommandHandler', () => {
-    const handler = new SupprimerPopulationCommandHandler()
+    const handler = new SupprimerPopulationCommandHandler(populationRepository)
 
     it('supprime la population et ses cibles', async () => {
       // Given
@@ -127,7 +131,9 @@ describe('Populations : handlers support', () => {
   })
 
   describe('AjouterConseillersPopulationCommandHandler', () => {
-    const handler = new AjouterConseillersPopulationCommandHandler()
+    const handler = new AjouterConseillersPopulationCommandHandler(
+      populationRepository
+    )
 
     it('ajoute une ligne par email, sans doublon', async () => {
       // Given
@@ -169,7 +175,9 @@ describe('Populations : handlers support', () => {
   })
 
   describe('SupprimerConseillersPopulationCommandHandler', () => {
-    const handler = new SupprimerConseillersPopulationCommandHandler()
+    const handler = new SupprimerConseillersPopulationCommandHandler(
+      populationRepository
+    )
 
     beforeEach(async () => {
       await PopulationConseillerSqlModel.bulkCreate([
@@ -219,7 +227,9 @@ describe('Populations : handlers support', () => {
   })
 
   describe('AjouterProfilPopulationCommandHandler', () => {
-    const handler = new AjouterProfilPopulationCommandHandler()
+    const handler = new AjouterProfilPopulationCommandHandler(
+      populationRepository
+    )
 
     it('ajoute un profil, sans doublon', async () => {
       // When
@@ -289,6 +299,29 @@ describe('Populations : handlers support', () => {
       const rows = await PopulationProfilSqlModel.findAll()
       expect(rows).to.have.length(1)
       expect(rows[0].dispositif).to.equal(Profil.Dispositif.CEJ)
+    })
+
+    it("échoue quand le profil n'existe pas", async () => {
+      // Given
+      await PopulationProfilSqlModel.create({
+        idPopulation: 'PILOTE',
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ
+      })
+
+      // When
+      const result = await handler.handle({
+        idPopulation: 'PILOTE',
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.AIJ
+      })
+
+      // Then
+      expect(result).to.deep.equal({
+        _isSuccess: false,
+        error: new NonTrouveError('Profil', 'PILOTE/FRANCE_TRAVAIL/AIJ')
+      })
+      expect(await PopulationProfilSqlModel.count()).to.equal(1)
     })
   })
 })

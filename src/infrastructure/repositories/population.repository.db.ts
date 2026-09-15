@@ -3,26 +3,7 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { Population } from '../../domain/population'
 import { PopulationSqlModel } from '../sequelize/models/population.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-
-// Le conseiller `aliasConseiller` est dans la population `idPopulation` (paramètre `:idPopulation` ou colonne `d.id_population`).
-export function sqlConseillerDansPopulation(
-  aliasConseiller: string,
-  idPopulation: string
-): string {
-  return `(
-    EXISTS (
-      SELECT 1 FROM population_conseiller pc
-      WHERE pc.id_population = ${idPopulation}
-        AND pc.email_conseiller = ${aliasConseiller}.email
-    )
-    OR EXISTS (
-      SELECT 1 FROM population_profil pp
-      WHERE pp.id_population = ${idPopulation}
-        AND pp.structure = ${aliasConseiller}.structure
-        AND (pp.dispositif IS NULL OR pp.dispositif = ${aliasConseiller}.dispositif)
-    )
-  )`
-}
+import { sqlConseillerDansPopulation } from './sql-helpers'
 
 @Injectable()
 export class PopulationSqlRepository implements Population.Repository {

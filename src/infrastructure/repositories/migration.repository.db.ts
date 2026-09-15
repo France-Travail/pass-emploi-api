@@ -9,8 +9,10 @@ import {
 } from '../../domain/migration'
 import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import { SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE } from './fonctionnalite.repository.db'
-import { sqlConseillerDansPopulation } from './population.repository.db'
+import {
+  sqlConseillerDansPopulation,
+  sqlJoinConseillerDeReferenceDuJeune
+} from './sql-helpers'
 
 @Injectable()
 export class MigrationSqlRepository implements Migration.Repository {
@@ -104,7 +106,7 @@ export class MigrationSqlRepository implements Migration.Repository {
       `
         SELECT MIN(d.date_activation) AS date_activation
         FROM deploiement d
-        ${SQL_JOIN_CONSEILLER_DE_REFERENCE_DU_JEUNE}
+        ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE d.nature = :nature
           AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
       `,

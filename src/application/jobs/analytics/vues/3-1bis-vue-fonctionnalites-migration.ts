@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize-typescript'
+import { sqlConseillerDansPopulation } from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_MIGRATION_TABLE_NAME } from './3-0-migrate-schema'
 
 export async function chargerLaVueFonctionnaliteMigration(
@@ -15,13 +16,7 @@ export async function chargerLaVueFonctionnaliteMigration(
     WITH conseillers_migration AS (
       SELECT DISTINCT c.id AS id_utilisateur
       FROM deploiement d
-      JOIN conseiller c ON (
-        EXISTS (SELECT 1 FROM population_conseiller pc
-                WHERE pc.id_population = d.id_population AND pc.email_conseiller = c.email)
-        OR EXISTS (SELECT 1 FROM population_profil pp
-                   WHERE pp.id_population = d.id_population AND pp.structure = c.structure
-                     AND (pp.dispositif IS NULL OR pp.dispositif = c.dispositif))
-      )
+      JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'd.id_population')}
       WHERE d.nature = 'MIGRATION'
     ),
     jeunes_migration AS (

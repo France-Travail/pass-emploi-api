@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize-typescript'
+import { sqlConseillerDansPopulation } from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_DEMARCHES_IA_TABLE_NAME } from './3-0-migrate-schema'
 
 // Généralisation des démarches IA à tous les bénéficiaires (feat: généralisation FT IA).
@@ -24,13 +25,7 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
     WITH conseillers_demarches_ia AS (
       SELECT DISTINCT c.id
       FROM deploiement d
-      JOIN conseiller c ON (
-        EXISTS (SELECT 1 FROM population_conseiller pc
-                WHERE pc.id_population = d.id_population AND pc.email_conseiller = c.email)
-        OR EXISTS (SELECT 1 FROM population_profil pp
-                   WHERE pp.id_population = d.id_population AND pp.structure = c.structure
-                     AND (pp.dispositif IS NULL OR pp.dispositif = c.dispositif))
-      )
+      JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'd.id_population')}
       WHERE d.nature = 'FONCTIONNALITE' AND d.id_fonctionnalite = 'DEMARCHES_IA'
     ),
     utilisateurs_demarches_ia AS (

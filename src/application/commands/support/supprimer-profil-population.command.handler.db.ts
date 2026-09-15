@@ -9,7 +9,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Profil } from '../../../domain/profil'
 import { PopulationProfilSqlModel } from '../../../infrastructure/sequelize/models/population-profil.sql-model'
-import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
 
 export interface SupprimerProfilPopulationCommand extends Command {
   idPopulation: string
@@ -35,19 +34,23 @@ export class SupprimerProfilPopulationCommandHandler extends CommandHandler<
   }
 
   async handle(command: SupprimerProfilPopulationCommand): Promise<Result> {
-    const population = await PopulationSqlModel.findByPk(command.idPopulation)
-    if (!population) {
-      return failure(new NonTrouveError('Population', command.idPopulation))
-    }
-
-    await PopulationProfilSqlModel.destroy({
+    const nombreDeSuppressions = await PopulationProfilSqlModel.destroy({
       where: {
         idPopulation: command.idPopulation,
         structure: command.structure,
         dispositif: command.dispositif ?? null
       }
     })
-
+    if (nombreDeSuppressions === 0) {
+      return failure(
+        new NonTrouveError(
+          'Profil',
+          [command.idPopulation, command.structure, command.dispositif]
+            .filter(Boolean)
+            .join('/')
+        )
+      )
+    }
     return emptySuccess()
   }
 }

@@ -601,7 +601,7 @@ jeune y est si son conseiller de référence y est.`
   )
   @ApiOperation({
     summary: 'Retire un profil d’une population',
-    description: 'Autorisé pour le support.'
+    description: 'Autorisé pour le support. 404 si le profil n’existe pas.'
   })
   @Delete('populations/profils')
   @HttpCode(HttpStatus.NO_CONTENT)
