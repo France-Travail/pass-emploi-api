@@ -165,7 +165,7 @@ describe('MigrationSqlRepository', () => {
       )
 
       // Then
-      expect(date).to.equal(undefined)
+      expect(date).to.be.undefined()
     })
 
     it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
@@ -214,7 +214,7 @@ describe('MigrationSqlRepository', () => {
         await repo.getDateDeMigrationDuBeneficiaire('jeuneHorsMigration')
 
       // Then
-      expect(date).to.equal(undefined)
+      expect(date).to.be.undefined()
     })
   })
 

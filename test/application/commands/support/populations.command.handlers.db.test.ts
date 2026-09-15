@@ -252,7 +252,7 @@ describe('Populations : handlers support', () => {
       // Then
       const rows = await PopulationProfilSqlModel.findAll()
       expect(rows).to.have.length(1)
-      expect(rows[0].dispositif).to.equal(null)
+      expect(rows[0].dispositif).to.be.null()
     })
   })
 

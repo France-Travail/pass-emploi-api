@@ -69,7 +69,7 @@ describe('Déploiements : handlers support', () => {
       expect(isSuccess(result)).to.equal(true)
       const deploiement = await DeploiementSqlModel.findOne()
       expect(deploiement!.nature).to.equal(Deploiement.Nature.MIGRATION)
-      expect(deploiement!.idFonctionnalite).to.equal(null)
+      expect(deploiement!.idFonctionnalite).to.be.null()
     })
 
     it('déplace la date quand le couple population et fonctionnalité existe déjà', async () => {

@@ -74,7 +74,7 @@ describe('Migration', () => {
         await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(unJeune)
 
       // Then
-      expect(date).to.equal(undefined)
+      expect(date).to.be.undefined()
     })
   })
 

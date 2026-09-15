@@ -29,7 +29,7 @@ describe('CreerFonctionnaliteCommandHandler', () => {
       expect(result._isSuccess).to.equal(true)
       const fonctionnalite =
         await FonctionnaliteSqlModel.findByPk('PLAN_D_ACTION')
-      expect(fonctionnalite).not.to.equal(null)
+      expect(fonctionnalite).to.not.be.null()
     })
 
     it('ne fait rien quand la fonctionnalité existe déjà', async () => {
