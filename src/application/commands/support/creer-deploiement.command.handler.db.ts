@@ -72,26 +72,22 @@ export class CreerDeploiementCommandHandler extends CommandHandler<
       }
     }
 
-    const existant = await DeploiementSqlModel.findOne({
-      where: {
+    // Un seul INSERT … ON CONFLICT sur l'index unique partiel de la nature : atomique, pas de fenêtre entre lecture et écriture.
+    const [deploiement] = await DeploiementSqlModel.upsert(
+      {
         nature: command.nature,
         idPopulation: command.idPopulation,
-        idFonctionnalite: command.idFonctionnalite ?? null
-      }
-    })
-    if (existant) {
-      await existant.update({
+        idFonctionnalite: command.idFonctionnalite ?? null,
         dateActivation: command.dateActivation.toJSDate()
-      })
-      return success({ id: existant.id })
-    }
-
-    const deploiement = await DeploiementSqlModel.create({
-      nature: command.nature,
-      idPopulation: command.idPopulation,
-      idFonctionnalite: command.idFonctionnalite ?? null,
-      dateActivation: command.dateActivation.toJSDate()
-    })
+      },
+      {
+        conflictFields:
+          command.nature === Deploiement.Nature.FONCTIONNALITE
+            ? ['id_population', 'id_fonctionnalite']
+            : ['id_population'],
+        conflictWhere: { nature: command.nature }
+      }
+    )
     return success({ id: deploiement.id })
   }
 }

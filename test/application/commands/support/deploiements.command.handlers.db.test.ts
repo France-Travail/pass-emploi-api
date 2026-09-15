@@ -98,6 +98,49 @@ describe('Déploiements : handlers support', () => {
       )
     })
 
+    it('déplace la date quand la population a déjà une migration', async () => {
+      // Given
+      const premier = await handler.handle({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PILOTE',
+        dateActivation: date
+      })
+
+      // When
+      const second = await handler.handle({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PILOTE',
+        dateActivation: date.plus({ days: 7 })
+      })
+
+      // Then
+      expect(second).to.deep.equal(premier)
+      expect(await DeploiementSqlModel.count()).to.equal(1)
+      const deploiement = await DeploiementSqlModel.findOne()
+      expect(deploiement!.dateActivation.toISOString()).to.equal(
+        date.plus({ days: 7 }).toJSDate().toISOString()
+      )
+    })
+
+    it('ne doublonne pas sur deux appels simultanés', async () => {
+      // When
+      const resultats = await Promise.all(
+        [date, date.plus({ days: 1 }), date.plus({ days: 2 })].map(
+          dateActivation =>
+            handler.handle({
+              nature: Deploiement.Nature.FONCTIONNALITE,
+              idPopulation: 'PILOTE',
+              idFonctionnalite: 'PLAN_D_ACTION',
+              dateActivation
+            })
+        )
+      )
+
+      // Then
+      expect(resultats.every(isSuccess)).to.equal(true)
+      expect(await DeploiementSqlModel.count()).to.equal(1)
+    })
+
     it('refuse une fonctionnalité sans idFonctionnalite', async () => {
       // When
       const result = await handler.handle({
