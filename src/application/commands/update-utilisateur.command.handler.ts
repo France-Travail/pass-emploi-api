@@ -439,10 +439,17 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     commandSanitized: UpdateUtilisateurCommand,
     profil: Profil
   ): Promise<Result<UtilisateurQueryModel>> {
+    // Idempotence : retrouver le jeune (idAuth puis repli email) avant d'en créer un, sinon chaque login duplique le compte
     const utilisateurTrouve =
-      await this.authentificationRepository.getJeuneByIdAuthentification(
+      (await this.authentificationRepository.getJeuneByIdAuthentification(
         commandSanitized.idUtilisateurAuth
-      )
+      )) ??
+      (commandSanitized.email
+        ? await this.authentificationRepository.getJeuneByEmail(
+            commandSanitized.email,
+            profil.structure
+          )
+        : undefined)
 
     if (utilisateurTrouve) {
       const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
@@ -453,6 +460,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     }
 
     const nouveauJeune = this.jeuneFactory.creerNonAccompagne({
+      idAuthentification: commandSanitized.idUtilisateurAuth,
       prenom: commandSanitized.prenom ?? '',
       nom: commandSanitized.nom ?? '',
       email: commandSanitized.email,
