@@ -56,7 +56,11 @@ describe('MigrationSqlRepository', () => {
         idConseiller: 'conseillerHorsMigration',
         idConseillerInitial: 'conseillerPhaseA'
       }),
-      unJeuneDto({ id: 'jeuneBrsa', idConseiller: 'conseillerBrsa' }),
+      unJeuneDto({
+        id: 'jeuneBrsa',
+        idConseiller: 'conseillerBrsa',
+        structure: Core.Structure.POLE_EMPLOI_BRSA
+      }),
       unJeuneDto({
         id: 'jeuneHorsMigration',
         idConseiller: 'conseillerHorsMigration'
@@ -127,7 +131,7 @@ describe('MigrationSqlRepository', () => {
       ])
     })
 
-    it('renvoie les jeunes dont le conseiller correspond au profil', async () => {
+    it('renvoie les jeunes dont le propre profil correspond', async () => {
       // When
       const beneficiaires =
         await repo.getBeneficiairesDeLaMigrationDuConseillerInitial('PHASE_B')
@@ -187,6 +191,15 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
+    })
+
+    it('renvoie la date par le profil du jeune lui-même', async () => {
+      // When
+      const date =
+        await repo.getDateDeMigrationDuConseillerDuBeneficiaire('jeuneBrsa')
+
+      // Then
+      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
     })
 
     it('renvoie la date du conseiller initial quand le jeune est transféré', async () => {

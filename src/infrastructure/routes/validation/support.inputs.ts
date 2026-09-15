@@ -15,8 +15,7 @@ import {
   Max,
   MaxLength,
   Min,
-  ValidateIf,
-  ValidateNested
+  ValidateIf
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Profil } from '../../../domain/profil'
@@ -280,22 +279,6 @@ export class ListerJobsQueryParams {
   fin?: number
 }
 
-export class StructureEtDispositifsPayload {
-  @ApiProperty({ enum: Profil.Structure })
-  @IsEnum(Profil.Structure)
-  structure: Profil.Structure
-
-  @ApiPropertyOptional({
-    enum: Profil.Dispositif,
-    isArray: true,
-    description: 'Absent = tous les dispositifs de la structure'
-  })
-  @IsOptional()
-  @IsArray()
-  @IsEnum(Profil.Dispositif, { each: true })
-  dispositifs?: Profil.Dispositif[]
-}
-
 export class NotifierBeneficiairesPayload {
   @ApiProperty({
     enum: Notification.TypeNotifManuelle,
@@ -324,18 +307,8 @@ export class NotifierBeneficiairesPayload {
   description: string
 
   @ApiPropertyOptional({
-    type: StructureEtDispositifsPayload,
-    isArray: true,
-    description: 'Cibles de la notification, absent = tous les bénéficiaires'
-  })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => StructureEtDispositifsPayload)
-  structuresEtDispositifs?: StructureEtDispositifsPayload[]
-
-  @ApiPropertyOptional({
-    description: "Id d'une population pour ne cibler que ses bénéficiaires"
+    description:
+      "Id d'une population pour ne cibler que ses bénéficiaires, absent = tous les bénéficiaires"
   })
   @IsOptional()
   @IsString()

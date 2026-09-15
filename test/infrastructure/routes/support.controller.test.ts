@@ -669,12 +669,6 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structuresEtDispositifs: [
-            {
-              structure: Profil.Structure.FRANCE_TRAVAIL,
-              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-            }
-          ],
           push: true,
           batchSize: 2000
         }
@@ -699,7 +693,6 @@ describe('SupportController', () => {
           type: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          dispositifs: ['PAS_BON'],
           push: 'true',
           batchSize: 2000
         }
@@ -711,11 +704,10 @@ describe('SupportController', () => {
           .set({ 'X-API-KEY': 'api-key-support' })
           .expect(HttpStatus.BAD_REQUEST)
       })
-      it('renvoie 400 quand les dispositifs sont vides', async () => {
+      it('renvoie 400 sans titre ni description', async () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          dispositifs: [],
           push: true,
           batchSize: 2000
         }
@@ -731,7 +723,6 @@ describe('SupportController', () => {
         // Given
         const payload = {
           texte: 'Nouvelle notification !',
-          structuresEtDispositifs: [{ structure: 'MILO' }],
           push: true,
           batchSize: -1
         }
@@ -749,7 +740,6 @@ describe('SupportController', () => {
           type: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structuresEtDispositifs: [{ structure: 'MILO' }],
           push: true,
           idPopulation: ''
         }
@@ -769,12 +759,6 @@ describe('SupportController', () => {
           typeNotification: Notification.Type.OUTILS,
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
-          structuresEtDispositifs: [
-            {
-              structure: Profil.Structure.FRANCE_TRAVAIL,
-              dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-            }
-          ],
           push: true,
           batchSize: 2000
         }

@@ -11,22 +11,44 @@ export function sqlJoinConseillerDeReferenceDuJeune(
     JOIN conseiller ${aliasConseiller} ON ${aliasConseiller}.id = COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller)`
 }
 
-// Le conseiller `aliasConseiller` est dans la population `idPopulation` (paramètre `:idPopulation` ou colonne `d.id_population`).
+// L'email du conseiller `aliasConseiller` est cité dans la population `idPopulation` (paramètre `:idPopulation` ou colonne `d.id_population`).
+export function sqlEmailDuConseillerDansPopulation(
+  aliasConseiller: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_conseiller pc
+    WHERE pc.id_population = ${idPopulation}
+      AND pc.email_conseiller = ${aliasConseiller}.email
+  )`
+}
+
+// Le profil structure × dispositif de `aliasPorteur` (jeune ou conseiller) correspond à un profil de la population ; un profil sans dispositif couvre toute la structure.
+export function sqlProfilDansPopulation(
+  aliasPorteur: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_profil pp
+    WHERE pp.id_population = ${idPopulation}
+      AND pp.structure = ${aliasPorteur}.structure
+      AND (pp.dispositif IS NULL OR pp.dispositif = ${aliasPorteur}.dispositif)
+  )`
+}
+
+// Un conseiller est dans la population s'il est cité par email ou si son propre profil correspond.
 export function sqlConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
 ): string {
-  return `(
-    EXISTS (
-      SELECT 1 FROM population_conseiller pc
-      WHERE pc.id_population = ${idPopulation}
-        AND pc.email_conseiller = ${aliasConseiller}.email
-    )
-    OR EXISTS (
-      SELECT 1 FROM population_profil pp
-      WHERE pp.id_population = ${idPopulation}
-        AND pp.structure = ${aliasConseiller}.structure
-        AND (pp.dispositif IS NULL OR pp.dispositif = ${aliasConseiller}.dispositif)
-    )
-  )`
+  return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)} OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)})`
+}
+
+// Un jeune est dans la population si son conseiller de référence est cité par email ou si son propre profil correspond.
+export function sqlJeuneDansPopulation(
+  aliasJeune: string,
+  aliasConseillerDeReference: string,
+  idPopulation: string
+): string {
+  return `(${sqlEmailDuConseillerDansPopulation(aliasConseillerDeReference, idPopulation)} OR ${sqlProfilDansPopulation(aliasJeune, idPopulation)})`
 }

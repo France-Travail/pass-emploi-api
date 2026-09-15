@@ -25,8 +25,10 @@ ensuite, sans toucher à ce socle.
    campagne par population, à dates absolues, indépendante des déploiements :
    « vous aurez l'app 1J1S » s'écrit une fois, pas une fois par fonctionnalité.
    Voir la section Suite.
-5. **Tout part du conseiller**, comme aujourd'hui. Un jeune suit son conseiller
-   de référence.
+5. **Par email, tout part du conseiller ; par profil, chacun pour soi.** Un
+   jeune suit son conseiller de référence quand celui-ci est cité par email.
+   Un profil structure × dispositif se lit sur l'utilisateur lui-même, jeune
+   ou conseiller.
 
 ## Modèle
 
@@ -53,15 +55,16 @@ supprime pas.
 ## Règles
 
 **Appartenance.** Un conseiller est dans la population s'il est cité par
-email, ou si son profil (structure, dispositif) correspond à un profil de la
-population ; un profil sans dispositif couvre toute la structure. Un jeune est
-dans la population si son conseiller de référence y est. « De référence » =
+email, ou si son propre profil (structure, dispositif) correspond à un profil
+de la population. Un jeune est dans la population si son conseiller de
+référence est cité par email, ou si son propre profil correspond. Un profil
+sans dispositif couvre toute la structure. « De référence » =
 `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
-> Limite connue : un conseiller MiLo n'a pas de dispositif, donc `(MILO, CEJ)`
-> ne cible personne ; viser `(MILO)`. Faire matcher le jeune sur son propre
-> profil est possible plus tard, au prix de portefeuilles coupés en deux sur
-> une migration.
+> Un conseiller MiLo n'a pas de dispositif : `(MILO, PACEA)` vise les jeunes
+> PACEA mais aucun conseiller MiLo. Pour toucher les conseillers MiLo, viser
+> `(MILO)`. Sur une migration par profil, un portefeuille mixte peut être coupé
+> en deux : c'est voulu, le profil du jeune fait foi.
 
 **Date et activation.** Un déploiement a une seule date J. Il est actif quand
 `J <= maintenant`. Le serveur fait autorité sur l'horloge, les dates sortent en
@@ -96,7 +99,7 @@ métier violée 400, une ressource inconnue 404.
 | `DELETE /support/deploiements/:id` | | 204. |
 | `POST /support/archiver-jeunes-migration/:idPopulationQuiMigre` | | 204. 404 si aucune migration ne vise la population. |
 | `POST /support/rebasculer-jeunes-orphelins-migration/:idPopulationQuiMigre` | | Idem. |
-| `POST /support/notifier-beneficiaires` | existant + `idPopulation?` à la place de `idMigration` | 201 `{ jobId }`. |
+| `POST /support/notifier-beneficiaires` | existant, `idPopulation?` remplace `idMigration` et `structuresEtDispositifs` (une population par profil fait la même chose) | 201 `{ jobId }`. Sans `idPopulation`, tous les bénéficiaires. |
 
 ### Clients
 
@@ -223,7 +226,7 @@ communication { id PK, id_population FK, destinataire JEUNE | CONSEILLER, type I
 
 * `src/domain/population.ts`, `src/domain/deploiement.ts`,
   `src/domain/fonctionnalite.ts`, `src/domain/migration.ts`,
-  `src/infrastructure/repositories/helpers.ts` (appartenance),
+  `src/infrastructure/repositories/sql-helpers.ts` (appartenance),
   `src/application/commands/update-utilisateur.command.handler.ts`
   (`lUtilisateurDoitMigrerVersParcoursEmploi`),
   `src/application/jobs/notifier-beneficiaires.job.handler.db.ts`.

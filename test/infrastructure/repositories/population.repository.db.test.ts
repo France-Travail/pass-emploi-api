@@ -43,15 +43,39 @@ describe('PopulationSqlRepository', () => {
         email: 'hors@milo.fr'
       })
     ])
+    // Le profil du jeune est le sien, pas celui de son conseiller : il est posé explicitement.
     await JeuneSqlModel.bulkCreate([
-      unJeuneDto({ id: 'jeuneCite', idConseiller: 'conseillerCite' }),
+      unJeuneDto({
+        id: 'jeuneCite',
+        idConseiller: 'conseillerCite',
+        structure: Core.Structure.MILO
+      }),
       unJeuneDto({
         id: 'jeuneTransfere',
         idConseiller: 'conseillerHors',
-        idConseillerInitial: 'conseillerCite'
+        idConseillerInitial: 'conseillerCite',
+        structure: Core.Structure.MILO
       }),
-      unJeuneDto({ id: 'jeuneFtCej', idConseiller: 'conseillerFtCej' }),
-      unJeuneDto({ id: 'jeuneHors', idConseiller: 'conseillerHors' })
+      unJeuneDto({
+        id: 'jeuneFtCej',
+        idConseiller: 'conseillerFtCej',
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneCejChezHors',
+        idConseiller: 'conseillerHors',
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneBrsaChezCej',
+        idConseiller: 'conseillerFtCej',
+        structure: Core.Structure.POLE_EMPLOI_BRSA
+      }),
+      unJeuneDto({
+        id: 'jeuneHors',
+        idConseiller: 'conseillerHors',
+        structure: Core.Structure.MILO
+      })
     ])
     await PopulationSqlModel.create({ id: 'PILOTE', description: 'Pilote' })
     await PopulationConseillerSqlModel.create({
@@ -73,12 +97,17 @@ describe('PopulationSqlRepository', () => {
   })
 
   describe('getIdsDesBeneficiaires', () => {
-    it('renvoie les jeunes des conseillers cités et de ceux qui correspondent au profil', async () => {
+    it('renvoie les jeunes des conseillers cités et ceux dont le propre profil correspond', async () => {
       // When
       const ids = await repo.getIdsDesBeneficiaires('PILOTE')
 
       // Then
-      expect(ids).to.have.members(['jeuneCite', 'jeuneTransfere', 'jeuneFtCej'])
+      expect(ids).to.have.members([
+        'jeuneCite',
+        'jeuneTransfere',
+        'jeuneFtCej',
+        'jeuneCejChezHors'
+      ])
     })
 
     it('renvoie une liste vide pour une population inconnue', async () => {

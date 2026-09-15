@@ -14,7 +14,6 @@ import {
   ProcessJobType
 } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
-import { filtreStructuresEtDispositifs } from '../../infrastructure/sequelize/filtre-structures-dispositifs'
 import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../utils/date-service'
 import StatsJobNotif = Planificateur.StatsJobNotif
@@ -207,12 +206,6 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
       pushNotificationToken: {
         [Op.ne]: null
       }
-    }
-    if (params.structuresEtDispositifs?.length) {
-      Object.assign(
-        where,
-        filtreStructuresEtDispositifs(params.structuresEtDispositifs)
-      )
     }
     if (params.idPopulation) {
       const idsBeneficiaires =

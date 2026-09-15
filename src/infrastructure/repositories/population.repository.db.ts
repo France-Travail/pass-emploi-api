@@ -3,7 +3,7 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { Population } from '../../domain/population'
 import { PopulationSqlModel } from '../sequelize/models/population.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import { sqlConseillerDansPopulation } from './sql-helpers'
+import { sqlJeuneDansPopulation } from './sql-helpers'
 
 @Injectable()
 export class PopulationSqlRepository implements Population.Repository {
@@ -22,7 +22,7 @@ export class PopulationSqlRepository implements Population.Repository {
         SELECT j.id
         FROM jeune j
         JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
-        WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
+        WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
       `,
       { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )

@@ -1,5 +1,8 @@
 import { Sequelize } from 'sequelize-typescript'
-import { sqlConseillerDansPopulation } from '../../../../infrastructure/repositories/sql-helpers'
+import {
+  sqlEmailDuConseillerDansPopulation,
+  sqlProfilDansPopulation
+} from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_DEMARCHES_IA_TABLE_NAME } from './3-0-migrate-schema'
 
 // Généralisation des démarches IA à tous les bénéficiaires (feat: généralisation FT IA).
@@ -22,25 +25,32 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
      where semaine = '${semaine}';`
   )
   await connexion.query(`
-    WITH conseillers_demarches_ia AS (
+    WITH conseillers_cites AS (
       SELECT DISTINCT c.id
       FROM deploiement d
-      JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'd.id_population')}
+      JOIN conseiller c ON ${sqlEmailDuConseillerDansPopulation('c', 'd.id_population')}
       WHERE d.nature = 'FONCTIONNALITE' AND d.id_fonctionnalite = 'DEMARCHES_IA'
     ),
     utilisateurs_demarches_ia AS (
       SELECT DISTINCT j.id AS id_jeune
       FROM jeune j
-      JOIN conseillers_demarches_ia cdi
-        ON j.id_conseiller = cdi.id
-        OR j.id_conseiller_initial = cdi.id
+      JOIN conseillers_cites cc
+        ON j.id_conseiller = cc.id
+        OR j.id_conseiller_initial = cc.id
+
+      UNION
+
+      SELECT DISTINCT j.id AS id_jeune
+      FROM deploiement d
+      JOIN jeune j ON ${sqlProfilDansPopulation('j', 'd.id_population')}
+      WHERE d.nature = 'FONCTIONNALITE' AND d.id_fonctionnalite = 'DEMARCHES_IA'
 
       UNION
 
       SELECT DISTINCT tc.id_jeune AS id_jeune
       FROM transfert_conseiller tc
-      JOIN conseillers_demarches_ia cdi
-        ON tc.id_conseiller_source = cdi.id
+      JOIN conseillers_cites cc
+        ON tc.id_conseiller_source = cc.id
       WHERE tc.date_transfert >= DATE '${semaine}'
 
       UNION

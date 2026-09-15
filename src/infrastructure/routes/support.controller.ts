@@ -98,7 +98,6 @@ import {
   CreerDeploiementPayload
 } from './validation/support.inputs'
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
-import { Profil } from '../../domain/profil'
 
 export class JobSummaryQueryModel {
   @ApiProperty()
@@ -716,10 +715,9 @@ Rejouer la route sur la même population et la même fonctionnalité déplace la
     Authentification.Partenaire.SUPPORT
   )
   @ApiOperation({
-    summary:
-      'Notifie un groupe de bénéficiaires ciblé par structure et dispositif.',
+    summary: 'Notifie les bénéficiaires, tous ou ceux d’une population.',
     description: `
-Notifie un groupe de bénéficiaires ciblé par structure et dispositif
+Notifie tous les bénéficiaires, ou ceux d’une population
 (crée un job de type NOTIFIER_BENEFICIAIRES).
 
 **Champs du body :**
@@ -729,10 +727,7 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
     )}
 - \`titre\` : titre de la notification - maximum 50 caractères
 - \`description\` : texte corps de la notification - maximum 150 caractères
-- \`structuresEtDispositifs\` (optionnel, défaut = tous les bénéficiaires) : liste de cibles \`{ structure, dispositifs? }\`, un bénéficiaire est notifié s'il correspond à l'une d'elles.
-<br>\`structure\` : ${Object.values(Profil.Structure).join(', ')}
-<br>\`dispositifs\` (optionnel, défaut = tous les dispositifs de la structure) : ${Object.values(Profil.Dispositif).join(', ')}
-- \`idPopulation\` (optionnel) : id d'une population pour ne cibler que ses bénéficiaires
+- \`idPopulation\` (optionnel, défaut = tous les bénéficiaires) : id d'une population pour ne cibler que ses bénéficiaires
 - \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
 - \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
 - \`minutesEntreLesBatch\` (optionnel, défaut = 5) : minutes entre chaque batch
@@ -744,10 +739,6 @@ Notifie un groupe de bénéficiaires ciblé par structure et dispositif
         typeNotification: 'OUTILS',
         titre: '1000 immersions sur la vente et la logistique !',
         description: 'Explorez les métiers de vente et de la logistique',
-        structuresEtDispositifs: [
-          { structure: 'MILO' },
-          { structure: 'FRANCE_TRAVAIL', dispositifs: ['CEJ', 'AIJ'] }
-        ],
         idPopulation: 'PHASE_A',
         push: true
       }

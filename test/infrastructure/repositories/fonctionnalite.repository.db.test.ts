@@ -58,16 +58,45 @@ describe('FonctionnaliteSqlRepository', () => {
         email: 'milo@milo.fr'
       })
     ])
+    // Le profil du jeune est le sien, pas celui de son conseiller : il est posé explicitement.
     await JeuneSqlModel.bulkCreate([
-      unJeuneDto({ id: 'jeuneCite', idConseiller: 'conseillerCite' }),
+      unJeuneDto({
+        id: 'jeuneCite',
+        idConseiller: 'conseillerCite',
+        structure: Core.Structure.POLE_EMPLOI_AIJ
+      }),
       unJeuneDto({
         id: 'jeuneTransfere',
         idConseiller: 'conseillerMilo',
-        idConseillerInitial: 'conseillerCite'
+        idConseillerInitial: 'conseillerCite',
+        structure: Core.Structure.POLE_EMPLOI_AIJ
       }),
-      unJeuneDto({ id: 'jeuneFtCej', idConseiller: 'conseillerFtCej' }),
-      unJeuneDto({ id: 'jeuneFtBrsa', idConseiller: 'conseillerFtBrsa' }),
-      unJeuneDto({ id: 'jeuneMilo', idConseiller: 'conseillerMilo' })
+      unJeuneDto({
+        id: 'jeuneFtCej',
+        idConseiller: 'conseillerFtCej',
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneFtBrsa',
+        idConseiller: 'conseillerFtBrsa',
+        structure: Core.Structure.POLE_EMPLOI_BRSA
+      }),
+      unJeuneDto({
+        id: 'jeuneBrsaChezCej',
+        idConseiller: 'conseillerFtCej',
+        structure: Core.Structure.POLE_EMPLOI_BRSA
+      }),
+      unJeuneDto({
+        id: 'jeuneMilo',
+        idConseiller: 'conseillerMilo',
+        structure: Core.Structure.MILO
+      }),
+      unJeuneDto({
+        id: 'jeuneMiloPacea',
+        idConseiller: 'conseillerMilo',
+        structure: Core.Structure.MILO,
+        dispositif: Profil.Dispositif.PACEA
+      })
     ])
     await FonctionnaliteSqlModel.bulkCreate([
       { id: 'PLAN_D_ACTION' },
@@ -156,7 +185,7 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal(['PLAN_D_ACTION'])
     })
 
-    it('active par profil structure et dispositif du conseiller', async () => {
+    it('active par le profil structure et dispositif du jeune lui-même', async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
         'jeuneFtCej',
@@ -167,7 +196,7 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal(['FT_IA'])
     })
 
-    it("n'active pas quand le dispositif du conseiller diffère", async () => {
+    it("n'active pas quand le dispositif du jeune diffère", async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
         'jeuneFtBrsa',
@@ -176,6 +205,47 @@ describe('FonctionnaliteSqlRepository', () => {
 
       // Then
       expect(ids).to.deep.equal([])
+    })
+
+    it("ne regarde pas le profil du conseiller : un jeune BRSA chez un conseiller CEJ n'est pas ciblé", async () => {
+      // When
+      const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneBrsaChezCej',
+        maintenant
+      )
+
+      // Then
+      expect(ids).to.deep.equal([])
+    })
+
+    it('cible un dispositif MiLo directement sur le jeune, sans passer par un conseiller sans dispositif', async () => {
+      // Given
+      await PopulationSqlModel.create({ id: 'MILO_PACEA', description: null })
+      await PopulationProfilSqlModel.create({
+        idPopulation: 'MILO_PACEA',
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.PACEA
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'MILO_PACEA',
+        idFonctionnalite: 'QCM',
+        dateActivation: hier
+      })
+
+      // When
+      const pacea = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneMiloPacea',
+        maintenant
+      )
+      const cej = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneMilo',
+        maintenant
+      )
+
+      // Then
+      expect(pacea).to.deep.equal(['PLAN_D_ACTION', 'QCM'])
+      expect(cej).to.deep.equal(['PLAN_D_ACTION'])
     })
 
     it('un profil sans dispositif couvre toute la structure', async () => {

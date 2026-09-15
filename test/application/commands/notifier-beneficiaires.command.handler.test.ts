@@ -11,7 +11,6 @@ import { uneDatetime } from '../../fixtures/date.fixture'
 import { DateService } from '../../../src/utils/date-service'
 import { failure, success } from '../../../src/building-blocks/types/result'
 import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
-import { Profil } from '../../../src/domain/profil'
 
 describe('NotifierBeneficiairesCommandHandler', () => {
   let sandbox: SinonSandbox
@@ -45,12 +44,6 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structuresEtDispositifs: [
-          {
-            structure: Profil.Structure.FRANCE_TRAVAIL,
-            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-          }
-        ],
         idPopulation: 'PHASE_A',
         push: true,
         batchSize: 2000,
@@ -71,12 +64,6 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: "Les offres d'immersion sont disponibles",
           description: 'Rendez-vous sur la page des offres.',
           params: {
-            structuresEtDispositifs: [
-              {
-                structure: Profil.Structure.FRANCE_TRAVAIL,
-                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-              }
-            ],
             idPopulation: 'PHASE_A',
             push: true,
             batchSize: 2000,
@@ -113,7 +100,6 @@ describe('NotifierBeneficiairesCommandHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structuresEtDispositifs: undefined,
             idPopulation: undefined,
             push: false,
             batchSize: undefined,
@@ -157,12 +143,6 @@ describe('NotifierBeneficiairesCommandHandler', () => {
         typeNotification: Notification.Type.OUTILS,
         titre: "Les offres d'immersion sont disponibles",
         description: 'Rendez-vous sur la page des offres.',
-        structuresEtDispositifs: [
-          {
-            structure: Profil.Structure.FRANCE_TRAVAIL,
-            dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-          }
-        ],
         push: true,
         batchSize: 2000,
         minutesEntreLesBatchs: 15

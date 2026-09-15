@@ -17,7 +17,6 @@ import { Core } from '../../../src/domain/core'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
 import { Population } from '../../../src/domain/population'
 import JobType = Planificateur.JobType
-import { Profil, TOUT_MILO } from '../../../src/domain/profil'
 
 const idJeune1 = 'j1'
 const idJeune2 = 'j2'
@@ -65,7 +64,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
   })
 
   describe('handle', () => {
-    it('envoie une notification aux bénéficiaires de la bonne structure', async () => {
+    it("envoie une notification à tous les bénéficiaires avec un token quand aucune population n'est visée", async () => {
       // Given
       // Conseiller
       await ConseillerSqlModel.bulkCreate([
@@ -117,12 +116,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structuresEtDispositifs: [
-              {
-                structure: Profil.Structure.FRANCE_TRAVAIL,
-                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-              }
-            ],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
@@ -138,7 +131,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
       expect(result.resultat).to.deep.equal({
         estLaDerniereExecution: false,
         nbBeneficiairesNotifies: 2,
-        nbPopulationTotale: 3,
+        nbPopulationTotale: 4,
         offset: 0
       })
       expect(notificationRepository.send).to.have.been.calledTwice()
@@ -162,7 +155,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
         notificationRepository.send.secondCall
       ).to.have.been.calledWithExactly(
         {
-          token: 'push4',
+          token: 'push3',
           notification: {
             title: job.contenu!.titre,
             body: job.contenu!.description
@@ -171,7 +164,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
             type: job.contenu!.typeNotification
           }
         },
-        idJeune4,
+        idJeune3,
         true
       )
       expect(planificateurRepository.ajouterJob).to.have.been.calledWith({
@@ -182,18 +175,12 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structuresEtDispositifs: [
-              {
-                structure: Profil.Structure.FRANCE_TRAVAIL,
-                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-              }
-            ],
             push: true,
             batchSize: 2,
             minutesEntreLesBatchs: 5
           },
           stats: {
-            taillePopulationTotale: 3,
+            taillePopulationTotale: 4,
             nbBeneficiairesNotifies: 2,
             offset: 2,
             estLaDerniereExecution: false
@@ -296,12 +283,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structuresEtDispositifs: [
-              {
-                structure: Profil.Structure.FRANCE_TRAVAIL,
-                dispositifs: [Profil.Dispositif.AIJ, Profil.Dispositif.BRSA]
-              }
-            ],
             push: false,
             minutesEntreLesBatchs: 5,
             batchSize: 1
@@ -418,7 +399,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: undefined
@@ -446,7 +426,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Une notification très importante',
           description: "C'est incroyable",
           params: {
-            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             batchSize: 2,
             minutesEntreLesBatchs: 5
@@ -505,7 +484,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
@@ -559,7 +537,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
           titre: 'Titre',
           description: 'Description',
           params: {
-            structuresEtDispositifs: [TOUT_MILO],
             push: true,
             minutesEntreLesBatchs: 5,
             batchSize: 2
@@ -623,7 +600,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -646,7 +622,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -696,7 +671,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -720,7 +694,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -770,7 +743,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -794,7 +766,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5
@@ -844,7 +815,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               minutesEntreLesBatchs: 5,
               batchSize: 1
@@ -868,7 +838,6 @@ describe('NotifierBeneficiairesJobHandler', () => {
             titre: 'Une notification très importante',
             description: "C'est incroyable",
             params: {
-              structuresEtDispositifs: [TOUT_MILO],
               push: true,
               batchSize: 1,
               minutesEntreLesBatchs: 5

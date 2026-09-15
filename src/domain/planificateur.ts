@@ -10,7 +10,6 @@ import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import { Notification } from './notification/notification'
 import Bull from 'bull'
-import { StructureEtDispositifs } from './profil'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -172,7 +171,6 @@ export namespace Planificateur {
   }
 
   export interface ParamsJobNotif {
-    structuresEtDispositifs?: StructureEtDispositifs[]
     idPopulation?: string
     push: boolean
     minutesEntreLesBatchs: number
