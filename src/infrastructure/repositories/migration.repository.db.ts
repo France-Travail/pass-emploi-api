@@ -12,6 +12,7 @@ import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlConseillerDansPopulation,
   sqlJeuneDansPopulation,
+  sqlJoinConseillerDeReference,
   sqlJoinConseillerDeReferenceDuJeune
 } from './sql-helpers'
 
@@ -37,7 +38,7 @@ export class MigrationSqlRepository implements Migration.Repository {
       `
         SELECT j.id
         FROM jeune j
-        JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+        ${sqlJoinConseillerDeReference('j', 'c')}
         WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
       `,
       { replacements: { idPopulation }, type: QueryTypes.SELECT }

@@ -1,6 +1,15 @@
 // Fragments SQL partagés par les dépôts qui lisent les déploiements.
 
-// Jointure du jeune `:paramIdJeune` vers son conseiller de référence : l'initial en cas de transfert temporaire, sinon le courant.
+// Jointure vers le conseiller de référence du jeune déjà présent dans la requête : l'initial en cas de transfert temporaire, sinon le courant.
+export function sqlJoinConseillerDeReference(
+  aliasJeune = 'j',
+  aliasConseiller = 'c'
+): string {
+  return `
+    JOIN conseiller ${aliasConseiller} ON ${aliasConseiller}.id = COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller)`
+}
+
+// Jointure du jeune `:paramIdJeune` vers son conseiller de référence.
 export function sqlJoinConseillerDeReferenceDuJeune(
   aliasJeune = 'j',
   aliasConseiller = 'c',
@@ -8,7 +17,7 @@ export function sqlJoinConseillerDeReferenceDuJeune(
 ): string {
   return `
     JOIN jeune ${aliasJeune} ON ${aliasJeune}.id = :${paramIdJeune}
-    JOIN conseiller ${aliasConseiller} ON ${aliasConseiller}.id = COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller)`
+    ${sqlJoinConseillerDeReference(aliasJeune, aliasConseiller)}`
 }
 
 // L'email du conseiller `aliasConseiller` est cité dans la population `idPopulation` (paramètre `:idPopulation` ou colonne `d.id_population`).
