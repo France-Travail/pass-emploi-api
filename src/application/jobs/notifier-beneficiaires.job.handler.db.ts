@@ -209,7 +209,7 @@ export class NotifierBeneficiairesJobHandler extends JobHandler<Planificateur.Jo
     }
     if (params.idPopulation) {
       const idsBeneficiaires =
-        await this.populationRepository.getIdsDesBeneficiaires(
+        await this.populationRepository.getIdsDesJeunesParProfilOuConseillerCite(
           params.idPopulation
         )
       where.id = { [Op.in]: idsBeneficiaires }

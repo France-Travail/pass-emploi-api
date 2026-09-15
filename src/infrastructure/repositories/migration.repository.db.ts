@@ -30,7 +30,7 @@ export class MigrationSqlRepository implements Migration.Repository {
     return deploiement !== null
   }
 
-  async getBeneficiairesDeLaMigrationDuConseillerInitial(
+  async getBeneficiairesAMigrerParProfilOuConseillerCite(
     idPopulation: string
   ): Promise<BeneficiaireMigration[]> {
     const rows = await this.sequelize.query<{ id: string }>(
@@ -100,7 +100,7 @@ export class MigrationSqlRepository implements Migration.Repository {
     return fromSqlToDateDeMigration(rows)
   }
 
-  async getDateDeMigrationDuConseillerDuBeneficiaire(
+  async getDateDeMigrationDuBeneficiaire(
     idBeneficiaire: string
   ): Promise<DateTime | undefined> {
     const rows = await this.sequelize.query<{ date_activation: Date | null }>(

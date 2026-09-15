@@ -96,10 +96,10 @@ describe('PopulationSqlRepository', () => {
     })
   })
 
-  describe('getIdsDesBeneficiaires', () => {
+  describe('getIdsDesJeunesParProfilOuConseillerCite', () => {
     it('renvoie les jeunes des conseillers cités et ceux dont le propre profil correspond', async () => {
       // When
-      const ids = await repo.getIdsDesBeneficiaires('PILOTE')
+      const ids = await repo.getIdsDesJeunesParProfilOuConseillerCite('PILOTE')
 
       // Then
       expect(ids).to.have.members([
@@ -111,7 +111,9 @@ describe('PopulationSqlRepository', () => {
     })
 
     it('renvoie une liste vide pour une population inconnue', async () => {
-      expect(await repo.getIdsDesBeneficiaires('INCONNUE')).to.deep.equal([])
+      expect(
+        await repo.getIdsDesJeunesParProfilOuConseillerCite('INCONNUE')
+      ).to.deep.equal([])
     })
   })
 })

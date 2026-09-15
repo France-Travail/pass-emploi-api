@@ -16,7 +16,9 @@ export class PopulationSqlRepository implements Population.Repository {
     return population !== null
   }
 
-  async getIdsDesBeneficiaires(idPopulation: string): Promise<string[]> {
+  async getIdsDesJeunesParProfilOuConseillerCite(
+    idPopulation: string
+  ): Promise<string[]> {
     const rows = await this.sequelize.query<{ id: string }>(
       `
         SELECT j.id

@@ -209,7 +209,7 @@ describe('NotifierBeneficiairesJobHandler', () => {
 
       const maintenant = uneDatetime()
 
-      populationRepository.getIdsDesBeneficiaires
+      populationRepository.getIdsDesJeunesParProfilOuConseillerCite
         .withArgs('PHASE_A')
         .resolves([idJeune1])
 

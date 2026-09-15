@@ -1,9 +1,12 @@
 export const PopulationRepositoryToken = 'PopulationRepositoryToken'
 
 export namespace Population {
-  // Résolue à la lecture : un conseiller y est par email ou par profil structure × dispositif, un jeune y est via son conseiller de référence.
+  // Résolue à la lecture : un conseiller y est s'il est cité par email ou si son propre profil structure × dispositif correspond ; un jeune y est si son propre profil correspond ou si son conseiller de référence est cité par email.
   export interface Repository {
     existe(idPopulation: string): Promise<boolean>
-    getIdsDesBeneficiaires(idPopulation: string): Promise<string[]>
+    // Jeunes dont le profil correspond à la population, ou dont le conseiller de référence y est cité par email.
+    getIdsDesJeunesParProfilOuConseillerCite(
+      idPopulation: string
+    ): Promise<string[]>
   }
 }

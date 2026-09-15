@@ -28,14 +28,16 @@ export namespace Migration {
 
   export interface Repository {
     populationConcerneeParUneMigration(idPopulation: string): Promise<boolean>
-    getBeneficiairesDeLaMigrationDuConseillerInitial(
+    // Jeunes dont le profil correspond à la population qui migre, ou dont le conseiller de référence y est cité par email.
+    getBeneficiairesAMigrerParProfilOuConseillerCite(
       idPopulation: string
     ): Promise<BeneficiaireMigration[]>
     rebasculerOrphelins(idPopulation: string): Promise<RebasculementOrphelin[]>
     getDateDeMigrationDuConseiller(
       idConseiller: string
     ): Promise<DateTime | undefined>
-    getDateDeMigrationDuConseillerDuBeneficiaire(
+    // Date de la migration qui vise le jeune, par son propre profil ou par son conseiller de référence cité par email.
+    getDateDeMigrationDuBeneficiaire(
       idBeneficiaire: string
     ): Promise<DateTime | undefined>
   }
@@ -57,7 +59,7 @@ export namespace Migration {
             utilisateur.id
           )
         case Authentification.Type.JEUNE:
-          return this.migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire(
+          return this.migrationRepository.getDateDeMigrationDuBeneficiaire(
             utilisateur.id
           )
       }
@@ -67,7 +69,7 @@ export namespace Migration {
       idPopulation: string
     ): Promise<string[]> {
       const beneficiairesMigration =
-        await this.migrationRepository.getBeneficiairesDeLaMigrationDuConseillerInitial(
+        await this.migrationRepository.getBeneficiairesAMigrerParProfilOuConseillerCite(
           idPopulation
         )
       return beneficiairesMigration.map(beneficiaire => beneficiaire.id)

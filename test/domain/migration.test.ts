@@ -33,7 +33,7 @@ describe('Migration', () => {
     it('interroge le conseiller du bénéficiaire pour un jeune', async () => {
       // Given
       const dateDeMigration = DateTime.fromISO('2026-11-20T00:00:00.000Z')
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire
+      migrationRepository.getDateDeMigrationDuBeneficiaire
         .withArgs('id-jeune')
         .resolves(dateDeMigration)
 
@@ -61,15 +61,13 @@ describe('Migration', () => {
       // Then
       expect(date).to.deep.equal(dateDeMigration)
       expect(
-        migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire
+        migrationRepository.getDateDeMigrationDuBeneficiaire
       ).not.to.have.been.called()
     })
 
     it("ne renvoie rien quand aucune date n'est posée", async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire.resolves(
-        undefined
-      )
+      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(undefined)
 
       // When
       const date =
@@ -83,7 +81,7 @@ describe('Migration', () => {
   describe('faitPartieDeLaMigrationEtLaDateEstPassee', () => {
     it('est vraie quand la date de migration est passée', async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire.resolves(
+      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
         maintenant.minus({ days: 1 })
       )
 
@@ -97,7 +95,7 @@ describe('Migration', () => {
 
     it('est vraie le jour même de la migration', async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire.resolves(
+      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
         maintenant.startOf('day')
       )
 
@@ -111,7 +109,7 @@ describe('Migration', () => {
 
     it("est fausse quand la date de migration n'est pas atteinte", async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire.resolves(
+      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
         maintenant.plus({ days: 1 })
       )
 
@@ -125,9 +123,7 @@ describe('Migration', () => {
 
     it('est fausse sans date, même si le conseiller est dans une vague', async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuConseillerDuBeneficiaire.resolves(
-        undefined
-      )
+      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(undefined)
 
       // When
       const doitMigrer =
@@ -141,7 +137,7 @@ describe('Migration', () => {
   describe('recupererIdsDesBeneficiaireAMigrer', () => {
     it('interroge le repository avec la vague demandée', async () => {
       // Given
-      migrationRepository.getBeneficiairesDeLaMigrationDuConseillerInitial
+      migrationRepository.getBeneficiairesAMigrerParProfilOuConseillerCite
         .withArgs('PHASE_A')
         .resolves([new BeneficiaireMigration('id-jeune')])
 
