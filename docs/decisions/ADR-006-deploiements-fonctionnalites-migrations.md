@@ -81,13 +81,16 @@ UTC.
 
 ### Support
 
-Toutes sous `X-API-KEY` support. Un payload invalide répond 400, une règle
-métier violée 400, une ressource inconnue 404.
+Toutes sous `X-API-KEY` support, regroupées dans Swagger sous « Support -
+Fonctionnalités, populations et déploiements », avec exemples. Un payload
+invalide répond 400, une règle métier violée 400, une ressource inconnue 404.
 
 | Route | Corps | Retour |
 |---|---|---|
+| `GET /support/fonctionnalites` | | 200 `{ fonctionnalites: [id] }`, le référentiel. |
 | `POST /support/fonctionnalites` | `{ id }` | 204. Idempotent. |
 | `DELETE /support/fonctionnalites/:id` | | 204. 400 si un déploiement la vise. |
+| `GET /support/populations` | | 200, toutes les populations au format de `GET /support/populations/:id`. |
 | `POST /support/populations` | `{ id, description? }` | 204. Rejouer met à jour la description. |
 | `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
 | `DELETE /support/populations/:id` | | 204, emporte ses cibles. 400 si un déploiement la vise. |

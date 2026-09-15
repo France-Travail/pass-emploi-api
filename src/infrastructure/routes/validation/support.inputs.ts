@@ -135,7 +135,8 @@ export class SuperviseursPayload {
 export class CreerFonctionnalitePayload {
   @ApiProperty({
     description:
-      'Identifiant de la fonctionnalité, choisi à la création. Rejouer la route avec le même id ne change rien.'
+      'Identifiant de la fonctionnalité, choisi à la création. Rejouer la route avec le même id ne change rien.',
+    example: 'PLAN_D_ACTION'
   })
   @IsString()
   @IsNotEmpty()
@@ -145,14 +146,15 @@ export class CreerFonctionnalitePayload {
 
 export class CreerPopulationPayload {
   @ApiProperty({
-    description: 'Identifiant de la population, choisi à la création'
+    description: 'Identifiant de la population, choisi à la création',
+    example: 'PILOTE_1J1S'
   })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   id: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Beta testeurs 1J1S' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
@@ -160,12 +162,19 @@ export class CreerPopulationPayload {
 }
 
 export class ConseillersPopulationPayload {
-  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
   @IsString()
   @IsNotEmpty()
   id: string
 
-  @ApiProperty({ type: String, isArray: true })
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    example: ['a.dupont@francetravail.fr', 'b.martin@milo.fr']
+  })
   @IsArray()
   @ArrayNotEmpty()
   @IsEmail({}, { each: true })
@@ -173,7 +182,10 @@ export class ConseillersPopulationPayload {
 }
 
 export class SupprimerConseillersPopulationPayload {
-  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
   @IsString()
   @IsNotEmpty()
   id: string
@@ -199,18 +211,22 @@ export class SupprimerConseillersPopulationPayload {
 }
 
 export class ProfilPopulationPayload {
-  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
   @IsString()
   @IsNotEmpty()
   id: string
 
-  @ApiProperty({ enum: Profil.Structure })
+  @ApiProperty({ enum: Profil.Structure, example: 'FRANCE_TRAVAIL' })
   @IsEnum(Profil.Structure)
   structure: Profil.Structure
 
   @ApiPropertyOptional({
     enum: Profil.Dispositif,
-    description: 'Absent = tous les dispositifs de la structure'
+    description: 'Absent = tous les dispositifs de la structure',
+    example: 'CEJ'
   })
   @IsOptional()
   @IsEnum(Profil.Dispositif)
@@ -218,17 +234,28 @@ export class ProfilPopulationPayload {
 }
 
 export class CreerDeploiementPayload {
-  @ApiProperty({ enum: Deploiement.Nature })
+  @ApiProperty({
+    enum: Deploiement.Nature,
+    description:
+      'FONCTIONNALITE active un drapeau pour les jeunes, MIGRATION bloque la connexion des jeunes et conseillers',
+    example: 'FONCTIONNALITE'
+  })
   @IsEnum(Deploiement.Nature)
   nature: Deploiement.Nature
 
-  @ApiProperty({ description: "Identifiant d'une population existante" })
+  @ApiProperty({
+    description:
+      "Identifiant d'une population existante, voir GET /support/populations",
+    example: 'PILOTE_1J1S'
+  })
   @IsString()
   @IsNotEmpty()
   idPopulation: string
 
   @ApiPropertyOptional({
-    description: 'Requis pour la nature FONCTIONNALITE, interdit pour MIGRATION'
+    description:
+      'Requis pour la nature FONCTIONNALITE, interdit pour MIGRATION, voir GET /support/fonctionnalites',
+    example: 'PLAN_D_ACTION'
   })
   @IsOptional()
   @IsString()
@@ -236,7 +263,9 @@ export class CreerDeploiementPayload {
   idFonctionnalite?: string
 
   @ApiProperty({
-    description: 'Date à partir de laquelle le déploiement est actif'
+    description:
+      'Date ISO 8601 à partir de laquelle le déploiement est actif, comparée en UTC',
+    example: '2026-10-13T00:00:00.000Z'
   })
   @IsISO8601()
   dateActivation: string

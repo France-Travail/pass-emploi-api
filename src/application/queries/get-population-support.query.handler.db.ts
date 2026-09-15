@@ -19,6 +19,7 @@ export interface GetPopulationSupportQuery extends Query {
   idPopulation: string
 }
 
+// Lecture support : tout ce qui est monté sur une population, d'un coup.
 @Injectable()
 export class GetPopulationSupportQueryHandler extends QueryHandler<
   GetPopulationSupportQuery,
@@ -46,21 +47,14 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
       DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] })
     ])
 
-    return success({
-      id: population.id,
-      description: population.description ?? undefined,
-      conseillers: conseillers.map(c => c.emailConseiller),
-      profils: profils.map(p => ({
-        structure: p.structure,
-        dispositif: p.dispositif ?? undefined
-      })),
-      deploiements: deploiements.map(d => ({
-        id: d.id,
-        nature: d.nature,
-        idFonctionnalite: d.idFonctionnalite ?? undefined,
-        dateActivation: DateTime.fromJSDate(d.dateActivation).toUTC().toISO()!
-      }))
-    })
+    return success(
+      toPopulationSupportQueryModel(
+        population,
+        conseillers,
+        profils,
+        deploiements
+      )
+    )
   }
 
   async authorize(): Promise<Result> {
@@ -69,5 +63,28 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
 
   async monitor(): Promise<void> {
     return
+  }
+}
+
+export function toPopulationSupportQueryModel(
+  population: PopulationSqlModel,
+  conseillers: PopulationConseillerSqlModel[],
+  profils: PopulationProfilSqlModel[],
+  deploiements: DeploiementSqlModel[]
+): PopulationSupportQueryModel {
+  return {
+    id: population.id,
+    description: population.description ?? undefined,
+    conseillers: conseillers.map(c => c.emailConseiller),
+    profils: profils.map(p => ({
+      structure: p.structure,
+      dispositif: p.dispositif ?? undefined
+    })),
+    deploiements: deploiements.map(d => ({
+      id: d.id,
+      nature: d.nature,
+      idFonctionnalite: d.idFonctionnalite ?? undefined,
+      dateActivation: DateTime.fromJSDate(d.dateActivation).toUTC().toISO()!
+    }))
   }
 }

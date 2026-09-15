@@ -124,6 +124,8 @@ import { SupprimerProfilPopulationCommandHandler } from './application/commands/
 import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
+import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
+import { GetFonctionnalitesSupportQueryHandler } from './application/queries/get-fonctionnalites-support.query.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
 import { TeleverserFichierCommandHandler } from './application/commands/televerser-fichier.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from './application/commands/transferer-jeunes-conseiller.command.handler'
@@ -431,6 +433,7 @@ import { RendezVousController } from './infrastructure/routes/rendez-vous.contro
 import { ServicesCiviqueController } from './infrastructure/routes/services-civique.controller'
 import { StructuresMiloController } from './infrastructure/routes/structures.milo.controller'
 import { SupportController } from './infrastructure/routes/support.controller'
+import { SupportDeploiementsController } from './infrastructure/routes/support-deploiements.controller'
 import { databaseProviders } from './infrastructure/sequelize/providers'
 import { ChatCryptoService } from './utils/chat-crypto-service'
 import { DateService } from './utils/date-service'
@@ -490,6 +493,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     // Autre
     AuthentificationController,
     SupportController,
+    SupportDeploiementsController,
     AdminController,
     ConfigController,
     HealthController
@@ -845,6 +849,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetPreferencesJeuneQueryHandler,
     GetFonctionnalitesJeuneQueryHandler,
     GetPopulationSupportQueryHandler,
+    GetPopulationsSupportQueryHandler,
+    GetFonctionnalitesSupportQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
     ModifierJeuneDuConseillerCommandHandler,
     ChangerDispositifJeuneCommandHandler,

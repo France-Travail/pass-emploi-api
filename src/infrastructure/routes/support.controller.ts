@@ -28,7 +28,6 @@ import {
   ApiTags
 } from '@nestjs/swagger'
 import Bull from 'bull'
-import { DateTime } from 'luxon'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
@@ -51,21 +50,6 @@ import {
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
-import { CreerFonctionnaliteCommandHandler } from '../../application/commands/support/creer-fonctionnalite.command.handler.db'
-import { SupprimerFonctionnaliteCommandHandler } from '../../application/commands/support/supprimer-fonctionnalite.command.handler.db'
-import { CreerPopulationCommandHandler } from '../../application/commands/support/creer-population.command.handler.db'
-import { SupprimerPopulationCommandHandler } from '../../application/commands/support/supprimer-population.command.handler.db'
-import { AjouterConseillersPopulationCommandHandler } from '../../application/commands/support/ajouter-conseillers-population.command.handler.db'
-import { SupprimerConseillersPopulationCommandHandler } from '../../application/commands/support/supprimer-conseillers-population.command.handler.db'
-import { AjouterProfilPopulationCommandHandler } from '../../application/commands/support/ajouter-profil-population.command.handler.db'
-import { SupprimerProfilPopulationCommandHandler } from '../../application/commands/support/supprimer-profil-population.command.handler.db'
-import {
-  CreerDeploiementCommandHandler,
-  DeploiementCree
-} from '../../application/commands/support/creer-deploiement.command.handler.db'
-import { SupprimerDeploiementCommandHandler } from '../../application/commands/support/supprimer-deploiement.command.handler.db'
-import { GetPopulationSupportQueryHandler } from '../../application/queries/get-population-support.query.handler.db'
-import { PopulationSupportQueryModel } from '../../application/queries/query-models/population-support.query-model'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
@@ -89,13 +73,7 @@ import {
   NotifierBeneficiairesPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
-  TransfererJeunesPayload,
-  CreerFonctionnalitePayload,
-  CreerPopulationPayload,
-  ConseillersPopulationPayload,
-  SupprimerConseillersPopulationPayload,
-  ProfilPopulationPayload,
-  CreerDeploiementPayload
+  TransfererJeunesPayload
 } from './validation/support.inputs'
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
 
@@ -160,17 +138,6 @@ export class SupportController {
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
-    private readonly creerFonctionnaliteCommandHandler: CreerFonctionnaliteCommandHandler,
-    private readonly supprimerFonctionnaliteCommandHandler: SupprimerFonctionnaliteCommandHandler,
-    private readonly creerPopulationCommandHandler: CreerPopulationCommandHandler,
-    private readonly supprimerPopulationCommandHandler: SupprimerPopulationCommandHandler,
-    private readonly ajouterConseillersPopulationCommandHandler: AjouterConseillersPopulationCommandHandler,
-    private readonly supprimerConseillersPopulationCommandHandler: SupprimerConseillersPopulationCommandHandler,
-    private readonly ajouterProfilPopulationCommandHandler: AjouterProfilPopulationCommandHandler,
-    private readonly supprimerProfilPopulationCommandHandler: SupprimerProfilPopulationCommandHandler,
-    private readonly creerDeploiementCommandHandler: CreerDeploiementCommandHandler,
-    private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
-    private readonly getPopulationSupportQueryHandler: GetPopulationSupportQueryHandler,
     private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
@@ -450,263 +417,6 @@ export class SupportController {
       Authentification.unUtilisateurSupport()
     )
 
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Crée une fonctionnalité dans le référentiel',
-    description:
-      "Autorisé pour le support. Une fonctionnalité n'est qu'un identifiant. Elle s'active pour une population via POST /support/deploiements. Idempotent."
-  })
-  @Post('fonctionnalites')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async creerFonctionnalite(
-    @Body() payload: CreerFonctionnalitePayload
-  ): Promise<void> {
-    const result = await this.creerFonctionnaliteCommandHandler.execute(
-      { id: payload.id },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Supprime une fonctionnalité du référentiel',
-    description:
-      'Autorisé pour le support. Refusé tant qu’un déploiement la vise.'
-  })
-  @Delete('fonctionnalites/:idFonctionnalite')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerFonctionnalite(
-    @Param('idFonctionnalite') idFonctionnalite: string
-  ): Promise<void> {
-    const result = await this.supprimerFonctionnaliteCommandHandler.execute(
-      { id: idFonctionnalite },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Crée une population, ou met à jour sa description',
-    description: `
-Autorisé pour le support. Une population est un groupe cible nommé, défini par
-des emails de conseillers et des profils structure × dispositif, résolu à la
-lecture : un conseiller y est s'il est cité ou si son profil correspond, un
-jeune y est si son conseiller de référence y est.`
-  })
-  @Post('populations')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async creerPopulation(
-    @Body() payload: CreerPopulationPayload
-  ): Promise<void> {
-    const result = await this.creerPopulationCommandHandler.execute(
-      { id: payload.id, description: payload.description },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Ajoute des conseillers à une population',
-    description: 'Autorisé pour le support. Doublons ignorés.'
-  })
-  @Post('populations/conseillers')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async ajouterConseillersPopulation(
-    @Body() payload: ConseillersPopulationPayload
-  ): Promise<void> {
-    const result =
-      await this.ajouterConseillersPopulationCommandHandler.execute(
-        {
-          idPopulation: payload.id,
-          emailConseillers: payload.emailConseillers
-        },
-        Authentification.unUtilisateurSupport()
-      )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Retire des conseillers d’une population',
-    description:
-      'Autorisé pour le support. Renseigner emailConseillers, ou supprimerTous à true pour vider la cible.'
-  })
-  @Delete('populations/conseillers')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerConseillersPopulation(
-    @Body() payload: SupprimerConseillersPopulationPayload
-  ): Promise<void> {
-    const result =
-      await this.supprimerConseillersPopulationCommandHandler.execute(
-        {
-          idPopulation: payload.id,
-          emailConseillers: payload.emailConseillers,
-          supprimerTous: payload.supprimerTous
-        },
-        Authentification.unUtilisateurSupport()
-      )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Ajoute un profil structure × dispositif à une population',
-    description:
-      'Autorisé pour le support. Sans dispositif, le profil couvre toute la structure.'
-  })
-  @Post('populations/profils')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async ajouterProfilPopulation(
-    @Body() payload: ProfilPopulationPayload
-  ): Promise<void> {
-    const result = await this.ajouterProfilPopulationCommandHandler.execute(
-      {
-        idPopulation: payload.id,
-        structure: payload.structure,
-        dispositif: payload.dispositif
-      },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Retire un profil d’une population',
-    description: 'Autorisé pour le support. 404 si le profil n’existe pas.'
-  })
-  @Delete('populations/profils')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerProfilPopulation(
-    @Body() payload: ProfilPopulationPayload
-  ): Promise<void> {
-    const result = await this.supprimerProfilPopulationCommandHandler.execute(
-      {
-        idPopulation: payload.id,
-        structure: payload.structure,
-        dispositif: payload.dispositif
-      },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Lit une population avec ses cibles et ses déploiements',
-    description: 'Autorisé pour le support.'
-  })
-  @ApiResponse({ type: PopulationSupportQueryModel })
-  @Get('populations/:idPopulation')
-  async getPopulation(
-    @Param('idPopulation') idPopulation: string
-  ): Promise<PopulationSupportQueryModel> {
-    const result = await this.getPopulationSupportQueryHandler.execute(
-      { idPopulation },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Supprime une population',
-    description:
-      'Autorisé pour le support. Ses cibles partent avec elle. Refusé tant qu’un déploiement la vise.'
-  })
-  @Delete('populations/:idPopulation')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerPopulation(
-    @Param('idPopulation') idPopulation: string
-  ): Promise<void> {
-    const result = await this.supprimerPopulationCommandHandler.execute(
-      { id: idPopulation },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Crée un déploiement : une population, une date, une nature',
-    description: `
-Autorisé pour le support.
-
-- \`nature\` FONCTIONNALITE : \`idFonctionnalite\` requis, le drapeau apparaît pour les jeunes de la population à partir de \`dateActivation\`.
-- \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée aux jeunes et conseillers de la population à partir de \`dateActivation\`. Une seule migration par population.
-
-Rejouer la route sur la même population et la même fonctionnalité déplace la date au lieu de créer un doublon.`
-  })
-  @Post('deploiements')
-  @HttpCode(HttpStatus.CREATED)
-  async creerDeploiement(
-    @Body() payload: CreerDeploiementPayload
-  ): Promise<DeploiementCree> {
-    const result = await this.creerDeploiementCommandHandler.execute(
-      {
-        nature: payload.nature,
-        idPopulation: payload.idPopulation,
-        idFonctionnalite: payload.idFonctionnalite,
-        dateActivation: DateTime.fromISO(payload.dateActivation)
-      },
-      Authentification.unUtilisateurSupport()
-    )
-    return handleResult(result)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
-    summary: 'Supprime un déploiement',
-    description: 'Autorisé pour le support.'
-  })
-  @Delete('deploiements/:idDeploiement')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerDeploiement(
-    @Param('idDeploiement', ParseIntPipe) idDeploiement: number
-  ): Promise<void> {
-    const result = await this.supprimerDeploiementCommandHandler.execute(
-      { id: idDeploiement },
-      Authentification.unUtilisateurSupport()
-    )
     return handleResult(result)
   }
 
