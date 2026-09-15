@@ -210,20 +210,6 @@ describe('Populations : handlers support', () => {
       expect(result._isSuccess).to.equal(true)
       expect(await PopulationConseillerSqlModel.count()).to.equal(0)
     })
-
-    it('refuse de deviner sans liste ni drapeau', async () => {
-      // When
-      const result = await handler.handle({ idPopulation: 'PILOTE' })
-
-      // Then
-      expect(result).to.deep.equal({
-        _isSuccess: false,
-        error: new MauvaiseCommandeError(
-          'Renseigner emailConseillers ou supprimerTous'
-        )
-      })
-      expect(await PopulationConseillerSqlModel.count()).to.equal(2)
-    })
   })
 
   describe('AjouterProfilPopulationCommandHandler', () => {

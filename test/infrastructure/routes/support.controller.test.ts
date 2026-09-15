@@ -1088,6 +1088,24 @@ describe('SupportController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
+
+    it('renvoie 400 sans emailConseillers ni supprimerTous', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/conseillers')
+        .send({ id: 'PILOTE_1J1S' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 avec une liste vide sans supprimerTous', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/conseillers')
+        .send({ id: 'PILOTE_1J1S', emailConseillers: [], supprimerTous: false })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
   })
 
   describe('POST /support/populations/profils', () => {

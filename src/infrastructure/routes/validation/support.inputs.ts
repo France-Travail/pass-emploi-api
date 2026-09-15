@@ -182,10 +182,11 @@ export class SupprimerConseillersPopulationPayload {
   @ApiPropertyOptional({
     type: String,
     isArray: true,
-    description: 'Requis sauf si supprimerTous vaut true'
+    description: 'Requis et non vide, sauf si supprimerTous vaut true'
   })
-  @IsOptional()
+  @ValidateIf(payload => !payload.supprimerTous)
   @IsArray()
+  @ArrayNotEmpty()
   @IsEmail({}, { each: true })
   emailConseillers?: string[]
 

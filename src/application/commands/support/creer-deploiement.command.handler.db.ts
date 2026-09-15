@@ -2,13 +2,11 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import {
-  MauvaiseCommandeError,
-  NonTrouveError
-} from '../../../building-blocks/types/domain-error'
+import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
+  isFailure,
   Result,
   success
 } from '../../../building-blocks/types/result'
@@ -55,60 +53,40 @@ export class CreerDeploiementCommandHandler extends CommandHandler<
   async handle(
     command: CreerDeploiementCommand
   ): Promise<Result<DeploiementCree>> {
-    const coherenceResult = verifierCoherence(command)
-    if (coherenceResult) return coherenceResult
+    const deploiementResult = Deploiement.creer(command)
+    if (isFailure(deploiementResult)) return deploiementResult
+    const deploiement = deploiementResult.data
 
-    if (!(await this.populationRepository.existe(command.idPopulation))) {
-      return failure(new NonTrouveError('Population', command.idPopulation))
+    if (!(await this.populationRepository.existe(deploiement.idPopulation))) {
+      return failure(new NonTrouveError('Population', deploiement.idPopulation))
     }
-    if (command.idFonctionnalite) {
+    if (deploiement.idFonctionnalite) {
       const fonctionnalite = await FonctionnaliteSqlModel.findByPk(
-        command.idFonctionnalite
+        deploiement.idFonctionnalite
       )
       if (!fonctionnalite) {
         return failure(
-          new NonTrouveError('Fonctionnalité', command.idFonctionnalite)
+          new NonTrouveError('Fonctionnalité', deploiement.idFonctionnalite)
         )
       }
     }
 
     // Un seul INSERT … ON CONFLICT sur l'index unique partiel de la nature : atomique, pas de fenêtre entre lecture et écriture.
-    const [deploiement] = await DeploiementSqlModel.upsert(
+    const [enregistre] = await DeploiementSqlModel.upsert(
       {
-        nature: command.nature,
-        idPopulation: command.idPopulation,
-        idFonctionnalite: command.idFonctionnalite ?? null,
-        dateActivation: command.dateActivation.toJSDate()
+        nature: deploiement.nature,
+        idPopulation: deploiement.idPopulation,
+        idFonctionnalite: deploiement.idFonctionnalite ?? null,
+        dateActivation: deploiement.dateActivation.toJSDate()
       },
       {
         conflictFields:
-          command.nature === Deploiement.Nature.FONCTIONNALITE
+          deploiement.nature === Deploiement.Nature.FONCTIONNALITE
             ? ['id_population', 'id_fonctionnalite']
             : ['id_population'],
-        conflictWhere: { nature: command.nature }
+        conflictWhere: { nature: deploiement.nature }
       }
     )
-    return success({ id: deploiement.id })
+    return success({ id: enregistre.id })
   }
-}
-
-function verifierCoherence(
-  command: CreerDeploiementCommand
-): Result<DeploiementCree> | undefined {
-  const estFonctionnalite = command.nature === Deploiement.Nature.FONCTIONNALITE
-  if (estFonctionnalite && !command.idFonctionnalite) {
-    return failure(
-      new MauvaiseCommandeError(
-        'Un déploiement de nature FONCTIONNALITE exige idFonctionnalite'
-      )
-    )
-  }
-  if (!estFonctionnalite && command.idFonctionnalite) {
-    return failure(
-      new MauvaiseCommandeError(
-        'Un déploiement de nature MIGRATION ne porte pas de fonctionnalité'
-      )
-    )
-  }
-  return undefined
 }
