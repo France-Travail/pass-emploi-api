@@ -16,6 +16,7 @@ import { AccueilJeunePoleEmploiQueryModel } from '../../../../src/application/qu
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
 import {
   failure,
+  isFailure,
   isSuccess,
   Result,
   success
@@ -23,7 +24,9 @@ import {
 import { Authentification } from '../../../../src/domain/authentification'
 import {
   TOUT_CONSEIL_DEPARTEMENTAL,
-  Profil
+  TOUT_FRANCE_TRAVAIL,
+  Profil,
+  verifierProfils
 } from '../../../../src/domain/profil'
 import { Demarche } from '../../../../src/domain/demarche'
 import { Migration } from '../../../../src/domain/migration'
@@ -393,24 +396,54 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   })
 
   describe('profilsAutorises', () => {
-    it('déclare les profils autorisés', () => {
+    it('déclare tout France Travail et tout Conseil départemental', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        {
-          structure: Profil.Structure.FRANCE_TRAVAIL,
-          dispositifs: [
-            Profil.Dispositif.CEJ,
-            Profil.Dispositif.BRSA,
-            Profil.Dispositif.AIJ,
-            Profil.Dispositif.AVENIR_PRO,
-            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-            Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
-            Profil.Dispositif.DEMANDEUR_D_EMPLOI
-          ]
-        },
+        TOUT_FRANCE_TRAVAIL,
         TOUT_CONSEIL_DEPARTEMENTAL
       ])
+    })
+
+    // Régression : un jeune ESPACE_CANDIDAT (non accompagné) était refusé par
+    // le contrôle de profil du handler de base (403), car l'ancienne règle ne
+    // listait que les dispositifs accompagnés + DEMANDEUR_D_EMPLOI.
+    it('autorise un jeune FT non accompagné ESPACE_CANDIDAT', () => {
+      // Given
+      const utilisateur = unUtilisateurJeune({
+        profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+      })
+
+      // When
+      const result = verifierProfils(handler.profilsAutorises, utilisateur)
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('autorise un jeune FT non accompagné DEMANDEUR_D_EMPLOI', () => {
+      // Given
+      const utilisateur = unUtilisateurJeune({
+        profil: unProfilFT(Profil.Dispositif.DEMANDEUR_D_EMPLOI)
+      })
+
+      // When
+      const result = verifierProfils(handler.profilsAutorises, utilisateur)
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse toujours un jeune hors France Travail et Conseil départemental', () => {
+      // Given
+      const utilisateur = unUtilisateurJeune({
+        profil: { structure: Profil.Structure.MILO, dispositif: null }
+      })
+
+      // When
+      const result = verifierProfils(handler.profilsAutorises, utilisateur)
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
     })
   })
 })

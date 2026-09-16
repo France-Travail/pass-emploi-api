@@ -13,9 +13,9 @@ import { Authentification } from '../../../domain/authentification'
 import { Demarche } from '../../../domain/demarche'
 import { Migration } from '../../../domain/migration'
 import {
-  DISPOSITIFS_FT_AVEC_DEMARCHES,
   Profil,
-  TOUT_CONSEIL_DEPARTEMENTAL
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_FRANCE_TRAVAIL
 } from '../../../domain/profil'
 import { JeuneAuthorizer } from '../../authorizers/jeune-authorizer'
 import { GetFavorisAccueilQueryGetter } from '../query-getters/accueil/get-favoris.query.getter.db'
@@ -39,10 +39,7 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
   GetAccueilJeunePoleEmploiQuery,
   Result<AccueilJeunePoleEmploiQueryModel>
 > {
-  readonly profilsAutorises = [
-    DISPOSITIFS_FT_AVEC_DEMARCHES,
-    TOUT_CONSEIL_DEPARTEMENTAL
-  ]
+  readonly profilsAutorises = [TOUT_FRANCE_TRAVAIL, TOUT_CONSEIL_DEPARTEMENTAL]
 
   constructor(
     private jeuneAuthorizer: JeuneAuthorizer,
