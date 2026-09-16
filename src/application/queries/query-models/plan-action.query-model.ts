@@ -65,3 +65,11 @@ export class PlanActionQueryModel {
   @ApiProperty({ type: [ObjectivePlanActionQueryModel] })
   objectives: ObjectivePlanActionQueryModel[]
 }
+
+export class PlanActionConnecteQueryModel {
+  @ApiProperty()
+  id: string
+
+  @ApiProperty({ type: [ObjectivePlanActionQueryModel] })
+  objectives: ObjectivePlanActionQueryModel[]
+}

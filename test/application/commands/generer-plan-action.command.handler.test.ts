@@ -15,6 +15,7 @@ import {
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
 import { PlanActionClient } from '../../../src/infrastructure/clients/plan-action-client'
+import { PlanActionSqlRepository } from '../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import {
   GoalPayload,
   SituationPayload
@@ -30,6 +31,7 @@ describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
   let planActionClient: StubbedClass<PlanActionClient>
+  let planActionSqlRepository: StubbedClass<PlanActionSqlRepository>
   let evenementService: StubbedClass<EvenementService>
   let handler: GenererPlanActionCommandHandler
 
@@ -48,11 +50,13 @@ describe('GenererPlanActionCommandHandler', () => {
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     planActionClient = stubClass(PlanActionClient)
+    planActionSqlRepository = stubClass(PlanActionSqlRepository)
     evenementService = stubClass(EvenementService)
     handler = new GenererPlanActionCommandHandler(
       jeuneAuthorizer,
       jeuneInviteAuthorizer,
       planActionClient,
+      planActionSqlRepository,
       evenementService,
       testConfig()
     )
@@ -65,6 +69,7 @@ describe('GenererPlanActionCommandHandler', () => {
         jeuneAuthorizer,
         jeuneInviteAuthorizer,
         planActionClient,
+        planActionSqlRepository,
         evenementService,
         new ConfigService({ appJeuneActif: false })
       )
@@ -189,6 +194,87 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(echec)
+    })
+
+    it('ne sauvegarde pas le plan quand la génération échoue', async () => {
+      // Given
+      planActionClient.genererPlan.resolves(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+
+      // When
+      await handler.handle(command, utilisateur)
+
+      // Then
+      expect(planActionSqlRepository.save).not.to.have.been.called()
+    })
+
+    it('sauvegarde le plan traduit pour un bénéficiaire accompagné', async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const plan: PlanDto = {
+        id: 'plan-1',
+        greeting: 'Salut !',
+        generatedAt: '2026-07-20T22:03:52.448Z',
+        generator: 'fallback',
+        objectives: []
+      }
+      planActionClient.genererPlan.resolves(success(plan))
+
+      // When
+      await handler.handle(command, jeuneMilo)
+
+      // Then
+      expect(planActionSqlRepository.save).to.have.been.calledWithExactly(
+        command.idJeune,
+        {
+          id: 'plan-1',
+          accroche: 'Salut !',
+          genereLe: '2026-07-20T22:03:52.448Z',
+          generateur: 'fallback',
+          objectives: []
+        }
+      )
+    })
+
+    it('renvoie une erreur et ne renvoie pas le plan quand la sauvegarde échoue pour un bénéficiaire accompagné', async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const plan: PlanDto = {
+        id: 'plan-1',
+        greeting: 'Salut !',
+        generatedAt: '2026-07-20T22:03:52.448Z',
+        generator: 'fallback',
+        objectives: []
+      }
+      planActionClient.genererPlan.resolves(success(plan))
+      planActionSqlRepository.save.rejects(new Error('DB en carafe'))
+
+      // When
+      const result = await handler.handle(command, jeuneMilo)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La sauvegarde du plan d'action a échoué", 500))
+      )
+    })
+
+    it("ne sauvegarde pas le plan d'un invité", async () => {
+      // Given
+      const plan: PlanDto = {
+        id: 'plan-1',
+        greeting: 'Salut !',
+        generatedAt: '2026-07-20T22:03:52.448Z',
+        generator: 'fallback',
+        objectives: []
+      }
+      planActionClient.genererPlan.resolves(success(plan))
+
+      // When
+      await handler.handle(command, utilisateur)
+
+      // Then
+      expect(planActionSqlRepository.save).not.to.have.been.called()
     })
   })
 
