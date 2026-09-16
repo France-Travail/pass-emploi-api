@@ -344,11 +344,20 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 
 ### Développement
 
-| Commande            | Description                              |
-|---------------------|------------------------------------------|
-| `yarn watch`        | Dev server avec hot reload + logs pretty |
-| `yarn watch:worker` | Worker mode avec logs                    |
-| `yarn start:debug`  | Avec debugger NestJS                     |
+| Commande                        | Description                                                        |
+|---------------------------------|--------------------------------------------------------------------|
+| `yarn start`                    | API sur le `.environment` tel quel (pg + redis Docker démarrés)    |
+| `yarn start:local`              | API sur la DB Docker + keycloak local (`.environment.local`)       |
+| `yarn start:staging`            | API sur la DB staging, tunnel Scalingo ouvert automatiquement  |
+| `yarn watch[:local\|:staging]` | Idem avec hot reload + logs pretty                                 |
+| `yarn watch:worker`             | Worker mode avec logs                                              |
+| `yarn start:debug`              | Avec debugger NestJS                                               |
+
+`.environment.local` / `.environment.staging` sont **committés et sans secret** : ils surchargent
+`ENVIRONMENT`, `DATABASE_URL`, `OIDC_ISSUER_URL` en référençant des variables nommées du vault
+(`${DATABASE_URL_STAGING}`…). Chargés avant `.environment` via `dotenv-cli` (premier fichier gagne,
+expansion `${…}` après chargement de tous les fichiers). En local, `ENVIRONMENT=development` est
+obligatoire : `staging` force le SSL Sequelize (`providers.ts`) que le postgres Docker refuse.
 
 ### Build & Lint
 
@@ -360,14 +369,16 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 
 ### Base de données
 
-| Commande                | Description                        |
-|-------------------------|------------------------------------|
-| `yarn start:pg:db`      | Démarrer PostgreSQL (Docker)       |
-| `yarn start:redis:db`   | Démarrer Redis (Docker)            |
-| `yarn migration`        | Exécuter migrations Sequelize      |
-| `yarn seed`             | Seed toutes les données            |
-| `yarn seed:referentiel` | Seed référentiels (communes, ROME) |
-| `yarn psql`             | Accès psql via Docker              |
+| Commande                | Description                          |
+|-------------------------|--------------------------------------|
+| `yarn db`               | Démarrer PostgreSQL + Redis (Docker) |
+| `yarn db:pg`            | Démarrer PostgreSQL (Docker)         |
+| `yarn db:redis`         | Démarrer Redis (Docker)              |
+| `yarn db:test`          | Démarrer les DB de test (Docker)     |
+| `yarn migration`        | Exécuter migrations Sequelize        |
+| `yarn seed`             | Seed toutes les données              |
+| `yarn seed:referentiel` | Seed référentiels (communes, ROME)   |
+| `yarn psql`             | Accès psql via Docker                |
 
 ### Tests
 
