@@ -94,12 +94,13 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 | `POST /support/populations` | `{ id, description? }` | 204. Rejouer met à jour la description. |
 | `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
 | `DELETE /support/populations/:id` | | 204, emporte ses cibles. 400 si un déploiement la vise. |
-| `POST /support/populations/conseillers` | `{ id, emailConseillers: string[] }` | 204. Doublons ignorés. |
-| `DELETE /support/populations/conseillers` | `{ id, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
-| `POST /support/populations/profils` | `{ id, structure, dispositif? }` | 204. Doublon ignoré. |
-| `DELETE /support/populations/profils` | `{ id, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
+| `POST /support/populations/conseillers` | `{ idPopulation, emailConseillers: string[] }` | 204. Doublons ignorés. |
+| `DELETE /support/populations/conseillers` | `{ idPopulation, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
+| `POST /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. Doublon ignoré. |
+| `DELETE /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
 | `POST /support/deploiements` | `{ nature, idPopulation, idFonctionnalite?, dateActivation }` | 201 `{ id }`. 400 si `FONCTIONNALITE` sans `idFonctionnalite` ou `MIGRATION` avec. Rejouer sur la même population et la même fonctionnalité déplace la date. |
-| `DELETE /support/deploiements/:id` | | 204. |
+| `PUT /support/deploiements/:id` | `{ dateActivation }` | 204. Seule la date change. 404 si inconnu. |
+| `DELETE /support/deploiements/:id` | | 204. 404 si inconnu. |
 | `POST /support/archiver-jeunes-migration/:idPopulationQuiMigre` | | 204. 404 si aucune migration ne vise la population. |
 | `POST /support/rebasculer-jeunes-orphelins-migration/:idPopulationQuiMigre` | | Idem. |
 | `POST /support/notifier-beneficiaires` | existant, `idPopulation?` remplace `idMigration` et `structuresEtDispositifs` (une population par profil fait la même chose) | 201 `{ jobId }`. Sans `idPopulation`, tous les bénéficiaires. |
@@ -118,7 +119,7 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 
 ```
 POST /support/populations                { "id": "PILOTE_1J1S", "description": "Beta testeurs 1J1S" }
-POST /support/populations/conseillers    { "id": "PILOTE_1J1S", "emailConseillers": ["a@ft.fr", "b@milo.fr", …] }
+POST /support/populations/conseillers    { "idPopulation": "PILOTE_1J1S", "emailConseillers": ["a@ft.fr", "b@milo.fr", …] }
 POST /support/deploiements               { "nature": "FONCTIONNALITE", "idPopulation": "PILOTE_1J1S",
                                            "idFonctionnalite": "PLAN_D_ACTION", "dateActivation": "2026-10-13T00:00:00Z" } → 201 { "id": 1 }
 POST /support/deploiements               { "nature": "FONCTIONNALITE", "idPopulation": "PILOTE_1J1S",
@@ -146,7 +147,7 @@ La population est réutilisée telle quelle. Un conseiller ajouté entre-temps �
 
 ```
 POST /support/populations                { "id": "FT_CEJ" }
-POST /support/populations/profils        { "id": "FT_CEJ", "structure": "FRANCE_TRAVAIL", "dispositif": "CEJ" }
+POST /support/populations/profils        { "idPopulation": "FT_CEJ", "structure": "FRANCE_TRAVAIL", "dispositif": "CEJ" }
 POST /support/deploiements               { "nature": "FONCTIONNALITE", "idPopulation": "FT_CEJ",
                                            "idFonctionnalite": "PLAN_D_ACTION", "dateActivation": "2027-01-11T00:00:00Z" }
 ```
@@ -158,8 +159,8 @@ actif, l'union des déploiements fait foi.
 
 ```
 POST /support/populations                { "id": "PHASE_C", "description": "Migration conseillers AIJ" }
-POST /support/populations/conseillers    { "id": "PHASE_C", "emailConseillers": [ … ] }
-POST /support/populations/profils        { "id": "PHASE_C", "structure": "FRANCE_TRAVAIL", "dispositif": "AIJ" }
+POST /support/populations/conseillers    { "idPopulation": "PHASE_C", "emailConseillers": [ … ] }
+POST /support/populations/profils        { "idPopulation": "PHASE_C", "structure": "FRANCE_TRAVAIL", "dispositif": "AIJ" }
 POST /support/deploiements               { "nature": "MIGRATION", "idPopulation": "PHASE_C", "dateActivation": "2027-03-01T00:00:00Z" }
 ```
 

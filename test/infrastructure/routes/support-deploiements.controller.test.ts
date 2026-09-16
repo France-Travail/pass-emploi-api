@@ -7,6 +7,7 @@ import { CreerDeploiementCommandHandler } from '../../../src/application/command
 import { CreerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/creer-fonctionnalite.command.handler.db'
 import { CreerPopulationCommandHandler } from '../../../src/application/commands/support/creer-population.command.handler.db'
 import { SupprimerConseillersPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-conseillers-population.command.handler.db'
+import { ModifierDateDeploiementCommandHandler } from '../../../src/application/commands/support/modifier-date-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from '../../../src/application/commands/support/supprimer-deploiement.command.handler.db'
 import { SupprimerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/supprimer-fonctionnalite.command.handler.db'
 import { SupprimerPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-population.command.handler.db'
@@ -43,6 +44,7 @@ describe('SupportDeploiementsController', () => {
   let ajouterProfilPopulationCommandHandler: StubbedClass<AjouterProfilPopulationCommandHandler>
   let supprimerProfilPopulationCommandHandler: StubbedClass<SupprimerProfilPopulationCommandHandler>
   let creerDeploiementCommandHandler: StubbedClass<CreerDeploiementCommandHandler>
+  let modifierDateDeploiementCommandHandler: StubbedClass<ModifierDateDeploiementCommandHandler>
   let supprimerDeploiementCommandHandler: StubbedClass<SupprimerDeploiementCommandHandler>
   let app: INestApplication
 
@@ -78,6 +80,9 @@ describe('SupportDeploiementsController', () => {
       SupprimerProfilPopulationCommandHandler
     )
     creerDeploiementCommandHandler = app.get(CreerDeploiementCommandHandler)
+    modifierDateDeploiementCommandHandler = app.get(
+      ModifierDateDeploiementCommandHandler
+    )
     supprimerDeploiementCommandHandler = app.get(
       SupprimerDeploiementCommandHandler
     )
@@ -281,7 +286,7 @@ describe('SupportDeploiementsController', () => {
       await request(app.getHttpServer())
         .post('/support/populations/conseillers')
         .send({
-          id: 'PILOTE_1J1S',
+          idPopulation: 'PILOTE_1J1S',
           emailConseillers: ['conseiller@email.com']
         })
         .set({ 'X-API-KEY': 'api-key-support' })
@@ -302,7 +307,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S', emailConseillers: ['test'] })
+        .send({ idPopulation: 'PILOTE_1J1S', emailConseillers: ['test'] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -311,7 +316,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S', emailConseillers: [] })
+        .send({ idPopulation: 'PILOTE_1J1S', emailConseillers: [] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -328,7 +333,7 @@ describe('SupportDeploiementsController', () => {
       await request(app.getHttpServer())
         .delete('/support/populations/conseillers')
         .send({
-          id: 'PILOTE_1J1S',
+          idPopulation: 'PILOTE_1J1S',
           emailConseillers: ['conseiller@email.com']
         })
         .set({ 'X-API-KEY': 'api-key-support' })
@@ -355,7 +360,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S', supprimerTous: true })
+        .send({ idPopulation: 'PILOTE_1J1S', supprimerTous: true })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
     })
@@ -364,7 +369,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S', supprimerTous: 'true' })
+        .send({ idPopulation: 'PILOTE_1J1S', supprimerTous: 'true' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -373,7 +378,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S' })
+        .send({ idPopulation: 'PILOTE_1J1S' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -382,7 +387,11 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/conseillers')
-        .send({ id: 'PILOTE_1J1S', emailConseillers: [], supprimerTous: false })
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          emailConseillers: [],
+          supprimerTous: false
+        })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -397,7 +406,7 @@ describe('SupportDeploiementsController', () => {
       await request(app.getHttpServer())
         .post('/support/populations/profils')
         .send({
-          id: 'FT_CEJ',
+          idPopulation: 'FT_CEJ',
           structure: Profil.Structure.FRANCE_TRAVAIL,
           dispositif: Profil.Dispositif.CEJ
         })
@@ -423,7 +432,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/profils')
-        .send({ id: 'MILO_TOUS', structure: Profil.Structure.MILO })
+        .send({ idPopulation: 'MILO_TOUS', structure: Profil.Structure.MILO })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
     })
@@ -432,7 +441,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/profils')
-        .send({ id: 'MILO_TOUS', structure: 'PAS_BON' })
+        .send({ idPopulation: 'MILO_TOUS', structure: 'PAS_BON' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -446,7 +455,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/profils')
-        .send({ id: 'MILO_TOUS', structure: Profil.Structure.MILO })
+        .send({ idPopulation: 'MILO_TOUS', structure: Profil.Structure.MILO })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
 
@@ -553,6 +562,50 @@ describe('SupportDeploiementsController', () => {
         })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
+    })
+  })
+
+  describe('PUT /support/deploiements/:idDeploiement', () => {
+    it('renvoie 204 et transmet la nouvelle date', async () => {
+      // Given
+      modifierDateDeploiementCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/deploiements/7')
+        .send({ dateActivation: '2026-11-02T00:00:00.000Z' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        modifierDateDeploiementCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { id: 7, dateActivation: DateTime.fromISO('2026-11-02T00:00:00.000Z') },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it("renvoie 400 quand la date n'est pas une date", async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/deploiements/7')
+        .send({ dateActivation: 'demain' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 404 quand le déploiement n'existe pas", async () => {
+      // Given
+      modifierDateDeploiementCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Déploiement', '99'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/deploiements/99')
+        .send({ dateActivation: '2026-11-02T00:00:00.000Z' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
     })
   })
 

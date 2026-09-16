@@ -168,7 +168,7 @@ export class ConseillersPopulationPayload {
   })
   @IsString()
   @IsNotEmpty()
-  id: string
+  idPopulation: string
 
   @ApiProperty({
     type: String,
@@ -188,7 +188,7 @@ export class SupprimerConseillersPopulationPayload {
   })
   @IsString()
   @IsNotEmpty()
-  id: string
+  idPopulation: string
 
   @ApiPropertyOptional({
     type: String,
@@ -217,7 +217,7 @@ export class ProfilPopulationPayload {
   })
   @IsString()
   @IsNotEmpty()
-  id: string
+  idPopulation: string
 
   @ApiProperty({ enum: Profil.Structure, example: 'FRANCE_TRAVAIL' })
   @IsEnum(Profil.Structure)
@@ -266,6 +266,16 @@ export class CreerDeploiementPayload {
     description:
       'Date ISO 8601 à partir de laquelle le déploiement est actif, comparée en UTC',
     example: '2026-10-13T00:00:00.000Z'
+  })
+  @IsISO8601()
+  dateActivation: string
+}
+
+export class ModifierDateDeploiementPayload {
+  @ApiProperty({
+    description:
+      'Nouvelle date ISO 8601 à partir de laquelle le déploiement est actif, comparée en UTC',
+    example: '2026-11-02T00:00:00.000Z'
   })
   @IsISO8601()
   dateActivation: string

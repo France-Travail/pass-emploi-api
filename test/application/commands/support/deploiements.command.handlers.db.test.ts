@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { before } from 'mocha'
 import { CreerDeploiementCommandHandler } from '../../../../src/application/commands/support/creer-deploiement.command.handler.db'
+import { ModifierDateDeploiementCommandHandler } from '../../../../src/application/commands/support/modifier-date-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from '../../../../src/application/commands/support/supprimer-deploiement.command.handler.db'
 import {
   MauvaiseCommandeError,
@@ -198,6 +199,46 @@ describe('Déploiements : handlers support', () => {
       expect(fonctionnalite).to.deep.equal({
         _isSuccess: false,
         error: new NonTrouveError('Fonctionnalité', 'INCONNUE')
+      })
+    })
+  })
+
+  describe('ModifierDateDeploiementCommandHandler', () => {
+    const handler = new ModifierDateDeploiementCommandHandler()
+
+    it('déplace la date sans toucher au reste', async () => {
+      // Given
+      const deploiement = await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'PILOTE',
+        idFonctionnalite: 'PLAN_D_ACTION',
+        dateActivation: date.toJSDate()
+      })
+
+      // When
+      const result = await handler.handle({
+        id: deploiement.id,
+        dateActivation: date.plus({ days: 20 })
+      })
+
+      // Then
+      expect(result._isSuccess).to.equal(true)
+      const modifie = await DeploiementSqlModel.findByPk(deploiement.id)
+      expect(modifie!.dateActivation.toISOString()).to.equal(
+        date.plus({ days: 20 }).toJSDate().toISOString()
+      )
+      expect(modifie!.idPopulation).to.equal('PILOTE')
+      expect(modifie!.idFonctionnalite).to.equal('PLAN_D_ACTION')
+    })
+
+    it('échoue sur un id inconnu', async () => {
+      // When
+      const result = await handler.handle({ id: 999, dateActivation: date })
+
+      // Then
+      expect(result).to.deep.equal({
+        _isSuccess: false,
+        error: new NonTrouveError('Déploiement', '999')
       })
     })
   })

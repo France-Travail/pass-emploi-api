@@ -8,6 +8,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   SetMetadata,
   UseGuards
 } from '@nestjs/common'
@@ -30,6 +31,7 @@ import {
 import { CreerFonctionnaliteCommandHandler } from '../../application/commands/support/creer-fonctionnalite.command.handler.db'
 import { CreerPopulationCommandHandler } from '../../application/commands/support/creer-population.command.handler.db'
 import { SupprimerConseillersPopulationCommandHandler } from '../../application/commands/support/supprimer-conseillers-population.command.handler.db'
+import { ModifierDateDeploiementCommandHandler } from '../../application/commands/support/modifier-date-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from '../../application/commands/support/supprimer-deploiement.command.handler.db'
 import { SupprimerFonctionnaliteCommandHandler } from '../../application/commands/support/supprimer-fonctionnalite.command.handler.db'
 import { SupprimerPopulationCommandHandler } from '../../application/commands/support/supprimer-population.command.handler.db'
@@ -49,6 +51,7 @@ import {
   CreerDeploiementPayload,
   CreerFonctionnalitePayload,
   CreerPopulationPayload,
+  ModifierDateDeploiementPayload,
   ProfilPopulationPayload,
   SupprimerConseillersPopulationPayload
 } from './validation/support.inputs'
@@ -83,6 +86,7 @@ export class SupportDeploiementsController {
     private readonly ajouterProfilPopulationCommandHandler: AjouterProfilPopulationCommandHandler,
     private readonly supprimerProfilPopulationCommandHandler: SupprimerProfilPopulationCommandHandler,
     private readonly creerDeploiementCommandHandler: CreerDeploiementCommandHandler,
+    private readonly modifierDateDeploiementCommandHandler: ModifierDateDeploiementCommandHandler,
     private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler
   ) {}
 
@@ -251,7 +255,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
     examples: {
       pilote: {
         value: {
-          id: 'PILOTE_1J1S',
+          idPopulation: 'PILOTE_1J1S',
           emailConseillers: ['a.dupont@francetravail.fr', 'b.martin@milo.fr']
         }
       }
@@ -267,7 +271,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
     const result =
       await this.ajouterConseillersPopulationCommandHandler.execute(
         {
-          idPopulation: payload.id,
+          idPopulation: payload.idPopulation,
           emailConseillers: payload.emailConseillers
         },
         Authentification.unUtilisateurSupport()
@@ -287,13 +291,13 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
       quelquesUns: {
         summary: 'Retirer des emails',
         value: {
-          id: 'PILOTE_1J1S',
+          idPopulation: 'PILOTE_1J1S',
           emailConseillers: ['a.dupont@francetravail.fr']
         }
       },
       tous: {
         summary: 'Vider la liste',
-        value: { id: 'PILOTE_1J1S', supprimerTous: true }
+        value: { idPopulation: 'PILOTE_1J1S', supprimerTous: true }
       }
     }
   })
@@ -311,7 +315,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
     const result =
       await this.supprimerConseillersPopulationCommandHandler.execute(
         {
-          idPopulation: payload.id,
+          idPopulation: payload.idPopulation,
           emailConseillers: payload.emailConseillers,
           supprimerTous: payload.supprimerTous
         },
@@ -332,11 +336,15 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
     examples: {
       ftCej: {
         summary: 'Un dispositif d’une structure',
-        value: { id: 'FT_CEJ', structure: 'FRANCE_TRAVAIL', dispositif: 'CEJ' }
+        value: {
+          idPopulation: 'FT_CEJ',
+          structure: 'FRANCE_TRAVAIL',
+          dispositif: 'CEJ'
+        }
       },
       ftTous: {
         summary: 'Toute une structure',
-        value: { id: 'FT_TOUS', structure: 'FRANCE_TRAVAIL' }
+        value: { idPopulation: 'FT_TOUS', structure: 'FRANCE_TRAVAIL' }
       }
     }
   })
@@ -352,7 +360,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   ): Promise<void> {
     const result = await this.ajouterProfilPopulationCommandHandler.execute(
       {
-        idPopulation: payload.id,
+        idPopulation: payload.idPopulation,
         structure: payload.structure,
         dispositif: payload.dispositif
       },
@@ -371,7 +379,11 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
     type: ProfilPopulationPayload,
     examples: {
       ftCej: {
-        value: { id: 'FT_CEJ', structure: 'FRANCE_TRAVAIL', dispositif: 'CEJ' }
+        value: {
+          idPopulation: 'FT_CEJ',
+          structure: 'FRANCE_TRAVAIL',
+          dispositif: 'CEJ'
+        }
       }
     }
   })
@@ -387,7 +399,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   ): Promise<void> {
     const result = await this.supprimerProfilPopulationCommandHandler.execute(
       {
-        idPopulation: payload.id,
+        idPopulation: payload.idPopulation,
         structure: payload.structure,
         dispositif: payload.dispositif
       },
@@ -428,7 +440,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
 - \`nature\` FONCTIONNALITE : \`idFonctionnalite\` requis, le drapeau apparaît dans GET /jeunes/:id/fonctionnalites pour les jeunes de la population ;
 - \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée (422 MIGRATION_PARCOURS_EMPLOI) aux jeunes et conseillers de la population, et \`dateDeMigration\` leur est renvoyée. Une seule migration par population.
 
-Rejouer sur la même population et la même fonctionnalité déplace la date au lieu de créer un doublon. Renvoie l’id du déploiement, à garder pour le supprimer.`
+Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/deploiements/:id) ou le supprimer. Rejouer sur la même population et la même fonctionnalité déplace la date au lieu de créer un doublon.`
   })
   @ApiBody({
     type: CreerDeploiementPayload,
@@ -475,6 +487,40 @@ Rejouer sur la même population et la même fonctionnalité déplace la date au 
         nature: payload.nature,
         idPopulation: payload.idPopulation,
         idFonctionnalite: payload.idFonctionnalite,
+        dateActivation: DateTime.fromISO(payload.dateActivation)
+      },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiOperation({
+    summary: 'Modifie la date d’activation d’un déploiement',
+    description:
+      'L’id est celui renvoyé par POST /support/deploiements, ou lu dans GET /support/populations/:idPopulation. Seule la date change : pour une autre population, nature ou fonctionnalité, supprimer et recréer.'
+  })
+  @ApiParam({ name: 'idDeploiement', example: 12 })
+  @ApiBody({
+    type: ModifierDateDeploiementPayload,
+    examples: {
+      report: { value: { dateActivation: '2026-11-02T00:00:00.000Z' } }
+    }
+  })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Date modifiée' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Le déploiement n’existe pas'
+  })
+  @Put('deploiements/:idDeploiement')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async modifierDateDeploiement(
+    @Param('idDeploiement', ParseIntPipe) idDeploiement: number,
+    @Body() payload: ModifierDateDeploiementPayload
+  ): Promise<void> {
+    const result = await this.modifierDateDeploiementCommandHandler.execute(
+      {
+        id: idDeploiement,
         dateActivation: DateTime.fromISO(payload.dateActivation)
       },
       Authentification.unUtilisateurSupport()
