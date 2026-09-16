@@ -6,7 +6,6 @@ import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   ValidateNested
@@ -79,6 +78,7 @@ export class GenererPlanActionPayload {
   @IsEnum(GoalPayload, { each: true })
   goals: GoalPayload[]
 
+  // Non utilisé par la génération, tracé dans les logs du handler
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
@@ -95,11 +95,6 @@ export class GenererPlanActionPayload {
   @ValidateNested()
   @Type(() => CommunePayload)
   villeRecherche?: CommunePayload
-
-  @ApiPropertyOptional()
-  @IsNumber()
-  @IsOptional()
-  rayonKm?: number
 
   @ApiPropertyOptional({ enum: ObstaclePayload, isArray: true })
   @IsArray()
