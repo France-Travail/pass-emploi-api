@@ -28,7 +28,8 @@ describe('UpdateUtilisateurInviteCommandHandler', () => {
 
   const idGenere = 'id-en-base'
   const idService: IdService = {
-    uuid: () => idGenere
+    uuid: () => idGenere,
+    uuidDepuis: () => idGenere
   }
   const maintenant = uneDate()
   const idUtilisateurAuth = 'un-sub-invite'

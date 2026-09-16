@@ -7,6 +7,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
+import { rootLogger } from '../../utils/logger.module'
 
 @Injectable()
 export class JeuneAuthorizer {
@@ -24,6 +25,20 @@ export class JeuneAuthorizer {
     if (jeune && utilisateur.id === idJeune) {
       return emptySuccess()
     }
+
+    // DEBUG temporaire : pourquoi un jeune présent en base est refusé
+    rootLogger.error(
+      {
+        context: 'JeuneAuthorizer',
+        debug: {
+          idJeune,
+          utilisateurId: utilisateur.id,
+          existe: jeune,
+          idsEgaux: utilisateur.id === idJeune
+        }
+      },
+      'autoriserLeJeune refus'
+    )
 
     return failure(new DroitsInsuffisants('auth_user_not_found'))
   }

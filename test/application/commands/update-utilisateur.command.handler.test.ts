@@ -54,7 +54,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
   let mailBrevoService: StubbedClass<MailBrevoService>
   const uuidGenere = '1'
   const idService: IdService = {
-    uuid: () => uuidGenere
+    uuid: () => uuidGenere,
+    uuidDepuis: () => uuidGenere
   }
   const authentificationFactory: Authentification.Factory =
     new Authentification.Factory(idService)
@@ -1035,6 +1036,37 @@ describe('UpdateUtilisateurCommandHandler', () => {
           // Then
           expect(jeuneRepository.save).not.to.have.been.called()
           expect(authentificationRepository.update).to.have.been.calledOnce()
+          expect(isSuccess(result)).to.equal(true)
+        })
+
+        it('réutilise le jeune trouvé par email au lieu d’en créer un', async () => {
+          // Given
+          const command: UpdateUtilisateurCommand = {
+            idUtilisateurAuth: 'un-sub-ft',
+            email: 'jean.dupont@test.com',
+            type: Authentification.Type.JEUNE,
+            profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+          }
+          const utilisateur = unUtilisateurJeune({
+            profil: unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+          })
+          authentificationRepository.getJeuneByIdAuthentification
+            .withArgs(command.idUtilisateurAuth)
+            .resolves(undefined)
+          authentificationRepository.getJeuneByEmail
+            .withArgs(command.email, Profil.Structure.FRANCE_TRAVAIL)
+            .resolves(utilisateur)
+
+          // When
+          const result = await updateUtilisateurCommandHandler.execute(command)
+
+          // Then
+          expect(jeuneRepository.save).not.to.have.been.called()
+          expect(
+            authentificationRepository.update
+          ).to.have.been.calledWithExactly(
+            match({ idAuthentification: 'un-sub-ft', id: utilisateur.id })
+          )
           expect(isSuccess(result)).to.equal(true)
         })
       })

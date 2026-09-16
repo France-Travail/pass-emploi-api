@@ -215,7 +215,8 @@ export namespace Jeune {
 
     // Jeune créé au login FT Connect sans conseiller (demandeur d'emploi, espace candidat)
     creerNonAccompagne(jeuneACreer: Factory.NonAccompagneACreer): Jeune {
-      const id = this.idService.uuid()
+      // Id déterministe depuis l'id d'authentification : deux logins concurrents convergent vers la même ligne (upsert idempotent)
+      const id = this.idService.uuidDepuis(jeuneACreer.idAuthentification)
       const maintenant = this.dateService.now()
       return {
         id: id,
@@ -258,6 +259,7 @@ export namespace Jeune {
     }
 
     export interface NonAccompagneACreer {
+      idAuthentification: string
       prenom: string
       nom: string
       email?: string
