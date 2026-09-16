@@ -70,12 +70,6 @@ export const configurationSchema = Joi.object({
     clientSecret: Joi.string().required(),
     disabled: Joi.boolean().default(false)
   },
-  planAction: {
-    url: Joi.string().uri().required(),
-    apiKey: Joi.string().required(),
-    timeoutMs: Joi.number().default(15000),
-    modele: Joi.string().optional()
-  },
   jecliqueoupas: {
     url: Joi.string().uri().required(),
     ip: Joi.string().ip({ version: 'ipv4' }).required(),

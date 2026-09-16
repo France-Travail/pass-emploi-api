@@ -23,6 +23,7 @@
     "seed": "sequelize db:seed:undo:all && sequelize db:seed:all",
     "seed:referentiel": "sequelize db:seed:undo --seed 1-referentiel-communes-et-departements.js && sequelize db:seed --seed 1-referentiel-communes-et-departements.js && sequelize db:seed:undo --seed 20220420160540-referentiel-agences.js && sequelize db:seed --seed 20220420160540-referentiel-agences.js && sequelize db:seed:undo --seed 1-referentiel-rome.js && sequelize db:seed --seed 1-referentiel-rome.js",
     "seed:referentiel:metiers": "sequelize db:seed:undo --seed 1-referentiel-rome.js && sequelize db:seed --seed 1-referentiel-rome.js",
+    "generer:referentiel-plan-action": "node scripts/generer-referentiel-plan-action.js",
     "start": "yarn db && nest start",
     "start:local": "yarn db && dotenv -e .environment.local -e .environment nest start",
     "start:staging": "yarn db:redis && scripts/avec-tunnel-staging.sh dotenv -e .environment.staging -e .environment nest start",
