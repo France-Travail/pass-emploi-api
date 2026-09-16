@@ -360,14 +360,16 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 
 ### Base de données
 
-| Commande                | Description                        |
-|-------------------------|------------------------------------|
-| `yarn start:pg:db`      | Démarrer PostgreSQL (Docker)       |
-| `yarn start:redis:db`   | Démarrer Redis (Docker)            |
-| `yarn migration`        | Exécuter migrations Sequelize      |
-| `yarn seed`             | Seed toutes les données            |
-| `yarn seed:referentiel` | Seed référentiels (communes, ROME) |
-| `yarn psql`             | Accès psql via Docker              |
+| Commande                | Description                          |
+|-------------------------|--------------------------------------|
+| `yarn db`               | Démarrer PostgreSQL + Redis (Docker) |
+| `yarn db:pg`            | Démarrer PostgreSQL (Docker)         |
+| `yarn db:redis`         | Démarrer Redis (Docker)              |
+| `yarn db:test`          | Démarrer les DB de test (Docker)     |
+| `yarn migration`        | Exécuter migrations Sequelize        |
+| `yarn seed`             | Seed toutes les données              |
+| `yarn seed:referentiel` | Seed référentiels (communes, ROME)   |
+| `yarn psql`             | Accès psql via Docker                |
 
 ### Tests
 

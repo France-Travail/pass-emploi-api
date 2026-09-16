@@ -158,7 +158,7 @@ yarn test
 Pour lancer les tests avec votre IDE favori, il est nécessaire de lancer d'abord une base de données via le docker compose.
 
 ```bash
-yarn start:db:test
+yarn db:test
 ```
 
 Ensuite on il faut exporter la variable DATABASE_URL.
