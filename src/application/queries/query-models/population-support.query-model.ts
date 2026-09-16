@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
 import { Profil } from '../../../domain/profil'
 
@@ -24,6 +25,38 @@ export class DeploiementQueryModel {
   dateActivation: string
 }
 
+export class CommunicationSupportQueryModel {
+  @ApiProperty()
+  id: number
+
+  @ApiProperty({ enum: Communication.Destinataire })
+  destinataire: Communication.Destinataire
+
+  @ApiProperty({ enum: Communication.Type })
+  type: Communication.Type
+
+  @ApiProperty({ description: 'Début de visibilité, en UTC' })
+  dateDebut: string
+
+  @ApiProperty({ description: 'Fin de visibilité (exclue), en UTC' })
+  dateFin: string
+
+  @ApiProperty()
+  titre: string
+
+  @ApiProperty()
+  contenu: string
+
+  @ApiPropertyOptional()
+  ctaLabel?: string
+
+  @ApiPropertyOptional()
+  ctaUrlAndroid?: string
+
+  @ApiPropertyOptional()
+  ctaUrlIos?: string
+}
+
 export class PopulationSupportQueryModel {
   @ApiProperty()
   id: string
@@ -39,4 +72,7 @@ export class PopulationSupportQueryModel {
 
   @ApiProperty({ type: DeploiementQueryModel, isArray: true })
   deploiements: DeploiementQueryModel[]
+
+  @ApiProperty({ type: CommunicationSupportQueryModel, isArray: true })
+  communications: CommunicationSupportQueryModel[]
 }
