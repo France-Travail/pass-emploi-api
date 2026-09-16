@@ -50,6 +50,7 @@ import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-tes
 import { GetDemarchesConseillerQueryHandler } from '../../../src/application/queries/get-demarches-conseiller.query.handler'
 import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from '../../../src/application/queries/get-impact-changement-dispositif.query.handler.db'
+import { GetCommunicationsConseillerQueryHandler } from '../../../src/application/queries/get-communications-conseiller.query.handler'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -74,6 +75,7 @@ describe('ConseillersController', () => {
   let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
   let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
   let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
+  let getCommunicationsConseillerQueryHandler: StubbedClass<GetCommunicationsConseillerQueryHandler>
 
   let app: INestApplication
 
@@ -115,6 +117,9 @@ describe('ConseillersController', () => {
     verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
     getImpactChangementDispositifQueryHandler = app.get(
       GetImpactChangementDispositifQueryHandler
+    )
+    getCommunicationsConseillerQueryHandler = app.get(
+      GetCommunicationsConseillerQueryHandler
     )
   })
 
@@ -247,6 +252,30 @@ describe('ConseillersController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'get',
       '/conseillers/1/changement-dispositif'
+    )
+  })
+
+  describe('GET /conseillers/:idConseiller/communications', () => {
+    it('renvoie le message informatif du conseiller', async () => {
+      // Given
+      const communications = {
+        messageInformatif: { id: 3, titre: 'Titre', contenu: 'Contenu' }
+      }
+      getCommunicationsConseillerQueryHandler.execute
+        .withArgs({ idConseiller: '1' }, unUtilisateurDecode())
+        .resolves(success(communications))
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/conseillers/1/communications')
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.OK)
+        .expect(communications)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/conseillers/1/communications'
     )
   })
 
