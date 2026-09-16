@@ -124,6 +124,8 @@ import { SupprimerProfilPopulationCommandHandler } from './application/commands/
 import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
 import { ModifierDateDeploiementCommandHandler } from './application/commands/support/modifier-date-deploiement.command.handler.db'
+import { CreerCommunicationCommandHandler } from './application/commands/support/creer-communication.command.handler.db'
+import { SupprimerCommunicationCommandHandler } from './application/commands/support/supprimer-communication.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from './application/queries/get-fonctionnalites-support.query.handler.db'
@@ -949,6 +951,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     CreerDeploiementCommandHandler,
     SupprimerDeploiementCommandHandler,
     ModifierDateDeploiementCommandHandler,
+    CreerCommunicationCommandHandler,
+    SupprimerCommunicationCommandHandler,
     NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
     UpdateActualiteMiloCommandHandler,

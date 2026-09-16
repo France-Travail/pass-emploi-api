@@ -11,7 +11,9 @@ import {
 } from '../../../../src/building-blocks/types/domain-error'
 import { Deploiement } from '../../../../src/domain/deploiement'
 import { Profil } from '../../../../src/domain/profil'
+import { Communication } from '../../../../src/domain/communication'
 import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
+import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
@@ -116,6 +118,31 @@ describe('Populations : handlers support', () => {
           "La population PILOTE est visée par 1 déploiement(s), les supprimer d'abord"
         )
       })
+    })
+
+    it('refuse tant qu’une communication la vise', async () => {
+      // Given
+      await CommunicationSqlModel.create({
+        idPopulation: 'PILOTE',
+        destinataire: Communication.Destinataire.CONSEILLER,
+        type: Communication.Type.IN_APP,
+        dateDebut: new Date('2026-09-30T00:00:00.000Z'),
+        dateFin: new Date('2026-10-15T00:00:00.000Z'),
+        titre: 'Titre',
+        contenu: 'Contenu'
+      })
+
+      // When
+      const result = await handler.handle({ id: 'PILOTE' })
+
+      // Then
+      expect(result).to.deep.equal({
+        _isSuccess: false,
+        error: new MauvaiseCommandeError(
+          "La population PILOTE est visée par 1 communication(s), les supprimer d'abord"
+        )
+      })
+      expect(await PopulationSqlModel.count()).to.equal(1)
     })
 
     it("échoue quand la population n'existe pas", async () => {
