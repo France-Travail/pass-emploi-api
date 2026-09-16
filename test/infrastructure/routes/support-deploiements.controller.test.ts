@@ -12,6 +12,8 @@ import { SupprimerDeploiementCommandHandler } from '../../../src/application/com
 import { SupprimerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/supprimer-fonctionnalite.command.handler.db'
 import { SupprimerPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-population.command.handler.db'
 import { SupprimerProfilPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-profil-population.command.handler.db'
+import { CreerCommunicationCommandHandler } from '../../../src/application/commands/support/creer-communication.command.handler.db'
+import { SupprimerCommunicationCommandHandler } from '../../../src/application/commands/support/supprimer-communication.command.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from '../../../src/application/queries/get-fonctionnalites-support.query.handler.db'
 import { GetPopulationSupportQueryHandler } from '../../../src/application/queries/get-population-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from '../../../src/application/queries/get-populations-support.query.handler.db'
@@ -26,6 +28,7 @@ import {
   success
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
+import { Communication } from '../../../src/domain/communication'
 import { Deploiement } from '../../../src/domain/deploiement'
 import { Profil } from '../../../src/domain/profil'
 import { expect, StubbedClass } from '../../utils'
@@ -46,6 +49,8 @@ describe('SupportDeploiementsController', () => {
   let creerDeploiementCommandHandler: StubbedClass<CreerDeploiementCommandHandler>
   let modifierDateDeploiementCommandHandler: StubbedClass<ModifierDateDeploiementCommandHandler>
   let supprimerDeploiementCommandHandler: StubbedClass<SupprimerDeploiementCommandHandler>
+  let creerCommunicationCommandHandler: StubbedClass<CreerCommunicationCommandHandler>
+  let supprimerCommunicationCommandHandler: StubbedClass<SupprimerCommunicationCommandHandler>
   let app: INestApplication
 
   before(async () => {
@@ -86,6 +91,10 @@ describe('SupportDeploiementsController', () => {
     supprimerDeploiementCommandHandler = app.get(
       SupprimerDeploiementCommandHandler
     )
+    creerCommunicationCommandHandler = app.get(CreerCommunicationCommandHandler)
+    supprimerCommunicationCommandHandler = app.get(
+      SupprimerCommunicationCommandHandler
+    )
   })
 
   describe('GET /support/fonctionnalites', () => {
@@ -120,7 +129,8 @@ describe('SupportDeploiementsController', () => {
               idFonctionnalite: 'PLAN_D_ACTION',
               dateActivation: '2026-10-13T00:00:00.000Z'
             }
-          ]
+          ],
+          communications: []
         }
       ]
       getPopulationsSupportQueryHandler.execute.resolves(success(populations))
@@ -213,7 +223,8 @@ describe('SupportDeploiementsController', () => {
         description: 'Beta testeurs 1J1S',
         conseillers: ['conseiller@email.com'],
         profils: [],
-        deploiements: []
+        deploiements: [],
+        communications: []
       }
       getPopulationSupportQueryHandler.execute
         .withArgs(
@@ -640,6 +651,119 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/deploiements/99')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+  })
+
+  describe('POST /support/communications', () => {
+    const payload = {
+      idPopulation: 'PHASE_C',
+      destinataire: 'CONSEILLER',
+      type: 'IN_APP',
+      dateDebut: '2026-09-30T00:00:00.000Z',
+      dateFin: '2026-10-15T00:00:00.000Z',
+      titre: 'Votre application évolue',
+      contenu: 'Le 15 octobre 2026…'
+    }
+
+    it("renvoie 201 et l'id", async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.CREATED)
+        .expect({ id: 3 })
+
+      expect(
+        creerCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.CONSEILLER,
+          type: Communication.Type.IN_APP,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z'),
+          titre: 'Votre application évolue',
+          contenu: 'Le 15 octobre 2026…',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 quand le destinataire est inconnu', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send({ ...payload, destinataire: 'TOUT_LE_MONDE' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 quand les dates sont incohérentes', async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(
+        failure(new MauvaiseCommandeError('dates'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 404 quand la population n'existe pas", async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Population', 'PHASE_C'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+  })
+
+  describe('DELETE /support/communications/:idCommunication', () => {
+    it('renvoie 204', async () => {
+      // Given
+      supprimerCommunicationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/communications/3')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        supprimerCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { id: 3 },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it("renvoie 404 quand la communication n'existe pas", async () => {
+      // Given
+      supprimerCommunicationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Communication', '3'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/communications/3')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NOT_FOUND)
     })
