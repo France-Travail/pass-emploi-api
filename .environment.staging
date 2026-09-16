@@ -3,3 +3,4 @@
 # Prérequis : scalingo -a pass-emploi-api-staging db-tunnel SCALINGO_POSTGRESQL_URL
 ENVIRONMENT=staging
 DATABASE_URL=${DATABASE_URL_STAGING}
+OIDC_ISSUER_URL=${OIDC_ISSUER_URL_STAGING}
