@@ -42,6 +42,10 @@ import { PopulationProfilSqlModel } from './population-profil.sql-model'
 import { DeploiementSqlModel } from './deploiement.sql-model'
 import { CommunicationSqlModel } from './communication.sql-model'
 import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
+import { PlanActionSqlModel } from './plan-action.sql-model'
+import { PlanActionObjectifSqlModel } from './plan-action-objectif.sql-model'
+import { PlanActionTacheSqlModel } from './plan-action-tache.sql-model'
+import { ReferentielPlanActionTacheSqlModel } from './referentiel-plan-action-tache.sql-model'
 
 export const sqlModels = [
   ConseillerSqlModel,
@@ -81,6 +85,10 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
+  ReferentielPlanActionTacheSqlModel,
+  PlanActionSqlModel,
+  PlanActionObjectifSqlModel,
+  PlanActionTacheSqlModel,
   FonctionnaliteSqlModel,
   PopulationSqlModel,
   PopulationConseillerSqlModel,

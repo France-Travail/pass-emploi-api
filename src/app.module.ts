@@ -145,6 +145,7 @@ import { UpdateUtilisateurCommandHandler } from './application/commands/update-u
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
+import { RecupererPlanActionCommandHandler } from './application/commands/recuperer-plan-action.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPilotageForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-pilotage-for-analytics.job'
@@ -379,6 +380,7 @@ import {
 } from './infrastructure/clients/pole-emploi-partenaire-client.db'
 import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
+import { PlanActionSqlRepository } from './infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -565,6 +567,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ActualiteMilo.Factory,
     DiagorienteClient,
     PlanActionClient,
+    PlanActionSqlRepository,
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard
@@ -809,6 +812,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
+    RecupererPlanActionCommandHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
