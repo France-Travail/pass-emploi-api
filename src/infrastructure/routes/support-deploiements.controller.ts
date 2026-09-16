@@ -74,7 +74,6 @@ const REPONSE_404_POPULATION = {
 
 @Controller('support')
 @UserJourney('support')
-@ApiTags('Support - Fonctionnalités, populations et déploiements')
 @SkipOidcAuth()
 @UseGuards(ApiKeyAuthGuard)
 @ApiSecurity('api_key')
@@ -99,6 +98,7 @@ export class SupportDeploiementsController {
   ) {}
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Liste les fonctionnalités du référentiel',
     description: `Les ids à utiliser dans \`idFonctionnalite\` de POST /support/deploiements.
@@ -121,6 +121,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Crée une fonctionnalité dans le référentiel',
     description:
@@ -147,6 +148,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Supprime une fonctionnalité du référentiel',
     description:
@@ -175,6 +177,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Liste les populations avec leurs cibles et leurs déploiements',
     description:
@@ -191,6 +194,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Crée une population, ou met à jour sa description',
     description: `Une population est un groupe cible nommé. On la remplit ensuite avec des emails de conseillers (POST /support/populations/conseillers) et/ou des profils structure × dispositif (POST /support/populations/profils).
@@ -234,6 +238,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Lit une population avec ses cibles et ses déploiements',
     description:
@@ -254,6 +259,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute des conseillers à une population, par email',
     description:
@@ -289,6 +295,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Retire des conseillers d’une population',
     description:
@@ -334,6 +341,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute un profil structure × dispositif à une population',
     description: `Sans dispositif, le profil couvre toute la structure. Le profil se lit sur chaque utilisateur : un jeune FT / CEJ est ciblé par \`(FRANCE_TRAVAIL, CEJ)\` quel que soit son conseiller.
@@ -379,6 +387,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Retire un profil d’une population',
     description:
@@ -418,6 +427,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Supprime une population',
     description:
@@ -443,6 +453,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Déploiements')
   @ApiOperation({
     summary: 'Crée un déploiement : une population, une nature, une date',
     description: `À partir de \`dateActivation\` (UTC) :
@@ -504,6 +515,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Déploiements')
   @ApiOperation({
     summary: 'Modifie la date d’activation d’un déploiement',
     description:
@@ -562,6 +574,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Communications')
   @ApiOperation({
     summary: 'Crée une communication pour une population',
     description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. Aujourd'hui seul le couple destinataire CONSEILLER × type IN_APP est lu, via GET /conseillers/:id/communications. Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche. Renvoie l'id, à garder pour la supprimer.`
@@ -620,6 +633,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Communications')
   @ApiOperation({
     summary: 'Supprime une communication',
     description:
