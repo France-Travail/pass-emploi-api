@@ -348,7 +348,7 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 |---------------------------------|--------------------------------------------------------------------|
 | `yarn start`                    | API sur le `.environment` tel quel (pg + redis Docker démarrés)    |
 | `yarn start:local`              | API sur la DB Docker + keycloak local (`.environment.local`)       |
-| `yarn start:staging`            | API sur la DB staging via tunnel Scalingo (`.environment.staging`) |
+| `yarn start:staging`            | API sur la DB staging, tunnel Scalingo ouvert automatiquement  |
 | `yarn watch[:local\|:staging]` | Idem avec hot reload + logs pretty                                 |
 | `yarn watch:worker`             | Worker mode avec logs                                              |
 | `yarn start:debug`              | Avec debugger NestJS                                               |

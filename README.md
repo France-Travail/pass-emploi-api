@@ -21,7 +21,7 @@ Le fichier d'env est chiffré et versionné
 |---|---|
 | `yarn start` / `yarn watch` | `.environment` tel quel |
 | `yarn start:local` / `yarn watch:local` | DB Docker + keycloak local |
-| `yarn start:staging` / `yarn watch:staging` | DB staging via tunnel Scalingo (`scalingo -a pass-emploi-api-staging db-tunnel SCALINGO_POSTGRESQL_URL`) |
+| `yarn start:staging` / `yarn watch:staging` | DB staging, tunnel Scalingo ouvert automatiquement (CLI `scalingo` connecté requis) |
 
 Les profils `.environment.local` / `.environment.staging` sont committés et sans secret : ils
 surchargent quelques variables en référençant des valeurs nommées du vault (`${DATABASE_URL_STAGING}`…).

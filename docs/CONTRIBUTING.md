@@ -132,12 +132,12 @@ _Les tests sans base de données sont lancés en parallèle pour aller plus vite
 ```bash
 yarn watch            # .environment tel quel
 yarn watch:local      # DB Docker + keycloak local
-yarn watch:staging    # DB staging (tunnel Scalingo à lancer à côté)
+yarn watch:staging    # DB staging (tunnel Scalingo ouvert automatiquement, réutilisé s'il tourne déjà)
 ```
 
 Les variantes `yarn start[:local|:staging]` font la même chose sans hot reload. Les profils
 `.environment.local` / `.environment.staging` sont committés (sans secret) et référencent des
-variables nommées du vault (`DATABASE_URL_LOCAL`, `DATABASE_URL_STAGING`, `OIDC_ISSUER_URL_LOCAL`).
+variables nommées du vault (`DATABASE_URL_LOCAL`, `DATABASE_URL_STAGING`, `OIDC_ISSUER_URL_LOCAL`, `OIDC_ISSUER_URL_STAGING`).
 Pour ajouter un profil ou une surcharge : nommer la valeur dans le vault, la référencer en `${…}`.
 
 Consultez l'api sur : [http://localhost:5000/documentation](http://localhost:5000/documentation)
