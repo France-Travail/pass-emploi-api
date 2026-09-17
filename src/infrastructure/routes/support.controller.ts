@@ -237,7 +237,7 @@ export class SupportController {
     summary:
       "Modifie l'agence d'un conseiller France Travail (ID en base, et pas ID Authentification)",
     description:
-      "Autorisé uniquement pour le support. Rattache le conseiller à l'agence cible du référentiel France Travail et efface son éventuelle agence saisie manuellement.\n\n" +
+      "Autorisé uniquement pour le support. Rattache le conseiller à l'agence cible du référentiel France Travail.\n\n" +
       "À la différence de POST /support/changer-agence-conseiller-milo, aucune animation collective n'est transférée (les animations collectives sont un usage MILO) et le conseiller n'a pas besoin d'avoir déjà une agence."
   })
   @Post('changer-agence-conseiller-ft')

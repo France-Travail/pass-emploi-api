@@ -275,3 +275,15 @@ export interface DocumentPoleEmploiDto {
     code: string
   }
 }
+
+export interface AgenceFTDto {
+  code: string
+  codeSafir: string
+  libelle: string
+  libelleEtendu: string
+  type: string
+  codeRegionINSEE?: string
+  adressePrincipale: {
+    communeImplantation: string
+  }
+}

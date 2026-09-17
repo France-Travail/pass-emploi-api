@@ -2,12 +2,7 @@ import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Agence } from '../agence'
-import {
-  DISPOSITIFS_FT_ACCOMPAGNES,
-  estFranceTravail,
-  estMilo,
-  Profil
-} from '../profil'
+import { DISPOSITIFS_FT_ACCOMPAGNES, estFranceTravail, Profil } from '../profil'
 import * as _ListeDeDiffusion from './liste-de-diffusion'
 import * as _Conseiller from './conseiller.milo.db'
 
@@ -23,6 +18,7 @@ export interface Conseiller {
   dateVisionnageActus?: DateTime
   agence?: Agence
   notificationsSonores: boolean
+  dateMajAgence?: DateTime
 }
 
 export const ConseillerRepositoryToken = 'ConseillerRepositoryToken'
@@ -72,20 +68,19 @@ export namespace Conseiller {
     conseiller: Conseiller,
     infosDeMiseAJour: InfosDeMiseAJour
   ): Result<Conseiller> {
-    const conseilleMiloARenseigneUneAgenceManuelle =
-      estMilo(conseiller.structure) &&
-      infosDeMiseAJour.agence &&
-      !infosDeMiseAJour.agence.id
+    const conseillerARenseigneUneAgenceManuelle =
+      infosDeMiseAJour.agence && !infosDeMiseAJour.agence.id
 
-    if (conseilleMiloARenseigneUneAgenceManuelle) {
+    if (conseillerARenseigneUneAgenceManuelle) {
       return failure(
         new MauvaiseCommandeError(
-          'Un conseiller MILO doit choisir une Agence du référentiel'
+          'Un conseiller doit choisir une Agence du référentiel'
         )
       )
     }
 
     if (
+      !estFranceTravail(conseiller.structure) &&
       conseiller.agence?.id &&
       infosDeMiseAJour.agence?.id &&
       conseiller.agence.id !== infosDeMiseAJour.agence.id
@@ -124,7 +119,8 @@ export namespace Conseiller {
       dispositif: infosDeMiseAJour.dispositif ?? conseiller.dispositif,
       notificationsSonores: Boolean(infosDeMiseAJour.notificationsSonores),
       dateSignatureCGU: infosDeMiseAJour.dateSignatureCGU,
-      dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus
+      dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus,
+      dateMajAgence: infosDeMiseAJour.dateMajAgence
     })
   }
 
@@ -138,5 +134,6 @@ export namespace Conseiller {
     dateSignatureCGU?: DateTime
     dateVisionnageActus?: DateTime
     notificationsSonores?: boolean
+    dateMajAgence?: DateTime
   }
 }

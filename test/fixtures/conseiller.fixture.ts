@@ -12,7 +12,8 @@ export const unConseiller = (args: Partial<Conseiller> = {}): Conseiller => {
     email: 'nils.tavernier@passemploi.com',
     notificationsSonores: false,
     dateSignatureCGU: DateTime.fromISO('2023-10-03T12:00:00.000Z'),
-    dateVisionnageActus: DateTime.fromISO('2023-10-03T12:00:00.000Z')
+    dateVisionnageActus: DateTime.fromISO('2023-10-03T12:00:00.000Z'),
+    dateMajAgence: undefined
   }
   return { ...defaults, ...args }
 }
