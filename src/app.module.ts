@@ -170,6 +170,7 @@ import { NettoyerPiecesJointesJobHandler } from './application/jobs/nettoyer-pie
 import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-0-heures-declarees.job.handler.db'
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
 import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
+import { NotifierCommunicationsJobHandler } from './application/jobs/notifier-communications.job.handler.db'
 import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
@@ -1016,6 +1017,7 @@ export const JobHandlerProviders = [
   NotifierActualisationJobHandler,
   Notifier0HeuresDeclareesJobHandler,
   NotifierBeneficiairesJobHandler,
+  NotifierCommunicationsJobHandler,
   NotifierNouvelleActualiteMiloJobHandler,
   MajReferentielRomeJobHandler,
   ReconcilierAgencesFTJobHandler,
