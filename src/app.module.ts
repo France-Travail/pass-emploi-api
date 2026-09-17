@@ -372,7 +372,7 @@ import {
   PoleEmploiPartenaireInMemoryClient
 } from './infrastructure/clients/pole-emploi-partenaire-client.db'
 import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
-import { CatalogueSolutionsStatique } from './infrastructure/plan-action/catalogue-solutions-statique'
+import { ReferentielPlanActionStatique } from './infrastructure/clients/plan-action/referentiel-plan-action-statique'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
@@ -561,7 +561,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     PlanAction.Service,
     {
       provide: PlanActionCatalogueRepositoryToken,
-      useClass: CatalogueSolutionsStatique
+      useClass: ReferentielPlanActionStatique
     },
     {
       provide: APP_GUARD,
