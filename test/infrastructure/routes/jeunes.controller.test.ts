@@ -9,12 +9,14 @@ import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/u
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
 import { GetFonctionnalitesJeuneQueryHandler } from 'src/application/queries/get-fonctionnalites-jeune.query.handler'
+import { GetCommunicationsJeuneQueryHandler } from 'src/application/queries/get-communications-jeune.query.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
 import { GetPreferencesJeuneQueryHandler } from 'src/application/queries/get-preferences-jeune.query.handler.db'
 import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/home-jeune-suivi.query-model'
 import { PreferencesJeuneQueryModel } from 'src/application/queries/query-models/jeunes.query-model'
 import { FonctionnalitesJeuneQueryModel } from 'src/application/queries/query-models/fonctionnalites.query-model'
+import { CommunicationsJeuneQueryModel } from 'src/application/queries/query-models/communications.query-model'
 import { ResultatsRechercheMessageQueryModel } from 'src/application/queries/query-models/resultats-recherche-message-query.model'
 import {
   RechercherMessageQuery,
@@ -71,6 +73,7 @@ describe('JeunesController', () => {
   let updateJeunePreferencesCommandHandler: StubbedClass<UpdateJeunePreferencesCommandHandler>
   let getPreferencesJeuneQueryHandler: StubbedClass<GetPreferencesJeuneQueryHandler>
   let getFonctionnalitesJeuneQueryHandler: StubbedClass<GetFonctionnalitesJeuneQueryHandler>
+  let getCommunicationsJeuneQueryHandler: StubbedClass<GetCommunicationsJeuneQueryHandler>
   let rechercherMessageQueryHandler: StubbedClass<RechercherMessageQueryHandler>
   let getComptageJeuneQueryHandler: StubbedClass<GetComptageJeuneQueryHandler>
 
@@ -102,6 +105,9 @@ describe('JeunesController', () => {
     getPreferencesJeuneQueryHandler = app.get(GetPreferencesJeuneQueryHandler)
     getFonctionnalitesJeuneQueryHandler = app.get(
       GetFonctionnalitesJeuneQueryHandler
+    )
+    getCommunicationsJeuneQueryHandler = app.get(
+      GetCommunicationsJeuneQueryHandler
     )
     rechercherMessageQueryHandler = app.get(RechercherMessageQueryHandler)
     getComptageJeuneQueryHandler = app.get(GetComptageJeuneQueryHandler)
@@ -861,6 +867,41 @@ describe('JeunesController', () => {
     })
 
     ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/fonctionnalites')
+  })
+
+  describe('GET /jeunes/:idJeune/communications', () => {
+    const idJeune = '1'
+
+    describe("quand c'est en succès", () => {
+      it('renvoie le message informatif du jeune', async () => {
+        // Given
+        const queryModel: CommunicationsJeuneQueryModel = {
+          messageInformatif: {
+            id: 3,
+            titre: 'Titre',
+            contenu: 'Contenu',
+            cta: {
+              label: 'Télécharger',
+              urlAndroid: 'https://android',
+              urlIos: 'https://ios'
+            }
+          }
+        }
+        getCommunicationsJeuneQueryHandler.execute
+          .withArgs({ idJeune }, unUtilisateurDecode())
+          .resolves(success(queryModel))
+
+        // When
+        await request(app.getHttpServer())
+          .get(`/jeunes/${idJeune}/communications`)
+          .set('authorization', unHeaderAuthorization())
+          // Then
+          .expect(HttpStatus.OK)
+          .expect(queryModel)
+      })
+    })
+
+    ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/communications')
   })
 
   describe('GET /jeunes/:idJeune/messages', () => {

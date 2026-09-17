@@ -26,6 +26,7 @@ import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-
 import { VerifierEmailJeuneQueryHandler } from 'src/application/queries/verifier-email-jeune.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from 'src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetCommunicationsConseillerQueryHandler } from './application/queries/get-communications-conseiller.query.handler'
+import { GetCommunicationsJeuneQueryHandler } from './application/queries/get-communications-jeune.query.handler'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
@@ -963,6 +964,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     ModifierCommunicationCommandHandler,
     SupprimerCommunicationCommandHandler,
     GetCommunicationsConseillerQueryHandler,
+    GetCommunicationsJeuneQueryHandler,
     NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
     UpdateActualiteMiloCommandHandler,
