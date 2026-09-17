@@ -52,6 +52,12 @@ export class AgenceDto extends Model {
   codeDepartement: string
 
   @Column({
+    field: 'code_safir',
+    type: DataType.STRING
+  })
+  codeSafir: string | null
+
+  @Column({
     field: 'structure',
     type: DataType.STRING
   })

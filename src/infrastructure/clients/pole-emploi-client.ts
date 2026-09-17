@@ -28,7 +28,11 @@ import {
   TypeRDVPE
 } from '../repositories/dto/pole-emploi.dto'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
-import { DemarcheIADto, MetierRomeApiDto } from './dto/pole-emploi.dto'
+import {
+  AgenceFTDto,
+  DemarcheIADto,
+  MetierRomeApiDto
+} from './dto/pole-emploi.dto'
 import { ExternalApiClient } from './external-api-client'
 import { handleAxiosError } from './utils/axios-error-handler'
 
@@ -220,6 +224,18 @@ export class PoleEmploiClient extends ExternalApiClient {
       return success(result.data.data ?? [])
     } catch (e) {
       return handleAxiosError(e, 'La récupération des métiers ROME a échoué')
+    }
+  }
+
+  async getAgencesFT(): Promise<Result<AgenceFTDto[]>> {
+    try {
+      const result = await this.getWithRetry<AgenceFTDto[]>(
+        'referentielagences/v1/agences'
+      )
+      if (isFailure(result)) return result
+      return success(result.data.data ?? [])
+    } catch (e) {
+      return handleAxiosError(e, 'La récupération des agences FT a échoué')
     }
   }
 

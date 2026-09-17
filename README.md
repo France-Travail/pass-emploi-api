@@ -20,10 +20,10 @@ Le fichier d'env est chiffré et versionné
 | Commande | Profil |
 |---|---|
 | `yarn start` / `yarn watch` | `.environment` tel quel |
-| `yarn start:local` / `yarn watch:local` | DB Docker + keycloak local |
+| `yarn start:db-local` / `yarn watch:db-local` | DB Docker, connect staging (ligne commentée dans le profil pour un keycloak local) |
 | `yarn start:staging` / `yarn watch:staging` | DB staging, tunnel Scalingo ouvert automatiquement (CLI `scalingo` connecté requis) |
 
-Les profils `.environment.local` / `.environment.staging` sont committés et sans secret : ils
+Les profils `.environment.db-local` / `.environment.staging` sont committés et sans secret : ils
 surchargent quelques variables en référençant des valeurs nommées du vault (`${DATABASE_URL_STAGING}`…).
 Plus besoin de commenter/décommenter des lignes dans `.environment`.
 

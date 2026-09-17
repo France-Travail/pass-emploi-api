@@ -102,11 +102,8 @@ export class ConseillerSqlRepository implements Conseiller.Repository {
         conseiller.dateVerificationMessages ?? undefined,
       dateSignatureCGU: conseiller.dateSignatureCGU?.toJSDate() ?? null,
       dateVisionnageActus: conseiller.dateVisionnageActus?.toJSDate() ?? null,
+      dateMajAgence: conseiller.dateMajAgence?.toJSDate() ?? null,
       idAgence: conseiller.agence?.id ?? null,
-      nomManuelAgence:
-        !conseiller.agence?.id && conseiller.agence?.nom
-          ? conseiller.agence.nom
-          : null,
       notificationsSonores: conseiller.notificationsSonores
     })
   }
@@ -146,16 +143,17 @@ export function fromSqlConseillerToAggregate(
       id: conseillerSqlModel.agence.id,
       nom: conseillerSqlModel.agence.nomAgence
     }
-  } else if (conseillerSqlModel.nomManuelAgence) {
-    conseiller.agence = {
-      id: undefined,
-      nom: conseillerSqlModel.nomManuelAgence
-    }
   }
 
   if (conseillerSqlModel.dateSignatureCGU) {
     conseiller.dateSignatureCGU = DateTime.fromJSDate(
       conseillerSqlModel.dateSignatureCGU
+    )
+  }
+
+  if (conseillerSqlModel.dateMajAgence) {
+    conseiller.dateMajAgence = DateTime.fromJSDate(
+      conseillerSqlModel.dateMajAgence
     )
   }
 

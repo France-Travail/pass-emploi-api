@@ -20,6 +20,7 @@ export function fromSqlToDetailConseillerQueryModel(
     },
     dateSignatureCGU: conseillerSqlModel.dateSignatureCGU?.toISOString(),
     dateVisionnageActus: conseillerSqlModel.dateVisionnageActus?.toISOString(),
+    dateMajAgence: conseillerSqlModel.dateMajAgence?.toISOString(),
     agence: undefined,
     notificationsSonores: conseillerSqlModel.notificationsSonores,
     aDesBeneficiairesARecuperer: aDesBeneficiairesARecuperer
@@ -28,11 +29,6 @@ export function fromSqlToDetailConseillerQueryModel(
     conseiller.agence = {
       id: conseillerSqlModel.agence.id,
       nom: conseillerSqlModel.agence.nomAgence
-    }
-  } else if (conseillerSqlModel.nomManuelAgence) {
-    conseiller.agence = {
-      id: undefined,
-      nom: conseillerSqlModel.nomManuelAgence
     }
   }
   if (conseillerSqlModel.structureMilo) {

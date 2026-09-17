@@ -1796,7 +1796,7 @@
     "nom_agence": "Agence Pôle emploi PORTO VECCHIO",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2A",
     "timezone": "Europe/Paris"
   },
   {
@@ -1804,7 +1804,7 @@
     "nom_agence": "Relai Pôle emploi PROPRIANO",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2A",
     "timezone": "Europe/Paris"
   },
   {
@@ -1812,7 +1812,7 @@
     "nom_agence": "Agence Pôle emploi AJACCIO",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2A",
     "timezone": "Europe/Paris"
   },
   {
@@ -1820,7 +1820,7 @@
     "nom_agence": "Agence Pôle emploi BASTIA",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2B",
     "timezone": "Europe/Paris"
   },
   {
@@ -1828,7 +1828,7 @@
     "nom_agence": "Relai Pôle emploi CORTE",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2B",
     "timezone": "Europe/Paris"
   },
   {
@@ -1836,7 +1836,7 @@
     "nom_agence": "Agence Pôle emploi PLAINE ORIENTALE",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2B",
     "timezone": "Europe/Paris"
   },
   {
@@ -1844,7 +1844,7 @@
     "nom_agence": "Agence Pôle emploi ILE ROUSSE",
     "nom_region": "Corse",
     "structure": "POLE_EMPLOI",
-    "code_departement": 20,
+    "code_departement": "2B",
     "timezone": "Europe/Paris"
   },
   {

@@ -13,6 +13,7 @@ import { MiloClient } from '../../infrastructure/clients/milo/milo-client'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
 import { ConseillerSqlModel } from '../../infrastructure/sequelize/models/conseiller.sql-model'
 import { StructureMiloSqlModel } from '../../infrastructure/sequelize/models/structure-milo.sql-model'
+import { RegionSqlModel } from '../../infrastructure/sequelize/models/region.sql-model'
 import { DateService } from '../../utils/date-service'
 import { buildError } from '../../utils/logger.module'
 import { Conseiller } from './conseiller'
@@ -182,22 +183,12 @@ export namespace ConseillerMilo {
           timezone: structureDansLeDepartementSql.timezone
         }
 
-        const TAILLE_PREFIX_REGION = 20
-        let nomRegionSansPrefixe =
-          structureDansLeDepartementSql.nomRegion?.substring(
-            0,
-            TAILLE_PREFIX_REGION
-          ) === 'Structure régionale '
-            ? structureDansLeDepartementSql.nomRegion?.substring(
-                TAILLE_PREFIX_REGION
-              )
-            : structureDansLeDepartementSql.nomRegion
-
-        if (nomRegionSansPrefixe === 'Grand-Est') {
-          nomRegionSansPrefixe = 'Grand Est'
-        } else if (nomRegionSansPrefixe === "Provence-Alpes-Côte-d'Azur") {
-          nomRegionSansPrefixe = "Provence-Alpes-Côte d'Azur"
-        }
+        const regionSql = structureDansLeDepartementSql.codeRegion
+          ? await RegionSqlModel.findByPk(
+              structureDansLeDepartementSql.codeRegion
+            )
+          : null
+        const nomRegion = regionSql?.libelle ?? null
 
         const TAILLE_PREFIX_DEPARTEMENT = 25
         const nomDepartementSansPrefixe =
@@ -214,11 +205,12 @@ export namespace ConseillerMilo {
           id: structureMilo.code,
           nomAgence: structureMilo.nomOfficiel,
           nomUsuel: structureMilo.nomUsuel,
-          nomRegion: nomRegionSansPrefixe ?? 'INCONNU',
+          nomRegion: nomRegion ?? 'INCONNU',
           codeRegion: structureDansLeDepartementSql.codeRegion,
           nomDepartement: nomDepartementSansPrefixe,
           codeDepartement:
             structureDansLeDepartementSql.codeDepartement ?? '99',
+          codeSafir: null,
           timezone: structureDansLeDepartementSql.timezone,
           structure: Profil.Structure.MILO
         }
