@@ -34,12 +34,27 @@ export namespace Communication {
     contenu: string
   }
 
+  export interface Cta {
+    label: string
+    urlAndroid: string
+    urlIos: string
+  }
+
+  export interface MessageInformatifJeune extends MessageInformatif {
+    cta?: Cta
+  }
+
   export interface Repository {
     // Visible entre date_debut (incluse) et date_fin (exclue) ; s'il y en a plusieurs, celle dont la fin est la plus proche.
     getMessageInformatifDuConseiller(
       idConseiller: string,
       maintenant: DateTime
     ): Promise<MessageInformatif | undefined>
+
+    getMessageInformatifDuJeune(
+      idJeune: string,
+      maintenant: DateTime
+    ): Promise<MessageInformatifJeune | undefined>
   }
 
   export function creer(aCreer: Communication): Result<Communication> {

@@ -31,6 +31,7 @@ import {
 } from 'src/application/commands/transferer-jeunes-conseiller.command.handler'
 import { UpdateJeuneConfigurationApplicationCommandHandler } from 'src/application/commands/update-jeune-configuration-application.command.handler'
 import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/update-preferences-jeune.command.handler'
+import { GetCommunicationsJeuneQueryHandler } from 'src/application/queries/get-communications-jeune.query.handler'
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
 import {
@@ -51,6 +52,7 @@ import {
   PreferencesJeuneQueryModel
 } from 'src/application/queries/query-models/jeunes.query-model'
 import { FonctionnalitesJeuneQueryModel } from 'src/application/queries/query-models/fonctionnalites.query-model'
+import { CommunicationsJeuneQueryModel } from 'src/application/queries/query-models/communications.query-model'
 import { ResultatsRechercheMessageQueryModel } from 'src/application/queries/query-models/resultats-recherche-message-query.model'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
 import { Result } from 'src/building-blocks/types/result'
@@ -96,6 +98,7 @@ export class JeunesController {
     private readonly updateJeunePreferencesCommandHandler: UpdateJeunePreferencesCommandHandler,
     private readonly getPreferencesJeuneQueryHandler: GetPreferencesJeuneQueryHandler,
     private readonly getFonctionnalitesJeuneQueryHandler: GetFonctionnalitesJeuneQueryHandler,
+    private readonly getCommunicationsJeuneQueryHandler: GetCommunicationsJeuneQueryHandler,
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
@@ -428,6 +431,25 @@ export class JeunesController {
     const query: GetFonctionnalitesJeuneQuery = { idJeune }
     const result = await this.getFonctionnalitesJeuneQueryHandler.execute(
       query,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les communications visibles du jeune',
+    description:
+      "Autorisé pour un jeune. Renvoie la communication JEUNE × IN_APP visible maintenant dont la date de fin est la plus proche, s'il y en a une."
+  })
+  @ApiResponse({ type: CommunicationsJeuneQueryModel })
+  @Get(':idJeune/communications')
+  async getCommunicationsJeune(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<CommunicationsJeuneQueryModel> {
+    const result = await this.getCommunicationsJeuneQueryHandler.execute(
+      { idJeune },
       utilisateur
     )
 
