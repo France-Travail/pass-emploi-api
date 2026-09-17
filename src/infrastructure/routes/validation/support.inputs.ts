@@ -333,19 +333,27 @@ export class CreerCommunicationPayload {
   @IsNotEmpty()
   contenu: string
 
-  @ApiPropertyOptional({ example: 'Télécharger Parcours Emploi' })
+  @ApiPropertyOptional({
+    description:
+      'ctaLabel, ctaUrlAndroid et ctaUrlIos sont à renseigner ensemble ou à omettre tous les trois',
+    example: 'Télécharger Parcours Emploi'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   ctaLabel?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Requis si ctaLabel ou ctaUrlIos est renseigné'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   ctaUrlAndroid?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Requis si ctaLabel ou ctaUrlAndroid est renseigné'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
