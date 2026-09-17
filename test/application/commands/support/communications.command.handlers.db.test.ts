@@ -223,7 +223,7 @@ describe('Communications : handlers support', () => {
         titre: 'Courte',
         contenu: 'Court',
         dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: commande.dateFin.toJSDate(),
+        dateFin: null,
         envoyeeLe
       })
 
@@ -235,7 +235,8 @@ describe('Communications : handlers support', () => {
         type: Communication.Type.NOTIFICATION,
         typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
         titre: 'Courte corrigée',
-        contenu: 'Court'
+        contenu: 'Court',
+        dateFin: undefined
       })
 
       // Then
