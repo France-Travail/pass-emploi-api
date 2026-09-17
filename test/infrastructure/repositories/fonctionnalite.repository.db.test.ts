@@ -9,6 +9,12 @@ import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/mo
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
+import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/population-structure-milo.sql-model'
+import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
+import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
@@ -292,6 +298,84 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(brsa).to.deep.equal(['QCM'])
       expect(cej).to.deep.equal(['FT_IA', 'QCM'])
       expect(milo).to.deep.equal(['PLAN_D_ACTION'])
+    })
+
+    it('cible les jeunes d’une structure MiLo par leur propre rattachement', async () => {
+      // Given
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+      await JeuneSqlModel.create(
+        unJeuneDto({
+          id: 'jeuneSm1',
+          idConseiller: 'conseillerMilo',
+          structure: Core.Structure.MILO,
+          idStructureMilo: 'SM1'
+        })
+      )
+      await PopulationSqlModel.create({ id: 'SM1_POP', description: null })
+      await PopulationStructureMiloSqlModel.create({
+        idPopulation: 'SM1_POP',
+        idStructureMilo: 'SM1'
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'SM1_POP',
+        idFonctionnalite: 'QCM',
+        dateActivation: hier
+      })
+
+      // When
+      const dansLaStructure = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneSm1',
+        maintenant
+      )
+      const horsStructure = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneMilo',
+        maintenant
+      )
+
+      // Then
+      expect(dansLaStructure).to.deep.equal(['PLAN_D_ACTION', 'QCM'])
+      expect(horsStructure).to.deep.equal(['PLAN_D_ACTION'])
+    })
+
+    it('cible les jeunes FT par l’agence de leur conseiller de référence', async () => {
+      // Given
+      await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
+      await ConseillerSqlModel.create(
+        unConseillerDto({
+          id: 'conseillerAgence',
+          structure: Core.Structure.POLE_EMPLOI,
+          idAgence: 'AG1',
+          email: 'agence@ft.fr'
+        })
+      )
+      await JeuneSqlModel.create(
+        unJeuneDto({
+          id: 'jeuneAgence',
+          idConseiller: 'conseillerAgence',
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        })
+      )
+      await PopulationSqlModel.create({ id: 'AG1_POP', description: null })
+      await PopulationAgenceFTSqlModel.create({
+        idPopulation: 'AG1_POP',
+        idAgence: 'AG1'
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'AG1_POP',
+        idFonctionnalite: 'QCM',
+        dateActivation: hier
+      })
+
+      // When
+      const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneAgence',
+        maintenant
+      )
+
+      // Then
+      expect(ids).to.deep.equal(['QCM'])
     })
 
     it("renvoie une liste vide quand l'id jeune n'existe pas", async () => {

@@ -7,29 +7,28 @@ import {
   failure,
   Result
 } from '../../../building-blocks/types/result'
-import { Profil } from '../../../domain/profil'
 import {
   Population,
   PopulationRepositoryToken
 } from '../../../domain/population'
-import { PopulationProfilSqlModel } from '../../../infrastructure/sequelize/models/population-profil.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
+import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/structure-milo.sql-model'
 
-export interface AjouterProfilPopulationCommand extends Command {
+export interface StructureMiloPopulationCommand extends Command {
   idPopulation: string
-  structure: Profil.Structure
-  dispositif?: Profil.Dispositif
+  idStructureMilo: string
 }
 
 @Injectable()
-export class AjouterProfilPopulationCommandHandler extends CommandHandler<
-  AjouterProfilPopulationCommand,
+export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler<
+  StructureMiloPopulationCommand,
   void
 > {
   constructor(
     @Inject(PopulationRepositoryToken)
     private readonly populationRepository: Population.Repository
   ) {
-    super('AjouterProfilPopulationCommandHandler')
+    super('AjouterStructureMiloPopulationCommandHandler')
   }
 
   async authorize(): Promise<Result> {
@@ -40,20 +39,23 @@ export class AjouterProfilPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Sans dispositif le profil couvre toute la structure ; un profil déjà présent est laissé tel quel.
-  async handle(command: AjouterProfilPopulationCommand): Promise<Result> {
+  // Une structure MiLo cible ses conseillers et ses jeunes, chacun par son propre rattachement. Doublon ignoré.
+  async handle(command: StructureMiloPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
+    if (!(await StructureMiloSqlModel.findByPk(command.idStructureMilo))) {
+      return failure(
+        new NonTrouveError('Structure MiLo', command.idStructureMilo)
+      )
+    }
 
-    await PopulationProfilSqlModel.findOrCreate({
+    await PopulationStructureMiloSqlModel.findOrCreate({
       where: {
         idPopulation: command.idPopulation,
-        structure: command.structure,
-        dispositif: command.dispositif ?? null
+        idStructureMilo: command.idStructureMilo
       }
     })
-
     return emptySuccess()
   }
 }

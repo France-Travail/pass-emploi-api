@@ -71,6 +71,8 @@ describe('Listes support : populations et fonctionnalités', () => {
                 dispositif: Profil.Dispositif.CEJ
               }
             ],
+            structuresMilo: [],
+            agencesFT: [],
             deploiements: [],
             communications: []
           },
@@ -79,6 +81,8 @@ describe('Listes support : populations et fonctionnalités', () => {
             description: 'Beta testeurs 1J1S',
             conseillers: ['a@ft.fr', 'b@ft.fr'],
             profils: [],
+            structuresMilo: [],
+            agencesFT: [],
             deploiements: [
               {
                 id: deploiement.id,
