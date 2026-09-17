@@ -34,9 +34,12 @@ le back envoie titre et contenu, le front affiche.
 6. **L'id est technique.** `SERIAL`, renvoyé à la création comme pour les
    déploiements. Deux utilisateurs d'une même population reçoivent le même id ;
    le mobile s'en sert pour son état local, le web l'ignore.
-7. **Une population visée par une communication ne se supprime pas.** Même
-   règle que pour les déploiements : supprimer d'abord la communication, pour
-   ne pas faire disparaître un bandeau par accident.
+7. **Supprimer une population emporte ses communications.** Contrairement à un
+   déploiement, une communication n'a pas d'effet au-delà de sa population :
+   la garder orpheline n'aurait pas de sens. FK en `ON DELETE CASCADE`, comme
+   les cibles (emails, profils).
+8. **Les handlers support écrivent en Sequelize direct**, le repository domaine
+   ne sert qu'à la lecture côté client : [ADR-008](ADR-008-handlers-support-sql-direct.md).
 
 ## Modèle
 
@@ -48,7 +51,7 @@ erDiagram
 ```
 
 Contraintes en base : `date_debut < date_fin`, FK `id_population` en
-`ON DELETE RESTRICT`. Pas d'unicité : deux campagnes sur une même population
+`ON DELETE CASCADE`. Pas d'unicité : deux campagnes sur une même population
 sont légitimes (l'une après l'autre, ou l'une pour les jeunes et l'autre pour
 les conseillers).
 
@@ -60,10 +63,11 @@ Sous `X-API-KEY` support, dans le même groupe Swagger que les populations.
 
 | Route | Corps | Retour |
 |---|---|---|
-| `POST /support/communications` | `{ idPopulation, destinataire, type, dateDebut, dateFin, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos? }` | 201 `{ id }`. 404 population inconnue, 400 si `dateDebut >= dateFin`. Pas d'upsert. |
+| `POST /support/communications` | `{ idPopulation, destinataire, type, dateDebut, dateFin, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos? }` | 201 `{ id }`. 404 population inconnue, 400 si `dateDebut >= dateFin` ou date invalide. Pas d'upsert. |
+| `PATCH /support/communications/:id` | mêmes champs, tous optionnels | 204. Seuls les champs envoyés changent, mêmes règles qu'à la création. 404 communication ou population inconnue, 400 dates. |
 | `DELETE /support/communications/:id` | | 204. 404 sinon. |
 | `GET /support/populations/:id` | | ajoute `communications: [{ id, destinataire, type, dateDebut, dateFin, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos? }]`. |
-| `DELETE /support/populations/:id` | | 400 si une communication la vise (en plus des déploiements). |
+| `DELETE /support/populations/:id` | | supprime aussi ses communications (toujours 400 si un déploiement la vise). |
 
 ### Clients
 
@@ -117,5 +121,5 @@ tels quels. Rien à faire côté mobile.
 * [ADR-006](ADR-006-deploiements-fonctionnalites-migrations.md) : populations
   et déploiements, règles d'appartenance.
 * `src/domain/communication.ts`,
-  `src/infrastructure/repositories/communication-sql.repository.db.ts`,
+  `src/infrastructure/repositories/communication.repository.db.ts`,
   `src/infrastructure/repositories/sql-helpers.ts` (appartenance).
