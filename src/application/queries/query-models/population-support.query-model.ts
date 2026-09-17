@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
+import { Notification } from '../../../domain/notification/notification'
 import { Profil } from '../../../domain/profil'
 
 export class ProfilPopulationQueryModel {
@@ -55,6 +56,15 @@ export class CommunicationSupportQueryModel {
 
   @ApiPropertyOptional()
   ctaUrlIos?: string
+
+  @ApiPropertyOptional({ enum: Notification.TypeNotifManuelle })
+  typeNotification?: Notification.Type
+
+  @ApiPropertyOptional({
+    description:
+      'Date d’envoi du push par le cron NOTIFIER_COMMUNICATIONS, en UTC. Absent pour IN_APP, ou pour une NOTIFICATION pas encore envoyée.'
+  })
+  envoyeeLe?: string
 }
 
 export class PopulationSupportQueryModel {

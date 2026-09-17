@@ -30,6 +30,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Communication } from '../../../src/domain/communication'
+import { Notification } from '../../../src/domain/notification/notification'
 import { Deploiement } from '../../../src/domain/deploiement'
 import { Profil } from '../../../src/domain/profil'
 import { expect, StubbedClass } from '../../utils'
@@ -697,7 +698,8 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Le 15 octobre 2026…',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -739,6 +741,45 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NOT_FOUND)
     })
+
+    it('transmet typeNotification pour une communication NOTIFICATION', async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
+      const payloadNotification = {
+        ...payload,
+        destinataire: 'JEUNE',
+        type: 'NOTIFICATION',
+        titre: 'Courte',
+        contenu: 'Court',
+        typeNotification: 'MIGRATION_PARCOURS_EMPLOI'
+      }
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payloadNotification)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        creerCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.JEUNE,
+          type: Communication.Type.NOTIFICATION,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z'),
+          titre: 'Courte',
+          contenu: 'Court',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined,
+          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
   })
 
   describe('PUT /support/communications/:idCommunication', () => {
@@ -777,7 +818,8 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Contenu corrigé',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined
         },
         Authentification.unUtilisateurSupport()
       )

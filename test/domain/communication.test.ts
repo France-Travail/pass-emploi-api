@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../src/building-blocks/types/domain-error'
 import { isFailure, isSuccess } from '../../src/building-blocks/types/result'
 import { Communication } from '../../src/domain/communication'
+import { Notification } from '../../src/domain/notification/notification'
 import { expect } from '../utils'
 
 describe('Communication', () => {
@@ -104,6 +105,107 @@ describe('Communication', () => {
         ...aCreer,
         ctaLabel: 'Télécharger l’application',
         ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    const aCreerNotification: Communication = {
+      ...aCreer,
+      destinataire: Communication.Destinataire.JEUNE,
+      type: Communication.Type.NOTIFICATION,
+      typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      titre: 'Courte',
+      contenu: 'Court'
+    }
+
+    it('crée une communication NOTIFICATION valide', () => {
+      // When
+      const result = Communication.creer(aCreerNotification)
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse une communication NOTIFICATION destinée aux conseillers', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        destinataire: Communication.Destinataire.CONSEILLER
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION sans typeNotification', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        typeNotification: undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec un titre de plus de 50 caractères', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        titre: 'x'.repeat(51)
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec un contenu de plus de 150 caractères', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        contenu: 'x'.repeat(151)
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication IN_APP avec un typeNotification', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI
       })
 
       // Then

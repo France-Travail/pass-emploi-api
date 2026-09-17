@@ -11,6 +11,7 @@ import {
   isSuccess
 } from '../../../../src/building-blocks/types/result'
 import { Communication } from '../../../../src/domain/communication'
+import { Notification } from '../../../../src/domain/notification/notification'
 import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -198,6 +199,83 @@ describe('Communications : handlers support', () => {
       expect(isFailure(result)).to.equal(true)
       if (isFailure(result)) {
         expect(result.error).to.be.an.instanceOf(NonTrouveError)
+      }
+    })
+
+    it("ne touche pas à envoyeeLe : le remplacement n'est pas un nouvel envoi", async () => {
+      // Given
+      const envoyeeLe = new Date('2026-10-01T09:00:00.000Z')
+      const communication = await CommunicationSqlModel.create({
+        ...commande,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+        titre: 'Courte',
+        contenu: 'Court',
+        dateDebut: commande.dateDebut.toJSDate(),
+        dateFin: commande.dateFin.toJSDate(),
+        envoyeeLe
+      })
+
+      // When
+      const result = await handler.handle({
+        ...commande,
+        id: communication.id,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+        titre: 'Courte corrigée',
+        contenu: 'Court'
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communicationModifiee = await CommunicationSqlModel.findByPk(
+        communication.id
+      )
+      expect(communicationModifiee!.envoyeeLe).to.deep.equal(envoyeeLe)
+    })
+  })
+
+  describe('CreerCommunicationCommandHandler : communication NOTIFICATION', () => {
+    const handler = new CreerCommunicationCommandHandler(
+      new PopulationSqlRepository(getDatabase().sequelize)
+    )
+
+    it('crée la communication avec son typeNotification', async () => {
+      // When
+      const result = await handler.handle({
+        ...commande,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+        titre: 'Courte',
+        contenu: 'Court'
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communication = await CommunicationSqlModel.findOne()
+      expect(communication!.typeNotification).to.equal(
+        Notification.Type.MIGRATION_PARCOURS_EMPLOI
+      )
+      expect(communication!.envoyeeLe).to.be.null()
+    })
+
+    it('refuse une communication NOTIFICATION sans typeNotification', async () => {
+      // When
+      const result = await handler.handle({
+        ...commande,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        titre: 'Courte',
+        contenu: 'Court'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
       }
     })
   })

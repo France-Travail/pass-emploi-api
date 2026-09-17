@@ -299,7 +299,7 @@ export class CreerCommunicationPayload {
   @ApiProperty({
     enum: Communication.Type,
     description:
-      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, pas encore envoyé.',
+      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : envoyée en push aux jeunes ciblés (destinataire JEUNE uniquement, typeNotification requis), une seule fois, au premier passage du cron quotidien après dateDebut.',
     example: 'IN_APP'
   })
   @IsEnum(Communication.Type)
@@ -358,6 +358,16 @@ export class CreerCommunicationPayload {
   @IsString()
   @IsNotEmpty()
   ctaUrlIos?: string
+
+  @ApiPropertyOptional({
+    enum: Notification.TypeNotifManuelle,
+    description:
+      'Requis et interdit à CENTRE_DE_NOTIFS_UNIQUEMENT pour une communication NOTIFICATION, interdit pour IN_APP. Pilote la page ouverte au clic sur la notification.',
+    example: 'MIGRATION_PARCOURS_EMPLOI'
+  })
+  @IsOptional()
+  @IsEnum(Notification.TypeNotifManuelle)
+  typeNotification?: Notification.Type
 }
 
 export class ListerJobsQueryParams {

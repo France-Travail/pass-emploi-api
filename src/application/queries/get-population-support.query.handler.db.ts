@@ -101,7 +101,11 @@ export function toPopulationSupportQueryModel(
       contenu: co.contenu,
       ctaLabel: co.ctaLabel ?? undefined,
       ctaUrlAndroid: co.ctaUrlAndroid ?? undefined,
-      ctaUrlIos: co.ctaUrlIos ?? undefined
+      ctaUrlIos: co.ctaUrlIos ?? undefined,
+      typeNotification: co.typeNotification ?? undefined,
+      envoyeeLe: co.envoyeeLe
+        ? DateTime.fromJSDate(co.envoyeeLe).toUTC().toISO()!
+        : undefined
     }))
   }
 }

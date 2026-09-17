@@ -629,7 +629,8 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,
         ctaUrlAndroid: payload.ctaUrlAndroid,
-        ctaUrlIos: payload.ctaUrlIos
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification
       },
       Authentification.unUtilisateurSupport()
     )
@@ -690,7 +691,8 @@ Pratique : copier une communication depuis GET /support/populations/:idPopulatio
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,
         ctaUrlAndroid: payload.ctaUrlAndroid,
-        ctaUrlIos: payload.ctaUrlIos
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification
       },
       Authentification.unUtilisateurSupport()
     )

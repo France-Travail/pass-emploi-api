@@ -1,8 +1,14 @@
 import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../building-blocks/types/domain-error'
 import { failure, Result, success } from '../building-blocks/types/result'
+import { Notification } from './notification/notification'
 
 export const CommunicationRepositoryToken = 'CommunicationRepositoryToken'
+
+// Limites de NotifierBeneficiairesPayload : le contenu d'une communication NOTIFICATION
+// devient le titre et le corps de la notification push.
+const TITRE_NOTIFICATION_MAX = 50
+const CONTENU_NOTIFICATION_MAX = 150
 
 export interface Communication {
   idPopulation: string
@@ -15,6 +21,7 @@ export interface Communication {
   ctaLabel?: string
   ctaUrlAndroid?: string
   ctaUrlIos?: string
+  typeNotification?: Notification.Type
 }
 
 export namespace Communication {
@@ -76,6 +83,52 @@ export namespace Communication {
       return failure(
         new MauvaiseCommandeError(
           'ctaLabel, ctaUrlAndroid et ctaUrlIos doivent être renseignés ensemble ou absents ensemble'
+        )
+      )
+    }
+    if (aCreer.type === Type.NOTIFICATION) {
+      if (aCreer.destinataire !== Destinataire.JEUNE) {
+        return failure(
+          new MauvaiseCommandeError(
+            'Une communication NOTIFICATION ne peut cibler que les JEUNE'
+          )
+        )
+      }
+      if (!aCreer.typeNotification) {
+        return failure(
+          new MauvaiseCommandeError(
+            'typeNotification est requis pour une communication NOTIFICATION'
+          )
+        )
+      }
+      if (
+        aCreer.typeNotification ===
+        Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+      ) {
+        return failure(
+          new MauvaiseCommandeError(
+            'typeNotification ne peut pas valoir CENTRE_DE_NOTIFS_UNIQUEMENT pour une communication envoyée en push'
+          )
+        )
+      }
+      if (aCreer.titre.length > TITRE_NOTIFICATION_MAX) {
+        return failure(
+          new MauvaiseCommandeError(
+            `Le titre d'une communication NOTIFICATION est limité à ${TITRE_NOTIFICATION_MAX} caractères`
+          )
+        )
+      }
+      if (aCreer.contenu.length > CONTENU_NOTIFICATION_MAX) {
+        return failure(
+          new MauvaiseCommandeError(
+            `Le contenu d'une communication NOTIFICATION est limité à ${CONTENU_NOTIFICATION_MAX} caractères`
+          )
+        )
+      }
+    } else if (aCreer.typeNotification) {
+      return failure(
+        new MauvaiseCommandeError(
+          'typeNotification est réservé aux communications NOTIFICATION'
         )
       )
     }

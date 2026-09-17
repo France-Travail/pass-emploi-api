@@ -8,6 +8,7 @@ import {
   Table
 } from 'sequelize-typescript'
 import { Communication } from '../../../domain/communication'
+import { Notification } from '../../../domain/notification/notification'
 import { PopulationSqlModel } from './population.sql-model'
 
 @Table({ timestamps: false, tableName: 'communication' })
@@ -47,4 +48,10 @@ export class CommunicationSqlModel extends Model {
 
   @Column({ field: 'cta_url_ios', type: DataType.STRING })
   ctaUrlIos: string | null
+
+  @Column({ field: 'type_notification', type: DataType.STRING })
+  typeNotification: Notification.Type | null
+
+  @Column({ field: 'envoyee_le', type: DataType.DATE })
+  envoyeeLe: Date | null
 }
