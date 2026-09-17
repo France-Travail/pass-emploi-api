@@ -1,8 +1,8 @@
-// Référentiel « services et solutions » embarqué au build (aucun appel
-// externe au runtime). GÉNÉRÉ par scripts/generer-referentiel-plan-action.js
-// depuis apps/api/data/solutions.json du POC bayesimpact/1jeune-des-solutions,
-// lui-même synchronisé depuis le back office Grist. NE PAS ÉDITER À LA MAIN.
-// L'ordre des lignes est l'ordre du référentiel, servi tel quel aux jeunes.
+// Référentiel « services et solutions » embarqué au build, copie provisoire
+// de apps/api/data/solutions.json du POC bayesimpact/1jeune-des-solutions
+// (sync Grist du 2026-09-16), réduite aux colonnes utilisées. Sera remplacé
+// par un référentiel en base. L'ordre des lignes est l'ordre du référentiel,
+// servi tel quel aux jeunes.
 import { PlanAction } from '../../domain/plan-action'
 
 export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
