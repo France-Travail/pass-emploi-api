@@ -66,31 +66,6 @@ describe('ModifierAgenceFTConseillerCommandHandler', () => {
       expect(conseillerSql?.idAgence).to.equal('agence-ft-2')
     })
 
-    it("efface l'agence saisie manuellement du conseiller sans agence référencée", async () => {
-      // Given
-      await ConseillerSqlModel.creer(
-        unConseillerDto({
-          id: 'conseiller-ft',
-          structure: Core.Structure.POLE_EMPLOI,
-          idAgence: null,
-          nomManuelAgence: 'Agence saisie à la main'
-        })
-      )
-      const command: ModifierAgenceFTConseillerCommand = {
-        idConseiller: 'conseiller-ft',
-        idAgence: 'agence-ft-1'
-      }
-
-      // When
-      const result = await handler.handle(command)
-
-      // Then
-      expect(isSuccess(result)).to.equal(true)
-      const conseillerSql = await ConseillerSqlModel.findByPk('conseiller-ft')
-      expect(conseillerSql?.idAgence).to.equal('agence-ft-1')
-      expect(conseillerSql?.nomManuelAgence).to.equal(null)
-    })
-
     it("renvoie une failure quand le conseiller n'existe pas", async () => {
       // When
       const result = await handler.handle({

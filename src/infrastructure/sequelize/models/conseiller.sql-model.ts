@@ -108,10 +108,10 @@ export class ConseillerDto extends Model {
   dateVisionnageActus: Date | null
 
   @Column({
-    field: 'nom_manuel_agence',
-    type: DataType.STRING
+    field: 'date_maj_agence',
+    type: DataType.DATE
   })
-  nomManuelAgence: string | null
+  dateMajAgence: Date | null
 
   @ForeignKey(() => StructureMiloSqlModel)
   @Column({

@@ -33,38 +33,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         agence: undefined,
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
-        notificationsSonores: false,
-        aDesBeneficiairesARecuperer: false
-      }
-      expect(result).to.deep.equal(expected)
-    })
-  })
-
-  describe('avec agence non présente dans le référentiel', () => {
-    it('renvoie le query model', async () => {
-      // Given
-      const sql = await ConseillerSqlModel.create(
-        unConseillerDto({
-          nomManuelAgence: "nom d'agence"
-        })
-      )
-
-      // When
-      const result = fromSqlToDetailConseillerQueryModel(sql, false)
-
-      // Then
-      const expected: DetailConseillerQueryModel = {
-        id: '1',
-        firstName: 'Nils',
-        lastName: 'Tavernier',
-        email: 'nils.tavernier@passemploi.com',
-        profil: { structure: Profil.Structure.MILO, dispositif: null },
-        agence: {
-          id: undefined,
-          nom: "nom d'agence"
-        },
-        dateSignatureCGU: undefined,
-        dateVisionnageActus: undefined,
+        dateMajAgence: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
@@ -110,6 +79,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         },
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
+        dateMajAgence: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
