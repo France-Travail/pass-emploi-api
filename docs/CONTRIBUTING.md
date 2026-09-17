@@ -64,13 +64,13 @@ npx sequelize-cli migration:generate --name nom-de-la-migration
 - Lancer les migrations
 
 ```bash
-yarn migration
+yarn db:migration
 ```
 
 - Rollback la dernière migration
 
 ```bash
-yarn migration:undo
+yarn db:migration:undo
 ```
 
 ### Création d'un compte jeune de recette <a name="jeune"></a>
