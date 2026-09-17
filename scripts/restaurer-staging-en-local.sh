@@ -22,7 +22,11 @@ DUMP="$(mktemp --suffix=.pgsql)"
 trap 'rm -f "$DUMP"' EXIT
 
 echo "→ pg_dump depuis staging (tunnel)…"
-pg_dump --format c --no-owner --no-privileges --no-comments --schema public \
+# schéma sequelize inclus : sequelize_meta doit refléter exactement les migrations
+# qui ont produit ce schéma, sinon yarn migration (ci-dessous) le rejoue en entier
+# depuis la toute première migration -> échec sur les ALTER TABLE non idempotents.
+pg_dump --format c --no-owner --no-privileges --no-comments \
+  --schema public --schema sequelize \
   --exclude-table spatial_ref_sys \
   --exclude-table cache_api_partenaire \
   --exclude-table suivi_job \
@@ -32,12 +36,14 @@ pg_dump --format c --no-owner --no-privileges --no-comments --schema public \
 echo "  dump OK ($(du -h "$DUMP" | cut -f1))"
 
 echo "→ reset des schémas local (public + sequelize)…"
-# sequelize_meta vit dans le schéma sequelize : sans ce reset, une migration locale
-# lancée avant restauration (ex: branche testée avant de rebasculer sur develop) reste
-# marquée "faite" alors que DROP SCHEMA public a effacé son effet -> le `yarn migration`
-# ci-dessous la re-skip au lieu de la rejouer, et la table manque silencieusement.
+# sequelize_meta (schéma sequelize) doit venir du dump, pas survivre tel quel :
+# sinon une migration locale lancée avant restauration (branche testée avant de
+# rebasculer sur develop) reste marquée "faite" après le DROP SCHEMA public qui a
+# effacé son effet -> le `yarn migration` ci-dessous la re-skip au lieu de la
+# rejouer, et la table manque silencieusement. On le drop ici et le pg_restore
+# plus bas le recrée depuis le dump de staging (schéma inclus ci-dessus).
 psql --quiet --dbname "$TARGET" -c "DROP SCHEMA IF EXISTS sequelize CASCADE;"
-# Les extensions ne sont pas dans le dump (--schema public les exclut) : on les recrée avant les tables qui en dépendent
+# Les extensions ne sont pas dans le dump (schéma public dumpé sans elles) : on les recrée avant les tables qui en dépendent
 psql --quiet --dbname "$TARGET" \
   -c "DROP SCHEMA public CASCADE;" \
   -c "CREATE SCHEMA public;" \

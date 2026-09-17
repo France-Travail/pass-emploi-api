@@ -34,7 +34,7 @@ echo "→ ajout des conseillers"
 EMAILS_JSON=$(printf '"%s",' "${EMAILS[@]}")
 EMAILS_JSON="[${EMAILS_JSON%,}]"
 curl_support POST "/populations/conseillers" "$(cat <<EOF
-{"id": "$ID_POPULATION", "emailConseillers": $EMAILS_JSON}
+{"idPopulation": "$ID_POPULATION", "emailConseillers": $EMAILS_JSON}
 EOF
 )"
 
