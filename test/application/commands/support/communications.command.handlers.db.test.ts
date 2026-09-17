@@ -95,16 +95,18 @@ describe('Communications : handlers support', () => {
       new PopulationSqlRepository(getDatabase().sequelize)
     )
 
-    it('modifie seulement les champs fournis', async () => {
+    it('remplace la communication en entier', async () => {
       // Given
       const communication = await CommunicationSqlModel.create({
         ...commande,
         dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: commande.dateFin.toJSDate()
+        dateFin: commande.dateFin.toJSDate(),
+        ctaLabel: 'Télécharger'
       })
 
       // When
       const result = await handler.handle({
+        ...commande,
         id: communication.id,
         titre: 'Titre corrigé'
       })
@@ -119,9 +121,29 @@ describe('Communications : handlers support', () => {
       expect(communicationModifiee!.idPopulation).to.equal('PHASE_C')
     })
 
+    it('efface un CTA absent du nouveau payload', async () => {
+      // Given
+      const communication = await CommunicationSqlModel.create({
+        ...commande,
+        dateDebut: commande.dateDebut.toJSDate(),
+        dateFin: commande.dateFin.toJSDate(),
+        ctaLabel: 'Télécharger'
+      })
+
+      // When
+      const result = await handler.handle({ ...commande, id: communication.id })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communicationModifiee = await CommunicationSqlModel.findByPk(
+        communication.id
+      )
+      expect(communicationModifiee!.ctaLabel).to.equal(null)
+    })
+
     it("refuse quand la communication n'existe pas", async () => {
       // When
-      const result = await handler.handle({ id: 999, titre: 'Titre corrigé' })
+      const result = await handler.handle({ ...commande, id: 999 })
 
       // Then
       expect(isFailure(result)).to.equal(true)
@@ -140,6 +162,7 @@ describe('Communications : handlers support', () => {
 
       // When
       const result = await handler.handle({
+        ...commande,
         id: communication.id,
         titre: 'Titre corrigé',
         dateFin: commande.dateDebut
@@ -166,6 +189,7 @@ describe('Communications : handlers support', () => {
 
       // When
       const result = await handler.handle({
+        ...commande,
         id: communication.id,
         idPopulation: 'INCONNUE'
       })

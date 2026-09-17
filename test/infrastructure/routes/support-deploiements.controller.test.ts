@@ -13,6 +13,7 @@ import { SupprimerFonctionnaliteCommandHandler } from '../../../src/application/
 import { SupprimerPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-population.command.handler.db'
 import { SupprimerProfilPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-profil-population.command.handler.db'
 import { CreerCommunicationCommandHandler } from '../../../src/application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from '../../../src/application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from '../../../src/application/commands/support/supprimer-communication.command.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from '../../../src/application/queries/get-fonctionnalites-support.query.handler.db'
 import { GetPopulationSupportQueryHandler } from '../../../src/application/queries/get-population-support.query.handler.db'
@@ -50,6 +51,7 @@ describe('SupportDeploiementsController', () => {
   let modifierDateDeploiementCommandHandler: StubbedClass<ModifierDateDeploiementCommandHandler>
   let supprimerDeploiementCommandHandler: StubbedClass<SupprimerDeploiementCommandHandler>
   let creerCommunicationCommandHandler: StubbedClass<CreerCommunicationCommandHandler>
+  let modifierCommunicationCommandHandler: StubbedClass<ModifierCommunicationCommandHandler>
   let supprimerCommunicationCommandHandler: StubbedClass<SupprimerCommunicationCommandHandler>
   let app: INestApplication
 
@@ -92,6 +94,9 @@ describe('SupportDeploiementsController', () => {
       SupprimerDeploiementCommandHandler
     )
     creerCommunicationCommandHandler = app.get(CreerCommunicationCommandHandler)
+    modifierCommunicationCommandHandler = app.get(
+      ModifierCommunicationCommandHandler
+    )
     supprimerCommunicationCommandHandler = app.get(
       SupprimerCommunicationCommandHandler
     )
@@ -731,6 +736,91 @@ describe('SupportDeploiementsController', () => {
       await request(app.getHttpServer())
         .post('/support/communications')
         .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+  })
+
+  describe('PUT /support/communications/:idCommunication', () => {
+    const payload = {
+      idPopulation: 'PHASE_C',
+      destinataire: 'CONSEILLER',
+      type: 'IN_APP',
+      dateDebut: '2026-09-30T00:00:00.000Z',
+      dateFin: '2026-10-15T00:00:00.000Z',
+      titre: 'Titre corrigé',
+      contenu: 'Contenu corrigé'
+    }
+
+    it('renvoie 204', async () => {
+      // Given
+      modifierCommunicationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/communications/3')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        modifierCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          id: 3,
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.CONSEILLER,
+          type: Communication.Type.IN_APP,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z'),
+          titre: 'Titre corrigé',
+          contenu: 'Contenu corrigé',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 quand les dates sont incohérentes', async () => {
+      // Given
+      modifierCommunicationCommandHandler.execute.resolves(
+        failure(new MauvaiseCommandeError('dates'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/communications/3')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 404 quand la communication n'existe pas", async () => {
+      // Given
+      modifierCommunicationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Communication', '3'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/communications/3')
+        .send(payload)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    it("renvoie 404 quand la nouvelle population n'existe pas", async () => {
+      // Given
+      modifierCommunicationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Population', 'INCONNUE'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/communications/3')
+        .send({ ...payload, idPopulation: 'INCONNUE' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NOT_FOUND)
     })
