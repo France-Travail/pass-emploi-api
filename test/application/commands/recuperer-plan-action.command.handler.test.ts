@@ -16,7 +16,7 @@ import {
 } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanActionSqlRepository } from '../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../../src/domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
@@ -156,7 +156,7 @@ describe('RecupererPlanActionCommandHandler', () => {
     it('déclare les profils autorisés', () => {
       // Then
       expect(handler.profilsAutorises).to.deep.equal([
-        ...DISPOSITIFS_ACCOMPAGNES
+        ...TOUT_PROFIL_SAUF_INVITE
       ])
     })
   })

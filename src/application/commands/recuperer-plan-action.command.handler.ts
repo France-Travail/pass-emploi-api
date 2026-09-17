@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { PlanActionConnecteQueryModel } from '../queries/query-models/plan-action.query-model'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { ConfigService } from '@nestjs/config'
@@ -22,7 +22,7 @@ export class RecupererPlanActionCommandHandler extends CommandHandler<
   RecupererPlanActionCommand,
   PlanActionConnecteQueryModel
 > {
-  readonly profilsAutorises = [...DISPOSITIFS_ACCOMPAGNES]
+  readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,

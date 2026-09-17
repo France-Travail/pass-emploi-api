@@ -118,6 +118,22 @@ module.exports = {
         allowNull: true
       }
     })
+
+    await queryInterface.addIndex(
+      'plan_action',
+      ['id_jeune', 'date_creation'],
+      {
+        name: 'idx_plan_action_id_jeune_date_creation'
+      }
+    )
+
+    await queryInterface.addIndex('plan_action_objectif', ['id_plan_action'], {
+      name: 'idx_plan_action_objectif_id_plan_action'
+    })
+
+    await queryInterface.addIndex('plan_action_tache', ['id_objectif'], {
+      name: 'idx_plan_action_tache_id_objectif'
+    })
   },
 
   down: async queryInterface => {
