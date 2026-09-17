@@ -25,6 +25,20 @@ describe('Communication', () => {
       expect(isSuccess(result)).to.equal(true)
     })
 
+    it('refuse une date invalide', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        dateFin: DateTime.fromISO('2026-10-15T24:00:00.000Z')
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
     it('refuse une date de fin antérieure ou égale à la date de début', () => {
       // When
       const result = Communication.creer({
