@@ -5,7 +5,7 @@ import { Communication } from '../../src/domain/communication'
 import { expect } from '../utils'
 
 describe('Communication', () => {
-  const aCreer: Communication.ACreer = {
+  const aCreer: Communication = {
     idPopulation: 'PHASE_C',
     destinataire: Communication.Destinataire.CONSEILLER,
     type: Communication.Type.IN_APP,

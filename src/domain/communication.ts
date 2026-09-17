@@ -28,8 +28,6 @@ export namespace Communication {
     NOTIFICATION = 'NOTIFICATION'
   }
 
-  export type ACreer = Communication
-
   export interface MessageInformatif {
     id: number
     titre: string
@@ -44,7 +42,7 @@ export namespace Communication {
     ): Promise<MessageInformatif | undefined>
   }
 
-  export function creer(aCreer: ACreer): Result<Communication> {
+  export function creer(aCreer: Communication): Result<Communication> {
     if (aCreer.dateDebut >= aCreer.dateFin) {
       return failure(
         new MauvaiseCommandeError(
