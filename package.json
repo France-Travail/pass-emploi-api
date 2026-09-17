@@ -19,6 +19,7 @@
     "lint:fix": "eslint . --fix --cache",
     "prepare": "husky install",
     "migration": "sequelize db:migrate",
+    "migration:undo": "sequelize db:migrate:undo",
     "psql": "docker compose exec apidb psql -h localhost -d passemploidb -U passemploi ",
     "seed": "sequelize db:seed:undo:all && sequelize db:seed:all",
     "seed:referentiel": "sequelize db:seed:undo --seed 1-referentiel-communes-et-departements.js && sequelize db:seed --seed 1-referentiel-communes-et-departements.js && sequelize db:seed:undo --seed 20220420160540-referentiel-agences.js && sequelize db:seed --seed 20220420160540-referentiel-agences.js && sequelize db:seed:undo --seed 1-referentiel-rome.js && sequelize db:seed --seed 1-referentiel-rome.js",
