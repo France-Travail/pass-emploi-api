@@ -52,6 +52,9 @@ export class CommunicationSqlModel extends Model {
   @Column({ field: 'type_notification', type: DataType.STRING })
   typeNotification: Notification.Type | null
 
+  @Column({ field: 'push', type: DataType.BOOLEAN })
+  push: boolean | null
+
   @Column({ field: 'envoyee_le', type: DataType.DATE })
   envoyeeLe: Date | null
 }

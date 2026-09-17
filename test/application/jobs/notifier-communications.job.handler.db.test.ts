@@ -55,6 +55,8 @@ describe('NotifierCommunicationsJobHandler', () => {
       dateDebut: Date
       envoyeeLe: Date | null
       type: Communication.Type
+      typeNotification: Notification.Type | null
+      push: boolean
     }>
   ): Promise<CommunicationSqlModel> {
     return CommunicationSqlModel.create({
@@ -62,6 +64,7 @@ describe('NotifierCommunicationsJobHandler', () => {
       destinataire: Communication.Destinataire.JEUNE,
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      push: true,
       dateDebut: hier,
       dateFin: null,
       titre: 'Courte',
@@ -107,6 +110,58 @@ describe('NotifierCommunicationsJobHandler', () => {
         nbCommunicationsEnfilees: 1,
         idsCommunicationsEnfilees: [communication.id],
         bloqueParUnJobEnCours: false
+      })
+    })
+
+    it("enfile un typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT quand la communication n'en a pas : l'app ne redirige nulle part", async () => {
+      // Given
+      await uneCommunicationNotification({ typeNotification: null })
+
+      // When
+      await handler.handle()
+
+      // Then
+      expect(
+        planificateurRepository.ajouterJob
+      ).to.have.been.calledOnceWithExactly({
+        dateExecution: maintenant.toJSDate(),
+        type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
+          titre: 'Courte',
+          description: 'Court',
+          params: {
+            idPopulation: 'PHASE_C',
+            push: true,
+            minutesEntreLesBatchs: 5
+          }
+        }
+      })
+    })
+
+    it('transmet push tel quel, y compris à false', async () => {
+      // Given
+      await uneCommunicationNotification({ push: false })
+
+      // When
+      await handler.handle()
+
+      // Then
+      expect(
+        planificateurRepository.ajouterJob
+      ).to.have.been.calledOnceWithExactly({
+        dateExecution: maintenant.toJSDate(),
+        type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+        contenu: {
+          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+          titre: 'Courte',
+          description: 'Court',
+          params: {
+            idPopulation: 'PHASE_C',
+            push: false,
+            minutesEntreLesBatchs: 5
+          }
+        }
       })
     })
 

@@ -22,6 +22,7 @@ export interface Communication {
   ctaUrlAndroid?: string
   ctaUrlIos?: string
   typeNotification?: Notification.Type
+  push?: boolean
 }
 
 export namespace Communication {
@@ -104,20 +105,10 @@ export namespace Communication {
           )
         )
       }
-      if (!aCreer.typeNotification) {
+      if (aCreer.push === undefined) {
         return failure(
           new MauvaiseCommandeError(
-            'typeNotification est requis pour une communication NOTIFICATION'
-          )
-        )
-      }
-      if (
-        aCreer.typeNotification ===
-        Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
-      ) {
-        return failure(
-          new MauvaiseCommandeError(
-            'typeNotification ne peut pas valoir CENTRE_DE_NOTIFS_UNIQUEMENT pour une communication envoyée en push'
+            'push est requis pour une communication NOTIFICATION'
           )
         )
       }
@@ -135,12 +126,21 @@ export namespace Communication {
           )
         )
       }
-    } else if (aCreer.typeNotification) {
-      return failure(
-        new MauvaiseCommandeError(
-          'typeNotification est réservé aux communications NOTIFICATION'
+    } else {
+      if (aCreer.typeNotification) {
+        return failure(
+          new MauvaiseCommandeError(
+            'typeNotification est réservé aux communications NOTIFICATION'
+          )
         )
-      )
+      }
+      if (aCreer.push !== undefined) {
+        return failure(
+          new MauvaiseCommandeError(
+            'push est réservé aux communications NOTIFICATION'
+          )
+        )
+      }
     }
     return success({ ...aCreer })
   }

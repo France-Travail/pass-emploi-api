@@ -30,6 +30,7 @@ export interface ModifierCommunicationCommand extends Command {
   ctaUrlAndroid?: string
   ctaUrlIos?: string
   typeNotification?: Notification.Type
+  push?: boolean
 }
 
 // Remplace la communication en entier (PUT) : un champ absent du payload est effacé,
@@ -81,7 +82,8 @@ export class ModifierCommunicationCommandHandler extends CommandHandler<
       ctaLabel: communication.ctaLabel ?? null,
       ctaUrlAndroid: communication.ctaUrlAndroid ?? null,
       ctaUrlIos: communication.ctaUrlIos ?? null,
-      typeNotification: communication.typeNotification ?? null
+      typeNotification: communication.typeNotification ?? null,
+      push: communication.push ?? null
     })
     return emptySuccess()
   }

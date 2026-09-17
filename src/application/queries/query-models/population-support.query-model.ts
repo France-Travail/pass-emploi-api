@@ -63,6 +63,9 @@ export class CommunicationSupportQueryModel {
   @ApiPropertyOptional({ enum: Notification.TypeNotifManuelle })
   typeNotification?: Notification.Type
 
+  @ApiPropertyOptional()
+  push?: boolean
+
   @ApiPropertyOptional({
     description:
       'Date d’envoi du push par le cron NOTIFIER_COMMUNICATIONS, en UTC. Absent pour IN_APP, ou pour une NOTIFICATION pas encore envoyée.'

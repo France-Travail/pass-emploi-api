@@ -10,6 +10,7 @@ import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { CommunicationSqlModel } from '../../infrastructure/sequelize/models/communication.sql-model'
 import { DateService } from '../../utils/date-service'
 import { Communication } from '../../domain/communication'
+import { Notification } from '../../domain/notification/notification'
 
 const MINUTES_ENTRE_LES_BATCHS_DEFAUT = 5
 
@@ -62,12 +63,15 @@ export class NotifierCommunicationsJobHandler extends JobHandler<void> {
         }
 
         const contenu: Planificateur.JobNotifierBeneficiaires = {
-          typeNotification: communication.typeNotification!,
+          // Absent, ce type ne redirige nulle part côté app.
+          typeNotification:
+            communication.typeNotification ??
+            Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT,
           titre: communication.titre,
           description: communication.contenu,
           params: {
             idPopulation: communication.idPopulation,
-            push: true,
+            push: communication.push!,
             minutesEntreLesBatchs: MINUTES_ENTRE_LES_BATCHS_DEFAUT
           }
         }

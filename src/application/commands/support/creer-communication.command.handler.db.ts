@@ -30,6 +30,7 @@ export interface CreerCommunicationCommand extends Command {
   ctaUrlAndroid?: string
   ctaUrlIos?: string
   typeNotification?: Notification.Type
+  push?: boolean
 }
 
 export interface CommunicationCreee {
@@ -80,7 +81,8 @@ export class CreerCommunicationCommandHandler extends CommandHandler<
       ctaLabel: communication.ctaLabel ?? null,
       ctaUrlAndroid: communication.ctaUrlAndroid ?? null,
       ctaUrlIos: communication.ctaUrlIos ?? null,
-      typeNotification: communication.typeNotification ?? null
+      typeNotification: communication.typeNotification ?? null,
+      push: communication.push ?? null
     })
     return success({ id: enregistree.id })
   }

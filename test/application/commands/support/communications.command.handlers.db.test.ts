@@ -220,6 +220,7 @@ describe('Communications : handlers support', () => {
         destinataire: Communication.Destinataire.JEUNE,
         type: Communication.Type.NOTIFICATION,
         typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+        push: true,
         titre: 'Courte',
         contenu: 'Court',
         dateDebut: commande.dateDebut.toJSDate(),
@@ -234,6 +235,7 @@ describe('Communications : handlers support', () => {
         destinataire: Communication.Destinataire.JEUNE,
         type: Communication.Type.NOTIFICATION,
         typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+        push: true,
         titre: 'Courte corrigée',
         contenu: 'Court',
         dateFin: undefined
@@ -258,6 +260,7 @@ describe('Communications : handlers support', () => {
       destinataire: Communication.Destinataire.JEUNE,
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      push: true,
       titre: 'Courte',
       contenu: 'Court',
       dateFin: undefined
@@ -277,11 +280,24 @@ describe('Communications : handlers support', () => {
       expect(communication!.envoyeeLe).to.be.null()
     })
 
-    it('refuse une communication NOTIFICATION sans typeNotification', async () => {
+    it('crée une communication NOTIFICATION sans typeNotification', async () => {
       // When
       const result = await handler.handle({
         ...commandeNotification,
         typeNotification: undefined
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communication = await CommunicationSqlModel.findOne()
+      expect(communication!.typeNotification).to.be.null()
+    })
+
+    it('refuse une communication NOTIFICATION sans push', async () => {
+      // When
+      const result = await handler.handle({
+        ...commandeNotification,
+        push: undefined
       })
 
       // Then

@@ -105,6 +105,7 @@ export function toPopulationSupportQueryModel(
       ctaUrlAndroid: co.ctaUrlAndroid ?? undefined,
       ctaUrlIos: co.ctaUrlIos ?? undefined,
       typeNotification: co.typeNotification ?? undefined,
+      push: co.push ?? undefined,
       envoyeeLe: co.envoyeeLe
         ? DateTime.fromJSDate(co.envoyeeLe).toUTC().toISO()!
         : undefined

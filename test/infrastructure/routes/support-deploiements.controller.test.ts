@@ -699,7 +699,8 @@ describe('SupportDeploiementsController', () => {
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
           ctaUrlIos: undefined,
-          typeNotification: undefined
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -768,13 +769,14 @@ describe('SupportDeploiementsController', () => {
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
           ctaUrlIos: undefined,
-          typeNotification: undefined
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
     })
 
-    it('transmet typeNotification pour une communication NOTIFICATION, sans date de fin', async () => {
+    it('transmet typeNotification et push pour une communication NOTIFICATION, sans date de fin', async () => {
       // Given
       creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
       const { dateFin: _dateFin, ...payloadNotification } = {
@@ -783,7 +785,8 @@ describe('SupportDeploiementsController', () => {
         type: 'NOTIFICATION',
         titre: 'Courte',
         contenu: 'Court',
-        typeNotification: 'MIGRATION_PARCOURS_EMPLOI'
+        typeNotification: 'MIGRATION_PARCOURS_EMPLOI',
+        push: true
       }
 
       // When - Then
@@ -807,7 +810,8 @@ describe('SupportDeploiementsController', () => {
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
           ctaUrlIos: undefined,
-          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI
+          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+          push: true
         },
         Authentification.unUtilisateurSupport()
       )
@@ -851,7 +855,8 @@ describe('SupportDeploiementsController', () => {
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
           ctaUrlIos: undefined,
-          typeNotification: undefined
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -884,7 +889,8 @@ describe('SupportDeploiementsController', () => {
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
           ctaUrlIos: undefined,
-          typeNotification: undefined
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )

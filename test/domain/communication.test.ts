@@ -127,6 +127,7 @@ describe('Communication', () => {
       destinataire: Communication.Destinataire.JEUNE,
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      push: true,
       titre: 'Courte',
       contenu: 'Court',
       dateFin: undefined
@@ -135,6 +136,53 @@ describe('Communication', () => {
     it('crée une communication NOTIFICATION valide', () => {
       // When
       const result = Communication.creer(aCreerNotification)
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('crée une communication NOTIFICATION sans typeNotification : l’app ne redirige nulle part', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        typeNotification: undefined
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('crée une communication NOTIFICATION avec typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse une communication NOTIFICATION sans push', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        push: undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('crée une communication NOTIFICATION avec push à false', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        push: false
+      })
 
       // Then
       expect(isSuccess(result)).to.equal(true)
@@ -159,34 +207,6 @@ describe('Communication', () => {
       const result = Communication.creer({
         ...aCreerNotification,
         destinataire: Communication.Destinataire.CONSEILLER
-      })
-
-      // Then
-      expect(isFailure(result)).to.equal(true)
-      if (isFailure(result)) {
-        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
-      }
-    })
-
-    it('refuse une communication NOTIFICATION sans typeNotification', () => {
-      // When
-      const result = Communication.creer({
-        ...aCreerNotification,
-        typeNotification: undefined
-      })
-
-      // Then
-      expect(isFailure(result)).to.equal(true)
-      if (isFailure(result)) {
-        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
-      }
-    })
-
-    it('refuse une communication NOTIFICATION avec typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT', () => {
-      // When
-      const result = Communication.creer({
-        ...aCreerNotification,
-        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
       })
 
       // Then
@@ -229,6 +249,20 @@ describe('Communication', () => {
       const result = Communication.creer({
         ...aCreer,
         typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication IN_APP avec un push', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        push: true
       })
 
       // Then
