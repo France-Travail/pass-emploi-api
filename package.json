@@ -33,6 +33,8 @@
     "db": "yarn db:pg && yarn db:redis",
     "db:pg": "docker compose up -d apidb && ./src/infrastructure/sequelize/wait-for-db.sh && yarn migration",
     "db:redis": "docker compose up -d redisdb",
+    "db:copy-staging-to-local": "yarn db:pg && scripts/avec-tunnel-staging.sh dotenv -e .environment.staging -e .environment scripts/restaurer-staging-en-local.sh",
+    "seed:support": "scripts/seed-support-local.sh",
     "db:test": "yarn db:pg:test && yarn db:redis:test",
     "db:pg:test": "docker compose up -d pgtestdb && ./test/utils/wait-for-db.sh && DATABASE_URL=postgresql://test:test@localhost:56432/test yarn migration",
     "db:redis:test": "docker compose up -d redistestdb",

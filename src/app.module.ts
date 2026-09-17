@@ -126,6 +126,7 @@ import { CreerDeploiementCommandHandler } from './application/commands/support/c
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
 import { ModifierDateDeploiementCommandHandler } from './application/commands/support/modifier-date-deploiement.command.handler.db'
 import { CreerCommunicationCommandHandler } from './application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from './application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from './application/commands/support/supprimer-communication.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
@@ -959,6 +960,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     SupprimerDeploiementCommandHandler,
     ModifierDateDeploiementCommandHandler,
     CreerCommunicationCommandHandler,
+    ModifierCommunicationCommandHandler,
     SupprimerCommunicationCommandHandler,
     GetCommunicationsConseillerQueryHandler,
     NotifierBeneficiairesCommandHandler,
