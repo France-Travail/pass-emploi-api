@@ -32,14 +32,28 @@ export class PlanActionSqlRepository {
     const maintenant = this.dateService.now().toJSDate()
 
     await this.sequelize.transaction(async transaction => {
-      for (const objectif of plan.objectives) {
-        for (const action of objectif.actions) {
-          await ReferentielPlanActionTacheSqlModel.upsert(
-            referentielFromAction(action),
-            { transaction }
-          )
+      const referentielsParId = new Map(
+        plan.objectives.flatMap(objectif =>
+          objectif.actions.map(action => [
+            action.id,
+            referentielFromAction(action)
+          ])
+        )
+      )
+      await ReferentielPlanActionTacheSqlModel.bulkCreate(
+        Array.from(referentielsParId.values()),
+        {
+          transaction,
+          updateOnDuplicate: [
+            'label',
+            'type',
+            'deeplink',
+            'url',
+            'nomService',
+            'nomDescription'
+          ]
         }
-      }
+      )
 
       await PlanActionSqlModel.create(
         {
