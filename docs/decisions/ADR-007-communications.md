@@ -64,7 +64,7 @@ Sous `X-API-KEY` support, dans le même groupe Swagger que les populations.
 | Route | Corps | Retour |
 |---|---|---|
 | `POST /support/communications` | `{ idPopulation, destinataire, type, dateDebut, dateFin, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos? }` | 201 `{ id }`. 404 population inconnue, 400 si `dateDebut >= dateFin` ou date invalide. Pas d'upsert. |
-| `PATCH /support/communications/:id` | mêmes champs, tous optionnels | 204. Seuls les champs envoyés changent, mêmes règles qu'à la création. 404 communication ou population inconnue, 400 dates. |
+| `PUT /support/communications/:id` | mêmes champs que la création | 204. Remplace tout le contenu (un champ absent, un CTA compris, est effacé). 404 communication ou population inconnue, 400 dates. |
 | `DELETE /support/communications/:id` | | 204. 404 sinon. |
 | `GET /support/populations/:id` | | ajoute `communications: [{ id, destinataire, type, dateDebut, dateFin, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos? }]`. |
 | `DELETE /support/populations/:id` | | supprime aussi ses communications (toujours 400 si un déploiement la vise). |

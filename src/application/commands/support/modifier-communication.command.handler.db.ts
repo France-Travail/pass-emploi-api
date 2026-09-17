@@ -18,18 +18,20 @@ import { CommunicationSqlModel } from '../../../infrastructure/sequelize/models/
 
 export interface ModifierCommunicationCommand extends Command {
   id: number
-  idPopulation?: string
-  destinataire?: Communication.Destinataire
-  type?: Communication.Type
-  dateDebut?: DateTime
-  dateFin?: DateTime
-  titre?: string
-  contenu?: string
+  idPopulation: string
+  destinataire: Communication.Destinataire
+  type: Communication.Type
+  dateDebut: DateTime
+  dateFin: DateTime
+  titre: string
+  contenu: string
   ctaLabel?: string
   ctaUrlAndroid?: string
   ctaUrlIos?: string
 }
 
+// Remplace la communication en entier (PUT) : un champ absent du payload est effacé,
+// pas conservé. Évite d'avoir à distinguer "non envoyé" de "à vider" pour les CTA optionnels.
 @Injectable()
 export class ModifierCommunicationCommandHandler extends CommandHandler<
   ModifierCommunicationCommand,
@@ -56,27 +58,14 @@ export class ModifierCommunicationCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Communication', String(command.id)))
     }
 
-    const communicationResult = Communication.creer({
-      idPopulation: command.idPopulation ?? existante.idPopulation,
-      destinataire: command.destinataire ?? existante.destinataire,
-      type: command.type ?? existante.type,
-      dateDebut: command.dateDebut ?? DateTime.fromJSDate(existante.dateDebut),
-      dateFin: command.dateFin ?? DateTime.fromJSDate(existante.dateFin),
-      titre: command.titre ?? existante.titre,
-      contenu: command.contenu ?? existante.contenu,
-      ctaLabel: command.ctaLabel ?? existante.ctaLabel ?? undefined,
-      ctaUrlAndroid:
-        command.ctaUrlAndroid ?? existante.ctaUrlAndroid ?? undefined,
-      ctaUrlIos: command.ctaUrlIos ?? existante.ctaUrlIos ?? undefined
-    })
+    const communicationResult = Communication.creer(command)
     if (isFailure(communicationResult)) return communicationResult
     const communication = communicationResult.data
 
-    if (
-      command.idPopulation &&
-      !(await this.populationRepository.existe(command.idPopulation))
-    ) {
-      return failure(new NonTrouveError('Population', command.idPopulation))
+    if (!(await this.populationRepository.existe(communication.idPopulation))) {
+      return failure(
+        new NonTrouveError('Population', communication.idPopulation)
+      )
     }
 
     await existante.update({
