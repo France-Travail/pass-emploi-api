@@ -62,17 +62,24 @@ le back envoie titre et contenu, le front affiche.
     `date_fin` reste optionnelle dans l'autre sens : absente, le bandeau est
     visible indéfiniment jusqu'à suppression manuelle (utile pour un message
     permanent, pas lié à une échéance connue à l'avance). `destinataire` est
-    forcément `JEUNE` pour `NOTIFICATION` (pas de push aux conseillers) et
-    `typeNotification` est **obligatoire, sans valeur par défaut** : il pilote
-    le deeplink au clic, et rien ne dit que toutes les communications futures
-    mèneront au même endroit.
+    forcément `JEUNE` pour `NOTIFICATION` (pas de push aux conseillers).
+11. **`push` distingue l'alerte poussée de l'entrée silencieuse au centre de
+    notifications, `typeNotification` reste libre.** `push` (booléen) est
+    **obligatoire pour `NOTIFICATION`, interdit pour `IN_APP`** — même
+    régime que `typeNotification`. `typeNotification` en revanche n'est
+    **plus obligatoire** ni contraint dans ses valeurs (y compris
+    `CENTRE_DE_NOTIFS_UNIQUEMENT`, autorisée) : absent, `NOTIFIER_COMMUNICATIONS`
+    l'envoie au job `NOTIFIER_BENEFICIAIRES` comme
+    `CENTRE_DE_NOTIFS_UNIQUEMENT`, et l'app ne redirige nulle part au clic.
+    Ferme le point ouvert « push sans deeplink » d'une version précédente de
+    cet ADR.
 
 ## Modèle
 
 ```mermaid
 erDiagram
     population { string id PK }
-    communication { int id PK  string id_population FK  string destinataire "JEUNE | CONSEILLER"  string type "IN_APP | NOTIFICATION"  timestamptz date_debut  timestamptz date_fin "nul : indéfinie si IN_APP, toujours nulle si NOTIFICATION"  string titre  text contenu "texte brut, \n autorisé"  string cta_label "nul, les 3 champs cta ensemble ou aucun"  string cta_url_android "nul"  string cta_url_ios "nul"  string type_notification "nul, requis si NOTIFICATION"  timestamptz envoyee_le "nul, posé par NOTIFIER_COMMUNICATIONS" }
+    communication { int id PK  string id_population FK  string destinataire "JEUNE | CONSEILLER"  string type "IN_APP | NOTIFICATION"  timestamptz date_debut  timestamptz date_fin "nul : indéfinie si IN_APP, toujours nulle si NOTIFICATION"  string titre  text contenu "texte brut, \n autorisé"  string cta_label "nul, les 3 champs cta ensemble ou aucun"  string cta_url_android "nul"  string cta_url_ios "nul"  string type_notification "nul, libre"  boolean push "nul, requis si NOTIFICATION, interdit si IN_APP"  timestamptz envoyee_le "nul, posé par NOTIFIER_COMMUNICATIONS" }
     population ||--o{ communication : ""
 ```
 
@@ -81,9 +88,9 @@ Postgres quand `date_fin` est `NULL`, donc pas de migration à part pour la
 rendre optionnelle au-delà d'un `DROP NOT NULL`), FK `id_population` en
 `ON DELETE CASCADE`. Pas d'unicité : deux campagnes sur une même population
 sont légitimes (l'une après l'autre, ou l'une pour les jeunes et l'autre pour
-les conseillers). Les règles sur le CTA, sur `type_notification` et sur la
-présence de `date_fin` (tout-ou-rien, cohérence avec `type`/`destinataire`)
-sont vérifiées dans `Communication.creer`, pas en `CHECK` SQL : elles sont
+les conseillers). Les règles sur le CTA, sur `push` et sur la présence de
+`date_fin` (tout-ou-rien, cohérence avec `type`/`destinataire`) sont
+vérifiées dans `Communication.creer`, pas en `CHECK` SQL : elles sont
 partagées par `POST` et `PUT`, donc plus simples à faire évoluer côté domaine
 qu'en migration.
 
@@ -95,10 +102,10 @@ Sous `X-API-KEY` support, dans le même groupe Swagger que les populations.
 
 | Route | Corps | Retour |
 |---|---|---|
-| `POST /support/communications` | `{ idPopulation, destinataire, type, dateDebut, dateFin?, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos?, typeNotification? }` | 201 `{ id }`. 404 population inconnue, 400 si `dateDebut >= dateFin` (quand fournie), date invalide, CTA partiel, ou règles `NOTIFICATION` (voir décision 10, `dateFin` y compris) non respectées. Pas d'upsert. |
-| `PUT /support/communications/:id` | mêmes champs que la création | 204. Remplace tout le contenu (un champ absent, un CTA ou `dateFin` compris, est effacé) sauf `envoyee_le`, jamais touché par un `PUT`. 404 communication ou population inconnue, 400 dates/CTA/`NOTIFICATION`. |
+| `POST /support/communications` | `{ idPopulation, destinataire, type, dateDebut, dateFin?, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos?, typeNotification?, push? }` | 201 `{ id }`. 404 population inconnue, 400 si `dateDebut >= dateFin` (quand fournie), date invalide, CTA partiel, ou règles `NOTIFICATION` (voir décisions 10-11, `dateFin`/`push` y compris) non respectées. Pas d'upsert. |
+| `PUT /support/communications/:id` | mêmes champs que la création | 204. Remplace tout le contenu (un champ absent, un CTA, `dateFin` ou `push` compris, est effacé) sauf `envoyee_le`, jamais touché par un `PUT`. 404 communication ou population inconnue, 400 dates/CTA/`NOTIFICATION`. |
 | `DELETE /support/communications/:id` | | 204. 404 sinon. |
-| `GET /support/populations/:id` | | ajoute `communications: [{ id, destinataire, type, dateDebut, dateFin?, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos?, typeNotification?, envoyeeLe? }]`. |
+| `GET /support/populations/:id` | | ajoute `communications: [{ id, destinataire, type, dateDebut, dateFin?, titre, contenu, ctaLabel?, ctaUrlAndroid?, ctaUrlIos?, typeNotification?, push?, envoyeeLe? }]`. |
 | `DELETE /support/populations/:id` | | supprime aussi ses communications (toujours 400 si un déploiement la vise). |
 
 ### Clients
@@ -136,7 +143,7 @@ pour ce `type` :
 POST /support/communications      { "idPopulation": "PHASE_C", "destinataire": "JEUNE", "type": "NOTIFICATION",
                                     "dateDebut": "2026-09-30T00:00:00Z",
                                     "titre": "Votre appli évolue", "contenu": "Téléchargez Parcours Emploi",
-                                    "typeNotification": "MIGRATION_PARCOURS_EMPLOI" }
+                                    "typeNotification": "MIGRATION_PARCOURS_EMPLOI", "push": true }
                                                                                                     → 201 { "id": 4 }
 ```
 
@@ -166,11 +173,11 @@ support, route conseiller, bandeau web. Le web abandonne `dateDeMigration` et
 affiche `titre` / `contenu` tels quels.
 
 **Deuxième étape** (PR `feat/communications-beneficiaires`) : côté jeune.
-`GET /jeunes/:id/communications` avec CTA ; colonnes `type_notification` et
-`envoyee_le` ; règles CTA tout-ou-rien, `NOTIFICATION` et `date_fin`
-optionnelle/interdite selon `type` dans `Communication.creer` ; cron
-`NOTIFIER_COMMUNICATIONS`. Reste à faire côté mobile : consommer la route et
-afficher le bandeau + CTA.
+`GET /jeunes/:id/communications` avec CTA ; colonnes `type_notification`,
+`push` et `envoyee_le` ; règles CTA tout-ou-rien, `NOTIFICATION` et
+`date_fin` optionnelle/interdite selon `type` dans `Communication.creer` ;
+cron `NOTIFIER_COMMUNICATIONS`. Reste à faire côté mobile : consommer la
+route et afficher le bandeau + CTA.
 
 Hors de cette ADR :
 
@@ -180,14 +187,6 @@ Hors de cette ADR :
   d'une population (stats + liste conseillers/jeunes avant un envoi) sont des
   sujets transverses au ciblage par population, pas spécifiques aux
   communications — suivis à part.
-
-## Points ouverts
-
-1. **Push sans deeplink, côté mobile.** `typeNotification` est obligatoire
-   (décision 10) : il n'existe pas de valeur « n'ouvre rien » ou « ouvre
-   l'accueil ». Si un besoin de ce type se présente, il faudra soit réutiliser
-   un type existant à cet effet, soit en créer un côté app — pas une décision
-   à prendre côté API seule.
 
 ## Liens
 
