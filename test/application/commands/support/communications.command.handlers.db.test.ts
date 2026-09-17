@@ -89,6 +89,16 @@ describe('Communications : handlers support', () => {
       }
       expect(await CommunicationSqlModel.count()).to.equal(0)
     })
+
+    it('crée une communication IN_APP sans date de fin', async () => {
+      // When
+      const result = await handler.handle({ ...commande, dateFin: undefined })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communication = await CommunicationSqlModel.findOne()
+      expect(communication!.dateFin).to.be.null()
+    })
   })
 
   describe('ModifierCommunicationCommandHandler', () => {
@@ -242,16 +252,19 @@ describe('Communications : handlers support', () => {
       new PopulationSqlRepository(getDatabase().sequelize)
     )
 
-    it('crée la communication avec son typeNotification', async () => {
+    const commandeNotification = {
+      ...commande,
+      destinataire: Communication.Destinataire.JEUNE,
+      type: Communication.Type.NOTIFICATION,
+      typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      titre: 'Courte',
+      contenu: 'Court',
+      dateFin: undefined
+    }
+
+    it('crée la communication avec son typeNotification, sans date de fin', async () => {
       // When
-      const result = await handler.handle({
-        ...commande,
-        destinataire: Communication.Destinataire.JEUNE,
-        type: Communication.Type.NOTIFICATION,
-        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
-        titre: 'Courte',
-        contenu: 'Court'
-      })
+      const result = await handler.handle(commandeNotification)
 
       // Then
       expect(isSuccess(result)).to.equal(true)
@@ -259,17 +272,29 @@ describe('Communications : handlers support', () => {
       expect(communication!.typeNotification).to.equal(
         Notification.Type.MIGRATION_PARCOURS_EMPLOI
       )
+      expect(communication!.dateFin).to.be.null()
       expect(communication!.envoyeeLe).to.be.null()
     })
 
     it('refuse une communication NOTIFICATION sans typeNotification', async () => {
       // When
       const result = await handler.handle({
-        ...commande,
-        destinataire: Communication.Destinataire.JEUNE,
-        type: Communication.Type.NOTIFICATION,
-        titre: 'Courte',
-        contenu: 'Court'
+        ...commandeNotification,
+        typeNotification: undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec une date de fin', async () => {
+      // When
+      const result = await handler.handle({
+        ...commandeNotification,
+        dateFin: commande.dateFin
       })
 
       // Then

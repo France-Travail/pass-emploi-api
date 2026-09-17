@@ -32,7 +32,7 @@ export class CommunicationSqlModel extends Model {
   dateDebut: Date
 
   @Column({ field: 'date_fin', type: DataType.DATE })
-  dateFin: Date
+  dateFin: Date | null
 
   @Column({ field: 'titre', type: DataType.STRING })
   titre: string

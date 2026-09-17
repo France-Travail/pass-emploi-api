@@ -58,6 +58,14 @@ describe('Communication', () => {
       }
     })
 
+    it('crée une communication IN_APP sans date de fin, visible indéfiniment', () => {
+      // When
+      const result = Communication.creer({ ...aCreer, dateFin: undefined })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
     it('crée une communication avec un cta complet', () => {
       // When
       const result = Communication.creer({
@@ -120,7 +128,8 @@ describe('Communication', () => {
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
       titre: 'Courte',
-      contenu: 'Court'
+      contenu: 'Court',
+      dateFin: undefined
     }
 
     it('crée une communication NOTIFICATION valide', () => {
@@ -129,6 +138,20 @@ describe('Communication', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse une communication NOTIFICATION avec une date de fin : une notification envoyée ne peut pas être rappelée', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z')
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
     })
 
     it('refuse une communication NOTIFICATION destinée aux conseillers', () => {

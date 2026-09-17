@@ -31,9 +31,9 @@ export class CommunicationSqlRepository implements Communication.Repository {
         WHERE co.destinataire = :destinataire
           AND co.type = :type
           AND co.date_debut <= :maintenant
-          AND :maintenant < co.date_fin
+          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
           AND ${sqlConseillerDansPopulation('c', 'co.id_population')}
-        ORDER BY co.date_fin ASC
+        ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
       {
@@ -68,9 +68,9 @@ export class CommunicationSqlRepository implements Communication.Repository {
         WHERE co.destinataire = :destinataire
           AND co.type = :type
           AND co.date_debut <= :maintenant
-          AND :maintenant < co.date_fin
+          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
           AND ${sqlJeuneDansPopulation('j', 'c', 'co.id_population')}
-        ORDER BY co.date_fin ASC
+        ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
       {

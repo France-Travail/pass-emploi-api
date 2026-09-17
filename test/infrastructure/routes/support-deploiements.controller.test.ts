@@ -742,10 +742,42 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NOT_FOUND)
     })
 
-    it('transmet typeNotification pour une communication NOTIFICATION', async () => {
+    it('crée une communication IN_APP sans date de fin', async () => {
       // Given
       creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
-      const payloadNotification = {
+      const { dateFin: _dateFin, ...payloadSansDateFin } = payload
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payloadSansDateFin)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        creerCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.CONSEILLER,
+          type: Communication.Type.IN_APP,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: undefined,
+          titre: 'Votre application évolue',
+          contenu: 'Le 15 octobre 2026…',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined,
+          typeNotification: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('transmet typeNotification pour une communication NOTIFICATION, sans date de fin', async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
+      const { dateFin: _dateFin, ...payloadNotification } = {
         ...payload,
         destinataire: 'JEUNE',
         type: 'NOTIFICATION',
@@ -769,7 +801,7 @@ describe('SupportDeploiementsController', () => {
           destinataire: Communication.Destinataire.JEUNE,
           type: Communication.Type.NOTIFICATION,
           dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
-          dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z'),
+          dateFin: undefined,
           titre: 'Courte',
           contenu: 'Court',
           ctaLabel: undefined,
@@ -814,6 +846,39 @@ describe('SupportDeploiementsController', () => {
           type: Communication.Type.IN_APP,
           dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
           dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z'),
+          titre: 'Titre corrigé',
+          contenu: 'Contenu corrigé',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined,
+          typeNotification: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('modifie une communication en retirant sa date de fin', async () => {
+      // Given
+      modifierCommunicationCommandHandler.execute.resolves(emptySuccess())
+      const { dateFin: _dateFin, ...payloadSansDateFin } = payload
+
+      // When - Then
+      await request(app.getHttpServer())
+        .put('/support/communications/3')
+        .send(payloadSansDateFin)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        modifierCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          id: 3,
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.CONSEILLER,
+          type: Communication.Type.IN_APP,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: undefined,
           titre: 'Titre corrigé',
           contenu: 'Contenu corrigé',
           ctaLabel: undefined,

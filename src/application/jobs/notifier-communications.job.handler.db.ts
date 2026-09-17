@@ -46,7 +46,6 @@ export class NotifierCommunicationsJobHandler extends JobHandler<void> {
         where: {
           type: Communication.Type.NOTIFICATION,
           dateDebut: { [Op.lte]: maintenant.toJSDate() },
-          dateFin: { [Op.gt]: maintenant.toJSDate() },
           envoyeeLe: null
         },
         order: [['dateDebut', 'ASC']]

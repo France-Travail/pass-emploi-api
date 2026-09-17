@@ -15,7 +15,7 @@ export interface Communication {
   destinataire: Communication.Destinataire
   type: Communication.Type
   dateDebut: DateTime
-  dateFin: DateTime
+  dateFin?: DateTime
   titre: string
   contenu: string
   ctaLabel?: string
@@ -65,17 +65,20 @@ export namespace Communication {
   }
 
   export function creer(aCreer: Communication): Result<Communication> {
-    if (!aCreer.dateDebut.isValid || !aCreer.dateFin.isValid) {
-      return failure(
-        new MauvaiseCommandeError('Date de début ou de fin invalide')
-      )
+    if (!aCreer.dateDebut.isValid) {
+      return failure(new MauvaiseCommandeError('Date de début invalide'))
     }
-    if (aCreer.dateDebut >= aCreer.dateFin) {
-      return failure(
-        new MauvaiseCommandeError(
-          'La date de début doit précéder la date de fin'
+    if (aCreer.dateFin) {
+      if (!aCreer.dateFin.isValid) {
+        return failure(new MauvaiseCommandeError('Date de fin invalide'))
+      }
+      if (aCreer.dateDebut >= aCreer.dateFin) {
+        return failure(
+          new MauvaiseCommandeError(
+            'La date de début doit précéder la date de fin'
+          )
         )
-      )
+      }
     }
     const champsCta = [aCreer.ctaLabel, aCreer.ctaUrlAndroid, aCreer.ctaUrlIos]
     const nbChampsCtaRenseignes = champsCta.filter(Boolean).length
@@ -91,6 +94,13 @@ export namespace Communication {
         return failure(
           new MauvaiseCommandeError(
             'Une communication NOTIFICATION ne peut cibler que les JEUNE'
+          )
+        )
+      }
+      if (aCreer.dateFin) {
+        return failure(
+          new MauvaiseCommandeError(
+            'dateFin est réservée aux communications IN_APP : une NOTIFICATION envoyée ne peut pas être rappelée'
           )
         )
       }

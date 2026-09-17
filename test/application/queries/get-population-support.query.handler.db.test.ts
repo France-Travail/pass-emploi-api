@@ -104,7 +104,7 @@ describe('GetPopulationSupportQueryHandler', () => {
     )
   })
 
-  it('renvoie typeNotification et envoyeeLe pour une communication NOTIFICATION', async () => {
+  it('renvoie typeNotification et envoyeeLe pour une communication NOTIFICATION, sans dateFin', async () => {
     // Given
     await PopulationSqlModel.create({ id: 'PHASE_C', description: null })
     const envoyeeLe = DateTime.fromISO('2026-10-01T09:00:00.000Z')
@@ -114,7 +114,7 @@ describe('GetPopulationSupportQueryHandler', () => {
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
       dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z').toJSDate(),
-      dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z').toJSDate(),
+      dateFin: null,
       titre: 'Courte',
       contenu: 'Court',
       envoyeeLe: envoyeeLe.toJSDate()
@@ -137,7 +137,7 @@ describe('GetPopulationSupportQueryHandler', () => {
             destinataire: Communication.Destinataire.JEUNE,
             type: Communication.Type.NOTIFICATION,
             dateDebut: '2026-09-30T00:00:00.000Z',
-            dateFin: '2026-10-15T00:00:00.000Z',
+            dateFin: undefined,
             titre: 'Courte',
             contenu: 'Court',
             ctaLabel: undefined,

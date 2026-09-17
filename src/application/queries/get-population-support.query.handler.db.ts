@@ -96,7 +96,9 @@ export function toPopulationSupportQueryModel(
       destinataire: co.destinataire,
       type: co.type,
       dateDebut: DateTime.fromJSDate(co.dateDebut).toUTC().toISO()!,
-      dateFin: DateTime.fromJSDate(co.dateFin).toUTC().toISO()!,
+      dateFin: co.dateFin
+        ? DateTime.fromJSDate(co.dateFin).toUTC().toISO()!
+        : undefined,
       titre: co.titre,
       contenu: co.contenu,
       ctaLabel: co.ctaLabel ?? undefined,

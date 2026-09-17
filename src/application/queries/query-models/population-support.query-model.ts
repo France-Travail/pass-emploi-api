@@ -39,8 +39,11 @@ export class CommunicationSupportQueryModel {
   @ApiProperty({ description: 'Début de visibilité, en UTC' })
   dateDebut: string
 
-  @ApiProperty({ description: 'Fin de visibilité (exclue), en UTC' })
-  dateFin: string
+  @ApiPropertyOptional({
+    description:
+      'Fin de visibilité (exclue), en UTC. Absente = IN_APP visible indéfiniment, ou communication NOTIFICATION (toujours sans dateFin).'
+  })
+  dateFin?: string
 
   @ApiProperty()
   titre: string

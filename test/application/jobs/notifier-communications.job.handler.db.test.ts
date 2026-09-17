@@ -53,7 +53,6 @@ describe('NotifierCommunicationsJobHandler', () => {
   function uneCommunicationNotification(
     surcharge: Partial<{
       dateDebut: Date
-      dateFin: Date
       envoyeeLe: Date | null
       type: Communication.Type
     }>
@@ -64,7 +63,7 @@ describe('NotifierCommunicationsJobHandler', () => {
       type: Communication.Type.NOTIFICATION,
       typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
       dateDebut: hier,
-      dateFin: demain,
+      dateFin: null,
       titre: 'Courte',
       contenu: 'Court',
       envoyeeLe: null,
@@ -122,15 +121,35 @@ describe('NotifierCommunicationsJobHandler', () => {
       expect(planificateurRepository.ajouterJob).not.to.have.been.called()
     })
 
-    it('ignore une communication hors de sa fenêtre de visibilité', async () => {
+    it('ignore une communication dont la date de début est future', async () => {
       // Given
-      await uneCommunicationNotification({ dateDebut: demain, dateFin: demain })
+      await uneCommunicationNotification({ dateDebut: demain })
 
       // When
       await handler.handle()
 
       // Then
       expect(planificateurRepository.ajouterJob).not.to.have.been.called()
+    })
+
+    it("envoie une communication en retard, sans notion de péremption (dateFin n'existe pas pour NOTIFICATION)", async () => {
+      // Given
+      const bienEnRetard = maintenant.minus({ days: 10 }).toJSDate()
+      const communication = await uneCommunicationNotification({
+        dateDebut: bienEnRetard
+      })
+
+      // When
+      await handler.handle()
+
+      // Then
+      expect(planificateurRepository.ajouterJob).to.have.been.calledOnce()
+      const communicationMiseAJour = await CommunicationSqlModel.findByPk(
+        communication.id
+      )
+      expect(communicationMiseAJour!.envoyeeLe).to.deep.equal(
+        maintenant.toJSDate()
+      )
     })
 
     it('ignore une communication IN_APP', async () => {
