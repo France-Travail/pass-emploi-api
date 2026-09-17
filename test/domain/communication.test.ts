@@ -25,11 +25,15 @@ describe('Communication', () => {
       expect(isSuccess(result)).to.equal(true)
     })
 
-    it('refuse une date invalide', () => {
+    it('refuse une date invalide (bien formée pour @IsISO8601, rejetée par le calendrier)', () => {
+      // Given
+      // "31 avril" n'existe pas : @IsISO8601 (regex) l'accepte, Luxon le rejette.
+      const dateFin = DateTime.fromISO('2026-04-31T00:00:00.000Z')
+
       // When
       const result = Communication.creer({
         ...aCreer,
-        dateFin: DateTime.fromISO('2026-10-15T24:00:00.000Z')
+        dateFin
       })
 
       // Then
