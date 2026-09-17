@@ -233,6 +233,42 @@ export class ProfilPopulationPayload {
   dispositif?: Profil.Dispositif
 }
 
+export class StructureMiloPopulationPayload {
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiProperty({
+    description: 'Id de la structure MiLo, voir la table structure_milo',
+    example: '80620S00'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idStructureMilo: string
+}
+
+export class AgenceFTPopulationPayload {
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiProperty({
+    description: 'Id de l’agence France Travail, voir la table agence',
+    example: '75056'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idAgence: string
+}
+
 export class CreerDeploiementPayload {
   @ApiProperty({
     enum: Deploiement.Nature,

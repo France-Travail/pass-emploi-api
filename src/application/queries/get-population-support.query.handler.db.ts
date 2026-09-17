@@ -10,8 +10,10 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { DeploiementSqlModel } from '../../infrastructure/sequelize/models/deploiement.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../infrastructure/sequelize/models/population-agence-ft.sql-model'
 import { PopulationConseillerSqlModel } from '../../infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../infrastructure/sequelize/models/population-profil.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../infrastructure/sequelize/models/population-structure-milo.sql-model'
 import { PopulationSqlModel } from '../../infrastructure/sequelize/models/population.sql-model'
 import { PopulationSupportQueryModel } from './query-models/population-support.query-model'
 
@@ -38,20 +40,31 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
     }
 
     const where = { idPopulation: query.idPopulation }
-    const [conseillers, profils, deploiements] = await Promise.all([
-      PopulationConseillerSqlModel.findAll({
-        where,
-        order: [['emailConseiller', 'ASC']]
-      }),
-      PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
-      DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] })
-    ])
+    const [conseillers, profils, structuresMilo, agences, deploiements] =
+      await Promise.all([
+        PopulationConseillerSqlModel.findAll({
+          where,
+          order: [['emailConseiller', 'ASC']]
+        }),
+        PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
+        PopulationStructureMiloSqlModel.findAll({
+          where,
+          order: [['idStructureMilo', 'ASC']]
+        }),
+        PopulationAgenceFTSqlModel.findAll({
+          where,
+          order: [['idAgence', 'ASC']]
+        }),
+        DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] })
+      ])
 
     return success(
       toPopulationSupportQueryModel(
         population,
         conseillers,
         profils,
+        structuresMilo,
+        agences,
         deploiements
       )
     )
@@ -70,6 +83,8 @@ export function toPopulationSupportQueryModel(
   population: PopulationSqlModel,
   conseillers: PopulationConseillerSqlModel[],
   profils: PopulationProfilSqlModel[],
+  structuresMilo: PopulationStructureMiloSqlModel[],
+  agences: PopulationAgenceFTSqlModel[],
   deploiements: DeploiementSqlModel[]
 ): PopulationSupportQueryModel {
   return {
@@ -80,6 +95,8 @@ export function toPopulationSupportQueryModel(
       structure: p.structure,
       dispositif: p.dispositif ?? undefined
     })),
+    structuresMilo: structuresMilo.map(s => s.idStructureMilo),
+    agencesFT: agences.map(a => a.idAgence),
     deploiements: deploiements.map(d => ({
       id: d.id,
       nature: d.nature,

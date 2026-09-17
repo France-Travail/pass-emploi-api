@@ -14,8 +14,9 @@ ensuite, sans toucher à ce socle.
 1. **Un concept, deux natures.** `deploiement` relie une population, une date
    et une nature. La `nature` vaut `FONCTIONNALITE` ou `MIGRATION` et ne change
    qu'une chose : l'effet à J. C'est la seule énumération du modèle.
-2. **Une population nommée, résolue à la lecture.** Des emails de conseillers
-   et des couples structure × dispositif. Réutilisable entre déploiements. Pas
+2. **Une population nommée, résolue à la lecture.** Des emails de conseillers,
+   des couples structure × dispositif, des structures MiLo et des agences FT.
+   Réutilisable entre déploiements. Pas
    de tag copié sur les utilisateurs : structure et dispositif y sont déjà, une
    copie dériverait.
 3. **`fonctionnalite` reste un référentiel de drapeaux.** Jamais de migration
@@ -38,9 +39,15 @@ erDiagram
     population { string id PK  string description }
     population_conseiller { string id_population PK,FK  string email_conseiller PK }
     population_profil { int id PK  string id_population FK  string structure  string dispositif "nul = toute la structure" }
+    population_structure_milo { string id_population PK,FK  string id_structure_milo PK,FK }
+    population_agence_ft { string id_population PK,FK  string id_agence PK,FK }
     deploiement { int id PK  string nature "FONCTIONNALITE | MIGRATION"  string id_population FK  string id_fonctionnalite FK "requis si FONCTIONNALITE, nul sinon"  timestamptz date_activation "J" }
     population ||--o{ population_conseiller : ""
     population ||--o{ population_profil : ""
+    population ||--o{ population_structure_milo : ""
+    population ||--o{ population_agence_ft : ""
+    structure_milo ||--o{ population_structure_milo : ""
+    agence ||--o{ population_agence_ft : ""
     population ||--o{ deploiement : ""
     fonctionnalite ||--o{ deploiement : ""
 ```
@@ -55,10 +62,12 @@ supprime pas.
 ## Règles
 
 **Appartenance.** Un conseiller est dans la population s'il est cité par
-email, ou si son propre profil (structure, dispositif) correspond à un profil
-de la population. Un jeune est dans la population si son conseiller de
-référence est cité par email, ou si son propre profil correspond. Un profil
-sans dispositif couvre toute la structure. « De référence » =
+email, si son propre profil (structure, dispositif) correspond à un profil de
+la population, ou si sa structure MiLo ou son agence FT y est citée. Un jeune
+est dans la population si son propre profil ou sa propre structure MiLo
+correspond, ou si son conseiller de référence est cité par email ou par son
+agence (un jeune n'a pas d'agence). Un profil sans dispositif couvre toute la
+structure. « De référence » =
 `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
 > Un conseiller MiLo n'a pas de dispositif : `(MILO, PACEA)` vise les jeunes
@@ -92,12 +101,16 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 | `DELETE /support/fonctionnalites/:id` | | 204. 400 si un déploiement la vise. |
 | `GET /support/populations` | | 200, toutes les populations au format de `GET /support/populations/:id`. |
 | `POST /support/populations` | `{ id, description? }` | 204. Rejouer met à jour la description. |
-| `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
+| `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], structuresMilo: [id], agencesFT: [id], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
 | `DELETE /support/populations/:id` | | 204, emporte ses cibles. 400 si un déploiement la vise. |
 | `POST /support/populations/conseillers` | `{ idPopulation, emailConseillers: string[] }` | 204. Doublons ignorés. |
 | `DELETE /support/populations/conseillers` | `{ idPopulation, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
 | `POST /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. Doublon ignoré. |
 | `DELETE /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
+| `POST /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204. 404 si population ou structure inconnue. |
+| `DELETE /support/populations/structures-milo` | idem | 204. 404 si la structure n'est pas dans la population. |
+| `POST /support/populations/agences-ft` | `{ idPopulation, idAgence }` | 204. 404 si population ou agence inconnue, 400 si l'agence n'est pas France Travail. |
+| `DELETE /support/populations/agences-ft` | idem | 204. 404 si l'agence n'est pas dans la population. |
 | `POST /support/deploiements` | `{ nature, idPopulation, idFonctionnalite?, dateActivation }` | 201 `{ id }`. 400 si `FONCTIONNALITE` sans `idFonctionnalite` ou `MIGRATION` avec. Rejouer sur la même population et la même fonctionnalité déplace la date. |
 | `PUT /support/deploiements/:id` | `{ dateActivation }` | 204. Seule la date change. 404 si inconnu. |
 | `DELETE /support/deploiements/:id` | | 204. 404 si inconnu. |
@@ -172,8 +185,9 @@ POST /support/deploiements               { "nature": "MIGRATION", "idPopulation"
 
 ## Reprise des données
 
-Migration `20260914000000-populations-deploiements`, testée en `up`, `down`,
-`up`. Elle part de `feature_flip` (colonnes `feature_tag`, `email_conseiller`).
+Migrations `20260914000000-populations-deploiements` et
+`20260917000000-population-etablissements` (les deux tables d'établissements,
+à part car la première était déjà jouée), testées en `up`, `down`, `up`. Elle part de `feature_flip` (colonnes `feature_tag`, `email_conseiller`).
 
 * Tag `MIGRATION_X` (`MIGRATION_PHASE_A`, `MIGRATION_PHASE_B`…) : une
   population `X` avec ses emails et un déploiement `MIGRATION`. Les URLs
