@@ -1,6 +1,0 @@
-# Profil LOCAL : DB Docker + keycloak local. Utilisé par `yarn start:local` / `yarn watch:local`.
-# Chargé AVANT .environment (premier fichier gagne) ; les ${…} sont résolus depuis le vault.
-# ENVIRONMENT=development : sinon Sequelize force le SSL (providers.ts) et le postgres Docker le refuse.
-ENVIRONMENT=development
-DATABASE_URL=${DATABASE_URL_LOCAL}
-OIDC_ISSUER_URL=${OIDC_ISSUER_URL_LOCAL}
