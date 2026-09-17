@@ -55,6 +55,15 @@ export namespace Communication {
         )
       )
     }
+    const champsCta = [aCreer.ctaLabel, aCreer.ctaUrlAndroid, aCreer.ctaUrlIos]
+    const nbChampsCtaRenseignes = champsCta.filter(Boolean).length
+    if (nbChampsCtaRenseignes > 0 && nbChampsCtaRenseignes < champsCta.length) {
+      return failure(
+        new MauvaiseCommandeError(
+          'ctaLabel, ctaUrlAndroid et ctaUrlIos doivent être renseignés ensemble ou absents ensemble'
+        )
+      )
+    }
     return success({ ...aCreer })
   }
 }
