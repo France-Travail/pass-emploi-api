@@ -17,7 +17,6 @@
     "lint": "eslint",
     "lint:cache": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
-    "lint:fix:cache": "eslint . --fix --cache",
     "prepare": "husky install",
     "migration": "sequelize db:migrate",
     "psql": "docker compose exec apidb psql -h localhost -d passemploidb -U passemploi ",
@@ -220,7 +219,7 @@
     "file": "test/utils/database-for-testing.ts"
   },
   "lint-staged": {
-    "*.ts": "yarn lint:fix:cache"
+    "*.ts": "yarn lint:fix"
   },
   "packageManager": "yarn@4.9.2"
 }
