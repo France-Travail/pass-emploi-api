@@ -43,6 +43,11 @@ export namespace Communication {
   }
 
   export function creer(aCreer: Communication): Result<Communication> {
+    if (!aCreer.dateDebut.isValid || !aCreer.dateFin.isValid) {
+      return failure(
+        new MauvaiseCommandeError('Date de début ou de fin invalide')
+      )
+    }
     if (aCreer.dateDebut >= aCreer.dateFin) {
       return failure(
         new MauvaiseCommandeError(
