@@ -8,6 +8,12 @@ import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/model
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
+import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/population-structure-milo.sql-model'
+import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
+import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
@@ -19,6 +25,7 @@ import {
 
 const DATE_PHASE_A = DateTime.fromISO('2026-11-20T00:00:00.000Z')
 const DATE_PHASE_B = DateTime.fromISO('2026-12-15T00:00:00.000Z')
+const DATE_PHASE_ETAB = DateTime.fromISO('2027-01-10T00:00:00.000Z')
 
 describe('MigrationSqlRepository', () => {
   let databaseForTesting: DatabaseForTesting
@@ -168,6 +175,34 @@ describe('MigrationSqlRepository', () => {
       expect(date).to.be.undefined()
     })
 
+    it('renvoie la date par la structure MiLo du conseiller', async () => {
+      // Given
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+      await ConseillerSqlModel.update(
+        { idStructureMilo: 'SM1' },
+        { where: { id: 'conseillerHorsMigration' } }
+      )
+      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
+      await PopulationStructureMiloSqlModel.create({
+        idPopulation: 'PHASE_ETAB',
+        idStructureMilo: 'SM1'
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PHASE_ETAB',
+        idFonctionnalite: null,
+        dateActivation: DATE_PHASE_ETAB.toJSDate()
+      })
+
+      // When
+      const date = await repo.getDateDeMigrationDuConseiller(
+        'conseillerHorsMigration'
+      )
+
+      // Then
+      expect(date?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
+    })
+
     it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
       // Given
       await PopulationConseillerSqlModel.create({
@@ -206,6 +241,33 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
+    })
+
+    it("renvoie la date par l'agence du conseiller de référence du jeune", async () => {
+      // Given
+      await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
+      await ConseillerSqlModel.update(
+        { idAgence: 'AG1' },
+        { where: { id: 'conseillerHorsMigration' } }
+      )
+      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
+      await PopulationAgenceFTSqlModel.create({
+        idPopulation: 'PHASE_ETAB',
+        idAgence: 'AG1'
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PHASE_ETAB',
+        idFonctionnalite: null,
+        dateActivation: DATE_PHASE_ETAB.toJSDate()
+      })
+
+      // When
+      const date =
+        await repo.getDateDeMigrationDuBeneficiaire('jeuneHorsMigration')
+
+      // Then
+      expect(date?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
     })
 
     it('ne renvoie rien quand le conseiller du jeune ne bascule pas', async () => {

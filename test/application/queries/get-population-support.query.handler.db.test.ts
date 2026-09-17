@@ -22,6 +22,9 @@ import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/mo
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
+import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
+import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
@@ -63,6 +66,11 @@ describe('GetPopulationSupportQueryHandler', () => {
       structure: Profil.Structure.MILO,
       dispositif: null
     })
+    await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
+    await PopulationAgenceFTSqlModel.create({
+      idPopulation: 'PILOTE_1J1S',
+      idAgence: 'AG1'
+    })
     await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
     const deploiement = await DeploiementSqlModel.create({
       nature: Deploiement.Nature.FONCTIONNALITE,
@@ -90,6 +98,8 @@ describe('GetPopulationSupportQueryHandler', () => {
         description: 'Beta testeurs 1J1S',
         conseillers: ['a@ft.fr', 'b@ft.fr'],
         profils: [{ structure: Profil.Structure.MILO, dispositif: undefined }],
+        structuresMilo: [],
+        agencesFT: ['AG1'],
         deploiements: [
           {
             id: deploiement.id,
