@@ -1,5 +1,8 @@
 import { ConfigService } from '@nestjs/config'
-import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
+import {
+  GenererPlanActionCommand,
+  GenererPlanActionCommandHandler
+} from '../../../src/application/commands/generer-plan-action.command.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import { TypeActionPlan } from '../../../src/application/queries/query-models/plan-action.query-model'
@@ -11,10 +14,6 @@ import {
 import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanAction } from '../../../src/domain/plan-action'
-import {
-  GoalPayload,
-  SituationPayload
-} from '../../../src/infrastructure/routes/validation/plan-action.inputs'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -32,12 +31,11 @@ describe('GenererPlanActionCommandHandler', () => {
   const utilisateur = unUtilisateurJeune({
     profil: unProfilInvite()
   })
-  const command = {
+  const command: GenererPlanActionCommand = {
     idJeune: utilisateur.id,
-    payload: {
-      situation: SituationPayload.LYCEE,
-      goals: [GoalPayload.ALTERNANCE]
-    }
+    situation: PlanAction.Situation.LYCEE,
+    objectifs: [PlanAction.Objectif.ALTERNANCE],
+    obstacles: []
   }
 
   function unPlan(): PlanAction.Plan {
@@ -47,14 +45,14 @@ describe('GenererPlanActionCommandHandler', () => {
         {
           id: 'objective-1',
           titre: 'Trouver une alternance',
-          theme: 'ALTERNANCE',
+          theme: PlanAction.Objectif.ALTERNANCE,
           solutions: [
             {
               id: 'p-1',
-              category: 'ALTERNANCE',
+              category: PlanAction.Objectif.ALTERNANCE,
               blocker: null,
               situations: [],
-              auth: [],
+              structures: [],
               minAge: null,
               maxAge: null,
               territory: null,
@@ -144,7 +142,7 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('handle', () => {
-    it('appelle le service avec le profil traduit et renvoie le plan traduit', async () => {
+    it('appelle le service avec le questionnaire traduit et renvoie le plan traduit', async () => {
       // Given
       planActionService.genererPlan.returns(unPlan())
 
@@ -153,9 +151,9 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(planActionService.genererPlan).to.have.been.calledWithExactly({
-        authProvider: 'guest',
-        situation: 'LYCEE',
-        goals: ['ALTERNANCE'],
+        structure: Profil.Structure.INVITE,
+        situation: PlanAction.Situation.LYCEE,
+        objectifs: [PlanAction.Objectif.ALTERNANCE],
         obstacles: []
       })
       expect(result).to.deep.equal(
@@ -231,8 +229,8 @@ describe('GenererPlanActionCommandHandler', () => {
         context: 'GenererPlanActionCommandHandler',
         event: { action: 'handler_executed', outcome: 'success' },
         labels: {
-          plan_action_situation: SituationPayload.LYCEE,
-          plan_action_goals: [GoalPayload.ALTERNANCE]
+          plan_action_situation: PlanAction.Situation.LYCEE,
+          plan_action_goals: [PlanAction.Objectif.ALTERNANCE]
         }
       })
     })

@@ -1,6 +1,7 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { PlanAction } from '../../src/domain/plan-action'
+import { Profil } from '../../src/domain/profil'
 import { DateService } from '../../src/utils/date-service'
 import { IdService } from '../../src/utils/id-service'
 import { createSandbox, expect, StubbedClass, stubClass } from '../utils'
@@ -14,10 +15,10 @@ function uneSolution(
 ): PlanAction.Solution {
   return {
     id: 's-1',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
     situations: [],
-    auth: [],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -29,13 +30,13 @@ function uneSolution(
   }
 }
 
-function unProfil(
-  args: Partial<PlanAction.ProfilJeune> = {}
-): PlanAction.ProfilJeune {
+function unQuestionnaire(
+  args: Partial<PlanAction.QuestionnaireJeune> = {}
+): PlanAction.QuestionnaireJeune {
   return {
-    authProvider: 'guest',
-    situation: 'LYCEE',
-    goals: ['ALTERNANCE'],
+    structure: Profil.Structure.INVITE,
+    situation: PlanAction.Situation.LYCEE,
+    objectifs: [PlanAction.Objectif.ALTERNANCE],
     obstacles: [],
     ...args
   }
@@ -44,52 +45,67 @@ function unProfil(
 describe('PlanAction', () => {
   describe('filtrerSolutionsEligibles', () => {
     function filtrer(
-      profil: PlanAction.ProfilJeune,
+      questionnaire: PlanAction.QuestionnaireJeune,
       solutions: PlanAction.Solution[]
     ): string[] {
       return PlanAction.filtrerSolutionsEligibles({
-        profil,
+        questionnaire,
         solutions,
         maintenant
       }).map(solution => solution.id)
     }
 
-    it("garde les solutions dont l'envie ou le blocage est dans le profil, jette les autres", () => {
+    it("garde les solutions dont l'objectif ou le obstacle est dans le questionnaire, jette les autres", () => {
       // Given
       const solutions = [
-        uneSolution({ id: 'envie-choisie', category: 'ALTERNANCE' }),
-        uneSolution({ id: 'envie-non-choisie', category: 'EMPLOI' }),
         uneSolution({
-          id: 'blocage-coche',
-          category: null,
-          blocker: 'PAS_DE_TRANSPORT'
+          id: 'objectif-choisie',
+          category: PlanAction.Objectif.ALTERNANCE
         }),
         uneSolution({
-          id: 'blocage-non-coche',
+          id: 'objectif-non-choisie',
+          category: PlanAction.Objectif.EMPLOI
+        }),
+        uneSolution({
+          id: 'obstacle-coche',
           category: null,
-          blocker: 'SANTE'
+          blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT
+        }),
+        uneSolution({
+          id: 'obstacle-non-coche',
+          category: null,
+          blocker: PlanAction.Obstacle.SANTE
         })
       ]
 
       // When
       const ids = filtrer(
-        unProfil({ goals: ['ALTERNANCE'], obstacles: ['PAS_DE_TRANSPORT'] }),
+        unQuestionnaire({
+          objectifs: [PlanAction.Objectif.ALTERNANCE],
+          obstacles: [PlanAction.Obstacle.PAS_DE_TRANSPORT]
+        }),
         solutions
       )
 
       // Then
-      expect(ids).to.deep.equal(['envie-choisie', 'blocage-coche'])
+      expect(ids).to.deep.equal(['objectif-choisie', 'obstacle-coche'])
     })
 
-    it("filtre sur l'authentification quand la solution en exige une, liste vide = pas de filtre", () => {
+    it('filtre sur la structure quand la solution en exige une, liste vide = pas de filtre', () => {
       // Given
       const solutions = [
-        uneSolution({ id: 'reservee-milo', auth: ['mission-locale'] }),
-        uneSolution({ id: 'ouverte-a-tous', auth: [] })
+        uneSolution({
+          id: 'reservee-milo',
+          structures: [Profil.Structure.MILO]
+        }),
+        uneSolution({ id: 'ouverte-a-tous', structures: [] })
       ]
 
       // When
-      const ids = filtrer(unProfil({ authProvider: 'guest' }), solutions)
+      const ids = filtrer(
+        unQuestionnaire({ structure: Profil.Structure.INVITE }),
+        solutions
+      )
 
       // Then
       expect(ids).to.deep.equal(['ouverte-a-tous'])
@@ -98,13 +114,22 @@ describe('PlanAction', () => {
     it('filtre sur la situation quand la solution en exige une', () => {
       // Given
       const solutions = [
-        uneSolution({ id: 'lyceens', situations: ['LYCEE'] }),
-        uneSolution({ id: 'salaries', situations: ['EMPLOI'] }),
+        uneSolution({
+          id: 'lyceens',
+          situations: [PlanAction.Situation.LYCEE]
+        }),
+        uneSolution({
+          id: 'salaries',
+          situations: [PlanAction.Situation.EMPLOI]
+        }),
         uneSolution({ id: 'toutes-situations', situations: [] })
       ]
 
       // When
-      const ids = filtrer(unProfil({ situation: 'LYCEE' }), solutions)
+      const ids = filtrer(
+        unQuestionnaire({ situation: PlanAction.Situation.LYCEE }),
+        solutions
+      )
 
       // Then
       expect(ids).to.deep.equal(['lyceens', 'toutes-situations'])
@@ -120,7 +145,7 @@ describe('PlanAction', () => {
       it("applique les bornes d'âge à partir de la date de naissance", () => {
         // When : 17 ans, anniversaire dans quelques jours
         const ids = filtrer(
-          unProfil({ dateNaissance: '2008-09-01' }),
+          unQuestionnaire({ dateNaissance: DateTime.fromISO('2008-09-01') }),
           solutions
         )
 
@@ -131,7 +156,7 @@ describe('PlanAction', () => {
       it("compte l'anniversaire du jour comme âge atteint", () => {
         // When : 18 ans jour pour jour
         const ids = filtrer(
-          unProfil({ dateNaissance: '2008-08-27' }),
+          unQuestionnaire({ dateNaissance: DateTime.fromISO('2008-08-27') }),
           solutions
         )
 
@@ -141,7 +166,7 @@ describe('PlanAction', () => {
 
       it('ignore les bornes quand la date de naissance est absente', () => {
         // When
-        const ids = filtrer(unProfil(), solutions)
+        const ids = filtrer(unQuestionnaire(), solutions)
 
         // Then
         expect(ids).to.deep.equal(['majeurs', 'mineurs', 'sans-borne'])
@@ -155,14 +180,16 @@ describe('PlanAction', () => {
 
         // When
         const idsAvecRecherche = filtrer(
-          unProfil({
-            habitation: { codeInsee: '76540', nom: 'Rouen' },
-            villeRecherche: { codeInsee: '75101', nom: 'Paris 1er' }
+          unQuestionnaire({
+            communeResidence: { codeInsee: '76540', nom: 'Rouen' },
+            communeRecherche: { codeInsee: '75101', nom: 'Paris 1er' }
           }),
           solutions
         )
         const idsSansRecherche = filtrer(
-          unProfil({ habitation: { codeInsee: '76540', nom: 'Rouen' } }),
+          unQuestionnaire({
+            communeResidence: { codeInsee: '76540', nom: 'Rouen' }
+          }),
           solutions
         )
 
@@ -179,7 +206,9 @@ describe('PlanAction', () => {
 
         // When
         const ids = filtrer(
-          unProfil({ habitation: { codeInsee: '2A004', nom: 'Ajaccio' } }),
+          unQuestionnaire({
+            communeResidence: { codeInsee: '2A004', nom: 'Ajaccio' }
+          }),
           solutions
         )
 
@@ -195,13 +224,15 @@ describe('PlanAction', () => {
 
         // When
         const idsMartinique = filtrer(
-          unProfil({
-            habitation: { codeInsee: '97209', nom: 'Fort-de-France' }
+          unQuestionnaire({
+            communeResidence: { codeInsee: '97209', nom: 'Fort-de-France' }
           }),
           solutions
         )
         const idsMetropole = filtrer(
-          unProfil({ habitation: { codeInsee: '75101', nom: 'Paris 1er' } }),
+          unQuestionnaire({
+            communeResidence: { codeInsee: '75101', nom: 'Paris 1er' }
+          }),
           solutions
         )
 
@@ -210,12 +241,12 @@ describe('PlanAction', () => {
         expect(idsMetropole).to.deep.equal([])
       })
 
-      it("exclut une solution territorialisée quand le profil n'a pas de localisation", () => {
+      it("exclut une solution territorialisée quand le questionnaire n'a pas de localisation", () => {
         // Given
         const solutions = [uneSolution({ id: 'paris', territory: '75' })]
 
         // When
-        const ids = filtrer(unProfil(), solutions)
+        const ids = filtrer(unQuestionnaire(), solutions)
 
         // Then
         expect(ids).to.deep.equal([])
@@ -225,38 +256,44 @@ describe('PlanAction', () => {
 
   describe('construirePlan', () => {
     function construire(
-      profil: PlanAction.ProfilJeune,
+      questionnaire: PlanAction.QuestionnaireJeune,
       solutionsEligibles: PlanAction.Solution[]
     ): PlanAction.Plan {
       return PlanAction.construirePlan({
-        profil,
+        questionnaire,
         solutionsEligibles,
         id: 'plan-1'
       })
     }
 
-    it("construit un objectif par envie puis par blocage, dans l'ordre du profil, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
+    it("construit un objectif par objectif puis par obstacle, dans l'ordre du questionnaire, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
       // Given
       const alternance1 = uneSolution({
         id: 'alternance-1',
-        category: 'ALTERNANCE'
+        category: PlanAction.Objectif.ALTERNANCE
       })
-      const former1 = uneSolution({ id: 'former-1', category: 'FORMER' })
+      const former1 = uneSolution({
+        id: 'former-1',
+        category: PlanAction.Objectif.FORMER
+      })
       const transport1 = uneSolution({
         id: 'transport-1',
         category: null,
-        blocker: 'PAS_DE_TRANSPORT'
+        blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT
       })
       const alternance2 = uneSolution({
         id: 'alternance-2',
-        category: 'ALTERNANCE'
+        category: PlanAction.Objectif.ALTERNANCE
       })
 
       // When
       const plan = construire(
-        unProfil({
-          goals: ['FORMER', 'ALTERNANCE'],
-          obstacles: ['PAS_DE_TRANSPORT']
+        unQuestionnaire({
+          objectifs: [
+            PlanAction.Objectif.FORMER,
+            PlanAction.Objectif.ALTERNANCE
+          ],
+          obstacles: [PlanAction.Obstacle.PAS_DE_TRANSPORT]
         }),
         [alternance1, former1, transport1, alternance2]
       )
@@ -268,19 +305,19 @@ describe('PlanAction', () => {
           {
             id: 'objective-1',
             titre: 'Me former, me qualifier',
-            theme: 'FORMER',
+            theme: PlanAction.Objectif.FORMER,
             solutions: [former1]
           },
           {
             id: 'objective-2',
             titre: 'Trouver une alternance',
-            theme: 'ALTERNANCE',
+            theme: PlanAction.Objectif.ALTERNANCE,
             solutions: [alternance1, alternance2]
           },
           {
             id: 'objective-3',
             titre: 'Me déplacer plus facilement',
-            theme: 'PAS_DE_TRANSPORT',
+            theme: PlanAction.Obstacle.PAS_DE_TRANSPORT,
             solutions: [transport1]
           }
         ]
@@ -290,7 +327,10 @@ describe('PlanAction', () => {
     it('saute les thèmes sans solution éligible', () => {
       // When
       const plan = construire(
-        unProfil({ goals: ['FORMER'], obstacles: ['SANTE'] }),
+        unQuestionnaire({
+          objectifs: [PlanAction.Objectif.FORMER],
+          obstacles: [PlanAction.Obstacle.SANTE]
+        }),
         []
       )
 
@@ -298,11 +338,21 @@ describe('PlanAction', () => {
       expect(plan.objectifs).to.deep.equal([])
     })
 
-    it("ne construit qu'un objectif par thème quand le profil répète une envie", () => {
+    it("ne construit qu'un objectif par thème quand le questionnaire répète une objectif", () => {
       // When
       const plan = construire(
-        unProfil({ goals: ['ALTERNANCE', 'ALTERNANCE'] }),
-        [uneSolution({ id: 'alternance-1', category: 'ALTERNANCE' })]
+        unQuestionnaire({
+          objectifs: [
+            PlanAction.Objectif.ALTERNANCE,
+            PlanAction.Objectif.ALTERNANCE
+          ]
+        }),
+        [
+          uneSolution({
+            id: 'alternance-1',
+            category: PlanAction.Objectif.ALTERNANCE
+          })
+        ]
       )
 
       // Then
@@ -331,21 +381,21 @@ describe('PlanAction', () => {
       // Given
       const alternance = uneSolution({
         id: 'alternance-1',
-        category: 'ALTERNANCE'
+        category: PlanAction.Objectif.ALTERNANCE
       })
       catalogue.getSolutions.returns([
         alternance,
-        uneSolution({ id: 'emploi-1', category: 'EMPLOI' }),
+        uneSolution({ id: 'emploi-1', category: PlanAction.Objectif.EMPLOI }),
         uneSolution({
           id: 'alternance-majeurs',
-          category: 'ALTERNANCE',
+          category: PlanAction.Objectif.ALTERNANCE,
           minAge: 18
         })
       ])
 
       // When
       const plan = service.genererPlan(
-        unProfil({ dateNaissance: '2010-01-01' })
+        unQuestionnaire({ dateNaissance: DateTime.fromISO('2010-01-01') })
       )
 
       // Then
@@ -355,7 +405,7 @@ describe('PlanAction', () => {
           {
             id: 'objective-1',
             titre: 'Trouver une alternance',
-            theme: 'ALTERNANCE',
+            theme: PlanAction.Objectif.ALTERNANCE,
             solutions: [alternance]
           }
         ]

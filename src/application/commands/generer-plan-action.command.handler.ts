@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { DateTime } from 'luxon'
+import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
@@ -11,18 +13,24 @@ import {
   estInvite,
   TOUT_INVITE
 } from '../../domain/profil'
-import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-model'
 import {
   toPlanActionQueryModel,
-  toProfilJeune
+  toQuestionnaire
 } from './mappers/plan-action.mapper'
 
-export interface GenererPlanActionCommand {
+export interface GenererPlanActionCommand extends Command {
   idJeune: string
-  payload: GenererPlanActionPayload
+  situation: PlanAction.Situation
+  objectifs: PlanAction.Objectif[]
+  obstacles: PlanAction.Obstacle[]
+  dateNaissance?: DateTime
+  // Exploitable seulement par une génération LLM, tracé en attendant
+  domaineProfessionnelVise?: string | null
+  communeResidence?: PlanAction.Commune
+  communeRecherche?: PlanAction.Commune
 }
 
 @Injectable()
@@ -63,8 +71,8 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     command: GenererPlanActionCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
-    const profil = toProfilJeune(command.payload, utilisateur.profil.structure)
-    const plan = this.planActionService.genererPlan(profil)
+    const questionnaire = toQuestionnaire(command, utilisateur.profil.structure)
+    const plan = this.planActionService.genererPlan(questionnaire)
 
     return success(toPlanActionQueryModel(plan))
   }
@@ -83,13 +91,13 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     if (!command) return undefined
 
     return {
-      plan_action_situation: command.payload.situation,
-      plan_action_goals: command.payload.goals,
-      ...(command.payload.domaine
-        ? { plan_action_domain: command.payload.domaine }
+      plan_action_situation: command.situation,
+      plan_action_goals: command.objectifs,
+      ...(command.domaineProfessionnelVise
+        ? { plan_action_domain: command.domaineProfessionnelVise }
         : {}),
-      ...(command.payload.obstacles?.length
-        ? { plan_action_obstacles: command.payload.obstacles }
+      ...(command.obstacles.length
+        ? { plan_action_obstacles: command.obstacles }
         : {})
     }
   }

@@ -3,15 +3,22 @@
 // (sync Grist du 2026-09-16), réduite aux colonnes utilisées. Sera remplacé
 // par un référentiel en base. L'ordre des lignes est l'ordre du référentiel,
 // servi tel quel aux jeunes.
-import { PlanAction } from '../../domain/plan-action'
+import { PlanAction } from '../../../domain/plan-action'
+import { Profil } from '../../../domain/profil'
 
-export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
+export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-2',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -22,10 +29,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-3',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -36,10 +49,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-4',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -50,10 +69,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-5',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -65,10 +90,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-6',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -79,10 +104,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-7',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -93,10 +118,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-8',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -107,10 +132,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-9',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -122,10 +152,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-10',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -136,10 +171,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-11',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -150,10 +190,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-12',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -164,10 +209,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-13',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -178,10 +228,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-14',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -192,10 +247,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-15',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -206,10 +266,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-16',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -221,10 +286,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-17',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -235,10 +305,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-18',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'AUTRE', 'EMPLOI'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.EMPLOI
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -249,10 +325,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-19',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -264,10 +345,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-20',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -278,10 +364,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-21',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -292,10 +383,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-22',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -306,10 +402,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-23',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -321,10 +422,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-24',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -335,10 +441,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-25',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -349,10 +460,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-26',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -363,10 +479,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-27',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -378,10 +499,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-28',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -392,10 +518,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-29',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -406,10 +538,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-30',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -420,10 +558,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-31',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -434,10 +578,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-32',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -448,10 +598,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-33',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -462,10 +618,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-34',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -476,10 +637,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-35',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -490,10 +656,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-36',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -504,10 +675,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-37',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -519,10 +695,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-38',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -533,10 +714,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-39',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -547,10 +733,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-40',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -561,10 +752,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-41',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -575,10 +771,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-42',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -589,10 +789,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-43',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -603,10 +807,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-44',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -617,10 +825,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-45',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -631,10 +843,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-46',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -645,10 +861,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-47',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -659,10 +879,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-48',
-    category: 'ORIENTER',
+    category: PlanAction.Objectif.ORIENTER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -674,10 +898,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-50',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -689,10 +919,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-53',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -703,10 +939,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-54',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -718,10 +960,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-55',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -732,10 +980,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-56',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -747,10 +1001,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-57',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -761,10 +1021,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-58',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -776,10 +1042,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-59',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -790,10 +1062,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-63',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -804,10 +1082,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-64',
-    category: 'DECOUVRIR_METIERS',
+    category: PlanAction.Objectif.DECOUVRIR_METIERS,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -818,10 +1102,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-66',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -832,10 +1122,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-67',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -847,10 +1143,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-68',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -862,10 +1164,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-69',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -876,10 +1184,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-70',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -890,10 +1204,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-71',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -904,10 +1224,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-72',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -918,10 +1244,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-73',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -932,10 +1264,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-75',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -946,10 +1284,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-76',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -960,10 +1304,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-77',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -974,10 +1324,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-78',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -988,10 +1344,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'g-312',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1002,10 +1364,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-79',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1017,10 +1385,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-80',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1032,10 +1406,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-81',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -1046,10 +1426,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-82',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: "Territoires d'Outre-mer",
@@ -1061,10 +1447,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-83',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 25,
     territory: null,
@@ -1075,10 +1467,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-84',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1090,10 +1488,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-85',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1104,10 +1508,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-86',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1118,10 +1528,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-87',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1132,10 +1548,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-88',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1146,10 +1568,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-89',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1160,10 +1588,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-90',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1175,10 +1609,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-91',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1190,10 +1630,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-92',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1204,10 +1650,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-93',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1218,10 +1669,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-94',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1232,10 +1688,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-95',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1246,10 +1707,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-96',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1261,10 +1727,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-97',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1275,10 +1746,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-98',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1289,10 +1765,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-99',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1303,10 +1784,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-100',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1317,10 +1803,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-101',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1331,10 +1821,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-102',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1345,10 +1839,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-103',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1359,10 +1857,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-104',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1373,10 +1875,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-105',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1387,10 +1893,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-106',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1401,10 +1911,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-107',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1416,10 +1930,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-108',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1430,10 +1944,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-109',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1445,10 +1959,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-110',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1459,10 +1979,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-111',
-    category: 'FORMER',
+    category: PlanAction.Objectif.FORMER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1473,10 +1999,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-113',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1487,10 +2013,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-114',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1501,10 +2027,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-115',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1515,10 +2041,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-116',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.COLLEGE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1529,10 +2055,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-117',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.LYCEE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1543,10 +2069,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-118',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.LYCEE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1557,10 +2083,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-119',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.LYCEE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1571,10 +2097,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-120',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.LYCEE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1585,10 +2111,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-121',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.LYCEE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1599,10 +2125,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-122',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1613,10 +2139,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-123',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1628,10 +2154,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-124',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1642,10 +2168,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'g-313',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1656,10 +2182,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-125',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1670,10 +2202,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-126',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1684,10 +2222,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-127',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1698,10 +2242,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-128',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1713,10 +2263,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-129',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1727,10 +2283,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-130',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1741,10 +2303,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-131',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1755,10 +2323,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-132',
-    category: 'STAGE_IMMERSION',
+    category: PlanAction.Objectif.STAGE_IMMERSION,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1769,10 +2343,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-134',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1783,10 +2363,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-135',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1797,10 +2383,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-136',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1811,10 +2403,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-137',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1826,10 +2424,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-138',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1841,10 +2445,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-139',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1855,10 +2465,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-140',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1869,10 +2485,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-141',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1884,10 +2506,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-142',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1898,10 +2526,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-143',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1912,10 +2546,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-144',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1926,10 +2566,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-145',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1940,10 +2580,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-146',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1954,10 +2600,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-147',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1968,10 +2620,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-148',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1982,10 +2640,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-149',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -1996,10 +2660,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-150',
-    category: 'ALTERNANCE',
+    category: PlanAction.Objectif.ALTERNANCE,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2010,10 +2674,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-152',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2024,10 +2694,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-153',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2038,10 +2714,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-154',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2052,10 +2734,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-155',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2067,10 +2755,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-156',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2081,10 +2775,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-157',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2095,10 +2795,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-158',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2110,10 +2816,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-159',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2124,10 +2836,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-160',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2138,10 +2856,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-161',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2152,10 +2876,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-162',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2166,10 +2890,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-163',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2180,10 +2910,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-164',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2194,10 +2930,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-165',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2208,10 +2950,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-166',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2222,10 +2970,10 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-167',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2236,10 +2984,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-169',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2250,10 +3003,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-170',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2265,10 +3024,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-171',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2279,10 +3044,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-172',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2294,10 +3065,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-173',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2309,10 +3086,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-174',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2323,10 +3106,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-175',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2337,10 +3126,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-176',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2351,10 +3146,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-177',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2366,10 +3167,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-178',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2380,10 +3187,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-179',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2394,10 +3207,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-180',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2409,10 +3228,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-181',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2423,10 +3248,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-182',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2437,10 +3268,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-183',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2451,10 +3288,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-184',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2465,10 +3308,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-185',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2479,10 +3328,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-186',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2493,10 +3348,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-187',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2507,10 +3368,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-188',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2522,10 +3389,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-189',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2536,10 +3409,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-190',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2550,10 +3429,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-191',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2564,10 +3449,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-192',
-    category: 'EMPLOI',
+    category: PlanAction.Objectif.EMPLOI,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2578,10 +3469,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-194',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2592,10 +3489,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-195',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2606,10 +3509,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-196',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2620,10 +3529,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-197',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2634,10 +3549,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-199',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2648,10 +3569,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-200',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2662,10 +3589,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-201',
-    category: 'ENGAGER',
+    category: PlanAction.Objectif.ENGAGER,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2676,10 +3609,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-204',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2690,10 +3629,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-205',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2704,10 +3649,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-206',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 30,
     territory: null,
@@ -2718,10 +3669,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-207',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 28,
     territory: null,
@@ -2732,10 +3689,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-208',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 28,
     territory: null,
@@ -2746,10 +3709,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-209',
-    category: 'MOBILITE_INTERNATIONALE',
+    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: null,
     territory: null,
@@ -2760,10 +3729,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-211',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2775,10 +3750,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-212',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [Profil.Structure.INVITE],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2790,10 +3770,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-213',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2805,10 +3790,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-214',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2819,10 +3810,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-215',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2833,10 +3830,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-217',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -2848,10 +3851,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-218',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2863,10 +3871,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-219',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2878,10 +3891,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-220',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: null,
@@ -2892,10 +3910,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-221',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 17,
     maxAge: 25,
     territory: null,
@@ -2906,10 +3929,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-222',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 17,
     maxAge: 25,
     territory: null,
@@ -2920,10 +3948,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-223',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 17,
     maxAge: 25,
     territory: null,
@@ -2934,10 +3967,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-224',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: 25,
     territory: "Territoires d'Outre-mer",
@@ -2949,10 +3987,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-225',
-    category: 'ACCOMPAGNE',
+    category: PlanAction.Objectif.ACCOMPAGNE,
     blocker: null,
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 25,
     territory: null,
@@ -2963,10 +4006,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-229',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [Profil.Structure.INVITE],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2978,10 +4027,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-231',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -2992,10 +4047,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-232',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3007,10 +4068,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-233',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3021,10 +4088,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-234',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3036,10 +4109,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-235',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3050,10 +4129,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-236',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3064,10 +4149,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-237',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3078,10 +4169,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-238',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3092,10 +4189,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-239',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3106,10 +4209,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-240',
-    category: 'CREER_ACTIVITE',
+    category: PlanAction.Objectif.CREER_ACTIVITE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 16,
     maxAge: null,
     territory: null,
@@ -3120,10 +4229,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'g-311',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3134,10 +4249,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-243',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3149,10 +4270,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-244',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'LYCEE', 'EMPLOI', 'AUTRE', 'COLLEGE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.COLLEGE
+    ],
+    structures: [],
     minAge: 15,
     maxAge: 21,
     territory: null,
@@ -3164,10 +4291,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-245',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: 18,
     maxAge: 25,
     territory: null,
@@ -3179,10 +4312,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-246',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3194,10 +4333,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-247',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3209,10 +4354,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-248',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3224,10 +4375,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-249',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3239,10 +4396,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-250',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE', 'LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.LYCEE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3254,10 +4416,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-251',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3269,10 +4435,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-252',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3283,10 +4453,16 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-253',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['COLLEGE', 'LYCEE', 'EMPLOI', 'AUTRE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3297,10 +4473,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-254',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE', 'LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.LYCEE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3312,10 +4493,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   },
   {
     id: 'p-255',
-    category: 'VIE_QUOTIDIENNE',
+    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
     blocker: null,
-    situations: ['ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE', 'LYCEE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    situations: [
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE,
+      PlanAction.Situation.LYCEE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3328,9 +4514,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-259',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3342,9 +4534,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-260',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3356,9 +4554,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-261',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3370,9 +4574,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-262',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3384,9 +4594,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-263',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3398,9 +4614,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-264',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3412,9 +4634,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-265',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3426,9 +4654,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-266',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3440,9 +4674,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-267',
     category: null,
-    blocker: 'PAS_DE_PERMIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3454,9 +4694,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-275',
     category: null,
-    blocker: 'PAS_DE_TRANSPORT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3468,9 +4714,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-276',
     category: null,
-    blocker: 'PAS_DE_TRANSPORT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3482,9 +4734,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-277',
     category: null,
-    blocker: 'PAS_DE_TRANSPORT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3496,9 +4754,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-278',
     category: null,
-    blocker: 'PAS_DE_TRANSPORT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3510,9 +4774,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-279',
     category: null,
-    blocker: 'PAS_DE_TRANSPORT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3524,9 +4794,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-281',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3539,9 +4814,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-282',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3553,9 +4833,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-283',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3567,9 +4852,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-284',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3582,9 +4872,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-285',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3597,9 +4892,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-286',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3612,9 +4912,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-287',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3626,9 +4929,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-288',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3640,9 +4946,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-289',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3654,9 +4963,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-290',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3668,9 +4980,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-291',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3682,9 +4997,12 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-292',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3696,9 +5014,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-293',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3711,9 +5034,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-294',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3725,9 +5053,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-295',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3740,9 +5073,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-296',
     category: null,
-    blocker: 'PAS_DE_LOGEMENT',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3754,9 +5092,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-298',
     category: null,
-    blocker: 'MANQUE_CONFIANCE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3768,9 +5112,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-299',
     category: null,
-    blocker: 'MANQUE_CONFIANCE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3782,9 +5132,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-300',
     category: null,
-    blocker: 'MANQUE_CONFIANCE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3796,9 +5152,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-302',
     category: null,
-    blocker: 'FIN_DE_MOIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3810,9 +5172,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-304',
     category: null,
-    blocker: 'FIN_DE_MOIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3825,9 +5193,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-305',
     category: null,
-    blocker: 'FIN_DE_MOIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3840,9 +5214,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-306',
     category: null,
-    blocker: 'FIN_DE_MOIS',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3855,9 +5235,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-312',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3870,9 +5255,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-313',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3885,9 +5275,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-314',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3900,9 +5295,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-315',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3915,9 +5315,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-316',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3929,9 +5334,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-317',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3944,9 +5354,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-318',
     category: null,
-    blocker: 'HANDICAP',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.HANDICAP,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -3959,9 +5374,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-320',
     category: null,
-    blocker: 'SANTE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.SANTE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: 25,
     territory: null,
@@ -3973,9 +5394,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-321',
     category: null,
-    blocker: 'SANTE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.SANTE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: 25,
     territory: null,
@@ -3987,9 +5414,9 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-322',
     category: null,
-    blocker: 'SANTE',
-    situations: ['ETUDES_SUPERIEURES'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.SANTE,
+    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4002,9 +5429,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-323',
     category: null,
-    blocker: 'SANTE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.SANTE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4016,9 +5449,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-326',
     category: null,
-    blocker: 'GARDE_ENFANT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4031,9 +5470,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-327',
     category: null,
-    blocker: 'GARDE_ENFANT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4045,9 +5490,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-328',
     category: null,
-    blocker: 'GARDE_ENFANT',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4060,9 +5511,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-330',
     category: null,
-    blocker: 'NUMERIQUE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.NUMERIQUE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4074,9 +5531,15 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'p-331',
     category: null,
-    blocker: 'NUMERIQUE',
-    situations: ['COLLEGE', 'LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: ['france-travail', 'mission-locale', 'guest'],
+    blocker: PlanAction.Obstacle.NUMERIQUE,
+    situations: [
+      PlanAction.Situation.COLLEGE,
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,
@@ -4088,9 +5551,14 @@ export const REFERENTIEL_SOLUTIONS: PlanAction.Solution[] = [
   {
     id: 'g-309',
     category: null,
-    blocker: 'FRANCAIS',
-    situations: ['LYCEE', 'ETUDES_SUPERIEURES', 'EMPLOI', 'AUTRE'],
-    auth: [],
+    blocker: PlanAction.Obstacle.FRANCAIS,
+    situations: [
+      PlanAction.Situation.LYCEE,
+      PlanAction.Situation.ETUDES_SUPERIEURES,
+      PlanAction.Situation.EMPLOI,
+      PlanAction.Situation.AUTRE
+    ],
+    structures: [],
     minAge: null,
     maxAge: null,
     territory: null,

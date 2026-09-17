@@ -2,83 +2,80 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../utils/date-service'
 import { IdService } from '../utils/id-service'
+import { Profil } from './profil'
 
 export const PlanActionCatalogueRepositoryToken =
   'PlanActionCatalogueRepositoryToken'
 
-// Suggestion de plan d'action de l'onboarding app jeune, internalisée depuis
-// le POC bayesimpact/1jeune-des-solutions dans son seul mode déterministe :
-// un objectif par envie puis par blocage du profil, contenant toutes les
-// solutions éligibles du référentiel pour ce thème, dans l'ordre du
-// référentiel. La génération LLM du POC (accroche personnalisée, titres
-// d'objectifs variables, écart des solutions hors sujet) n'est pas reprise.
 export namespace PlanAction {
-  export type AuthProvider = 'france-travail' | 'mission-locale' | 'guest'
+  export enum Situation {
+    COLLEGE = 'COLLEGE',
+    LYCEE = 'LYCEE',
+    ETUDES_SUPERIEURES = 'ETUDES_SUPERIEURES',
+    EMPLOI = 'EMPLOI',
+    AUTRE = 'AUTRE'
+  }
 
-  export type Situation =
-    'COLLEGE' | 'LYCEE' | 'ETUDES_SUPERIEURES' | 'EMPLOI' | 'AUTRE'
+  export enum Objectif {
+    ORIENTER = 'ORIENTER',
+    DECOUVRIR_METIERS = 'DECOUVRIR_METIERS',
+    FORMER = 'FORMER',
+    STAGE_IMMERSION = 'STAGE_IMMERSION',
+    ALTERNANCE = 'ALTERNANCE',
+    EMPLOI = 'EMPLOI',
+    ENGAGER = 'ENGAGER',
+    MOBILITE_INTERNATIONALE = 'MOBILITE_INTERNATIONALE',
+    ACCOMPAGNE = 'ACCOMPAGNE',
+    CREER_ACTIVITE = 'CREER_ACTIVITE',
+    VIE_QUOTIDIENNE = 'VIE_QUOTIDIENNE'
+  }
 
-  export type Envie =
-    | 'ORIENTER'
-    | 'DECOUVRIR_METIERS'
-    | 'FORMER'
-    | 'STAGE_IMMERSION'
-    | 'ALTERNANCE'
-    | 'EMPLOI'
-    | 'ENGAGER'
-    | 'MOBILITE_INTERNATIONALE'
-    | 'ACCOMPAGNE'
-    | 'CREER_ACTIVITE'
-    | 'VIE_QUOTIDIENNE'
-
-  // RIEN_NE_ME_BLOQUE est exclusif : combiné à un autre blocage, il est
-  // réduit au seul RIEN_NE_ME_BLOQUE par le mapper du payload. AUTRE et
-  // RIEN_NE_ME_BLOQUE n'ont jamais de solution dans le référentiel.
-  export type Blocage =
-    | 'PAS_DE_PERMIS'
-    | 'PAS_DE_TRANSPORT'
-    | 'PAS_DE_LOGEMENT'
-    | 'MANQUE_CONFIANCE'
-    | 'FIN_DE_MOIS'
-    | 'PAS_DE_DIPLOME'
-    | 'PEU_EXPERIENCE'
-    | 'HANDICAP'
-    | 'SANTE'
-    | 'GARDE_ENFANT'
-    | 'NUMERIQUE'
-    | 'FRANCAIS'
-    | 'AUTRE'
-    | 'RIEN_NE_ME_BLOQUE'
+  // RIEN_NE_ME_BLOQUE est exclusif : combiné à un autre obstacle, il est réduit au seul RIEN_NE_ME_BLOQUE par le mapper
+  // AUTRE et RIEN_NE_ME_BLOQUE n'ont jamais de solution dans le référentiel
+  export enum Obstacle {
+    PAS_DE_PERMIS = 'PAS_DE_PERMIS',
+    PAS_DE_TRANSPORT = 'PAS_DE_TRANSPORT',
+    PAS_DE_LOGEMENT = 'PAS_DE_LOGEMENT',
+    MANQUE_CONFIANCE = 'MANQUE_CONFIANCE',
+    FIN_DE_MOIS = 'FIN_DE_MOIS',
+    PAS_DE_DIPLOME = 'PAS_DE_DIPLOME',
+    PEU_EXPERIENCE = 'PEU_EXPERIENCE',
+    HANDICAP = 'HANDICAP',
+    SANTE = 'SANTE',
+    GARDE_ENFANT = 'GARDE_ENFANT',
+    NUMERIQUE = 'NUMERIQUE',
+    FRANCAIS = 'FRANCAIS',
+    AUTRE = 'AUTRE',
+    RIEN_NE_ME_BLOQUE = 'RIEN_NE_ME_BLOQUE'
+  }
 
   export interface Commune {
     codeInsee: string
     nom: string
   }
 
-  // Réponses du questionnaire d'onboarding, dans le vocabulaire du référentiel
-  export interface ProfilJeune {
-    authProvider: AuthProvider
+  export interface QuestionnaireJeune {
+    structure: Profil.Structure
     situation: Situation
-    goals: Envie[]
-    obstacles: Blocage[]
-    // Format YYYY-MM-DD
-    dateNaissance?: string
-    habitation?: Commune
-    villeRecherche?: Commune
+    objectifs: Objectif[]
+    obstacles: Obstacle[]
+    dateNaissance?: DateTime
+    communeResidence?: Commune
+    communeRecherche?: Commune
   }
 
   export type TypeSolution = 'link' | 'app' | 'advice'
 
   // Une ligne du référentiel « services et solutions » (vocabulaire du back
   // office Grist), réduite aux colonnes que l'app exploite. Une solution
-  // porte une envie (category) OU un blocage (blocker), jamais les deux. Une
-  // liste vide vaut « pas de filtre ».
+  // porte un objectif (category) OU un obstacle (blocker), jamais les deux.
+  // Une liste vide vaut « pas de filtre »
   export interface Solution {
     id: string
-    category: Envie | null
-    blocker: Blocage | null
+    category: Objectif | null
+    blocker: Obstacle | null
     situations: Situation[]
-    auth: AuthProvider[]
+    structures: Profil.Structure[]
     minAge: number | null
     maxAge: number | null
     // Liste de départements (« 75, 93 ») ou « Territoires d'Outre-mer »
@@ -89,16 +86,16 @@ export namespace PlanAction {
     serviceName: string | null
   }
 
-  export interface Objectif {
+  export interface ObjectifPlan {
     id: string
     titre: string
-    theme: Envie | Blocage
+    theme: Objectif | Obstacle
     solutions: Solution[]
   }
 
   export interface Plan {
     id: string
-    objectifs: Objectif[]
+    objectifs: ObjectifPlan[]
   }
 
   export interface CatalogueRepository {
@@ -106,21 +103,25 @@ export namespace PlanAction {
   }
 
   export function calculerAge(
-    profil: ProfilJeune,
+    questionnaire: QuestionnaireJeune,
     maintenant: DateTime
   ): number | undefined {
-    if (!profil.dateNaissance) return undefined
-    const naissance = DateTime.fromISO(profil.dateNaissance, { zone: 'utc' })
-    if (!naissance.isValid) return undefined
-    return Math.floor(maintenant.toUTC().diff(naissance, 'years').years)
+    const naissance = questionnaire.dateNaissance
+    if (!naissance?.isValid) return undefined
+    const naissanceUtc = DateTime.utc(
+      naissance.year,
+      naissance.month,
+      naissance.day
+    )
+    return Math.floor(maintenant.toUTC().diff(naissanceUtc, 'years').years)
   }
 
-  // Code département dérivé du code INSEE de commune : 3 caractères en
-  // outre-mer (97x/98x), 2 sinon (couvre la Corse 2A/2B). La ville de
-  // recherche prime sur la ville d'habitation.
-  export function calculerDepartement(profil: ProfilJeune): string | undefined {
+  export function calculerDepartement(
+    questionnaire: QuestionnaireJeune
+  ): string | undefined {
     const codeInsee =
-      profil.villeRecherche?.codeInsee ?? profil.habitation?.codeInsee
+      questionnaire.communeRecherche?.codeInsee ??
+      questionnaire.communeResidence?.codeInsee
     if (!codeInsee) return undefined
     return codeInsee.startsWith('97') || codeInsee.startsWith('98')
       ? codeInsee.slice(0, 3)
@@ -128,40 +129,53 @@ export namespace PlanAction {
   }
 
   export function filtrerSolutionsEligibles(args: {
-    profil: ProfilJeune
+    questionnaire: QuestionnaireJeune
     solutions: Solution[]
     maintenant: DateTime
   }): Solution[] {
-    const { profil, solutions, maintenant } = args
-    const age = calculerAge(profil, maintenant)
+    const { questionnaire, solutions, maintenant } = args
+    const age = calculerAge(questionnaire, maintenant)
     return solutions.filter(
       solution =>
-        matchTheme(profil, solution) &&
-        matchAuth(profil, solution) &&
-        matchSituation(profil, solution) &&
+        matchTheme(questionnaire, solution) &&
+        matchStructure(questionnaire, solution) &&
+        matchSituation(questionnaire, solution) &&
         matchAge(age, solution) &&
-        matchTerritoire(profil, solution)
+        matchTerritoire(questionnaire, solution)
     )
   }
 
-  function matchTheme(profil: ProfilJeune, solution: Solution): boolean {
-    if (solution.category && profil.goals.includes(solution.category))
-      return true
-    if (solution.blocker && profil.obstacles.includes(solution.blocker))
-      return true
-    return false
+  function matchTheme(
+    questionnaire: QuestionnaireJeune,
+    solution: Solution
+  ): boolean {
+    const repondAUnObjectifDuJeune =
+      solution.category !== null &&
+      questionnaire.objectifs.includes(solution.category)
+    const leveUnObstacleDuJeune =
+      solution.blocker !== null &&
+      questionnaire.obstacles.includes(solution.blocker)
+
+    return repondAUnObjectifDuJeune || leveUnObstacleDuJeune
   }
 
-  function matchAuth(profil: ProfilJeune, solution: Solution): boolean {
+  function matchStructure(
+    questionnaire: QuestionnaireJeune,
+    solution: Solution
+  ): boolean {
     return (
-      solution.auth.length === 0 || solution.auth.includes(profil.authProvider)
+      solution.structures.length === 0 ||
+      solution.structures.includes(questionnaire.structure)
     )
   }
 
-  function matchSituation(profil: ProfilJeune, solution: Solution): boolean {
+  function matchSituation(
+    questionnaire: QuestionnaireJeune,
+    solution: Solution
+  ): boolean {
     return (
       solution.situations.length === 0 ||
-      solution.situations.includes(profil.situation)
+      solution.situations.includes(questionnaire.situation)
     )
   }
 
@@ -172,23 +186,25 @@ export namespace PlanAction {
     return true
   }
 
-  function matchTerritoire(profil: ProfilJeune, solution: Solution): boolean {
+  function matchTerritoire(
+    questionnaire: QuestionnaireJeune,
+    solution: Solution
+  ): boolean {
     if (!solution.territory) return true
-    const departement = calculerDepartement(profil)
+    const departement = calculerDepartement(questionnaire)
     if (!departement) return false
     const territoire = solution.territory.toLowerCase()
     if (territoire.includes('outre-mer'))
       return departement.startsWith('97') || departement.startsWith('98')
     // Comparaison en minuscules pour la Corse (2A/2B) : le POC comparait le
-    // département en majuscules à un territoire minusculisé et ne matchait
-    // jamais ces deux codes
+    // département en majuscules à un territoire minusculisé et ne matchait jamais ces deux codes
     return territoire
       .split(/[,;]/)
       .map(code => code.trim())
       .includes(departement.toLowerCase())
   }
 
-  export const TITRES_ENVIES: Record<Envie, string> = {
+  export const TITRES_OBJECTIFS: Record<Objectif, string> = {
     ORIENTER: "Je cherche à m'orienter",
     DECOUVRIR_METIERS: 'Découvrir des métiers',
     FORMER: 'Me former, me qualifier',
@@ -202,7 +218,7 @@ export namespace PlanAction {
     VIE_QUOTIDIENNE: 'Ma vie quotidienne'
   }
 
-  export const TITRES_BLOCAGES: Record<Blocage, string> = {
+  export const TITRES_OBSTACLES: Record<Obstacle, string> = {
     PAS_DE_PERMIS: 'Passer mon permis',
     PAS_DE_TRANSPORT: 'Me déplacer plus facilement',
     PAS_DE_LOGEMENT: 'Trouver un logement',
@@ -219,21 +235,18 @@ export namespace PlanAction {
     RIEN_NE_ME_BLOQUE: 'Rien ne me bloque'
   }
 
-  // Un objectif par envie puis par blocage, dans l'ordre du profil, chacun
-  // avec toutes les solutions éligibles de son thème dans l'ordre du
-  // référentiel. Les thèmes sans solution sont sautés. Les ids d'objectifs
-  // sont positionnels comme dans le POC : l'app y rattache la progression du
-  // jeune (actions cochées ou supprimées) d'une génération à l'autre.
+  // Regroupe les solutions éligibles par objectif puis par obstacle du jeune
+  // (ids objective-1, objective-2 : l'app y rattache les actions cochées)
   export function construirePlan(args: {
-    profil: ProfilJeune
+    questionnaire: QuestionnaireJeune
     solutionsEligibles: Solution[]
     id: string
   }): Plan {
-    const { profil, solutionsEligibles, id } = args
-    const objectifs: Objectif[] = []
+    const { questionnaire, solutionsEligibles, id } = args
+    const objectifs: ObjectifPlan[] = []
 
     function ajouterObjectif(
-      theme: Envie | Blocage,
+      theme: Objectif | Obstacle,
       titre: string,
       solutions: Solution[]
     ): void {
@@ -246,18 +259,18 @@ export namespace PlanAction {
       })
     }
 
-    for (const envie of new Set(profil.goals)) {
+    for (const objectif of new Set(questionnaire.objectifs)) {
       ajouterObjectif(
-        envie,
-        TITRES_ENVIES[envie],
-        solutionsEligibles.filter(solution => solution.category === envie)
+        objectif,
+        TITRES_OBJECTIFS[objectif],
+        solutionsEligibles.filter(solution => solution.category === objectif)
       )
     }
-    for (const blocage of new Set(profil.obstacles)) {
+    for (const obstacle of new Set(questionnaire.obstacles)) {
       ajouterObjectif(
-        blocage,
-        TITRES_BLOCAGES[blocage],
-        solutionsEligibles.filter(solution => solution.blocker === blocage)
+        obstacle,
+        TITRES_OBSTACLES[obstacle],
+        solutionsEligibles.filter(solution => solution.blocker === obstacle)
       )
     }
 
@@ -273,14 +286,14 @@ export namespace PlanAction {
       private readonly dateService: DateService
     ) {}
 
-    genererPlan(profil: ProfilJeune): Plan {
+    genererPlan(questionnaire: QuestionnaireJeune): Plan {
       const solutionsEligibles = filtrerSolutionsEligibles({
-        profil,
+        questionnaire,
         solutions: this.catalogue.getSolutions(),
         maintenant: this.dateService.now()
       })
       return construirePlan({
-        profil,
+        questionnaire,
         solutionsEligibles,
         id: this.idService.uuid()
       })
