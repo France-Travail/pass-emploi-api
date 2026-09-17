@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { CreerCommunicationCommandHandler } from '../../../../src/application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from '../../../../src/application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from '../../../../src/application/commands/support/supprimer-communication.command.handler.db'
 import {
   MauvaiseCommandeError,
@@ -86,6 +87,94 @@ describe('Communications : handlers support', () => {
         expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
       }
       expect(await CommunicationSqlModel.count()).to.equal(0)
+    })
+  })
+
+  describe('ModifierCommunicationCommandHandler', () => {
+    const handler = new ModifierCommunicationCommandHandler(
+      new PopulationSqlRepository(getDatabase().sequelize)
+    )
+
+    it('modifie seulement les champs fournis', async () => {
+      // Given
+      const communication = await CommunicationSqlModel.create({
+        ...commande,
+        dateDebut: commande.dateDebut.toJSDate(),
+        dateFin: commande.dateFin.toJSDate()
+      })
+
+      // When
+      const result = await handler.handle({
+        id: communication.id,
+        titre: 'Titre corrigé'
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communicationModifiee = await CommunicationSqlModel.findByPk(
+        communication.id
+      )
+      expect(communicationModifiee!.titre).to.equal('Titre corrigé')
+      expect(communicationModifiee!.contenu).to.equal(commande.contenu)
+      expect(communicationModifiee!.idPopulation).to.equal('PHASE_C')
+    })
+
+    it("refuse quand la communication n'existe pas", async () => {
+      // When
+      const result = await handler.handle({ id: 999, titre: 'Titre corrigé' })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(NonTrouveError)
+      }
+    })
+
+    it('refuse quand la date de fin ne suit pas la date de début, sans rien modifier', async () => {
+      // Given
+      const communication = await CommunicationSqlModel.create({
+        ...commande,
+        dateDebut: commande.dateDebut.toJSDate(),
+        dateFin: commande.dateFin.toJSDate()
+      })
+
+      // When
+      const result = await handler.handle({
+        id: communication.id,
+        titre: 'Titre corrigé',
+        dateFin: commande.dateDebut
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+      const communicationInchangee = await CommunicationSqlModel.findByPk(
+        communication.id
+      )
+      expect(communicationInchangee!.titre).to.equal(commande.titre)
+    })
+
+    it("refuse quand la nouvelle population n'existe pas", async () => {
+      // Given
+      const communication = await CommunicationSqlModel.create({
+        ...commande,
+        dateDebut: commande.dateDebut.toJSDate(),
+        dateFin: commande.dateFin.toJSDate()
+      })
+
+      // When
+      const result = await handler.handle({
+        id: communication.id,
+        idPopulation: 'INCONNUE'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(NonTrouveError)
+      }
     })
   })
 

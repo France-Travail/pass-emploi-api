@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   SetMetadata,
@@ -28,6 +29,7 @@ import {
   CommunicationCreee,
   CreerCommunicationCommandHandler
 } from '../../application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from '../../application/commands/support/modifier-communication.command.handler.db'
 import {
   CreerDeploiementCommandHandler,
   DeploiementCree
@@ -58,6 +60,7 @@ import {
   CreerFonctionnalitePayload,
   CreerPopulationPayload,
   ModifierDateDeploiementPayload,
+  ModifierCommunicationPayload,
   ProfilPopulationPayload,
   SupprimerConseillersPopulationPayload
 } from './validation/support.inputs'
@@ -94,6 +97,7 @@ export class SupportDeploiementsController {
     private readonly modifierDateDeploiementCommandHandler: ModifierDateDeploiementCommandHandler,
     private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
     private readonly creerCommunicationCommandHandler: CreerCommunicationCommandHandler,
+    private readonly modifierCommunicationCommandHandler: ModifierCommunicationCommandHandler,
     private readonly supprimerCommunicationCommandHandler: SupprimerCommunicationCommandHandler
   ) {}
 
@@ -577,7 +581,9 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   @ApiTags('Support - Communications')
   @ApiOperation({
     summary: 'Crée une communication pour une population',
-    description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. Aujourd'hui seul le couple destinataire CONSEILLER × type IN_APP est lu, via GET /conseillers/:id/communications. Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche. Renvoie l'id, à garder pour la supprimer.`
+    description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. Aujourd'hui seul le couple destinataire CONSEILLER × type IN_APP est lu, via GET /conseillers/:id/communications.
+
+Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche. Renvoie l'id, à garder pour la modifier (PATCH /support/communications/:id) ou la supprimer.`
   })
   @ApiBody({
     type: CreerCommunicationPayload,
@@ -621,6 +627,69 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
         type: payload.type,
         dateDebut: DateTime.fromISO(payload.dateDebut),
         dateFin: DateTime.fromISO(payload.dateFin),
+        titre: payload.titre,
+        contenu: payload.contenu,
+        ctaLabel: payload.ctaLabel,
+        ctaUrlAndroid: payload.ctaUrlAndroid,
+        ctaUrlIos: payload.ctaUrlIos
+      },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiTags('Support - Communications')
+  @ApiOperation({
+    summary: 'Modifie une communication',
+    description: `Seuls les champs envoyés changent, les autres sont conservés (mêmes règles que la création). L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation.
+
+Pratique : copier une communication depuis GET /support/populations/:idPopulation, corriger ce qu'il faut et renvoyer l'objet tel quel — le champ \`id\` est ignoré.`
+  })
+  @ApiParam({ name: 'idCommunication', example: 3 })
+  @ApiBody({
+    type: ModifierCommunicationPayload,
+    examples: {
+      unePhrase: {
+        summary: 'Corriger le contenu',
+        value: {
+          contenu:
+            'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible.\nVos services seront accessibles sur l’application Parcours Emploi.'
+        }
+      },
+      prolonger: {
+        summary: 'Prolonger la visibilité',
+        value: { dateFin: '2026-10-31T00:00:00.000Z' }
+      }
+    }
+  })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Modifiée' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Payload invalide, ou dateFin qui ne suit pas dateDebut'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'La communication ou la population n’existe pas'
+  })
+  @Patch('communications/:idCommunication')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async modifierCommunication(
+    @Param('idCommunication', ParseIntPipe) idCommunication: number,
+    @Body() payload: ModifierCommunicationPayload
+  ): Promise<void> {
+    const result = await this.modifierCommunicationCommandHandler.execute(
+      {
+        id: idCommunication,
+        idPopulation: payload.idPopulation,
+        destinataire: payload.destinataire,
+        type: payload.type,
+        dateDebut: payload.dateDebut
+          ? DateTime.fromISO(payload.dateDebut)
+          : undefined,
+        dateFin: payload.dateFin
+          ? DateTime.fromISO(payload.dateFin)
+          : undefined,
         titre: payload.titre,
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,

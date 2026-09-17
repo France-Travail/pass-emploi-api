@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import {
   ArrayNotEmpty,
   IsArray,
@@ -351,6 +351,10 @@ export class CreerCommunicationPayload {
   @IsNotEmpty()
   ctaUrlIos?: string
 }
+
+export class ModifierCommunicationPayload extends PartialType(
+  CreerCommunicationPayload
+) {}
 
 export class ListerJobsQueryParams {
   @ApiProperty({
