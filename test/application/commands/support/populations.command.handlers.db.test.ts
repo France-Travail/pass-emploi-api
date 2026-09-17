@@ -120,7 +120,7 @@ describe('Populations : handlers support', () => {
       })
     })
 
-    it('refuse tant qu’une communication la vise', async () => {
+    it('supprime ses communications avec elle', async () => {
       // Given
       await CommunicationSqlModel.create({
         idPopulation: 'PILOTE',
@@ -136,13 +136,9 @@ describe('Populations : handlers support', () => {
       const result = await handler.handle({ id: 'PILOTE' })
 
       // Then
-      expect(result).to.deep.equal({
-        _isSuccess: false,
-        error: new MauvaiseCommandeError(
-          "La population PILOTE est visée par 1 communication(s), les supprimer d'abord"
-        )
-      })
-      expect(await PopulationSqlModel.count()).to.equal(1)
+      expect(result._isSuccess).to.equal(true)
+      expect(await PopulationSqlModel.count()).to.equal(0)
+      expect(await CommunicationSqlModel.count()).to.equal(0)
     })
 
     it("échoue quand la population n'existe pas", async () => {
