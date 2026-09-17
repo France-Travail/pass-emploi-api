@@ -37,6 +37,22 @@ export class PopulationSupportQueryModel {
   @ApiProperty({ type: ProfilPopulationQueryModel, isArray: true })
   profils: ProfilPopulationQueryModel[]
 
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    description:
+      'Ids des structures MiLo citées : leurs conseillers et leurs jeunes'
+  })
+  structuresMilo: string[]
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    description:
+      'Ids des agences France Travail citées : leurs conseillers et les jeunes de référence de ces conseillers'
+  })
+  agencesFT: string[]
+
   @ApiProperty({ type: DeploiementQueryModel, isArray: true })
   deploiements: DeploiementQueryModel[]
 }

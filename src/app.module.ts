@@ -120,6 +120,10 @@ import { SupprimerPopulationCommandHandler } from './application/commands/suppor
 import { AjouterConseillersPopulationCommandHandler } from './application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { SupprimerConseillersPopulationCommandHandler } from './application/commands/support/supprimer-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from './application/commands/support/ajouter-profil-population.command.handler.db'
+import { AjouterStructureMiloPopulationCommandHandler } from './application/commands/support/ajouter-structure-milo-population.command.handler.db'
+import { SupprimerStructureMiloPopulationCommandHandler } from './application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterAgenceFTPopulationCommandHandler } from './application/commands/support/ajouter-agence-ft-population.command.handler.db'
+import { SupprimerAgenceFTPopulationCommandHandler } from './application/commands/support/supprimer-agence-ft-population.command.handler.db'
 import { SupprimerProfilPopulationCommandHandler } from './application/commands/support/supprimer-profil-population.command.handler.db'
 import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
@@ -943,6 +947,10 @@ export function buildQueryCommandsProviders(): Provider[] {
     AjouterConseillersPopulationCommandHandler,
     SupprimerConseillersPopulationCommandHandler,
     AjouterProfilPopulationCommandHandler,
+    AjouterStructureMiloPopulationCommandHandler,
+    SupprimerStructureMiloPopulationCommandHandler,
+    AjouterAgenceFTPopulationCommandHandler,
+    SupprimerAgenceFTPopulationCommandHandler,
     SupprimerProfilPopulationCommandHandler,
     CreerDeploiementCommandHandler,
     SupprimerDeploiementCommandHandler,
