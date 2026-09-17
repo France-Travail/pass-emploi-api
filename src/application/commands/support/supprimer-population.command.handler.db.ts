@@ -14,7 +14,6 @@ import {
   Population,
   PopulationRepositoryToken
 } from '../../../domain/population'
-import { CommunicationSqlModel } from '../../../infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../../infrastructure/sequelize/models/deploiement.sql-model'
 import { PopulationSqlModel } from '../../../infrastructure/sequelize/models/population.sql-model'
 
@@ -42,7 +41,7 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Les cibles partent en cascade, pas un déploiement ni une communication : les supprimer d'abord évite une désactivation par accident.
+  // Les cibles et les communications partent en cascade, pas un déploiement : le supprimer d'abord évite une désactivation par accident.
   async handle(command: SupprimerPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.id))) {
       return failure(new NonTrouveError('Population', command.id))
@@ -55,17 +54,6 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
       return failure(
         new MauvaiseCommandeError(
           `La population ${command.id} est visée par ${nombreDeDeploiements} déploiement(s), les supprimer d'abord`
-        )
-      )
-    }
-
-    const nombreDeCommunications = await CommunicationSqlModel.count({
-      where: { idPopulation: command.id }
-    })
-    if (nombreDeCommunications > 0) {
-      return failure(
-        new MauvaiseCommandeError(
-          `La population ${command.id} est visée par ${nombreDeCommunications} communication(s), les supprimer d'abord`
         )
       )
     }

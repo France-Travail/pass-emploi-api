@@ -435,7 +435,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   @ApiOperation({
     summary: 'Supprime une population',
     description:
-      'Ses emails et ses profils partent avec elle. Refusée tant qu’un déploiement ou une communication la vise : les supprimer d’abord.'
+      'Ses emails, ses profils et ses communications partent avec elle. Refusée tant qu’un déploiement la vise : le supprimer d’abord.'
   })
   @ApiParam({ name: 'idPopulation', example: 'PILOTE_1J1S' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Supprimée' })
