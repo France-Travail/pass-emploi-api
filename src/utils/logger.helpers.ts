@@ -251,7 +251,7 @@ export function buildError(message: string, error: Error): LogError {
 
 // Conversion d'une erreur vers le format ECS error.{type,message,stack_trace}.
 // Gère trois shapes : Error JS (handlers job/exception), DomainError
-// (Result.failure code/message), valeur inconnue.
+// (Result.failure code/message[,reason]), valeur inconnue.
 export function toEcsError(error: unknown): Record<string, unknown> {
   if (error instanceof Error) {
     return {
@@ -266,7 +266,15 @@ export function toEcsError(error: unknown): Record<string, unknown> {
     'code' in error &&
     'message' in error
   ) {
-    return { type: String(error.code), message: String(error.message) }
+    // `reason` (ex. NonTraitableError) détaille un `code`/`type` générique
+    // identique pour tous les cas (cf. NON_TRAITABLE masquant type/structure/
+    // email invalide...) : sans lui, Kibana ne distingue pas les causes.
+    const reason = 'reason' in error ? error.reason : undefined
+    return {
+      type: String(error.code),
+      message: String(error.message),
+      ...(reason !== undefined && { reason: String(reason) })
+    }
   }
   return { type: 'Unknown', message: String(error) }
 }
