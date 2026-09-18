@@ -6,12 +6,6 @@ export enum TypeActionPlan {
   CONSEIL = 'CONSEIL'
 }
 
-export enum DestinationActionPlan {
-  OFFRES_ALTERNANCE = 'OFFRES_ALTERNANCE',
-  OFFRES_SERVICE_CIVIQUE = 'OFFRES_SERVICE_CIVIQUE',
-  EVENEMENTS = 'EVENEMENTS'
-}
-
 export class ActionPlanQueryModel {
   @ApiProperty()
   id: string
@@ -25,14 +19,8 @@ export class ActionPlanQueryModel {
   @ApiPropertyOptional()
   url?: string
 
-  @ApiPropertyOptional({ enum: DestinationActionPlan })
-  destination?: DestinationActionPlan
-
   @ApiPropertyOptional()
   nomService?: string
-
-  @ApiPropertyOptional()
-  descriptionService?: string
 }
 
 export class ObjectivePlanActionQueryModel {
@@ -52,15 +40,6 @@ export class ObjectivePlanActionQueryModel {
 export class PlanActionQueryModel {
   @ApiProperty()
   id: string
-
-  @ApiProperty()
-  accroche: string
-
-  @ApiProperty()
-  genereLe: string
-
-  @ApiProperty()
-  generateur: string
 
   @ApiProperty({ type: [ObjectivePlanActionQueryModel] })
   objectives: ObjectivePlanActionQueryModel[]
