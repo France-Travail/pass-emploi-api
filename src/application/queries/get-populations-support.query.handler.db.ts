@@ -6,6 +6,7 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
+import { CommunicationSqlModel } from '../../infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../infrastructure/sequelize/models/deploiement.sql-model'
 import { PopulationConseillerSqlModel } from '../../infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../infrastructure/sequelize/models/population-profil.sql-model'
@@ -24,16 +25,16 @@ export class GetPopulationsSupportQueryHandler extends QueryHandler<
   }
 
   async handle(): Promise<Result<PopulationSupportQueryModel[]>> {
-    const [populations, conseillers, profils, deploiements] = await Promise.all(
-      [
+    const [populations, conseillers, profils, deploiements, communications] =
+      await Promise.all([
         PopulationSqlModel.findAll({ order: [['id', 'ASC']] }),
         PopulationConseillerSqlModel.findAll({
           order: [['emailConseiller', 'ASC']]
         }),
         PopulationProfilSqlModel.findAll({ order: [['id', 'ASC']] }),
-        DeploiementSqlModel.findAll({ order: [['id', 'ASC']] })
-      ]
-    )
+        DeploiementSqlModel.findAll({ order: [['id', 'ASC']] }),
+        CommunicationSqlModel.findAll({ order: [['id', 'ASC']] })
+      ])
 
     return success(
       populations.map(population =>
@@ -41,7 +42,8 @@ export class GetPopulationsSupportQueryHandler extends QueryHandler<
           population,
           conseillers.filter(c => c.idPopulation === population.id),
           profils.filter(p => p.idPopulation === population.id),
-          deploiements.filter(d => d.idPopulation === population.id)
+          deploiements.filter(d => d.idPopulation === population.id),
+          communications.filter(co => co.idPopulation === population.id)
         )
       )
     )

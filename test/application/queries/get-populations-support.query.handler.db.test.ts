@@ -71,7 +71,8 @@ describe('Listes support : populations et fonctionnalités', () => {
                 dispositif: Profil.Dispositif.CEJ
               }
             ],
-            deploiements: []
+            deploiements: [],
+            communications: []
           },
           {
             id: 'PILOTE_1J1S',
@@ -85,7 +86,8 @@ describe('Listes support : populations et fonctionnalités', () => {
                 idFonctionnalite: 'PLAN_D_ACTION',
                 dateActivation: '2026-10-13T00:00:00.000Z'
               }
-            ]
+            ],
+            communications: []
           }
         ])
       )

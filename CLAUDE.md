@@ -347,7 +347,7 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 | Commande                        | Description                                                        |
 |---------------------------------|--------------------------------------------------------------------|
 | `yarn start`                    | API sur le `.environment` tel quel (pg + redis Docker démarrés)    |
-| `yarn start:db-local`           | API sur la DB Docker, connect staging (`.environment.db-local`)    |
+| `yarn start:local`           | API sur la DB Docker, connect staging (`.environment.db-local`)    |
 | `yarn start:staging`            | API sur la DB staging, tunnel Scalingo ouvert automatiquement  |
 | `yarn watch[:db-local\|:staging]` | Idem avec hot reload + logs pretty                              |
 | `yarn watch:worker`             | Worker mode avec logs                                              |
