@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
+import {
+  DroitsInsuffisants,
+  ErreurHttp
+} from '../../building-blocks/types/domain-error'
 import {
   failure,
   isSuccess,
@@ -16,6 +19,7 @@ import {
   TOUT_INVITE
 } from '../../domain/profil'
 import { PlanActionClient } from '../../infrastructure/clients/plan-action-client'
+import { PlanActionSqlRepository } from '../../infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
@@ -41,6 +45,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
     private readonly planActionClient: PlanActionClient,
+    private readonly planActionSqlRepository: PlanActionSqlRepository,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService
   ) {
@@ -72,7 +77,17 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     const result = await this.planActionClient.genererPlan(profile)
 
     if (isSuccess(result)) {
-      return success(toPlanActionQueryModel(result.data))
+      const plan = toPlanActionQueryModel(result.data)
+      if (!estInvite(utilisateur.profil.structure)) {
+        try {
+          await this.planActionSqlRepository.save(command.idJeune, plan)
+        } catch (_e) {
+          return failure(
+            new ErreurHttp("La sauvegarde du plan d'action a échoué", 500)
+          )
+        }
+      }
+      return success(plan)
     }
 
     return result

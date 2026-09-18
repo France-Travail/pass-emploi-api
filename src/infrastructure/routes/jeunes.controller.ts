@@ -23,7 +23,10 @@ import {
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from 'src/application/commands/delete-jeune.command.handler'
 import { GenererPlanActionCommandHandler } from 'src/application/commands/generer-plan-action.command.handler'
-import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
+import {
+  PlanActionConnecteQueryModel,
+  PlanActionQueryModel
+} from 'src/application/queries/query-models/plan-action.query-model'
 import { GenererPlanActionPayload } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import {
   TransfererJeunesConseillerCommand,
@@ -76,6 +79,7 @@ import {
   UpdateJeunePayload,
   UpdateJeunePreferencesPayload
 } from './validation/jeunes.inputs'
+import { RecupererPlanActionCommandHandler } from '../../application/commands/recuperer-plan-action.command.handler'
 
 @Controller('jeunes')
 @UserJourney('compte_jeune')
@@ -99,7 +103,8 @@ export class JeunesController {
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
-    private genererPlanActionCommandHandler: GenererPlanActionCommandHandler
+    private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
+    private recupererPlanActionCommandHandler: RecupererPlanActionCommandHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -473,6 +478,25 @@ export class JeunesController {
   ): Promise<PlanActionQueryModel> {
     const result = await this.genererPlanActionCommandHandler.execute(
       { idJeune, payload },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Get(':idJeune/plan-action')
+  @UserJourney('suivi_actions')
+  @ApiOperation({
+    summary: "récupere un plan d'action pour un jeune",
+    description: 'Autorisé pour un bénéficiaire connecté'
+  })
+  @ApiResponse({ type: PlanActionConnecteQueryModel })
+  async recupererPlanAction(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<PlanActionConnecteQueryModel> {
+    const result = await this.recupererPlanActionCommandHandler.execute(
+      { idJeune },
       utilisateur
     )
 
