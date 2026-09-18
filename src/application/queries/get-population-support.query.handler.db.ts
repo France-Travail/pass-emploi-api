@@ -9,6 +9,7 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
+import { CommunicationSqlModel } from '../../infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../infrastructure/sequelize/models/deploiement.sql-model'
 import { PopulationConseillerSqlModel } from '../../infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../infrastructure/sequelize/models/population-profil.sql-model'
@@ -38,21 +39,24 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
     }
 
     const where = { idPopulation: query.idPopulation }
-    const [conseillers, profils, deploiements] = await Promise.all([
-      PopulationConseillerSqlModel.findAll({
-        where,
-        order: [['emailConseiller', 'ASC']]
-      }),
-      PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
-      DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] })
-    ])
+    const [conseillers, profils, deploiements, communications] =
+      await Promise.all([
+        PopulationConseillerSqlModel.findAll({
+          where,
+          order: [['emailConseiller', 'ASC']]
+        }),
+        PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
+        DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] }),
+        CommunicationSqlModel.findAll({ where, order: [['id', 'ASC']] })
+      ])
 
     return success(
       toPopulationSupportQueryModel(
         population,
         conseillers,
         profils,
-        deploiements
+        deploiements,
+        communications
       )
     )
   }
@@ -70,7 +74,8 @@ export function toPopulationSupportQueryModel(
   population: PopulationSqlModel,
   conseillers: PopulationConseillerSqlModel[],
   profils: PopulationProfilSqlModel[],
-  deploiements: DeploiementSqlModel[]
+  deploiements: DeploiementSqlModel[],
+  communications: CommunicationSqlModel[]
 ): PopulationSupportQueryModel {
   return {
     id: population.id,
@@ -85,6 +90,25 @@ export function toPopulationSupportQueryModel(
       nature: d.nature,
       idFonctionnalite: d.idFonctionnalite ?? undefined,
       dateActivation: DateTime.fromJSDate(d.dateActivation).toUTC().toISO()!
+    })),
+    communications: communications.map(co => ({
+      id: co.id,
+      destinataire: co.destinataire,
+      type: co.type,
+      dateDebut: DateTime.fromJSDate(co.dateDebut).toUTC().toISO()!,
+      dateFin: co.dateFin
+        ? DateTime.fromJSDate(co.dateFin).toUTC().toISO()!
+        : undefined,
+      titre: co.titre,
+      contenu: co.contenu,
+      ctaLabel: co.ctaLabel ?? undefined,
+      ctaUrlAndroid: co.ctaUrlAndroid ?? undefined,
+      ctaUrlIos: co.ctaUrlIos ?? undefined,
+      typeNotification: co.typeNotification ?? undefined,
+      push: co.push ?? undefined,
+      envoyeeLe: co.envoyeeLe
+        ? DateTime.fromJSDate(co.envoyeeLe).toUTC().toISO()!
+        : undefined
     }))
   }
 }

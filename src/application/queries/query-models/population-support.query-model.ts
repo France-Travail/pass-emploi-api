@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
+import { Notification } from '../../../domain/notification/notification'
 import { Profil } from '../../../domain/profil'
 
 export class ProfilPopulationQueryModel {
@@ -24,6 +26,53 @@ export class DeploiementQueryModel {
   dateActivation: string
 }
 
+export class CommunicationSupportQueryModel {
+  @ApiProperty()
+  id: number
+
+  @ApiProperty({ enum: Communication.Destinataire })
+  destinataire: Communication.Destinataire
+
+  @ApiProperty({ enum: Communication.Type })
+  type: Communication.Type
+
+  @ApiProperty({ description: 'Début de visibilité, en UTC' })
+  dateDebut: string
+
+  @ApiPropertyOptional({
+    description:
+      'Fin de visibilité (exclue), en UTC. Absente = IN_APP visible indéfiniment, ou communication NOTIFICATION (toujours sans dateFin).'
+  })
+  dateFin?: string
+
+  @ApiProperty()
+  titre: string
+
+  @ApiProperty()
+  contenu: string
+
+  @ApiPropertyOptional()
+  ctaLabel?: string
+
+  @ApiPropertyOptional()
+  ctaUrlAndroid?: string
+
+  @ApiPropertyOptional()
+  ctaUrlIos?: string
+
+  @ApiPropertyOptional({ enum: Notification.TypeNotifManuelle })
+  typeNotification?: Notification.Type
+
+  @ApiPropertyOptional()
+  push?: boolean
+
+  @ApiPropertyOptional({
+    description:
+      'Date d’envoi du push par le cron NOTIFIER_COMMUNICATIONS, en UTC. Absent pour IN_APP, ou pour une NOTIFICATION pas encore envoyée.'
+  })
+  envoyeeLe?: string
+}
+
 export class PopulationSupportQueryModel {
   @ApiProperty()
   id: string
@@ -39,4 +88,7 @@ export class PopulationSupportQueryModel {
 
   @ApiProperty({ type: DeploiementQueryModel, isArray: true })
   deploiements: DeploiementQueryModel[]
+
+  @ApiProperty({ type: CommunicationSupportQueryModel, isArray: true })
+  communications: CommunicationSupportQueryModel[]
 }

@@ -110,6 +110,7 @@ export namespace Planificateur {
     NOTIFIER_ACTUALISATION = 'NOTIFIER_ACTUALISATION',
     CLORE_SESSIONS = 'CLORE_SESSIONS',
     NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES',
+    NOTIFIER_COMMUNICATIONS = 'NOTIFIER_COMMUNICATIONS',
     NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
@@ -276,6 +277,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     expression: '0 6 * * *',
     description:
       'Tous les jours à 6h. Qualifie en NON SNP les actions EN COURS il y a plus de 4 mois.'
+  },
+  {
+    type: Planificateur.JobType.NOTIFIER_COMMUNICATIONS,
+    expression: '0 9 * * 1-5',
+    description:
+      'Jours ouvrés à 9h. Enfile NOTIFIER_BENEFICIAIRES pour les communications NOTIFICATION dont la date de début est atteinte et non encore envoyées.'
   },
   {
     type: Planificateur.JobType.MAIL_CONSEILLER_MESSAGES,

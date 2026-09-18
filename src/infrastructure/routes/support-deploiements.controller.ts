@@ -25,11 +25,17 @@ import { DateTime } from 'luxon'
 import { AjouterConseillersPopulationCommandHandler } from '../../application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../application/commands/support/ajouter-profil-population.command.handler.db'
 import {
+  CommunicationCreee,
+  CreerCommunicationCommandHandler
+} from '../../application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from '../../application/commands/support/modifier-communication.command.handler.db'
+import {
   CreerDeploiementCommandHandler,
   DeploiementCree
 } from '../../application/commands/support/creer-deploiement.command.handler.db'
 import { CreerFonctionnaliteCommandHandler } from '../../application/commands/support/creer-fonctionnalite.command.handler.db'
 import { CreerPopulationCommandHandler } from '../../application/commands/support/creer-population.command.handler.db'
+import { SupprimerCommunicationCommandHandler } from '../../application/commands/support/supprimer-communication.command.handler.db'
 import { SupprimerConseillersPopulationCommandHandler } from '../../application/commands/support/supprimer-conseillers-population.command.handler.db'
 import { ModifierDateDeploiementCommandHandler } from '../../application/commands/support/modifier-date-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from '../../application/commands/support/supprimer-deploiement.command.handler.db'
@@ -48,6 +54,7 @@ import { UserJourney } from '../monitoring/user-journey.decorator'
 import { handleResult } from './result.handler'
 import {
   ConseillersPopulationPayload,
+  CreerCommunicationPayload,
   CreerDeploiementPayload,
   CreerFonctionnalitePayload,
   CreerPopulationPayload,
@@ -68,7 +75,6 @@ const REPONSE_404_POPULATION = {
 
 @Controller('support')
 @UserJourney('support')
-@ApiTags('Support - Fonctionnalités, populations et déploiements')
 @SkipOidcAuth()
 @UseGuards(ApiKeyAuthGuard)
 @ApiSecurity('api_key')
@@ -87,10 +93,14 @@ export class SupportDeploiementsController {
     private readonly supprimerProfilPopulationCommandHandler: SupprimerProfilPopulationCommandHandler,
     private readonly creerDeploiementCommandHandler: CreerDeploiementCommandHandler,
     private readonly modifierDateDeploiementCommandHandler: ModifierDateDeploiementCommandHandler,
-    private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler
+    private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
+    private readonly creerCommunicationCommandHandler: CreerCommunicationCommandHandler,
+    private readonly modifierCommunicationCommandHandler: ModifierCommunicationCommandHandler,
+    private readonly supprimerCommunicationCommandHandler: SupprimerCommunicationCommandHandler
   ) {}
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Liste les fonctionnalités du référentiel',
     description: `Les ids à utiliser dans \`idFonctionnalite\` de POST /support/deploiements.
@@ -99,7 +109,8 @@ export class SupportDeploiementsController {
 1. \`GET /support/populations\` pour voir ce qui existe déjà, ou \`POST /support/populations\` pour créer une cible ;
 2. \`POST /support/populations/conseillers\` (emails) et/ou \`POST /support/populations/profils\` (structure × dispositif) pour la remplir ;
 3. \`POST /support/deploiements\` pour activer une fonctionnalité ou programmer une migration sur cette population à une date ;
-4. \`GET /support/populations/:idPopulation\` pour vérifier.`
+4. \`POST /support/communications\` pour prévenir les utilisateurs avant J ;
+5. \`GET /support/populations/:idPopulation\` pour vérifier.`
   })
   @ApiOkResponse({ type: FonctionnalitesSupportQueryModel })
   @Get('fonctionnalites')
@@ -112,6 +123,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Crée une fonctionnalité dans le référentiel',
     description:
@@ -138,6 +150,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Fonctionnalités')
   @ApiOperation({
     summary: 'Supprime une fonctionnalité du référentiel',
     description:
@@ -166,6 +179,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Liste les populations avec leurs cibles et leurs déploiements',
     description:
@@ -182,6 +196,7 @@ export class SupportDeploiementsController {
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Crée une population, ou met à jour sa description',
     description: `Une population est un groupe cible nommé. On la remplit ensuite avec des emails de conseillers (POST /support/populations/conseillers) et/ou des profils structure × dispositif (POST /support/populations/profils).
@@ -225,6 +240,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Lit une population avec ses cibles et ses déploiements',
     description:
@@ -245,6 +261,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute des conseillers à une population, par email',
     description:
@@ -280,6 +297,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Retire des conseillers d’une population',
     description:
@@ -325,6 +343,7 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute un profil structure × dispositif à une population',
     description: `Sans dispositif, le profil couvre toute la structure. Le profil se lit sur chaque utilisateur : un jeune FT / CEJ est ciblé par \`(FRANCE_TRAVAIL, CEJ)\` quel que soit son conseiller.
@@ -370,6 +389,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Retire un profil d’une population',
     description:
@@ -409,10 +429,11 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Supprime une population',
     description:
-      'Ses emails et ses profils partent avec elle. Refusée tant qu’un déploiement la vise : supprimer d’abord le déploiement.'
+      'Ses emails, ses profils et ses communications partent avec elle. Refusée tant qu’un déploiement la vise : le supprimer d’abord.'
   })
   @ApiParam({ name: 'idPopulation', example: 'PILOTE_1J1S' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Supprimée' })
@@ -434,6 +455,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Déploiements')
   @ApiOperation({
     summary: 'Crée un déploiement : une population, une nature, une date',
     description: `À partir de \`dateActivation\` (UTC) :
@@ -495,6 +517,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Déploiements')
   @ApiOperation({
     summary: 'Modifie la date d’activation d’un déploiement',
     description:
@@ -547,6 +570,161 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   ): Promise<void> {
     const result = await this.supprimerDeploiementCommandHandler.execute(
       { id: idDeploiement },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiTags('Support - Communications')
+  @ApiOperation({
+    summary: 'Crée une communication pour une population',
+    description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. \`dateFin\` absente pour IN_APP = visible indéfiniment, jusqu'à suppression. \`dateFin\` interdite pour NOTIFICATION (pas de rappel possible une fois envoyée).
+
+Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche (les communications sans dateFin passent en dernier). Renvoie l'id, à garder pour la modifier (PUT /support/communications/:id) ou la supprimer.`
+  })
+  @ApiBody({
+    type: CreerCommunicationPayload,
+    examples: {
+      migration: {
+        summary: 'Prévenir les conseillers d’une migration',
+        value: {
+          idPopulation: 'PHASE_C',
+          destinataire: 'CONSEILLER',
+          type: 'IN_APP',
+          dateDebut: '2026-09-30T00:00:00.000Z',
+          dateFin: '2026-10-15T00:00:00.000Z',
+          titre: 'Votre application évolue',
+          contenu:
+            'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible. Vos services seront accessibles sur l’application Parcours Emploi.\nNous vous recommandons de ne plus ajouter de nouveaux bénéficiaires à votre portefeuille.'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Créée, renvoie { id }'
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Payload invalide, ou dateFin qui ne suit pas dateDebut'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'La population n’existe pas'
+  })
+  @Post('communications')
+  @HttpCode(HttpStatus.CREATED)
+  async creerCommunication(
+    @Body() payload: CreerCommunicationPayload
+  ): Promise<CommunicationCreee> {
+    const result = await this.creerCommunicationCommandHandler.execute(
+      {
+        idPopulation: payload.idPopulation,
+        destinataire: payload.destinataire,
+        type: payload.type,
+        dateDebut: DateTime.fromISO(payload.dateDebut),
+        dateFin: payload.dateFin
+          ? DateTime.fromISO(payload.dateFin)
+          : undefined,
+        titre: payload.titre,
+        contenu: payload.contenu,
+        ctaLabel: payload.ctaLabel,
+        ctaUrlAndroid: payload.ctaUrlAndroid,
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification,
+        push: payload.push
+      },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiTags('Support - Communications')
+  @ApiOperation({
+    summary: 'Remplace une communication',
+    description: `Remplace tout le contenu : un champ absent du corps est effacé, pas conservé (un CTA qu'on ne renvoie pas disparaît). L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation.
+
+Pratique : copier une communication depuis GET /support/populations/:idPopulation, corriger ce qu'il faut et renvoyer l'objet tel quel — le champ \`id\` est ignoré.`
+  })
+  @ApiParam({ name: 'idCommunication', example: 3 })
+  @ApiBody({
+    type: CreerCommunicationPayload,
+    examples: {
+      unePhrase: {
+        summary: 'Corriger le contenu',
+        value: {
+          idPopulation: 'PHASE_C',
+          destinataire: 'CONSEILLER',
+          type: 'IN_APP',
+          dateDebut: '2026-09-30T00:00:00.000Z',
+          dateFin: '2026-10-15T00:00:00.000Z',
+          titre: 'Votre application évolue',
+          contenu:
+            'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible.\nVos services seront accessibles sur l’application Parcours Emploi.'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Remplacée' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Payload invalide, ou dateFin qui ne suit pas dateDebut'
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'La communication ou la population n’existe pas'
+  })
+  @Put('communications/:idCommunication')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async modifierCommunication(
+    @Param('idCommunication', ParseIntPipe) idCommunication: number,
+    @Body() payload: CreerCommunicationPayload
+  ): Promise<void> {
+    const result = await this.modifierCommunicationCommandHandler.execute(
+      {
+        id: idCommunication,
+        idPopulation: payload.idPopulation,
+        destinataire: payload.destinataire,
+        type: payload.type,
+        dateDebut: DateTime.fromISO(payload.dateDebut),
+        dateFin: payload.dateFin
+          ? DateTime.fromISO(payload.dateFin)
+          : undefined,
+        titre: payload.titre,
+        contenu: payload.contenu,
+        ctaLabel: payload.ctaLabel,
+        ctaUrlAndroid: payload.ctaUrlAndroid,
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification,
+        push: payload.push
+      },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiTags('Support - Communications')
+  @ApiOperation({
+    summary: 'Supprime une communication',
+    description:
+      'L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation. Le message disparaît immédiatement.'
+  })
+  @ApiParam({ name: 'idCommunication', example: 3 })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Supprimée' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'La communication n’existe pas'
+  })
+  @Delete('communications/:idCommunication')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async supprimerCommunication(
+    @Param('idCommunication', ParseIntPipe) idCommunication: number
+  ): Promise<void> {
+    const result = await this.supprimerCommunicationCommandHandler.execute(
+      { id: idCommunication },
       Authentification.unUtilisateurSupport()
     )
     return handleResult(result)

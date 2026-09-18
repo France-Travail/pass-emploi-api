@@ -1,4 +1,4 @@
-# Profil DB-LOCAL : DB Docker, connect/keycloak staging. Utilisé par `yarn start:db-local` / `yarn watch:db-local`.
+# Profil DB-LOCAL : DB Docker, connect/keycloak staging. Utilisé par `yarn start:local` / `yarn watch:db-local`.
 # Chargé AVANT .environment (premier fichier gagne) ; les ${…} sont résolus depuis le vault.
 # ENVIRONMENT=development : sinon Sequelize force le SSL (providers.ts) et le postgres Docker le refuse.
 ENVIRONMENT=development
