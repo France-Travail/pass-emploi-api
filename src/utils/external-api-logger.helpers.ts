@@ -39,7 +39,8 @@ export function attachExternalApiLogger(
         response.config,
         response.status,
         undefined,
-        response.data
+        response.data,
+        response.headers
       )
       return response
     },
@@ -50,25 +51,61 @@ export function attachExternalApiLogger(
         error.config,
         error.response?.status,
         error,
-        error.response?.data
+        error.response?.data,
+        error.response?.headers
       )
       return Promise.reject(error)
     }
   )
 }
 
+// Headers de réponse conservés sur échec, pour diagnostiquer la cause renvoyée
+// par le partenaire : `www-authenticate` (raison OAuth d'un 401, RFC 6750),
+// `retry-after` (429/503). Allowlist volontaire — pas de dump complet (mapping +
+// fuite type set-cookie). Posés en feuilles plates sous http.response
+// (http.response.www_authenticate), PAS sous http.response.headers : ce dernier
+// est mappé en non-objet (flattened) par APM via le component template partagé
+// logs@custom → un objet `headers` casse la composition des templates APM.
+const DIAGNOSTIC_RESPONSE_HEADERS = ['www-authenticate', 'retry-after']
+
+const getHeaderCaseInsensitive = (
+  headers: Record<string, unknown>,
+  name: string
+): string | undefined => {
+  const key = Object.keys(headers).find(k => k.toLowerCase() === name)
+  return key === undefined ? undefined : String(headers[key])
+}
+
+const buildResponseHeaders = (
+  headers: Record<string, unknown> | undefined
+): Record<string, string> | undefined => {
+  if (!headers) return undefined
+  const result: Record<string, string> = {}
+  for (const name of DIAGNOSTIC_RESPONSE_HEADERS) {
+    const value = getHeaderCaseInsensitive(headers, name)
+    if (value !== undefined) result[name.replaceAll('-', '_')] = value
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
 const buildResponsePayload = (
   statusCode: number | undefined,
-  responseBodyContent: string | undefined
+  responseBodyContent: string | undefined,
+  responseHeaders: Record<string, string> | undefined
 ): Record<string, unknown> | undefined => {
-  if (statusCode === undefined && responseBodyContent === undefined) {
+  if (
+    statusCode === undefined &&
+    responseBodyContent === undefined &&
+    responseHeaders === undefined
+  ) {
     return undefined
   }
   return {
     ...(statusCode !== undefined && { status_code: statusCode }),
     ...(responseBodyContent !== undefined && {
       body: { content: responseBodyContent }
-    })
+    }),
+    ...responseHeaders
   }
 }
 
@@ -91,7 +128,8 @@ export function logCall(
   config: ConfigWithMetadata | undefined,
   statusCode: number | undefined,
   err: AxiosError | undefined,
-  responseData: unknown
+  responseData: unknown,
+  responseHeaders?: Record<string, unknown>
 ): void {
   const isFailure = !!err || (!!statusCode && statusCode >= 400)
   // Bodies request + response : sur échec, toujours ; sur succès, seulement
@@ -103,10 +141,18 @@ export function logCall(
   const responseBodyContent = includeBodies
     ? serializeBodyForLog(responseData)
     : undefined
+  // Headers diagnostiques uniquement sur échec (raison du 401, retry-after…).
+  const diagnosticHeaders = isFailure
+    ? buildResponseHeaders(responseHeaders)
+    : undefined
 
   const { path, domain, search } = parseUrl(config)
   const query = serializeQuery(config, search)
-  const responsePayload = buildResponsePayload(statusCode, responseBodyContent)
+  const responsePayload = buildResponsePayload(
+    statusCode,
+    responseBodyContent,
+    diagnosticHeaders
+  )
   const durationNs = config?.metadata
     ? Number(process.hrtime.bigint() - config.metadata.startTimeNs)
     : undefined
