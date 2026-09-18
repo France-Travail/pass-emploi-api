@@ -162,6 +162,22 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return
   }
 
+  // Le profil (structure/dispositif) conditionne quasi toutes les branches du
+  // handler : le porter sur chaque handler_executed évite de le re-déduire
+  // depuis error.reason en cas d'échec.
+  protected labelsDuLog(
+    _result: Result<UtilisateurQueryModel>,
+    command?: UpdateUtilisateurCommand
+  ): Record<string, string | string[]> | undefined {
+    if (!command) return undefined
+    return {
+      structure: command.profil.structure,
+      ...(command.profil.dispositif && {
+        dispositif: command.profil.dispositif
+      })
+    }
+  }
+
   private recupererConseiller(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
