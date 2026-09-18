@@ -35,7 +35,7 @@ import {
 import { Jeune } from '../../domain/jeune/jeune'
 import { ChatCryptoService } from '../../utils/chat-crypto-service'
 import { DateService } from '../../utils/date-service'
-import { buildError } from '../../utils/logger.module'
+import { buildError, rootLogger } from '../../utils/logger.module'
 import { getAPMInstance } from '../monitoring/apm.init'
 import {
   FirebaseChat,
@@ -102,7 +102,14 @@ export class FirebaseClient {
   async send(tokenMessage: TokenMessage): Promise<void> {
     try {
       await this.messaging.send(tokenMessage)
-      this.logger.log(tokenMessage)
+      rootLogger.info(
+        {
+          context: 'FirebaseClient',
+          event: { action: 'push_notification_sent', outcome: 'success' },
+          labels: { notification_type: tokenMessage.data?.type }
+        },
+        'push_notification_sent'
+      )
     } catch (e) {
       const errorMessage = `Impossible d'envoyer de notification sur le token ${tokenMessage.token}`
       if (
