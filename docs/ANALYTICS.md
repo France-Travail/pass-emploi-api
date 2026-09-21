@@ -185,48 +185,6 @@ communication qui démarre à 10h reste `PREVUE` jusqu'au run suivant. Toujours 
 `date_calcul` (ou « prévue le … ») à côté du statut pour que ce décalage soit lisible.
 Côté Metabase, **ne jamais recalculer un statut avec `now()`** : filtrer sur la colonne.
 
-Requêtes de départ pour les questions Metabase :
-
-```sql
--- Populations avec leurs conseillers
-SELECT id_population, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul
-FROM analytics_population_membres
-WHERE type_utilisateur = 'CONSEILLER'
-ORDER BY id_population, nom, prenom;
-
--- Communications prévues (ou passées : statut = 'PASSEE'), groupées par population et date
-SELECT id_communication, id_population, titre, type, date_debut, date_fin,
-       count(*) AS nb_conseillers, max(date_calcul) AS calcule_le
-FROM analytics_communication_destinataires
-WHERE statut = 'PREVUE'
-GROUP BY id_communication, id_population, titre, type, date_debut, date_fin
-ORDER BY date_debut;
-
--- Détail d'une communication : contenu affiché au conseiller + ses destinataires (filtre Metabase {{id_communication}})
-SELECT titre, contenu, date_debut, date_fin, statut
-FROM analytics_communication_destinataires
-WHERE id_communication = {{id_communication}}
-LIMIT 1;
-
-SELECT email, nom, prenom, structure, dispositif, agence
-FROM analytics_communication_destinataires
-WHERE id_communication = {{id_communication}}
-ORDER BY nom, prenom;
-
--- Migrations prévues, avec les conseillers
-SELECT id_deploiement, id_population, date_activation, email, nom, prenom, agence
-FROM analytics_deploiement_membres
-WHERE nature = 'MIGRATION' AND statut = 'PREVU'
-ORDER BY date_activation, nom, prenom;
-
--- Fonctionnalités actives, effectifs par fonctionnalité et population
-SELECT id_fonctionnalite, id_population, date_activation, count(*) AS nb_conseillers
-FROM analytics_deploiement_membres
-WHERE nature = 'FONCTIONNALITE' AND statut = 'ACTIF'
-GROUP BY id_fonctionnalite, id_population, date_activation
-ORDER BY id_fonctionnalite, date_activation;
-```
-
 **Rafraîchir avant l'heure.** Le job lit les tables **dumpées** ; pour voir l'effet d'une
 population, communication ou déploiement modifié dans la journée, il faut d'abord
 rafraîchir ces tables. Une `tasks:*` **enfile** le job dans le worker (rien ne s'exécute dans
