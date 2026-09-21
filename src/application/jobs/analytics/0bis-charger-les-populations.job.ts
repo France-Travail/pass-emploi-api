@@ -157,6 +157,11 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       CREATE INDEX IF NOT EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}_id_communication_index
         ON ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME} (id_communication);
 
+      -- CREATE TABLE IF NOT EXISTS n'ajoute pas de colonne à une table déjà créée par un run
+      -- précédent : toute colonne ajoutée après la création initiale doit aussi passer ici.
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS contenu text;
+
       CREATE TABLE IF NOT EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
       (
         id_deploiement    varchar NOT NULL,
