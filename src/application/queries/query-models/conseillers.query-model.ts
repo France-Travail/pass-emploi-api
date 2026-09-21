@@ -74,6 +74,9 @@ export class DetailConseillerQueryModel {
   dateMajAgence?: string
 
   @ApiPropertyOptional({ type: Date })
+  dateMajDispositif?: string
+
+  @ApiPropertyOptional({ type: Date })
   dateDeMigration?: string
 }
 

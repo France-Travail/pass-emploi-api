@@ -19,6 +19,7 @@ export interface Conseiller {
   agence?: Agence
   notificationsSonores: boolean
   dateMajAgence?: DateTime
+  dateMajDispositif?: DateTime
 }
 
 export const ConseillerRepositoryToken = 'ConseillerRepositoryToken'
@@ -120,7 +121,8 @@ export namespace Conseiller {
       notificationsSonores: Boolean(infosDeMiseAJour.notificationsSonores),
       dateSignatureCGU: infosDeMiseAJour.dateSignatureCGU,
       dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus,
-      dateMajAgence: infosDeMiseAJour.dateMajAgence
+      dateMajAgence: infosDeMiseAJour.dateMajAgence,
+      dateMajDispositif: infosDeMiseAJour.dateMajDispositif
     })
   }
 
@@ -135,5 +137,6 @@ export namespace Conseiller {
     dateVisionnageActus?: DateTime
     notificationsSonores?: boolean
     dateMajAgence?: DateTime
+    dateMajDispositif?: DateTime
   }
 }

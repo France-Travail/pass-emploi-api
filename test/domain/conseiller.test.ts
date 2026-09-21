@@ -204,6 +204,30 @@ describe('Conseiller', () => {
           expect(result.data.dateMajAgence).to.deep.equal(maintenant)
         }
       })
+
+      it('reprend la date de mise a jour de dispositif transmise', async () => {
+        // Given
+        const conseillerFT = unConseiller({
+          id: 'id-conseiller',
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        const maintenant = DateTime.fromISO('2026-09-21T10:00:00.000Z')
+        const reconfirmation: Conseiller.InfosDeMiseAJour = {
+          dispositif: Profil.Dispositif.CEJ,
+          dateMajDispositif: maintenant
+        }
+
+        // When
+        const result = Conseiller.mettreAJour(conseillerFT, reconfirmation)
+
+        // Then
+        expect(isSuccess(result)).to.equal(true)
+        if (isSuccess(result)) {
+          expect(result.data.dispositif).to.equal(Profil.Dispositif.CEJ)
+          expect(result.data.dateMajDispositif).to.deep.equal(maintenant)
+        }
+      })
     })
   })
 

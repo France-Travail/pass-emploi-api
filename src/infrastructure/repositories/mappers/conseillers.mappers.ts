@@ -21,6 +21,7 @@ export function fromSqlToDetailConseillerQueryModel(
     dateSignatureCGU: conseillerSqlModel.dateSignatureCGU?.toISOString(),
     dateVisionnageActus: conseillerSqlModel.dateVisionnageActus?.toISOString(),
     dateMajAgence: conseillerSqlModel.dateMajAgence?.toISOString(),
+    dateMajDispositif: conseillerSqlModel.dateMajDispositif?.toISOString(),
     agence: undefined,
     notificationsSonores: conseillerSqlModel.notificationsSonores,
     aDesBeneficiairesARecuperer: aDesBeneficiairesARecuperer

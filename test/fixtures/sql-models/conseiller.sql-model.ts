@@ -44,6 +44,7 @@ export function unConseillerDto(
     dateVerificationStructureMilo: null,
     idAgence: null,
     dateMajAgence: null,
+    dateMajDispositif: null,
     notificationsSonores: false,
     idStructureMilo: null,
     username: null

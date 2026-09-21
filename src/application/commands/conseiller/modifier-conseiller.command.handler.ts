@@ -93,7 +93,11 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
         : conseillerActuel.dateVisionnageActus,
       dateMajAgence: conseillerFTReconfirmeSonAgence
         ? this.dateService.now()
-        : conseillerActuel.dateMajAgence
+        : conseillerActuel.dateMajAgence,
+      // Reconfirmer le même dispositif compte : c'est ce qui repousse la relance annuelle.
+      dateMajDispositif: command.dispositif
+        ? this.dateService.now()
+        : conseillerActuel.dateMajDispositif
     }
 
     const conseillerResult = Conseiller.mettreAJour(
