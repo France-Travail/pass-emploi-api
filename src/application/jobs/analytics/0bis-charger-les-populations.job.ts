@@ -146,6 +146,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         destinataire     varchar NOT NULL,
         type             varchar NOT NULL,
         titre            varchar,
+        contenu          text,
         date_debut       timestamptz NOT NULL,
         date_fin         timestamptz NOT NULL,
         statut           varchar NOT NULL,
@@ -278,9 +279,9 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     const [, nbLignes] = await connexion.query(
       `
         INSERT INTO ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
-          (id_communication, id_population, destinataire, type, titre, date_debut, date_fin, statut,
+          (id_communication, id_population, destinataire, type, titre, contenu, date_debut, date_fin, statut,
            type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, agence, date_calcul)
-        SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.date_debut, co.date_fin,
+        SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.contenu, co.date_debut, co.date_fin,
                CASE
                  WHEN co.date_fin <= :maintenant THEN 'PASSEE'
                  WHEN ${sqlCommunicationEnCours('co', ':maintenant')} THEN 'EN_COURS'

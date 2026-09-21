@@ -162,7 +162,7 @@ dans une transaction, `date_calcul` identique sur toutes les lignes) :
 | Table | Une ligne par | Colonnes propres | `statut` (figé à `date_calcul`) |
 | --- | --- | --- | --- |
 | `analytics_population_membres` | (population, conseiller ou jeune) | `email_conseiller_reference`, `type_conseiller_reference` (`ACTUEL` / `INITIAL` si transfert temporaire) | — |
-| `analytics_communication_destinataires` | (communication, conseiller destinataire) | `destinataire`, `type`, `titre`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` |
+| `analytics_communication_destinataires` | (communication, conseiller destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` |
 | `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
 Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
@@ -200,7 +200,12 @@ WHERE statut = 'PREVUE'
 GROUP BY id_communication, id_population, titre, type, date_debut, date_fin
 ORDER BY date_debut;
 
--- Conseillers destinataires d'une communication (filtre Metabase {{id_communication}})
+-- Détail d'une communication : contenu affiché au conseiller + ses destinataires (filtre Metabase {{id_communication}})
+SELECT titre, contenu, date_debut, date_fin, statut
+FROM analytics_communication_destinataires
+WHERE id_communication = {{id_communication}}
+LIMIT 1;
+
 SELECT email, nom, prenom, structure, dispositif, agence
 FROM analytics_communication_destinataires
 WHERE id_communication = {{id_communication}}

@@ -57,6 +57,7 @@ interface Destinataire extends Utilisateur {
   destinataire: string
   type: string
   titre: string
+  contenu: string
   date_debut: Date
   date_fin: Date
   statut: string
@@ -364,6 +365,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         destinataire: 'CONSEILLER',
         type: 'IN_APP',
         titre: 'Passée',
+        contenu: 'Contenu',
         date_fin: hier,
         type_utilisateur: 'CONSEILLER',
         email: 'cite@milo.fr',
