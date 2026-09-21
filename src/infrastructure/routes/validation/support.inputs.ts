@@ -19,6 +19,7 @@ import {
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { Profil } from '../../../domain/profil'
+import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
 import { Notification } from '../../../domain/notification/notification'
 import { Planificateur } from '../../../domain/planificateur'
@@ -279,6 +280,76 @@ export class ModifierDateDeploiementPayload {
   })
   @IsISO8601()
   dateActivation: string
+}
+
+export class CreerCommunicationPayload {
+  @ApiProperty({
+    description:
+      "Identifiant d'une population existante, voir GET /support/populations",
+    example: 'PHASE_C'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiProperty({ enum: Communication.Destinataire, example: 'CONSEILLER' })
+  @IsEnum(Communication.Destinataire)
+  destinataire: Communication.Destinataire
+
+  @ApiProperty({
+    enum: Communication.Type,
+    description:
+      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, pas encore envoyé.',
+    example: 'IN_APP'
+  })
+  @IsEnum(Communication.Type)
+  type: Communication.Type
+
+  @ApiProperty({
+    description: 'Date ISO 8601 de début de visibilité (incluse), en UTC',
+    example: '2026-09-30T00:00:00.000Z'
+  })
+  @IsISO8601()
+  dateDebut: string
+
+  @ApiProperty({
+    description: 'Date ISO 8601 de fin de visibilité (exclue), en UTC',
+    example: '2026-10-15T00:00:00.000Z'
+  })
+  @IsISO8601()
+  dateFin: string
+
+  @ApiProperty({ example: 'Votre application évolue' })
+  @IsString()
+  @IsNotEmpty()
+  titre: string
+
+  @ApiProperty({
+    description: 'Texte brut, les sauts de ligne (\\n) sont respectés',
+    example:
+      'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible. Vos services seront accessibles sur l’application Parcours Emploi.'
+  })
+  @IsString()
+  @IsNotEmpty()
+  contenu: string
+
+  @ApiPropertyOptional({ example: 'Télécharger Parcours Emploi' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  ctaLabel?: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  ctaUrlAndroid?: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  ctaUrlIos?: string
 }
 
 export class ListerJobsQueryParams {

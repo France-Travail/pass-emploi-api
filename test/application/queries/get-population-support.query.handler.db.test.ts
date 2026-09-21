@@ -3,8 +3,10 @@ import { before } from 'mocha'
 import { GetPopulationSupportQueryHandler } from '../../../src/application/queries/get-population-support.query.handler.db'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { failure, success } from '../../../src/building-blocks/types/result'
+import { Communication } from '../../../src/domain/communication'
 import { Deploiement } from '../../../src/domain/deploiement'
 import { Profil } from '../../../src/domain/profil'
+import { CommunicationSqlModel } from '../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
@@ -53,6 +55,15 @@ describe('GetPopulationSupportQueryHandler', () => {
       idFonctionnalite: 'PLAN_D_ACTION',
       dateActivation: dateActivation.toJSDate()
     })
+    const communication = await CommunicationSqlModel.create({
+      idPopulation: 'PILOTE_1J1S',
+      destinataire: Communication.Destinataire.CONSEILLER,
+      type: Communication.Type.IN_APP,
+      dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z').toJSDate(),
+      dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z').toJSDate(),
+      titre: 'Votre application évolue',
+      contenu: 'Le 15 octobre 2026…'
+    })
 
     // When
     const result = await handler.handle({ idPopulation: 'PILOTE_1J1S' })
@@ -70,6 +81,20 @@ describe('GetPopulationSupportQueryHandler', () => {
             nature: Deploiement.Nature.FONCTIONNALITE,
             idFonctionnalite: 'PLAN_D_ACTION',
             dateActivation: '2026-10-13T00:00:00.000Z'
+          }
+        ],
+        communications: [
+          {
+            id: communication.id,
+            destinataire: Communication.Destinataire.CONSEILLER,
+            type: Communication.Type.IN_APP,
+            dateDebut: '2026-09-30T00:00:00.000Z',
+            dateFin: '2026-10-15T00:00:00.000Z',
+            titre: 'Votre application évolue',
+            contenu: 'Le 15 octobre 2026…',
+            ctaLabel: undefined,
+            ctaUrlAndroid: undefined,
+            ctaUrlIos: undefined
           }
         ]
       })

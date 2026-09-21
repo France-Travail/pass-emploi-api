@@ -41,7 +41,7 @@ export class SupprimerPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Les cibles partent en cascade, pas un déploiement : le supprimer d'abord évite une désactivation par accident.
+  // Les cibles et les communications partent en cascade, pas un déploiement : le supprimer d'abord évite une désactivation par accident.
   async handle(command: SupprimerPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.id))) {
       return failure(new NonTrouveError('Population', command.id))

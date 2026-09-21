@@ -25,6 +25,7 @@ import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/g
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
 import { VerifierEmailJeuneQueryHandler } from 'src/application/queries/verifier-email-jeune.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from 'src/application/queries/get-impact-changement-dispositif.query.handler.db'
+import { GetCommunicationsConseillerQueryHandler } from './application/queries/get-communications-conseiller.query.handler'
 import { EvenementEmploiCodePostalQueryGetter } from 'src/application/queries/query-getters/evenement-emploi-code-postal.query.getter'
 import { GetSessionsVisiblesPourLeJeuneMiloQueryGetter } from 'src/application/queries/query-getters/milo/get-sessions-visibles-pour-jeune.milo.query.getter.db'
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
@@ -124,6 +125,9 @@ import { SupprimerProfilPopulationCommandHandler } from './application/commands/
 import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
 import { ModifierDateDeploiementCommandHandler } from './application/commands/support/modifier-date-deploiement.command.handler.db'
+import { CreerCommunicationCommandHandler } from './application/commands/support/creer-communication.command.handler.db'
+import { ModifierCommunicationCommandHandler } from './application/commands/support/modifier-communication.command.handler.db'
+import { SupprimerCommunicationCommandHandler } from './application/commands/support/supprimer-communication.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from './application/queries/get-fonctionnalites-support.query.handler.db'
@@ -287,6 +291,7 @@ import { EvenementService, EvenementsRepositoryToken } from './domain/evenement'
 import { FonctionnaliteRepositoryToken } from './domain/fonctionnalite'
 import { Migration, MigrationRepositoryToken } from './domain/migration'
 import { PopulationRepositoryToken } from './domain/population'
+import { CommunicationRepositoryToken } from './domain/communication'
 import { Fichier, FichierRepositoryToken } from './domain/fichier'
 import { ConfigurationApplication } from './domain/jeune/configuration-application'
 import {
@@ -383,6 +388,7 @@ import { EvenementSqlRepository } from './infrastructure/repositories/evenement-
 import { FonctionnaliteSqlRepository } from './infrastructure/repositories/fonctionnalite.repository.db'
 import { MigrationSqlRepository } from './infrastructure/repositories/migration.repository.db'
 import { PopulationSqlRepository } from './infrastructure/repositories/population.repository.db'
+import { CommunicationSqlRepository } from './infrastructure/repositories/communication.repository.db'
 import { FichierSqlS3Repository } from './infrastructure/repositories/fichier-sql-s3.repository.db'
 import { JeuneConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-configuration-application-sql.repository.db'
 import { JeunePoleEmploiSqlRepository } from './infrastructure/repositories/jeune/jeune-pole-emploi-sql.repository.db'
@@ -586,6 +592,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: PopulationRepositoryToken,
       useClass: PopulationSqlRepository
+    },
+    {
+      provide: CommunicationRepositoryToken,
+      useClass: CommunicationSqlRepository
     },
     {
       provide: SessionMiloRepositoryToken,
@@ -949,6 +959,10 @@ export function buildQueryCommandsProviders(): Provider[] {
     CreerDeploiementCommandHandler,
     SupprimerDeploiementCommandHandler,
     ModifierDateDeploiementCommandHandler,
+    CreerCommunicationCommandHandler,
+    ModifierCommunicationCommandHandler,
+    SupprimerCommunicationCommandHandler,
+    GetCommunicationsConseillerQueryHandler,
     NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
     UpdateActualiteMiloCommandHandler,
