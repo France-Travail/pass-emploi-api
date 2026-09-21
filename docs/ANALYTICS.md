@@ -147,6 +147,12 @@ recalcule pas** automatiquement une semaine de vues déjà manquée (job 3 = lun
 
 Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant les tables de logs et d'événements d'engagement.
 
+### 0-dump-pilotage-for-analytics.job.ts
+
+Hors cron. Dump partiel des six tables de pilotage (`DUMP_TABLES` dans
+`0_db_dump_restore.sh`), puis enfile le job 0bis. Voir « Rafraîchir avant l'heure » sous
+0bis.
+
 ### 0bis-charger-les-populations.job.ts
 
 Matérialise, pour Metabase, ce que les fonctionnalités calculent pour **un** utilisateur,
@@ -214,18 +220,20 @@ GROUP BY id_fonctionnalite, id_population, date_activation
 ORDER BY id_fonctionnalite, date_activation;
 ```
 
-**Rafraîchir avant l'heure** (dry-run après avoir modifié une population ou une
-communication) : le job lit les tables **dumpées**, il faut donc re-dumper d'abord — le
-dump complet dépasse parfois 20 minutes et rend les dashboards incohérents pendant la
-restauration :
+**Rafraîchir avant l'heure.** Le job lit les tables **dumpées** ; pour voir l'effet d'une
+population, communication ou déploiement modifié dans la journée, il faut d'abord
+rafraîchir ces tables. Une `tasks:*` **enfile** le job dans le worker (rien ne s'exécute dans
+le terminal) ; suivre l'avancement dans les `SuiviJob`.
 
-```bash
-scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics
-scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations
-```
+| Besoin | Commande | Durée | Ce qui est rafraîchi |
+| --- | --- | --- | --- |
+| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-pilotage` | secondes | les 6 tables de pilotage (`population*`, `communication`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
+| Tout à jour, y compris agences / structures des conseillers | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics` | > 20 min, dashboards incohérents pendant la restauration | toute la base, puis 0bis (et le job 1) enfilés |
+| Recalculer sans re-dumper (code du job changé) | `scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations` | secondes | rien : recalcul sur l'existant |
 
-(`tasks:dump-analytics` enfile lui-même le job 0bis ; la seconde commande n'est utile que
-si l'on veut attendre le résultat dans le terminal.)
+Le dump partiel est possible parce que les tables de pilotage ne sont référencées par
+aucune autre table ; `conseiller` et `jeune`, référencés partout (actions, RDV…), ne
+peuvent pas être restaurés seuls avec `pg_restore --clean`.
 
 ### 1-charger-les-evenements.job.ts
 

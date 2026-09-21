@@ -70,6 +70,7 @@
     "tasks:maj-referentiel-rome": "IS_WEB=false TASK_NAME=MAJ_REFERENTIEL_ROME node dist/main",
     "tasks:dump-analytics": "IS_WEB=false TASK_NAME=DUMP_ANALYTICS node dist/main",
     "tasks:charger-evenements": "IS_WEB=false TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS node dist/main",
+    "tasks:dump-pilotage": "IS_WEB=false TASK_NAME=DUMP_PILOTAGE_ANALYTICS node dist/main",
     "tasks:charger-populations": "IS_WEB=false TASK_NAME=CHARGER_POPULATIONS_ANALYTICS node dist/main",
     "tasks:enrichir-evenements": "IS_WEB=false TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS node dist/main",
     "tasks:charger-vues": "IS_WEB=false TASK_NAME=CHARGER_LES_VUES_ANALYTICS node dist/main",

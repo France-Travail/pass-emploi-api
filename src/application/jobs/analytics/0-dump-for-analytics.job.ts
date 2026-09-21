@@ -7,8 +7,7 @@ import {
 } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { DateService } from '../../../utils/date-service'
-import { promisify } from 'node:util'
-import { exec } from 'node:child_process'
+import { dumperEtRestaurer } from './dump-restore'
 
 /**
  * Analytics pipeline — step 0/4 (quotidien).
@@ -31,20 +30,9 @@ export class DumpForAnalyticsJobHandler extends JobHandler {
   }
 
   async handle(): Promise<SuiviJob> {
-    let erreur
     const maintenant = this.dateService.now()
 
-    const cmd = 'yarn run dump-restore-db'
-    const { stdout, stderr } = await promisify(exec)(cmd)
-
-    if (stdout) {
-      this.logger.log(stdout)
-    }
-
-    if (stderr) {
-      this.logger.error(stderr)
-      erreur = stderr
-    }
+    const erreur = await dumperEtRestaurer(this.logger)
 
     for (const type of [
       Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS,
