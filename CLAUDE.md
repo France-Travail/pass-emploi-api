@@ -375,7 +375,7 @@ obligatoire : `staging` force le SSL Sequelize (`providers.ts`) que le postgres 
 | `yarn db:pg`            | Démarrer PostgreSQL (Docker)         |
 | `yarn db:redis`         | Démarrer Redis (Docker)              |
 | `yarn db:test`          | Démarrer les DB de test (Docker)     |
-| `yarn migration`        | Exécuter migrations Sequelize        |
+| `yarn db:migration`     | Exécuter migrations Sequelize        |
 | `yarn seed`             | Seed toutes les données              |
 | `yarn seed:referentiel` | Seed référentiels (communes, ROME)   |
 | `yarn psql`             | Accès psql via Docker                |
