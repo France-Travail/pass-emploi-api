@@ -57,6 +57,14 @@ describe('Communication', () => {
       }
     })
 
+    it('crée une communication IN_APP sans date de fin, visible indéfiniment', () => {
+      // When
+      const result = Communication.creer({ ...aCreer, dateFin: undefined })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
     it('crée une communication avec un cta complet', () => {
       // When
       const result = Communication.creer({

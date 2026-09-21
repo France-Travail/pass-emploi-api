@@ -97,7 +97,7 @@ describe('CommunicationSqlRepository', () => {
       destinataire: Communication.Destinataire
       type: Communication.Type
       dateDebut: Date
-      dateFin: Date
+      dateFin: Date | null
       titre: string
       contenu: string
       ctaLabel: string | null
@@ -109,7 +109,7 @@ describe('CommunicationSqlRepository', () => {
     destinataire: Communication.Destinataire
     type: Communication.Type
     dateDebut: Date
-    dateFin: Date
+    dateFin: Date | null
     titre: string
     contenu: string
     ctaLabel: string | null
@@ -261,6 +261,37 @@ describe('CommunicationSqlRepository', () => {
       // Then
       expect(message!.titre).to.equal('Urgente')
     })
+
+    it('reste visible sans date de fin', async () => {
+      // Given
+      await CommunicationSqlModel.create(uneCommunication({ dateFin: null }))
+
+      // When
+      const message = await repo.getMessageInformatifDuConseiller(
+        'conseillerCite',
+        maintenant
+      )
+
+      // Then
+      expect(message).not.to.be.undefined()
+    })
+
+    it('priorise une communication avec une échéance sur une communication sans date de fin', async () => {
+      // Given
+      await CommunicationSqlModel.bulkCreate([
+        uneCommunication({ titre: 'Indéfinie', dateFin: null }),
+        uneCommunication({ titre: 'Urgente', dateFin: demain })
+      ])
+
+      // When
+      const message = await repo.getMessageInformatifDuConseiller(
+        'conseillerCite',
+        maintenant
+      )
+
+      // Then
+      expect(message!.titre).to.equal('Urgente')
+    })
   })
 
   describe('getMessageInformatifDuJeune', () => {
@@ -269,7 +300,7 @@ describe('CommunicationSqlRepository', () => {
         idPopulation: string
         type: Communication.Type
         dateDebut: Date
-        dateFin: Date
+        dateFin: Date | null
         titre: string
         contenu: string
         ctaLabel: string | null
@@ -281,7 +312,7 @@ describe('CommunicationSqlRepository', () => {
       destinataire: Communication.Destinataire
       type: Communication.Type
       dateDebut: Date
-      dateFin: Date
+      dateFin: Date | null
       titre: string
       contenu: string
       ctaLabel: string | null
@@ -431,6 +462,39 @@ describe('CommunicationSqlRepository', () => {
         urlAndroid: 'https://play.google.com/store/apps/details?id=xxx',
         urlIos: 'https://apps.apple.com/app/apple-store/id123'
       })
+    })
+
+    it('reste visible sans date de fin', async () => {
+      // Given
+      await CommunicationSqlModel.create(
+        uneCommunicationJeune({ dateFin: null })
+      )
+
+      // When
+      const message = await repo.getMessageInformatifDuJeune(
+        'jeuneDuConseillerCite',
+        maintenant
+      )
+
+      // Then
+      expect(message).not.to.be.undefined()
+    })
+
+    it('priorise une communication avec une échéance sur une communication sans date de fin', async () => {
+      // Given
+      await CommunicationSqlModel.bulkCreate([
+        uneCommunicationJeune({ titre: 'Indéfinie', dateFin: null }),
+        uneCommunicationJeune({ titre: 'Urgente', dateFin: demain })
+      ])
+
+      // When
+      const message = await repo.getMessageInformatifDuJeune(
+        'jeuneDuConseillerCite',
+        maintenant
+      )
+
+      // Then
+      expect(message!.titre).to.equal('Urgente')
     })
   })
 })

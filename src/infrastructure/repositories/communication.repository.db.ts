@@ -4,7 +4,6 @@ import { QueryTypes, Sequelize } from 'sequelize'
 import { Communication } from '../../domain/communication'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
-  sqlCommunicationEnCours,
   sqlJeuneDansPopulation,
   sqlJoinConseillerDeReferenceDuJeune,
   sqlJoinConseillersDestinataires
@@ -31,8 +30,9 @@ export class CommunicationSqlRepository implements Communication.Repository {
         ${sqlJoinConseillersDestinataires('co', 'c')}
         WHERE c.id = :idConseiller
           AND co.type = :type
-          AND ${sqlCommunicationEnCours('co', ':maintenant')}
-        ORDER BY co.date_fin ASC
+          AND co.date_debut <= :maintenant
+          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
+        ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
       {
@@ -66,9 +66,9 @@ export class CommunicationSqlRepository implements Communication.Repository {
         WHERE co.destinataire = :destinataire
           AND co.type = :type
           AND co.date_debut <= :maintenant
-          AND :maintenant < co.date_fin
+          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
           AND ${sqlJeuneDansPopulation('j', 'c', 'co.id_population')}
-        ORDER BY co.date_fin ASC
+        ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
       {

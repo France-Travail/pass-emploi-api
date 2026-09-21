@@ -312,12 +312,14 @@ export class CreerCommunicationPayload {
   @IsISO8601()
   dateDebut: string
 
-  @ApiProperty({
-    description: 'Date ISO 8601 de fin de visibilité (exclue), en UTC',
+  @ApiPropertyOptional({
+    description:
+      'Date ISO 8601 de fin de visibilité (exclue), en UTC. Absente = visible indéfiniment pour IN_APP (jusqu’à suppression) ; interdite pour NOTIFICATION, qui ne peut pas être rappelée une fois envoyée.',
     example: '2026-10-15T00:00:00.000Z'
   })
+  @IsOptional()
   @IsISO8601()
-  dateFin: string
+  dateFin?: string
 
   @ApiProperty({ example: 'Votre application évolue' })
   @IsString()
