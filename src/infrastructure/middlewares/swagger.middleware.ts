@@ -72,7 +72,12 @@ export function useSwagger(
       )
   }
   const swaggerConfig = swaggerConfigBuilder.build()
-  const document = SwaggerModule.createDocument(app, swaggerConfig)
+  // Sans ça, un contrôleur sans @ApiTags de classe (tags posés méthode par méthode) hérite
+  // en plus d'un tag auto-généré à partir du nom de la classe : chaque route se retrouve
+  // avec 2 tags, donc dupliquée entre son groupe voulu et ce groupe fantôme.
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    autoTagControllers: false
+  })
 
   const customOptions: SwaggerCustomOptions = {
     swaggerOptions: {
