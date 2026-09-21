@@ -552,6 +552,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   }
 
   @ReserveAuSupport
+  @ApiTags('Support - Déploiements')
   @ApiOperation({
     summary: 'Supprime un déploiement',
     description:
