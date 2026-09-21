@@ -161,7 +161,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         titre            varchar,
         contenu          text,
         date_debut       timestamptz NOT NULL,
-        date_fin         timestamptz NOT NULL,
+        date_fin         timestamptz,
         statut           varchar NOT NULL,
         type_utilisateur varchar NOT NULL,
         ${COLONNES_UTILISATEUR},
@@ -195,6 +195,8 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         ADD COLUMN IF NOT EXISTS id_agence varchar;
       ALTER TABLE ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
         ADD COLUMN IF NOT EXISTS id_agence varchar;
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ALTER COLUMN date_fin DROP NOT NULL;
     `)
   }
 
