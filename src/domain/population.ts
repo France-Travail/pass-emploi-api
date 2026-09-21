@@ -8,5 +8,9 @@ export namespace Population {
     getIdsDesJeunesParProfilOuConseillerCite(
       idPopulation: string
     ): Promise<string[]>
+    // Conseillers cités par email, ou dont le propre profil correspond à la population.
+    getIdsDesConseillersParProfilOuConseillerCite(
+      idPopulation: string
+    ): Promise<string[]>
   }
 }

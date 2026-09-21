@@ -43,10 +43,13 @@ export const pinoHttpOptions = {
 }
 
 export const configureLoggerModule = (): DynamicModule => {
+  // Forme objet obligatoire : avec un tableau, nestjs-pino fait `pino(...pinoHttp)` et
+  // crée une seconde instance sans formatters, mixin ni redact ; avec `logger` dans un
+  // objet, il réutilise rootLogger (chemin isPassedLogger).
   return LoggerModule.forRoot({
     /* eslint-disable @typescript-eslint/ban-ts-comment */
     // @ts-ignore
-    pinoHttp: [pinoHttpOptions]
+    pinoHttp: pinoHttpOptions
   })
 }
 

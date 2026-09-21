@@ -116,4 +116,21 @@ describe('PopulationSqlRepository', () => {
       ).to.deep.equal([])
     })
   })
+
+  describe('getIdsDesConseillersParProfilOuConseillerCite', () => {
+    it('renvoie les conseillers cités par email et ceux dont le propre profil correspond', async () => {
+      // When
+      const ids =
+        await repo.getIdsDesConseillersParProfilOuConseillerCite('PILOTE')
+
+      // Then
+      expect(ids).to.have.members(['conseillerCite', 'conseillerFtCej'])
+    })
+
+    it('renvoie une liste vide pour une population inconnue', async () => {
+      expect(
+        await repo.getIdsDesConseillersParProfilOuConseillerCite('INCONNUE')
+      ).to.deep.equal([])
+    })
+  })
 })

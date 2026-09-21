@@ -7,14 +7,13 @@ import {
 } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { DateService } from '../../../utils/date-service'
-import { promisify } from 'node:util'
-import { exec } from 'node:child_process'
+import { dumperEtRestaurer } from './dump-restore'
 
 /**
  * Analytics pipeline — step 0/4 (quotidien).
  * @see docs/ANALYTICS.md#0-dump-for-analyticsjobts
  * @analytics.trigger cron DUMP_ANALYTICS (`30 2 * * *`)
- * @analytics.before CHARGER_EVENEMENTS_ANALYTICS
+ * @analytics.before CHARGER_EVENEMENTS_ANALYTICS, CHARGER_POPULATIONS_ANALYTICS
  * @analytics.tables_out métier analytics (excl. evenement_engagement*)
  */
 @Injectable()
@@ -31,27 +30,21 @@ export class DumpForAnalyticsJobHandler extends JobHandler {
   }
 
   async handle(): Promise<SuiviJob> {
-    let erreur
     const maintenant = this.dateService.now()
 
-    const cmd = 'yarn run dump-restore-db'
-    const { stdout, stderr } = await promisify(exec)(cmd)
+    const erreur = await dumperEtRestaurer(this.logger)
 
-    if (stdout) {
-      this.logger.log(stdout)
+    for (const type of [
+      Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS,
+      Planificateur.JobType.CHARGER_POPULATIONS_ANALYTICS
+    ]) {
+      const job: Planificateur.Job<void> = {
+        dateExecution: this.dateService.nowJs(),
+        type,
+        contenu: undefined
+      }
+      await this.planificateurRepository.ajouterJob(job)
     }
-
-    if (stderr) {
-      this.logger.error(stderr)
-      erreur = stderr
-    }
-
-    const jobChargementAnalytics: Planificateur.Job<void> = {
-      dateExecution: this.dateService.nowJs(),
-      type: Planificateur.JobType.CHARGER_EVENEMENTS_ANALYTICS,
-      contenu: undefined
-    }
-    await this.planificateurRepository.ajouterJob(jobChargementAnalytics)
 
     return {
       jobType: this.jobType,
