@@ -48,10 +48,12 @@ const COLONNES_UTILISATEUR = `
   prenom           varchar,
   structure        varchar,
   dispositif       varchar,
+  id_agence        varchar,
   agence           varchar`
 
 // Identité et lieu d'accompagnement du conseiller `c` : structure MiLo sinon agence FT.
-const SELECT_CONSEILLER = `c.id, c.email, c.nom, c.prenom, c.structure, c.dispositif, COALESCE(sm.nom_officiel, a.nom_agence)`
+const SELECT_CONSEILLER = `c.id, c.email, c.nom, c.prenom, c.structure, c.dispositif,
+  COALESCE(c.id_structure_milo, c.id_agence), COALESCE(sm.nom_officiel, a.nom_agence)`
 const JOIN_LIEU_CONSEILLER = `
   LEFT JOIN structure_milo sm ON sm.id = c.id_structure_milo
   LEFT JOIN agence a ON a.id = c.id_agence`
@@ -168,11 +170,6 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       CREATE INDEX IF NOT EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}_id_communication_index
         ON ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME} (id_communication);
 
-      -- CREATE TABLE IF NOT EXISTS n'ajoute pas de colonne à une table déjà créée par un run
-      -- précédent : toute colonne ajoutée après la création initiale doit aussi passer ici.
-      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
-        ADD COLUMN IF NOT EXISTS contenu text;
-
       CREATE TABLE IF NOT EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
       (
         id_deploiement    varchar NOT NULL,
@@ -187,6 +184,17 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       );
       CREATE INDEX IF NOT EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}_id_deploiement_index
         ON ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME} (id_deploiement);
+
+      -- CREATE TABLE IF NOT EXISTS n'ajoute pas de colonne à une table déjà créée par un run
+      -- précédent : toute colonne ajoutée après la création initiale doit aussi passer ici.
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS contenu text;
+      ALTER TABLE ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS id_agence varchar;
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS id_agence varchar;
+      ALTER TABLE ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS id_agence varchar;
     `)
   }
 
@@ -249,7 +257,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     await connexion.query(
       `
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
-          (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, agence,
+          (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
         SELECT m.id_population, 'CONSEILLER', ${SELECT_CONSEILLER},
                NULL, NULL, :dateCalcul
@@ -271,9 +279,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     await connexion.query(
       `
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
-          (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, agence,
+          (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
         SELECT m.id_population, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+               COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                c.email,
                CASE WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
@@ -296,7 +305,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       `
         INSERT INTO ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
           (id_communication, id_population, destinataire, type, titre, contenu, date_debut, date_fin, statut,
-           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, agence, date_calcul)
+           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
         SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.contenu, co.date_debut, co.date_fin,
                CASE
                  WHEN co.date_fin <= :maintenant THEN 'PASSEE'
@@ -321,7 +330,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       `
         INSERT INTO ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
           (id_deploiement, id_population, nature, id_fonctionnalite, date_activation, statut,
-           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, agence, date_calcul)
+           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
         SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
                CASE WHEN ${sqlDeploiementActif('d', ':maintenant')} THEN 'ACTIF' ELSE 'PREVU' END,
                'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant

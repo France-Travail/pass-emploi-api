@@ -41,6 +41,7 @@ interface Utilisateur {
   prenom: string
   structure: string
   dispositif: string | null
+  id_agence: string | null
   agence: string | null
   date_calcul: Date
 }
@@ -293,6 +294,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nom: 'Citee',
         prenom: 'Camille',
         structure: 'MILO',
+        id_agence: 'ML-07',
         agence: 'ML Aubenas',
         email_conseiller_reference: null,
         type_conseiller_reference: null,
@@ -301,6 +303,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       expect(conseillers[1]).to.deep.include({
         structure: 'FRANCE_TRAVAIL',
         dispositif: 'CEJ',
+        id_agence: 'FT-06',
         agence: 'Agence Nice'
       })
     })
@@ -333,6 +336,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nom: 'Cite',
         prenom: 'Jean',
         structure: 'MILO',
+        id_agence: 'ML-07',
         agence: 'ML Aubenas'
       })
       expect(
@@ -340,6 +344,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       ).to.deep.include({
         structure: 'FRANCE_TRAVAIL',
         dispositif: 'CEJ',
+        id_agence: 'FT-06',
         agence: 'Agence Nice'
       })
     })

@@ -166,7 +166,9 @@ dans une transaction, `date_calcul` identique sur toutes les lignes) :
 | `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
 Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
-`dispositif`) et son lieu d'accompagnement (`agence` : structure MiLo ou agence FT).
+`dispositif`) et son lieu d'accompagnement (`id_agence` / `agence` : id et nom de la
+structure MiLo, sinon de l'agence FT — pour un jeune, la sienne sinon celle de son
+conseiller de référence).
 Jeunes : uniquement dans `analytics_population_membres` pour l'instant.
 
 **Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
@@ -187,7 +189,7 @@ Requêtes de départ pour les questions Metabase :
 
 ```sql
 -- Populations avec leurs conseillers
-SELECT id_population, email, nom, prenom, structure, dispositif, agence, date_calcul
+SELECT id_population, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul
 FROM analytics_population_membres
 WHERE type_utilisateur = 'CONSEILLER'
 ORDER BY id_population, nom, prenom;
