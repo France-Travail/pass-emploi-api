@@ -19,6 +19,8 @@ import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/mod
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
+import { CommunicationSqlRepository } from '../../../../src/infrastructure/repositories/communication.repository.db'
+import { MigrationSqlRepository } from '../../../../src/infrastructure/repositories/migration.repository.db'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -277,7 +279,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
-    it('résout les conseillers via PopulationSqlRepository.getIdsDesConseillersParProfilOuConseillerCite', async () => {
+    it('liste les conseillers de chaque population : cités par email ou dont le profil correspond', async () => {
       // Then
       const conseillers = await membres('CONSEILLER')
       expect(conseillers.map(m => m.id_utilisateur)).to.deep.equal([
@@ -302,7 +304,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
-    it('résout les jeunes via PopulationSqlRepository.getIdsDesJeunesParProfilOuConseillerCite, avec leur conseiller de référence', async () => {
+    it("liste les jeunes de chaque population avec l'email de leur conseiller de référence, l'initial en cas de transfert", async () => {
       // Then
       const jeunes = await membres('JEUNE')
       expect(
@@ -341,7 +343,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
-    it('liste les destinataires de chaque communication conseiller avec son statut figé à date_calcul, via la même jointure que la fonctionnalité', async () => {
+    it('liste les conseillers destinataires de chaque communication, avec son statut figé à date_calcul', async () => {
       // Then
       const destinataires = await lignes<Destinataire>(
         ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
@@ -370,7 +372,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
-    it('liste les conseillers concernés par chaque déploiement avec son statut figé à date_calcul, via la même jointure que la fonctionnalité', async () => {
+    it('liste les conseillers concernés par chaque déploiement, avec son statut figé à date_calcul', async () => {
       // Then
       const membres = await lignes<MembreDeploiement>(
         ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
@@ -398,6 +400,59 @@ describe('ChargerLesPopulationsJobHandler', () => {
         agence: 'ML Aubenas',
         date_calcul: maintenant.toJSDate()
       })
+    })
+
+    it('montre pour un conseiller la communication en cours que la fonctionnalité lui affiche', async () => {
+      // Given
+      const communicationRepository = new CommunicationSqlRepository(
+        getDatabase().sequelize
+      )
+
+      // When
+      const affichee =
+        await communicationRepository.getMessageInformatifDuConseiller(
+          'conseillerCite',
+          maintenant
+        )
+      const enCours = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication'
+        )
+      ).filter(
+        d => d.id_utilisateur === 'conseillerCite' && d.statut === 'EN_COURS'
+      )
+
+      // Then
+      expect(enCours.map(d => d.id_communication)).to.deep.equal([
+        String(affichee?.id)
+      ])
+    })
+
+    it('montre pour un conseiller la date de migration que la fonctionnalité lui annonce', async () => {
+      // Given
+      const migrationRepository = new MigrationSqlRepository(
+        getDatabase().sequelize
+      )
+
+      // When
+      const annoncee =
+        await migrationRepository.getDateDeMigrationDuConseiller(
+          'conseillerCite'
+        )
+      const migrations = (
+        await lignes<MembreDeploiement>(
+          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+          'id_deploiement'
+        )
+      ).filter(
+        m => m.id_utilisateur === 'conseillerCite' && m.nature === 'MIGRATION'
+      )
+
+      // Then
+      expect(migrations.map(m => m.date_activation)).to.deep.equal([
+        annoncee?.toJSDate()
+      ])
     })
 
     it('repart de zéro à chaque run', async () => {
