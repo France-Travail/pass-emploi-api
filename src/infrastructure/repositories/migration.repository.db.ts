@@ -13,6 +13,7 @@ import {
   sqlConseillerDansPopulation,
   sqlJeuneDansPopulation,
   sqlJoinConseillerDeReference,
+  sqlJoinConseillersConcernes,
   sqlJoinConseillerDeReferenceDuJeune
 } from './sql-helpers'
 
@@ -89,9 +90,9 @@ export class MigrationSqlRepository implements Migration.Repository {
       `
         SELECT MIN(d.date_activation) AS date_activation
         FROM deploiement d
-        JOIN conseiller c ON c.id = :idConseiller
-        WHERE d.nature = :nature
-          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
+        ${sqlJoinConseillersConcernes('d', 'c')}
+        WHERE c.id = :idConseiller
+          AND d.nature = :nature
       `,
       {
         replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },

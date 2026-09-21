@@ -35,12 +35,25 @@ fi
 
 dbclient-fetcher psql "$PG_VERSION"
 
+# DUMP_TABLES (optionnel, séparées par des espaces) : ne dumper que ces tables au lieu de toute la base.
+if [ -n "$DUMP_TABLES" ]; then
+  echo "dump partiel : $DUMP_TABLES"
+  SELECTION=()
+  for table in $DUMP_TABLES; do
+    SELECTION+=(--table "$table")
+  done
+else
+  SELECTION=(
+    --exclude-table 'spatial_ref_sys'
+    --exclude-table 'cache_api_partenaire'
+    --exclude-table 'suivi_job'
+    --exclude-table 'evenement_engagement'
+    --exclude-table 'evenement_engagement_hebdo'
+  )
+fi
+
 pg_dump --clean --if-exists --format c --dbname "$DUMP_RESTORE_DB_SOURCE" --no-owner --no-privileges --no-comments --schema 'public' --file dump.pgsql \
-  --exclude-table 'spatial_ref_sys' \
-  --exclude-table 'cache_api_partenaire' \
-  --exclude-table 'suivi_job' \
-  --exclude-table 'evenement_engagement' \
-  --exclude-table 'evenement_engagement_hebdo'
+  "${SELECTION[@]}"
 
 if [ $? -ne 0 ]; then
   echo "Error: pg_dump command failed"

@@ -1,4 +1,5 @@
-// Fragments SQL partagés par les dépôts qui lisent les déploiements.
+// Fragments SQL partagés par les dépôts qui lisent les populations, communications et déploiements.
+import { Communication } from '../../domain/communication'
 
 // Jointure vers le conseiller de référence du jeune déjà présent dans la requête : l'initial en cas de transfert temporaire, sinon le courant.
 export function sqlJoinConseillerDeReference(
@@ -60,4 +61,40 @@ export function sqlJeuneDansPopulation(
   idPopulation: string
 ): string {
   return `(${sqlEmailDuConseillerDansPopulation(aliasConseillerDeReference, idPopulation)} OR ${sqlProfilDansPopulation(aliasJeune, idPopulation)})`
+}
+
+// Jointure de la communication `aliasCom` vers les conseillers qui en sont destinataires. Même jointure côté fonctionnalité (filtrée sur un conseiller) et côté analytics (exhaustive).
+export function sqlJoinConseillersDestinataires(
+  aliasCom: string,
+  aliasConseiller: string
+): string {
+  return `
+    JOIN conseiller ${aliasConseiller}
+      ON ${aliasCom}.destinataire = '${Communication.Destinataire.CONSEILLER}'
+     AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}`
+}
+
+// Visible entre date_debut (incluse) et date_fin (exclue).
+export function sqlCommunicationEnCours(
+  aliasCom: string,
+  maintenant: string
+): string {
+  return `(${aliasCom}.date_debut <= ${maintenant} AND ${maintenant} < ${aliasCom}.date_fin)`
+}
+
+// Jointure du déploiement `aliasDep` vers les conseillers de sa population.
+export function sqlJoinConseillersConcernes(
+  aliasDep: string,
+  aliasConseiller: string
+): string {
+  return `
+    JOIN conseiller ${aliasConseiller}
+      ON ${sqlConseillerDansPopulation(aliasConseiller, `${aliasDep}.id_population`)}`
+}
+
+export function sqlDeploiementActif(
+  aliasDep: string,
+  maintenant: string
+): string {
+  return `${aliasDep}.date_activation <= ${maintenant}`
 }
