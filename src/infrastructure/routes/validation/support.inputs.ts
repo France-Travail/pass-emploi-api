@@ -299,7 +299,7 @@ export class CreerCommunicationPayload {
   @ApiProperty({
     enum: Communication.Type,
     description:
-      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, pas encore envoyé.',
+      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, refusé tant que l’envoi n’est pas livré.',
     example: 'IN_APP'
   })
   @IsEnum(Communication.Type)

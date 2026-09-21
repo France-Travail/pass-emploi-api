@@ -120,5 +120,21 @@ describe('Communication', () => {
         expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
       }
     })
+
+    it("refuse une communication NOTIFICATION tant que l'envoi n'est pas livré", () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        dateFin: undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
   })
 })

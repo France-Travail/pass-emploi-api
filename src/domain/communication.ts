@@ -58,6 +58,14 @@ export namespace Communication {
   }
 
   export function creer(aCreer: Communication): Result<Communication> {
+    // TODO: retirer quand l'envoi des NOTIFICATION sera livré (feat/communications-notifications)
+    if (aCreer.type === Type.NOTIFICATION) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Les communications NOTIFICATION ne sont pas encore disponibles à l'envoi"
+        )
+      )
+    }
     if (!aCreer.dateDebut.isValid) {
       return failure(new MauvaiseCommandeError('Date de début invalide'))
     }
