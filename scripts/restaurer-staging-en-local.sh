@@ -23,7 +23,7 @@ trap 'rm -f "$DUMP"' EXIT
 
 echo "→ pg_dump depuis staging (tunnel)…"
 # schéma sequelize inclus : sequelize_meta doit refléter exactement les migrations
-# qui ont produit ce schéma, sinon yarn migration (ci-dessous) le rejoue en entier
+# qui ont produit ce schéma, sinon yarn db:migration (ci-dessous) le rejoue en entier
 # depuis la toute première migration -> échec sur les ALTER TABLE non idempotents.
 pg_dump --format c --no-owner --no-privileges --no-comments \
   --schema public --schema sequelize \
@@ -39,7 +39,7 @@ echo "→ reset des schémas local (public + sequelize)…"
 # sequelize_meta (schéma sequelize) doit venir du dump, pas survivre tel quel :
 # sinon une migration locale lancée avant restauration (branche testée avant de
 # rebasculer sur develop) reste marquée "faite" après le DROP SCHEMA public qui a
-# effacé son effet -> le `yarn migration` ci-dessous la re-skip au lieu de la
+# effacé son effet -> le `yarn db:migration` ci-dessous la re-skip au lieu de la
 # rejouer, et la table manque silencieusement. On le drop ici et le pg_restore
 # plus bas le recrée depuis le dump de staging (schéma inclus ci-dessus).
 psql --quiet --dbname "$TARGET" -c "DROP SCHEMA IF EXISTS sequelize CASCADE;"
@@ -60,6 +60,6 @@ pg_restore --list "$DUMP" | grep -v ' SCHEMA - public ' > "$TOC"
 pg_restore --no-owner --no-privileges --no-comments --jobs 4 --use-list "$TOC" --dbname "$TARGET" "$DUMP"
 
 echo "→ migrations locales (au cas où le code est en avance sur staging)…"
-DATABASE_URL="$TARGET" yarn migration
+DATABASE_URL="$TARGET" yarn db:migration
 
 echo "Terminé : DB locale = copie de staging."

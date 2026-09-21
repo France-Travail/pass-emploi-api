@@ -9,5 +9,5 @@ if [[ $APP =~ "pass-emploi-api-staging-pr" ]] ; then
   pg_restore --clean --if-exists --no-owner --no-privileges --no-comments --dbname $DATABASE_URL dump.pgsql
 fi
 
-yarn migration
+yarn db:migration
 
