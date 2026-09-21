@@ -13,6 +13,7 @@ import {
 import { estFranceTravail, Profil } from '../../../domain/profil'
 import { AgenceSqlModel } from '../../../infrastructure/sequelize/models/agence.sql-model'
 import { ConseillerSqlModel } from '../../../infrastructure/sequelize/models/conseiller.sql-model'
+import { DateService } from '../../../utils/date-service'
 
 export interface ModifierAgenceFTConseillerCommand extends Command {
   idConseiller: string
@@ -24,7 +25,7 @@ export class ModifierAgenceFTConseillerCommandHandler extends CommandHandler<
   ModifierAgenceFTConseillerCommand,
   void
 > {
-  constructor() {
+  constructor(private readonly dateService: DateService) {
     super('ModifierAgenceFTConseillerCommandHandler')
   }
 
@@ -65,7 +66,10 @@ export class ModifierAgenceFTConseillerCommandHandler extends CommandHandler<
     }
 
     await ConseillerSqlModel.update(
-      { idAgence: agenceSql.id },
+      {
+        idAgence: agenceSql.id,
+        dateMajAgence: this.dateService.now().toJSDate()
+      },
       { where: { id: conseillerSql.id } }
     )
 

@@ -1,4 +1,5 @@
 import { before } from 'mocha'
+import { DateTime } from 'luxon'
 import {
   ModifierAgenceFTConseillerCommand,
   ModifierAgenceFTConseillerCommandHandler
@@ -16,14 +17,18 @@ import {
   uneAgenceMiloDto
 } from '../../../fixtures/sql-models/agence.sql-model'
 import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
-import { expect } from '../../../utils'
+import { DateService } from '../../../../src/utils/date-service'
+import { expect, StubbedClass, stubClass } from '../../../utils'
 import {
   DatabaseForTesting,
   getDatabase
 } from '../../../utils/database-for-testing'
 
 describe('ModifierAgenceFTConseillerCommandHandler', () => {
+  const maintenant = DateTime.fromISO('2026-09-21T12:00:00.000Z')
+
   let databaseForTesting: DatabaseForTesting
+  let dateService: StubbedClass<DateService>
   let handler: ModifierAgenceFTConseillerCommandHandler
 
   before(async () => {
@@ -39,7 +44,9 @@ describe('ModifierAgenceFTConseillerCommandHandler', () => {
       uneAgenceMiloDto({ id: 'agence-milo-1' })
     ])
 
-    handler = new ModifierAgenceFTConseillerCommandHandler()
+    dateService = stubClass(DateService)
+    dateService.now.returns(maintenant)
+    handler = new ModifierAgenceFTConseillerCommandHandler(dateService)
   })
 
   describe('handle', () => {
@@ -64,6 +71,29 @@ describe('ModifierAgenceFTConseillerCommandHandler', () => {
       expect(isSuccess(result)).to.equal(true)
       const conseillerSql = await ConseillerSqlModel.findByPk('conseiller-ft')
       expect(conseillerSql?.idAgence).to.equal('agence-ft-2')
+    })
+
+    it("met a jour la date de maj agence pour debloquer la confirmation d'agence", async () => {
+      // Given
+      await ConseillerSqlModel.creer(
+        unConseillerDto({
+          id: 'conseiller-ft',
+          structure: Core.Structure.FT_ACCOMPAGNEMENT_INTENSIF,
+          idAgence: 'agence-ft-1',
+          dateMajAgence: null
+        })
+      )
+
+      // When
+      const result = await handler.handle({
+        idConseiller: 'conseiller-ft',
+        idAgence: 'agence-ft-2'
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const conseillerSql = await ConseillerSqlModel.findByPk('conseiller-ft')
+      expect(conseillerSql?.dateMajAgence).to.deep.equal(maintenant.toJSDate())
     })
 
     it("renvoie une failure quand le conseiller n'existe pas", async () => {
