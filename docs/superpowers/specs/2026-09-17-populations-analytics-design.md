@@ -171,6 +171,29 @@ rendu visible en affichant `date_calcul` à côté du statut.
 `EN_COURS` d'un conseiller dans la table est celle que `getMessageInformatifDuConseiller`
 lui renvoie ; sa migration `PREVU` est la date de `getDateDeMigrationDuConseiller`.
 
-**Reste à faire.** Jeunes dans `analytics_communication_destinataires` et
-`analytics_deploiement_membres` (après merge de `feat/communications-beneficiaires`, avec
-`sqlJeuneDansPopulation`), puis dashboard Metabase.
+## Reste à faire — bénéficiaires (spec/plan à écrire, après merge de `feat/communications-beneficiaires`)
+
+Même design (3 tables, `type_utilisateur = 'JEUNE'`, statuts figés). Points à trancher
+avant le plan :
+
+1. **Jointures jeune dans `sql-helpers`** : `sqlJoinJeunesDestinataires` /
+   `sqlJoinJeunesConcernes` n'existent pas. À extraire des repositories jeune
+   (`getIdsFonctionnalitesActivesDuJeune`, `getDateDeMigrationDuBeneficiaire`, et la
+   lecture des communications jeune qui arrive avec `feat/communications-beneficiaires`),
+   sur le modèle de ce qui a été fait côté conseiller : la fonctionnalité filtre sur un
+   jeune, le job est exhaustif, même fragment des deux côtés. Règle d'appartenance =
+   `sqlJeuneDansPopulation(j, c, …)` (conseiller de référence cité — l'initial en cas de
+   transfert — **ou** profil du jeune).
+2. **Volume** : ~200 000 jeunes × populations FT larges → `analytics_communication_destinataires`
+   peut atteindre plusieurs centaines de milliers de lignes par run. Index sur
+   `(id_communication, type_utilisateur)`, et probablement une table d'agrégats
+   (effectifs par communication) pour que les cartes Metabase ne fassent pas de `count(*)`
+   sur la table détail.
+3. **Colonnes** : `structure` / `dispositif` **du jeune lui-même** (pas ceux du conseiller —
+   utile pour le ménage en cours), `email_conseiller_reference` / `type_conseiller_reference`
+   comme dans `analytics_population_membres`.
+4. **Réalignement des requêtes Metabase** de `docs/ANALYTICS.md` sur les colonnes de
+   `communication` apportées par `feat/communications-beneficiaires` (`type_notification`,
+   `envoyee_le`, `date_fin` nullable) : la requête « communications » a été écrite sans.
+
+Puis dashboard Metabase (hors repo).
