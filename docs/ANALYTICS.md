@@ -59,6 +59,7 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
 | Donnée | Mise à jour |
 | --- | --- |
 | Tables métier (dump) | Quotidien, après le cron 02h30 (job 0) |
+| `analytics_population_membres` (conseillers et jeunes résolus par population) | Quotidien, après le dump (job 0bis) |
 | `evenement_engagement` | Quotidien (jobs 0 → 1) |
 | Colonnes enrichies (`semaine`, `jour`, géo) | Quotidien (job 2) |
 | Vues `analytics_*` | **Chaque lundi** — agrégats de la **semaine précédente** (job 3) |
@@ -79,9 +80,10 @@ page). Ce n'est **pas** du runtime : convention documentée dans
 Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#ordonnancement)) :
 
 1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts) — copie des tables métier prod → analytics
-2. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts) — chargement des événements d'engagement
-3. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
-4. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
+2. [0bis-charger-les-populations.job.ts](../src/application/jobs/analytics/0bis-charger-les-populations.job.ts) — résolution des populations (conseillers et jeunes) pour Metabase, en parallèle du job 1
+3. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts) — chargement des événements d'engagement
+4. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
+5. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
 
 ### Maintenance — reprise de l'historique vers le modèle Profil (septembre 2026)
 
@@ -111,7 +113,7 @@ Scalingo :
 ## Ordonnancement
 
 - Le premier job de la pipeline (`0-dump-for-analytics`) est lancé via un **cron** dans le worker, **tous les jours à 02h30** (`DUMP_ANALYTICS = '30 2 * * *'`, voir `src/domain/planificateur.ts`).
-- A l'issue du job, un nouveau job est créé dans le worker pour l'étape charger les événements.
+- A l'issue du job, deux jobs sont créés dans le worker : charger les événements (job 1, qui enchaîne la suite) et charger les populations (job 0bis, indépendant).
 - A l'issue du job, un nouveau job est créé dans le worker pour l'étape enrichir les événements.
 - Lorsque le jour de la semaine est un **lundi**, un nouveau job est créé dans le worker pour l'étape charger les vues.
 
@@ -133,6 +135,7 @@ vérifier le `SuiviJob` du dump avant de faire confiance à la suite.
 | --- | --- | --- |
 | Job 1 échoue (chargement EE) | Job 2 (et job 3 le lundi) non enfilés | Relancer via `TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS` ; chargement **incrémental**, un run ultérieur rattrape les EE manquants |
 | Job 2 échoue un **lundi** | Job 3 non enfilé | Relancer via `TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS` ; les lignes restent avec `semaine is null` jusqu'à un enrichissement réussi, puis enfiler / relancer les vues si besoin |
+| Job 0bis échoue (populations) | `analytics_population_membres` garde le contenu de la veille (rebuild transactionnel) | Relancer via `yarn tasks:charger-populations` |
 | Job 3 manqué / échoué (vues) | Vues `analytics_*` non mises à jour pour la semaine | Relancer via `TASK_NAME=CHARGER_LES_VUES_ANALYTICS` (semaine précédente), ou `yarn tasks:initialiser-les-vues` / variante dernière année pour un recalcul large |
 
 Le run quotidien suivant repart du cron (job 0) : utile pour rattraper les EE, mais **ne
@@ -143,6 +146,82 @@ recalcule pas** automatiquement une semaine de vues déjà manquée (job 3 = lun
 ### 0-dump-for-analytics.job.ts
 
 Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant les tables de logs et d'événements d'engagement.
+
+### 0bis-charger-les-populations.job.ts
+
+Reconstruit `analytics_population_membres` : pour chaque population, les conseillers et
+les jeunes qu'elle résout, avec leur identité (email, nom, prénom), leur profil
+(structure × dispositif), leur lieu d'accompagnement (`agence` : structure MiLo ou
+agence FT) et, pour un jeune, l'email de son conseiller de référence et
+`type_conseiller_reference` (`ACTUEL`, ou `INITIAL` si un transfert temporaire est en
+cours).
+
+La résolution d'appartenance n'est **pas réimplémentée** dans ce job : il instancie
+`PopulationSqlRepository` — la classe utilisée en production par
+`NotifierBeneficiairesJobHandler` pour décider qui reçoit une notification ou une
+communication — pointée sur la base Analytics, et appelle
+`getIdsDesConseillersParProfilOuConseillerCite` / `getIdsDesJeunesParProfilOuConseillerCite`.
+Ce que Metabase affiche est donc structurellement ce que l'API calculera, y compris si la
+règle de résolution évolue. Seul l'enrichissement présentation (email, nom, agence) est
+propre à ce job, sans prédicat métier. Pas d'historique : `DELETE` + `INSERT` dans une
+transaction, `date_calcul` identique sur toutes les lignes du run.
+
+Tout le reste (populations, emails cités, profils, déploiements, communications à venir)
+se lit directement dans les tables dumpées, sans logique à recopier côté Metabase.
+Requêtes de départ pour les questions Metabase :
+
+```sql
+-- Populations avec leurs effectifs résolus
+SELECT p.id, p.description,
+       count(*) FILTER (WHERE m.type_utilisateur = 'CONSEILLER') AS nb_conseillers,
+       count(*) FILTER (WHERE m.type_utilisateur = 'JEUNE')      AS nb_jeunes,
+       max(m.date_calcul)                                         AS calcule_le
+FROM population p
+LEFT JOIN analytics_population_membres m ON m.id_population = p.id
+GROUP BY p.id, p.description
+ORDER BY p.id;
+
+-- Membres d'une population (filtre Metabase sur {{id_population}} et {{type_utilisateur}})
+SELECT type_utilisateur, email, nom, prenom, structure, dispositif, agence,
+       email_conseiller_reference, type_conseiller_reference
+FROM analytics_population_membres
+WHERE id_population = {{id_population}}
+ORDER BY type_utilisateur, nom, prenom;
+
+-- Communications à venir ou en cours, avec les effectifs ciblés
+SELECT co.id, co.id_population, co.destinataire, co.type,
+       co.date_debut, co.date_fin, co.titre,
+       count(m.id_utilisateur) AS nb_cibles
+FROM communication co
+LEFT JOIN analytics_population_membres m
+       ON m.id_population = co.id_population
+      AND m.type_utilisateur = co.destinataire
+WHERE co.date_fin > now()
+GROUP BY co.id
+ORDER BY co.date_debut;
+
+-- Déploiements à venir, avec les effectifs ciblés
+SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
+       count(*) FILTER (WHERE m.type_utilisateur = 'CONSEILLER') AS nb_conseillers,
+       count(*) FILTER (WHERE m.type_utilisateur = 'JEUNE')      AS nb_jeunes
+FROM deploiement d
+LEFT JOIN analytics_population_membres m ON m.id_population = d.id_population
+WHERE d.date_activation > now()
+GROUP BY d.id
+ORDER BY d.date_activation;
+```
+
+**Rafraîchir avant l'heure** (dry-run après avoir modifié une population) : le job lit les
+tables **dumpées**, il faut donc re-dumper d'abord — le dump complet dépasse parfois
+20 minutes et rend les dashboards incohérents pendant la restauration :
+
+```bash
+scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics
+scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations
+```
+
+(`tasks:dump-analytics` enfile lui-même le job 0bis ; la seconde commande n'est utile que
+si l'on veut attendre le résultat dans le terminal.)
 
 ### 1-charger-les-evenements.job.ts
 
