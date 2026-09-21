@@ -3,7 +3,10 @@ import { DateTime } from 'luxon'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { Communication } from '../../domain/communication'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import { sqlConseillerDansPopulation } from './sql-helpers'
+import {
+  sqlCommunicationEnCours,
+  sqlJoinConseillersDestinataires
+} from './sql-helpers'
 
 @Injectable()
 export class CommunicationSqlRepository implements Communication.Repository {
@@ -23,19 +26,16 @@ export class CommunicationSqlRepository implements Communication.Repository {
       `
         SELECT co.id, co.titre, co.contenu
         FROM communication co
-        JOIN conseiller c ON c.id = :idConseiller
-        WHERE co.destinataire = :destinataire
+        ${sqlJoinConseillersDestinataires('co', 'c')}
+        WHERE c.id = :idConseiller
           AND co.type = :type
-          AND co.date_debut <= :maintenant
-          AND :maintenant < co.date_fin
-          AND ${sqlConseillerDansPopulation('c', 'co.id_population')}
+          AND ${sqlCommunicationEnCours('co', ':maintenant')}
         ORDER BY co.date_fin ASC
         LIMIT 1
       `,
       {
         replacements: {
           idConseiller,
-          destinataire: Communication.Destinataire.CONSEILLER,
           type: Communication.Type.IN_APP,
           maintenant: maintenant.toJSDate()
         },
