@@ -59,7 +59,7 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
 | Donnée | Mise à jour |
 | --- | --- |
 | Tables métier (dump) | Quotidien, après le cron 02h30 (job 0) |
-| `analytics_population_membres` (conseillers et jeunes résolus par population) | Quotidien, après le dump (job 0bis) |
+| `analytics_population_membres`, `analytics_communication_destinataires`, `analytics_deploiement_membres` | Quotidien, après le dump (job 0bis) — statuts figés à `date_calcul` |
 | `evenement_engagement` | Quotidien (jobs 0 → 1) |
 | Colonnes enrichies (`semaine`, `jour`, géo) | Quotidien (job 2) |
 | Vues `analytics_*` | **Chaque lundi** — agrégats de la **semaine précédente** (job 3) |
@@ -80,7 +80,7 @@ page). Ce n'est **pas** du runtime : convention documentée dans
 Quatre jobs s'enchaînent automatiquement chaque nuit (voir [Ordonnancement](#ordonnancement)) :
 
 1. [0-dump-for-analytics.job.ts](../src/application/jobs/analytics/0-dump-for-analytics.job.ts) — copie des tables métier prod → analytics
-2. [0bis-charger-les-populations.job.ts](../src/application/jobs/analytics/0bis-charger-les-populations.job.ts) — résolution des populations (conseillers et jeunes) pour Metabase, en parallèle du job 1
+2. [0bis-charger-les-populations.job.ts](../src/application/jobs/analytics/0bis-charger-les-populations.job.ts) — populations, communications et déploiements résolus par utilisateur pour Metabase, en parallèle du job 1
 3. [1-charger-les-evenements.job.ts](../src/application/jobs/analytics/1-charger-les-evenements.job.ts) — chargement des événements d'engagement
 4. [2-enrichir-les-evenements.job.ts](../src/application/jobs/analytics/2-enrichir-les-evenements.job.ts) — enrichissement (semaine, jour, géographie)
 5. [3-charger-les-vues.job.ts](../src/application/jobs/analytics/3-charger-les-vues.job.ts) — agrégation des vues de la semaine précédente (le lundi)
@@ -135,7 +135,7 @@ vérifier le `SuiviJob` du dump avant de faire confiance à la suite.
 | --- | --- | --- |
 | Job 1 échoue (chargement EE) | Job 2 (et job 3 le lundi) non enfilés | Relancer via `TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS` ; chargement **incrémental**, un run ultérieur rattrape les EE manquants |
 | Job 2 échoue un **lundi** | Job 3 non enfilé | Relancer via `TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS` ; les lignes restent avec `semaine is null` jusqu'à un enrichissement réussi, puis enfiler / relancer les vues si besoin |
-| Job 0bis échoue (populations) | `analytics_population_membres` garde le contenu de la veille (rebuild transactionnel) | Relancer via `yarn tasks:charger-populations` |
+| Job 0bis échoue (populations) | Les trois tables `analytics_population_membres` / `analytics_communication_destinataires` / `analytics_deploiement_membres` gardent le contenu de la veille (rebuild transactionnel) | Relancer via `yarn tasks:charger-populations` |
 | Job 3 manqué / échoué (vues) | Vues `analytics_*` non mises à jour pour la semaine | Relancer via `TASK_NAME=CHARGER_LES_VUES_ANALYTICS` (semaine précédente), ou `yarn tasks:initialiser-les-vues` / variante dernière année pour un recalcul large |
 
 Le run quotidien suivant repart du cron (job 0) : utile pour rattraper les EE, mais **ne
@@ -149,71 +149,75 @@ Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant l
 
 ### 0bis-charger-les-populations.job.ts
 
-Reconstruit `analytics_population_membres` : pour chaque population, les conseillers et
-les jeunes qu'elle résout, avec leur identité (email, nom, prénom), leur profil
-(structure × dispositif), leur lieu d'accompagnement (`agence` : structure MiLo ou
-agence FT) et, pour un jeune, l'email de son conseiller de référence et
-`type_conseiller_reference` (`ACTUEL`, ou `INITIAL` si un transfert temporaire est en
-cours).
+Matérialise, pour Metabase, ce que les fonctionnalités calculent pour **un** utilisateur,
+mais de façon **exhaustive** — trois tables, reconstruites à chaque run (`DELETE` + `INSERT`
+dans une transaction, `date_calcul` identique sur toutes les lignes) :
 
-La résolution d'appartenance n'est **pas réimplémentée** dans ce job : il instancie
-`PopulationSqlRepository` — la classe utilisée en production par
-`NotifierBeneficiairesJobHandler` pour décider qui reçoit une notification ou une
-communication — pointée sur la base Analytics, et appelle
-`getIdsDesConseillersParProfilOuConseillerCite` / `getIdsDesJeunesParProfilOuConseillerCite`.
-Ce que Metabase affiche est donc structurellement ce que l'API calculera, y compris si la
-règle de résolution évolue. Seul l'enrichissement présentation (email, nom, agence) est
-propre à ce job, sans prédicat métier. Pas d'historique : `DELETE` + `INSERT` dans une
-transaction, `date_calcul` identique sur toutes les lignes du run.
+| Table | Une ligne par | Colonnes propres | `statut` (figé à `date_calcul`) |
+| --- | --- | --- | --- |
+| `analytics_population_membres` | (population, conseiller ou jeune) | `email_conseiller_reference`, `type_conseiller_reference` (`ACTUEL` / `INITIAL` si transfert temporaire) | — |
+| `analytics_communication_destinataires` | (communication, conseiller destinataire) | `destinataire`, `type`, `titre`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` |
+| `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
-Tout le reste (populations, emails cités, profils, déploiements, communications à venir)
-se lit directement dans les tables dumpées, sans logique à recopier côté Metabase.
+Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
+`dispositif`) et son lieu d'accompagnement (`agence` : structure MiLo ou agence FT).
+Jeunes : uniquement dans `analytics_population_membres` pour l'instant.
+
+**Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
+population, destinataires d'une communication, conseillers concernés par un déploiement et
+prédicats temporels sont les fragments de
+[`sql-helpers.ts`](../src/infrastructure/repositories/sql-helpers.ts), ceux-là mêmes
+qu'utilisent `CommunicationSqlRepository`, `MigrationSqlRepository` et
+`PopulationSqlRepository` en production. Si une règle change dans un repository, la table
+suit au déploiement suivant. Le test du job le vérifie en croisant la table avec ce que
+ces repositories renvoient pour un conseiller donné.
+
+**Fraîcheur.** Les statuts sont calculés à `date_calcul` (J-1, ~3h du matin) : une
+communication qui démarre à 10h reste `PREVUE` jusqu'au run suivant. Toujours afficher
+`date_calcul` (ou « prévue le … ») à côté du statut pour que ce décalage soit lisible.
+Côté Metabase, **ne jamais recalculer un statut avec `now()`** : filtrer sur la colonne.
+
 Requêtes de départ pour les questions Metabase :
 
 ```sql
--- Populations avec leurs effectifs résolus
-SELECT p.id, p.description,
-       count(*) FILTER (WHERE m.type_utilisateur = 'CONSEILLER') AS nb_conseillers,
-       count(*) FILTER (WHERE m.type_utilisateur = 'JEUNE')      AS nb_jeunes,
-       max(m.date_calcul)                                         AS calcule_le
-FROM population p
-LEFT JOIN analytics_population_membres m ON m.id_population = p.id
-GROUP BY p.id, p.description
-ORDER BY p.id;
-
--- Membres d'une population (filtre Metabase sur {{id_population}} et {{type_utilisateur}})
-SELECT type_utilisateur, email, nom, prenom, structure, dispositif, agence,
-       email_conseiller_reference, type_conseiller_reference
+-- Populations avec leurs conseillers
+SELECT id_population, email, nom, prenom, structure, dispositif, agence, date_calcul
 FROM analytics_population_membres
-WHERE id_population = {{id_population}}
-ORDER BY type_utilisateur, nom, prenom;
+WHERE type_utilisateur = 'CONSEILLER'
+ORDER BY id_population, nom, prenom;
 
--- Communications à venir ou en cours, avec les effectifs ciblés
-SELECT co.id, co.id_population, co.destinataire, co.type,
-       co.date_debut, co.date_fin, co.titre,
-       count(m.id_utilisateur) AS nb_cibles
-FROM communication co
-LEFT JOIN analytics_population_membres m
-       ON m.id_population = co.id_population
-      AND m.type_utilisateur = co.destinataire
-WHERE co.date_fin > now()
-GROUP BY co.id
-ORDER BY co.date_debut;
+-- Communications prévues (ou passées : statut = 'PASSEE'), groupées par population et date
+SELECT id_communication, id_population, titre, type, date_debut, date_fin,
+       count(*) AS nb_conseillers, max(date_calcul) AS calcule_le
+FROM analytics_communication_destinataires
+WHERE statut = 'PREVUE'
+GROUP BY id_communication, id_population, titre, type, date_debut, date_fin
+ORDER BY date_debut;
 
--- Déploiements à venir, avec les effectifs ciblés
-SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
-       count(*) FILTER (WHERE m.type_utilisateur = 'CONSEILLER') AS nb_conseillers,
-       count(*) FILTER (WHERE m.type_utilisateur = 'JEUNE')      AS nb_jeunes
-FROM deploiement d
-LEFT JOIN analytics_population_membres m ON m.id_population = d.id_population
-WHERE d.date_activation > now()
-GROUP BY d.id
-ORDER BY d.date_activation;
+-- Conseillers destinataires d'une communication (filtre Metabase {{id_communication}})
+SELECT email, nom, prenom, structure, dispositif, agence
+FROM analytics_communication_destinataires
+WHERE id_communication = {{id_communication}}
+ORDER BY nom, prenom;
+
+-- Migrations prévues, avec les conseillers
+SELECT id_deploiement, id_population, date_activation, email, nom, prenom, agence
+FROM analytics_deploiement_membres
+WHERE nature = 'MIGRATION' AND statut = 'PREVU'
+ORDER BY date_activation, nom, prenom;
+
+-- Fonctionnalités actives, effectifs par fonctionnalité et population
+SELECT id_fonctionnalite, id_population, date_activation, count(*) AS nb_conseillers
+FROM analytics_deploiement_membres
+WHERE nature = 'FONCTIONNALITE' AND statut = 'ACTIF'
+GROUP BY id_fonctionnalite, id_population, date_activation
+ORDER BY id_fonctionnalite, date_activation;
 ```
 
-**Rafraîchir avant l'heure** (dry-run après avoir modifié une population) : le job lit les
-tables **dumpées**, il faut donc re-dumper d'abord — le dump complet dépasse parfois
-20 minutes et rend les dashboards incohérents pendant la restauration :
+**Rafraîchir avant l'heure** (dry-run après avoir modifié une population ou une
+communication) : le job lit les tables **dumpées**, il faut donc re-dumper d'abord — le
+dump complet dépasse parfois 20 minutes et rend les dashboards incohérents pendant la
+restauration :
 
 ```bash
 scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics

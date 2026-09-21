@@ -1,7 +1,10 @@
 # Populations résolues dans la base Analytics (Metabase)
 
-> Design validé le 2026-09-17. Plan d'implémentation :
-> [`../plans/2026-09-17-populations-analytics.md`](../plans/2026-09-17-populations-analytics.md).
+> Design validé le 2026-09-17, **élargi le 2026-09-21** : le job matérialise aussi les
+> communications et déploiements par conseiller, avec un statut figé, pour que Metabase ne
+> porte aucune condition métier (voir « Révision » en fin de document). Plan initial :
+> [`../plans/2026-09-17-populations-analytics.md`](../plans/2026-09-17-populations-analytics.md)
+> (exécuté ; la révision a été appliquée sans plan).
 
 ## Problème
 
@@ -138,3 +141,36 @@ rafraîchissement à la demande. JSDoc `@analytics.*` sur le handler (ADR-005).
 
 Le dashboard Metabase lui-même (côté `stats`, non versionné — statu quo du projet) ;
 seules les requêtes SQL de départ sont documentées. Historique des membres par date d'envoi. Route API de prévisualisation.
+
+## Révision du 2026-09-21 — plus aucune logique dans Metabase
+
+**Constat** après la première implémentation : l'appartenance était bien centralisée
+(`sql-helpers.ts`), mais les requêtes Metabase proposées réécrivaient à la main la règle
+« communication à venir / en cours » (`date_fin > now()`) et « migration à venir »
+(`date_activation > now()`), c'est-à-dire exactement ce que `CommunicationSqlRepository`
+et `MigrationSqlRepository` définissent. La duplication avait juste changé d'endroit.
+
+**Décision.** Les fonctionnalités répondent « pour un conseiller, sa communication / sa
+date de migration » ; l'analytics veut l'inverse, « pour une communication, ses
+conseillers ». C'est la même jointure sans le `WHERE c.id = :id`. Elle est extraite dans
+`sql-helpers.ts` (`sqlJoinConseillersDestinataires`, `sqlCommunicationEnCours`,
+`sqlJoinConseillersConcernes`, `sqlDeploiementActif`), consommée à l'identique par les
+repositories (filtrés sur un conseiller) et par le job (exhaustif). Le job produit trois
+tables, chacune avec un `statut` **figé à `date_calcul`** :
+
+| Table | Ligne | `statut` |
+| --- | --- | --- |
+| `analytics_population_membres` | (population, conseiller ou jeune) | — |
+| `analytics_communication_destinataires` | (communication, conseiller) | `PASSEE` / `EN_COURS` / `PREVUE` |
+| `analytics_deploiement_membres` | (déploiement, conseiller) | `PREVU` / `ACTIF` |
+
+Metabase filtre et groupe sur ces colonnes, sans `now()`. Le décalage J-1 est assumé et
+rendu visible en affichant `date_calcul` à côté du statut.
+
+**Preuve.** Le test du job croise la table avec les repositories : la communication
+`EN_COURS` d'un conseiller dans la table est celle que `getMessageInformatifDuConseiller`
+lui renvoie ; sa migration `PREVU` est la date de `getDateDeMigrationDuConseiller`.
+
+**Reste à faire.** Jeunes dans `analytics_communication_destinataires` et
+`analytics_deploiement_membres` (après merge de `feat/communications-beneficiaires`, avec
+`sqlJeuneDansPopulation`), puis dashboard Metabase.

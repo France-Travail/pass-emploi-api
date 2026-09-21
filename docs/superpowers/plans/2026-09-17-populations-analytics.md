@@ -1,5 +1,9 @@
 # Populations résolues dans la base Analytics — plan d'implémentation
 
+> **Exécuté le 2026-09-21, puis dépassé** : le job a été élargi aux communications et
+> déploiements (statuts figés) sans plan. La référence à jour est la section « Révision »
+> de la [spec](../specs/2026-09-17-populations-analytics-design.md) et `docs/ANALYTICS.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Un job quotidien de la pipeline analytics matérialise `analytics_population_membres` (conseillers et jeunes résolus par population) en appelant le repository de production `PopulationSqlRepository`, pour que Metabase affiche exactement ce que le code calculera — sans réimplémenter la logique d'appartenance.
