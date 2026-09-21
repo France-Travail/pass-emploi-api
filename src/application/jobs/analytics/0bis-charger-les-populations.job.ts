@@ -14,6 +14,7 @@ import {
 } from '../../../infrastructure/repositories/sql-helpers'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
+import { rootLogger, toEcsError } from '../../../utils/logger.module'
 
 export const ANALYTICS_POPULATION_MEMBRES_TABLE_NAME =
   'analytics_population_membres'
@@ -112,7 +113,17 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       await connexion.close()
     } catch (e) {
       erreur = e
-      this.logger.error(e)
+      rootLogger.error(
+        {
+          context: this.jobType,
+          event: {
+            action: 'populations_analytics_chargees',
+            outcome: 'failure'
+          },
+          error: toEcsError(e)
+        },
+        'populations_analytics_chargees'
+      )
     }
 
     return {
