@@ -2,15 +2,22 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { QueryTypes } from 'sequelize'
 import {
+  ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+  ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
   ANALYTICS_POPULATION_MEMBRES_TABLE_NAME,
   ChargerLesPopulationsJobHandler
 } from '../../../../src/application/jobs/analytics/0bis-charger-les-populations.job'
+import { Communication } from '../../../../src/domain/communication'
 import { Core } from '../../../../src/domain/core'
+import { Deploiement } from '../../../../src/domain/deploiement'
 import { Planificateur } from '../../../../src/domain/planificateur'
 import { Profil } from '../../../../src/domain/profil'
 import { SuiviJob } from '../../../../src/domain/suivi-job'
 import { AgenceSqlModel } from '../../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
+import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
@@ -24,8 +31,7 @@ import { uneStructureMiloDto } from '../../../fixtures/sql-models/structureMilo.
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
 
-interface Membre {
-  id_population: string
+interface Utilisateur {
   type_utilisateur: string
   id_utilisateur: string
   email: string | null
@@ -34,9 +40,33 @@ interface Membre {
   structure: string
   dispositif: string | null
   agence: string | null
+  date_calcul: Date
+}
+
+interface Membre extends Utilisateur {
+  id_population: string
   email_conseiller_reference: string | null
   type_conseiller_reference: string | null
-  date_calcul: Date
+}
+
+interface Destinataire extends Utilisateur {
+  id_communication: string
+  id_population: string
+  destinataire: string
+  type: string
+  titre: string
+  date_debut: Date
+  date_fin: Date
+  statut: string
+}
+
+interface MembreDeploiement extends Utilisateur {
+  id_deploiement: string
+  id_population: string
+  nature: string
+  id_fonctionnalite: string | null
+  date_activation: Date
+  statut: string
 }
 
 describe('ChargerLesPopulationsJobHandler', () => {
@@ -44,6 +74,9 @@ describe('ChargerLesPopulationsJobHandler', () => {
   let suiviJobService: StubbedType<SuiviJob.Service>
   let dateService: StubbedClass<DateService>
   const maintenant = DateTime.fromISO('2026-09-17T03:00:00.000Z')
+  const hier = maintenant.minus({ days: 1 }).toJSDate()
+  const demain = maintenant.plus({ days: 1 }).toJSDate()
+  const dansUneSemaine = maintenant.plus({ weeks: 1 }).toJSDate()
 
   before(async () => {
     await getDatabase().cleanPG()
@@ -135,13 +168,83 @@ describe('ChargerLesPopulationsJobHandler', () => {
       structure: Profil.Structure.FRANCE_TRAVAIL,
       dispositif: Profil.Dispositif.CEJ
     })
+    await CommunicationSqlModel.bulkCreate([
+      uneCommunication({
+        id: 1,
+        titre: 'Passée',
+        dateDebut: maintenant.minus({ weeks: 1 }).toJSDate(),
+        dateFin: hier
+      }),
+      uneCommunication({ id: 2, titre: 'En cours', dateDebut: hier }),
+      uneCommunication({ id: 3, titre: 'Prévue', dateDebut: demain }),
+      uneCommunication({
+        id: 4,
+        titre: 'Pour les jeunes',
+        destinataire: Communication.Destinataire.JEUNE
+      }),
+      uneCommunication({ id: 5, titre: 'Personne', idPopulation: 'VIDE' })
+    ])
+    await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
+    await DeploiementSqlModel.bulkCreate([
+      {
+        id: 10,
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PILOTE',
+        idFonctionnalite: null,
+        dateActivation: dansUneSemaine
+      },
+      {
+        id: 11,
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'PILOTE',
+        idFonctionnalite: 'DEMARCHES_IA',
+        dateActivation: hier
+      },
+      {
+        id: 12,
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'VIDE',
+        idFonctionnalite: null,
+        dateActivation: dansUneSemaine
+      }
+    ])
   })
 
   after(async () => {
-    await getDatabase().sequelize.query(
-      `DROP TABLE IF EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};`
-    )
+    await getDatabase().sequelize.query(`
+      DROP TABLE IF EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
+      DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
+      DROP TABLE IF EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
+    `)
   })
+
+  function uneCommunication(surcharge: {
+    id: number
+    titre: string
+    idPopulation?: string
+    destinataire?: Communication.Destinataire
+    dateDebut?: Date
+    dateFin?: Date
+  }): {
+    id: number
+    idPopulation: string
+    destinataire: Communication.Destinataire
+    type: Communication.Type
+    dateDebut: Date
+    dateFin: Date
+    titre: string
+    contenu: string
+  } {
+    return {
+      idPopulation: 'PILOTE',
+      destinataire: Communication.Destinataire.CONSEILLER,
+      type: Communication.Type.IN_APP,
+      dateDebut: hier,
+      dateFin: dansUneSemaine,
+      contenu: 'Contenu',
+      ...surcharge
+    }
+  }
 
   describe('handle', () => {
     let suiviJob: SuiviJob
@@ -168,7 +271,9 @@ describe('ChargerLesPopulationsJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbPopulations: 2,
         nbConseillers: 2,
-        nbJeunes: 4
+        nbJeunes: 4,
+        nbDestinatairesCommunications: 6,
+        nbMembresDeploiements: 4
       })
     })
 
@@ -236,6 +341,65 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
+    it('liste les destinataires de chaque communication conseiller avec son statut figé à date_calcul, via la même jointure que la fonctionnalité', async () => {
+      // Then
+      const destinataires = await lignes<Destinataire>(
+        ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+        'id_communication, id_utilisateur'
+      )
+      expect(
+        destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
+      ).to.deep.equal([
+        ['1', 'PASSEE', 'conseillerCite'],
+        ['1', 'PASSEE', 'conseillerFtCej'],
+        ['2', 'EN_COURS', 'conseillerCite'],
+        ['2', 'EN_COURS', 'conseillerFtCej'],
+        ['3', 'PREVUE', 'conseillerCite'],
+        ['3', 'PREVUE', 'conseillerFtCej']
+      ])
+      expect(destinataires[0]).to.deep.include({
+        id_population: 'PILOTE',
+        destinataire: 'CONSEILLER',
+        type: 'IN_APP',
+        titre: 'Passée',
+        date_fin: hier,
+        type_utilisateur: 'CONSEILLER',
+        email: 'cite@milo.fr',
+        agence: 'ML Aubenas',
+        date_calcul: maintenant.toJSDate()
+      })
+    })
+
+    it('liste les conseillers concernés par chaque déploiement avec son statut figé à date_calcul, via la même jointure que la fonctionnalité', async () => {
+      // Then
+      const membres = await lignes<MembreDeploiement>(
+        ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+        'id_deploiement, id_utilisateur'
+      )
+      expect(
+        membres.map(m => [
+          m.id_deploiement,
+          m.nature,
+          m.id_fonctionnalite,
+          m.statut,
+          m.id_utilisateur
+        ])
+      ).to.deep.equal([
+        ['10', 'MIGRATION', null, 'PREVU', 'conseillerCite'],
+        ['10', 'MIGRATION', null, 'PREVU', 'conseillerFtCej'],
+        ['11', 'FONCTIONNALITE', 'DEMARCHES_IA', 'ACTIF', 'conseillerCite'],
+        ['11', 'FONCTIONNALITE', 'DEMARCHES_IA', 'ACTIF', 'conseillerFtCej']
+      ])
+      expect(membres[0]).to.deep.include({
+        id_population: 'PILOTE',
+        date_activation: dansUneSemaine,
+        type_utilisateur: 'CONSEILLER',
+        email: 'cite@milo.fr',
+        agence: 'ML Aubenas',
+        date_calcul: maintenant.toJSDate()
+      })
+    })
+
     it('repart de zéro à chaque run', async () => {
       // Then
       const lignes = await membres('JEUNE')
@@ -252,6 +416,16 @@ async function membres(typeUtilisateur: string): Promise<Membre[]> {
     `SELECT * FROM ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
      WHERE type_utilisateur = '${typeUtilisateur}'
      ORDER BY id_utilisateur`,
+    { type: QueryTypes.SELECT }
+  )
+}
+
+async function lignes<T extends object>(
+  table: string,
+  ordre: string
+): Promise<T[]> {
+  return getDatabase().sequelize.query<T>(
+    `SELECT * FROM ${table} ORDER BY ${ordre}`,
     { type: QueryTypes.SELECT }
   )
 }
