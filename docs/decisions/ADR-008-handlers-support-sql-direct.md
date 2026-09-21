@@ -41,6 +41,18 @@ implémentation SQL). Cette ADR acte la dérogation et en fixe la limite.
 | `SupprimerCommunicationCommandHandler` | — | — | `destroy` |
 | `GetCommunicationsConseillerQueryHandler` (client) | — | `Communication.Repository` | — |
 
+## Tests : au niveau du use case
+
+Sur ce périmètre (populations, déploiements, communications), le comportement
+attendu se vérifie sur le **handler, avec la base de test et les vrais
+repositories** (`*.handler.db.test.ts`), intitulés formulés en règle métier
+(« affiche une seule communication à la fois : celle qui se termine le plus
+tôt »). Pas de test unitaire du handler à doubles : il ne vérifierait que le
+câblage, et se réécrit à chaque déplacement de la règle entre SQL et TS. Les
+tests des repositories restent pour documenter finement les bornes (dates,
+transferts), le test du handler garantit le résultat vu par l'utilisateur.
+Ça vaut aussi pour `GetCommunicationsConseillerQueryHandler` côté client.
+
 ## Quand revenir dessus
 
 Si un handler support commence à porter une règle métier qui dépasse
