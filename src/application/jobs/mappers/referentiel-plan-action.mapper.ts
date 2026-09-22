@@ -79,8 +79,8 @@ export function reconcilierReferentiel(
       anomalies.nbDoublonsServices++
       logAnomalie('Service Grist en doublon, ligne ignorée', {
         nom: service.nom,
-        idRetenu: serviceParNom.get(service.nom)!.id,
-        idIgnore: service.id
+        id_retenu: serviceParNom.get(service.nom)!.id,
+        id_ignore: service.id
       })
       continue
     }
@@ -98,8 +98,8 @@ export function reconcilierReferentiel(
       logAnomalie(
         "Solution Grist en doublon d'identifiant technique, ligne ignorée",
         {
-          idTechnique: fields.Id_technique,
-          ligneGrist: record.id
+          id_technique: fields.Id_technique,
+          ligne_grist: record.id
         }
       )
       continue
@@ -110,7 +110,7 @@ export function reconcilierReferentiel(
     if (!type) {
       anomalies.nbSolutionsEcartees++
       logAnomalie('Solution Grist écartée : type de tâche inconnu', {
-        idTechnique: fields.Id_technique,
+        id_technique: fields.Id_technique,
         raison: 'type_inconnu',
         valeur: fields.Type
       })
@@ -121,7 +121,7 @@ export function reconcilierReferentiel(
     if (type === PlanAction.TypeTache.NAVIGATION && !ecranApp) {
       anomalies.nbSolutionsEcartees++
       logAnomalie('Solution Grist écartée : navigation sans écran renseigné', {
-        idTechnique: fields.Id_technique,
+        id_technique: fields.Id_technique,
         raison: 'navigation_sans_ecran',
         valeur: fields.Ecran_de_l_app
       })
@@ -133,8 +133,8 @@ export function reconcilierReferentiel(
     if (nomService && !service) {
       anomalies.nbServicesNonResolus++
       logAnomalie('Service Grist non résolu pour une solution', {
-        idTechnique: fields.Id_technique,
-        nomCherche: nomService
+        id_technique: fields.Id_technique,
+        nom_cherche: nomService
       })
     }
 
@@ -227,7 +227,7 @@ function optionnel<K extends string, V>(
 
 function logAnomalie(
   message: string,
-  details: Record<string, string | number>
+  labels: Record<string, string | number>
 ): void {
-  rootLogger.info({ context: CONTEXT, ...details }, message)
+  rootLogger.info({ context: CONTEXT, labels }, message)
 }
