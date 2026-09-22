@@ -52,6 +52,14 @@ const structureParLibelle: Record<string, Profil.Structure> = {
   Invité: Profil.Structure.INVITE
 }
 
+const destinationParValeur: Record<string, PlanAction.Destination> = {
+  evenements: PlanAction.Destination.EVENEMENTS,
+  'offres-alternance': PlanAction.Destination.OFFRES_ALTERNANCE,
+  'offres-emploi': PlanAction.Destination.OFFRES_EMPLOI,
+  'offres-services-civiques': PlanAction.Destination.OFFRES_SERVICE_CIVIQUE,
+  'aller-vers': PlanAction.Destination.ALLER_VERS
+}
+
 export function reconcilierReferentiel(
   servicesGrist: Array<GristRecordDto<GristServiceFieldsDto>>,
   solutionsGrist: Array<GristRecordDto<GristSolutionFieldsDto>>
@@ -119,14 +127,25 @@ export function reconcilierReferentiel(
       continue
     }
 
-    const ecranApp = destination(fields.Ecran_de_l_app)
+    const valeurEcran = texte(fields.Ecran_de_l_app)
+    const ecranApp = valeurEcran ? destinationParValeur[valeurEcran] : undefined
     if (type === PlanAction.TypeTache.NAVIGATION && !ecranApp) {
       anomalies.nbSolutionsEcartees++
-      logAnomalie('Solution Grist écartée : navigation sans écran renseigné', {
-        id_technique: fields.Id_technique,
-        raison: 'navigation_sans_ecran',
-        valeur: fields.Ecran_de_l_app
-      })
+      if (valeurEcran) {
+        logAnomalie('Solution Grist écartée : écran de navigation inconnu', {
+          id_technique: fields.Id_technique,
+          raison: 'ecran_inconnu',
+          valeur: valeurEcran
+        })
+      } else {
+        logAnomalie(
+          'Solution Grist écartée : navigation sans écran renseigné',
+          {
+            id_technique: fields.Id_technique,
+            raison: 'navigation_sans_ecran'
+          }
+        )
+      }
       continue
     }
 
@@ -231,15 +250,6 @@ function entier(valeur: number | null): number | undefined {
   return valeur === null || valeur === undefined
     ? undefined
     : Math.trunc(valeur)
-}
-
-function destination(valeur: string): PlanAction.Destination | undefined {
-  const propre = texte(valeur)
-  if (!propre) return undefined
-  const connues = Object.values(PlanAction.Destination) as string[]
-  return connues.includes(propre)
-    ? (propre as PlanAction.Destination)
-    : undefined
 }
 
 function conversionFT(

@@ -8,6 +8,8 @@ export namespace PlanAction {
   export enum Destination {
     OFFRES_ALTERNANCE = 'OFFRES_ALTERNANCE',
     OFFRES_SERVICE_CIVIQUE = 'OFFRES_SERVICE_CIVIQUE',
+    OFFRES_EMPLOI = 'OFFRES_EMPLOI',
+    ALLER_VERS = 'ALLER_VERS',
     EVENEMENTS = 'EVENEMENTS'
   }
 

@@ -123,7 +123,7 @@ describe('reconcilierReferentiel', () => {
       [
         uneSolutionGrist({
           Type: "Écran de l'app",
-          Ecran_de_l_app: 'EVENEMENTS'
+          Ecran_de_l_app: 'evenements'
         })
       ]
     )
@@ -135,11 +135,58 @@ describe('reconcilierReferentiel', () => {
     )
   })
 
+  it("mappe chacune des cinq valeurs réelles d'écran vers sa destination", () => {
+    const casDeTest: Array<[string, PlanAction.Destination]> = [
+      ['evenements', PlanAction.Destination.EVENEMENTS],
+      ['offres-alternance', PlanAction.Destination.OFFRES_ALTERNANCE],
+      ['offres-emploi', PlanAction.Destination.OFFRES_EMPLOI],
+      [
+        'offres-services-civiques',
+        PlanAction.Destination.OFFRES_SERVICE_CIVIQUE
+      ],
+      ['aller-vers', PlanAction.Destination.ALLER_VERS]
+    ]
+
+    for (const [valeurGrist, destinationAttendue] of casDeTest) {
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [
+          uneSolutionGrist({
+            Type: "Écran de l'app",
+            Ecran_de_l_app: valeurGrist
+          })
+        ]
+      )
+
+      // Then
+      expect(resultat.solutions[0].ecranApp).to.equal(destinationAttendue)
+      expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    }
+  })
+
   it('écarte une navigation sans écran renseigné', () => {
     // When
     const resultat = reconcilierReferentiel(
       [serviceOnisep],
       [uneSolutionGrist({ Type: "Écran de l'app", Ecran_de_l_app: '' })]
+    )
+
+    // Then
+    expect(resultat.solutions).to.deep.equal([])
+    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
+  })
+
+  it('écarte une navigation vers un écran inconnu', () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({
+          Type: "Écran de l'app",
+          Ecran_de_l_app: 'offres-formation'
+        })
+      ]
     )
 
     // Then
@@ -266,5 +313,25 @@ describe('reconcilierReferentiel', () => {
     // Then
     expect(resultat.solutions).to.have.length(1)
     expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+  })
+
+  it("reconnaît les trois libellés réels d'Authentification", () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({
+          Authentification: 'France Travail; Mission Locale; Invité'
+        })
+      ]
+    )
+
+    // Then
+    expect(resultat.solutions[0].authentifications).to.deep.equal([
+      Profil.Structure.FRANCE_TRAVAIL,
+      Profil.Structure.MILO,
+      Profil.Structure.INVITE
+    ])
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
   })
 })
