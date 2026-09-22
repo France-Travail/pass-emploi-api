@@ -583,7 +583,7 @@ function toCommuneDto(commune: PlanAction.Commune): CommuneDto {
 }
 ```
 
-> Les `as unknown as` sur `goals` et `obstacles` sont volontaires et **temporaires** : les valeurs de `PlanAction.Besoin` et `GoalDto` coïncident exactement (vérifié à l'étape 1, 11 contre 11 et 12 contre 12). Ils disparaissent avec l'adaptateur POC. Si tsc les refuse, écris des tables de correspondance explicites plutôt que d'introduire un `any`.
+> Les `as unknown as` sur `goals` et `obstacles` sont volontaires et **temporaires**. `PlanAction.Besoin` et `GoalDto` coïncident exactement (11 contre 11). `PlanAction.Contrainte` (12) et `ObstacleDto` (14) **ne coïncident pas** : le DTO porte en plus `AUTRE` et `RIEN_NE_ME_BLOQUE`, qui ne correspondent à aucune contrainte de solution. Le cast reste sûr parce qu'il va du sous-ensemble vers le sur-ensemble — toute `Contrainte` est un `ObstacleDto` valide. **Ne l'inverse pas.** Ces casts disparaissent avec l'adaptateur POC ; si tsc les refuse, écris des tables de correspondance explicites plutôt que d'introduire un `any`.
 
 - [ ] **Step 4 : Réécrire le client comme générateur**
 
