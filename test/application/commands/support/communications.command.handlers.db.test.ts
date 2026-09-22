@@ -88,6 +88,16 @@ describe('Communications : handlers support', () => {
       }
       expect(await CommunicationSqlModel.count()).to.equal(0)
     })
+
+    it('crée une communication IN_APP sans date de fin', async () => {
+      // When
+      const result = await handler.handle({ ...commande, dateFin: undefined })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+      const communication = await CommunicationSqlModel.findOne()
+      expect(communication!.dateFin).to.be.null()
+    })
   })
 
   describe('ModifierCommunicationCommandHandler', () => {

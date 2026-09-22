@@ -22,7 +22,7 @@ export interface ModifierCommunicationCommand extends Command {
   destinataire: Communication.Destinataire
   type: Communication.Type
   dateDebut: DateTime
-  dateFin: DateTime
+  dateFin?: DateTime
   titre: string
   contenu: string
   ctaLabel?: string
@@ -73,7 +73,7 @@ export class ModifierCommunicationCommandHandler extends CommandHandler<
       destinataire: communication.destinataire,
       type: communication.type,
       dateDebut: communication.dateDebut.toJSDate(),
-      dateFin: communication.dateFin.toJSDate(),
+      dateFin: communication.dateFin?.toJSDate() ?? null,
       titre: communication.titre,
       contenu: communication.contenu,
       ctaLabel: communication.ctaLabel ?? null,

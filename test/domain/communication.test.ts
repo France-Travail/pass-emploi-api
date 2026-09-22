@@ -56,5 +56,85 @@ describe('Communication', () => {
         expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
       }
     })
+
+    it('crée une communication IN_APP sans date de fin, visible indéfiniment', () => {
+      // When
+      const result = Communication.creer({ ...aCreer, dateFin: undefined })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('crée une communication avec un cta complet', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        ctaLabel: 'Télécharger l’application',
+        ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx',
+        ctaUrlIos: 'https://apps.apple.com/app/apple-store/id123'
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse un cta avec seulement ctaLabel renseigné', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        ctaLabel: 'Télécharger l’application'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse un cta avec seulement ctaUrlAndroid renseigné', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse un cta avec ctaLabel et ctaUrlAndroid mais sans ctaUrlIos', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        ctaLabel: 'Télécharger l’application',
+        ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it("refuse une communication NOTIFICATION tant que l'envoi n'est pas livré", () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        dateFin: undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
   })
 })
