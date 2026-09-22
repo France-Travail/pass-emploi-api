@@ -299,7 +299,7 @@ export class CreerCommunicationPayload {
   @ApiProperty({
     enum: Communication.Type,
     description:
-      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, pas encore envoyé.',
+      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, refusé tant que l’envoi n’est pas livré.',
     example: 'IN_APP'
   })
   @IsEnum(Communication.Type)
@@ -312,12 +312,14 @@ export class CreerCommunicationPayload {
   @IsISO8601()
   dateDebut: string
 
-  @ApiProperty({
-    description: 'Date ISO 8601 de fin de visibilité (exclue), en UTC',
+  @ApiPropertyOptional({
+    description:
+      'Date ISO 8601 de fin de visibilité (exclue), en UTC. Absente = visible indéfiniment pour IN_APP (jusqu’à suppression) ; interdite pour NOTIFICATION, qui ne peut pas être rappelée une fois envoyée.',
     example: '2026-10-15T00:00:00.000Z'
   })
+  @IsOptional()
   @IsISO8601()
-  dateFin: string
+  dateFin?: string
 
   @ApiProperty({ example: 'Votre application évolue' })
   @IsString()
@@ -333,19 +335,27 @@ export class CreerCommunicationPayload {
   @IsNotEmpty()
   contenu: string
 
-  @ApiPropertyOptional({ example: 'Télécharger Parcours Emploi' })
+  @ApiPropertyOptional({
+    description:
+      'ctaLabel, ctaUrlAndroid et ctaUrlIos sont à renseigner ensemble ou à omettre tous les trois',
+    example: 'Télécharger Parcours Emploi'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   ctaLabel?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Requis si ctaLabel ou ctaUrlIos est renseigné'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   ctaUrlAndroid?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Requis si ctaLabel ou ctaUrlAndroid est renseigné'
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()

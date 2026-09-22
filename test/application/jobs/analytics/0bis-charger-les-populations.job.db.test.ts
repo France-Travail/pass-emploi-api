@@ -60,7 +60,7 @@ interface Destinataire extends Utilisateur {
   titre: string
   contenu: string
   date_debut: Date
-  date_fin: Date
+  date_fin: Date | null
   statut: string
 }
 
@@ -186,7 +186,13 @@ describe('ChargerLesPopulationsJobHandler', () => {
         titre: 'Pour les jeunes',
         destinataire: Communication.Destinataire.JEUNE
       }),
-      uneCommunication({ id: 5, titre: 'Personne', idPopulation: 'VIDE' })
+      uneCommunication({ id: 5, titre: 'Personne', idPopulation: 'VIDE' }),
+      uneCommunication({
+        id: 6,
+        titre: 'Permanente',
+        dateDebut: hier,
+        dateFin: null
+      })
     ])
     await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
     await DeploiementSqlModel.bulkCreate([
@@ -228,14 +234,14 @@ describe('ChargerLesPopulationsJobHandler', () => {
     idPopulation?: string
     destinataire?: Communication.Destinataire
     dateDebut?: Date
-    dateFin?: Date
+    dateFin?: Date | null
   }): {
     id: number
     idPopulation: string
     destinataire: Communication.Destinataire
     type: Communication.Type
     dateDebut: Date
-    dateFin: Date
+    dateFin: Date | null
     titre: string
     contenu: string
   } {
@@ -276,7 +282,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbPopulations: 2,
         nbConseillers: 2,
         nbJeunes: 4,
-        nbDestinatairesCommunications: 6,
+        nbDestinatairesCommunications: 8,
         nbMembresDeploiements: 4
       })
     })
@@ -363,7 +369,9 @@ describe('ChargerLesPopulationsJobHandler', () => {
         ['2', 'EN_COURS', 'conseillerCite'],
         ['2', 'EN_COURS', 'conseillerFtCej'],
         ['3', 'PREVUE', 'conseillerCite'],
-        ['3', 'PREVUE', 'conseillerFtCej']
+        ['3', 'PREVUE', 'conseillerFtCej'],
+        ['6', 'EN_COURS', 'conseillerCite'],
+        ['6', 'EN_COURS', 'conseillerFtCej']
       ])
       expect(destinataires[0]).to.deep.include({
         id_population: 'PILOTE',
@@ -409,7 +417,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       })
     })
 
-    it('montre pour un conseiller la communication en cours que la fonctionnalité lui affiche', async () => {
+    it('montre pour un conseiller les communications en cours, dont celle que la fonctionnalité lui affiche', async () => {
       // Given
       const communicationRepository = new CommunicationSqlRepository(
         getDatabase().sequelize
@@ -430,10 +438,9 @@ describe('ChargerLesPopulationsJobHandler', () => {
         d => d.id_utilisateur === 'conseillerCite' && d.statut === 'EN_COURS'
       )
 
-      // Then
-      expect(enCours.map(d => d.id_communication)).to.deep.equal([
-        String(affichee?.id)
-      ])
+      // Then : la fonctionnalité n'affiche que la plus urgente des EN_COURS
+      expect(enCours.map(d => d.id_communication)).to.deep.equal(['2', '6'])
+      expect(affichee?.id).to.equal(2)
     })
 
     it('montre pour un conseiller la date de migration que la fonctionnalité lui annonce', async () => {

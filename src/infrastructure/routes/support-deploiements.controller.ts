@@ -580,9 +580,9 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   @ApiTags('Support - Communications')
   @ApiOperation({
     summary: 'Crée une communication pour une population',
-    description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. Aujourd'hui seul le couple destinataire CONSEILLER × type IN_APP est lu, via GET /conseillers/:id/communications.
+    description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. \`dateFin\` absente pour IN_APP = visible indéfiniment, jusqu'à suppression. \`dateFin\` interdite pour NOTIFICATION (pas de rappel possible une fois envoyée).
 
-Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche. Renvoie l'id, à garder pour la modifier (PUT /support/communications/:id) ou la supprimer.`
+Plusieurs communications peuvent viser la même population ; un utilisateur ne voit que celle dont la fin est la plus proche (les communications sans dateFin passent en dernier). Renvoie l'id, à garder pour la modifier (PUT /support/communications/:id) ou la supprimer.`
   })
   @ApiBody({
     type: CreerCommunicationPayload,
@@ -625,7 +625,9 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
         destinataire: payload.destinataire,
         type: payload.type,
         dateDebut: DateTime.fromISO(payload.dateDebut),
-        dateFin: DateTime.fromISO(payload.dateFin),
+        dateFin: payload.dateFin
+          ? DateTime.fromISO(payload.dateFin)
+          : undefined,
         titre: payload.titre,
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,
@@ -686,7 +688,9 @@ Pratique : copier une communication depuis GET /support/populations/:idPopulatio
         destinataire: payload.destinataire,
         type: payload.type,
         dateDebut: DateTime.fromISO(payload.dateDebut),
-        dateFin: DateTime.fromISO(payload.dateFin),
+        dateFin: payload.dateFin
+          ? DateTime.fromISO(payload.dateFin)
+          : undefined,
         titre: payload.titre,
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,

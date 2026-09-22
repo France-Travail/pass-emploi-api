@@ -74,12 +74,12 @@ export function sqlJoinConseillersDestinataires(
      AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}`
 }
 
-// Visible entre date_debut (incluse) et date_fin (exclue).
+// Visible entre date_debut (incluse) et date_fin (exclue) ; sans date_fin, visible indéfiniment.
 export function sqlCommunicationEnCours(
   aliasCom: string,
   maintenant: string
 ): string {
-  return `(${aliasCom}.date_debut <= ${maintenant} AND ${maintenant} < ${aliasCom}.date_fin)`
+  return `(${aliasCom}.date_debut <= ${maintenant} AND (${aliasCom}.date_fin IS NULL OR ${maintenant} < ${aliasCom}.date_fin))`
 }
 
 // Jointure du déploiement `aliasDep` vers les conseillers de sa population.
