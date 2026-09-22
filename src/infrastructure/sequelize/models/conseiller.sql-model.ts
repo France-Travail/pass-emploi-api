@@ -113,6 +113,12 @@ export class ConseillerDto extends Model {
   })
   dateMajAgence: Date | null
 
+  @Column({
+    field: 'date_maj_dispositif',
+    type: DataType.DATE
+  })
+  dateMajDispositif: Date | null
+
   @ForeignKey(() => StructureMiloSqlModel)
   @Column({
     field: 'id_structure_milo',

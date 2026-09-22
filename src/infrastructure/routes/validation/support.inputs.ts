@@ -18,7 +18,7 @@ import {
   ValidateIf
 } from 'class-validator'
 import { Type } from 'class-transformer'
-import { Profil } from '../../../domain/profil'
+import { DISPOSITIFS_FT_ACCOMPAGNES, Profil } from '../../../domain/profil'
 import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
 import { Notification } from '../../../domain/notification/notification'
@@ -70,6 +70,20 @@ export class ModifierAgenceFTConseillerPayload {
   @IsString()
   @IsNotEmpty()
   idAgence: string
+}
+
+export class ModifierDispositifFTConseillerPayload {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idConseiller: string
+
+  @ApiProperty({
+    enum: DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!,
+    example: 'CEJ'
+  })
+  @IsIn(DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!)
+  dispositif: Profil.Dispositif
 }
 
 export class FusionnerAgencesPayload {

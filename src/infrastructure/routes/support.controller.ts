@@ -49,6 +49,7 @@ import {
   MettreAJourLesJeunesCEJPoleEmploiCommand
 } from '../../application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from '../../application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
+import { ModifierDispositifFTConseillerCommandHandler } from '../../application/commands/support/modifier-dispositif-ft-conseiller.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../application/commands/support/update-agence-conseiller.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from '../../application/commands/transferer-jeunes-conseiller.command.handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
@@ -70,6 +71,7 @@ import {
   FusionnerAgencesPayload,
   ListerJobsQueryParams,
   ModifierAgenceFTConseillerPayload,
+  ModifierDispositifFTConseillerPayload,
   NotifierBeneficiairesPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
@@ -130,6 +132,7 @@ export class SupportController {
     private readonly mettreAJourLesJeunesCejPeCommandHandler: MettreAJourLesJeunesCejPeCommandHandler,
     private readonly updateAgenceCommandHandler: UpdateAgenceConseillerCommandHandler,
     private readonly modifierAgenceFTConseillerCommandHandler: ModifierAgenceFTConseillerCommandHandler,
+    private readonly modifierDispositifFTConseillerCommandHandler: ModifierDispositifFTConseillerCommandHandler,
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
     private readonly desarchiverJeuneCommandHandler: DesarchiverJeuneCommandHandler,
@@ -252,6 +255,35 @@ export class SupportController {
       },
       Authentification.unUtilisateurSupport()
     )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      "Modifie le dispositif d'un conseiller France Travail (ID en base, et pas ID Authentification)",
+    description:
+      'Autorisé uniquement pour le support. Pose la date de mise à jour du dispositif : le conseiller ne reverra pas la modale « Indiquer mon dispositif » avant un an.\n\n' +
+      "Envoyer son dispositif actuel suffit à débloquer un conseiller coincé sur la modale : rien d'autre ne change.\n\n" +
+      "Si le dispositif change, mêmes effets que depuis son profil : les bénéficiaires de son portefeuille (hors bénéficiaires qu'il suit temporairement) passent au nouveau dispositif et sont déconnectés, et le conseiller est déconnecté pour se reconnecter sur le nouveau dispositif."
+  })
+  @Post('changer-dispositif-conseiller-ft')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async modifierDispositifFTConseiller(
+    @Body() payload: ModifierDispositifFTConseillerPayload
+  ): Promise<void> {
+    const result =
+      await this.modifierDispositifFTConseillerCommandHandler.execute(
+        {
+          idConseiller: payload.idConseiller,
+          dispositif: payload.dispositif
+        },
+        Authentification.unUtilisateurSupport()
+      )
 
     return handleResult(result)
   }

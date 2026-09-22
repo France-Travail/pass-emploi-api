@@ -114,6 +114,7 @@ import { DeleteSuperviseursCommandHandler } from './application/commands/support
 import { FusionnerAgencesCommandHandler } from './application/commands/support/fusionner-agences.command.handler'
 import { MettreAJourLesJeunesCejPeCommandHandler } from './application/commands/support/mettre-a-jour-les-jeunes-cej-pe.command.handler'
 import { ModifierAgenceFTConseillerCommandHandler } from './application/commands/support/modifier-agence-ft-conseiller.command.handler.db'
+import { ModifierDispositifFTConseillerCommandHandler } from './application/commands/support/modifier-dispositif-ft-conseiller.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from './application/commands/support/update-agence-conseiller.command.handler'
 import { CreerFonctionnaliteCommandHandler } from './application/commands/support/creer-fonctionnalite.command.handler.db'
 import { SupprimerFonctionnaliteCommandHandler } from './application/commands/support/supprimer-fonctionnalite.command.handler.db'
@@ -908,6 +909,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     MettreAJourLesJeunesCejPeCommandHandler,
     UpdateAgenceConseillerCommandHandler,
     ModifierAgenceFTConseillerCommandHandler,
+    ModifierDispositifFTConseillerCommandHandler,
     FusionnerAgencesCommandHandler,
     GetActionsConseillerV2QueryHandler,
     GetDiagorienteUrlsQueryHandler,

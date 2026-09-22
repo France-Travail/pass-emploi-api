@@ -4,7 +4,8 @@ import {
   Failure,
   isFailure,
   isSuccess,
-  Success
+  Success,
+  success
 } from '../../src/building-blocks/types/result'
 import { Conseiller } from '../../src/domain/milo/conseiller'
 import { unConseiller } from '../fixtures/conseiller.fixture'
@@ -204,6 +205,100 @@ describe('Conseiller', () => {
           expect(result.data.dateMajAgence).to.deep.equal(maintenant)
         }
       })
+
+      it('reprend la date de mise a jour de dispositif transmise', async () => {
+        // Given
+        const conseillerFT = unConseiller({
+          id: 'id-conseiller',
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        const maintenant = DateTime.fromISO('2026-09-21T10:00:00.000Z')
+        const reconfirmation: Conseiller.InfosDeMiseAJour = {
+          dispositif: Profil.Dispositif.CEJ,
+          dateMajDispositif: maintenant
+        }
+
+        // When
+        const result = Conseiller.mettreAJour(conseillerFT, reconfirmation)
+
+        // Then
+        expect(isSuccess(result)).to.equal(true)
+        if (isSuccess(result)) {
+          expect(result.data.dispositif).to.equal(Profil.Dispositif.CEJ)
+          expect(result.data.dateMajDispositif).to.deep.equal(maintenant)
+        }
+      })
+    })
+  })
+
+  describe('modifierDispositif', () => {
+    const maintenant = DateTime.fromISO('2026-09-22T10:00:00.000Z')
+
+    it('change le dispositif d’un conseiller France Travail et pose la date', () => {
+      // Given
+      const conseillerFT = unConseiller({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ
+      })
+
+      // When
+      const result = Conseiller.modifierDispositif(
+        conseillerFT,
+        Profil.Dispositif.AIJ,
+        maintenant
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          ...conseillerFT,
+          dispositif: Profil.Dispositif.AIJ,
+          dateMajDispositif: maintenant
+        })
+      )
+    })
+
+    it('refuse un conseiller qui n’est pas France Travail', () => {
+      // Given
+      const conseillerMilo = unConseiller({
+        structure: Profil.Structure.MILO,
+        dispositif: null
+      })
+
+      // When
+      const result = Conseiller.modifierDispositif(
+        conseillerMilo,
+        Profil.Dispositif.CEJ,
+        maintenant
+      )
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      expect((result as Failure).error).to.be.an.instanceOf(
+        MauvaiseCommandeError
+      )
+    })
+
+    it('refuse un dispositif qui n’est pas proposé aux conseillers France Travail', () => {
+      // Given
+      const conseillerFT = unConseiller({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ
+      })
+
+      // When
+      const result = Conseiller.modifierDispositif(
+        conseillerFT,
+        Profil.Dispositif.PACEA,
+        maintenant
+      )
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      expect((result as Failure).error).to.be.an.instanceOf(
+        MauvaiseCommandeError
+      )
     })
   })
 
