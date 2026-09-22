@@ -828,6 +828,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, {
           records: [{ id: 1, fields: { Nom: 'ONISEP', Description: 'site' } }]
         })
@@ -848,6 +849,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(401)
 
       // When
@@ -861,6 +863,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, { erreur: 'Table not found' })
 
       // When
@@ -876,6 +879,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableSolutions}/records`)
+        .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, { records: [{ id: 1, fields: { Id_technique: 'p-2' } }] })
 
       // When
