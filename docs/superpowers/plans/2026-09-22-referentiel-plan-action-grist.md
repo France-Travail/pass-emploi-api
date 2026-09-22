@@ -324,7 +324,7 @@ describe('reconcilierReferentiel', () => {
     // When
     const resultat = reconcilierReferentiel(
       [serviceOnisep],
-      [uneSolutionGrist({ Blocage: 'Peu d\'expérience professionnelle' })]
+      [uneSolutionGrist({ Blocage: "Peu d'expérience professionnelle" })]
     )
 
     // Then
@@ -802,12 +802,13 @@ Dans `src/config/configuration.schema.ts`, au même niveau que les autres client
 `test/infrastructure/clients/grist-client.test.ts` :
 
 ```ts
+import axios from 'axios'
 import * as nock from 'nock'
 import { isFailure, isSuccess } from 'src/building-blocks/types/result'
 import { GristClient } from 'src/infrastructure/clients/grist-client'
+import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
 import { expect, stubClass } from 'test/utils'
 import { testConfig } from 'test/utils/module-for-testing'
-import { ExternalApiLoggerService } from 'src/utils/external-api-logger.service'
 
 describe('GristClient', () => {
   let client: GristClient
@@ -815,7 +816,10 @@ describe('GristClient', () => {
   const grist = config.get('grist')
 
   beforeEach(() => {
-    client = new GristClient(config, stubClass(ExternalApiLoggerService))
+    const externalApiLogger = stubClass(ExternalApiLoggerService)
+    externalApiLogger.createAxios.returns(axios.create())
+
+    client = new GristClient(config, externalApiLogger)
   })
 
   afterEach(() => {
