@@ -62,6 +62,7 @@ Le cœur. `Suggestion` (ce que produit un générateur) est distinct de `PlanAct
 Ajouter en tête de `src/domain/plan-action/plan-action.ts`, avant le `namespace` :
 
 ```ts
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
@@ -315,6 +316,7 @@ Attendu : ÉCHEC — `PlanAction.Factory is not a constructor`.
 À ajouter dans le `namespace PlanAction` :
 
 ```ts
+  @Injectable()
   export class Factory {
     constructor(
       private readonly idService: IdService,
