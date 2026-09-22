@@ -17,7 +17,7 @@
 - **Guillemets** : string sans apostrophe → `'simples'` ; string avec apostrophe → `"doubles"`. Vaut aussi dans les `it()` et `describe()`.
 - **Aucun commentaire** dans le code livré, sauf les trois exceptions du `CONTEXTE-TRANSVERSE.md` : fait non-évident indispensable, `// TODO:` actionnable, marqueurs `// Given` / `// When` / `// Then` des tests.
 - **ESLint** : pas de `console`, pas de `process.env` hors `src/config/`, pas de `any`, type de retour explicite sur toute fonction.
-- **Logs ECS** : tout log passe par `rootLogger` avec `event.action` au passé et `event.outcome`. Niveaux `info` ou `error`, jamais `warn`. **Jamais d'exception brute passée à un logger** — `toEcsError(e)` d'abord.
+- **Logs ECS** : tout log passe par `rootLogger`. Niveaux `info` ou `error`, jamais `warn`. **Jamais d'exception brute passée à un logger** — `toEcsError(e)` d'abord. Un `event.action` (verbe au passé, snake_case) **ne se crée que si les deux conditions cumulatives** de `pass-emploi-tools/docs/logs-ecs/conventions.md:28-57` sont remplies : on va l'agréger ou alerter dessus, **et** l'état n'est pas déjà capturé ailleurs. Un échec unitaire dans la boucle d'un job ne les remplit pas — son volume est déjà dans `SuiviJob.resultat` : il va en **texte libre, sans `event`**.
 - **Lexique français dans le domaine** : `besoin` (Grist `Envie`), `contrainte` (Grist `Blocage`), `objectif`, `tache`, `solution`. Le contrat HTTP reste inchangé (`goals`, `obstacles`, `objectives`, `actions`).
 - **Nommage** : `{Entité}SqlRepository`, `{Entité}SqlModel`, fichiers touchant la base en `*.db.ts`, tests en `*.test.ts` / `*.db.test.ts`.
 
@@ -699,13 +699,10 @@ function optionnel<K extends string, V>(
 }
 
 function logAnomalie(
-  action: string,
+  message: string,
   details: Record<string, string | number>
 ): void {
-  rootLogger.info(
-    { context: CONTEXT, event: { action, outcome: 'failure' }, ...details },
-    action
-  )
+  rootLogger.info({ context: CONTEXT, ...details }, message)
 }
 ```
 
