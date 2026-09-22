@@ -2,7 +2,11 @@ import { ConfigService } from '@nestjs/config'
 import axios from 'axios'
 import * as nock from 'nock'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
-import { failure, success } from '../../../src/building-blocks/types/result'
+import {
+  failure,
+  isSuccess,
+  success
+} from '../../../src/building-blocks/types/result'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Profil } from '../../../src/domain/profil'
 import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
@@ -38,6 +42,8 @@ describe('PlanActionClient', () => {
     rayonKm: 30
   }
 
+  // nock compare le corps *sérialisé* : on lui passe l'objet JSON plutôt que le
+  // DTO typé, dont l'interface fermée ne satisfait pas RequestBodyMatcher.
   function corpsJson(corps: unknown): nock.DataMatcherMap {
     return JSON.parse(JSON.stringify(corps))
   }
@@ -81,6 +87,12 @@ describe('PlanActionClient', () => {
 
       // Then
       expect(result).to.deep.equal(success(toSuggestion(plan)))
+      if (isSuccess(result)) {
+        expect(result.data.objectifs[0].idsSolutions).to.deep.equal(['p-2'])
+        expect(result.data.objectifs[0].titre).to.equal(
+          'Trouver une alternance'
+        )
+      }
     })
 
     it('envoie le modèle configuré quand il est renseigné', async () => {
