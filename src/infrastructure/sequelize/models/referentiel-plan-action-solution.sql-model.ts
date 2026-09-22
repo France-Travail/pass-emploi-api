@@ -20,7 +20,7 @@ export class ReferentielPlanActionSolutionDto extends Model {
   @Column({ field: 'contrainte', type: DataType.STRING })
   contrainte: string | null
 
-  @Column({ field: 'sous_categorie', type: DataType.STRING })
+  @Column({ field: 'sous_categorie', type: DataType.TEXT })
   sousCategorie: string | null
 
   @Column({ field: 'besoin_exprime', type: DataType.TEXT })
@@ -57,10 +57,10 @@ export class ReferentielPlanActionSolutionDto extends Model {
   @Column({ field: 'age_max', type: DataType.INTEGER })
   ageMax: number | null
 
-  @Column({ field: 'domaine', type: DataType.STRING })
+  @Column({ field: 'domaine', type: DataType.TEXT })
   domaine: string | null
 
-  @Column({ field: 'conversion_ft_thematique', type: DataType.STRING })
+  @Column({ field: 'conversion_ft_thematique', type: DataType.TEXT })
   conversionFtThematique: string | null
 
   @Column({ field: 'conversion_ft_demarche', type: DataType.TEXT })
@@ -72,16 +72,16 @@ export class ReferentielPlanActionSolutionDto extends Model {
   @Column({ field: 'conversion_ft_code_quoi', type: DataType.STRING })
   conversionFtCodeQuoi: string | null
 
-  @Column({ field: 'conversion_ml_categorie', type: DataType.STRING })
+  @Column({ field: 'conversion_ml_categorie', type: DataType.TEXT })
   conversionMlCategorie: string | null
 
-  @Column({ field: 'conversion_ml_code_categorie', type: DataType.STRING })
+  @Column({ field: 'conversion_ml_code_categorie', type: DataType.TEXT })
   conversionMlCodeCategorie: string | null
 
-  @Column({ field: 'conversion_ml_action', type: DataType.STRING })
+  @Column({ field: 'conversion_ml_action', type: DataType.TEXT })
   conversionMlAction: string | null
 
-  @Column({ field: 'conversion_ml_origine', type: DataType.STRING })
+  @Column({ field: 'conversion_ml_origine', type: DataType.TEXT })
   conversionMlOrigine: string | null
 
   @Column({ field: 'active', type: DataType.BOOLEAN })

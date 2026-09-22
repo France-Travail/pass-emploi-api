@@ -21,7 +21,8 @@ export class ReferentielPlanActionSqlRepository
   async remplacer(
     services: ReferentielPlanAction.Service[],
     solutions: ReferentielPlanAction.Solution[],
-    plafond: ReferentielPlanAction.PlafondDesactivations
+    plafond: ReferentielPlanAction.PlafondDesactivations,
+    options: { dryRun: boolean }
   ): Promise<ReferentielPlanAction.Diff> {
     const maintenant = this.dateService.now().toJSDate()
 
@@ -46,95 +47,102 @@ export class ReferentielPlanActionSqlRepository
       )
     }
 
-    const nbDesactivees = await this.sequelize.transaction(
-      async transaction => {
-        await ReferentielPlanActionServiceSqlModel.bulkCreate(
-          services.map(service => ({
-            id: service.id,
-            nom: service.nom,
-            description: service.description ?? null
-          })),
-          { transaction, updateOnDuplicate: ['nom', 'description'] }
-        )
+    const transaction = await this.sequelize.transaction()
+    let nbDesactivees: number
+    try {
+      await ReferentielPlanActionServiceSqlModel.bulkCreate(
+        services.map(service => ({
+          id: service.id,
+          nom: service.nom,
+          description: service.description ?? null
+        })),
+        { transaction, updateOnDuplicate: ['nom', 'description'] }
+      )
 
-        await ReferentielPlanActionSolutionSqlModel.bulkCreate(
-          solutions.map(solution => ({
-            id: solution.id,
-            besoin: solution.besoin ?? null,
-            contrainte: solution.contrainte ?? null,
-            sousCategorie: solution.sousCategorie ?? null,
-            besoinExprime: solution.besoinExprime ?? null,
-            type: solution.type,
-            libelle: solution.libelle,
-            url: solution.url ?? null,
-            ecranApp: solution.ecranApp ?? null,
-            idService: solution.service?.id ?? null,
-            situations: solution.situations,
-            authentifications: solution.authentifications,
-            territoires: solution.territoires,
-            ageMin: solution.ageMin ?? null,
-            ageMax: solution.ageMax ?? null,
-            domaine: solution.domaine ?? null,
-            conversionFtThematique: solution.conversionFT?.thematique ?? null,
-            conversionFtDemarche: solution.conversionFT?.demarche ?? null,
-            conversionFtCodePourquoi:
-              solution.conversionFT?.codePourquoi ?? null,
-            conversionFtCodeQuoi: solution.conversionFT?.codeQuoi ?? null,
-            conversionMlCategorie: solution.conversionML?.categorie ?? null,
-            conversionMlCodeCategorie:
-              solution.conversionML?.codeCategorie ?? null,
-            conversionMlAction: solution.conversionML?.action ?? null,
-            conversionMlOrigine: solution.conversionML?.origine ?? null,
-            active: true,
-            dateMaj: maintenant
-          })),
+      await ReferentielPlanActionSolutionSqlModel.bulkCreate(
+        solutions.map(solution => ({
+          id: solution.id,
+          besoin: solution.besoin ?? null,
+          contrainte: solution.contrainte ?? null,
+          sousCategorie: solution.sousCategorie ?? null,
+          besoinExprime: solution.besoinExprime ?? null,
+          type: solution.type,
+          libelle: solution.libelle,
+          url: solution.url ?? null,
+          ecranApp: solution.ecranApp ?? null,
+          idService: solution.service?.id ?? null,
+          situations: solution.situations,
+          authentifications: solution.authentifications,
+          territoires: solution.territoires,
+          ageMin: solution.ageMin ?? null,
+          ageMax: solution.ageMax ?? null,
+          domaine: solution.domaine ?? null,
+          conversionFtThematique: solution.conversionFT?.thematique ?? null,
+          conversionFtDemarche: solution.conversionFT?.demarche ?? null,
+          conversionFtCodePourquoi: solution.conversionFT?.codePourquoi ?? null,
+          conversionFtCodeQuoi: solution.conversionFT?.codeQuoi ?? null,
+          conversionMlCategorie: solution.conversionML?.categorie ?? null,
+          conversionMlCodeCategorie:
+            solution.conversionML?.codeCategorie ?? null,
+          conversionMlAction: solution.conversionML?.action ?? null,
+          conversionMlOrigine: solution.conversionML?.origine ?? null,
+          active: true,
+          dateMaj: maintenant
+        })),
+        {
+          transaction,
+          updateOnDuplicate: [
+            'besoin',
+            'contrainte',
+            'sousCategorie',
+            'besoinExprime',
+            'type',
+            'libelle',
+            'url',
+            'ecranApp',
+            'idService',
+            'situations',
+            'authentifications',
+            'territoires',
+            'ageMin',
+            'ageMax',
+            'domaine',
+            'conversionFtThematique',
+            'conversionFtDemarche',
+            'conversionFtCodePourquoi',
+            'conversionFtCodeQuoi',
+            'conversionMlCategorie',
+            'conversionMlCodeCategorie',
+            'conversionMlAction',
+            'conversionMlOrigine',
+            'active',
+            'dateMaj'
+          ]
+        }
+      )
+
+      const [nbDesactiveesTransaction] =
+        await ReferentielPlanActionSolutionSqlModel.update(
+          { active: false },
           {
             transaction,
-            updateOnDuplicate: [
-              'besoin',
-              'contrainte',
-              'sousCategorie',
-              'besoinExprime',
-              'type',
-              'libelle',
-              'url',
-              'ecranApp',
-              'idService',
-              'situations',
-              'authentifications',
-              'territoires',
-              'ageMin',
-              'ageMax',
-              'domaine',
-              'conversionFtThematique',
-              'conversionFtDemarche',
-              'conversionFtCodePourquoi',
-              'conversionFtCodeQuoi',
-              'conversionMlCategorie',
-              'conversionMlCodeCategorie',
-              'conversionMlAction',
-              'conversionMlOrigine',
-              'active',
-              'dateMaj'
-            ]
+            where: {
+              active: true,
+              ...(idsRecus.length ? { id: { [Op.notIn]: idsRecus } } : {})
+            }
           }
         )
+      nbDesactivees = nbDesactiveesTransaction
 
-        const [nbDesactivees] =
-          await ReferentielPlanActionSolutionSqlModel.update(
-            { active: false },
-            {
-              transaction,
-              where: {
-                active: true,
-                ...(idsRecus.length ? { id: { [Op.notIn]: idsRecus } } : {})
-              }
-            }
-          )
-
-        return nbDesactivees
+      if (options.dryRun) {
+        await transaction.rollback()
+      } else {
+        await transaction.commit()
       }
-    )
+    } catch (e) {
+      await transaction.rollback()
+      throw e
+    }
 
     const nbCreees = idsRecus.filter(id => !idsExistants.has(id)).length
 

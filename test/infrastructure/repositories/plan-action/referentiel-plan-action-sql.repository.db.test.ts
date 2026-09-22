@@ -23,6 +23,8 @@ describe('ReferentielPlanActionSqlRepository', () => {
     nombreMin: 100
   }
 
+  const enEcriture: { dryRun: boolean } = { dryRun: false }
+
   function uneSolution(
     override: Partial<ReferentielPlanAction.Solution> = {}
   ): ReferentielPlanAction.Solution {
@@ -57,7 +59,8 @@ describe('ReferentielPlanActionSqlRepository', () => {
       const diff = await repository.remplacer(
         [onisep],
         [uneSolution()],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // Then
@@ -70,13 +73,19 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('met à jour une solution déjà connue sans la dupliquer', async () => {
       // Given
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
 
       // When
       const diff = await repository.remplacer(
         [onisep],
         [uneSolution({ libelle: 'Nouveau libellé' })],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // Then
@@ -91,14 +100,16 @@ describe('ReferentielPlanActionSqlRepository', () => {
       await repository.remplacer(
         [onisep],
         [uneSolution(), uneSolution({ id: 'p-3' })],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // When
       const diff = await repository.remplacer(
         [onisep],
         [uneSolution()],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // Then
@@ -110,11 +121,21 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('réactive une solution revenue dans le référentiel', async () => {
       // Given
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
-      await repository.remplacer([onisep], [], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
+      await repository.remplacer([onisep], [], plafondLarge, enEcriture)
 
       // When
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
 
       // Then
       const solutions = await repository.trouverSolutions(['p-2'])
@@ -126,7 +147,8 @@ describe('ReferentielPlanActionSqlRepository', () => {
       await repository.remplacer(
         [],
         [uneSolution({ service: undefined })],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // Then
@@ -139,14 +161,17 @@ describe('ReferentielPlanActionSqlRepository', () => {
       await repository.remplacer(
         [onisep],
         [uneSolution(), uneSolution({ id: 'p-3' }), uneSolution({ id: 'p-4' })],
-        plafondLarge
+        plafondLarge,
+        enEcriture
       )
 
       // When
-      const promesse = repository.remplacer([onisep], [uneSolution()], {
-        pourcentageMax: 10,
-        nombreMin: 1
-      })
+      const promesse = repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        { pourcentageMax: 10, nombreMin: 1 },
+        enEcriture
+      )
 
       // Then
       await expect(promesse).to.be.rejectedWith(
@@ -159,12 +184,39 @@ describe('ReferentielPlanActionSqlRepository', () => {
       ])
       expect(encoreActives).to.have.length(3)
     })
+
+    it('simule sans rien écrire en mode dryRun', async () => {
+      // When
+      const diff = await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        { dryRun: true }
+      )
+
+      // Then
+      expect(diff).to.deep.equal({
+        nbCreees: 1,
+        nbMisesAJour: 0,
+        nbDesactivees: 0
+      })
+      const solutions = await repository.trouverSolutions(['p-2'])
+      expect(solutions).to.deep.equal([])
+      const solutionsEnBase =
+        await ReferentielPlanActionSolutionSqlModel.findAll()
+      expect(solutionsEnBase).to.have.length(0)
+    })
   })
 
   describe('trouverSolutions', () => {
     it('rend les solutions demandées avec leur service', async () => {
       // Given
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
 
       // When
       const solutions = await repository.trouverSolutions(['p-2'])
@@ -175,7 +227,12 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('ignore les identifiants inconnus', async () => {
       // Given
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
 
       // When
       const solutions = await repository.trouverSolutions(['p-2', 'inconnue'])
@@ -186,8 +243,13 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('ignore les solutions désactivées', async () => {
       // Given
-      await repository.remplacer([onisep], [uneSolution()], plafondLarge)
-      await repository.remplacer([onisep], [], plafondLarge)
+      await repository.remplacer(
+        [onisep],
+        [uneSolution()],
+        plafondLarge,
+        enEcriture
+      )
+      await repository.remplacer([onisep], [], plafondLarge, enEcriture)
 
       // When
       const solutions = await repository.trouverSolutions(['p-2'])

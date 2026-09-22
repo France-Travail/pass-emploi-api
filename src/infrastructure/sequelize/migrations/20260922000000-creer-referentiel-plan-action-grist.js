@@ -12,7 +12,7 @@ module.exports = {
       id: { type: Sequelize.STRING, primaryKey: true, allowNull: false },
       besoin: { type: Sequelize.STRING, allowNull: true },
       contrainte: { type: Sequelize.STRING, allowNull: true },
-      sous_categorie: { type: Sequelize.STRING, allowNull: true },
+      sous_categorie: { type: Sequelize.TEXT, allowNull: true },
       besoin_exprime: { type: Sequelize.TEXT, allowNull: true },
       type: { type: Sequelize.STRING, allowNull: false },
       libelle: { type: Sequelize.TEXT, allowNull: false },
@@ -40,15 +40,15 @@ module.exports = {
       },
       age_min: { type: Sequelize.INTEGER, allowNull: true },
       age_max: { type: Sequelize.INTEGER, allowNull: true },
-      domaine: { type: Sequelize.STRING, allowNull: true },
-      conversion_ft_thematique: { type: Sequelize.STRING, allowNull: true },
+      domaine: { type: Sequelize.TEXT, allowNull: true },
+      conversion_ft_thematique: { type: Sequelize.TEXT, allowNull: true },
       conversion_ft_demarche: { type: Sequelize.TEXT, allowNull: true },
       conversion_ft_code_pourquoi: { type: Sequelize.STRING, allowNull: true },
       conversion_ft_code_quoi: { type: Sequelize.STRING, allowNull: true },
-      conversion_ml_categorie: { type: Sequelize.STRING, allowNull: true },
-      conversion_ml_code_categorie: { type: Sequelize.STRING, allowNull: true },
-      conversion_ml_action: { type: Sequelize.STRING, allowNull: true },
-      conversion_ml_origine: { type: Sequelize.STRING, allowNull: true },
+      conversion_ml_categorie: { type: Sequelize.TEXT, allowNull: true },
+      conversion_ml_code_categorie: { type: Sequelize.TEXT, allowNull: true },
+      conversion_ml_action: { type: Sequelize.TEXT, allowNull: true },
+      conversion_ml_origine: { type: Sequelize.TEXT, allowNull: true },
       active: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
@@ -56,12 +56,6 @@ module.exports = {
       },
       date_maj: { type: Sequelize.DATE, allowNull: false }
     })
-
-    await queryInterface.addIndex(
-      'referentiel_plan_action_solution',
-      ['active'],
-      { name: 'idx_referentiel_plan_action_solution_active' }
-    )
   },
 
   down: async queryInterface => {

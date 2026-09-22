@@ -60,7 +60,8 @@ export function reconcilierReferentiel(
     nbServicesNonResolus: 0,
     nbDoublonsServices: 0,
     nbDoublonsSolutions: 0,
-    nbSolutionsEcartees: 0
+    nbSolutionsEcartees: 0,
+    nbValeursNonReconnues: 0
   }
 
   const services: ReferentielPlanAction.Service[] = []
@@ -75,16 +76,17 @@ export function reconcilierReferentiel(
     }
     services.push(service)
 
-    if (serviceParNom.has(service.nom)) {
+    const nomIndexe = record.fields.Nom.trim()
+    if (serviceParNom.has(nomIndexe)) {
       anomalies.nbDoublonsServices++
-      logAnomalie('Service Grist en doublon, ligne ignorée', {
-        nom: service.nom,
-        id_retenu: serviceParNom.get(service.nom)!.id,
+      logAnomalie("Service Grist en doublon de nom, entrée d'index ignorée", {
+        nom: nomIndexe,
+        id_retenu: serviceParNom.get(nomIndexe)!.id,
         id_ignore: service.id
       })
       continue
     }
-    serviceParNom.set(service.nom, service)
+    serviceParNom.set(nomIndexe, service)
   }
 
   const solutions: ReferentielPlanAction.Solution[] = []
@@ -138,10 +140,39 @@ export function reconcilierReferentiel(
       })
     }
 
+    const besoin = resoudreEnum(
+      'Envie',
+      fields.Envie,
+      besoinParLibelle,
+      fields.Id_technique,
+      anomalies
+    )
+    const contrainte = resoudreEnum(
+      'Blocage',
+      fields.Blocage,
+      contrainteParLibelle,
+      fields.Id_technique,
+      anomalies
+    )
+    const authentifications: Profil.Structure[] = []
+    for (const libelleAuthentification of liste(fields.Authentification)) {
+      const structure = structureParLibelle[libelleAuthentification]
+      if (structure) {
+        authentifications.push(structure)
+      } else {
+        anomalies.nbValeursNonReconnues++
+        logAnomalie('Valeur Grist non reconnue, solution conservée', {
+          id_technique: fields.Id_technique,
+          colonne: 'Authentification',
+          valeur: libelleAuthentification
+        })
+      }
+    }
+
     solutions.push({
       id: fields.Id_technique,
-      ...optionnel('besoin', besoinParLibelle[fields.Envie]),
-      ...optionnel('contrainte', contrainteParLibelle[fields.Blocage]),
+      ...optionnel('besoin', besoin),
+      ...optionnel('contrainte', contrainte),
       ...optionnel('sousCategorie', texte(fields.Sous_categorie)),
       ...optionnel('besoinExprime', texte(fields.Besoin_exprime_par_le_jeune)),
       type,
@@ -150,11 +181,7 @@ export function reconcilierReferentiel(
       ...optionnel('ecranApp', ecranApp),
       ...optionnel('service', service),
       situations: liste(fields.Situations),
-      authentifications: liste(fields.Authentification)
-        .map(libelle => structureParLibelle[libelle])
-        .filter((structure): structure is Profil.Structure =>
-          Boolean(structure)
-        ),
+      authentifications,
       territoires: liste(fields.Territoire),
       ...optionnel('ageMin', entier(fields.Age_minimum)),
       ...optionnel('ageMax', entier(fields.Age_maximum)),
@@ -165,6 +192,27 @@ export function reconcilierReferentiel(
   }
 
   return { services, solutions, anomalies }
+}
+
+function resoudreEnum<V>(
+  colonne: string,
+  valeurGrist: string,
+  table: Record<string, V>,
+  idTechnique: string,
+  anomalies: ReferentielPlanAction.Anomalies
+): V | undefined {
+  const propre = texte(valeurGrist)
+  if (!propre) return undefined
+  const resolu = table[propre]
+  if (!resolu) {
+    anomalies.nbValeursNonReconnues++
+    logAnomalie('Valeur Grist non reconnue, solution conservée', {
+      id_technique: idTechnique,
+      colonne,
+      valeur: propre
+    })
+  }
+  return resolu
 }
 
 function texte(valeur: string | null | undefined): string | undefined {

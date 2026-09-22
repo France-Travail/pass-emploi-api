@@ -10,6 +10,7 @@ import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { GristClient } from '../../infrastructure/clients/grist-client'
 import { DateService } from '../../utils/date-service'
+import { toEcsError } from '../../utils/logger.module'
 import { reconcilierReferentiel } from './mappers/referentiel-plan-action.mapper'
 
 export interface StatsMajReferentielPlanAction {
@@ -23,6 +24,7 @@ export interface StatsMajReferentielPlanAction {
   nbDoublonsServices: number
   nbDoublonsSolutions: number
   nbSolutionsEcartees: number
+  nbValeursNonReconnues: number
 }
 
 @Injectable()
@@ -52,9 +54,11 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
       nbDoublonsSolutions: 0,
-      nbSolutionsEcartees: 0
+      nbSolutionsEcartees: 0,
+      nbValeursNonReconnues: 0
     }
     let succes = true
+    let erreur: { message: string; stack?: string } | undefined
 
     try {
       const servicesResult = await this.gristClient.recupererServices()
@@ -70,9 +74,6 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
           `Lecture des solutions Grist échouée : ${solutionsResult.error.message}`
         )
       }
-      if (solutionsResult.data.length === 0) {
-        throw new Error("Le référentiel Grist du plan d'action est vide")
-      }
 
       const reconciliation = reconcilierReferentiel(
         servicesResult.data,
@@ -85,23 +86,40 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       stats.nbDoublonsServices = reconciliation.anomalies.nbDoublonsServices
       stats.nbDoublonsSolutions = reconciliation.anomalies.nbDoublonsSolutions
       stats.nbSolutionsEcartees = reconciliation.anomalies.nbSolutionsEcartees
+      stats.nbValeursNonReconnues =
+        reconciliation.anomalies.nbValeursNonReconnues
 
-      if (!config.dryRun) {
-        const diff = await this.referentielRepository.remplacer(
-          reconciliation.services,
-          reconciliation.solutions,
-          {
-            pourcentageMax: parseInt(config.pourcentageDesactivationsMax, 10),
-            nombreMin: parseInt(config.nombreDesactivationsMin, 10)
-          }
+      if (reconciliation.solutions.length === 0) {
+        throw new Error(
+          "Aucune solution exploitable après réconciliation du référentiel Grist du plan d'action"
         )
-        stats.nbCreees = diff.nbCreees
-        stats.nbMisesAJour = diff.nbMisesAJour
-        stats.nbDesactivees = diff.nbDesactivees
       }
+
+      const diff = await this.referentielRepository.remplacer(
+        reconciliation.services,
+        reconciliation.solutions,
+        {
+          pourcentageMax: parseInt(config.pourcentageDesactivationsMax, 10),
+          nombreMin: parseInt(config.nombreDesactivationsMin, 10)
+        },
+        { dryRun: config.dryRun }
+      )
+      stats.nbCreees = diff.nbCreees
+      stats.nbMisesAJour = diff.nbMisesAJour
+      stats.nbDesactivees = diff.nbDesactivees
     } catch (e) {
-      this.logger.error(e)
+      const ecsError = toEcsError(e)
+      this.logger.error(
+        "Échec du job de mise à jour du référentiel plan d'action",
+        ecsError.stack_trace
+      )
       succes = false
+      erreur = {
+        message: String(ecsError.message),
+        ...(typeof ecsError.stack_trace === 'string'
+          ? { stack: ecsError.stack_trace }
+          : {})
+      }
     }
 
     return {
@@ -110,7 +128,8 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       succes,
       dateExecution: debutExecutionJob,
       tempsExecution: DateService.calculerTempsExecution(debutExecutionJob),
-      resultat: stats
+      resultat: stats,
+      ...(erreur ? { erreur } : {})
     }
   }
 }

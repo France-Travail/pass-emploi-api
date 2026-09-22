@@ -189,6 +189,69 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbDoublonsServices).to.equal(1)
   })
 
+  it("compte et loggue une valeur d'Authentification non reconnue sans écarter la solution", () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({
+          Authentification: 'France Travail; Structure Inconnue'
+        })
+      ]
+    )
+
+    // Then
+    expect(resultat.solutions).to.have.length(1)
+    expect(resultat.solutions[0].authentifications).to.deep.equal([
+      Profil.Structure.FRANCE_TRAVAIL
+    ])
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
+  })
+
+  it("compte et loggue une valeur d'Envie non reconnue sans écarter la solution", () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [uneSolutionGrist({ Envie: 'Un besoin inexistant' })]
+    )
+
+    // Then
+    expect(resultat.solutions).to.have.length(1)
+    expect(resultat.solutions[0].besoin).to.equal(undefined)
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
+  })
+
+  it('compte et loggue une valeur de Blocage non reconnue sans écarter la solution', () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [uneSolutionGrist({ Blocage: 'Une contrainte inexistante' })]
+    )
+
+    // Then
+    expect(resultat.solutions).to.have.length(1)
+    expect(resultat.solutions[0].contrainte).to.equal(undefined)
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
+  })
+
+  it('résout un service dont le nom Grist porte une espace finale', () => {
+    // Given
+    const serviceAvecEspace: GristRecordDto<GristServiceFieldsDto> = {
+      id: 1,
+      fields: { Nom: 'ONISEP ', Description: 'site pour trouver une formation' }
+    }
+
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceAvecEspace],
+      [uneSolutionGrist({ Service: 'ONISEP' })]
+    )
+
+    // Then
+    expect(resultat.solutions[0].service?.nom).to.equal('ONISEP ')
+    expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
+  })
+
   it("écarte les solutions en doublon d'identifiant technique", () => {
     // Given
     const premiere = uneSolutionGrist()

@@ -60,6 +60,7 @@ export namespace ReferentielPlanAction {
     nbDoublonsServices: number
     nbDoublonsSolutions: number
     nbSolutionsEcartees: number
+    nbValeursNonReconnues: number
   }
 
   export interface Reconciliation {
@@ -77,7 +78,8 @@ export namespace ReferentielPlanAction {
     remplacer(
       services: Service[],
       solutions: Solution[],
-      plafond: PlafondDesactivations
+      plafond: PlafondDesactivations,
+      options: { dryRun: boolean }
     ): Promise<Diff>
 
     trouverSolutions(ids: string[]): Promise<Solution[]>

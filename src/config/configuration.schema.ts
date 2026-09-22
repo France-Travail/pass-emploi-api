@@ -77,7 +77,7 @@ export const configurationSchema = Joi.object({
     modele: Joi.string().optional()
   },
   grist: Joi.object({
-    url: Joi.string().required(),
+    url: Joi.string().uri().required(),
     apiKey: Joi.string().required(),
     docId: Joi.string().required(),
     tableServices: Joi.string().required(),
