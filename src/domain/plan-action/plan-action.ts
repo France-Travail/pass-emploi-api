@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
@@ -117,6 +118,7 @@ export namespace PlanAction {
     getDernierPlan(idJeune: string): Promise<PlanAction | undefined>
   }
 
+  @Injectable()
   export class Factory {
     constructor(
       private readonly idService: IdService,
