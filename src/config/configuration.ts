@@ -111,6 +111,14 @@ export default () => {
       timeoutMs: process.env.PLAN_ACTION_TIMEOUT_MS || 15000,
       modele: process.env.PLAN_ACTION_MODELE || undefined
     },
+    grist: {
+      url: process.env.GRIST_API_URL,
+      apiKey: process.env.GRIST_API_KEY,
+      docId: process.env.GRIST_DOC_ID,
+      tableServices: process.env.GRIST_TABLE_SERVICES || 'Services',
+      tableSolutions: process.env.GRIST_TABLE_SOLUTIONS || 'Solutions',
+      timeoutMs: process.env.GRIST_TIMEOUT_MS || 20000
+    },
     jecliqueoupas: {
       url: process.env.JECLIQUEOUPAS_API_URL,
       ip: process.env.JECLIQUEOUPAS_API_IP,

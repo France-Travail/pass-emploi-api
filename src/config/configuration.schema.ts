@@ -76,6 +76,14 @@ export const configurationSchema = Joi.object({
     timeoutMs: Joi.number().default(15000),
     modele: Joi.string().optional()
   },
+  grist: Joi.object({
+    url: Joi.string().required(),
+    apiKey: Joi.string().required(),
+    docId: Joi.string().required(),
+    tableServices: Joi.string().required(),
+    tableSolutions: Joi.string().required(),
+    timeoutMs: Joi.number().required()
+  }),
   jecliqueoupas: {
     url: Joi.string().uri().required(),
     ip: Joi.string().ip({ version: 'ipv4' }).required(),
