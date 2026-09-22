@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config'
-import { RecupererPlanActionCommandHandler } from '../../../src/application/commands/recuperer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from '../../../src/application/queries/recuperer-plan-action.query.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import {
   DestinationActionPlan,
@@ -21,20 +21,20 @@ import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 
-describe('RecupererPlanActionCommandHandler', () => {
+describe('RecupererPlanActionQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let planActionSqlRepository: StubbedClass<PlanActionSqlRepository>
   let evenementService: StubbedClass<EvenementService>
-  let handler: RecupererPlanActionCommandHandler
+  let handler: RecupererPlanActionQueryHandler
 
   const utilisateur = unUtilisateurJeune()
-  const command = { idJeune: utilisateur.id }
+  const query = { idJeune: utilisateur.id }
 
   beforeEach(() => {
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     planActionSqlRepository = stubClass(PlanActionSqlRepository)
     evenementService = stubClass(EvenementService)
-    handler = new RecupererPlanActionCommandHandler(
+    handler = new RecupererPlanActionQueryHandler(
       jeuneAuthorizer,
       planActionSqlRepository,
       evenementService,
@@ -45,7 +45,7 @@ describe('RecupererPlanActionCommandHandler', () => {
   describe('authorize', () => {
     it('refuse quand le mode app jeune est désactivé', async () => {
       // Given
-      const handlerDesactive = new RecupererPlanActionCommandHandler(
+      const handlerDesactive = new RecupererPlanActionQueryHandler(
         jeuneAuthorizer,
         planActionSqlRepository,
         evenementService,
@@ -53,7 +53,7 @@ describe('RecupererPlanActionCommandHandler', () => {
       )
 
       // When
-      const result = await handlerDesactive.authorize(command, utilisateur)
+      const result = await handlerDesactive.authorize(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
@@ -62,11 +62,11 @@ describe('RecupererPlanActionCommandHandler', () => {
     it("délègue à l'autorisation jeune standard", async () => {
       // Given
       jeuneAuthorizer.autoriserLeJeune
-        .withArgs(command.idJeune, utilisateur)
+        .withArgs(query.idJeune, utilisateur)
         .resolves(emptySuccess())
 
       // When
-      const result = await handler.authorize(command, utilisateur)
+      const result = await handler.authorize(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -76,29 +76,27 @@ describe('RecupererPlanActionCommandHandler', () => {
   describe('handle', () => {
     it('renvoie le plan sauvegardé traduit en query model', async () => {
       // Given
-      planActionSqlRepository.getDernierPlan
-        .withArgs(command.idJeune)
-        .resolves({
-          id: 'plan-1',
-          objectives: [
-            {
-              id: 'objectif-1',
-              titre: 'Trouver une alternance',
-              theme: 'apprenticeship',
-              actions: [
-                {
-                  id: 'tache-1',
-                  libelle: "Je vais sur l'appli",
-                  type: TypeActionPlan.NAVIGATION,
-                  destination: DestinationActionPlan.EVENEMENTS
-                }
-              ]
-            }
-          ]
-        })
+      planActionSqlRepository.getDernierPlan.withArgs(query.idJeune).resolves({
+        id: 'plan-1',
+        objectives: [
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: 'apprenticeship',
+            actions: [
+              {
+                id: 'tache-1',
+                libelle: "Je vais sur l'appli",
+                type: TypeActionPlan.NAVIGATION,
+                destination: DestinationActionPlan.EVENEMENTS
+              }
+            ]
+          }
+        ]
+      })
 
       // When
-      const result = await handler.handle(command)
+      const result = await handler.handle(query)
 
       // Then
       expect(result).to.deep.equal(
@@ -126,15 +124,15 @@ describe('RecupererPlanActionCommandHandler', () => {
     it("renvoie une NonTrouveError quand le jeune n'a pas de plan sauvegardé", async () => {
       // Given
       planActionSqlRepository.getDernierPlan
-        .withArgs(command.idJeune)
+        .withArgs(query.idJeune)
         .resolves(undefined)
 
       // When
-      const result = await handler.handle(command)
+      const result = await handler.handle(query)
 
       // Then
       expect(result).to.deep.equal(
-        failure(new NonTrouveError('PlanAction', command.idJeune))
+        failure(new NonTrouveError('PlanAction', query.idJeune))
       )
     })
   })

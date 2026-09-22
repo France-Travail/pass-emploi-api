@@ -81,7 +81,7 @@ import {
   UpdateJeunePayload,
   UpdateJeunePreferencesPayload
 } from './validation/jeunes.inputs'
-import { RecupererPlanActionCommandHandler } from '../../application/commands/recuperer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from '../../application/queries/recuperer-plan-action.query.handler'
 
 @Controller('jeunes')
 @UserJourney('compte_jeune')
@@ -107,7 +107,7 @@ export class JeunesController {
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
     private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
-    private recupererPlanActionCommandHandler: RecupererPlanActionCommandHandler
+    private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -517,7 +517,7 @@ export class JeunesController {
     @Param('idJeune') idJeune: string,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<PlanActionConnecteQueryModel> {
-    const result = await this.recupererPlanActionCommandHandler.execute(
+    const result = await this.recupererPlanActionQueryHandler.execute(
       { idJeune },
       utilisateur
     )

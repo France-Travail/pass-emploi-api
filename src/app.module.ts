@@ -145,7 +145,7 @@ import { UpdateUtilisateurCommandHandler } from './application/commands/update-u
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
-import { RecupererPlanActionCommandHandler } from './application/commands/recuperer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPilotageForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-pilotage-for-analytics.job'
@@ -812,7 +812,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
-    RecupererPlanActionCommandHandler,
+    RecupererPlanActionQueryHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,

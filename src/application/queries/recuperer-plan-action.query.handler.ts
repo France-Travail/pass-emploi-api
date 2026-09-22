@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common'
-import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { PlanActionConnecteQueryModel } from '../queries/query-models/plan-action.query-model'
-import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
-import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
-import { Evenement, EvenementService } from '../../domain/evenement'
 import { ConfigService } from '@nestjs/config'
-import { Authentification } from '../../domain/authentification'
-import { failure, Result, success } from '../../building-blocks/types/result'
+import { QueryHandler } from '../../building-blocks/types/query-handler'
+import { Query } from '../../building-blocks/types/query'
 import {
   DroitsInsuffisants,
   NonTrouveError
 } from '../../building-blocks/types/domain-error'
+import { failure, Result, success } from '../../building-blocks/types/result'
+import { Authentification } from '../../domain/authentification'
+import { Evenement, EvenementService } from '../../domain/evenement'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { PlanActionSqlRepository } from '../../infrastructure/repositories/plan-action/plan-action-sql.repository.db'
+import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { PlanActionConnecteQueryModel } from './query-models/plan-action.query-model'
 
-export interface RecupererPlanActionCommand {
+export interface RecupererPlanActionQuery extends Query {
   idJeune: string
 }
 
 @Injectable()
-export class RecupererPlanActionCommandHandler extends CommandHandler<
-  RecupererPlanActionCommand,
-  PlanActionConnecteQueryModel
+export class RecupererPlanActionQueryHandler extends QueryHandler<
+  RecupererPlanActionQuery,
+  Result<PlanActionConnecteQueryModel>
 > {
   readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
 
@@ -30,29 +31,29 @@ export class RecupererPlanActionCommandHandler extends CommandHandler<
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService
   ) {
-    super('RecupererPlanActionCommandHandler')
+    super('RecupererPlanActionQueryHandler')
   }
 
   async authorize(
-    command: RecupererPlanActionCommand,
+    query: RecupererPlanActionQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     if (!this.configService.get<boolean>('appJeuneActif')) {
       return failure(new DroitsInsuffisants())
     }
 
-    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
+    return this.jeuneAuthorizer.autoriserLeJeune(query.idJeune, utilisateur)
   }
 
   async handle(
-    command: RecupererPlanActionCommand
+    query: RecupererPlanActionQuery
   ): Promise<Result<PlanActionConnecteQueryModel>> {
     const plan = await this.planActionSqlRepository.getDernierPlan(
-      command.idJeune
+      query.idJeune
     )
 
     if (!plan) {
-      return failure(new NonTrouveError('PlanAction', command.idJeune))
+      return failure(new NonTrouveError('PlanAction', query.idJeune))
     }
 
     return success(plan)
