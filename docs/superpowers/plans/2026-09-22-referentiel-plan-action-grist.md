@@ -2031,7 +2031,7 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
     super(Planificateur.JobType.MAJ_REFERENTIEL_PLAN_ACTION, suiviJobService)
   }
 
-  async handle(): Promise<SuiviJob> {
+  async handle(_job: Planificateur.Job<void>): Promise<SuiviJob> {
     const debutExecutionJob = this.dateService.now()
     const config = this.configService.get('jobs').majReferentielPlanAction
     const stats: StatsMajReferentielPlanAction = {
