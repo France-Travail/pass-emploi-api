@@ -41,10 +41,14 @@ describe('ReferentielPlanActionSqlRepository', () => {
   }
 
   beforeEach(async () => {
-    await getDatabase().cleanPG()
+    const database = getDatabase()
+    await database.cleanPG()
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
-    repository = new ReferentielPlanActionSqlRepository(dateService)
+    repository = new ReferentielPlanActionSqlRepository(
+      dateService,
+      database.sequelize
+    )
   })
 
   describe('remplacer', () => {

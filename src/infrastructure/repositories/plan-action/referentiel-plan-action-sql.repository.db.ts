@@ -1,17 +1,22 @@
-import { Injectable } from '@nestjs/common'
-import { Op } from 'sequelize'
+import { Inject, Injectable } from '@nestjs/common'
+import { Op, Sequelize } from 'sequelize'
 import { PlanAction } from '../../../domain/plan-action/plan-action'
 import { ReferentielPlanAction } from '../../../domain/plan-action/referentiel-plan-action'
 import { Profil } from '../../../domain/profil'
 import { ReferentielPlanActionServiceSqlModel } from '../../sequelize/models/referentiel-plan-action-service.sql-model'
 import { ReferentielPlanActionSolutionSqlModel } from '../../sequelize/models/referentiel-plan-action-solution.sql-model'
+import { SequelizeInjectionToken } from '../../sequelize/providers'
 import { DateService } from '../../../utils/date-service'
 
 @Injectable()
 export class ReferentielPlanActionSqlRepository
   implements ReferentielPlanAction.Repository
 {
-  constructor(private readonly dateService: DateService) {}
+  constructor(
+    private readonly dateService: DateService,
+    @Inject(SequelizeInjectionToken)
+    private readonly sequelize: Sequelize
+  ) {}
 
   async remplacer(
     services: ReferentielPlanAction.Service[],
@@ -41,82 +46,93 @@ export class ReferentielPlanActionSqlRepository
       )
     }
 
-    await ReferentielPlanActionServiceSqlModel.bulkCreate(
-      services.map(service => ({
-        id: service.id,
-        nom: service.nom,
-        description: service.description ?? null
-      })),
-      { updateOnDuplicate: ['nom', 'description'] }
-    )
+    const nbDesactivees = await this.sequelize.transaction(
+      async transaction => {
+        await ReferentielPlanActionServiceSqlModel.bulkCreate(
+          services.map(service => ({
+            id: service.id,
+            nom: service.nom,
+            description: service.description ?? null
+          })),
+          { transaction, updateOnDuplicate: ['nom', 'description'] }
+        )
 
-    await ReferentielPlanActionSolutionSqlModel.bulkCreate(
-      solutions.map(solution => ({
-        id: solution.id,
-        besoin: solution.besoin ?? null,
-        contrainte: solution.contrainte ?? null,
-        sousCategorie: solution.sousCategorie ?? null,
-        besoinExprime: solution.besoinExprime ?? null,
-        type: solution.type,
-        libelle: solution.libelle,
-        url: solution.url ?? null,
-        ecranApp: solution.ecranApp ?? null,
-        idService: solution.service?.id ?? null,
-        situations: solution.situations,
-        authentifications: solution.authentifications,
-        territoires: solution.territoires,
-        ageMin: solution.ageMin ?? null,
-        ageMax: solution.ageMax ?? null,
-        domaine: solution.domaine ?? null,
-        conversionFtThematique: solution.conversionFT?.thematique ?? null,
-        conversionFtDemarche: solution.conversionFT?.demarche ?? null,
-        conversionFtCodePourquoi: solution.conversionFT?.codePourquoi ?? null,
-        conversionFtCodeQuoi: solution.conversionFT?.codeQuoi ?? null,
-        conversionMlCategorie: solution.conversionML?.categorie ?? null,
-        conversionMlCodeCategorie: solution.conversionML?.codeCategorie ?? null,
-        conversionMlAction: solution.conversionML?.action ?? null,
-        conversionMlOrigine: solution.conversionML?.origine ?? null,
-        active: true,
-        dateMaj: maintenant
-      })),
-      {
-        updateOnDuplicate: [
-          'besoin',
-          'contrainte',
-          'sousCategorie',
-          'besoinExprime',
-          'type',
-          'libelle',
-          'url',
-          'ecranApp',
-          'idService',
-          'situations',
-          'authentifications',
-          'territoires',
-          'ageMin',
-          'ageMax',
-          'domaine',
-          'conversionFtThematique',
-          'conversionFtDemarche',
-          'conversionFtCodePourquoi',
-          'conversionFtCodeQuoi',
-          'conversionMlCategorie',
-          'conversionMlCodeCategorie',
-          'conversionMlAction',
-          'conversionMlOrigine',
-          'active',
-          'dateMaj'
-        ]
-      }
-    )
+        await ReferentielPlanActionSolutionSqlModel.bulkCreate(
+          solutions.map(solution => ({
+            id: solution.id,
+            besoin: solution.besoin ?? null,
+            contrainte: solution.contrainte ?? null,
+            sousCategorie: solution.sousCategorie ?? null,
+            besoinExprime: solution.besoinExprime ?? null,
+            type: solution.type,
+            libelle: solution.libelle,
+            url: solution.url ?? null,
+            ecranApp: solution.ecranApp ?? null,
+            idService: solution.service?.id ?? null,
+            situations: solution.situations,
+            authentifications: solution.authentifications,
+            territoires: solution.territoires,
+            ageMin: solution.ageMin ?? null,
+            ageMax: solution.ageMax ?? null,
+            domaine: solution.domaine ?? null,
+            conversionFtThematique: solution.conversionFT?.thematique ?? null,
+            conversionFtDemarche: solution.conversionFT?.demarche ?? null,
+            conversionFtCodePourquoi:
+              solution.conversionFT?.codePourquoi ?? null,
+            conversionFtCodeQuoi: solution.conversionFT?.codeQuoi ?? null,
+            conversionMlCategorie: solution.conversionML?.categorie ?? null,
+            conversionMlCodeCategorie:
+              solution.conversionML?.codeCategorie ?? null,
+            conversionMlAction: solution.conversionML?.action ?? null,
+            conversionMlOrigine: solution.conversionML?.origine ?? null,
+            active: true,
+            dateMaj: maintenant
+          })),
+          {
+            transaction,
+            updateOnDuplicate: [
+              'besoin',
+              'contrainte',
+              'sousCategorie',
+              'besoinExprime',
+              'type',
+              'libelle',
+              'url',
+              'ecranApp',
+              'idService',
+              'situations',
+              'authentifications',
+              'territoires',
+              'ageMin',
+              'ageMax',
+              'domaine',
+              'conversionFtThematique',
+              'conversionFtDemarche',
+              'conversionFtCodePourquoi',
+              'conversionFtCodeQuoi',
+              'conversionMlCategorie',
+              'conversionMlCodeCategorie',
+              'conversionMlAction',
+              'conversionMlOrigine',
+              'active',
+              'dateMaj'
+            ]
+          }
+        )
 
-    const [nbDesactivees] = await ReferentielPlanActionSolutionSqlModel.update(
-      { active: false },
-      {
-        where: {
-          active: true,
-          ...(idsRecus.length ? { id: { [Op.notIn]: idsRecus } } : {})
-        }
+        const [nbDesactivees] =
+          await ReferentielPlanActionSolutionSqlModel.update(
+            { active: false },
+            {
+              transaction,
+              where: {
+                active: true,
+                ...(idsRecus.length ? { id: { [Op.notIn]: idsRecus } } : {})
+              }
+            }
+          )
+
+        return nbDesactivees
       }
     )
 
