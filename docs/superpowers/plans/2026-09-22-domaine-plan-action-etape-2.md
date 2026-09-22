@@ -328,6 +328,7 @@ Attendu : ÉCHEC — `PlanAction.Factory is not a constructor`.
     ): Result<PlanAction> {
       const idsConnus = new Set(solutions.map(solution => solution.id))
       const maintenant = this.dateService.now()
+      const id = this.idService.uuid()
 
       const objectifs = suggestion.objectifs
         .map(objectif => this.construireObjectif(objectif, idsConnus, maintenant))
@@ -341,12 +342,7 @@ Attendu : ÉCHEC — `PlanAction.Factory is not a constructor`.
         )
       }
 
-      return success({
-        id: this.idService.uuid(),
-        idJeune,
-        dateCreation: maintenant,
-        objectifs
-      })
+      return success({ id, idJeune, dateCreation: maintenant, objectifs })
     }
 
     private construireObjectif(
@@ -374,7 +370,7 @@ Attendu : ÉCHEC — `PlanAction.Factory is not a constructor`.
   }
 ```
 
-> **L'ordre des appels à `idService.uuid()` est asserté par le premier test.** La factory construit les objectifs **avant** l'identifiant du plan, donc `uuid-0` revient au premier objectif. Si tu préfères construire le plan d'abord, inverse aussi les valeurs attendues dans le test — mais ne laisse pas les deux diverger.
+> **L'ordre des appels à `idService.uuid()` est asserté par le premier test** : le plan d'abord (`uuid-0`), puis chaque objectif, puis ses tâches. D'où l'identifiant du plan tiré en tête de méthode plutôt qu'au moment de construire l'objet retourné. Si tu déplaces cet appel, corrige aussi les valeurs attendues dans le test — ne laisse pas les deux diverger.
 
 - [ ] **Step 5 : Lancer les tests et vérifier qu'ils passent**
 
@@ -382,7 +378,7 @@ Attendu : ÉCHEC — `PlanAction.Factory is not a constructor`.
 TZ=UTC DATABASE_URL=postgresql://test:test@localhost:56432/test npx mocha 'test/domain/plan-action/plan-action.test.ts' --exit --timeout 10000
 ```
 
-Attendu : 6 passing. Si l'ordre des uuid ne correspond pas, corrige **le test ou le code**, pas les deux dans des directions opposées.
+Attendu : 6 passing.
 
 - [ ] **Step 6 : Vérifier types et lint, puis commit**
 
