@@ -1445,10 +1445,19 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
 - [ ] **Step 4 : Lancer la migration sur la base de test et vérifier que le test échoue**
 
+`yarn migration` lit `DATABASE_URL` (cf. `src/infrastructure/sequelize/database.js`) et
+retombe sinon sur la base de **développement** (port 55432). La base de **test** est sur le
+port 56432 : il faut donc surcharger la variable, sans quoi la migration part sur la mauvaise
+base et tous les `.db.test.ts` échouent sur « relation does not exist ».
+
 ```bash
-yarn db:test && yarn migration
+yarn db:test
+DATABASE_URL=postgresql://test:test@localhost:56432/test yarn migration
 TZ=UTC DATABASE_URL=postgresql://test:test@localhost:56432/test npx mocha 'test/infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db.test.ts' --exit --timeout 10000
 ```
+
+La base de développement se migre à part, quand on veut lancer l'application :
+`yarn migration` sans surcharge.
 
 Attendu : ÉCHEC — module `referentiel-plan-action-sql.repository.db` introuvable.
 
