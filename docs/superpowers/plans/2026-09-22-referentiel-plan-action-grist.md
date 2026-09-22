@@ -979,6 +979,13 @@ export class GristClient extends ExternalApiClient {
 }
 ```
 
+> **Les trois écritures doivent être atomiques.** Les deux `bulkCreate` et l'`update` de
+> désactivation vivent dans un seul `this.sequelize.transaction(async transaction => { … })`,
+> avec `{ transaction }` passé à **chacun** des trois — un seul oubli sort de la transaction
+> sans qu'aucun test ne le voie. Le `findAll` et le calcul du plafond restent en dehors : ils
+> ne font que lire, et lever avant d'ouvrir la transaction évite de l'ouvrir pour rien.
+> Patron de référence : `plan-action-sql.repository.db.ts`, méthode `save`.
+
 - [ ] **Step 6 : Lancer le test et vérifier qu'il passe**
 
 ```bash
@@ -1286,7 +1293,10 @@ describe('ReferentielPlanActionSqlRepository', () => {
     await getDatabase().cleanPG()
     dateService = stubClass(DateService)
     dateService.now.returns(uneDatetime())
-    repository = new ReferentielPlanActionSqlRepository(dateService)
+    repository = new ReferentielPlanActionSqlRepository(
+      dateService,
+      getDatabase().sequelize
+    )
   })
 
   describe('remplacer', () => {
@@ -1478,7 +1488,11 @@ import { DateService } from '../../../utils/date-service'
 export class ReferentielPlanActionSqlRepository
   implements ReferentielPlanAction.Repository
 {
-  constructor(private readonly dateService: DateService) {}
+  constructor(
+    private readonly dateService: DateService,
+    @Inject(SequelizeInjectionToken)
+    private readonly sequelize: Sequelize
+  ) {}
 
   async remplacer(
     services: ReferentielPlanAction.Service[],
