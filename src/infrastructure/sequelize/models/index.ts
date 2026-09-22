@@ -45,7 +45,6 @@ import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 import { PlanActionSqlModel } from './plan-action.sql-model'
 import { PlanActionObjectifSqlModel } from './plan-action-objectif.sql-model'
 import { PlanActionTacheSqlModel } from './plan-action-tache.sql-model'
-import { ReferentielPlanActionTacheSqlModel } from './referentiel-plan-action-tache.sql-model'
 import { ReferentielPlanActionServiceSqlModel } from './referentiel-plan-action-service.sql-model'
 import { ReferentielPlanActionSolutionSqlModel } from './referentiel-plan-action-solution.sql-model'
 
@@ -87,7 +86,6 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
-  ReferentielPlanActionTacheSqlModel,
   ReferentielPlanActionServiceSqlModel,
   ReferentielPlanActionSolutionSqlModel,
   PlanActionSqlModel,

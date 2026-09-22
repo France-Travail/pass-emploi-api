@@ -1,72 +1,33 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { Sequelize } from 'sequelize'
-import {
-  ActionPlanQueryModel,
-  DestinationActionPlan,
-  PlanActionConnecteQueryModel,
-  PlanActionQueryModel,
-  TypeActionPlan
-} from '../../../application/queries/query-models/plan-action.query-model'
-import { DateService } from '../../../utils/date-service'
-import { IdService } from '../../../utils/id-service'
+import { PlanAction } from '../../../domain/plan-action/plan-action'
 import { PlanActionObjectifSqlModel } from '../../sequelize/models/plan-action-objectif.sql-model'
 import { PlanActionTacheSqlModel } from '../../sequelize/models/plan-action-tache.sql-model'
 import { PlanActionSqlModel } from '../../sequelize/models/plan-action.sql-model'
-import {
-  ReferentielPlanActionTacheDto,
-  ReferentielPlanActionTacheSqlModel
-} from '../../sequelize/models/referentiel-plan-action-tache.sql-model'
 import { SequelizeInjectionToken } from '../../sequelize/providers'
-import { AsSql } from '../../sequelize/types'
 
 @Injectable()
-export class PlanActionSqlRepository {
+export class PlanActionSqlRepository implements PlanAction.Repository {
   constructor(
-    private idService: IdService,
-    private dateService: DateService,
     @Inject(SequelizeInjectionToken)
     private readonly sequelize: Sequelize
   ) {}
 
-  async save(idJeune: string, plan: PlanActionQueryModel): Promise<void> {
-    const maintenant = this.dateService.now().toJSDate()
-
+  async save(plan: PlanAction): Promise<void> {
     await this.sequelize.transaction(async transaction => {
-      const referentielsParId = new Map(
-        plan.objectives.flatMap(objectif =>
-          objectif.actions.map(action => [
-            action.id,
-            referentielFromAction(action)
-          ])
-        )
-      )
-      await ReferentielPlanActionTacheSqlModel.bulkCreate(
-        Array.from(referentielsParId.values()),
-        {
-          transaction,
-          updateOnDuplicate: [
-            'label',
-            'type',
-            'deeplink',
-            'url',
-            'nomService',
-            'nomDescription'
-          ]
-        }
-      )
-
       await PlanActionSqlModel.create(
         {
           id: plan.id,
-          idJeune,
-          dateCreation: maintenant,
-          dateMaj: maintenant
+          idJeune: plan.idJeune,
+          dateCreation: plan.dateCreation.toJSDate(),
+          dateMaj: plan.dateCreation.toJSDate()
         },
         { transaction }
       )
 
       await PlanActionObjectifSqlModel.bulkCreate(
-        plan.objectives.map(objectif => ({
+        plan.objectifs.map(objectif => ({
           id: objectif.id,
           idPlanAction: plan.id,
           titre: objectif.titre,
@@ -76,14 +37,14 @@ export class PlanActionSqlRepository {
       )
 
       await PlanActionTacheSqlModel.bulkCreate(
-        plan.objectives.flatMap(objectif =>
-          objectif.actions.map(action => ({
-            id: this.idService.uuid(),
+        plan.objectifs.flatMap(objectif =>
+          objectif.taches.map(tache => ({
+            id: tache.id,
             idObjectif: objectif.id,
-            idTacheReferentiel: action.id,
-            terminee: false,
-            dateCreation: maintenant,
-            dateTerminee: null
+            idSolution: tache.idSolution,
+            terminee: tache.terminee,
+            dateCreation: tache.dateCreation.toJSDate(),
+            dateTerminee: tache.dateTerminee?.toJSDate() ?? null
           }))
         ),
         { transaction }
@@ -91,21 +52,14 @@ export class PlanActionSqlRepository {
     })
   }
 
-  async getDernierPlan(
-    idJeune: string
-  ): Promise<PlanActionConnecteQueryModel | undefined> {
+  async getDernierPlan(idJeune: string): Promise<PlanAction | undefined> {
     const planSql = await PlanActionSqlModel.findOne({
       where: { idJeune },
       order: [['dateCreation', 'DESC']],
       include: [
         {
           model: PlanActionObjectifSqlModel,
-          include: [
-            {
-              model: PlanActionTacheSqlModel,
-              include: [ReferentielPlanActionTacheSqlModel]
-            }
-          ]
+          include: [PlanActionTacheSqlModel]
         }
       ]
     })
@@ -113,48 +67,26 @@ export class PlanActionSqlRepository {
 
     return {
       id: planSql.id,
-      objectives: planSql.objectifs.map(objectifSql => ({
+      idJeune: planSql.idJeune,
+      dateCreation: DateTime.fromJSDate(planSql.dateCreation),
+      objectifs: planSql.objectifs.map(objectifSql => ({
         id: objectifSql.id,
         titre: objectifSql.titre,
         theme: objectifSql.theme,
-        actions: objectifSql.taches.map(tacheSql =>
-          actionFromReferentiel(tacheSql.referentiel)
-        )
+        taches: objectifSql.taches.map(toTache)
       }))
     }
   }
 }
 
-function referentielFromAction(
-  action: ActionPlanQueryModel
-): AsSql<ReferentielPlanActionTacheDto> {
+function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {
   return {
-    id: action.id,
-    label: action.libelle,
-    type: action.type,
-    deeplink: action.destination ?? null,
-    url: action.url ?? null,
-    nomService: action.nomService ?? null,
-    nomDescription: action.descriptionService ?? null
-  }
-}
-
-function actionFromReferentiel(
-  referentielSql: ReferentielPlanActionTacheSqlModel
-): ActionPlanQueryModel {
-  return {
-    id: referentielSql.id,
-    libelle: referentielSql.label,
-    type: referentielSql.type as TypeActionPlan,
-    ...(referentielSql.deeplink
-      ? { destination: referentielSql.deeplink as DestinationActionPlan }
-      : {}),
-    ...(referentielSql.url ? { url: referentielSql.url } : {}),
-    ...(referentielSql.nomService
-      ? { nomService: referentielSql.nomService }
-      : {}),
-    ...(referentielSql.nomDescription
-      ? { descriptionService: referentielSql.nomDescription }
+    id: tacheSql.id,
+    idSolution: tacheSql.idSolution,
+    terminee: tacheSql.terminee,
+    dateCreation: DateTime.fromJSDate(tacheSql.dateCreation),
+    ...(tacheSql.dateTerminee
+      ? { dateTerminee: DateTime.fromJSDate(tacheSql.dateTerminee) }
       : {})
   }
 }

@@ -1,60 +1,23 @@
-import { DateTime } from 'luxon'
-import { PlanActionSqlRepository } from '../../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
-import { ConseillerSqlRepository } from '../../../../src/infrastructure/repositories/conseiller-sql.repository.db'
-import { JeuneSqlRepository } from '../../../../src/infrastructure/repositories/jeune/jeune-sql.repository.db'
-import { PlanActionTacheSqlModel } from '../../../../src/infrastructure/sequelize/models/plan-action-tache.sql-model'
-import { ReferentielPlanActionTacheSqlModel } from '../../../../src/infrastructure/sequelize/models/referentiel-plan-action-tache.sql-model'
-import {
-  DestinationActionPlan,
-  PlanActionQueryModel,
-  TypeActionPlan
-} from '../../../../src/application/queries/query-models/plan-action.query-model'
-import { unConseiller } from '../../../fixtures/conseiller.fixture'
-import { unJeune } from '../../../fixtures/jeune.fixture'
-import { expect, StubbedClass, stubClass } from '../../../utils'
-import { IdService } from '../../../../src/utils/id-service'
-import { DateService } from '../../../../src/utils/date-service'
-import { FirebaseClient } from '../../../../src/infrastructure/clients/firebase-client'
-import { uneDatetime } from '../../../fixtures/date.fixture'
+import { PlanAction } from 'src/domain/plan-action/plan-action'
+import { FirebaseClient } from 'src/infrastructure/clients/firebase-client'
+import { ConseillerSqlRepository } from 'src/infrastructure/repositories/conseiller-sql.repository.db'
+import { JeuneSqlRepository } from 'src/infrastructure/repositories/jeune/jeune-sql.repository.db'
+import { PlanActionSqlRepository } from 'src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
+import { PlanActionSqlModel } from 'src/infrastructure/sequelize/models/plan-action.sql-model'
+import { PlanActionTacheSqlModel } from 'src/infrastructure/sequelize/models/plan-action-tache.sql-model'
+import { ReferentielPlanActionSolutionSqlModel } from 'src/infrastructure/sequelize/models/referentiel-plan-action-solution.sql-model'
+import { DateService } from 'src/utils/date-service'
+import { IdService } from 'src/utils/id-service'
+import { uneDatetime } from 'test/fixtures/date.fixture'
+import { unConseiller } from 'test/fixtures/conseiller.fixture'
+import { unJeune } from 'test/fixtures/jeune.fixture'
+import { expect, stubClass } from 'test/utils'
 import {
   DatabaseForTesting,
   getDatabase
-} from '../../../utils/database-for-testing'
+} from 'test/utils/database-for-testing'
 
 const maintenant = uneDatetime()
-
-function unPlan(
-  args: Partial<PlanActionQueryModel> = {}
-): PlanActionQueryModel {
-  return {
-    id: 'plan-1',
-    accroche: 'Salut !',
-    genereLe: '2026-07-20T22:03:52.448Z',
-    generateur: 'fallback',
-    objectives: [
-      {
-        id: 'objectif-1',
-        titre: 'Trouver une alternance',
-        theme: 'apprenticeship',
-        actions: [
-          {
-            id: 'tache-1',
-            libelle: 'Je fais une action',
-            type: TypeActionPlan.CONSEIL
-          },
-          {
-            id: 'tache-2',
-            libelle: "Je vais sur l'appli",
-            type: TypeActionPlan.NAVIGATION,
-            destination: DestinationActionPlan.EVENEMENTS,
-            nomService: 'Service civique'
-          }
-        ]
-      }
-    ],
-    ...args
-  }
-}
 
 describe('PlanActionSqlRepository', () => {
   let database: DatabaseForTesting
@@ -63,20 +26,50 @@ describe('PlanActionSqlRepository', () => {
   })
 
   let planActionSqlRepository: PlanActionSqlRepository
-  let idService: StubbedClass<IdService>
-  let dateService: StubbedClass<DateService>
+
+  async function insererSolution(id: string): Promise<void> {
+    await ReferentielPlanActionSolutionSqlModel.create({
+      id,
+      type: 'LIEN',
+      libelle: 'Je consulte des sites',
+      situations: [],
+      authentifications: [],
+      territoires: [],
+      active: true,
+      dateMaj: maintenant.toJSDate()
+    })
+  }
+
+  function unPlan(override: Partial<PlanAction> = {}): PlanAction {
+    return {
+      id: 'plan-1',
+      idJeune: 'jeune-1',
+      dateCreation: maintenant,
+      objectifs: [
+        {
+          id: 'objectif-1',
+          titre: 'Trouver une alternance',
+          theme: 'apprenticeship',
+          taches: [
+            {
+              id: '11111111-1111-1111-1111-111111111111',
+              idSolution: 'p-2',
+              terminee: false,
+              dateCreation: maintenant
+            }
+          ]
+        }
+      ],
+      ...override
+    }
+  }
 
   beforeEach(async () => {
     await database.cleanPG()
-    idService = stubClass(IdService)
-    dateService = stubClass(DateService)
-    dateService.now.returns(maintenant)
+    const idService = stubClass(IdService)
+    const dateService = stubClass(DateService)
 
-    planActionSqlRepository = new PlanActionSqlRepository(
-      idService,
-      dateService,
-      database.sequelize
-    )
+    planActionSqlRepository = new PlanActionSqlRepository(database.sequelize)
 
     const conseillerRepository = new ConseillerSqlRepository()
     await conseillerRepository.save(unConseiller())
@@ -87,119 +80,98 @@ describe('PlanActionSqlRepository', () => {
       idService,
       dateService
     )
-    await jeuneRepository.save(unJeune())
+    await jeuneRepository.save(unJeune({ id: 'jeune-1' }))
   })
 
-  describe('.save(idJeune, plan)', () => {
-    it('sauvegarde le plan, ses objectifs et ses tâches', async () => {
+  describe('save', () => {
+    it('persiste le plan, ses objectifs et ses tâches', async () => {
       // Given
-      idService.uuid
-        .onFirstCall()
-        .returns('11111111-1111-1111-1111-111111111111')
-        .onSecondCall()
-        .returns('22222222-2222-2222-2222-222222222222')
-      const plan = unPlan()
+      await insererSolution('p-2')
 
       // When
-      await planActionSqlRepository.save('ABCDE', plan)
+      await planActionSqlRepository.save(unPlan())
 
       // Then
-      const actual = await planActionSqlRepository.getDernierPlan('ABCDE')
-      expect(actual).to.deep.equal({
-        id: 'plan-1',
-        objectives: [
-          {
-            id: 'objectif-1',
-            titre: 'Trouver une alternance',
-            theme: 'apprenticeship',
-            actions: [
-              {
-                id: 'tache-1',
-                libelle: 'Je fais une action',
-                type: TypeActionPlan.CONSEIL
-              },
-              {
-                id: 'tache-2',
-                libelle: "Je vais sur l'appli",
-                type: TypeActionPlan.NAVIGATION,
-                destination: DestinationActionPlan.EVENEMENTS,
-                nomService: 'Service civique'
-              }
-            ]
-          }
-        ]
-      })
+      const planSql = await PlanActionSqlModel.findByPk('plan-1')
+      expect(planSql!.idJeune).to.equal('jeune-1')
+      const tacheSql = await PlanActionTacheSqlModel.findByPk(
+        '11111111-1111-1111-1111-111111111111'
+      )
+      expect(tacheSql!.idSolution).to.equal('p-2')
+      expect(tacheSql!.terminee).to.equal(false)
     })
 
-    it('ne duplique pas une tâche déjà présente au référentiel', async () => {
+    it("n'écrit rien dans le référentiel", async () => {
       // Given
-      idService.uuid
-        .onFirstCall()
-        .returns('11111111-1111-1111-1111-111111111111')
-        .onSecondCall()
-        .returns('22222222-2222-2222-2222-222222222222')
-        .onThirdCall()
-        .returns('33333333-3333-3333-3333-333333333333')
-      const premierPlan = unPlan()
-      await planActionSqlRepository.save('ABCDE', premierPlan)
+      await insererSolution('p-2')
 
       // When
-      const deuxiemePlan = unPlan({
-        id: 'plan-2',
-        objectives: [
-          {
-            ...premierPlan.objectives[0],
-            id: 'objectif-2',
-            actions: [premierPlan.objectives[0].actions[0]]
-          }
-        ]
-      })
-      await planActionSqlRepository.save('ABCDE', deuxiemePlan)
+      await planActionSqlRepository.save(unPlan())
 
       // Then
-      const referentiel = await ReferentielPlanActionTacheSqlModel.findAll()
-      expect(referentiel).to.have.length(2)
-      const taches = await PlanActionTacheSqlModel.findAll()
-      expect(taches).to.have.length(3)
+      const nbSolutions = await ReferentielPlanActionSolutionSqlModel.count()
+      expect(nbSolutions).to.equal(1)
     })
   })
 
-  describe('.getDernierPlan(idJeune)', () => {
-    it("renvoie undefined quand le jeune n'a pas de plan", async () => {
-      // When
-      const actual = await planActionSqlRepository.getDernierPlan('ABCDE')
-
-      // Then
-      expect(actual).to.equal(undefined)
-    })
-
-    it('renvoie le plan le plus récent', async () => {
+  describe('getDernierPlan', () => {
+    it('rend le plan le plus récent du jeune', async () => {
       // Given
-      idService.uuid
-        .onCall(0)
-        .returns('11111111-1111-1111-1111-111111111111')
-        .onCall(1)
-        .returns('22222222-2222-2222-2222-222222222222')
-        .onCall(2)
-        .returns('33333333-3333-3333-3333-333333333333')
-        .onCall(3)
-        .returns('44444444-4444-4444-4444-444444444444')
-      dateService.now.returns(DateTime.fromISO('2026-01-01T00:00:00.000Z'))
-      await planActionSqlRepository.save('ABCDE', unPlan({ id: 'plan-1' }))
-      dateService.now.returns(DateTime.fromISO('2026-02-01T00:00:00.000Z'))
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
       await planActionSqlRepository.save(
-        'ABCDE',
         unPlan({
           id: 'plan-2',
-          objectives: [{ ...unPlan().objectives[0], id: 'objectif-2' }]
+          dateCreation: maintenant.plus({ days: 1 }),
+          objectifs: [
+            {
+              id: 'objectif-2',
+              titre: 'Objectif récent',
+              theme: 'employment',
+              taches: [
+                {
+                  id: '22222222-2222-2222-2222-222222222222',
+                  idSolution: 'p-2',
+                  terminee: false,
+                  dateCreation: maintenant.plus({ days: 1 })
+                }
+              ]
+            }
+          ]
         })
       )
 
       // When
-      const actual = await planActionSqlRepository.getDernierPlan('ABCDE')
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
 
       // Then
-      expect(actual?.id).to.equal('plan-2')
+      expect(plan!.id).to.equal('plan-2')
+      expect(plan!.objectifs[0].titre).to.equal('Objectif récent')
+    })
+
+    it('rend le plan avec ses identifiants de solution', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan!.objectifs[0].taches[0]).to.deep.equal({
+        id: '11111111-1111-1111-1111-111111111111',
+        idSolution: 'p-2',
+        terminee: false,
+        dateCreation: maintenant
+      })
+    })
+
+    it("rend undefined quand le jeune n'a pas de plan", async () => {
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan).to.equal(undefined)
     })
   })
 })

@@ -8,7 +8,7 @@ import {
   Table
 } from 'sequelize-typescript'
 import { PlanActionObjectifSqlModel } from './plan-action-objectif.sql-model'
-import { ReferentielPlanActionTacheSqlModel } from './referentiel-plan-action-tache.sql-model'
+import { ReferentielPlanActionSolutionSqlModel } from './referentiel-plan-action-solution.sql-model'
 
 export class PlanActionTacheDto extends Model {
   @PrimaryKey
@@ -19,9 +19,9 @@ export class PlanActionTacheDto extends Model {
   @Column({ field: 'id_objectif', type: DataType.STRING })
   idObjectif: string
 
-  @ForeignKey(() => ReferentielPlanActionTacheSqlModel)
-  @Column({ field: 'id_tache_referentiel', type: DataType.STRING })
-  idTacheReferentiel: string
+  @ForeignKey(() => ReferentielPlanActionSolutionSqlModel)
+  @Column({ field: 'id_solution', type: DataType.STRING })
+  idSolution: string
 
   @Column({ field: 'terminee', type: DataType.BOOLEAN })
   terminee: boolean
@@ -38,6 +38,6 @@ export class PlanActionTacheSqlModel extends PlanActionTacheDto {
   @BelongsTo(() => PlanActionObjectifSqlModel)
   objectif: PlanActionObjectifSqlModel
 
-  @BelongsTo(() => ReferentielPlanActionTacheSqlModel)
-  referentiel: ReferentielPlanActionTacheSqlModel
+  @BelongsTo(() => ReferentielPlanActionSolutionSqlModel)
+  solution: ReferentielPlanActionSolutionSqlModel
 }
