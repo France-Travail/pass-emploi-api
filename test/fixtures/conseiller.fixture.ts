@@ -13,7 +13,8 @@ export const unConseiller = (args: Partial<Conseiller> = {}): Conseiller => {
     notificationsSonores: false,
     dateSignatureCGU: DateTime.fromISO('2023-10-03T12:00:00.000Z'),
     dateVisionnageActus: DateTime.fromISO('2023-10-03T12:00:00.000Z'),
-    dateMajAgence: undefined
+    dateMajAgence: undefined,
+    dateMajDispositif: undefined
   }
   return { ...defaults, ...args }
 }

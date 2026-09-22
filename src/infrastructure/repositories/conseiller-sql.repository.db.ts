@@ -103,6 +103,7 @@ export class ConseillerSqlRepository implements Conseiller.Repository {
       dateSignatureCGU: conseiller.dateSignatureCGU?.toJSDate() ?? null,
       dateVisionnageActus: conseiller.dateVisionnageActus?.toJSDate() ?? null,
       dateMajAgence: conseiller.dateMajAgence?.toJSDate() ?? null,
+      dateMajDispositif: conseiller.dateMajDispositif?.toJSDate() ?? null,
       idAgence: conseiller.agence?.id ?? null,
       notificationsSonores: conseiller.notificationsSonores
     })
@@ -154,6 +155,12 @@ export function fromSqlConseillerToAggregate(
   if (conseillerSqlModel.dateMajAgence) {
     conseiller.dateMajAgence = DateTime.fromJSDate(
       conseillerSqlModel.dateMajAgence
+    )
+  }
+
+  if (conseillerSqlModel.dateMajDispositif) {
+    conseiller.dateMajDispositif = DateTime.fromJSDate(
+      conseillerSqlModel.dateMajDispositif
     )
   }
 

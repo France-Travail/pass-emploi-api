@@ -1,6 +1,12 @@
 import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
-import { failure, Result, success } from '../../building-blocks/types/result'
+import {
+  emptySuccess,
+  failure,
+  isFailure,
+  Result,
+  success
+} from '../../building-blocks/types/result'
 import { Agence } from '../agence'
 import { DISPOSITIFS_FT_ACCOMPAGNES, estFranceTravail, Profil } from '../profil'
 import * as _ListeDeDiffusion from './liste-de-diffusion'
@@ -19,6 +25,7 @@ export interface Conseiller {
   agence?: Agence
   notificationsSonores: boolean
   dateMajAgence?: DateTime
+  dateMajDispositif?: DateTime
 }
 
 export const ConseillerRepositoryToken = 'ConseillerRepositoryToken'
@@ -90,27 +97,12 @@ export namespace Conseiller {
       )
     }
 
-    const dispositifChoisiHorsFranceTravail =
-      infosDeMiseAJour.dispositif && !estFranceTravail(conseiller.structure)
-    if (dispositifChoisiHorsFranceTravail) {
-      return failure(
-        new MauvaiseCommandeError(
-          'Seul un conseiller France Travail choisit son dispositif'
-        )
-      )
-    }
-
-    const dispositifInterditPourUnConseillerFT =
-      infosDeMiseAJour.dispositif &&
-      !DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!.includes(
+    if (infosDeMiseAJour.dispositif) {
+      const verification = verifierDispositif(
+        conseiller,
         infosDeMiseAJour.dispositif
       )
-    if (dispositifInterditPourUnConseillerFT) {
-      return failure(
-        new MauvaiseCommandeError(
-          'Ce dispositif n’est pas proposé aux conseillers France Travail'
-        )
-      )
+      if (isFailure(verification)) return verification
     }
 
     return success({
@@ -120,8 +112,41 @@ export namespace Conseiller {
       notificationsSonores: Boolean(infosDeMiseAJour.notificationsSonores),
       dateSignatureCGU: infosDeMiseAJour.dateSignatureCGU,
       dateVisionnageActus: infosDeMiseAJour.dateVisionnageActus,
-      dateMajAgence: infosDeMiseAJour.dateMajAgence
+      dateMajAgence: infosDeMiseAJour.dateMajAgence,
+      dateMajDispositif: infosDeMiseAJour.dateMajDispositif
     })
+  }
+
+  export function modifierDispositif(
+    conseiller: Conseiller,
+    dispositif: Profil.Dispositif,
+    dateMajDispositif: DateTime
+  ): Result<Conseiller> {
+    const verification = verifierDispositif(conseiller, dispositif)
+    if (isFailure(verification)) return verification
+
+    return success({ ...conseiller, dispositif, dateMajDispositif })
+  }
+
+  function verifierDispositif(
+    conseiller: Conseiller,
+    dispositif: Profil.Dispositif
+  ): Result {
+    if (!estFranceTravail(conseiller.structure)) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Seul un conseiller France Travail choisit son dispositif'
+        )
+      )
+    }
+    if (!DISPOSITIFS_FT_ACCOMPAGNES.dispositifs!.includes(dispositif)) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Ce dispositif n’est pas proposé aux conseillers France Travail'
+        )
+      )
+    }
+    return emptySuccess()
   }
 
   export function doitChoisirSonDispositif(conseiller: Conseiller): boolean {
@@ -135,5 +160,6 @@ export namespace Conseiller {
     dateVisionnageActus?: DateTime
     notificationsSonores?: boolean
     dateMajAgence?: DateTime
+    dateMajDispositif?: DateTime
   }
 }

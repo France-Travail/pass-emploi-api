@@ -165,7 +165,7 @@ describe('ModifierConseillerCommandHandler', () => {
             conseillerPEmaj
           )
         })
-        it('choisit le dispositif du conseiller', async () => {
+        it('choisit le dispositif du conseiller et stampe la date de mise a jour de dispositif', async () => {
           // Given
           const conseillerSansDispositif = unConseiller({
             id: idConseiller,
@@ -189,7 +189,71 @@ describe('ModifierConseillerCommandHandler', () => {
               id: idConseiller,
               structure: Profil.Structure.FRANCE_TRAVAIL,
               dispositif: Profil.Dispositif.BRSA,
-              agence: undefined
+              agence: undefined,
+              dateMajDispositif: maintenant
+            })
+          )
+        })
+        it('stampe la date de mise a jour de dispositif quand le conseiller reconfirme le sien', async () => {
+          // Given
+          const ilYAUnAn = maintenant.minus({ years: 1, days: 1 })
+          const conseillerCEJ = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ,
+            dateMajDispositif: ilYAUnAn
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerCEJ)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            dispositif: Profil.Dispositif.CEJ
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(conseillerRepository.save).to.have.been.calledWithExactly(
+            unConseiller({
+              id: idConseiller,
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif: Profil.Dispositif.CEJ,
+              agence: undefined,
+              dateMajDispositif: maintenant
+            })
+          )
+        })
+        it('garde la date de mise a jour de dispositif quand le dispositif n‘est pas transmis', async () => {
+          // Given
+          const ilYAUnMois = maintenant.minus({ months: 1 })
+          const conseillerCEJ = unConseiller({
+            id: idConseiller,
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif: Profil.Dispositif.CEJ,
+            dateMajDispositif: ilYAUnMois
+          })
+          conseillerRepository.get
+            .withArgs(idConseiller)
+            .resolves(conseillerCEJ)
+
+          // When
+          const result = await modifierConseillerCommandHandler.handle({
+            idConseiller,
+            notificationsSonores: true
+          })
+
+          // Then
+          expect(result._isSuccess).to.equal(true)
+          expect(conseillerRepository.save).to.have.been.calledWithExactly(
+            unConseiller({
+              id: idConseiller,
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif: Profil.Dispositif.CEJ,
+              agence: undefined,
+              notificationsSonores: true,
+              dateMajDispositif: ilYAUnMois
             })
           )
         })

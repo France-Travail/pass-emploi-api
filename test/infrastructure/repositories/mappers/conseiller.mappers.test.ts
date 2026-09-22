@@ -34,10 +34,26 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
         dateMajAgence: undefined,
+        dateMajDispositif: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
       expect(result).to.deep.equal(expected)
+    })
+
+    it('expose la date de mise a jour de dispositif', async () => {
+      // Given
+      const sql = await ConseillerSqlModel.create(
+        unConseillerDto({
+          dateMajDispositif: new Date('2026-09-21T10:00:00.000Z')
+        })
+      )
+
+      // When
+      const result = fromSqlToDetailConseillerQueryModel(sql, false)
+
+      // Then
+      expect(result.dateMajDispositif).to.equal('2026-09-21T10:00:00.000Z')
     })
   })
 
@@ -80,6 +96,7 @@ describe('fromSqlToDetailConseillerQueryModel', () => {
         dateSignatureCGU: undefined,
         dateVisionnageActus: undefined,
         dateMajAgence: undefined,
+        dateMajDispositif: undefined,
         notificationsSonores: false,
         aDesBeneficiairesARecuperer: false
       }
