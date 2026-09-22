@@ -91,10 +91,14 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
       dateVisionnageActus: command.dateVisionnageActus
         ? DateTime.fromISO(command.dateVisionnageActus)
         : conseillerActuel.dateVisionnageActus,
+      /* @todo dette tech : pour màj l'agence et le dispositif on devrait passer par des handlers spécifiques pour chacun.
+       * Ce qui permettrait de gérer les permissions au niveau de chaque handler : uniquement modifiables par les conseillers FT
+       * plutôt que gérer ça dans le domaine et avoir une grosse méthode Conseiller.mettreAJour fourre-tout et des exceptions
+       * comme `!estFranceTravail(conseiller.structure)` disséminées dans le code métier.
+       */
       dateMajAgence: conseillerFTReconfirmeSonAgence
         ? this.dateService.now()
         : conseillerActuel.dateMajAgence,
-      // Reconfirmer le même dispositif compte : c'est ce qui repousse la relance annuelle.
       dateMajDispositif: command.dispositif
         ? this.dateService.now()
         : conseillerActuel.dateMajDispositif
