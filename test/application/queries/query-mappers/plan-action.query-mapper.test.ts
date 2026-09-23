@@ -66,11 +66,45 @@ describe('toPlanActionConnecteQueryModel', () => {
     expect(queryModel.objectives[0].actions[0].nomService).to.equal('ONISEP')
   })
 
-  it('omet une tâche dont la solution a disparu du référentiel', () => {
+  it('écarte un objectif dont toutes les solutions ont disparu du référentiel', () => {
     // When
     const queryModel = toPlanActionConnecteQueryModel(unPlan(), [])
 
     // Then
-    expect(queryModel.objectives[0].actions).to.deep.equal([])
+    expect(queryModel.objectives).to.deep.equal([])
+  })
+
+  it('conserve les objectifs restants quand une seule solution a disparu du référentiel', () => {
+    // Given
+    const plan: PlanAction = {
+      id: 'plan-1',
+      idJeune: 'jeune-1',
+      dateCreation: maintenant,
+      objectifs: [
+        ...unPlan().objectifs,
+        {
+          id: 'objectif-2',
+          titre: 'Se former',
+          theme: 'training',
+          taches: [
+            {
+              id: 'tache-2',
+              idSolution: 'inconnue',
+              terminee: false,
+              dateCreation: maintenant
+            }
+          ]
+        }
+      ]
+    }
+
+    // When
+    const queryModel = toPlanActionConnecteQueryModel(plan, [
+      uneSolution('p-2')
+    ])
+
+    // Then
+    expect(queryModel.objectives).to.have.length(1)
+    expect(queryModel.objectives[0].id).to.equal('objectif-1')
   })
 })

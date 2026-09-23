@@ -164,12 +164,47 @@ describe('RecupererPlanActionQueryHandler', () => {
       expect(referentielRepository.trouverSolutions).not.to.have.been.called()
     })
 
-    it('omet une tâche dont la solution a disparu du référentiel', async () => {
+    it('renvoie une NonTrouveError quand toutes les solutions du plan ont disparu du référentiel', async () => {
       // Given
       planActionRepository.getDernierPlan
         .withArgs(query.idJeune)
         .resolves(unPlan())
       referentielRepository.trouverSolutions.withArgs(['p-1']).resolves([])
+
+      // When
+      const result = await handler.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('PlanAction', query.idJeune))
+      )
+    })
+
+    it("écarte l'objectif dont l'unique solution a disparu du référentiel, en conservant les autres", async () => {
+      // Given
+      const plan: PlanAction = {
+        ...unPlan(),
+        objectifs: [
+          ...unPlan().objectifs,
+          {
+            id: 'objectif-2',
+            titre: 'Se former',
+            theme: 'training',
+            taches: [
+              {
+                id: 'tache-2',
+                idSolution: 'inconnue',
+                terminee: false,
+                dateCreation: maintenant
+              }
+            ]
+          }
+        ]
+      }
+      planActionRepository.getDernierPlan.withArgs(query.idJeune).resolves(plan)
+      referentielRepository.trouverSolutions
+        .withArgs(['p-1', 'inconnue'])
+        .resolves([uneSolution()])
 
       // When
       const result = await handler.handle(query)
@@ -183,7 +218,13 @@ describe('RecupererPlanActionQueryHandler', () => {
               id: 'objectif-1',
               titre: 'Trouver une alternance',
               theme: 'apprenticeship',
-              actions: []
+              actions: [
+                {
+                  id: 'tache-1',
+                  libelle: "Je vais sur l'appli",
+                  type: TypeActionPlan.NAVIGATION
+                }
+              ]
             }
           ]
         })

@@ -71,7 +71,12 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     const solutions =
       await this.referentielRepository.trouverSolutions(idsSolutions)
 
-    return success(toPlanActionConnecteQueryModel(plan, solutions))
+    const queryModel = toPlanActionConnecteQueryModel(plan, solutions)
+    if (!queryModel.objectives.length) {
+      return failure(new NonTrouveError('PlanAction', query.idJeune))
+    }
+
+    return success(queryModel)
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {

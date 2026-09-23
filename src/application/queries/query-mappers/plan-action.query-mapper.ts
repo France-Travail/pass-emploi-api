@@ -38,17 +38,43 @@ function toObjectives(
 ): PlanActionQueryModel['objectives'] {
   const parId = new Map(solutions.map(solution => [solution.id, solution]))
 
-  return plan.objectifs.map(objectif => ({
-    id: objectif.id,
-    titre: objectif.titre,
-    theme: objectif.theme,
-    actions: objectif.taches
-      .map(tache => {
-        const solution = parId.get(tache.idSolution)
-        return solution ? toAction(tache.id, solution) : undefined
-      })
-      .filter((action): action is ActionPlanQueryModel => action !== undefined)
-  }))
+  return plan.objectifs
+    .map(objectif => ({
+      id: objectif.id,
+      titre: objectif.titre,
+      theme: objectif.theme,
+      actions: objectif.taches
+        .map(tache => {
+          const solution = parId.get(tache.idSolution)
+          return solution ? toAction(tache.id, solution) : undefined
+        })
+        .filter(
+          (action): action is ActionPlanQueryModel => action !== undefined
+        )
+    }))
+    .filter(objectif => objectif.actions.length > 0)
+}
+
+const TYPE_TACHE_VERS_TYPE_ACTION_PLAN: Record<
+  PlanAction.TypeTache,
+  TypeActionPlan
+> = {
+  [PlanAction.TypeTache.LIEN]: TypeActionPlan.LIEN,
+  [PlanAction.TypeTache.NAVIGATION]: TypeActionPlan.NAVIGATION,
+  [PlanAction.TypeTache.CONSEIL]: TypeActionPlan.CONSEIL
+}
+
+const DESTINATION_VERS_DESTINATION_ACTION_PLAN: Record<
+  PlanAction.Destination,
+  DestinationActionPlan
+> = {
+  [PlanAction.Destination.OFFRES_ALTERNANCE]:
+    DestinationActionPlan.OFFRES_ALTERNANCE,
+  [PlanAction.Destination.OFFRES_SERVICE_CIVIQUE]:
+    DestinationActionPlan.OFFRES_SERVICE_CIVIQUE,
+  [PlanAction.Destination.OFFRES_EMPLOI]: DestinationActionPlan.OFFRES_EMPLOI,
+  [PlanAction.Destination.ALLER_VERS]: DestinationActionPlan.ALLER_VERS,
+  [PlanAction.Destination.EVENEMENTS]: DestinationActionPlan.EVENEMENTS
 }
 
 function toAction(
@@ -58,10 +84,13 @@ function toAction(
   return {
     id: idTache,
     libelle: solution.libelle,
-    type: solution.type as unknown as TypeActionPlan,
+    type: TYPE_TACHE_VERS_TYPE_ACTION_PLAN[solution.type],
     ...(solution.url ? { url: solution.url } : {}),
     ...(solution.ecranApp
-      ? { destination: solution.ecranApp as unknown as DestinationActionPlan }
+      ? {
+          destination:
+            DESTINATION_VERS_DESTINATION_ACTION_PLAN[solution.ecranApp]
+        }
       : {}),
     ...(solution.service ? { nomService: solution.service.nom } : {}),
     ...(solution.service?.description
