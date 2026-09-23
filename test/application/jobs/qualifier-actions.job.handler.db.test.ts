@@ -9,7 +9,13 @@ import { DateService } from '../../../src/utils/date-service'
 import { uneDate, uneDatetime } from '../../fixtures/date.fixture'
 import { uneActionDto } from '../../fixtures/sql-models/action.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
-import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
+import {
+  StubbedClass,
+  createSandbox,
+  expect,
+  sinon,
+  stubClass
+} from '../../utils'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { getDatabase } from '../../utils/database-for-testing'
@@ -81,6 +87,13 @@ describe('QualifierActionsJobHandler', () => {
           dateFinReelle: uneDate()
         }),
         uneActionDto({
+          id: 'a0000000-0000-4000-8000-00000000d0f1',
+          idJeune,
+          statut: Action.Statut.TERMINEE,
+          dateEcheance: maintenant.minus({ months: 4, days: 1 }).toJSDate(),
+          dateFinReelle: null
+        }),
+        uneActionDto({
           idJeune,
           statut: Action.Statut.ANNULEE,
           dateEcheance: maintenant.minus({ months: 4, days: 1 }).toJSDate()
@@ -116,7 +129,59 @@ describe('QualifierActionsJobHandler', () => {
         nbErreursCatchees: 0,
         nbFailuresUpdate: 0,
         nbFailuresQualification: 0,
-        nombreActionsQualifiees: 3
+        nombreActionsQualifiees: 4
+      })
+      expect(actionFactory.updateAction).to.have.callCount(3)
+    })
+
+    it('pose une date de fin réelle sur une action terminée qui n’en a pas avant de la qualifier', async () => {
+      // Given
+      const idAction = 'a0000000-0000-4000-8000-00000000d0f1'
+      await ActionSqlModel.create(
+        uneActionDto({
+          id: idAction,
+          idJeune,
+          statut: Action.Statut.TERMINEE,
+          dateEcheance: maintenant.minus({ months: 4, days: 1 }).toJSDate(),
+          dateFinReelle: null
+        })
+      )
+      const actionTerminee = uneAction({
+        id: idAction,
+        idJeune,
+        statut: Action.Statut.TERMINEE,
+        dateEcheance: maintenant.minus({ months: 4, days: 1 }),
+        dateFinReelle: maintenant
+      })
+      actionFactory.updateAction.returns(success(actionTerminee))
+
+      // When
+      const result = await qualifierActionsJobHandler.handle()
+
+      // Then
+      expect(actionFactory.updateAction).to.have.been.calledOnceWithExactly(
+        sinon.match.has('id', idAction),
+        {
+          idAction,
+          statut: Action.Statut.TERMINEE,
+          dateFinReelle: maintenant
+        }
+      )
+      expect(actionRepository.save).to.have.been.calledOnceWithExactly(
+        sinon.match
+          .has('id', idAction)
+          .and(
+            sinon.match.has(
+              'qualification',
+              sinon.match.has('code', Action.Qualification.Code.NON_SNP)
+            )
+          )
+      )
+      expect(result.resultat).to.deep.equal({
+        nbErreursCatchees: 0,
+        nbFailuresUpdate: 0,
+        nbFailuresQualification: 0,
+        nombreActionsQualifiees: 1
       })
     })
   })

@@ -51,7 +51,9 @@ export class QualifierActionsJobHandler extends JobHandler {
           const action = ActionSqlRepository.actionFromSqlModel(actionSql)
           let actionAQualifier: Action = action
 
-          if (action.statut !== Action.Statut.TERMINEE) {
+          // Couvre aussi les actions déjà terminées sans date de fin réelle,
+          // que Action.qualifier refuserait sinon à chaque exécution.
+          if (!Action.estTerminee(action)) {
             const updateResult = this.actionFactory.updateAction(action, {
               idAction: action.id,
               statut: Action.Statut.TERMINEE,
