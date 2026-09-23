@@ -7,6 +7,7 @@ import {
 import { TypeActionPlan } from '../../../../src/application/queries/query-models/plan-action.query-model'
 import { PlanAction } from '../../../../src/domain/plan-action'
 import { Profil } from '../../../../src/domain/profil'
+import { Questionnaire } from '../../../../src/domain/questionnaire'
 import { expect } from '../../../utils'
 
 function uneCommand(
@@ -14,21 +15,21 @@ function uneCommand(
 ): GenererPlanActionCommand {
   return {
     idJeune: 'id-jeune',
-    situation: PlanAction.Situation.LYCEE,
-    objectifs: [PlanAction.Objectif.ALTERNANCE],
-    obstacles: [],
+    situation: Questionnaire.Situation.LYCEE,
+    besoins: [Questionnaire.Besoin.ALTERNANCE],
+    contraintes: [],
     ...args
   }
 }
 
 describe('plan-action.mapper', () => {
   describe('toQuestionnaire', () => {
-    it('relaie la structure, la situation et les objectifs', () => {
+    it('relaie la structure, la situation et les besoins', () => {
       // When
       const questionnaire = toQuestionnaire(
         uneCommand({
-          situation: PlanAction.Situation.EMPLOI,
-          objectifs: [PlanAction.Objectif.FORMER, PlanAction.Objectif.EMPLOI]
+          situation: Questionnaire.Situation.EMPLOI,
+          besoins: [Questionnaire.Besoin.FORMER, Questionnaire.Besoin.EMPLOI]
         }),
         Profil.Structure.MILO
       )
@@ -36,48 +37,28 @@ describe('plan-action.mapper', () => {
       // Then
       expect(questionnaire).to.deep.equal({
         structure: Profil.Structure.MILO,
-        situation: PlanAction.Situation.EMPLOI,
-        objectifs: [PlanAction.Objectif.FORMER, PlanAction.Objectif.EMPLOI],
-        obstacles: []
+        situation: Questionnaire.Situation.EMPLOI,
+        besoins: [Questionnaire.Besoin.FORMER, Questionnaire.Besoin.EMPLOI],
+        contraintes: []
       })
     })
 
-    describe('obstacles', () => {
-      it('rend RIEN_NE_ME_BLOQUE exclusif quand il est combiné à un autre obstacle', () => {
-        // When
-        const questionnaire = toQuestionnaire(
-          uneCommand({
-            obstacles: [
-              PlanAction.Obstacle.RIEN_NE_ME_BLOQUE,
-              PlanAction.Obstacle.PAS_DE_TRANSPORT
-            ]
-          }),
-          Profil.Structure.INVITE
-        )
+    it('applique les règles du questionnaire aux contraintes', () => {
+      // When
+      const questionnaire = toQuestionnaire(
+        uneCommand({
+          contraintes: [
+            Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE,
+            Questionnaire.Contrainte.PAS_DE_TRANSPORT
+          ]
+        }),
+        Profil.Structure.INVITE
+      )
 
-        // Then
-        expect(questionnaire.obstacles).to.deep.equal([
-          PlanAction.Obstacle.RIEN_NE_ME_BLOQUE
-        ])
-      })
-
-      it('dédoublonne les obstacles', () => {
-        // When
-        const questionnaire = toQuestionnaire(
-          uneCommand({
-            obstacles: [
-              PlanAction.Obstacle.PAS_DE_TRANSPORT,
-              PlanAction.Obstacle.PAS_DE_TRANSPORT
-            ]
-          }),
-          Profil.Structure.INVITE
-        )
-
-        // Then
-        expect(questionnaire.obstacles).to.deep.equal([
-          PlanAction.Obstacle.PAS_DE_TRANSPORT
-        ])
-      })
+      // Then
+      expect(questionnaire.contraintes).to.deep.equal([
+        Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+      ])
     })
 
     it('relaie la date de naissance et les communes quand elles sont renseignées', () => {
@@ -122,7 +103,7 @@ describe('plan-action.mapper', () => {
     ): PlanAction.Solution {
       return {
         id: 'p-1',
-        category: PlanAction.Objectif.ALTERNANCE,
+        category: Questionnaire.Besoin.ALTERNANCE,
         blocker: null,
         situations: [],
         structures: [],
@@ -144,7 +125,7 @@ describe('plan-action.mapper', () => {
           {
             id: 'objective-1',
             titre: 'Trouver une alternance',
-            theme: PlanAction.Objectif.ALTERNANCE,
+            theme: Questionnaire.Besoin.ALTERNANCE,
             solutions
           }
         ]

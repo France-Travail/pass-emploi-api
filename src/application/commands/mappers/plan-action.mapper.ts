@@ -1,5 +1,6 @@
 import { PlanAction } from '../../../domain/plan-action'
 import { Profil } from '../../../domain/profil'
+import { Questionnaire } from '../../../domain/questionnaire'
 import {
   ActionPlanQueryModel,
   ObjectivePlanActionQueryModel,
@@ -17,12 +18,12 @@ const kindVersType: Record<PlanAction.TypeSolution, TypeActionPlan> = {
 export function toQuestionnaire(
   command: GenererPlanActionCommand,
   structure: Profil.Structure
-): PlanAction.QuestionnaireJeune {
+): Questionnaire {
   return {
     structure,
     situation: command.situation,
-    objectifs: command.objectifs,
-    obstacles: calculerObstacles(command.obstacles),
+    besoins: command.besoins,
+    contraintes: Questionnaire.calculerContraintes(command.contraintes),
     ...(command.dateNaissance ? { dateNaissance: command.dateNaissance } : {}),
     ...(command.communeResidence
       ? { communeResidence: command.communeResidence }
@@ -31,18 +32,6 @@ export function toQuestionnaire(
       ? { communeRecherche: command.communeRecherche }
       : {})
   }
-}
-
-function calculerObstacles(
-  obstacles: PlanAction.Obstacle[]
-): PlanAction.Obstacle[] {
-  // RIEN_NE_ME_BLOQUE est exclusif : accompagné d'un autre obstacle, il est
-  // réduit au seul RIEN_NE_ME_BLOQUE
-  if (obstacles.includes(PlanAction.Obstacle.RIEN_NE_ME_BLOQUE)) {
-    return [PlanAction.Obstacle.RIEN_NE_ME_BLOQUE]
-  }
-
-  return Array.from(new Set(obstacles))
 }
 
 // Réponse réduite à ce que l'app affiche : un lien s'ouvre, le reste se coche

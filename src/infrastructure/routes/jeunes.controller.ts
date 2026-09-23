@@ -477,8 +477,8 @@ export class JeunesController {
     const command: GenererPlanActionCommand = {
       idJeune,
       situation: payload.situation,
-      objectifs: payload.goals,
-      obstacles: payload.obstacles ?? [],
+      besoins: payload.goals,
+      contraintes: payload.obstacles ?? [],
       // setZone conserve le décalage écrit dans la chaîne, pour que la date
       // civile ne glisse pas d'un jour au passage dans le fuseau du serveur
       dateNaissance: payload.dateNaissance
