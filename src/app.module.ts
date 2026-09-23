@@ -580,7 +580,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     PlanAction.Factory,
     {
       provide: GenerateurDePlanActionToken,
-      useClass: PlanActionClient
+      useExisting: PlanActionClient
     },
     {
       provide: PlanActionRepositoryToken,
