@@ -42,7 +42,10 @@ import { RateLimiterService } from '../../../src/utils/rate-limiter.service'
 import { DateService } from '../../../src/utils/date-service'
 import { StubbedClass, stubClass } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
-import { MiloClientUtils } from '../../../src/infrastructure/clients/milo/milo-client-utils'
+import {
+  ErreurMiloReponseInvalide,
+  MiloClientUtils
+} from '../../../src/infrastructure/clients/milo/milo-client-utils'
 import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 
 initializeAPMAgent()
@@ -1385,6 +1388,36 @@ describe('MiloClientV1', () => {
       // Then
       await expect(promise).to.be.rejected()
     })
+
+    it('throw quand Milo renvoie une page HTML en 200 (WAF)', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/api-evenements/events')
+        .reply(
+          200,
+          '<html><body>Request unsuccessful. Incapsula incident ID: 1</body></html>',
+          { 'Content-Type': 'text/html' }
+        )
+
+      // When
+      const promise = miloClient.getEvenements()
+
+      // Then
+      await expect(promise).to.be.rejectedWith(ErreurMiloReponseInvalide)
+    })
+
+    it('throw quand Milo renvoie du HTML en 200 sans content-type', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .get('/api-evenements/events')
+        .reply(200, '\r\n<html>\r\n<head></head><body></body></html>')
+
+      // When
+      const promise = miloClient.getEvenements()
+
+      // Then
+      await expect(promise).to.be.rejectedWith(ErreurMiloReponseInvalide)
+    })
   })
 
   describe('acquitterEvenement', () => {
@@ -1402,6 +1435,21 @@ describe('MiloClientV1', () => {
       // Then
       expect(scope.isDone()).to.equal(true)
       expect(isSuccess(result)).to.be.true()
+    })
+
+    it('throw quand Milo renvoie une page HTML en 200 (WAF)', async () => {
+      // Given
+      nock(MILO_BASE_URL)
+        .post(`/api-evenements/events/${idEvenement}/ack`, {})
+        .reply(200, '<html><body>Request unsuccessful</body></html>', {
+          'Content-Type': 'text/html'
+        })
+
+      // When
+      const promise = miloClient.acquitterEvenement(idEvenement)
+
+      // Then
+      await expect(promise).to.be.rejectedWith(ErreurMiloReponseInvalide)
     })
 
     it('envoie les bons headers', async () => {

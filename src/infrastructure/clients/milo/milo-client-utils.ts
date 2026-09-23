@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosResponse } from 'axios'
 import * as APM from 'elastic-apm-node'
 import { ErreurMiloHttp } from 'src/building-blocks/types/domain-error'
 import {
@@ -14,6 +14,46 @@ import { ExternalApiClient } from '../external-api-client'
 import { getAPMInstance } from '../../monitoring/apm.init'
 
 const OPERATEUR_CEJ = 'APPLICATION_CEJ'
+
+/**
+ * Levée quand Milo répond en 2xx avec un corps qui n'est pas du JSON
+ * (typiquement une page HTML de WAF/maintenance). Traitée comme une erreur
+ * technique : jamais convertie en Result pour ne pas confirmer à tort une
+ * écriture ou mapper un corps inexploitable.
+ */
+export class ErreurMiloReponseInvalide extends Error {
+  constructor(
+    readonly suffixUrl: string,
+    readonly contentType?: string
+  ) {
+    super(
+      `Réponse Milo non JSON sur ${suffixUrl} (content-type: ${
+        contentType ?? 'inconnu'
+      }) : page WAF/HTML probable`
+    )
+    this.name = 'ErreurMiloReponseInvalide'
+  }
+}
+
+function verifierReponseExploitable(
+  response: AxiosResponse,
+  suffixUrl: string
+): void {
+  const contentType = response.headers?.['content-type']
+  const contentTypeHtml =
+    typeof contentType === 'string' &&
+    contentType.toLowerCase().includes('text/html')
+  const corpsHtml =
+    typeof response.data === 'string' &&
+    response.data.trimStart().startsWith('<')
+
+  if (contentTypeHtml || corpsHtml) {
+    throw new ErreurMiloReponseInvalide(
+      suffixUrl,
+      typeof contentType === 'string' ? contentType : undefined
+    )
+  }
+}
 
 interface Auth {
   apiKey: string
@@ -67,6 +107,7 @@ export class MiloClientUtils extends ExternalApiClient {
         params,
         headers
       })
+      verifierReponseExploitable(response, suffixUrl)
 
       if (!response.data) {
         return failure(new ErreurMiloHttp('Ressource Milo introuvable', 404))
@@ -99,6 +140,7 @@ export class MiloClientUtils extends ExternalApiClient {
       const response = await this.axios.put<T>(fullUrl, payload, {
         headers
       })
+      verifierReponseExploitable(response, suffixUrl)
 
       return success(response?.data)
     } catch (e) {
@@ -128,6 +170,7 @@ export class MiloClientUtils extends ExternalApiClient {
       const response = await this.axios.post<T>(fullUrl, payload, {
         headers
       })
+      verifierReponseExploitable(response, suffixUrl)
 
       return success(response?.data)
     } catch (e) {
@@ -153,6 +196,7 @@ export class MiloClientUtils extends ExternalApiClient {
 
     try {
       const response = await this.axios.delete(fullUrl, { headers })
+      verifierReponseExploitable(response, suffixUrl)
 
       return success(response.data)
     } catch (e) {
