@@ -60,8 +60,27 @@ describe('plan-action-poc.mapper', () => {
       expect(suggestion.accroche).to.equal('Bonjour Camille')
       expect(suggestion.generateur).to.equal('llm')
       expect(suggestion.genereLe.toISO()).to.equal(
-        DateTime.fromISO('2026-09-22T10:00:00.000Z').toISO()
+        DateTime.fromISO('2026-09-22T10:00:00.000Z', {
+          setZone: true
+        }).toISO()
       )
+    })
+
+    it('conserve le décalage écrit dans la chaîne, sans faire glisser le jour civil', () => {
+      // Given
+      const planAvecDecalage: PlanDto = {
+        ...planDto,
+        generatedAt: '2026-07-20T22:03:52.448+02:00'
+      }
+
+      // When
+      const suggestion = toSuggestion(planAvecDecalage)
+
+      // Then
+      expect(suggestion.genereLe.toISO()).to.equal(
+        '2026-07-20T22:03:52.448+02:00'
+      )
+      expect(suggestion.genereLe.day).to.equal(20)
     })
   })
 
@@ -94,6 +113,28 @@ describe('plan-action-poc.mapper', () => {
 
       // Then
       expect(dto.dateNaissance).to.equal(undefined)
+    })
+
+    it("ne transmet que RIEN_NE_ME_BLOQUE quand il est combiné à d'autres contraintes", () => {
+      // When
+      const dto = toProfileDto({
+        ...profil,
+        contraintes: ['PAS_DE_PERMIS', 'RIEN_NE_ME_BLOQUE', 'FRANCAIS']
+      })
+
+      // Then
+      expect(dto.obstacles).to.deep.equal(['RIEN_NE_ME_BLOQUE'])
+    })
+
+    it('transmet les autres contraintes telles quelles quand RIEN_NE_ME_BLOQUE est absent', () => {
+      // When
+      const dto = toProfileDto({
+        ...profil,
+        contraintes: ['PAS_DE_PERMIS', 'AUTRE']
+      })
+
+      // Then
+      expect(dto.obstacles).to.deep.equal(['PAS_DE_PERMIS', 'AUTRE'])
     })
   })
 })

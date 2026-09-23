@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AxiosError } from 'axios'
+import { DateTime } from 'luxon'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { PlanAction } from '../../domain/plan-action/plan-action'
@@ -56,7 +57,8 @@ export class PlanActionClient
       if (
         !plan ||
         !Array.isArray(plan.objectives) ||
-        plan.objectives.some(objective => !Array.isArray(objective.actions))
+        plan.objectives.some(objective => !Array.isArray(objective.actions)) ||
+        !estDateGenerationValide(plan.generatedAt)
       ) {
         return failure(new ErreurHttp(PLAN_ACTION_ECHEC, 502))
       }
@@ -69,6 +71,13 @@ export class PlanActionClient
 }
 
 const PLAN_ACTION_ECHEC = "La génération du plan d'action a échoué"
+
+function estDateGenerationValide(generatedAt: string | undefined): boolean {
+  return (
+    typeof generatedAt === 'string' &&
+    DateTime.fromISO(generatedAt, { setZone: true }).isValid
+  )
+}
 
 function handlePlanActionError(
   error: AxiosError

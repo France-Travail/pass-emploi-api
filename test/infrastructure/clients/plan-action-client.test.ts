@@ -210,6 +210,51 @@ describe('PlanActionClient', () => {
       )
     })
 
+    it("renvoie une 502 quand le plan n'a pas de generatedAt", async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, {
+          plan: {
+            id: 'plan-1',
+            greeting: 'Salut !',
+            objectives: [],
+            generator: 'fallback'
+          }
+        })
+
+      // When
+      const result = await planActionClient.genererPlan(unProfil)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
+    it('renvoie une 502 quand generatedAt est une date invalide', async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, {
+          plan: {
+            id: 'plan-1',
+            greeting: 'Salut !',
+            objectives: [],
+            generatedAt: 'pas-une-date',
+            generator: 'fallback'
+          }
+        })
+
+      // When
+      const result = await planActionClient.genererPlan(unProfil)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
     it('renvoie une 504 quand le service ne répond pas dans le délai imparti', async () => {
       // Given
       const externalApiLogger = stubClass(ExternalApiLoggerService)
