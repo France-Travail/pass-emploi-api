@@ -147,6 +147,26 @@ describe('NotificationFirebaseSqlRepository', () => {
       ).not.to.have.been.called()
     })
 
+    it('retourne le résultat de Firebase quand le push est activé', async () => {
+      // Given
+      firebaseClient.send.resolves(Notification.ResultatEnvoi.TOKEN_INVALIDE)
+
+      // When
+      const resultat = await repository.send(message, 'idJeune', true)
+
+      // Then
+      expect(resultat).to.equal(Notification.ResultatEnvoi.TOKEN_INVALIDE)
+    })
+
+    it('retourne ENVOYEE sans appeler Firebase quand le push est désactivé', async () => {
+      // When
+      const resultat = await repository.send(message, 'idJeune', false)
+
+      // Then
+      expect(resultat).to.equal(Notification.ResultatEnvoi.ENVOYEE)
+      expect(firebaseClient.send).not.to.have.been.called()
+    })
+
     describe('envoie le bon type de notification', () => {
       it('envoie un NEW_RENDEZVOUS pour un NEW_RENDEZVOUS', async () => {
         await repository.send(unMessagePush(Notification.Type.NEW_RENDEZVOUS))

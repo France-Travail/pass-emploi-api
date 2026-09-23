@@ -14,12 +14,18 @@ export const NotificationRepositoryToken = 'NotificationRepositoryToken'
 export namespace Notification {
   export import PoleEmploi = _PoleEmploi.NotificationPoleEmploi
 
+  export enum ResultatEnvoi {
+    ENVOYEE = 'ENVOYEE',
+    TOKEN_INVALIDE = 'TOKEN_INVALIDE',
+    ERREUR = 'ERREUR'
+  }
+
   export interface Repository {
     send(
       message: Notification.Message,
       idJeune?: string,
       pushNotification?: boolean
-    ): Promise<void>
+    ): Promise<ResultatEnvoi>
   }
 
   export enum Type {
@@ -221,7 +227,7 @@ export namespace Notification {
               jeune.configuration.pushNotificationToken
             )
             if (notification) {
-              return this.notificationRepository.send(notification, jeune.id)
+              await this.notificationRepository.send(notification, jeune.id)
             }
           } else {
             this.logMessageEchec(jeune.id)
@@ -309,9 +315,8 @@ export namespace Notification {
             const notification = this.creerNotificationNouveauMessage(
               jeune.configuration?.pushNotificationToken
             )
-            const promise = this.notificationRepository.send(notification)
+            await this.notificationRepository.send(notification)
             this.logMessageSucces(jeune.id)
-            return promise
           } else {
             this.logMessageEchec(jeune.id)
           }
@@ -352,9 +357,8 @@ export namespace Notification {
           )
         }
         if (notification) {
-          const promise = this.notificationRepository.send(notification, id)
+          await this.notificationRepository.send(notification, id)
           this.logMessageSucces(id)
-          return promise
         }
       } catch (e) {
         this.logger.error(e)
@@ -374,9 +378,8 @@ export namespace Notification {
             type: Type.RAPPEL_CREATION_ACTION
           }
         }
-        const promise = this.notificationRepository.send(notification, id)
+        await this.notificationRepository.send(notification, id)
         this.logMessageSucces(id)
-        return promise
       } catch (e) {
         this.logger.error(e)
         this.logMessageEchec(id)
@@ -392,9 +395,8 @@ export namespace Notification {
           jeune.configuration?.pushNotificationToken,
           action.id
         )
-        const promise = this.notificationRepository.send(notification, jeune.id)
+        await this.notificationRepository.send(notification, jeune.id)
         this.logMessageSucces(jeune.id)
-        return promise
       } else {
         this.logMessageEchec(jeune.id)
       }
@@ -410,12 +412,11 @@ export namespace Notification {
             configurationApplication.pushNotificationToken,
             idAction
           )
-          const promise = this.notificationRepository.send(
+          await this.notificationRepository.send(
             notification,
             configurationApplication.idJeune
           )
           this.logMessageSucces(configurationApplication.idJeune)
-          return promise
         } else {
           this.logMessageEchec(configurationApplication.idJeune)
         }
@@ -436,12 +437,11 @@ export namespace Notification {
             recherche.id,
             recherche.titre
           )
-          const promise = this.notificationRepository.send(
+          await this.notificationRepository.send(
             notification,
             configurationApplication.idJeune
           )
           this.logMessageSucces(configurationApplication.idJeune)
-          return promise
         } else {
           this.logMessageEchec(configurationApplication.idJeune)
         }
@@ -459,7 +459,7 @@ export namespace Notification {
               jeune.configuration.pushNotificationToken,
               idActu
             )
-            return this.notificationRepository.send(
+            await this.notificationRepository.send(
               notification,
               jeune.id,
               jeune.preferences.actualitesMilo
@@ -491,7 +491,7 @@ export namespace Notification {
               jeune.configuration.fuseauHoraire
             )
             if (notification) {
-              return this.notificationRepository.send(notification, jeune.id)
+              await this.notificationRepository.send(notification, jeune.id)
             }
           } else {
             this.logMessageEchec(jeune.id)
@@ -516,7 +516,7 @@ export namespace Notification {
           jeune.configuration.fuseauHoraire
         )
         if (notification) {
-          return this.notificationRepository.send(notification, jeune.id)
+          await this.notificationRepository.send(notification, jeune.id)
         }
       } else {
         this.logMessageEchec(jeune.id)
@@ -543,7 +543,7 @@ export namespace Notification {
               jeune.configuration.fuseauHoraire
             )
             if (notification) {
-              return this.notificationRepository.send(notification, jeune.id)
+              await this.notificationRepository.send(notification, jeune.id)
             }
           } else {
             this.logMessageEchec(jeune.id)
@@ -572,7 +572,7 @@ export namespace Notification {
               jeune.configuration.fuseauHoraire
             )
             if (notification) {
-              return this.notificationRepository.send(notification, jeune.id)
+              await this.notificationRepository.send(notification, jeune.id)
             }
           } else {
             this.logMessageEchec(jeune.id)

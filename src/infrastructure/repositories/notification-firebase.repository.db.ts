@@ -126,7 +126,7 @@ export class NotificationFirebaseSqlRepository
     message: Notification.Message,
     idJeune?: string,
     pushNotification: boolean = true
-  ): Promise<void> {
+  ): Promise<Notification.ResultatEnvoi> {
     const messageFirebase: NotificationRepository = {
       ...message,
       data: {
@@ -134,8 +134,9 @@ export class NotificationFirebaseSqlRepository
         type: typeNotificationToTypeNotificationRepository(message.data.type)
       }
     }
+    let resultat = Notification.ResultatEnvoi.ENVOYEE
     if (pushNotification) {
-      this.firebaseClient.send(messageFirebase)
+      resultat = await this.firebaseClient.send(messageFirebase)
       this.matomoClient.trackEventPushNotificationEnvoyee(messageFirebase)
     }
     if (idJeune) {
@@ -152,5 +153,6 @@ export class NotificationFirebaseSqlRepository
         this.logger.error('Erreur création ', e)
       })
     }
+    return resultat
   }
 }
