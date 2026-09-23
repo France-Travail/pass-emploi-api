@@ -2,7 +2,7 @@ import { emptySuccess, failure } from 'src/building-blocks/types/result'
 import { Evenement, EvenementService } from 'src/domain/evenement'
 import { ImmersionClient } from 'src/infrastructure/clients/immersion-client'
 import { unUtilisateurJeune } from 'test/fixtures/authentification.fixture'
-import { expect, StubbedClass, stubClass } from 'test/utils'
+import { expect, sinon, StubbedClass, stubClass } from 'test/utils'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import {
@@ -76,6 +76,34 @@ describe('EnvoyerFormulaireContactImmersionCommandHandler', () => {
           experienceAdditionalInformation: undefined,
           potentialBeneficiaryResumeLink: undefined
         })
+      })
+
+      it("transmet un numéro d'outre-mer au format international", async () => {
+        // Given
+        const command: EnvoyerFormulaireContactImmersionCommandV3 = {
+          idJeune: 'idJeune',
+          appellationCode: '11573',
+          siret: 'siret',
+          locationId: 'un-location-id',
+          prenom: 'prenom',
+          nom: 'nom',
+          email: 'test@test.com',
+          contactMode: 'EMAIL',
+          numeroTelephone: '0692036376',
+          datePreferences: 'dans le mois qui vient'
+        }
+
+        immersionClient.envoyerFormulaireImmersionV3.resolves(emptySuccess())
+
+        // When
+        await envoyerFormulaireContactImmersionCommandHandler.handle(command)
+
+        // Then
+        expect(
+          immersionClient.envoyerFormulaireImmersionV3
+        ).to.have.been.calledOnceWithExactly(
+          sinon.match.has('potentialBeneficiaryPhone', '+262692036376')
+        )
       })
 
       it('transmet experienceAdditionalInformation et resumeLink quand fournis', async () => {
