@@ -1,10 +1,8 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
 import { RecupererPlanActionQueryHandler } from '../../../src/application/queries/recuperer-plan-action.query.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
-import {
-  DestinationActionPlan,
-  TypeActionPlan
-} from '../../../src/application/queries/query-models/plan-action.query-model'
+import { TypeActionPlan } from '../../../src/application/queries/query-models/plan-action.query-model'
 import {
   emptySuccess,
   failure,
@@ -15,28 +13,69 @@ import {
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
-import { PlanActionSqlRepository } from '../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
-import { TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
+import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
+import { TOUT_PROFIL_SAUF_INVITE, Profil } from '../../../src/domain/profil'
+import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
-import { StubbedClass, expect, stubClass } from '../../utils'
+import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 
 describe('RecupererPlanActionQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let planActionSqlRepository: StubbedClass<PlanActionSqlRepository>
+  let planActionRepository: StubbedType<PlanAction.Repository>
+  let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
   let evenementService: StubbedClass<EvenementService>
   let handler: RecupererPlanActionQueryHandler
 
+  const maintenant = uneDatetime()
   const utilisateur = unUtilisateurJeune()
   const query = { idJeune: utilisateur.id }
 
+  function unPlan(): PlanAction {
+    return {
+      id: 'plan-1',
+      idJeune: query.idJeune,
+      dateCreation: maintenant,
+      objectifs: [
+        {
+          id: 'objectif-1',
+          titre: 'Trouver une alternance',
+          theme: 'apprenticeship',
+          taches: [
+            {
+              id: 'tache-1',
+              idSolution: 'p-1',
+              terminee: false,
+              dateCreation: maintenant
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  function uneSolution(): ReferentielPlanAction.Solution {
+    return {
+      id: 'p-1',
+      type: PlanAction.TypeTache.NAVIGATION,
+      libelle: "Je vais sur l'appli",
+      situations: [],
+      authentifications: [Profil.Structure.FRANCE_TRAVAIL],
+      territoires: []
+    }
+  }
+
   beforeEach(() => {
+    const sandbox = createSandbox()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    planActionSqlRepository = stubClass(PlanActionSqlRepository)
+    planActionRepository = stubInterface(sandbox)
+    referentielRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     handler = new RecupererPlanActionQueryHandler(
       jeuneAuthorizer,
-      planActionSqlRepository,
+      planActionRepository,
+      referentielRepository,
       evenementService,
       testConfig()
     )
@@ -47,7 +86,8 @@ describe('RecupererPlanActionQueryHandler', () => {
       // Given
       const handlerDesactive = new RecupererPlanActionQueryHandler(
         jeuneAuthorizer,
-        planActionSqlRepository,
+        planActionRepository,
+        referentielRepository,
         evenementService,
         new ConfigService({ appJeuneActif: false })
       )
@@ -74,26 +114,14 @@ describe('RecupererPlanActionQueryHandler', () => {
   })
 
   describe('handle', () => {
-    it('renvoie le plan sauvegardé traduit en query model', async () => {
+    it('compose la lecture du plan et celle du référentiel', async () => {
       // Given
-      planActionSqlRepository.getDernierPlan.withArgs(query.idJeune).resolves({
-        id: 'plan-1',
-        objectives: [
-          {
-            id: 'objectif-1',
-            titre: 'Trouver une alternance',
-            theme: 'apprenticeship',
-            actions: [
-              {
-                id: 'tache-1',
-                libelle: "Je vais sur l'appli",
-                type: TypeActionPlan.NAVIGATION,
-                destination: DestinationActionPlan.EVENEMENTS
-              }
-            ]
-          }
-        ]
-      })
+      planActionRepository.getDernierPlan
+        .withArgs(query.idJeune)
+        .resolves(unPlan())
+      referentielRepository.trouverSolutions
+        .withArgs(['p-1'])
+        .resolves([uneSolution()])
 
       // When
       const result = await handler.handle(query)
@@ -111,8 +139,7 @@ describe('RecupererPlanActionQueryHandler', () => {
                 {
                   id: 'tache-1',
                   libelle: "Je vais sur l'appli",
-                  type: TypeActionPlan.NAVIGATION,
-                  destination: DestinationActionPlan.EVENEMENTS
+                  type: TypeActionPlan.NAVIGATION
                 }
               ]
             }
@@ -123,7 +150,7 @@ describe('RecupererPlanActionQueryHandler', () => {
 
     it("renvoie une NonTrouveError quand le jeune n'a pas de plan sauvegardé", async () => {
       // Given
-      planActionSqlRepository.getDernierPlan
+      planActionRepository.getDernierPlan
         .withArgs(query.idJeune)
         .resolves(undefined)
 
@@ -133,6 +160,33 @@ describe('RecupererPlanActionQueryHandler', () => {
       // Then
       expect(result).to.deep.equal(
         failure(new NonTrouveError('PlanAction', query.idJeune))
+      )
+      expect(referentielRepository.trouverSolutions).not.to.have.been.called()
+    })
+
+    it('omet une tâche dont la solution a disparu du référentiel', async () => {
+      // Given
+      planActionRepository.getDernierPlan
+        .withArgs(query.idJeune)
+        .resolves(unPlan())
+      referentielRepository.trouverSolutions.withArgs(['p-1']).resolves([])
+
+      // When
+      const result = await handler.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          id: 'plan-1',
+          objectives: [
+            {
+              id: 'objectif-1',
+              titre: 'Trouver une alternance',
+              theme: 'apprenticeship',
+              actions: []
+            }
+          ]
+        })
       )
     })
   })

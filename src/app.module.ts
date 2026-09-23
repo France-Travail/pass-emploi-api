@@ -345,6 +345,11 @@ import {
   SuggestionsPoleEmploiRepositoryToken,
   SuggestionsRepositoryToken
 } from './domain/offre/recherche/suggestion/suggestion'
+import {
+  GenerateurDePlanActionToken,
+  PlanAction,
+  PlanActionRepositoryToken
+} from './domain/plan-action/plan-action'
 import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
 import {
   PlanificateurRepositoryToken,
@@ -572,7 +577,15 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ActualiteMilo.Factory,
     DiagorienteClient,
     PlanActionClient,
-    PlanActionSqlRepository,
+    PlanAction.Factory,
+    {
+      provide: GenerateurDePlanActionToken,
+      useClass: PlanActionClient
+    },
+    {
+      provide: PlanActionRepositoryToken,
+      useClass: PlanActionSqlRepository
+    },
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard

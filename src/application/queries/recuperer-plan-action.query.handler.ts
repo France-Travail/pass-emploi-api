@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
@@ -9,9 +9,17 @@ import {
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
+import {
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
+import {
+  ReferentielPlanAction,
+  ReferentielPlanActionRepositoryToken
+} from '../../domain/plan-action/referentiel-plan-action'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
-import { PlanActionSqlRepository } from '../../infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { toPlanActionConnecteQueryModel } from './query-mappers/plan-action.query-mapper'
 import { PlanActionConnecteQueryModel } from './query-models/plan-action.query-model'
 
 export interface RecupererPlanActionQuery extends Query {
@@ -27,7 +35,10 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    private readonly planActionSqlRepository: PlanActionSqlRepository,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
+    @Inject(ReferentielPlanActionRepositoryToken)
+    private readonly referentielRepository: ReferentielPlanAction.Repository,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService
   ) {
@@ -48,15 +59,19 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
   async handle(
     query: RecupererPlanActionQuery
   ): Promise<Result<PlanActionConnecteQueryModel>> {
-    const plan = await this.planActionSqlRepository.getDernierPlan(
-      query.idJeune
-    )
+    const plan = await this.planActionRepository.getDernierPlan(query.idJeune)
 
     if (!plan) {
       return failure(new NonTrouveError('PlanAction', query.idJeune))
     }
 
-    return success(plan)
+    const idsSolutions = plan.objectifs.flatMap(objectif =>
+      objectif.taches.map(tache => tache.idSolution)
+    )
+    const solutions =
+      await this.referentielRepository.trouverSolutions(idsSolutions)
+
+    return success(toPlanActionConnecteQueryModel(plan, solutions))
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {

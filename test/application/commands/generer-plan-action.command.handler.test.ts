@@ -1,3 +1,4 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
 import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
@@ -6,34 +7,47 @@ import { TypeActionPlan } from '../../../src/application/queries/query-models/pl
 import {
   emptySuccess,
   failure,
+  isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
 import {
   DroitsInsuffisants,
-  ErreurHttp
+  ErreurHttp,
+  MauvaiseCommandeError
 } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
-import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
-import { PlanActionClient } from '../../../src/infrastructure/clients/plan-action-client'
-import { PlanActionSqlRepository } from '../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
+import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import {
   GoalPayload,
+  ObstaclePayload,
   SituationPayload
 } from '../../../src/infrastructure/routes/validation/plan-action.inputs'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
+import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
-import { StubbedClass, expect, sinon, stubClass } from '../../utils'
+import {
+  StubbedClass,
+  createSandbox,
+  expect,
+  sinon,
+  stubClass
+} from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
-  let planActionClient: StubbedClass<PlanActionClient>
-  let planActionSqlRepository: StubbedClass<PlanActionSqlRepository>
+  let generateur: StubbedType<PlanAction.Generateur>
+  let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
+  let planActionRepository: StubbedType<PlanAction.Repository>
+  let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
   let handler: GenererPlanActionCommandHandler
+
+  const maintenant = uneDatetime()
 
   const utilisateur = unUtilisateurJeune({
     profil: unProfilInvite()
@@ -46,17 +60,72 @@ describe('GenererPlanActionCommandHandler', () => {
     }
   }
 
+  function uneSuggestion(): PlanAction.Suggestion {
+    return {
+      accroche: 'Salut !',
+      genereLe: maintenant,
+      generateur: 'fallback',
+      objectifs: [
+        {
+          titre: 'Trouver une alternance',
+          theme: 'apprenticeship',
+          idsSolutions: ['p-1']
+        }
+      ]
+    }
+  }
+
+  function unPlan(): PlanAction {
+    return {
+      id: 'plan-1',
+      idJeune: command.idJeune,
+      dateCreation: maintenant,
+      objectifs: [
+        {
+          id: 'objectif-1',
+          titre: 'Trouver une alternance',
+          theme: 'apprenticeship',
+          taches: [
+            {
+              id: 'tache-1',
+              idSolution: 'p-1',
+              terminee: false,
+              dateCreation: maintenant
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  function uneSolution(): ReferentielPlanAction.Solution {
+    return {
+      id: 'p-1',
+      type: PlanAction.TypeTache.CONSEIL,
+      libelle: 'Je fais une action',
+      situations: [],
+      authentifications: [Profil.Structure.FRANCE_TRAVAIL],
+      territoires: []
+    }
+  }
+
   beforeEach(() => {
+    const sandbox = createSandbox()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
-    planActionClient = stubClass(PlanActionClient)
-    planActionSqlRepository = stubClass(PlanActionSqlRepository)
+    generateur = stubInterface(sandbox)
+    referentielRepository = stubInterface(sandbox)
+    planActionRepository = stubInterface(sandbox)
+    planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
+
     handler = new GenererPlanActionCommandHandler(
       jeuneAuthorizer,
       jeuneInviteAuthorizer,
-      planActionClient,
-      planActionSqlRepository,
+      generateur,
+      referentielRepository,
+      planActionRepository,
+      planActionFactory,
       evenementService,
       testConfig()
     )
@@ -68,8 +137,10 @@ describe('GenererPlanActionCommandHandler', () => {
       const handlerDesactive = new GenererPlanActionCommandHandler(
         jeuneAuthorizer,
         jeuneInviteAuthorizer,
-        planActionClient,
-        planActionSqlRepository,
+        generateur,
+        referentielRepository,
+        planActionRepository,
+        planActionFactory,
         evenementService,
         new ConfigService({ appJeuneActif: false })
       )
@@ -124,54 +195,32 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('handle', () => {
-    it('appelle le client avec le profil traduit et renvoie le plan traduit', async () => {
+    it('enchaîne la génération, le référentiel et la factory, et renvoie le query model', async () => {
       // Given
-      const plan: PlanDto = {
-        id: 'plan-1',
-        greeting: 'Salut !',
-        generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback',
-        objectives: [
-          {
-            id: 'objective-1',
-            title: 'Trouver une alternance',
-            theme: 'apprenticeship',
-            actions: [
-              {
-                id: 'p-1',
-                label: 'Je fais une action',
-                kind: 'advice',
-                done: false
-              }
-            ]
-          }
-        ]
-      }
-      planActionClient.genererPlan.resolves(success(plan))
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions
+        .withArgs(['p-1'])
+        .resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
 
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
-      expect(planActionClient.genererPlan).to.have.been.calledWithMatch({
-        authProvider: 'guest',
-        situation: 'LYCEE',
-        goals: ['ALTERNANCE']
-      })
       expect(result).to.deep.equal(
         success({
           id: 'plan-1',
           accroche: 'Salut !',
-          genereLe: '2026-07-20T22:03:52.448Z',
+          genereLe: maintenant.toISO(),
           generateur: 'fallback',
           objectives: [
             {
-              id: 'objective-1',
+              id: 'objectif-1',
               titre: 'Trouver une alternance',
               theme: 'apprenticeship',
               actions: [
                 {
-                  id: 'p-1',
+                  id: 'tache-1',
                   libelle: 'Je fais une action',
                   type: TypeActionPlan.CONSEIL
                 }
@@ -182,99 +231,91 @@ describe('GenererPlanActionCommandHandler', () => {
       )
     })
 
-    it('propage la failure du client sans la transformer', async () => {
+    it('un échec du générateur est remonté tel quel, sans appeler le référentiel', async () => {
       // Given
       const echec = failure(
         new ErreurHttp("La génération du plan d'action a échoué", 502)
       )
-      planActionClient.genererPlan.resolves(echec)
+      generateur.genererPlan.resolves(echec)
 
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
       expect(result).to.deep.equal(echec)
+      expect(referentielRepository.trouverSolutions).not.to.have.been.called()
     })
 
-    it('ne sauvegarde pas le plan quand la génération échoue', async () => {
-      // Given
-      planActionClient.genererPlan.resolves(
-        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
-      )
-
-      // When
-      await handler.handle(command, utilisateur)
-
-      // Then
-      expect(planActionSqlRepository.save).not.to.have.been.called()
-    })
-
-    it('sauvegarde le plan traduit pour un bénéficiaire accompagné', async () => {
+    it('un échec de la factory est remonté, sans appeler save', async () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
-      const plan: PlanDto = {
-        id: 'plan-1',
-        greeting: 'Salut !',
-        generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback',
-        objectives: []
-      }
-      planActionClient.genererPlan.resolves(success(plan))
-
-      // When
-      await handler.handle(command, jeuneMilo)
-
-      // Then
-      expect(planActionSqlRepository.save).to.have.been.calledWithExactly(
-        command.idJeune,
-        {
-          id: 'plan-1',
-          accroche: 'Salut !',
-          genereLe: '2026-07-20T22:03:52.448Z',
-          generateur: 'fallback',
-          objectives: []
-        }
+      const echec = failure(
+        new MauvaiseCommandeError(
+          "Aucune solution du plan d'action généré n'est présente dans le référentiel"
+        )
       )
-    })
-
-    it('renvoie une erreur et ne renvoie pas le plan quand la sauvegarde échoue pour un bénéficiaire accompagné', async () => {
-      // Given
-      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
-      const plan: PlanDto = {
-        id: 'plan-1',
-        greeting: 'Salut !',
-        generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback',
-        objectives: []
-      }
-      planActionClient.genererPlan.resolves(success(plan))
-      planActionSqlRepository.save.rejects(new Error('DB en carafe'))
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([])
+      planActionFactory.creer.returns(echec)
 
       // When
       const result = await handler.handle(command, jeuneMilo)
 
       // Then
-      expect(result).to.deep.equal(
-        failure(new ErreurHttp("La sauvegarde du plan d'action a échoué", 500))
-      )
+      expect(result).to.deep.equal(echec)
+      expect(planActionRepository.save).not.to.have.been.called()
     })
 
-    it("ne sauvegarde pas le plan d'un invité", async () => {
+    it('sauvegarde le plan pour un bénéficiaire accompagné', async () => {
       // Given
-      const plan: PlanDto = {
-        id: 'plan-1',
-        greeting: 'Salut !',
-        generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback',
-        objectives: []
-      }
-      planActionClient.genererPlan.resolves(success(plan))
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
 
       // When
-      await handler.handle(command, utilisateur)
+      await handler.handle(command, jeuneMilo)
 
       // Then
-      expect(planActionSqlRepository.save).not.to.have.been.called()
+      expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
+    })
+
+    it("ne sauvegarde pas le plan d'un invité mais le renvoie tout de même", async () => {
+      // Given
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
+
+      // When
+      const result = await handler.handle(command, utilisateur)
+
+      // Then
+      expect(planActionRepository.save).not.to.have.been.called()
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('un payload ne portant que RIEN_NE_ME_BLOQUE produit des contraintes vides sans échouer', async () => {
+      // Given
+      const commandeSansObstacle = {
+        idJeune: utilisateur.id,
+        payload: {
+          situation: SituationPayload.LYCEE,
+          goals: [GoalPayload.ALTERNANCE],
+          obstacles: [ObstaclePayload.RIEN_NE_ME_BLOQUE]
+        }
+      }
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
+
+      // When
+      const result = await handler.handle(commandeSansObstacle, utilisateur)
+
+      // Then
+      expect(generateur.genererPlan).to.have.been.calledWithMatch({
+        contraintes: []
+      })
+      expect(isSuccess(result)).to.equal(true)
     })
   })
 
@@ -292,7 +333,7 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('execute — autorisation refusée', () => {
-    it("n'appelle pas le client quand l'invité n'est pas autorisé", async () => {
+    it("n'appelle pas le générateur quand l'invité n'est pas autorisé", async () => {
       // Given
       jeuneInviteAuthorizer.autoriserLInvite.resolves(
         failure(new DroitsInsuffisants())
@@ -303,7 +344,7 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-      expect(planActionClient.genererPlan).not.to.have.been.called()
+      expect(generateur.genererPlan).not.to.have.been.called()
     })
   })
 
@@ -321,15 +362,9 @@ describe('GenererPlanActionCommandHandler', () => {
 
     it('trace le générateur et les choix du jeune, un plan fallback étant un succès HTTP', async () => {
       // Given
-      planActionClient.genererPlan.resolves(
-        success({
-          id: 'plan-1',
-          greeting: 'Salut !',
-          generatedAt: '2026-07-20T22:03:52.448Z',
-          generator: 'fallback',
-          objectives: []
-        })
-      )
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
 
       // When
       await handler.execute(command, utilisateur)
@@ -348,7 +383,7 @@ describe('GenererPlanActionCommandHandler', () => {
 
     it('trace les choix du jeune sans générateur quand la génération échoue', async () => {
       // Given
-      planActionClient.genererPlan.resolves(
+      generateur.genererPlan.resolves(
         failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
       )
 

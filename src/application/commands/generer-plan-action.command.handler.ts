@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import {
-  DroitsInsuffisants,
-  ErreurHttp
-} from '../../building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import {
   failure,
+  isFailure,
   isSuccess,
   Result,
   success
@@ -14,20 +13,28 @@ import {
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import {
+  GenerateurDePlanActionToken,
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
+import {
+  ReferentielPlanAction,
+  ReferentielPlanActionRepositoryToken
+} from '../../domain/plan-action/referentiel-plan-action'
+import {
   DISPOSITIFS_ACCOMPAGNES,
   estInvite,
+  Profil,
   TOUT_INVITE
 } from '../../domain/profil'
-import { PlanActionClient } from '../../infrastructure/clients/plan-action-client'
-import { PlanActionSqlRepository } from '../../infrastructure/repositories/plan-action/plan-action-sql.repository.db'
-import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
+import {
+  GenererPlanActionPayload,
+  ObstaclePayload
+} from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
+import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
 import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-model'
-import {
-  toPlanActionQueryModel,
-  toProfileDto
-} from './mappers/plan-action.mapper'
 
 export interface GenererPlanActionCommand {
   idJeune: string
@@ -44,8 +51,13 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
-    private readonly planActionClient: PlanActionClient,
-    private readonly planActionSqlRepository: PlanActionSqlRepository,
+    @Inject(GenerateurDePlanActionToken)
+    private readonly generateur: PlanAction.Generateur,
+    @Inject(ReferentielPlanActionRepositoryToken)
+    private readonly referentielRepository: ReferentielPlanAction.Repository,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
+    private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService
   ) {
@@ -73,24 +85,31 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     command: GenererPlanActionCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
-    const profile = toProfileDto(command.payload, utilisateur.profil.structure)
-    const result = await this.planActionClient.genererPlan(profile)
+    const profil = toProfil(command.payload, utilisateur.profil.structure)
 
-    if (isSuccess(result)) {
-      const plan = toPlanActionQueryModel(result.data)
-      if (!estInvite(utilisateur.profil.structure)) {
-        try {
-          await this.planActionSqlRepository.save(command.idJeune, plan)
-        } catch (_e) {
-          return failure(
-            new ErreurHttp("La sauvegarde du plan d'action a échoué", 500)
-          )
-        }
-      }
-      return success(plan)
+    const suggestion = await this.generateur.genererPlan(profil)
+    if (isFailure(suggestion)) return suggestion
+
+    const idsSolutions = suggestion.data.objectifs.flatMap(
+      objectif => objectif.idsSolutions
+    )
+    const solutions =
+      await this.referentielRepository.trouverSolutions(idsSolutions)
+
+    const plan = this.planActionFactory.creer(
+      command.idJeune,
+      suggestion.data,
+      solutions
+    )
+    if (isFailure(plan)) return plan
+
+    if (!estInvite(utilisateur.profil.structure)) {
+      await this.planActionRepository.save(plan.data)
     }
 
-    return result
+    return success(
+      toPlanActionQueryModel(plan.data, solutions, suggestion.data)
+    )
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
@@ -121,4 +140,35 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     }
     return labels
   }
+}
+
+function toProfil(
+  payload: GenererPlanActionPayload,
+  structure: Profil.Structure
+): PlanAction.Profil {
+  const dateNaissance = payload.dateNaissance
+    ? DateTime.fromISO(payload.dateNaissance, { setZone: true })
+    : undefined
+
+  return {
+    structure,
+    situation: payload.situation,
+    besoins: payload.goals.map(goal => goal as unknown as PlanAction.Besoin),
+    contraintes: toContraintes(payload.obstacles ?? []),
+    ...(dateNaissance?.isValid ? { dateNaissance } : {}),
+    ...(payload.domaine ? { domaine: payload.domaine } : {}),
+    ...(payload.habitation ? { habitation: payload.habitation } : {}),
+    ...(payload.villeRecherche
+      ? { villeRecherche: payload.villeRecherche }
+      : {}),
+    ...(payload.rayonKm !== undefined ? { rayonKm: payload.rayonKm } : {})
+  }
+}
+
+function toContraintes(obstacles: ObstaclePayload[]): PlanAction.Contrainte[] {
+  const contraintesConnues = new Set(Object.values(PlanAction.Contrainte))
+
+  return Array.from(new Set(obstacles))
+    .map(obstacle => obstacle as unknown as PlanAction.Contrainte)
+    .filter(contrainte => contraintesConnues.has(contrainte))
 }
