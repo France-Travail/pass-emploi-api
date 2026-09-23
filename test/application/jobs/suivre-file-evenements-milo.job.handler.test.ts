@@ -52,6 +52,18 @@ describe('SuivreEvenementsMiloCronJobHandler', () => {
         evenementMiloRepository.findAllEvenements
       ).to.not.have.been.called()
     })
+
+    it("renvoie un succès pour ne pas remonter d'échec", async () => {
+      // Given
+      planificateurRepository.existePlusQuUnJobActifDeCeType.resolves(true)
+
+      // When
+      const suiviJob = await suivreEvenementsMiloHandler.handle()
+
+      // Then
+      expect(suiviJob.succes).to.be.true()
+      expect(suiviJob.resultat).to.deep.include({ jobDejaEnCours: true })
+    })
   })
   describe('quand le job est le seul actif', () => {
     beforeEach(() => {

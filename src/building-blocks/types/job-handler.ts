@@ -59,7 +59,7 @@ export abstract class JobHandler<TContenu = void> {
     logHandlerExecuted({
       context: this.jobType,
       startNs,
-      error,
+      error: error ?? suiviJob?.erreur,
       failed: !!suiviJob && !suiviJob.succes,
       extra: { labels: { job_type: this.jobType } }
     })
