@@ -12,13 +12,13 @@ import {
   Max,
   MaxLength,
   ValidateIf,
-  Matches,
-  IsPhoneNumber
+  Matches
 } from 'class-validator'
 import {
   transformStringToFloat,
   transformStringToInteger
 } from './utils/transformers'
+import { nettoyerNumeroTelephone } from '../../../utils/telephone'
 
 export class GetOffresImmersionQueryParamsV3 {
   @ApiPropertyOptional()
@@ -157,7 +157,12 @@ export class PostImmersionContactBodyV3 {
   })
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('FR')
+  @Transform(({ value }) =>
+    typeof value === 'string' ? nettoyerNumeroTelephone(value) : value
+  )
+  // Chiffres seulement, indicatif + optionnel, 8 à 15 chiffres : métropole
+  // et outre-mer confondus, la validation fine est faite par Immersion Facile.
+  @Matches(/^\+?[0-9]{8,15}$/)
   numeroTelephone: string
 
   @ApiProperty()
