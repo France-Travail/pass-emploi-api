@@ -2,8 +2,15 @@ import { ConfigService } from '@nestjs/config'
 import axios from 'axios'
 import * as nock from 'nock'
 import { ErreurHttp } from '../../../src/building-blocks/types/domain-error'
-import { failure, success } from '../../../src/building-blocks/types/result'
-import { ProfileDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
+import {
+  failure,
+  isSuccess,
+  success
+} from '../../../src/building-blocks/types/result'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
+import { Profil } from '../../../src/domain/profil'
+import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
+import { toSuggestion } from '../../../src/infrastructure/clients/mappers/plan-action-poc.mapper'
 import { PlanActionClient } from '../../../src/infrastructure/clients/plan-action-client'
 import { ExternalApiLoggerService } from '../../../src/utils/external-api-logger.service'
 import { expect, stubClass } from '../../utils'
@@ -15,7 +22,17 @@ describe('PlanActionClient', () => {
   const apiUrl = configService.get('planAction').url
   const apiKey = configService.get('planAction').apiKey
 
-  const profile: ProfileDto = {
+  const unProfil: PlanAction.Profil = {
+    structure: Profil.Structure.INVITE,
+    situation: 'LYCEE',
+    besoins: [PlanAction.Besoin.ALTERNANCE],
+    contraintes: [PlanAction.Contrainte.PAS_DE_TRANSPORT],
+    domaine: 'mécanique',
+    villeRecherche: { codeInsee: '76540', nom: 'Rouen' },
+    rayonKm: 30
+  }
+
+  const profileDtoAttendu = {
     authProvider: 'guest',
     situation: 'LYCEE',
     goals: ['ALTERNANCE'],
@@ -42,27 +59,40 @@ describe('PlanActionClient', () => {
   })
 
   describe('genererPlan', () => {
-    it('renvoie le plan renvoyé par le service, avec le bon en-tête', async () => {
+    it('renvoie la suggestion renvoyée par le service, réduite aux identifiants de solution', async () => {
       // Given
-      const plan = {
+      const plan: PlanDto = {
         id: 'plan-1',
         greeting: 'Salut !',
-        objectives: [],
+        objectives: [
+          {
+            id: 'obj-1',
+            title: 'Trouver une alternance',
+            theme: 'apprenticeship',
+            actions: [{ id: 'p-2', label: 'ignoré', kind: 'link', done: false }]
+          }
+        ],
         generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback' as const
+        generator: 'fallback'
       }
 
       nock(apiUrl, {
         reqheaders: { authorization: `Bearer ${apiKey}` }
       })
-        .post('/v1/action-plans', corpsJson({ profile }))
+        .post('/v1/action-plans', corpsJson({ profile: profileDtoAttendu }))
         .reply(201, { plan })
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
-      expect(result).to.deep.equal(success(plan))
+      expect(result).to.deep.equal(success(toSuggestion(plan)))
+      if (isSuccess(result)) {
+        expect(result.data.objectifs[0].idsSolutions).to.deep.equal(['p-2'])
+        expect(result.data.objectifs[0].titre).to.equal(
+          'Trouver une alternance'
+        )
+      }
     })
 
     it('envoie le modèle configuré quand il est renseigné', async () => {
@@ -78,27 +108,27 @@ describe('PlanActionClient', () => {
         }
       })
       const client = new PlanActionClient(configAvecModele, externalApiLogger)
-      const plan = {
+      const plan: PlanDto = {
         id: 'plan-1',
         greeting: 'Salut !',
         objectives: [],
         generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'llm' as const,
+        generator: 'llm',
         model: 'gemini-3.5-flash'
       }
 
       nock(apiUrl)
         .post(
           '/v1/action-plans',
-          corpsJson({ profile, model: 'gemini-3.5-flash' })
+          corpsJson({ profile: profileDtoAttendu, model: 'gemini-3.5-flash' })
         )
         .reply(201, { plan })
 
       // When
-      const result = await client.genererPlan(profile)
+      const result = await client.genererPlan(unProfil)
 
       // Then
-      expect(result).to.deep.equal(success(plan))
+      expect(result).to.deep.equal(success(toSuggestion(plan)))
     })
 
     it('renvoie une 502 quand le service refuse le profil (400)', async () => {
@@ -108,7 +138,7 @@ describe('PlanActionClient', () => {
         .reply(400, { message: 'Invalid request body' })
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(
@@ -121,7 +151,7 @@ describe('PlanActionClient', () => {
       nock(apiUrl).post('/v1/action-plans').reply(500)
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(
@@ -134,7 +164,7 @@ describe('PlanActionClient', () => {
       nock(apiUrl).post('/v1/action-plans').reply(201, {})
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(
@@ -149,7 +179,7 @@ describe('PlanActionClient', () => {
         .reply(201, { plan: { id: 'plan-1' } })
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(
@@ -172,7 +202,52 @@ describe('PlanActionClient', () => {
         })
 
       // When
-      const result = await planActionClient.genererPlan(profile)
+      const result = await planActionClient.genererPlan(unProfil)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
+    it("renvoie une 502 quand le plan n'a pas de generatedAt", async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, {
+          plan: {
+            id: 'plan-1',
+            greeting: 'Salut !',
+            objectives: [],
+            generator: 'fallback'
+          }
+        })
+
+      // When
+      const result = await planActionClient.genererPlan(unProfil)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
+      )
+    })
+
+    it('renvoie une 502 quand generatedAt est une date invalide', async () => {
+      // Given
+      nock(apiUrl)
+        .post('/v1/action-plans')
+        .reply(201, {
+          plan: {
+            id: 'plan-1',
+            greeting: 'Salut !',
+            objectives: [],
+            generatedAt: 'pas-une-date',
+            generator: 'fallback'
+          }
+        })
+
+      // When
+      const result = await planActionClient.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(
@@ -195,7 +270,7 @@ describe('PlanActionClient', () => {
       nock(apiUrl).post('/v1/action-plans').delay(50).reply(201, { plan: {} })
 
       // When
-      const result = await client.genererPlan(profile)
+      const result = await client.genererPlan(unProfil)
 
       // Then
       expect(result).to.deep.equal(

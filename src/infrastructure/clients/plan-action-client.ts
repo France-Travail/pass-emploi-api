@@ -1,19 +1,23 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AxiosError } from 'axios'
+import { DateTime } from 'luxon'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
+import { PlanAction } from '../../domain/plan-action/plan-action'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
 import { ExternalApiClient } from './external-api-client'
 import {
   GenererPlanActionRequestDto,
-  GenererPlanActionResponseDto,
-  PlanDto,
-  ProfileDto
+  GenererPlanActionResponseDto
 } from './dto/plan-action.dto'
+import { toProfileDto, toSuggestion } from './mappers/plan-action-poc.mapper'
 
 @Injectable()
-export class PlanActionClient extends ExternalApiClient {
+export class PlanActionClient
+  extends ExternalApiClient
+  implements PlanAction.Generateur
+{
   private readonly apiUrl: string
   private readonly apiKey: string
   private readonly timeoutMs: number
@@ -31,10 +35,12 @@ export class PlanActionClient extends ExternalApiClient {
     this.modele = configPlanAction.modele
   }
 
-  async genererPlan(profile: ProfileDto): Promise<Result<PlanDto>> {
+  async genererPlan(
+    profil: PlanAction.Profil
+  ): Promise<Result<PlanAction.Suggestion>> {
     try {
       const body: GenererPlanActionRequestDto = {
-        profile,
+        profile: toProfileDto(profil),
         ...(this.modele ? { model: this.modele } : {})
       }
 
@@ -51,12 +57,13 @@ export class PlanActionClient extends ExternalApiClient {
       if (
         !plan ||
         !Array.isArray(plan.objectives) ||
-        plan.objectives.some(objective => !Array.isArray(objective.actions))
+        plan.objectives.some(objective => !Array.isArray(objective.actions)) ||
+        !estDateGenerationValide(plan.generatedAt)
       ) {
         return failure(new ErreurHttp(PLAN_ACTION_ECHEC, 502))
       }
 
-      return success(plan)
+      return success(toSuggestion(plan))
     } catch (e) {
       return handlePlanActionError(e)
     }
@@ -65,7 +72,16 @@ export class PlanActionClient extends ExternalApiClient {
 
 const PLAN_ACTION_ECHEC = "La génération du plan d'action a échoué"
 
-function handlePlanActionError(error: AxiosError): Result<PlanDto> {
+function estDateGenerationValide(generatedAt: string | undefined): boolean {
+  return (
+    typeof generatedAt === 'string' &&
+    DateTime.fromISO(generatedAt, { setZone: true }).isValid
+  )
+}
+
+function handlePlanActionError(
+  error: AxiosError
+): Result<PlanAction.Suggestion> {
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return failure(
       new ErreurHttp(

@@ -80,6 +80,7 @@
     "tasks:creer-tables-ae-annuelles": "IS_WEB=false TASK_NAME=CREER_TABLES_AE_ANNUELLES_ANALYTICS node dist/main",
     "tasks:creer-vue-ae-mensuelle": "IS_WEB=false TASK_NAME=CREER_VUE_AE_MENSUELLE node dist/main",
     "tasks:notifier-bonne-alternance": "IS_WEB=false TASK_NAME=NOTIFIER_BONNE_ALTERNANCE node dist/main",
+    "tasks:maj-referentiel-plan-action": "IS_WEB=false TASK_NAME=MAJ_REFERENTIEL_PLAN_ACTION node dist/main",
     "seed:migration-test": "node dist/scripts/seed-migration-test.js",
     "cleanup:migration-test": "node dist/scripts/cleanup-migration-test.js",
     "simulation:cleanup:recherches-doublons": "node dist/scripts/purger-recherches-doublons.js",

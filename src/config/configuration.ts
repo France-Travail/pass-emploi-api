@@ -111,6 +111,14 @@ export default () => {
       timeoutMs: process.env.PLAN_ACTION_TIMEOUT_MS || 15000,
       modele: process.env.PLAN_ACTION_MODELE || undefined
     },
+    grist: {
+      url: process.env.GRIST_API_URL,
+      apiKey: process.env.GRIST_API_KEY,
+      docId: process.env.GRIST_DOC_ID,
+      tableServices: process.env.GRIST_TABLE_SERVICES || 'Services',
+      tableSolutions: process.env.GRIST_TABLE_SOLUTIONS || 'Solutions',
+      timeoutMs: process.env.GRIST_TIMEOUT_MS || 20000
+    },
     jecliqueoupas: {
       url: process.env.JECLIQUEOUPAS_API_URL,
       ip: process.env.JECLIQUEOUPAS_API_IP,
@@ -283,6 +291,16 @@ export default () => {
           process.env.JOB_MAJ_AGENCES_FT_POURCENTAGE_SUPPRESSIONS_MAX ?? '2',
         nombreSuppressionsMin:
           process.env.JOB_MAJ_AGENCES_FT_NOMBRE_SUPPRESSIONS_MIN ?? '5'
+      },
+      majReferentielPlanAction: {
+        dryRun: process.env.JOB_MAJ_REFERENTIEL_PLAN_ACTION_DRY_RUN === 'true',
+        pourcentageDesactivationsMax:
+          process.env
+            .JOB_MAJ_REFERENTIEL_PLAN_ACTION_POURCENTAGE_DESACTIVATIONS_MAX ??
+          '10',
+        nombreDesactivationsMin:
+          process.env
+            .JOB_MAJ_REFERENTIEL_PLAN_ACTION_NOMBRE_DESACTIVATIONS_MIN ?? '5'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',

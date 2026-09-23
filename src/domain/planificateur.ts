@@ -115,7 +115,8 @@ export namespace Planificateur {
     NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
-    MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT'
+    MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
+    MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION'
   }
 
   export interface JobRendezVous {
@@ -329,6 +330,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     expression: '0 4 1 * *',
     description:
       'Le 1er de chaque mois à 4h. Mise à jour du référentiel des agences France Travail.'
+  },
+  {
+    type: Planificateur.JobType.MAJ_REFERENTIEL_PLAN_ACTION,
+    expression: '0 5 1 * *',
+    description:
+      "Le 1er de chaque mois à 5h. Mise à jour du référentiel du plan d'action depuis Grist."
   }
 ]
 

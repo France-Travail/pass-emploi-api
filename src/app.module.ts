@@ -145,6 +145,7 @@ import { UpdateUtilisateurCommandHandler } from './application/commands/update-u
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPilotageForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-pilotage-for-analytics.job'
@@ -165,6 +166,7 @@ import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evene
 import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
 import { ReconcilierAgencesFTJobHandler } from './application/jobs/reconcilier-agences-ft.job.handler.db'
 import { MajReferentielAgencesFTJobHandler } from './application/jobs/maj-referentiel-agences-ft.job.handler.db'
+import { MajReferentielPlanActionJobHandler } from './application/jobs/maj-referentiel-plan-action.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
 import { MonitorJobsJobHandler } from './application/jobs/monitor-jobs.job.handler.db'
 import { NettoyerLesDonneesJobHandler } from './application/jobs/nettoyer-les-donnees.job.handler.db'
@@ -344,6 +346,12 @@ import {
   SuggestionsRepositoryToken
 } from './domain/offre/recherche/suggestion/suggestion'
 import {
+  GenerateurDePlanActionToken,
+  PlanAction,
+  PlanActionRepositoryToken
+} from './domain/plan-action/plan-action'
+import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
+import {
   PlanificateurRepositoryToken,
   PlanificateurService
 } from './domain/planificateur'
@@ -361,6 +369,7 @@ import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
 import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
+import { GristClient } from './infrastructure/clients/grist-client'
 import { ImmersionClient } from './infrastructure/clients/immersion-client'
 import { InvitationIcsClient } from './infrastructure/clients/invitation-ics.client'
 import { MailBrevoService } from './infrastructure/clients/mail-brevo.service.db'
@@ -379,6 +388,8 @@ import {
 } from './infrastructure/clients/pole-emploi-partenaire-client.db'
 import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
+import { PlanActionSqlRepository } from './infrastructure/repositories/plan-action/plan-action-sql.repository.db'
+import { ReferentielPlanActionSqlRepository } from './infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -524,6 +535,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ExternalApiLoggerService,
     RateLimiterService,
     PoleEmploiClient,
+    GristClient,
     CacheApiPartenaireService,
     MiloClient,
     MiloClientV1,
@@ -565,6 +577,15 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ActualiteMilo.Factory,
     DiagorienteClient,
     PlanActionClient,
+    PlanAction.Factory,
+    {
+      provide: GenerateurDePlanActionToken,
+      useExisting: PlanActionClient
+    },
+    {
+      provide: PlanActionRepositoryToken,
+      useClass: PlanActionSqlRepository
+    },
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard
@@ -660,6 +681,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: AgenceRepositoryToken,
       useClass: AgenceSqlRepository
+    },
+    {
+      provide: ReferentielPlanActionRepositoryToken,
+      useClass: ReferentielPlanActionSqlRepository
     },
     {
       provide: MailRepositoryToken,
@@ -809,6 +834,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
+    RecupererPlanActionQueryHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
@@ -991,6 +1017,7 @@ export const JobHandlerProviders = [
   EnvoyerEmailsMessagesConseillersJobHandler,
   NotifierRecherchesOffreEmploiJobHandler,
   RecupererSituationsJeunesMiloJobHandler,
+  MajReferentielPlanActionJobHandler,
   MajCodesEvenementsJobHandler,
   NotifierRappelInstanceSessionMiloJobHandler,
   NotifierRendezVousPEJobHandler,

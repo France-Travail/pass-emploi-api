@@ -9,6 +9,8 @@ export enum TypeActionPlan {
 export enum DestinationActionPlan {
   OFFRES_ALTERNANCE = 'OFFRES_ALTERNANCE',
   OFFRES_SERVICE_CIVIQUE = 'OFFRES_SERVICE_CIVIQUE',
+  OFFRES_EMPLOI = 'OFFRES_EMPLOI',
+  ALLER_VERS = 'ALLER_VERS',
   EVENEMENTS = 'EVENEMENTS'
 }
 
@@ -61,6 +63,14 @@ export class PlanActionQueryModel {
 
   @ApiProperty()
   generateur: string
+
+  @ApiProperty({ type: [ObjectivePlanActionQueryModel] })
+  objectives: ObjectivePlanActionQueryModel[]
+}
+
+export class PlanActionConnecteQueryModel {
+  @ApiProperty()
+  id: string
 
   @ApiProperty({ type: [ObjectivePlanActionQueryModel] })
   objectives: ObjectivePlanActionQueryModel[]

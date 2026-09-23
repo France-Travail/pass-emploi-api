@@ -76,6 +76,14 @@ export const configurationSchema = Joi.object({
     timeoutMs: Joi.number().default(15000),
     modele: Joi.string().optional()
   },
+  grist: Joi.object({
+    url: Joi.string().uri().required(),
+    apiKey: Joi.string().required(),
+    docId: Joi.string().required(),
+    tableServices: Joi.string().required(),
+    tableSolutions: Joi.string().required(),
+    timeoutMs: Joi.number().required()
+  }),
   jecliqueoupas: {
     url: Joi.string().uri().required(),
     ip: Joi.string().ip({ version: 'ipv4' }).required(),
@@ -216,6 +224,11 @@ export const configurationSchema = Joi.object({
       dryRun: Joi.boolean().required(),
       pourcentageSuppressionsMax: Joi.number().required(),
       nombreSuppressionsMin: Joi.number().required()
+    }),
+    majReferentielPlanAction: Joi.object({
+      dryRun: Joi.boolean().required(),
+      pourcentageDesactivationsMax: Joi.number().required(),
+      nombreDesactivationsMin: Joi.number().required()
     })
   }),
   version: Joi.string().required(),
