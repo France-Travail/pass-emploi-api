@@ -1,7 +1,7 @@
 import { PlanAction } from 'src/domain/plan-action/plan-action'
 import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-action'
 import { Profil } from 'src/domain/profil'
-import { MauvaiseCommandeError } from 'src/building-blocks/types/domain-error'
+import { ErreurHttp } from 'src/building-blocks/types/domain-error'
 import { failure, isSuccess } from 'src/building-blocks/types/result'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
@@ -115,7 +115,7 @@ describe('PlanAction.Factory', () => {
     }
   })
 
-  it('échoue quand aucun objectif ne survit au filtrage', () => {
+  it('échoue en 502 quand aucun objectif ne survit au filtrage', () => {
     // When
     const result = factory.creer('jeune-1', uneSuggestion([['inconnue']]), [
       uneSolution('p-2')
@@ -124,8 +124,9 @@ describe('PlanAction.Factory', () => {
     // Then
     expect(result).to.deep.equal(
       failure(
-        new MauvaiseCommandeError(
-          "Aucune solution du plan d'action généré n'est présente dans le référentiel"
+        new ErreurHttp(
+          "Aucune solution du plan d'action généré n'est présente dans le référentiel",
+          502
         )
       )
     )

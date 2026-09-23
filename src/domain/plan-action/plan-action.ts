@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Profil } from '../profil'
 import { IdService } from '../../utils/id-service'
@@ -86,8 +86,8 @@ export namespace PlanAction {
   export interface Profil {
     structure: ProfilStructure
     situation: string
-    besoins: Besoin[]
-    contraintes: Contrainte[]
+    besoins: string[]
+    contraintes: string[]
     dateNaissance?: DateTime
     domaine?: string
     habitation?: Commune
@@ -142,8 +142,9 @@ export namespace PlanAction {
 
       if (!objectifs.length) {
         return failure(
-          new MauvaiseCommandeError(
-            "Aucune solution du plan d'action généré n'est présente dans le référentiel"
+          new ErreurHttp(
+            "Aucune solution du plan d'action généré n'est présente dans le référentiel",
+            502
           )
         )
       }

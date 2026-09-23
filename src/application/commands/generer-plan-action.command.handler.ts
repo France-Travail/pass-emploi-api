@@ -27,10 +27,7 @@ import {
   Profil,
   TOUT_INVITE
 } from '../../domain/profil'
-import {
-  GenererPlanActionPayload,
-  ObstaclePayload
-} from '../../infrastructure/routes/validation/plan-action.inputs'
+import { GenererPlanActionPayload } from '../../infrastructure/routes/validation/plan-action.inputs'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
@@ -39,6 +36,10 @@ import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-
 export interface GenererPlanActionCommand {
   idJeune: string
   payload: GenererPlanActionPayload
+  compteursReferentiel?: {
+    idsRecus: number
+    idsInconnus: number
+  }
 }
 
 @Injectable()
@@ -96,6 +97,12 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     const solutions =
       await this.referentielRepository.trouverSolutions(idsSolutions)
 
+    const idsConnus = new Set(solutions.map(solution => solution.id))
+    command.compteursReferentiel = {
+      idsRecus: idsSolutions.length,
+      idsInconnus: idsSolutions.filter(id => !idsConnus.has(id)).length
+    }
+
     const plan = this.planActionFactory.creer(
       command.idJeune,
       suggestion.data,
@@ -133,6 +140,16 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
         : {}),
       ...(command.payload.obstacles?.length
         ? { plan_action_obstacles: command.payload.obstacles }
+        : {}),
+      ...(command.compteursReferentiel
+        ? {
+            plan_action_ids_recus: String(
+              command.compteursReferentiel.idsRecus
+            ),
+            plan_action_ids_inconnus: String(
+              command.compteursReferentiel.idsInconnus
+            )
+          }
         : {})
     }
     if (isSuccess(result)) {
@@ -146,6 +163,8 @@ function toProfil(
   payload: GenererPlanActionPayload,
   structure: Profil.Structure
 ): PlanAction.Profil {
+  // setZone conserve le décalage écrit dans la chaîne, pour que la date
+  // civile ne glisse pas d'un jour au passage dans le fuseau du serveur.
   const dateNaissance = payload.dateNaissance
     ? DateTime.fromISO(payload.dateNaissance, { setZone: true })
     : undefined
@@ -153,8 +172,8 @@ function toProfil(
   return {
     structure,
     situation: payload.situation,
-    besoins: payload.goals.map(goal => goal as unknown as PlanAction.Besoin),
-    contraintes: toContraintes(payload.obstacles ?? []),
+    besoins: payload.goals,
+    contraintes: payload.obstacles ?? [],
     ...(dateNaissance?.isValid ? { dateNaissance } : {}),
     ...(payload.domaine ? { domaine: payload.domaine } : {}),
     ...(payload.habitation ? { habitation: payload.habitation } : {}),
@@ -163,12 +182,4 @@ function toProfil(
       : {}),
     ...(payload.rayonKm !== undefined ? { rayonKm: payload.rayonKm } : {})
   }
-}
-
-function toContraintes(obstacles: ObstaclePayload[]): PlanAction.Contrainte[] {
-  const contraintesConnues = new Set(Object.values(PlanAction.Contrainte))
-
-  return Array.from(new Set(obstacles))
-    .map(obstacle => obstacle as unknown as PlanAction.Contrainte)
-    .filter(contrainte => contraintesConnues.has(contrainte))
 }

@@ -1,6 +1,9 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
-import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
+import {
+  GenererPlanActionCommand,
+  GenererPlanActionCommandHandler
+} from '../../../src/application/commands/generer-plan-action.command.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import { TypeActionPlan } from '../../../src/application/queries/query-models/plan-action.query-model'
@@ -12,8 +15,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import {
   DroitsInsuffisants,
-  ErreurHttp,
-  MauvaiseCommandeError
+  ErreurHttp
 } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
@@ -52,13 +54,7 @@ describe('GenererPlanActionCommandHandler', () => {
   const utilisateur = unUtilisateurJeune({
     profil: unProfilInvite()
   })
-  const command = {
-    idJeune: utilisateur.id,
-    payload: {
-      situation: SituationPayload.LYCEE,
-      goals: [GoalPayload.ALTERNANCE]
-    }
-  }
+  let command: GenererPlanActionCommand
 
   function uneSuggestion(): PlanAction.Suggestion {
     return {
@@ -118,6 +114,13 @@ describe('GenererPlanActionCommandHandler', () => {
     planActionRepository = stubInterface(sandbox)
     planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
+    command = {
+      idJeune: utilisateur.id,
+      payload: {
+        situation: SituationPayload.LYCEE,
+        goals: [GoalPayload.ALTERNANCE]
+      }
+    }
 
     handler = new GenererPlanActionCommandHandler(
       jeuneAuthorizer,
@@ -250,8 +253,9 @@ describe('GenererPlanActionCommandHandler', () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
       const echec = failure(
-        new MauvaiseCommandeError(
-          "Aucune solution du plan d'action généré n'est présente dans le référentiel"
+        new ErreurHttp(
+          "Aucune solution du plan d'action généré n'est présente dans le référentiel",
+          502
         )
       )
       generateur.genererPlan.resolves(success(uneSuggestion()))
@@ -315,7 +319,7 @@ describe('GenererPlanActionCommandHandler', () => {
       )
     })
 
-    it('un payload ne portant que RIEN_NE_ME_BLOQUE produit des contraintes vides sans échouer', async () => {
+    it('transmet RIEN_NE_ME_BLOQUE au générateur sans le filtrer', async () => {
       // Given
       const commandeSansObstacle = {
         idJeune: utilisateur.id,
@@ -334,9 +338,32 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(generateur.genererPlan).to.have.been.calledWithMatch({
-        contraintes: []
+        contraintes: [ObstaclePayload.RIEN_NE_ME_BLOQUE]
       })
       expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('transmet AUTRE au générateur sans le filtrer', async () => {
+      // Given
+      const commandeAvecAutre = {
+        idJeune: utilisateur.id,
+        payload: {
+          situation: SituationPayload.LYCEE,
+          goals: [GoalPayload.ALTERNANCE],
+          obstacles: [ObstaclePayload.AUTRE]
+        }
+      }
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
+
+      // When
+      await handler.handle(commandeAvecAutre, utilisateur)
+
+      // Then
+      expect(generateur.genererPlan).to.have.been.calledWithMatch({
+        contraintes: [ObstaclePayload.AUTRE]
+      })
     })
 
     it('transmet un domaine renseigné au profil passé au générateur', async () => {
@@ -441,9 +468,33 @@ describe('GenererPlanActionCommandHandler', () => {
         labels: {
           plan_action_generateur: 'fallback',
           plan_action_situation: SituationPayload.LYCEE,
-          plan_action_goals: [GoalPayload.ALTERNANCE]
+          plan_action_goals: [GoalPayload.ALTERNANCE],
+          plan_action_ids_recus: '1',
+          plan_action_ids_inconnus: '0'
         }
       })
+    })
+
+    it("trace le nombre d'identifiants de solution inconnus du référentiel", async () => {
+      // Given
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([])
+      planActionFactory.creer.returns(
+        failure(
+          new ErreurHttp(
+            "Aucune solution du plan d'action généré n'est présente dans le référentiel",
+            502
+          )
+        )
+      )
+
+      // When
+      await handler.execute(command, utilisateur)
+
+      // Then
+      const labels = logInfo.firstCall.args[0].labels
+      expect(labels.plan_action_ids_recus).to.equal('1')
+      expect(labels.plan_action_ids_inconnus).to.equal('1')
     })
 
     it('trace les choix du jeune sans générateur quand la génération échoue', async () => {
