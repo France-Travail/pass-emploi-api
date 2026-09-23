@@ -404,8 +404,7 @@ describe('RecherchesController', () => {
             {
               idJeune: '1',
               accessToken: 'coucou',
-              profil: unProfilFT(),
-              avecDiagoriente: false
+              profil: unProfilFT()
             },
             unUtilisateurDecodePoleEmploi()
           )
@@ -456,8 +455,7 @@ describe('RecherchesController', () => {
           {
             idJeune: '1',
             accessToken: 'coucou',
-            profil: unProfilMilo(),
-            avecDiagoriente: true
+            profil: unProfilMilo()
           },
           unUtilisateurDecode()
         )

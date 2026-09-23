@@ -169,8 +169,7 @@ export class RecherchesJeunesController {
       {
         idJeune,
         accessToken: accessToken,
-        profil: utilisateur.profil,
-        avecDiagoriente
+        profil: utilisateur.profil
       },
       utilisateur
     )

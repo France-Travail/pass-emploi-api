@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { DiagorienteClient } from 'src/infrastructure/clients/diagoriente-client'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Command } from '../../building-blocks/types/command'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
@@ -29,7 +28,6 @@ export interface RafraichirSuggestionsCommand extends Command {
   idJeune: string
   accessToken: string
   profil: Profil
-  avecDiagoriente: boolean
 }
 
 @Injectable()
@@ -45,7 +43,6 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
     private jeuneAuthorizer: JeuneAuthorizer,
     private suggestionFactory: Suggestion.Factory,
     private suggestionPoleEmploiService: SuggestionPoleEmploiService,
-    private readonly diagorienteClient: DiagorienteClient,
     @Inject(SuggestionsPoleEmploiRepositoryToken)
     private suggestionPoleEmploiRepository: Suggestion.PoleEmploi.Repository,
     private oidcClient: OidcClient
@@ -59,75 +56,42 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
 
+    if (!estBeneficiaireFTConnect(command.profil)) {
+      return emptySuccess()
+    }
+
     let suggestionsPE: Suggestion[] = []
-    let suggestionsDiagoriente: Suggestion[] = []
-    const rafraichirSuggestionsPE = estBeneficiaireFTConnect(command.profil)
-    const rafraichirSuggestionsDiagoriente = command.avecDiagoriente
+    try {
+      const idpToken = await this.oidcClient.exchangeToken(
+        command.accessToken,
+        jeune.structure
+      )
 
-    if (rafraichirSuggestionsPE) {
-      try {
-        const idpToken = await this.oidcClient.exchangeToken(
-          command.accessToken,
-          jeune.structure
-        )
+      const suggestionsPEResult =
+        await this.suggestionPoleEmploiRepository.findAll(idpToken)
 
-        const suggestionsPEResult =
-          await this.suggestionPoleEmploiRepository.findAll(idpToken)
-
-        if (isFailure(suggestionsPEResult)) {
-          this.logger.error(
-            buildError(
-              `Impossible de récupérer les suggestions depuis PE`,
-              Error(suggestionsPEResult.error.message)
-            )
-          )
-        } else {
-          suggestionsPE =
-            this.suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi(
-              suggestionsPEResult.data,
-              command.idJeune,
-              command.profil
-            )
-        }
-      } catch (e) {
-        this.logger.error(buildError(`Erreur récupération suggestions PE`, e))
-      }
-    }
-
-    if (rafraichirSuggestionsDiagoriente) {
-      try {
-        const metiersFavorisDiagorienteResult =
-          await this.diagorienteClient.getMetiersFavoris(jeune.id)
-
-        if (isFailure(metiersFavorisDiagorienteResult)) {
-          this.logger.error(
-            buildError(
-              'Impossible de récupérer les métiers favoris depuis Diagoriente',
-              Error(metiersFavorisDiagorienteResult.error.message)
-            )
-          )
-        } else {
-          const metiersFavorisDiagoriente =
-            metiersFavorisDiagorienteResult.data.data.userByPartner?.favorites.filter(
-              favori => favori.favorited
-            ) ?? []
-          suggestionsDiagoriente =
-            this.suggestionFactory.buildListeSuggestionsOffresFromDiagoriente(
-              metiersFavorisDiagoriente,
-              command.idJeune
-            )
-        }
-      } catch (e) {
+      if (isFailure(suggestionsPEResult)) {
         this.logger.error(
-          buildError(`Erreur récupération suggestions Diagoriente`, e)
+          buildError(
+            `Impossible de récupérer les suggestions depuis PE`,
+            Error(suggestionsPEResult.error.message)
+          )
         )
+      } else {
+        suggestionsPE =
+          this.suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi(
+            suggestionsPEResult.data,
+            command.idJeune,
+            command.profil
+          )
       }
+    } catch (e) {
+      this.logger.error(buildError(`Erreur récupération suggestions PE`, e))
     }
 
-    const suggestionsARafraichir = [...suggestionsPE, ...suggestionsDiagoriente]
-    if (suggestionsARafraichir.length > 0) {
+    if (suggestionsPE.length > 0) {
       await this.suggestionPoleEmploiService.rafraichir(
-        suggestionsARafraichir,
+        suggestionsPE,
         command.idJeune
       )
     }

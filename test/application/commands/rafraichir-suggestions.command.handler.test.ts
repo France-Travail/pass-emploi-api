@@ -19,9 +19,6 @@ import { SuggestionPoleEmploiService } from '../../../src/domain/offre/recherche
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Profil, TOUT_CONSEIL_DEPARTEMENTAL } from '../../../src/domain/profil'
 import { unJeune } from '../../fixtures/jeune.fixture'
-import { DiagorienteClient } from 'src/infrastructure/clients/diagoriente-client'
-import { Diagoriente } from 'src/domain/offre/recherche/suggestion/diagoriente'
-import { Recherche } from 'src/domain/offre/recherche/recherche'
 import { RafraichirSuggestionsCommandHandler } from 'src/application/commands/rafraichir-suggestions.command.handler'
 import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
@@ -31,7 +28,6 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let suggestionFactory: StubbedClass<Suggestion.Factory>
   let suggestionPoleEmploiService: StubbedClass<SuggestionPoleEmploiService>
-  let diagorienteClient: StubbedClass<DiagorienteClient>
   let suggestionPoleEmploiRepository: StubbedType<Suggestion.PoleEmploi.Repository>
   let oidcClient: StubbedClass<OidcClient>
   const jeune = unJeune()
@@ -42,7 +38,6 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     suggestionFactory = stubClass(Suggestion.Factory)
     suggestionPoleEmploiService = stubClass(SuggestionPoleEmploiService)
-    diagorienteClient = stubClass(DiagorienteClient)
     suggestionPoleEmploiRepository = stubInterface(sandbox)
     oidcClient = stubClass(OidcClient)
     handler = new RafraichirSuggestionsCommandHandler(
@@ -50,7 +45,6 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
       jeuneAuthorizer,
       suggestionFactory,
       suggestionPoleEmploiService,
-      diagorienteClient,
       suggestionPoleEmploiRepository,
       oidcClient
     )
@@ -66,8 +60,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         {
           idJeune: 'idJeune',
           accessToken: 'token',
-          profil: unProfilFT(),
-          avecDiagoriente: false
+          profil: unProfilFT()
         },
         utilisateur
       )
@@ -88,67 +81,18 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
     })
 
     describe("quand l'utilisateur a une structure MILO", () => {
-      it('recupere suggestions PE et Diagoriente', async () => {
-        const suggestionDiagoriente: Diagoriente = {
-          tag: {
-            code: 'B1301',
-            id: '1',
-            title: "Décoration d'espaces de vente et d'exposition"
-          },
-          id: '1',
-          favorited: true
-        }
-
-        const suggestionDiagorienteOffreEmploi: Suggestion = uneSuggestion({
-          source: Suggestion.Source.DIAGORIENTE,
-          type: Recherche.Type.OFFRES_EMPLOI,
-          informations: {
-            metier: suggestionDiagoriente.tag.title,
-            titre: suggestionDiagoriente.tag.title
-          }
-        })
-
-        const suggestionDiagorienteImmersion: Suggestion = uneSuggestion({
-          source: Suggestion.Source.DIAGORIENTE,
-          type: Recherche.Type.OFFRES_IMMERSION,
-          informations: {
-            metier: suggestionDiagoriente.tag.title,
-            titre: suggestionDiagoriente.tag.title
-          }
-        })
-
-        diagorienteClient.getMetiersFavoris.resolves(
-          success({
-            data: {
-              userByPartner: {
-                favorites: [suggestionDiagoriente]
-              }
-            }
-          })
-        )
-
-        suggestionFactory.buildListeSuggestionsOffresFromDiagoriente
-          .withArgs([suggestionDiagoriente], 'idJeune')
-          .returns([
-            suggestionDiagorienteOffreEmploi,
-            suggestionDiagorienteImmersion
-          ])
-
+      it("n'appelle pas Pole Emploi et ne rafraichit rien", async () => {
         // When
-        await handler.handle({
+        const result = await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          profil: unProfilMilo(),
-          avecDiagoriente: true
+          profil: unProfilMilo()
         })
 
         // Then
-        expect(
-          suggestionPoleEmploiService.rafraichir
-        ).to.have.been.calledWithExactly(
-          [suggestionDiagorienteOffreEmploi, suggestionDiagorienteImmersion],
-          'idJeune'
-        )
+        expect(result).to.deep.equal(emptySuccess())
+        expect(suggestionPoleEmploiRepository.findAll).not.to.have.been.called()
+        expect(suggestionPoleEmploiService.rafraichir).not.to.have.been.called()
       })
     })
 
@@ -167,8 +111,7 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          profil: unProfilFT(),
-          avecDiagoriente: false
+          profil: unProfilFT()
         })
 
         // Then
@@ -176,88 +119,12 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
           suggestionPoleEmploiService.rafraichir
         ).to.have.been.calledWithExactly([uneSuggestion()], 'idJeune')
       })
-      it('récupère les métiers favoris diagoriente et rafraichit les suggestions', async () => {
-        const suggestionDiagoriente: Diagoriente = {
-          tag: {
-            code: 'B1301',
-            id: '1',
-            title: "Décoration d'espaces de vente et d'exposition"
-          },
-          id: '1',
-          favorited: true
-        }
-
-        const suggestionDiagorienteOffreEmploi: Suggestion = uneSuggestion({
-          source: Suggestion.Source.DIAGORIENTE,
-          type: Recherche.Type.OFFRES_EMPLOI,
-          informations: {
-            titre: suggestionDiagoriente.tag.title
-          }
-        })
-
-        const suggestionDiagorienteImmersion: Suggestion = uneSuggestion({
-          source: Suggestion.Source.DIAGORIENTE,
-          type: Recherche.Type.OFFRES_IMMERSION,
-          informations: {
-            titre: suggestionDiagoriente.tag.title
-          }
-        })
-
-        // Given
-        suggestionPoleEmploiRepository.findAll
-          .withArgs('idpToken')
-          .resolves(success([uneSuggestionPE()]))
-
-        diagorienteClient.getMetiersFavoris.resolves(
-          success({
-            data: {
-              userByPartner: {
-                favorites: [suggestionDiagoriente]
-              }
-            }
-          })
-        )
-
-        suggestionFactory.buildListeSuggestionsOffresFromPoleEmploi
-          .withArgs([uneSuggestionPE()], 'idJeune', unProfilFT())
-          .returns([uneSuggestion()])
-
-        suggestionFactory.buildListeSuggestionsOffresFromDiagoriente
-          .withArgs([suggestionDiagoriente], 'idJeune')
-          .returns([
-            suggestionDiagorienteOffreEmploi,
-            suggestionDiagorienteImmersion
-          ])
-
-        // When
-        await handler.handle({
-          idJeune: 'idJeune',
-          accessToken: 'token',
-          profil: unProfilFT(),
-          avecDiagoriente: true
-        })
-
-        // Then
-        expect(
-          suggestionPoleEmploiService.rafraichir
-        ).to.have.been.calledWithExactly(
-          [
-            uneSuggestion(),
-            suggestionDiagorienteOffreEmploi,
-            suggestionDiagorienteImmersion
-          ],
-          'idJeune'
-        )
-      })
     })
 
-    describe('quand Pole Emploi et Diago sont down', () => {
+    describe('quand Pole Emploi est down', () => {
       it("ne retourne pas l'erreur", async () => {
         // Given
         suggestionPoleEmploiRepository.findAll.resolves(
-          failure(new ErreurHttp('Service down', 500))
-        )
-        diagorienteClient.getMetiersFavoris.resolves(
           failure(new ErreurHttp('Service down', 500))
         )
 
@@ -265,12 +132,12 @@ describe('RafraichirSuggestionPoleEmploiCommandHandler', () => {
         const result = await handler.handle({
           idJeune: 'idJeune',
           accessToken: 'token',
-          profil: unProfilFT(),
-          avecDiagoriente: true
+          profil: unProfilFT()
         })
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
+        expect(suggestionPoleEmploiService.rafraichir).not.to.have.been.called()
       })
     })
   })

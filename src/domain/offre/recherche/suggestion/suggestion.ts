@@ -13,7 +13,6 @@ import {
   Result,
   success
 } from '../../../../building-blocks/types/result'
-import { Diagoriente } from './diagoriente'
 import { DiagorienteInformationsPayload } from 'src/infrastructure/routes/validation/suggestions-inputs'
 import { aAccesAuxAlternancesEtServicesCiviques, Profil } from '../../../profil'
 
@@ -110,67 +109,6 @@ export namespace Suggestion {
       private idService: IdService,
       private dateService: DateService
     ) {}
-
-    buildListeSuggestionsOffresFromDiagoriente(
-      suggestionsDiagoriente: Diagoriente[],
-      idJeune: string
-    ): Suggestion[] {
-      const maintenant = this.dateService.now()
-      const suggestions = suggestionsDiagoriente.map(suggestion => {
-        return [
-          this.creerSuggestionDiagoriente(
-            suggestion,
-            Recherche.Type.OFFRES_EMPLOI,
-            idJeune,
-            maintenant
-          ),
-          this.creerSuggestionDiagoriente(
-            suggestion,
-            Recherche.Type.OFFRES_IMMERSION,
-            idJeune,
-            maintenant
-          )
-        ]
-      })
-      return suggestions.flat()
-    }
-
-    private creerSuggestionDiagoriente(
-      suggestionDiagoriente: Diagoriente,
-      type: Recherche.Type,
-      idJeune: string,
-      maintenant: DateTime
-    ): Suggestion {
-      return {
-        id: this.idService.uuid(),
-        idJeune,
-        dateCreation: maintenant,
-        dateRafraichissement: maintenant,
-        idFonctionnel: this.construireIdFonctionnelDiagoriente(
-          suggestionDiagoriente,
-          type
-        ),
-        type: type,
-        source: Suggestion.Source.DIAGORIENTE,
-        informations: {
-          titre: suggestionDiagoriente.tag.title,
-          metier: suggestionDiagoriente.tag.title
-        },
-        criteres: undefined
-      }
-    }
-
-    private construireIdFonctionnelDiagoriente(
-      suggestion: Diagoriente,
-      type: Recherche.Type
-    ): Suggestion.IdFonctionnel {
-      return {
-        typeRecherche: type,
-        codeRome: suggestion.tag.code,
-        rayon: Recherche.DISTANCE_PAR_DEFAUT,
-        libelle: suggestion.tag.title
-      }
-    }
 
     buildListeSuggestionsOffresFromPoleEmploi(
       suggestionsPoleEmploi: PoleEmploi[],
