@@ -4,6 +4,7 @@
 /scripts/node_modules
 
 # Logs
+log*
 logs.txt
 logs/
 logs
