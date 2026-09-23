@@ -11,6 +11,7 @@ import {
   success
 } from '../../../building-blocks/types/result'
 import { Communication } from '../../../domain/communication'
+import { Notification } from '../../../domain/notification/notification'
 import {
   Population,
   PopulationRepositoryToken
@@ -28,6 +29,8 @@ export interface CreerCommunicationCommand extends Command {
   ctaLabel?: string
   ctaUrlAndroid?: string
   ctaUrlIos?: string
+  typeNotification?: Notification.Type
+  push?: boolean
 }
 
 export interface CommunicationCreee {
@@ -77,7 +80,13 @@ export class CreerCommunicationCommandHandler extends CommandHandler<
       contenu: communication.contenu,
       ctaLabel: communication.ctaLabel ?? null,
       ctaUrlAndroid: communication.ctaUrlAndroid ?? null,
-      ctaUrlIos: communication.ctaUrlIos ?? null
+      ctaUrlIos: communication.ctaUrlIos ?? null,
+      typeNotification: communication.typeNotification ?? null,
+      push: communication.push ?? null,
+      statutEnvoi:
+        communication.type === Communication.Type.NOTIFICATION
+          ? Communication.StatutEnvoi.A_ENVOYER
+          : null
     })
     return success({ id: enregistree.id })
   }

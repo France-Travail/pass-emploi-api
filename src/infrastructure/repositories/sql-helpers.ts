@@ -74,6 +74,18 @@ export function sqlJoinConseillersDestinataires(
      AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}`
 }
 
+// Jointure de la communication `aliasCom` vers les jeunes qui en sont destinataires, via leur conseiller de référence `aliasConseiller`. Usage analytics (exhaustif).
+export function sqlJoinJeunesDestinataires(
+  aliasCom: string,
+  aliasJeune: string,
+  aliasConseiller: string
+): string {
+  return `
+    JOIN jeune ${aliasJeune} ON ${aliasCom}.destinataire = '${Communication.Destinataire.JEUNE}'
+    ${sqlJoinConseillerDeReference(aliasJeune, aliasConseiller)}
+    AND ${sqlJeuneDansPopulation(aliasJeune, aliasConseiller, `${aliasCom}.id_population`)}`
+}
+
 // Visible entre date_debut (incluse) et date_fin (exclue) ; sans date_fin, visible indéfiniment.
 export function sqlCommunicationEnCours(
   aliasCom: string,

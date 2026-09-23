@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import { NonTrouveError } from '../../../building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../../building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
   Result
 } from '../../../building-blocks/types/result'
+import { Communication } from '../../../domain/communication'
 import { CommunicationSqlModel } from '../../../infrastructure/sequelize/models/communication.sql-model'
 
 export interface SupprimerCommunicationCommand extends Command {
@@ -31,12 +35,18 @@ export class SupprimerCommunicationCommandHandler extends CommandHandler<
   }
 
   async handle(command: SupprimerCommunicationCommand): Promise<Result> {
-    const nombreDeSuppressions = await CommunicationSqlModel.destroy({
-      where: { id: command.id }
-    })
-    if (nombreDeSuppressions === 0) {
+    const existante = await CommunicationSqlModel.findByPk(command.id)
+    if (!existante) {
       return failure(new NonTrouveError('Communication', String(command.id)))
     }
+    if (!Communication.estModifiable(existante.statutEnvoi)) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Une communication dont l'envoi a démarré ne peut plus être supprimée"
+        )
+      )
+    }
+    await existante.destroy()
     return emptySuccess()
   }
 }

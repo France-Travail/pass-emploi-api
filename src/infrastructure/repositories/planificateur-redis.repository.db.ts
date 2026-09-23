@@ -175,15 +175,6 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
     return activeJobs.filter(job => job.data.type === jobType).length > 1
   }
 
-  async recupererPremierJobNonTermine(
-    jobType: Planificateur.JobType
-  ): Promise<string | null> {
-    const jobsNonTermines = await this.recupererJobsNonTermines()
-    const job = jobsNonTermines?.find(job => job?.data?.type === jobType)
-    if (!job || !job.id) return null
-    return String(job.id)
-  }
-
   async getJobInformations(jobId: Planificateur.JobId): Promise<Bull.Job> {
     const job = await this.queue.getJob(jobId.jobId)
     if (!job) throw new NonTrouveError('Job', jobId.jobId)
@@ -276,13 +267,5 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
       return jobs.filter(job => job.data.type === options.jobType)
     }
     return jobs
-  }
-
-  private async recupererJobsNonTermines(): Promise<Bull.Job[]> {
-    return await this.queue.getJobs(
-      ['active', 'delayed', 'waiting', 'paused'],
-      0,
-      MAX_NUMBER_REDIS_JOBS
-    )
   }
 }

@@ -1,9 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
-import {
-  NotifierBeneficiairesCommand,
-  NotifierBeneficiairesCommandHandler
-} from '../../../src/application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
 import { DesarchiverJeuneCommandHandler } from '../../../src/application/commands/support/desarchiver-jeune.command.handler.db'
 import { CreerJeunePESupportCommandHandler } from '../../../src/application/commands/support/creer-jeune-pe-support-command-handler.service'
@@ -22,10 +18,7 @@ import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
 } from '../../../src/application/commands/transferer-jeunes-conseiller.command.handler'
-import {
-  MauvaiseCommandeError,
-  NonTrouveError
-} from '../../../src/building-blocks/types/domain-error'
+import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
@@ -33,7 +26,6 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
-import { Notification } from '../../../src/domain/notification/notification'
 import { expect, StubbedClass } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
 import { OidcClient } from '../../../src/infrastructure/clients/oidc-client.db'
@@ -55,7 +47,6 @@ describe('SupportController', () => {
   let creerSuperviseursCommandHandler: StubbedClass<CreerSuperviseursCommandHandler>
   let deleteSuperviseursCommandHandler: StubbedClass<DeleteSuperviseursCommandHandler>
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
-  let creerNotificationCommandHandler: StubbedClass<NotifierBeneficiairesCommandHandler>
   let oidcClient: StubbedClass<OidcClient>
   let planificateurRepository: Planificateur.Repository
   let app: INestApplication
@@ -80,9 +71,6 @@ describe('SupportController', () => {
     deleteSuperviseursCommandHandler = app.get(DeleteSuperviseursCommandHandler)
     transfererJeunesConseillerCommandHandler = app.get(
       TransfererJeunesConseillerCommandHandler
-    )
-    creerNotificationCommandHandler = app.get(
-      NotifierBeneficiairesCommandHandler
     )
     oidcClient = app.get(OidcClient)
   })
@@ -608,128 +596,6 @@ describe('SupportController', () => {
     })
   })
 
-  describe('POST /support/notifier-beneficiaires', () => {
-    describe('quand le payload est valide', () => {
-      it("renvoie 201 et l'id du job créé", async () => {
-        // Given
-        const command: NotifierBeneficiairesCommand = {
-          typeNotification: Notification.Type.OUTILS,
-          titre: "Les offres d'immersion sont disponibles",
-          description: 'Rendez-vous sur la page des offres.',
-          push: true,
-          batchSize: 2000
-        }
-
-        creerNotificationCommandHandler.execute
-          .withArgs(command)
-          .resolves(success({ jobId: '2' }))
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(command)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.CREATED)
-          .expect({ jobId: '2' })
-      })
-    })
-    describe("quand le payload n'est pas valide", () => {
-      it('renvoie 400 quand le push est une chaine de caractères', async () => {
-        // Given
-        const payload = {
-          type: Notification.Type.OUTILS,
-          titre: "Les offres d'immersion sont disponibles",
-          description: 'Rendez-vous sur la page des offres.',
-          push: 'true',
-          batchSize: 2000
-        }
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 400 sans titre ni description', async () => {
-        // Given
-        const payload = {
-          texte: 'Nouvelle notification !',
-          push: true,
-          batchSize: 2000
-        }
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 400 quand le batch size est négatif', async () => {
-        // Given
-        const payload = {
-          texte: 'Nouvelle notification !',
-          push: true,
-          batchSize: -1
-        }
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-      it('renvoie 400 quand idPopulation est vide', async () => {
-        // Given
-        const payload = {
-          type: Notification.Type.OUTILS,
-          titre: "Les offres d'immersion sont disponibles",
-          description: 'Rendez-vous sur la page des offres.',
-          push: true,
-          idPopulation: ''
-        }
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(payload)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-    })
-    describe('quand la commande a échoué', () => {
-      it("renvoie 400 quand l'erreur est de type MauvaiseCommandeError", async () => {
-        // Given
-        const command: NotifierBeneficiairesCommand = {
-          typeNotification: Notification.Type.OUTILS,
-          titre: "Les offres d'immersion sont disponibles",
-          description: 'Rendez-vous sur la page des offres.',
-          push: true,
-          batchSize: 2000
-        }
-
-        creerNotificationCommandHandler.execute
-          .withArgs(command)
-          .resolves(
-            failure(
-              new MauvaiseCommandeError(
-                'Un job de type NOTIFIER_BENEFICIAIRES est déjà planifié.'
-              )
-            )
-          )
-
-        // When - Then
-        await request(app.getHttpServer())
-          .post('/support/notifier-beneficiaires')
-          .send(command)
-          .set({ 'X-API-KEY': 'api-key-support' })
-          .expect(HttpStatus.BAD_REQUEST)
-      })
-    })
-  })
-
   describe('DELETE /support/superviseurs', () => {
     describe('quand le payload est valide', () => {
       it('renvoie 201', async () => {
@@ -842,7 +708,7 @@ describe('SupportController', () => {
       },
       parTypeStatutsVivants: [
         {
-          type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+          type: Planificateur.JobType.ENVOYER_COMMUNICATIONS,
           waiting: 1,
           active: 0,
           delayed: 3,
@@ -878,7 +744,7 @@ describe('SupportController', () => {
   describe('GET /support/jobs', () => {
     const job = {
       id: '42',
-      data: { type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES },
+      data: { type: Planificateur.JobType.ENVOYER_COMMUNICATIONS },
       timestamp: 1000,
       processedOn: 2000,
       finishedOn: 3000,
@@ -898,7 +764,7 @@ describe('SupportController', () => {
         .expect([
           {
             id: '42',
-            type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+            type: Planificateur.JobType.ENVOYER_COMMUNICATIONS,
             statut: 'failed',
             timestamp: 1000,
             processedOn: 2000,
