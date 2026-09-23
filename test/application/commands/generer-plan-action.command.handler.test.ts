@@ -291,7 +291,28 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(planActionRepository.save).not.to.have.been.called()
-      expect(isSuccess(result)).to.equal(true)
+      expect(result).to.deep.equal(
+        success({
+          id: 'plan-1',
+          accroche: 'Salut !',
+          genereLe: maintenant.toISO(),
+          generateur: 'fallback',
+          objectives: [
+            {
+              id: 'objectif-1',
+              titre: 'Trouver une alternance',
+              theme: 'apprenticeship',
+              actions: [
+                {
+                  id: 'tache-1',
+                  libelle: 'Je fais une action',
+                  type: TypeActionPlan.CONSEIL
+                }
+              ]
+            }
+          ]
+        })
+      )
     })
 
     it('un payload ne portant que RIEN_NE_ME_BLOQUE produit des contraintes vides sans échouer', async () => {
@@ -316,6 +337,50 @@ describe('GenererPlanActionCommandHandler', () => {
         contraintes: []
       })
       expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('transmet un domaine renseigné au profil passé au générateur', async () => {
+      // Given
+      const commandeAvecDomaine = {
+        idJeune: utilisateur.id,
+        payload: {
+          situation: SituationPayload.LYCEE,
+          goals: [GoalPayload.ALTERNANCE],
+          domaine: 'informatique'
+        }
+      }
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
+
+      // When
+      await handler.handle(commandeAvecDomaine, utilisateur)
+
+      // Then
+      const profil = generateur.genererPlan.firstCall.args[0]
+      expect(profil.domaine).to.equal('informatique')
+    })
+
+    it('omet un domaine vide du profil passé au générateur', async () => {
+      // Given
+      const commandeAvecDomaineVide = {
+        idJeune: utilisateur.id,
+        payload: {
+          situation: SituationPayload.LYCEE,
+          goals: [GoalPayload.ALTERNANCE],
+          domaine: ''
+        }
+      }
+      generateur.genererPlan.resolves(success(uneSuggestion()))
+      referentielRepository.trouverSolutions.resolves([uneSolution()])
+      planActionFactory.creer.returns(success(unPlan()))
+
+      // When
+      await handler.handle(commandeAvecDomaineVide, utilisateur)
+
+      // Then
+      const profil = generateur.genererPlan.firstCall.args[0]
+      expect(profil.domaine).to.equal(undefined)
     })
   })
 
