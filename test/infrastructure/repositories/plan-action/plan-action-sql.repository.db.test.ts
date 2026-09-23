@@ -174,31 +174,12 @@ describe('PlanActionSqlRepository', () => {
       expect(plan).to.equal(undefined)
     })
 
-    it('persiste et rend, dans le même ordre, plusieurs objectifs dont un porte plusieurs tâches', async () => {
+    it("rend les objectifs et les tâches ordonnés, quel que soit l'ordre d'insertion", async () => {
       // Given
       await insererSolution('p-2')
       await insererSolution('p-3')
       const plan = unPlan({
         objectifs: [
-          {
-            id: 'objectif-1',
-            titre: 'Trouver une alternance',
-            theme: 'apprenticeship',
-            taches: [
-              {
-                id: '11111111-1111-1111-1111-111111111111',
-                idSolution: 'p-2',
-                terminee: false,
-                dateCreation: maintenant
-              },
-              {
-                id: '22222222-2222-2222-2222-222222222222',
-                idSolution: 'p-3',
-                terminee: false,
-                dateCreation: maintenant.plus({ minutes: 1 })
-              }
-            ]
-          },
           {
             id: 'objectif-2',
             titre: 'Se former',
@@ -206,6 +187,25 @@ describe('PlanActionSqlRepository', () => {
             taches: [
               {
                 id: '33333333-3333-3333-3333-333333333333',
+                idSolution: 'p-2',
+                terminee: false,
+                dateCreation: maintenant
+              }
+            ]
+          },
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: 'apprenticeship',
+            taches: [
+              {
+                id: '22222222-2222-2222-2222-222222222222',
+                idSolution: 'p-3',
+                terminee: false,
+                dateCreation: maintenant.plus({ minutes: 1 })
+              },
+              {
+                id: '11111111-1111-1111-1111-111111111111',
                 idSolution: 'p-2',
                 terminee: false,
                 dateCreation: maintenant
