@@ -487,7 +487,7 @@ export class JeunesController {
   }
 
   @Post(':idJeune/plan-action')
-  @UserJourney('suivi_actions')
+  @UserJourney('generate_plan_action')
   @ApiOperation({
     summary: "Génère une suggestion de plan d'action",
     description: 'Autorisé pour un bénéficiaire, invité compris'
@@ -507,7 +507,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/plan-action')
-  @UserJourney('suivi_actions')
+  @UserJourney('get_plan_action')
   @ApiOperation({
     summary: "récupere un plan d'action pour un jeune",
     description: 'Autorisé pour un bénéficiaire connecté'
