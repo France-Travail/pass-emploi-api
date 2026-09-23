@@ -35,7 +35,8 @@ import {
   GetRendezVousACloreQueryModel,
   RendezVousConseillerDetailQueryModel,
   RendezVousConseillerQueryModel,
-  RendezVousJeuneDetailQueryModel
+  RendezVousJeuneDetailQueryModel,
+  RendezVousJeuneQueryModelV2
 } from '../../application/queries/query-models/rendez-vous.query-model'
 import {
   GetAnimationsCollectivesJeuneQuery,
@@ -54,10 +55,13 @@ import {
 import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../application/queries/rendez-vous/get-rendez-vous-jeune-pole-emploi.query.handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Utilisateur } from '../decorators/authenticated.decorator'
+import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { GetRendezVousConseillerV2QueryParams } from './validation/conseillers.inputs'
-import { MaintenantQueryParams } from './validation/jeunes.inputs'
+import {
+  GetRendezVousJeuneQueryParams,
+  MaintenantQueryParams
+} from './validation/jeunes.inputs'
 import {
   CloreRendezVousPayload,
   CreateRendezVousPayload,
@@ -260,6 +264,36 @@ export class RendezVousController {
       )
 
     return handleResult(result)
+  }
+
+  @Get('v2/jeunes/:idJeune/rendezvous')
+  @ApiOperation({
+    summary: 'Récupère les rendez-vous d’un jeune FT Connect, avec cache',
+    description:
+      'Autorisé pour un jeune FT Connect. Encore appelée par l’app mobile (détail d’un RDV FT).'
+  })
+  @ApiResponse({
+    type: RendezVousJeuneQueryModelV2
+  })
+  async getRendezVousJeuneV2(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string,
+    @Query() getRendezVousQueryParams?: GetRendezVousJeuneQueryParams
+  ): Promise<RendezVousJeuneQueryModelV2> {
+    const result = await this.getRendezVousJeunePoleEmploiQueryHandler.execute(
+      {
+        idJeune,
+        accessToken,
+        periode: getRendezVousQueryParams?.periode
+      },
+      utilisateur
+    )
+
+    return handleResult(result, ({ queryModel, dateDuCache }) => ({
+      resultat: queryModel,
+      dateDerniereMiseAJour: dateDuCache?.toJSDate()
+    }))
   }
 
   @Get('jeunes/:idJeune/rendezvous/:idRendezVous')

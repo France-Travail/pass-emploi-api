@@ -128,6 +128,17 @@ export class RendezVousJeuneQueryModel implements RendezVousBaseQueryModel {
   futPresent?: boolean
 }
 
+export class RendezVousJeuneQueryModelV2 {
+  @ApiProperty({
+    type: RendezVousJeuneQueryModel,
+    isArray: true
+  })
+  resultat: RendezVousJeuneQueryModel[]
+
+  @ApiPropertyOptional()
+  dateDerniereMiseAJour?: Date
+}
+
 class LogModificationRendezVousQueryModel {
   @ApiProperty()
   date: string

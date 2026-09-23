@@ -18,6 +18,9 @@ import { GetAnimationsCollectivesJeuneQueryHandler } from '../../../src/applicat
 import { GetDetailRendezVousJeuneQueryHandler } from '../../../src/application/queries/rendez-vous/get-detail-rendez-vous-jeune.query.handler.db'
 import { GetDetailRendezVousQueryHandler } from '../../../src/application/queries/rendez-vous/get-detail-rendez-vous.query.handler.db'
 import { GetRendezVousConseillerPaginesQueryHandler } from '../../../src/application/queries/rendez-vous/get-rendez-vous-conseiller-pagines.query.handler.db'
+import { GetRendezVousJeunePoleEmploiQueryHandler } from '../../../src/application/queries/rendez-vous/get-rendez-vous-jeune-pole-emploi.query.handler'
+import { RendezVousJeuneQueryModel } from '../../../src/application/queries/query-models/rendez-vous.query-model'
+import { Cached } from '../../../src/building-blocks/types/query'
 import {
   JeuneNonLieAuConseillerError,
   MauvaiseCommandeError,
@@ -33,7 +36,9 @@ import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import {
   unHeaderAuthorization,
   unJwtPayloadValide,
-  unUtilisateurDecode
+  unJwtPayloadValideJeunePE,
+  unUtilisateurDecode,
+  unUtilisateurDecodePoleEmploi
 } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
@@ -56,6 +61,7 @@ describe('RendezvousController', () => {
   let getRendezVousConseillerPaginesQueryHandler: StubbedClass<GetRendezVousConseillerPaginesQueryHandler>
   let getDetailRendezVousJeuneQueryHandler: StubbedClass<GetDetailRendezVousJeuneQueryHandler>
   let getAnimationsCollectivesJeuneQueryHandler: StubbedClass<GetAnimationsCollectivesJeuneQueryHandler>
+  let getRendezVousJeunePoleEmploiQueryHandler: StubbedClass<GetRendezVousJeunePoleEmploiQueryHandler>
   let jwtService: StubbedClass<JwtService>
   let app: INestApplication
 
@@ -75,7 +81,76 @@ describe('RendezvousController', () => {
     getAnimationsCollectivesJeuneQueryHandler = app.get(
       GetAnimationsCollectivesJeuneQueryHandler
     )
+    getRendezVousJeunePoleEmploiQueryHandler = app.get(
+      GetRendezVousJeunePoleEmploiQueryHandler
+    )
     jwtService = app.get(JwtService)
+  })
+
+  describe('GET /v2/jeunes/:idJeune/rendezvous', () => {
+    const idJeune = '1'
+
+    afterEach(() => {
+      jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValide())
+    })
+
+    it("renvoie une 404 quand le jeune n'existe pas", async () => {
+      // Given
+      jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValideJeunePE())
+      getRendezVousJeunePoleEmploiQueryHandler.execute.resolves(
+        failure(new NonTrouveError('Jeune', idJeune))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .get(`/v2/jeunes/${idJeune}/rendezvous`)
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    it('retourne les rdv avec la date du cache', async () => {
+      // Given
+      jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValideJeunePE())
+      const data: Cached<RendezVousJeuneQueryModel[]> = {
+        queryModel: [],
+        dateDuCache: uneDatetime()
+      }
+      getRendezVousJeunePoleEmploiQueryHandler.execute.resolves(success(data))
+
+      // When
+      await request(app.getHttpServer())
+        .get(`/v2/jeunes/${idJeune}/rendezvous`)
+        .query({ periode: 'FUTURS' })
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect({
+          resultat: [],
+          dateDerniereMiseAJour: uneDatetime().toJSDate().toISOString()
+        })
+      expect(
+        getRendezVousJeunePoleEmploiQueryHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idJeune, accessToken: 'coucou', periode: 'FUTURS' },
+        unUtilisateurDecodePoleEmploi()
+      )
+    })
+
+    it('renvoie une 400 quand la période est inconnue', async () => {
+      // Given
+      jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValideJeunePE())
+
+      // When
+      await request(app.getHttpServer())
+        .get(`/v2/jeunes/${idJeune}/rendezvous`)
+        .query({ periode: 'DEMAIN' })
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid('get', '/v2/jeunes/1/rendezvous')
   })
 
   describe('GET rendezvous/:idRendezVous', () => {

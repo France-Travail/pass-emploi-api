@@ -14,6 +14,14 @@ import {
   ValidateIf
 } from 'class-validator'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
+import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
+
+export class GetRendezVousJeuneQueryParams {
+  @IsOptional()
+  @IsString()
+  @IsEnum(RendezVous.Periode)
+  periode?: RendezVous.Periode
+}
 
 export class UpdateConfigurationInput {
   @ApiPropertyOptional()
