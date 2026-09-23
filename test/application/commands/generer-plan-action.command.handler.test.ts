@@ -14,6 +14,7 @@ import {
 import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanAction } from '../../../src/domain/plan-action'
+import { Questionnaire } from '../../../src/domain/questionnaire'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -33,9 +34,9 @@ describe('GenererPlanActionCommandHandler', () => {
   })
   const command: GenererPlanActionCommand = {
     idJeune: utilisateur.id,
-    situation: PlanAction.Situation.LYCEE,
-    objectifs: [PlanAction.Objectif.ALTERNANCE],
-    obstacles: []
+    situation: Questionnaire.Situation.LYCEE,
+    besoins: [Questionnaire.Besoin.ALTERNANCE],
+    contraintes: []
   }
 
   function unPlan(): PlanAction.Plan {
@@ -45,11 +46,11 @@ describe('GenererPlanActionCommandHandler', () => {
         {
           id: 'objective-1',
           titre: 'Trouver une alternance',
-          theme: PlanAction.Objectif.ALTERNANCE,
+          theme: Questionnaire.Besoin.ALTERNANCE,
           solutions: [
             {
               id: 'p-1',
-              category: PlanAction.Objectif.ALTERNANCE,
+              category: Questionnaire.Besoin.ALTERNANCE,
               blocker: null,
               situations: [],
               structures: [],
@@ -152,9 +153,9 @@ describe('GenererPlanActionCommandHandler', () => {
       // Then
       expect(planActionService.genererPlan).to.have.been.calledWithExactly({
         structure: Profil.Structure.INVITE,
-        situation: PlanAction.Situation.LYCEE,
-        objectifs: [PlanAction.Objectif.ALTERNANCE],
-        obstacles: []
+        situation: Questionnaire.Situation.LYCEE,
+        besoins: [Questionnaire.Besoin.ALTERNANCE],
+        contraintes: []
       })
       expect(result).to.deep.equal(
         success({
@@ -229,8 +230,8 @@ describe('GenererPlanActionCommandHandler', () => {
         context: 'GenererPlanActionCommandHandler',
         event: { action: 'handler_executed', outcome: 'success' },
         labels: {
-          plan_action_situation: PlanAction.Situation.LYCEE,
-          plan_action_goals: [PlanAction.Objectif.ALTERNANCE]
+          plan_action_situation: Questionnaire.Situation.LYCEE,
+          plan_action_goals: [Questionnaire.Besoin.ALTERNANCE]
         }
       })
     })

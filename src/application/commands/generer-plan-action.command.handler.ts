@@ -13,6 +13,7 @@ import {
   estInvite,
   TOUT_INVITE
 } from '../../domain/profil'
+import { Questionnaire } from '../../domain/questionnaire'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-model'
@@ -23,14 +24,14 @@ import {
 
 export interface GenererPlanActionCommand extends Command {
   idJeune: string
-  situation: PlanAction.Situation
-  objectifs: PlanAction.Objectif[]
-  obstacles: PlanAction.Obstacle[]
+  situation: Questionnaire.Situation
+  besoins: Questionnaire.Besoin[]
+  contraintes: Questionnaire.Contrainte[]
   dateNaissance?: DateTime
   // Exploitable seulement par une génération LLM, tracé en attendant
   domaineProfessionnelVise?: string | null
-  communeResidence?: PlanAction.Commune
-  communeRecherche?: PlanAction.Commune
+  communeResidence?: Questionnaire.Commune
+  communeRecherche?: Questionnaire.Commune
 }
 
 @Injectable()
@@ -92,12 +93,12 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
 
     return {
       plan_action_situation: command.situation,
-      plan_action_goals: command.objectifs,
+      plan_action_goals: command.besoins,
       ...(command.domaineProfessionnelVise
         ? { plan_action_domain: command.domaineProfessionnelVise }
         : {}),
-      ...(command.obstacles.length
-        ? { plan_action_obstacles: command.obstacles }
+      ...(command.contraintes.length
+        ? { plan_action_obstacles: command.contraintes }
         : {})
     }
   }

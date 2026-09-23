@@ -11,7 +11,7 @@ import {
   IsString,
   ValidateNested
 } from 'class-validator'
-import { PlanAction } from '../../../domain/plan-action'
+import { Questionnaire } from '../../../domain/questionnaire'
 
 export class CommunePayload {
   @ApiProperty()
@@ -31,15 +31,15 @@ export class GenererPlanActionPayload {
   @IsOptional()
   dateNaissance?: string
 
-  @ApiProperty({ enum: PlanAction.Situation })
-  @IsEnum(PlanAction.Situation)
-  situation: PlanAction.Situation
+  @ApiProperty({ enum: Questionnaire.Situation })
+  @IsEnum(Questionnaire.Situation)
+  situation: Questionnaire.Situation
 
-  @ApiProperty({ enum: PlanAction.Objectif, isArray: true })
+  @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
   @IsArray()
   @ArrayMinSize(1)
-  @IsEnum(PlanAction.Objectif, { each: true })
-  goals: PlanAction.Objectif[]
+  @IsEnum(Questionnaire.Besoin, { each: true })
+  goals: Questionnaire.Besoin[]
 
   // Texte libre exploitable seulement par le LLM (permet de personnaliser le plan)
   @ApiPropertyOptional()
@@ -65,9 +65,9 @@ export class GenererPlanActionPayload {
   @IsOptional()
   rayonKm?: number
 
-  @ApiPropertyOptional({ enum: PlanAction.Obstacle, isArray: true })
+  @ApiPropertyOptional({ enum: Questionnaire.Contrainte, isArray: true })
   @IsArray()
-  @IsEnum(PlanAction.Obstacle, { each: true })
+  @IsEnum(Questionnaire.Contrainte, { each: true })
   @IsOptional()
-  obstacles?: PlanAction.Obstacle[]
+  obstacles?: Questionnaire.Contrainte[]
 }

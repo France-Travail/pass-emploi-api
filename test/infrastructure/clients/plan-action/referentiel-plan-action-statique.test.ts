@@ -1,9 +1,9 @@
-import { PlanAction } from '../../../../src/domain/plan-action'
+import { Questionnaire } from '../../../../src/domain/questionnaire'
 import { ReferentielPlanActionStatique } from '../../../../src/infrastructure/clients/plan-action/referentiel-plan-action-statique'
 import { expect } from '../../../utils'
 
 // Invariants du référentiel embarqué, vérifiés à chaque régénération : les
-// valeurs fermées (objectifs, obstacles, situations…) sont déjà garanties par le
+// valeurs fermées (besoins, contraintes, situations…) sont déjà garanties par le
 // typage de referentiel-plan-action.ts
 describe('ReferentielPlanActionStatique', () => {
   const solutions = new ReferentielPlanActionStatique().getSolutions()
@@ -16,7 +16,7 @@ describe('ReferentielPlanActionStatique', () => {
     )
   })
 
-  it('porte une objectif ou un obstacle sur chaque solution, jamais les deux', () => {
+  it('porte un besoin ou une contrainte sur chaque solution, jamais les deux', () => {
     // Then
     const invalides = solutions.filter(
       solution => Boolean(solution.category) === Boolean(solution.blocker)
@@ -39,34 +39,34 @@ describe('ReferentielPlanActionStatique', () => {
     expect(liensInvalides.map(solution => solution.id)).to.deep.equal([])
   })
 
-  it("couvre toutes les objectifs de l'onboarding", () => {
+  it("couvre tous les besoins de l'onboarding", () => {
     // Then
-    const objectifs = new Set(solutions.map(solution => solution.category))
-    const objectifsSansSolution = Object.values(PlanAction.Objectif).filter(
-      objectif => !objectifs.has(objectif)
+    const besoins = new Set(solutions.map(solution => solution.category))
+    const besoinsSansSolution = Object.values(Questionnaire.Besoin).filter(
+      besoin => !besoins.has(besoin)
     )
-    expect(objectifsSansSolution).to.deep.equal([])
+    expect(besoinsSansSolution).to.deep.equal([])
   })
 
-  it('couvre les obstacles qui ont des solutions dans le référentiel', () => {
+  it('couvre les contraintes qui ont des solutions dans le référentiel', () => {
     // PAS_DE_DIPLOME et PEU_EXPERIENCE n'ont pas encore de solution dans le
     // Grist (trou connu du référentiel) ; AUTRE et RIEN_NE_ME_BLOQUE n'en ont
     // jamais par construction
-    const obstaclesAttendus = Object.values(PlanAction.Obstacle).filter(
-      obstacle =>
+    const contraintesAttendues = Object.values(Questionnaire.Contrainte).filter(
+      contrainte =>
         ![
-          PlanAction.Obstacle.PAS_DE_DIPLOME,
-          PlanAction.Obstacle.PEU_EXPERIENCE,
-          PlanAction.Obstacle.AUTRE,
-          PlanAction.Obstacle.RIEN_NE_ME_BLOQUE
-        ].includes(obstacle)
+          Questionnaire.Contrainte.PAS_DE_DIPLOME,
+          Questionnaire.Contrainte.PEU_EXPERIENCE,
+          Questionnaire.Contrainte.AUTRE,
+          Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+        ].includes(contrainte)
     )
 
     // Then
-    const obstacles = new Set(solutions.map(solution => solution.blocker))
-    const obstaclesSansSolution = obstaclesAttendus.filter(
-      obstacle => !obstacles.has(obstacle)
+    const contraintes = new Set(solutions.map(solution => solution.blocker))
+    const contraintesSansSolution = contraintesAttendues.filter(
+      contrainte => !contraintes.has(contrainte)
     )
-    expect(obstaclesSansSolution).to.deep.equal([])
+    expect(contraintesSansSolution).to.deep.equal([])
   })
 })

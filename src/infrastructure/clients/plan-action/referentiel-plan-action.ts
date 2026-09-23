@@ -5,18 +5,19 @@
 // servi tel quel aux jeunes.
 import { PlanAction } from '../../../domain/plan-action'
 import { Profil } from '../../../domain/profil'
+import { Questionnaire } from '../../../domain/questionnaire'
 
 export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-2',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -29,14 +30,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-3',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -49,14 +50,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-4',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -69,14 +70,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-5',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -90,9 +91,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-6',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -104,9 +105,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-7',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -118,9 +119,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-8',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -132,13 +133,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-9',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -152,13 +153,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-10',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -171,13 +172,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-11',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -190,13 +191,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-12',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -209,13 +210,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-13',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -228,13 +229,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-14',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -247,13 +248,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-15',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -266,13 +267,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-16',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -286,13 +287,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-17',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -305,14 +306,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-18',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.EMPLOI
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.EMPLOI
     ],
     structures: [],
     minAge: null,
@@ -325,13 +326,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-19',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -345,13 +346,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-20',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -364,13 +365,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-21',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -383,13 +384,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-22',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -402,13 +403,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-23',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -422,13 +423,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-24',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -441,13 +442,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-25',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -460,13 +461,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-26',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -479,13 +480,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-27',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -499,13 +500,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-28',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -518,14 +519,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-29',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -538,14 +539,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-30',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -558,14 +559,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-31',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -578,14 +579,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-32',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -598,14 +599,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-33',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -618,13 +619,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-34',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -637,13 +638,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-35',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -656,13 +657,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-36',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -675,13 +676,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-37',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -695,13 +696,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-38',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -714,13 +715,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-39',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -733,13 +734,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-40',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -752,13 +753,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-41',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -771,12 +772,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-42',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -789,12 +790,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-43',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -807,12 +808,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-44',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -825,12 +826,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-45',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -843,12 +844,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-46',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -861,12 +862,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-47',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -879,12 +880,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-48',
-    category: PlanAction.Objectif.ORIENTER,
+    category: Questionnaire.Besoin.ORIENTER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -898,14 +899,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-50',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -919,14 +920,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-53',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -939,14 +940,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-54',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -960,14 +961,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-55',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -980,14 +981,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-56',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1001,14 +1002,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-57',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1021,14 +1022,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-58',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1042,14 +1043,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-59',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1062,14 +1063,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-63',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1082,14 +1083,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-64',
-    category: PlanAction.Objectif.DECOUVRIR_METIERS,
+    category: Questionnaire.Besoin.DECOUVRIR_METIERS,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1102,14 +1103,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-66',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1122,14 +1123,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-67',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1143,14 +1144,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-68',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1164,14 +1165,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-69',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1184,14 +1185,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-70',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1204,14 +1205,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-71',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1224,14 +1225,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-72',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1244,14 +1245,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-73',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1264,14 +1265,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-75',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1284,14 +1285,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-76',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1304,14 +1305,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-77',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1324,14 +1325,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-78',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1344,14 +1345,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'g-312',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1364,14 +1365,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-79',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1385,14 +1386,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-80',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1406,14 +1407,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-81',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -1426,14 +1427,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-82',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -1447,14 +1448,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-83',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -1467,14 +1468,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-84',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1488,14 +1489,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-85',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1508,14 +1509,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-86',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1528,14 +1529,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-87',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1548,14 +1549,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-88',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1568,14 +1569,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-89',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1588,14 +1589,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-90',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1609,14 +1610,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-91',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1630,14 +1631,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-92',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1650,13 +1651,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-93',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1669,13 +1670,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-94',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1688,13 +1689,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-95',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1707,13 +1708,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-96',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1727,13 +1728,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-97',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1746,13 +1747,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-98',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1765,13 +1766,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-99',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1784,13 +1785,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-100',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1803,12 +1804,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-101',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1821,12 +1822,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-102',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1839,12 +1840,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-103',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1857,12 +1858,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-104',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1875,12 +1876,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-105',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1893,12 +1894,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-106',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1911,12 +1912,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-107',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1930,9 +1931,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-108',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -1944,9 +1945,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-109',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -1959,14 +1960,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-110',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1979,14 +1980,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-111',
-    category: PlanAction.Objectif.FORMER,
+    category: Questionnaire.Besoin.FORMER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -1999,9 +2000,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-113',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2013,9 +2014,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-114',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2027,9 +2028,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-115',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2041,9 +2042,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-116',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.COLLEGE],
+    situations: [Questionnaire.Situation.COLLEGE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2055,9 +2056,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-117',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.LYCEE],
+    situations: [Questionnaire.Situation.LYCEE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2069,9 +2070,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-118',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.LYCEE],
+    situations: [Questionnaire.Situation.LYCEE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2083,9 +2084,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-119',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.LYCEE],
+    situations: [Questionnaire.Situation.LYCEE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2097,9 +2098,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-120',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.LYCEE],
+    situations: [Questionnaire.Situation.LYCEE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2111,9 +2112,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-121',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.LYCEE],
+    situations: [Questionnaire.Situation.LYCEE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2125,9 +2126,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-122',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    situations: [Questionnaire.Situation.ETUDES_SUPERIEURES],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2139,9 +2140,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-123',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    situations: [Questionnaire.Situation.ETUDES_SUPERIEURES],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2154,9 +2155,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-124',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    situations: [Questionnaire.Situation.ETUDES_SUPERIEURES],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2168,9 +2169,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'g-313',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
-    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    situations: [Questionnaire.Situation.ETUDES_SUPERIEURES],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2182,14 +2183,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-125',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2202,14 +2203,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-126',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2222,14 +2223,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-127',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2242,14 +2243,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-128',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2263,14 +2264,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-129',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2283,14 +2284,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-130',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2303,14 +2304,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-131',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2323,14 +2324,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-132',
-    category: PlanAction.Objectif.STAGE_IMMERSION,
+    category: Questionnaire.Besoin.STAGE_IMMERSION,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2343,14 +2344,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-134',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2363,14 +2364,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-135',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2383,14 +2384,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-136',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2403,14 +2404,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-137',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2424,14 +2425,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-138',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2445,14 +2446,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-139',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2465,14 +2466,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-140',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2485,14 +2486,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-141',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2506,14 +2507,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-142',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2526,14 +2527,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-143',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2546,14 +2547,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-144',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2566,9 +2567,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-145',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2580,14 +2581,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-146',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2600,14 +2601,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-147',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2620,14 +2621,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-148',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2640,14 +2641,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-149',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2660,9 +2661,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-150',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2674,14 +2675,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-152',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2694,14 +2695,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-153',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2714,14 +2715,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-154',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2734,14 +2735,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-155',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2755,14 +2756,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-156',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2775,14 +2776,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-157',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2795,14 +2796,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-158',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2816,14 +2817,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-159',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2836,14 +2837,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-160',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2856,14 +2857,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-161',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2876,9 +2877,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-162',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2890,14 +2891,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-163',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2910,14 +2911,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-164',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2930,14 +2931,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-165',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2950,14 +2951,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-166',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -2970,9 +2971,9 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-167',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
-    situations: [PlanAction.Situation.EMPLOI, PlanAction.Situation.AUTRE],
+    situations: [Questionnaire.Situation.EMPLOI, Questionnaire.Situation.AUTRE],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -2984,13 +2985,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-169',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3003,14 +3004,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-170',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3024,14 +3025,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-171',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3044,14 +3045,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-172',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3065,14 +3066,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-173',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3086,14 +3087,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-174',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3106,14 +3107,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-175',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3126,14 +3127,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-176',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3146,14 +3147,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-177',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3167,14 +3168,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-178',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3187,14 +3188,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-179',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3207,14 +3208,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-180',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3228,14 +3229,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-181',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3248,14 +3249,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-182',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3268,14 +3269,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-183',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3288,14 +3289,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-184',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3308,14 +3309,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-185',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3328,14 +3329,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-186',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3348,14 +3349,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-187',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3368,14 +3369,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-188',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3389,14 +3390,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-189',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3409,14 +3410,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-190',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3429,14 +3430,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-191',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3449,14 +3450,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-192',
-    category: PlanAction.Objectif.EMPLOI,
+    category: Questionnaire.Besoin.EMPLOI,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3469,14 +3470,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-194',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3489,14 +3490,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-195',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3509,14 +3510,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-196',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3529,14 +3530,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-197',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3549,14 +3550,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-199',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3569,14 +3570,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-200',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3589,14 +3590,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-201',
-    category: PlanAction.Objectif.ENGAGER,
+    category: Questionnaire.Besoin.ENGAGER,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3609,14 +3610,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-204',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3629,14 +3630,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-205',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3649,14 +3650,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-206',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -3669,14 +3670,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-207',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -3689,14 +3690,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-208',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -3709,14 +3710,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-209',
-    category: PlanAction.Objectif.MOBILITE_INTERNATIONALE,
+    category: Questionnaire.Besoin.MOBILITE_INTERNATIONALE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -3729,14 +3730,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-211',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3750,13 +3751,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-212',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [Profil.Structure.INVITE],
     minAge: 16,
@@ -3770,13 +3771,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-213',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3790,14 +3791,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-214',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3810,14 +3811,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-215',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3830,14 +3831,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-217',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -3851,13 +3852,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-218',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3871,13 +3872,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-219',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3891,13 +3892,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-220',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3910,13 +3911,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-221',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 17,
@@ -3929,13 +3930,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-222',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 17,
@@ -3948,13 +3949,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-223',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 17,
@@ -3967,13 +3968,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-224',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -3987,13 +3988,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-225',
-    category: PlanAction.Objectif.ACCOMPAGNE,
+    category: Questionnaire.Besoin.ACCOMPAGNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -4006,14 +4007,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-229',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [Profil.Structure.INVITE],
     minAge: 16,
@@ -4027,14 +4028,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-231',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4047,14 +4048,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-232',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4068,14 +4069,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-233',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4088,14 +4089,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-234',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4109,14 +4110,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-235',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4129,14 +4130,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-236',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4149,14 +4150,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-237',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4169,14 +4170,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-238',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4189,14 +4190,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-239',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4209,14 +4210,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-240',
-    category: PlanAction.Objectif.CREER_ACTIVITE,
+    category: Questionnaire.Besoin.CREER_ACTIVITE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 16,
@@ -4229,14 +4230,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'g-311',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4249,14 +4250,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-243',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4270,14 +4271,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-244',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.COLLEGE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.COLLEGE
     ],
     structures: [],
     minAge: 15,
@@ -4291,14 +4292,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-245',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: 18,
@@ -4312,14 +4313,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-246',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4333,14 +4334,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-247',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4354,14 +4355,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-248',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4375,14 +4376,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-249',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4396,13 +4397,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-250',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.LYCEE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.LYCEE
     ],
     structures: [],
     minAge: null,
@@ -4416,12 +4417,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-251',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4435,12 +4436,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-252',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4453,14 +4454,14 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-253',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4473,13 +4474,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-254',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.LYCEE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.LYCEE
     ],
     structures: [],
     minAge: null,
@@ -4493,13 +4494,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   },
   {
     id: 'p-255',
-    category: PlanAction.Objectif.VIE_QUOTIDIENNE,
+    category: Questionnaire.Besoin.VIE_QUOTIDIENNE,
     blocker: null,
     situations: [
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE,
-      PlanAction.Situation.LYCEE
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE,
+      Questionnaire.Situation.LYCEE
     ],
     structures: [],
     minAge: null,
@@ -4514,13 +4515,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-259',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4534,13 +4535,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-260',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4554,13 +4555,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-261',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4574,13 +4575,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-262',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4594,13 +4595,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-263',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4614,13 +4615,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-264',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4634,13 +4635,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-265',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4654,13 +4655,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-266',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4674,13 +4675,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-267',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_PERMIS,
+    blocker: Questionnaire.Contrainte.PAS_DE_PERMIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4694,13 +4695,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-275',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4714,13 +4715,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-276',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4734,13 +4735,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-277',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4754,13 +4755,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-278',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4774,13 +4775,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-279',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+    blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4794,12 +4795,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-281',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4814,12 +4815,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-282',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4833,12 +4834,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-283',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4852,12 +4853,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-284',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4872,12 +4873,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-285',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4892,12 +4893,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-286',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -4912,10 +4913,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-287',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4929,10 +4930,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-288',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4946,10 +4947,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-289',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4963,10 +4964,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-290',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4980,10 +4981,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-291',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -4997,10 +4998,10 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-292',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES
     ],
     structures: [],
     minAge: null,
@@ -5014,12 +5015,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-293',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5034,12 +5035,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-294',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5053,12 +5054,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-295',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5073,12 +5074,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-296',
     category: null,
-    blocker: PlanAction.Obstacle.PAS_DE_LOGEMENT,
+    blocker: Questionnaire.Contrainte.PAS_DE_LOGEMENT,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5092,13 +5093,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-298',
     category: null,
-    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    blocker: Questionnaire.Contrainte.MANQUE_CONFIANCE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5112,13 +5113,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-299',
     category: null,
-    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    blocker: Questionnaire.Contrainte.MANQUE_CONFIANCE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5132,13 +5133,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-300',
     category: null,
-    blocker: PlanAction.Obstacle.MANQUE_CONFIANCE,
+    blocker: Questionnaire.Contrainte.MANQUE_CONFIANCE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5152,13 +5153,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-302',
     category: null,
-    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    blocker: Questionnaire.Contrainte.FIN_DE_MOIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5172,13 +5173,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-304',
     category: null,
-    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    blocker: Questionnaire.Contrainte.FIN_DE_MOIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5193,13 +5194,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-305',
     category: null,
-    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    blocker: Questionnaire.Contrainte.FIN_DE_MOIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5214,13 +5215,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-306',
     category: null,
-    blocker: PlanAction.Obstacle.FIN_DE_MOIS,
+    blocker: Questionnaire.Contrainte.FIN_DE_MOIS,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5235,12 +5236,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-312',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5255,12 +5256,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-313',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5275,12 +5276,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-314',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5295,12 +5296,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-315',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5315,12 +5316,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-316',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5334,12 +5335,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-317',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5354,12 +5355,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-318',
     category: null,
-    blocker: PlanAction.Obstacle.HANDICAP,
+    blocker: Questionnaire.Contrainte.HANDICAP,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5374,13 +5375,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-320',
     category: null,
-    blocker: PlanAction.Obstacle.SANTE,
+    blocker: Questionnaire.Contrainte.SANTE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5394,13 +5395,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-321',
     category: null,
-    blocker: PlanAction.Obstacle.SANTE,
+    blocker: Questionnaire.Contrainte.SANTE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5414,8 +5415,8 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-322',
     category: null,
-    blocker: PlanAction.Obstacle.SANTE,
-    situations: [PlanAction.Situation.ETUDES_SUPERIEURES],
+    blocker: Questionnaire.Contrainte.SANTE,
+    situations: [Questionnaire.Situation.ETUDES_SUPERIEURES],
     structures: [],
     minAge: null,
     maxAge: null,
@@ -5429,13 +5430,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-323',
     category: null,
-    blocker: PlanAction.Obstacle.SANTE,
+    blocker: Questionnaire.Contrainte.SANTE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5449,13 +5450,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-326',
     category: null,
-    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    blocker: Questionnaire.Contrainte.GARDE_ENFANT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5470,13 +5471,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-327',
     category: null,
-    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    blocker: Questionnaire.Contrainte.GARDE_ENFANT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5490,13 +5491,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-328',
     category: null,
-    blocker: PlanAction.Obstacle.GARDE_ENFANT,
+    blocker: Questionnaire.Contrainte.GARDE_ENFANT,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5511,13 +5512,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-330',
     category: null,
-    blocker: PlanAction.Obstacle.NUMERIQUE,
+    blocker: Questionnaire.Contrainte.NUMERIQUE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5531,13 +5532,13 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'p-331',
     category: null,
-    blocker: PlanAction.Obstacle.NUMERIQUE,
+    blocker: Questionnaire.Contrainte.NUMERIQUE,
     situations: [
-      PlanAction.Situation.COLLEGE,
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.COLLEGE,
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,
@@ -5551,12 +5552,12 @@ export const REFERENTIEL_PLAN_ACTION: PlanAction.Solution[] = [
   {
     id: 'g-309',
     category: null,
-    blocker: PlanAction.Obstacle.FRANCAIS,
+    blocker: Questionnaire.Contrainte.FRANCAIS,
     situations: [
-      PlanAction.Situation.LYCEE,
-      PlanAction.Situation.ETUDES_SUPERIEURES,
-      PlanAction.Situation.EMPLOI,
-      PlanAction.Situation.AUTRE
+      Questionnaire.Situation.LYCEE,
+      Questionnaire.Situation.ETUDES_SUPERIEURES,
+      Questionnaire.Situation.EMPLOI,
+      Questionnaire.Situation.AUTRE
     ],
     structures: [],
     minAge: null,

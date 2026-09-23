@@ -2,6 +2,7 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { PlanAction } from '../../src/domain/plan-action'
 import { Profil } from '../../src/domain/profil'
+import { Questionnaire } from '../../src/domain/questionnaire'
 import { DateService } from '../../src/utils/date-service'
 import { IdService } from '../../src/utils/id-service'
 import { createSandbox, expect, StubbedClass, stubClass } from '../utils'
@@ -15,7 +16,7 @@ function uneSolution(
 ): PlanAction.Solution {
   return {
     id: 's-1',
-    category: PlanAction.Objectif.ALTERNANCE,
+    category: Questionnaire.Besoin.ALTERNANCE,
     blocker: null,
     situations: [],
     structures: [],
@@ -30,14 +31,12 @@ function uneSolution(
   }
 }
 
-function unQuestionnaire(
-  args: Partial<PlanAction.QuestionnaireJeune> = {}
-): PlanAction.QuestionnaireJeune {
+function unQuestionnaire(args: Partial<Questionnaire> = {}): Questionnaire {
   return {
     structure: Profil.Structure.INVITE,
-    situation: PlanAction.Situation.LYCEE,
-    objectifs: [PlanAction.Objectif.ALTERNANCE],
-    obstacles: [],
+    situation: Questionnaire.Situation.LYCEE,
+    besoins: [Questionnaire.Besoin.ALTERNANCE],
+    contraintes: [],
     ...args
   }
 }
@@ -45,7 +44,7 @@ function unQuestionnaire(
 describe('PlanAction', () => {
   describe('filtrerSolutionsEligibles', () => {
     function filtrer(
-      questionnaire: PlanAction.QuestionnaireJeune,
+      questionnaire: Questionnaire,
       solutions: PlanAction.Solution[]
     ): string[] {
       return PlanAction.filtrerSolutionsEligibles({
@@ -55,40 +54,40 @@ describe('PlanAction', () => {
       }).map(solution => solution.id)
     }
 
-    it("garde les solutions dont l'objectif ou le obstacle est dans le questionnaire, jette les autres", () => {
+    it('garde les solutions dont le besoin ou la contrainte est dans le questionnaire, jette les autres', () => {
       // Given
       const solutions = [
         uneSolution({
-          id: 'objectif-choisie',
-          category: PlanAction.Objectif.ALTERNANCE
+          id: 'besoin-choisi',
+          category: Questionnaire.Besoin.ALTERNANCE
         }),
         uneSolution({
-          id: 'objectif-non-choisie',
-          category: PlanAction.Objectif.EMPLOI
+          id: 'besoin-non-choisi',
+          category: Questionnaire.Besoin.EMPLOI
         }),
         uneSolution({
-          id: 'obstacle-coche',
+          id: 'contrainte-cochee',
           category: null,
-          blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT
+          blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT
         }),
         uneSolution({
-          id: 'obstacle-non-coche',
+          id: 'contrainte-non-cochee',
           category: null,
-          blocker: PlanAction.Obstacle.SANTE
+          blocker: Questionnaire.Contrainte.SANTE
         })
       ]
 
       // When
       const ids = filtrer(
         unQuestionnaire({
-          objectifs: [PlanAction.Objectif.ALTERNANCE],
-          obstacles: [PlanAction.Obstacle.PAS_DE_TRANSPORT]
+          besoins: [Questionnaire.Besoin.ALTERNANCE],
+          contraintes: [Questionnaire.Contrainte.PAS_DE_TRANSPORT]
         }),
         solutions
       )
 
       // Then
-      expect(ids).to.deep.equal(['objectif-choisie', 'obstacle-coche'])
+      expect(ids).to.deep.equal(['besoin-choisi', 'contrainte-cochee'])
     })
 
     it('filtre sur la structure quand la solution en exige une, liste vide = pas de filtre', () => {
@@ -116,18 +115,18 @@ describe('PlanAction', () => {
       const solutions = [
         uneSolution({
           id: 'lyceens',
-          situations: [PlanAction.Situation.LYCEE]
+          situations: [Questionnaire.Situation.LYCEE]
         }),
         uneSolution({
           id: 'salaries',
-          situations: [PlanAction.Situation.EMPLOI]
+          situations: [Questionnaire.Situation.EMPLOI]
         }),
         uneSolution({ id: 'toutes-situations', situations: [] })
       ]
 
       // When
       const ids = filtrer(
-        unQuestionnaire({ situation: PlanAction.Situation.LYCEE }),
+        unQuestionnaire({ situation: Questionnaire.Situation.LYCEE }),
         solutions
       )
 
@@ -256,7 +255,7 @@ describe('PlanAction', () => {
 
   describe('construirePlan', () => {
     function construire(
-      questionnaire: PlanAction.QuestionnaireJeune,
+      questionnaire: Questionnaire,
       solutionsEligibles: PlanAction.Solution[]
     ): PlanAction.Plan {
       return PlanAction.construirePlan({
@@ -266,34 +265,34 @@ describe('PlanAction', () => {
       })
     }
 
-    it("construit un objectif par objectif puis par obstacle, dans l'ordre du questionnaire, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
+    it("construit un objectif par besoin puis par contrainte, dans l'ordre du questionnaire, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
       // Given
       const alternance1 = uneSolution({
         id: 'alternance-1',
-        category: PlanAction.Objectif.ALTERNANCE
+        category: Questionnaire.Besoin.ALTERNANCE
       })
       const former1 = uneSolution({
         id: 'former-1',
-        category: PlanAction.Objectif.FORMER
+        category: Questionnaire.Besoin.FORMER
       })
       const transport1 = uneSolution({
         id: 'transport-1',
         category: null,
-        blocker: PlanAction.Obstacle.PAS_DE_TRANSPORT
+        blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT
       })
       const alternance2 = uneSolution({
         id: 'alternance-2',
-        category: PlanAction.Objectif.ALTERNANCE
+        category: Questionnaire.Besoin.ALTERNANCE
       })
 
       // When
       const plan = construire(
         unQuestionnaire({
-          objectifs: [
-            PlanAction.Objectif.FORMER,
-            PlanAction.Objectif.ALTERNANCE
+          besoins: [
+            Questionnaire.Besoin.FORMER,
+            Questionnaire.Besoin.ALTERNANCE
           ],
-          obstacles: [PlanAction.Obstacle.PAS_DE_TRANSPORT]
+          contraintes: [Questionnaire.Contrainte.PAS_DE_TRANSPORT]
         }),
         [alternance1, former1, transport1, alternance2]
       )
@@ -305,19 +304,19 @@ describe('PlanAction', () => {
           {
             id: 'objective-1',
             titre: 'Me former, me qualifier',
-            theme: PlanAction.Objectif.FORMER,
+            theme: Questionnaire.Besoin.FORMER,
             solutions: [former1]
           },
           {
             id: 'objective-2',
             titre: 'Trouver une alternance',
-            theme: PlanAction.Objectif.ALTERNANCE,
+            theme: Questionnaire.Besoin.ALTERNANCE,
             solutions: [alternance1, alternance2]
           },
           {
             id: 'objective-3',
             titre: 'Me déplacer plus facilement',
-            theme: PlanAction.Obstacle.PAS_DE_TRANSPORT,
+            theme: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
             solutions: [transport1]
           }
         ]
@@ -328,8 +327,8 @@ describe('PlanAction', () => {
       // When
       const plan = construire(
         unQuestionnaire({
-          objectifs: [PlanAction.Objectif.FORMER],
-          obstacles: [PlanAction.Obstacle.SANTE]
+          besoins: [Questionnaire.Besoin.FORMER],
+          contraintes: [Questionnaire.Contrainte.SANTE]
         }),
         []
       )
@@ -338,19 +337,19 @@ describe('PlanAction', () => {
       expect(plan.objectifs).to.deep.equal([])
     })
 
-    it("ne construit qu'un objectif par thème quand le questionnaire répète une objectif", () => {
+    it("ne construit qu'un objectif par thème quand le questionnaire répète un besoin", () => {
       // When
       const plan = construire(
         unQuestionnaire({
-          objectifs: [
-            PlanAction.Objectif.ALTERNANCE,
-            PlanAction.Objectif.ALTERNANCE
+          besoins: [
+            Questionnaire.Besoin.ALTERNANCE,
+            Questionnaire.Besoin.ALTERNANCE
           ]
         }),
         [
           uneSolution({
             id: 'alternance-1',
-            category: PlanAction.Objectif.ALTERNANCE
+            category: Questionnaire.Besoin.ALTERNANCE
           })
         ]
       )
@@ -381,14 +380,14 @@ describe('PlanAction', () => {
       // Given
       const alternance = uneSolution({
         id: 'alternance-1',
-        category: PlanAction.Objectif.ALTERNANCE
+        category: Questionnaire.Besoin.ALTERNANCE
       })
       catalogue.getSolutions.returns([
         alternance,
-        uneSolution({ id: 'emploi-1', category: PlanAction.Objectif.EMPLOI }),
+        uneSolution({ id: 'emploi-1', category: Questionnaire.Besoin.EMPLOI }),
         uneSolution({
           id: 'alternance-majeurs',
-          category: PlanAction.Objectif.ALTERNANCE,
+          category: Questionnaire.Besoin.ALTERNANCE,
           minAge: 18
         })
       ])
@@ -405,7 +404,7 @@ describe('PlanAction', () => {
           {
             id: 'objective-1',
             titre: 'Trouver une alternance',
-            theme: PlanAction.Objectif.ALTERNANCE,
+            theme: Questionnaire.Besoin.ALTERNANCE,
             solutions: [alternance]
           }
         ]

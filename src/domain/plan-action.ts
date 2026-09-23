@@ -3,78 +3,23 @@ import { DateTime } from 'luxon'
 import { DateService } from '../utils/date-service'
 import { IdService } from '../utils/id-service'
 import { Profil } from './profil'
+import { Questionnaire } from './questionnaire'
 
 export const PlanActionCatalogueRepositoryToken =
   'PlanActionCatalogueRepositoryToken'
 
 export namespace PlanAction {
-  export enum Situation {
-    COLLEGE = 'COLLEGE',
-    LYCEE = 'LYCEE',
-    ETUDES_SUPERIEURES = 'ETUDES_SUPERIEURES',
-    EMPLOI = 'EMPLOI',
-    AUTRE = 'AUTRE'
-  }
-
-  export enum Objectif {
-    ORIENTER = 'ORIENTER',
-    DECOUVRIR_METIERS = 'DECOUVRIR_METIERS',
-    FORMER = 'FORMER',
-    STAGE_IMMERSION = 'STAGE_IMMERSION',
-    ALTERNANCE = 'ALTERNANCE',
-    EMPLOI = 'EMPLOI',
-    ENGAGER = 'ENGAGER',
-    MOBILITE_INTERNATIONALE = 'MOBILITE_INTERNATIONALE',
-    ACCOMPAGNE = 'ACCOMPAGNE',
-    CREER_ACTIVITE = 'CREER_ACTIVITE',
-    VIE_QUOTIDIENNE = 'VIE_QUOTIDIENNE'
-  }
-
-  // RIEN_NE_ME_BLOQUE est exclusif : combiné à un autre obstacle, il est réduit au seul RIEN_NE_ME_BLOQUE par le mapper
-  // AUTRE et RIEN_NE_ME_BLOQUE n'ont jamais de solution dans le référentiel
-  export enum Obstacle {
-    PAS_DE_PERMIS = 'PAS_DE_PERMIS',
-    PAS_DE_TRANSPORT = 'PAS_DE_TRANSPORT',
-    PAS_DE_LOGEMENT = 'PAS_DE_LOGEMENT',
-    MANQUE_CONFIANCE = 'MANQUE_CONFIANCE',
-    FIN_DE_MOIS = 'FIN_DE_MOIS',
-    PAS_DE_DIPLOME = 'PAS_DE_DIPLOME',
-    PEU_EXPERIENCE = 'PEU_EXPERIENCE',
-    HANDICAP = 'HANDICAP',
-    SANTE = 'SANTE',
-    GARDE_ENFANT = 'GARDE_ENFANT',
-    NUMERIQUE = 'NUMERIQUE',
-    FRANCAIS = 'FRANCAIS',
-    AUTRE = 'AUTRE',
-    RIEN_NE_ME_BLOQUE = 'RIEN_NE_ME_BLOQUE'
-  }
-
-  export interface Commune {
-    codeInsee: string
-    nom: string
-  }
-
-  export interface QuestionnaireJeune {
-    structure: Profil.Structure
-    situation: Situation
-    objectifs: Objectif[]
-    obstacles: Obstacle[]
-    dateNaissance?: DateTime
-    communeResidence?: Commune
-    communeRecherche?: Commune
-  }
-
   export type TypeSolution = 'link' | 'app' | 'advice'
 
   // Une ligne du référentiel « services et solutions » (vocabulaire du back
   // office Grist), réduite aux colonnes que l'app exploite. Une solution
-  // porte un objectif (category) OU un obstacle (blocker), jamais les deux.
+  // porte un besoin (category) OU une contrainte (blocker), jamais les deux.
   // Une liste vide vaut « pas de filtre »
   export interface Solution {
     id: string
-    category: Objectif | null
-    blocker: Obstacle | null
-    situations: Situation[]
+    category: Questionnaire.Besoin | null
+    blocker: Questionnaire.Contrainte | null
+    situations: Questionnaire.Situation[]
     structures: Profil.Structure[]
     minAge: number | null
     maxAge: number | null
@@ -89,7 +34,7 @@ export namespace PlanAction {
   export interface ObjectifPlan {
     id: string
     titre: string
-    theme: Objectif | Obstacle
+    theme: Questionnaire.Besoin | Questionnaire.Contrainte
     solutions: Solution[]
   }
 
@@ -102,39 +47,13 @@ export namespace PlanAction {
     getSolutions(): Solution[]
   }
 
-  export function calculerAge(
-    questionnaire: QuestionnaireJeune,
-    maintenant: DateTime
-  ): number | undefined {
-    const naissance = questionnaire.dateNaissance
-    if (!naissance?.isValid) return undefined
-    const naissanceUtc = DateTime.utc(
-      naissance.year,
-      naissance.month,
-      naissance.day
-    )
-    return Math.floor(maintenant.toUTC().diff(naissanceUtc, 'years').years)
-  }
-
-  export function calculerDepartement(
-    questionnaire: QuestionnaireJeune
-  ): string | undefined {
-    const codeInsee =
-      questionnaire.communeRecherche?.codeInsee ??
-      questionnaire.communeResidence?.codeInsee
-    if (!codeInsee) return undefined
-    return codeInsee.startsWith('97') || codeInsee.startsWith('98')
-      ? codeInsee.slice(0, 3)
-      : codeInsee.slice(0, 2)
-  }
-
   export function filtrerSolutionsEligibles(args: {
-    questionnaire: QuestionnaireJeune
+    questionnaire: Questionnaire
     solutions: Solution[]
     maintenant: DateTime
   }): Solution[] {
     const { questionnaire, solutions, maintenant } = args
-    const age = calculerAge(questionnaire, maintenant)
+    const age = Questionnaire.calculerAge(questionnaire, maintenant)
     return solutions.filter(
       solution =>
         matchTheme(questionnaire, solution) &&
@@ -146,21 +65,21 @@ export namespace PlanAction {
   }
 
   function matchTheme(
-    questionnaire: QuestionnaireJeune,
+    questionnaire: Questionnaire,
     solution: Solution
   ): boolean {
-    const repondAUnObjectifDuJeune =
+    const repondAUnBesoinDuJeune =
       solution.category !== null &&
-      questionnaire.objectifs.includes(solution.category)
-    const leveUnObstacleDuJeune =
+      questionnaire.besoins.includes(solution.category)
+    const leveUneContrainteDuJeune =
       solution.blocker !== null &&
-      questionnaire.obstacles.includes(solution.blocker)
+      questionnaire.contraintes.includes(solution.blocker)
 
-    return repondAUnObjectifDuJeune || leveUnObstacleDuJeune
+    return repondAUnBesoinDuJeune || leveUneContrainteDuJeune
   }
 
   function matchStructure(
-    questionnaire: QuestionnaireJeune,
+    questionnaire: Questionnaire,
     solution: Solution
   ): boolean {
     return (
@@ -170,7 +89,7 @@ export namespace PlanAction {
   }
 
   function matchSituation(
-    questionnaire: QuestionnaireJeune,
+    questionnaire: Questionnaire,
     solution: Solution
   ): boolean {
     return (
@@ -187,11 +106,11 @@ export namespace PlanAction {
   }
 
   function matchTerritoire(
-    questionnaire: QuestionnaireJeune,
+    questionnaire: Questionnaire,
     solution: Solution
   ): boolean {
     if (!solution.territory) return true
-    const departement = calculerDepartement(questionnaire)
+    const departement = Questionnaire.calculerDepartement(questionnaire)
     if (!departement) return false
     const territoire = solution.territory.toLowerCase()
     if (territoire.includes('outre-mer'))
@@ -204,7 +123,7 @@ export namespace PlanAction {
       .includes(departement.toLowerCase())
   }
 
-  export const TITRES_OBJECTIFS: Record<Objectif, string> = {
+  export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {
     ORIENTER: "Je cherche à m'orienter",
     DECOUVRIR_METIERS: 'Découvrir des métiers',
     FORMER: 'Me former, me qualifier',
@@ -218,7 +137,7 @@ export namespace PlanAction {
     VIE_QUOTIDIENNE: 'Ma vie quotidienne'
   }
 
-  export const TITRES_OBSTACLES: Record<Obstacle, string> = {
+  export const TITRES_CONTRAINTES: Record<Questionnaire.Contrainte, string> = {
     PAS_DE_PERMIS: 'Passer mon permis',
     PAS_DE_TRANSPORT: 'Me déplacer plus facilement',
     PAS_DE_LOGEMENT: 'Trouver un logement',
@@ -235,10 +154,10 @@ export namespace PlanAction {
     RIEN_NE_ME_BLOQUE: 'Rien ne me bloque'
   }
 
-  // Regroupe les solutions éligibles par objectif puis par obstacle du jeune
+  // Regroupe les solutions éligibles par besoin puis par contrainte du jeune
   // (ids objective-1, objective-2 : l'app y rattache les actions cochées)
   export function construirePlan(args: {
-    questionnaire: QuestionnaireJeune
+    questionnaire: Questionnaire
     solutionsEligibles: Solution[]
     id: string
   }): Plan {
@@ -246,7 +165,7 @@ export namespace PlanAction {
     const objectifs: ObjectifPlan[] = []
 
     function ajouterObjectif(
-      theme: Objectif | Obstacle,
+      theme: Questionnaire.Besoin | Questionnaire.Contrainte,
       titre: string,
       solutions: Solution[]
     ): void {
@@ -259,18 +178,18 @@ export namespace PlanAction {
       })
     }
 
-    for (const objectif of new Set(questionnaire.objectifs)) {
+    for (const besoin of new Set(questionnaire.besoins)) {
       ajouterObjectif(
-        objectif,
-        TITRES_OBJECTIFS[objectif],
-        solutionsEligibles.filter(solution => solution.category === objectif)
+        besoin,
+        TITRES_BESOINS[besoin],
+        solutionsEligibles.filter(solution => solution.category === besoin)
       )
     }
-    for (const obstacle of new Set(questionnaire.obstacles)) {
+    for (const contrainte of new Set(questionnaire.contraintes)) {
       ajouterObjectif(
-        obstacle,
-        TITRES_OBSTACLES[obstacle],
-        solutionsEligibles.filter(solution => solution.blocker === obstacle)
+        contrainte,
+        TITRES_CONTRAINTES[contrainte],
+        solutionsEligibles.filter(solution => solution.blocker === contrainte)
       )
     }
 
@@ -286,7 +205,7 @@ export namespace PlanAction {
       private readonly dateService: DateService
     ) {}
 
-    genererPlan(questionnaire: QuestionnaireJeune): Plan {
+    genererPlan(questionnaire: Questionnaire): Plan {
       const solutionsEligibles = filtrerSolutionsEligibles({
         questionnaire,
         solutions: this.catalogue.getSolutions(),
