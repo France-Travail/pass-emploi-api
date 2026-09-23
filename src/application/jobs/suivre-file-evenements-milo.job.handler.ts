@@ -44,12 +44,15 @@ export class SuivreEvenementsMiloCronJobHandler extends JobHandler {
         )
 
       if (jobEstEnCours) {
-        this.logger.warn('un job est en cours')
         return {
           jobType: this.jobType,
           dateExecution: debutDuJob,
-          succes: false,
-          resultat: { nombreEvenementsTraites, nombreEvenementsMax },
+          succes: true,
+          resultat: {
+            jobDejaEnCours: true,
+            nombreEvenementsTraites,
+            nombreEvenementsMax
+          },
           nbErreurs: 0,
           tempsExecution: DateService.calculerTempsExecution(debutDuJob)
         }
@@ -87,7 +90,6 @@ export class SuivreEvenementsMiloCronJobHandler extends JobHandler {
         tempsExecution: DateService.calculerTempsExecution(debutDuJob)
       }
     } catch (e) {
-      this.logger.error(e)
       return {
         jobType: this.jobType,
         dateExecution: debutDuJob,
