@@ -282,7 +282,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbPopulations: 2,
         nbConseillers: 2,
         nbJeunes: 4,
-        nbDestinatairesCommunications: 8,
+        nbDestinatairesCommunications: 12,
         nbMembresDeploiements: 4
       })
     })
@@ -357,10 +357,12 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('liste les conseillers destinataires de chaque communication, avec son statut figé à date_calcul', async () => {
       // Then
-      const destinataires = await lignes<Destinataire>(
-        ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
-        'id_communication, id_utilisateur'
-      )
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => d.destinataire === 'CONSEILLER')
       expect(
         destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
       ).to.deep.equal([
@@ -382,6 +384,34 @@ describe('ChargerLesPopulationsJobHandler', () => {
         date_fin: hier,
         type_utilisateur: 'CONSEILLER',
         email: 'cite@milo.fr',
+        agence: 'ML Aubenas',
+        date_calcul: maintenant.toJSDate()
+      })
+    })
+
+    it('liste les jeunes destinataires de chaque communication qui les cible, avec leur conseiller de référence', async () => {
+      // Then
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => d.destinataire === 'JEUNE')
+      expect(
+        destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
+      ).to.deep.equal([
+        ['4', 'EN_COURS', 'jeuneCejChezHors'],
+        ['4', 'EN_COURS', 'jeuneCite'],
+        ['4', 'EN_COURS', 'jeuneFtCej'],
+        ['4', 'EN_COURS', 'jeuneTransfere']
+      ])
+      expect(destinataires[1]).to.deep.include({
+        id_population: 'PILOTE',
+        destinataire: 'JEUNE',
+        type: 'IN_APP',
+        titre: 'Pour les jeunes',
+        type_utilisateur: 'JEUNE',
+        email: 'jeune.cite@mail.fr',
         agence: 'ML Aubenas',
         date_calcul: maintenant.toJSDate()
       })

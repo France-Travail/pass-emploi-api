@@ -283,6 +283,10 @@ export default () => {
           process.env.JOB_MAJ_AGENCES_FT_POURCENTAGE_SUPPRESSIONS_MAX ?? '2',
         nombreSuppressionsMin:
           process.env.JOB_MAJ_AGENCES_FT_NOMBRE_SUPPRESSIONS_MIN ?? '5'
+      },
+      envoiCommunications: {
+        actif: process.env.ENVOI_COMMUNICATIONS_ACTIF !== 'false',
+        tailleLot: process.env.ENVOI_COMMUNICATIONS_TAILLE_LOT ?? '300'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',
