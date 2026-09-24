@@ -46,7 +46,7 @@ function sqlProfilDansPopulation(
   )`
 }
 
-// La structure MiLo du conseiller `aliasConseiller` est citée dans la population.
+// La structure MiLo du conseiller `aliasConseiller` est citée dans la population ; `dispositifs` nul vise toute la structure, sinon le conseiller doit en porter un.
 function sqlStructureMiloDansPopulation(
   aliasConseiller: string,
   idPopulation: string
@@ -55,10 +55,11 @@ function sqlStructureMiloDansPopulation(
     SELECT 1 FROM population_structure_milo psm
     WHERE psm.id_population = ${idPopulation}
       AND psm.id_structure_milo = ${aliasConseiller}.id_structure_milo
+      AND (psm.dispositifs IS NULL OR ${aliasConseiller}.dispositif = ANY (psm.dispositifs))
   )`
 }
 
-// L'agence du conseiller `aliasConseiller` est citée dans la population.
+// L'agence du conseiller `aliasConseiller` est citée dans la population ; `dispositifs` nul vise toute l'agence, sinon le conseiller doit en porter un.
 function sqlAgenceDuConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
@@ -67,6 +68,7 @@ function sqlAgenceDuConseillerDansPopulation(
     SELECT 1 FROM population_agence_ft pa
     WHERE pa.id_population = ${idPopulation}
       AND pa.id_agence = ${aliasConseiller}.id_agence
+      AND (pa.dispositifs IS NULL OR ${aliasConseiller}.dispositif = ANY (pa.dispositifs))
   )`
 }
 

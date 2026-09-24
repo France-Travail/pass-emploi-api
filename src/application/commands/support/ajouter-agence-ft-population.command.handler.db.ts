@@ -18,14 +18,15 @@ import { Profil } from '../../../domain/profil'
 import { AgenceSqlModel } from '../../../infrastructure/sequelize/models/agence.sql-model'
 import { PopulationAgenceFTSqlModel } from '../../../infrastructure/sequelize/models/population-agence-ft.sql-model'
 
-export interface AgenceFTPopulationCommand extends Command {
+export interface AjouterAgenceFTPopulationCommand extends Command {
   idPopulation: string
   idAgence: string
+  dispositifs?: Profil.Dispositif[]
 }
 
 @Injectable()
 export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
-  AgenceFTPopulationCommand,
+  AjouterAgenceFTPopulationCommand,
   void
 > {
   constructor(
@@ -43,8 +44,8 @@ export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Une agence FT cible ses conseillers et leurs jeunes de référence : un jeune n'a pas d'agence. Doublon ignoré.
-  async handle(command: AgenceFTPopulationCommand): Promise<Result> {
+  // Une agence FT cible ses conseillers et leurs jeunes de référence : un jeune n'a pas d'agence. Rejouer remplace la liste de dispositifs ; absente, toute l'agence est visée.
+  async handle(command: AjouterAgenceFTPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
@@ -60,8 +61,10 @@ export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
       )
     }
 
-    await PopulationAgenceFTSqlModel.findOrCreate({
-      where: { idPopulation: command.idPopulation, idAgence: command.idAgence }
+    await PopulationAgenceFTSqlModel.upsert({
+      idPopulation: command.idPopulation,
+      idAgence: command.idAgence,
+      dispositifs: command.dispositifs ?? null
     })
     return emptySuccess()
   }

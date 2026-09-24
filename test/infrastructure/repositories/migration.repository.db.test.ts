@@ -203,6 +203,90 @@ describe('MigrationSqlRepository', () => {
       expect(date?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
     })
 
+    it("restreint l'agence aux dispositifs du conseiller, sans attraper les mêmes dispositifs d'une autre agence", async () => {
+      // Given
+      await AgenceSqlModel.bulkCreate([
+        uneAgenceDto({ id: 'AG1' }),
+        uneAgenceDto({ id: 'AG2' })
+      ])
+      await ConseillerSqlModel.bulkCreate([
+        unConseillerDto({
+          id: 'conseillerAg1Aij',
+          structure: Core.Structure.POLE_EMPLOI,
+          dispositif: Profil.Dispositif.AIJ,
+          idAgence: 'AG1',
+          email: 'aij@ft.fr'
+        }),
+        unConseillerDto({
+          id: 'conseillerAg1Cej',
+          structure: Core.Structure.POLE_EMPLOI,
+          idAgence: 'AG1',
+          email: 'cej@ft.fr'
+        }),
+        unConseillerDto({
+          id: 'conseillerAg2Aij',
+          structure: Core.Structure.POLE_EMPLOI,
+          dispositif: Profil.Dispositif.AIJ,
+          idAgence: 'AG2',
+          email: 'aij2@ft.fr'
+        })
+      ])
+      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
+      await PopulationAgenceFTSqlModel.create({
+        idPopulation: 'PHASE_ETAB',
+        idAgence: 'AG1',
+        dispositifs: [Profil.Dispositif.AIJ]
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PHASE_ETAB',
+        idFonctionnalite: null,
+        dateActivation: DATE_PHASE_ETAB.toJSDate()
+      })
+
+      // When
+      const aijDansLAgence =
+        await repo.getDateDeMigrationDuConseiller('conseillerAg1Aij')
+      const cejDansLAgence =
+        await repo.getDateDeMigrationDuConseiller('conseillerAg1Cej')
+      const aijAutreAgence =
+        await repo.getDateDeMigrationDuConseiller('conseillerAg2Aij')
+
+      // Then
+      expect(aijDansLAgence?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
+      expect(cejDansLAgence).to.be.undefined()
+      expect(aijAutreAgence).to.be.undefined()
+    })
+
+    it('ne cible pas un conseiller MiLo quand la structure est restreinte à des dispositifs, un conseiller MiLo n’en portant pas', async () => {
+      // Given
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+      await ConseillerSqlModel.update(
+        { idStructureMilo: 'SM1' },
+        { where: { id: 'conseillerHorsMigration' } }
+      )
+      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
+      await PopulationStructureMiloSqlModel.create({
+        idPopulation: 'PHASE_ETAB',
+        idStructureMilo: 'SM1',
+        dispositifs: [Profil.Dispositif.PACEA]
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.MIGRATION,
+        idPopulation: 'PHASE_ETAB',
+        idFonctionnalite: null,
+        dateActivation: DATE_PHASE_ETAB.toJSDate()
+      })
+
+      // When
+      const date = await repo.getDateDeMigrationDuConseiller(
+        'conseillerHorsMigration'
+      )
+
+      // Then
+      expect(date).to.be.undefined()
+    })
+
     it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
       // Given
       await PopulationConseillerSqlModel.create({
