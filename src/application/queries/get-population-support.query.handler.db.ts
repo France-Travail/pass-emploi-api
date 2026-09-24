@@ -105,8 +105,14 @@ export function toPopulationSupportQueryModel(
       structure: p.structure,
       dispositif: p.dispositif ?? undefined
     })),
-    structuresMilo: structuresMilo.map(s => s.idStructureMilo),
-    agencesFT: agences.map(a => a.idAgence),
+    structuresMilo: structuresMilo.map(sm => ({
+      idStructureMilo: sm.idStructureMilo,
+      dispositifs: sm.dispositifs ?? undefined
+    })),
+    agencesFT: agences.map(a => ({
+      idAgence: a.idAgence,
+      dispositifs: a.dispositifs ?? undefined
+    })),
     deploiements: deploiements.map(d => ({
       id: d.id,
       nature: d.nature,

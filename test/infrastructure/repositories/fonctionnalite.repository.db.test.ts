@@ -378,6 +378,132 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal(['QCM'])
     })
 
+    it('restreint une structure MiLo aux dispositifs demandés', async () => {
+      // Given
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeuneSm1Pacea',
+          idConseiller: 'conseillerMilo',
+          structure: Core.Structure.MILO,
+          idStructureMilo: 'SM1',
+          dispositif: Profil.Dispositif.PACEA
+        }),
+        unJeuneDto({
+          id: 'jeuneSm1Cej',
+          idConseiller: 'conseillerMilo',
+          structure: Core.Structure.MILO,
+          idStructureMilo: 'SM1'
+        })
+      ])
+      await PopulationSqlModel.create({ id: 'SM1_PACEA', description: null })
+      await PopulationStructureMiloSqlModel.create({
+        idPopulation: 'SM1_PACEA',
+        idStructureMilo: 'SM1',
+        dispositifs: [Profil.Dispositif.PACEA]
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'SM1_PACEA',
+        idFonctionnalite: 'QCM',
+        dateActivation: hier
+      })
+
+      // When
+      const pacea = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneSm1Pacea',
+        maintenant
+      )
+      const cej = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneSm1Cej',
+        maintenant
+      )
+
+      // Then
+      expect(pacea).to.deep.equal(['PLAN_D_ACTION', 'QCM'])
+      expect(cej).to.deep.equal(['PLAN_D_ACTION'])
+    })
+
+    it("restreint une agence FT aux dispositifs du jeune, sans attraper les mêmes dispositifs d'une autre agence", async () => {
+      // Given
+      await AgenceSqlModel.bulkCreate([
+        uneAgenceDto({ id: 'AG1' }),
+        uneAgenceDto({ id: 'AG2' })
+      ])
+      await ConseillerSqlModel.bulkCreate([
+        unConseillerDto({
+          id: 'conseillerAg1',
+          structure: Core.Structure.POLE_EMPLOI,
+          idAgence: 'AG1',
+          email: 'ag1@ft.fr'
+        }),
+        unConseillerDto({
+          id: 'conseillerAg2',
+          structure: Core.Structure.POLE_EMPLOI,
+          idAgence: 'AG2',
+          email: 'ag2@ft.fr'
+        })
+      ])
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeuneAg1Brsa',
+          idConseiller: 'conseillerAg1',
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        }),
+        unJeuneDto({
+          id: 'jeuneAg1Aij',
+          idConseiller: 'conseillerAg1',
+          structure: Core.Structure.POLE_EMPLOI_AIJ
+        }),
+        unJeuneDto({
+          id: 'jeuneAg1Cej',
+          idConseiller: 'conseillerAg1',
+          structure: Core.Structure.POLE_EMPLOI
+        }),
+        unJeuneDto({
+          id: 'jeuneAg2Brsa',
+          idConseiller: 'conseillerAg2',
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        })
+      ])
+      await PopulationSqlModel.create({ id: 'AG1_BRSA_AIJ', description: null })
+      await PopulationAgenceFTSqlModel.create({
+        idPopulation: 'AG1_BRSA_AIJ',
+        idAgence: 'AG1',
+        dispositifs: [Profil.Dispositif.BRSA, Profil.Dispositif.AIJ]
+      })
+      await DeploiementSqlModel.create({
+        nature: Deploiement.Nature.FONCTIONNALITE,
+        idPopulation: 'AG1_BRSA_AIJ',
+        idFonctionnalite: 'QCM',
+        dateActivation: hier
+      })
+
+      // When
+      const brsaDansLAgence = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneAg1Brsa',
+        maintenant
+      )
+      const aijDansLAgence = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneAg1Aij',
+        maintenant
+      )
+      const cejDansLAgence = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneAg1Cej',
+        maintenant
+      )
+      const brsaAutreAgence = await repo.getIdsFonctionnalitesActivesDuJeune(
+        'jeuneAg2Brsa',
+        maintenant
+      )
+
+      // Then
+      expect(brsaDansLAgence).to.deep.equal(['QCM'])
+      expect(aijDansLAgence).to.deep.equal(['QCM'])
+      expect(cejDansLAgence).to.deep.equal(['FT_IA'])
+      expect(brsaAutreAgence).to.deep.equal([])
+    })
+
     it("renvoie une liste vide quand l'id jeune n'existe pas", async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(

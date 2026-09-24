@@ -147,7 +147,7 @@ describe('SupportDeploiementsController', () => {
           description: 'Beta testeurs 1J1S',
           conseillers: ['conseiller@email.com'],
           profils: [],
-          structuresMilo: ['80620S00'],
+          structuresMilo: [{ idStructureMilo: '80620S00' }],
           agencesFT: [],
           deploiements: [
             {
@@ -529,9 +529,68 @@ describe('SupportDeploiementsController', () => {
       expect(
         ajouterStructureMiloPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
-        { idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' },
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: undefined
+        },
         Authentification.unUtilisateurSupport()
       )
+    })
+
+    it('transmet les dispositifs quand ils restreignent la structure', async () => {
+      // Given
+      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterStructureMiloPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 avec un dispositif inconnu dans la liste', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: ['INCONNU']
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 avec une liste de dispositifs vide, qui ne viserait personne', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: []
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
     })
 
     it('renvoie 400 sans idStructureMilo', async () => {
@@ -608,9 +667,53 @@ describe('SupportDeploiementsController', () => {
       expect(
         ajouterAgenceFTPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
-        { idPopulation: 'PILOTE_1J1S', idAgence: '75056' },
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: undefined
+        },
         Authentification.unUtilisateurSupport()
       )
+    })
+
+    it("transmet les dispositifs quand ils restreignent l'agence", async () => {
+      // Given
+      ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterAgenceFTPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 avec un dispositif en double dans la liste', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.CEJ]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
     })
 
     it('renvoie 400 sans idAgence', async () => {

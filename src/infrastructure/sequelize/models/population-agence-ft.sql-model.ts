@@ -6,6 +6,7 @@ import {
   PrimaryKey,
   Table
 } from 'sequelize-typescript'
+import { Profil } from '../../../domain/profil'
 import { AgenceSqlModel } from './agence.sql-model'
 import { PopulationSqlModel } from './population.sql-model'
 
@@ -20,4 +21,8 @@ export class PopulationAgenceFTSqlModel extends Model {
   @ForeignKey(() => AgenceSqlModel)
   @Column({ field: 'id_agence', type: DataType.STRING })
   idAgence: string
+
+  // Nul = tous les dispositifs de l'agence.
+  @Column({ field: 'dispositifs', type: DataType.ARRAY(DataType.STRING) })
+  dispositifs: Profil.Dispositif[] | null
 }
