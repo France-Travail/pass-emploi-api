@@ -56,6 +56,7 @@ export interface UpdateUtilisateurCommand extends Command {
   profil: Profil
   federatedToken?: string
   installationId?: string
+  application?: string
 }
 
 @Injectable()
@@ -109,10 +110,15 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
     }
 
-    if (
-      isSuccess(result) &&
-      (await this.lUtilisateurDoitMigrerVersParcoursEmploi(result.data))
-    ) {
+    const leJeuneVientDUneApplicationQuiMigre =
+      commandSanitized.application !==
+      Authentification.Application.UN_JEUNE_UNE_SOLUTION
+
+    const leJeuneMigre =
+      leJeuneVientDUneApplicationQuiMigre &&
+      (await this.leJeuneEstArchivePourMigration(commandSanitized.email))
+
+    if (isSuccess(result) && leJeuneMigre) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -122,10 +128,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
       )
     }
-    if (
-      isFailure(result) &&
-      (await this.lUtilisateurEstArchive(commandSanitized.email))
-    ) {
+
+    if (isFailure(result) && leJeuneMigre) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -509,24 +513,22 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async lUtilisateurDoitMigrerVersParcoursEmploi(
+  private async leJeuneMigreVersParcoursEmploi(
     utilisateur: UtilisateurQueryModel
   ): Promise<boolean> {
     if (utilisateur.type === Type.SUPPORT) return false
 
-    return await this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee(
-      {
-        id: utilisateur.id,
-        type: utilisateur.type
-      }
-    )
+    return this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
+      id: utilisateur.id,
+      type: utilisateur.type
+    })
   }
 
-  private async lUtilisateurEstArchive(
+  private async leJeuneEstArchivePourMigration(
     email: string | undefined
   ): Promise<boolean> {
     if (!email) return false
-    return await this.archiverJeuneRepository.estArchiveAvecMotif(
+    return this.archiverJeuneRepository.estArchiveAvecMotif(
       email,
       MotifSuppressionSupport.MIGRATION
     )
