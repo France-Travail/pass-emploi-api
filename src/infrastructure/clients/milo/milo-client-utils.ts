@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AxiosError, AxiosResponse } from 'axios'
+import { AxiosResponse, isAxiosError } from 'axios'
 import * as APM from 'elastic-apm-node'
 import { ErreurMiloHttp } from 'src/building-blocks/types/domain-error'
 import {
@@ -205,7 +205,11 @@ export class MiloClientUtils extends ExternalApiClient {
     }
   }
 
-  handleAxiosError(error: AxiosError, message: string): Failure {
+  // Convertit les 4xx Milo en failure ; tout le reste (5xx, réseau,
+  // ErreurMiloReponseInvalide…) est une erreur technique relancée telle quelle.
+  handleAxiosError(error: unknown, message: string): Failure {
+    if (!isAxiosError(error)) throw error
+
     const MIN_STATUS = HttpStatus.BAD_REQUEST
     const MAX_STATUS = HttpStatus.INTERNAL_SERVER_ERROR
     const status = error.response?.status
