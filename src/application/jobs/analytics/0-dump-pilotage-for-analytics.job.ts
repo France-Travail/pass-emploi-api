@@ -9,14 +9,16 @@ import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { DateService } from '../../../utils/date-service'
 import { dumperEtRestaurer } from './dump-restore'
 
-// Tables de pilotage (support) : ne sont référencées par aucune autre table, donc restaurables seules.
+// Tables de pilotage (support) : ne sont référencées que par d'autres tables de la liste, donc restaurables ensemble.
+// pg_restore --clean ne peut supprimer une table dont une clé étrangère non dumpée dépend : toute table qui en référence une doit être ajoutée ici.
 export const TABLES_PILOTAGE = [
   'fonctionnalite',
   'population',
   'population_conseiller',
   'population_profil',
   'deploiement',
-  'communication'
+  'communication',
+  'communication_envoi'
 ]
 
 /**

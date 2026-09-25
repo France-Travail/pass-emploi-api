@@ -149,7 +149,7 @@ Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant l
 
 ### 0-dump-pilotage-for-analytics.job.ts
 
-Hors cron. Dump partiel des six tables de pilotage (`DUMP_TABLES` dans
+Hors cron. Dump partiel des sept tables de pilotage (`DUMP_TABLES` dans
 `0_db_dump_restore.sh`), puis enfile le job 0bis. Voir « Rafraîchir avant l'heure » sous
 0bis.
 
@@ -162,14 +162,17 @@ dans une transaction, `date_calcul` identique sur toutes les lignes) :
 | Table | Une ligne par | Colonnes propres | `statut` (figé à `date_calcul`) |
 | --- | --- | --- | --- |
 | `analytics_population_membres` | (population, conseiller ou jeune) | `email_conseiller_reference`, `type_conseiller_reference` (`ACTUEL` / `INITIAL` si transfert temporaire) | — |
-| `analytics_communication_destinataires` | (communication, conseiller destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` |
+| `analytics_communication_destinataires` | (communication, conseiller ou jeune destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` — une `NOTIFICATION` (sans `date_fin`) est `PASSEE` dès sa `date_debut` |
 | `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
 Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
 `dispositif`) et son lieu d'accompagnement (`id_agence` / `agence` : id et nom de la
 structure MiLo, sinon de l'agence FT — pour un jeune, la sienne sinon celle de son
 conseiller de référence).
-Jeunes : uniquement dans `analytics_population_membres` pour l'instant.
+Jeunes : dans `analytics_population_membres` et `analytics_communication_destinataires` (pas de
+déploiement jeune). Pour une `NOTIFICATION` push, seuls les jeunes qui ont un
+`push_notification_token` sont destinataires, comme à l'envoi : c'est une **prévisualisation**,
+un jeune qui installe l'app entre le calcul et l'envoi sera ciblé sans y figurer.
 
 **Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
 population, destinataires d'une communication, conseillers concernés par un déploiement et
@@ -192,12 +195,13 @@ le terminal) ; suivre l'avancement dans les `SuiviJob`.
 
 | Besoin | Commande | Durée | Ce qui est rafraîchi |
 | --- | --- | --- | --- |
-| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-pilotage` | secondes | les 6 tables de pilotage (`population*`, `communication`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
+| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-pilotage` | secondes | les 7 tables de pilotage (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
 | Tout à jour, y compris agences / structures des conseillers | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics` | > 20 min, dashboards incohérents pendant la restauration | toute la base, puis 0bis (et le job 1) enfilés |
 | Recalculer sans re-dumper (code du job changé) | `scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations` | secondes | rien : recalcul sur l'existant |
 
-Le dump partiel est possible parce que les tables de pilotage ne sont référencées par
-aucune autre table ; `conseiller` et `jeune`, référencés partout (actions, RDV…), ne
+Le dump partiel est possible parce que les tables de pilotage ne sont référencées que par
+d'autres tables de pilotage (`communication_envoi` → `communication`, d'où sa présence dans la
+liste) ; `conseiller` et `jeune`, référencés partout (actions, RDV…), ne
 peuvent pas être restaurés seuls avec `pg_restore --clean`.
 
 ### 1-charger-les-evenements.job.ts

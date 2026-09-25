@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Transaction } from 'sequelize'
 import { Sequelize } from 'sequelize-typescript'
 import { JobHandler } from '../../../building-blocks/types/job-handler'
+import { Communication } from '../../../domain/communication'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { PopulationSqlRepository } from '../../../infrastructure/repositories/population.repository.db'
@@ -387,10 +388,12 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
   }
 }
 
+// Une NOTIFICATION n'a pas de date_fin : envoi ponctuel, passée dès sa date_debut.
 function sqlStatutCommunication(aliasCom: string): string {
   return `
     CASE
       WHEN ${aliasCom}.date_fin <= :maintenant THEN 'PASSEE'
+      WHEN ${aliasCom}.type = '${Communication.Type.NOTIFICATION}' AND ${aliasCom}.date_debut <= :maintenant THEN 'PASSEE'
       WHEN ${sqlCommunicationEnCours(aliasCom, ':maintenant')} THEN 'EN_COURS'
       ELSE 'PREVUE'
     END`
