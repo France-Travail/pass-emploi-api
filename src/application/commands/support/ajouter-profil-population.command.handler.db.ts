@@ -40,22 +40,19 @@ export class AjouterProfilPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Sans dispositif le profil couvre toute la structure ; l'index unique absorbe le doublon, on l'ignore.
+  // Sans dispositif le profil couvre toute la structure ; un profil déjà présent est laissé tel quel.
   async handle(command: AjouterProfilPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
 
-    await PopulationProfilSqlModel.bulkCreate(
-      [
-        {
-          idPopulation: command.idPopulation,
-          structure: command.structure,
-          dispositif: command.dispositif ?? null
-        }
-      ],
-      { ignoreDuplicates: true }
-    )
+    await PopulationProfilSqlModel.findOrCreate({
+      where: {
+        idPopulation: command.idPopulation,
+        structure: command.structure,
+        dispositif: command.dispositif ?? null
+      }
+    })
 
     return emptySuccess()
   }

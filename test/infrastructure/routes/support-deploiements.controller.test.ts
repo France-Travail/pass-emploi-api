@@ -2,6 +2,10 @@ import { HttpStatus, INestApplication } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import * as request from 'supertest'
 import { AjouterConseillersPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-conseillers-population.command.handler.db'
+import { AjouterAgenceFTPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-agence-ft-population.command.handler.db'
+import { AjouterStructureMiloPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-structure-milo-population.command.handler.db'
+import { SupprimerAgenceFTPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-agence-ft-population.command.handler.db'
+import { SupprimerStructureMiloPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-structure-milo-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-profil-population.command.handler.db'
 import { CreerDeploiementCommandHandler } from '../../../src/application/commands/support/creer-deploiement.command.handler.db'
 import { CreerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/creer-fonctionnalite.command.handler.db'
@@ -47,6 +51,10 @@ describe('SupportDeploiementsController', () => {
   let supprimerConseillersPopulationCommandHandler: StubbedClass<SupprimerConseillersPopulationCommandHandler>
   let ajouterProfilPopulationCommandHandler: StubbedClass<AjouterProfilPopulationCommandHandler>
   let supprimerProfilPopulationCommandHandler: StubbedClass<SupprimerProfilPopulationCommandHandler>
+  let ajouterStructureMiloPopulationCommandHandler: StubbedClass<AjouterStructureMiloPopulationCommandHandler>
+  let supprimerStructureMiloPopulationCommandHandler: StubbedClass<SupprimerStructureMiloPopulationCommandHandler>
+  let ajouterAgenceFTPopulationCommandHandler: StubbedClass<AjouterAgenceFTPopulationCommandHandler>
+  let supprimerAgenceFTPopulationCommandHandler: StubbedClass<SupprimerAgenceFTPopulationCommandHandler>
   let creerDeploiementCommandHandler: StubbedClass<CreerDeploiementCommandHandler>
   let modifierDateDeploiementCommandHandler: StubbedClass<ModifierDateDeploiementCommandHandler>
   let supprimerDeploiementCommandHandler: StubbedClass<SupprimerDeploiementCommandHandler>
@@ -85,6 +93,18 @@ describe('SupportDeploiementsController', () => {
     )
     supprimerProfilPopulationCommandHandler = app.get(
       SupprimerProfilPopulationCommandHandler
+    )
+    ajouterStructureMiloPopulationCommandHandler = app.get(
+      AjouterStructureMiloPopulationCommandHandler
+    )
+    supprimerStructureMiloPopulationCommandHandler = app.get(
+      SupprimerStructureMiloPopulationCommandHandler
+    )
+    ajouterAgenceFTPopulationCommandHandler = app.get(
+      AjouterAgenceFTPopulationCommandHandler
+    )
+    supprimerAgenceFTPopulationCommandHandler = app.get(
+      SupprimerAgenceFTPopulationCommandHandler
     )
     creerDeploiementCommandHandler = app.get(CreerDeploiementCommandHandler)
     modifierDateDeploiementCommandHandler = app.get(
@@ -127,6 +147,8 @@ describe('SupportDeploiementsController', () => {
           description: 'Beta testeurs 1J1S',
           conseillers: ['conseiller@email.com'],
           profils: [],
+          structuresMilo: [{ idStructureMilo: '80620S00' }],
+          agencesFT: [],
           deploiements: [
             {
               id: 1,
@@ -228,6 +250,8 @@ describe('SupportDeploiementsController', () => {
         description: 'Beta testeurs 1J1S',
         conseillers: ['conseiller@email.com'],
         profils: [],
+        structuresMilo: [],
+        agencesFT: [],
         deploiements: [],
         communications: []
       }
@@ -485,6 +509,250 @@ describe('SupportDeploiementsController', () => {
         },
         Authentification.unUtilisateurSupport()
       )
+    })
+  })
+
+  describe('POST /support/populations/structures-milo', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterStructureMiloPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('transmet les dispositifs quand ils restreignent la structure', async () => {
+      // Given
+      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterStructureMiloPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 avec un dispositif inconnu dans la liste', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: ['INCONNU']
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 avec une liste de dispositifs vide, qui ne viserait personne', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructureMilo: '80620S00',
+          dispositifs: []
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 sans idStructureMilo', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 404 quand la structure n'existe pas", async () => {
+      // Given
+      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Structure MiLo', 'INCONNUE'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: 'INCONNUE' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+  })
+
+  describe('DELETE /support/populations/structures-milo', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      supprimerStructureMiloPopulationCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it("renvoie 404 quand la structure n'est pas dans la population", async () => {
+      // Given
+      supprimerStructureMiloPopulationCommandHandler.execute.resolves(
+        failure(
+          new NonTrouveError(
+            'Structure MiLo de la population',
+            'PILOTE_1J1S/80620S00'
+          )
+        )
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+  })
+
+  describe('POST /support/populations/agences-ft', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterAgenceFTPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it("transmet les dispositifs quand ils restreignent l'agence", async () => {
+      // Given
+      ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        ajouterAgenceFTPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 400 avec un dispositif en double dans la liste', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idAgence: '75056',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.CEJ]
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 sans idAgence', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({ idPopulation: 'PILOTE_1J1S' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+  })
+
+  describe('DELETE /support/populations/agences-ft', () => {
+    it('renvoie 204 quand le payload est valide', async () => {
+      // Given
+      supprimerAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/agences-ft')
+        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    it("renvoie 404 quand l'agence n'est pas dans la population", async () => {
+      // Given
+      supprimerAgenceFTPopulationCommandHandler.execute.resolves(
+        failure(
+          new NonTrouveError('Agence de la population', 'PILOTE_1J1S/75056')
+        )
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/populations/agences-ft')
+        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
     })
   })
 

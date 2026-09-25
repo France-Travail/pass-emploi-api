@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import {
   ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -246,6 +247,74 @@ export class ProfilPopulationPayload {
   @IsOptional()
   @IsEnum(Profil.Dispositif)
   dispositif?: Profil.Dispositif
+}
+
+export class StructureMiloPopulationPayload {
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiProperty({
+    description: 'Id de la structure MiLo, voir la table structure_milo',
+    example: '80620S00'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idStructureMilo: string
+}
+
+export class AjouterStructureMiloPopulationPayload extends StructureMiloPopulationPayload {
+  @ApiPropertyOptional({
+    enum: Profil.Dispositif,
+    isArray: true,
+    description:
+      'Restreint la cible aux jeunes qui portent l’un de ces dispositifs. Absent = toute la structure. Un conseiller MiLo n’a pas de dispositif : renseignée, la liste ne vise aucun conseiller.',
+    example: ['CEJ', 'PACEA']
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsEnum(Profil.Dispositif, { each: true })
+  dispositifs?: Profil.Dispositif[]
+}
+
+export class AgenceFTPopulationPayload {
+  @ApiProperty({
+    description: "Identifiant d'une population existante",
+    example: 'PILOTE_1J1S'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idPopulation: string
+
+  @ApiProperty({
+    description: 'Id de l’agence France Travail, voir la table agence',
+    example: '75056'
+  })
+  @IsString()
+  @IsNotEmpty()
+  idAgence: string
+}
+
+export class AjouterAgenceFTPopulationPayload extends AgenceFTPopulationPayload {
+  @ApiPropertyOptional({
+    enum: Profil.Dispositif,
+    isArray: true,
+    description:
+      'Restreint la cible aux utilisateurs qui portent eux-mêmes l’un de ces dispositifs. Absent = toute l’agence.',
+    example: ['CEJ', 'AIJ']
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsEnum(Profil.Dispositif, { each: true })
+  dispositifs?: Profil.Dispositif[]
 }
 
 export class CreerDeploiementPayload {

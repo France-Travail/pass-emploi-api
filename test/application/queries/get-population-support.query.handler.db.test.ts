@@ -11,6 +11,12 @@ import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/model
 import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
+import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/population-structure-milo.sql-model'
+import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
+import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { expect } from '../../utils'
 import {
@@ -48,6 +54,24 @@ describe('GetPopulationSupportQueryHandler', () => {
       structure: Profil.Structure.MILO,
       dispositif: null
     })
+    await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+    await PopulationStructureMiloSqlModel.create({
+      idPopulation: 'PILOTE_1J1S',
+      idStructureMilo: 'SM1',
+      dispositifs: [Profil.Dispositif.PACEA]
+    })
+    await AgenceSqlModel.bulkCreate([
+      uneAgenceDto({ id: 'AG1' }),
+      uneAgenceDto({ id: 'AG2' })
+    ])
+    await PopulationAgenceFTSqlModel.bulkCreate([
+      {
+        idPopulation: 'PILOTE_1J1S',
+        idAgence: 'AG1',
+        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+      },
+      { idPopulation: 'PILOTE_1J1S', idAgence: 'AG2', dispositifs: null }
+    ])
     await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
     const deploiement = await DeploiementSqlModel.create({
       nature: Deploiement.Nature.FONCTIONNALITE,
@@ -75,6 +99,16 @@ describe('GetPopulationSupportQueryHandler', () => {
         description: 'Beta testeurs 1J1S',
         conseillers: ['a@ft.fr', 'b@ft.fr'],
         profils: [{ structure: Profil.Structure.MILO, dispositif: undefined }],
+        structuresMilo: [
+          { idStructureMilo: 'SM1', dispositifs: [Profil.Dispositif.PACEA] }
+        ],
+        agencesFT: [
+          {
+            idAgence: 'AG1',
+            dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+          },
+          { idAgence: 'AG2', dispositifs: undefined }
+        ],
         deploiements: [
           {
             id: deploiement.id,

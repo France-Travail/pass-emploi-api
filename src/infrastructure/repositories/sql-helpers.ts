@@ -46,21 +46,54 @@ export function sqlProfilDansPopulation(
   )`
 }
 
-// Un conseiller est dans la population s'il est cité par email ou si son propre profil correspond.
+// La structure MiLo de `aliasPorteur` (jeune ou conseiller) est citée dans la population ; `dispositifs` nul vise toute la structure, sinon il faut en porter un.
+export function sqlStructureMiloDansPopulation(
+  aliasPorteur: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_structure_milo psm
+    WHERE psm.id_population = ${idPopulation}
+      AND psm.id_structure_milo = ${aliasPorteur}.id_structure_milo
+      AND (psm.dispositifs IS NULL OR ${aliasPorteur}.dispositif = ANY (psm.dispositifs))
+  )`
+}
+
+// L'agence du conseiller `aliasConseiller` est citée dans la population ; un jeune n'a pas d'agence, il passe par son conseiller de référence. Le dispositif se lit sur `aliasPorteurDuDispositif`, l'utilisateur ciblé lui-même ; `dispositifs` nul vise toute l'agence.
+export function sqlAgenceDuConseillerDansPopulation(
+  aliasConseiller: string,
+  aliasPorteurDuDispositif: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_agence_ft pa
+    WHERE pa.id_population = ${idPopulation}
+      AND pa.id_agence = ${aliasConseiller}.id_agence
+      AND (pa.dispositifs IS NULL OR ${aliasPorteurDuDispositif}.dispositif = ANY (pa.dispositifs))
+  )`
+}
+
+// Un conseiller est dans la population s'il est cité par email, si son propre profil correspond, ou si sa structure MiLo ou son agence est citée.
 export function sqlConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
 ): string {
-  return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)} OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)})`
+  return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlStructureMiloDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlAgenceDuConseillerDansPopulation(aliasConseiller, aliasConseiller, idPopulation)})`
 }
 
-// Un jeune est dans la population si son conseiller de référence est cité par email ou si son propre profil correspond.
+// Un jeune est dans la population si son propre profil ou sa propre structure MiLo correspond, ou si son conseiller de référence est cité par email ou par son agence.
 export function sqlJeuneDansPopulation(
   aliasJeune: string,
   aliasConseillerDeReference: string,
   idPopulation: string
 ): string {
-  return `(${sqlEmailDuConseillerDansPopulation(aliasConseillerDeReference, idPopulation)} OR ${sqlProfilDansPopulation(aliasJeune, idPopulation)})`
+  return `(${sqlEmailDuConseillerDansPopulation(aliasConseillerDeReference, idPopulation)}
+    OR ${sqlProfilDansPopulation(aliasJeune, idPopulation)}
+    OR ${sqlStructureMiloDansPopulation(aliasJeune, idPopulation)}
+    OR ${sqlAgenceDuConseillerDansPopulation(aliasConseillerDeReference, aliasJeune, idPopulation)})`
 }
 
 // Jointure de la communication `aliasCom` vers les conseillers qui en sont destinataires. Même jointure côté fonctionnalité (filtrée sur un conseiller) et côté analytics (exhaustive).
