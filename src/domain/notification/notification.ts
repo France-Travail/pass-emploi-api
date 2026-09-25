@@ -24,7 +24,8 @@ export namespace Notification {
     send(
       message: Notification.Message,
       idJeune?: string,
-      pushNotification?: boolean
+      pushNotification?: boolean,
+      notificationInApp?: boolean
     ): Promise<ResultatEnvoi>
   }
 

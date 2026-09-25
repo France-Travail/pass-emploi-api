@@ -151,6 +151,7 @@ describe('EnvoyerCommunicationsJobHandler', () => {
         data: { type: Notification.Type.MIGRATION_PARCOURS_EMPLOI }
       },
       'jeune1',
+      true,
       true
     ])
     const envois = await CommunicationEnvoiSqlModel.findAll({
@@ -242,6 +243,41 @@ describe('EnvoyerCommunicationsJobHandler', () => {
     const enErreur = (await CommunicationSqlModel.findByPk(communication.id))!
     expect(enErreur.statutEnvoi).to.equal(Communication.StatutEnvoi.EN_ERREUR)
     expect(enErreur.echecsConsecutifs).to.equal(3)
+  })
+
+  it("n'écrit pas de nouvelle notification in-app en retentant un lot entièrement en erreur", async () => {
+    // Given
+    await uneNotification()
+    await handler.handle()
+    notificationRepository.send.resolves(Notification.ResultatEnvoi.ERREUR)
+    await handler.handle()
+    notificationRepository.send.resetHistory()
+    notificationRepository.send.resolves(Notification.ResultatEnvoi.ENVOYEE)
+
+    // When
+    await handler.handle()
+
+    // Then
+    expect(notificationRepository.send).to.have.been.calledThrice()
+    expect(
+      notificationRepository.send.getCalls().map(call => call.args[3])
+    ).to.deep.equal([false, false, false])
+  })
+
+  it("écrit de nouveau les notifications in-app une fois qu'un lot est passé", async () => {
+    // Given
+    const communication = await uneNotification({ echecsConsecutifs: 1 })
+    await handler.handle()
+    await CommunicationSqlModel.update(
+      { echecsConsecutifs: 0 },
+      { where: { id: communication.id } }
+    )
+
+    // When
+    await handler.handle()
+
+    // Then
+    expect(notificationRepository.send.firstCall.args[3]).to.equal(true)
   })
 
   it('marque en erreur les jeunes en échec et remet les échecs à zéro quand le lot est partiellement en erreur', async () => {

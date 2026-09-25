@@ -114,6 +114,15 @@ describe('NotificationFirebaseSqlRepository', () => {
       expect(await NotificationJeuneSqlModel.findAll()).to.be.empty()
     })
 
+    it("n'enregistre pas de notification in-app mais envoie le push si notificationInApp = false", async () => {
+      // When
+      await repository.send(message, 'j1', true, false)
+
+      // Then
+      expect(await NotificationJeuneSqlModel.findAll()).to.be.empty()
+      expect(firebaseClient.send).to.have.been.calledOnceWithExactly(message)
+    })
+
     it('envoie aussi une notification push si pushNotification = true', async () => {
       // When
       await repository.send(message, 'j1', true)

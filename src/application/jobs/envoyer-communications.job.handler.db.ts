@@ -243,7 +243,8 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
           }
         },
         idJeune,
-        communication.push
+        communication.push,
+        estPremiereTentative(communication)
       )
       return STATUT_PAR_RESULTAT[resultat]
     } catch (e) {
@@ -322,6 +323,10 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
       tempsExecution: DateService.calculerTempsExecution(maintenant)
     }
   }
+}
+
+function estPremiereTentative(communication: Communication.AEnvoyer): boolean {
+  return communication.echecsConsecutifs === 0
 }
 
 const STATUT_PAR_RESULTAT: Record<
