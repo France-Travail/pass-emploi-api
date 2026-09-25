@@ -1170,6 +1170,130 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
+          describe('selon l’application qui déclenche l’auth', () => {
+            const commandPour = (
+              application?: string
+            ): UpdateUtilisateurCommand => ({
+              idUtilisateurAuth: 'nilstavernier',
+              type: Authentification.Type.JEUNE,
+              profil: unProfilFT(),
+              application
+            })
+            const unJeuneQuiDoitMigrer = (): Authentification.Utilisateur => {
+              const utilisateur = unUtilisateurJeune({ profil: unProfilFT() })
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs('nilstavernier')
+                .resolves(utilisateur)
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: utilisateur.id,
+                  type: Authentification.Type.JEUNE
+                })
+                .resolves(true)
+              return utilisateur
+            }
+
+            it('bloque avec MIGRATION_PARCOURS_EMPLOI pour pass-emploi', async () => {
+              // Given
+              unJeuneQuiDoitMigrer()
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                commandPour(Authentification.Application.PASS_EMPLOI)
+              )
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              }
+            })
+
+            it('bloque avec MIGRATION_PARCOURS_EMPLOI pour application-du-cej', async () => {
+              // Given
+              unJeuneQuiDoitMigrer()
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                commandPour(Authentification.Application.APPLICATION_DU_CEJ)
+              )
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              }
+            })
+
+            it('bloque avec MIGRATION_PARCOURS_EMPLOI quand l’application est absente', async () => {
+              // Given
+              unJeuneQuiDoitMigrer()
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                commandPour(undefined)
+              )
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              }
+            })
+
+            it('ne fait pas le check migration pour 1j1s et laisse passer', async () => {
+              // Given
+              unJeuneQuiDoitMigrer()
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute(
+                commandPour(Authentification.Application.UN_JEUNE_UNE_SOLUTION)
+              )
+
+              // Then
+              expect(isSuccess(result)).to.be.true()
+              expect(
+                migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              ).not.to.have.been.called()
+              expect(
+                archiverJeuneRepository.estArchiveAvecMotif
+              ).not.to.have.been.called()
+            })
+
+            it('ne fait pas le check archivage migration pour 1j1s', async () => {
+              // Given : jeune inconnu, archivé avec le motif MIGRATION
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs('nilstavernier')
+                .resolves(undefined)
+              authentificationRepository.getJeuneByEmail.resolves(undefined)
+              archiverJeuneRepository.estArchiveAvecMotif.resolves(true)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute({
+                ...commandPour(
+                  Authentification.Application.UN_JEUNE_UNE_SOLUTION
+                ),
+                email: 'jeune@test.com'
+              })
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect((result.error as NonTraitableError).reason).not.to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              }
+              expect(
+                archiverJeuneRepository.estArchiveAvecMotif
+              ).not.to.have.been.called()
+            })
+          })
           describe('jeune connu par son email (première connexion)', () => {
             it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {
               // Given

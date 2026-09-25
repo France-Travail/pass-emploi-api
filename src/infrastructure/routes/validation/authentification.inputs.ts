@@ -49,6 +49,11 @@ export class PutUtilisateurPayload {
   @IsOptional()
   installationId?: string
 
+  @ApiProperty({ required: false, enum: Authentification.Application })
+  @IsString()
+  @IsOptional()
+  application?: string
+
   @ApiProperty()
   @IsString()
   @IsIn([Authentification.Type.JEUNE, Authentification.Type.CONSEILLER])
