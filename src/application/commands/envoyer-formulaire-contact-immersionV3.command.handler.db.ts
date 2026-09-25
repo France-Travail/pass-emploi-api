@@ -15,6 +15,7 @@ import {
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { PartenaireImmersion } from '../../infrastructure/repositories/dto/immersion.dto'
+import { normaliserNumeroTelephone } from '../../utils/telephone'
 import ContactMode = PartenaireImmersion.ContactMode
 
 export interface EnvoyerFormulaireContactImmersionCommandV3 {
@@ -74,7 +75,9 @@ export class EnvoyerFormulaireContactImmersionCommandHandlerV3 extends CommandHa
       potentialBeneficiaryFirstName: command.prenom,
       potentialBeneficiaryLastName: command.nom,
       potentialBeneficiaryEmail: command.email,
-      potentialBeneficiaryPhone: command.numeroTelephone ?? '0600000000',
+      potentialBeneficiaryPhone: normaliserNumeroTelephone(
+        command.numeroTelephone ?? '0600000000'
+      ),
       immersionObjective: "Découvrir un métier ou un secteur d'activité",
       contactMode: command.contactMode as ContactMode,
       datePreferences: command.datePreferences,
