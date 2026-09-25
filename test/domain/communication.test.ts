@@ -224,6 +224,25 @@ describe('Communication', () => {
       }
     })
 
+    it('refuse une communication NOTIFICATION avec un cta', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        ctaLabel: 'Télécharger l’application',
+        ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx',
+        ctaUrlIos: 'https://apps.apple.com/app/apple-store/id123'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+        expect(result.error.message).to.equal(
+          'ctaLabel, ctaUrlAndroid et ctaUrlIos sont réservés aux communications IN_APP'
+        )
+      }
+    })
+
     it('refuse une communication NOTIFICATION destinée aux conseillers', () => {
       // When
       const result = Communication.creer({

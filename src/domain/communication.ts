@@ -171,6 +171,13 @@ export namespace Communication {
           )
         )
       }
+      if (nbChampsCtaRenseignes > 0) {
+        return failure(
+          new MauvaiseCommandeError(
+            'ctaLabel, ctaUrlAndroid et ctaUrlIos sont réservés aux communications IN_APP'
+          )
+        )
+      }
       if (aCreer.push == null) {
         return failure(
           new MauvaiseCommandeError(
