@@ -160,9 +160,7 @@ export class PostImmersionContactBodyV3 {
   @Transform(({ value }) =>
     typeof value === 'string' ? nettoyerNumeroTelephone(value) : value
   )
-  // Chiffres seulement, indicatif + optionnel, 8 à 15 chiffres : métropole
-  // et outre-mer confondus, la validation fine est faite par Immersion Facile.
-  @Matches(/^\+?[0-9]{8,15}$/)
+  @Matches(/^\+?\d{8,15}$/) // validation fine côté Immersion Facile
   numeroTelephone: string
 
   @ApiProperty()
