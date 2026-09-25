@@ -216,6 +216,10 @@ export const configurationSchema = Joi.object({
       dryRun: Joi.boolean().required(),
       pourcentageSuppressionsMax: Joi.number().required(),
       nombreSuppressionsMin: Joi.number().required()
+    }),
+    envoiCommunications: Joi.object({
+      actif: Joi.boolean().required(),
+      tailleLot: Joi.number().required()
     })
   }),
   version: Joi.string().required(),

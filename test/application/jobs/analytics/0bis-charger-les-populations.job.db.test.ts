@@ -141,7 +141,8 @@ describe('ChargerLesPopulationsJobHandler', () => {
       unJeuneDto({
         id: 'jeuneFtCej',
         idConseiller: 'conseillerFtCej',
-        structure: Core.Structure.POLE_EMPLOI
+        structure: Core.Structure.POLE_EMPLOI,
+        pushNotificationToken: null
       }),
       unJeuneDto({
         id: 'jeuneCejChezHors',
@@ -192,6 +193,24 @@ describe('ChargerLesPopulationsJobHandler', () => {
         titre: 'Permanente',
         dateDebut: hier,
         dateFin: null
+      }),
+      uneCommunication({
+        id: 7,
+        titre: 'Notification push prévue',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        push: true,
+        dateDebut: demain,
+        dateFin: null
+      }),
+      uneCommunication({
+        id: 8,
+        titre: 'Notification in-app envoyée',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        push: false,
+        dateDebut: hier,
+        dateFin: null
       })
     ])
     await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
@@ -233,6 +252,8 @@ describe('ChargerLesPopulationsJobHandler', () => {
     titre: string
     idPopulation?: string
     destinataire?: Communication.Destinataire
+    type?: Communication.Type
+    push?: boolean
     dateDebut?: Date
     dateFin?: Date | null
   }): {
@@ -240,6 +261,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
     idPopulation: string
     destinataire: Communication.Destinataire
     type: Communication.Type
+    push?: boolean
     dateDebut: Date
     dateFin: Date | null
     titre: string
@@ -282,7 +304,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbPopulations: 2,
         nbConseillers: 2,
         nbJeunes: 4,
-        nbDestinatairesCommunications: 8,
+        nbDestinatairesCommunications: 19,
         nbMembresDeploiements: 4
       })
     })
@@ -357,10 +379,12 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('liste les conseillers destinataires de chaque communication, avec son statut figé à date_calcul', async () => {
       // Then
-      const destinataires = await lignes<Destinataire>(
-        ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
-        'id_communication, id_utilisateur'
-      )
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => d.destinataire === 'CONSEILLER')
       expect(
         destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
       ).to.deep.equal([
@@ -385,6 +409,70 @@ describe('ChargerLesPopulationsJobHandler', () => {
         agence: 'ML Aubenas',
         date_calcul: maintenant.toJSDate()
       })
+    })
+
+    it('liste les jeunes destinataires de chaque communication qui les cible, avec leur conseiller de référence', async () => {
+      // Then
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => d.destinataire === 'JEUNE' && d.id_communication === '4')
+      expect(
+        destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
+      ).to.deep.equal([
+        ['4', 'EN_COURS', 'jeuneCejChezHors'],
+        ['4', 'EN_COURS', 'jeuneCite'],
+        ['4', 'EN_COURS', 'jeuneFtCej'],
+        ['4', 'EN_COURS', 'jeuneTransfere']
+      ])
+      expect(destinataires[1]).to.deep.include({
+        id_population: 'PILOTE',
+        destinataire: 'JEUNE',
+        type: 'IN_APP',
+        titre: 'Pour les jeunes',
+        type_utilisateur: 'JEUNE',
+        email: 'jeune.cite@mail.fr',
+        agence: 'ML Aubenas',
+        date_calcul: maintenant.toJSDate()
+      })
+    })
+
+    it("ne cible pour une notification push que les jeunes qui ont un token, comme l'envoi", async () => {
+      // Then
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => ['7', '8'].includes(d.id_communication))
+      expect(
+        destinataires.map(d => [d.id_communication, d.id_utilisateur])
+      ).to.deep.equal([
+        ['7', 'jeuneCejChezHors'],
+        ['7', 'jeuneCite'],
+        ['7', 'jeuneTransfere'],
+        ['8', 'jeuneCejChezHors'],
+        ['8', 'jeuneCite'],
+        ['8', 'jeuneFtCej'],
+        ['8', 'jeuneTransfere']
+      ])
+    })
+
+    it('considère une notification comme passée dès sa date de début, faute de date de fin', async () => {
+      // Then
+      const statuts = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication'
+        )
+      )
+        .filter(d => ['7', '8'].includes(d.id_communication))
+        .map(d => [d.id_communication, d.statut])
+      expect(new Set(statuts.map(s => s.join()))).to.deep.equal(
+        new Set(['7,PREVUE', '8,PASSEE'])
+      )
     })
 
     it('liste les conseillers concernés par chaque déploiement, avec son statut figé à date_calcul', async () => {

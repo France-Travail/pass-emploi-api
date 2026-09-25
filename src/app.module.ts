@@ -94,7 +94,6 @@ import { GetActualitesMiloConseillerQueryHandler } from './application/queries/m
 import { GetActualitesMiloJeuneQueryHandler } from './application/queries/milo/get-actualites-milo-jeune.query.handler.db'
 import { ChangerDispositifJeuneCommandHandler } from './application/commands/changer-dispositif-jeune.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
-import { NotifierBeneficiairesCommandHandler } from './application/commands/notifier-beneficiaires.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
 import { CreateDemarcheCommandHandler } from './application/commands/pole-emploi/create-demarche.command.handler'
 import { CreerJeunePoleEmploiCommandHandler } from './application/commands/pole-emploi/creer-jeune-pole-emploi.command.handler'
@@ -130,6 +129,7 @@ import { ModifierDateDeploiementCommandHandler } from './application/commands/su
 import { CreerCommunicationCommandHandler } from './application/commands/support/creer-communication.command.handler.db'
 import { ModifierCommunicationCommandHandler } from './application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from './application/commands/support/supprimer-communication.command.handler.db'
+import { AnnulerEnvoiCommunicationCommandHandler } from './application/commands/support/annuler-envoi-communication.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from './application/queries/get-fonctionnalites-support.query.handler.db'
@@ -172,7 +172,7 @@ import { NettoyerLesJobsJobHandler } from './application/jobs/nettoyer-les-jobs.
 import { NettoyerPiecesJointesJobHandler } from './application/jobs/nettoyer-pieces-jointes.job.handler'
 import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-0-heures-declarees.job.handler.db'
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
-import { NotifierBeneficiairesJobHandler } from './application/jobs/notifier-beneficiaires.job.handler.db'
+import { EnvoyerCommunicationsJobHandler } from './application/jobs/envoyer-communications.job.handler.db'
 import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
@@ -967,9 +967,9 @@ export function buildQueryCommandsProviders(): Provider[] {
     CreerCommunicationCommandHandler,
     ModifierCommunicationCommandHandler,
     SupprimerCommunicationCommandHandler,
+    AnnulerEnvoiCommunicationCommandHandler,
     GetCommunicationsConseillerQueryHandler,
     GetCommunicationsJeuneQueryHandler,
-    NotifierBeneficiairesCommandHandler,
     CreateActualiteMiloCommandHandler,
     UpdateActualiteMiloCommandHandler,
     DeleteActualiteMiloCommandHandler,
@@ -1021,7 +1021,7 @@ export const JobHandlerProviders = [
   NotifierCampagneJobHandler,
   NotifierActualisationJobHandler,
   Notifier0HeuresDeclareesJobHandler,
-  NotifierBeneficiairesJobHandler,
+  EnvoyerCommunicationsJobHandler,
   NotifierNouvelleActualiteMiloJobHandler,
   MajReferentielRomeJobHandler,
   ReconcilierAgencesFTJobHandler,

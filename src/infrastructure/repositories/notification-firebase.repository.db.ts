@@ -125,8 +125,9 @@ export class NotificationFirebaseSqlRepository
   async send(
     message: Notification.Message,
     idJeune?: string,
-    pushNotification: boolean = true
-  ): Promise<void> {
+    pushNotification: boolean = true,
+    notificationInApp: boolean = true
+  ): Promise<Notification.ResultatEnvoi> {
     const messageFirebase: NotificationRepository = {
       ...message,
       data: {
@@ -134,11 +135,12 @@ export class NotificationFirebaseSqlRepository
         type: typeNotificationToTypeNotificationRepository(message.data.type)
       }
     }
+    let resultatPushNotif = Notification.ResultatEnvoi.ENVOYEE
     if (pushNotification) {
-      this.firebaseClient.send(messageFirebase)
+      resultatPushNotif = await this.firebaseClient.send(messageFirebase)
       this.matomoClient.trackEventPushNotificationEnvoyee(messageFirebase)
     }
-    if (idJeune) {
+    if (idJeune && notificationInApp) {
       const notifSql: AsSql<NotificationJeuneDto> = {
         id: this.idService.uuid(),
         idJeune,
@@ -152,5 +154,6 @@ export class NotificationFirebaseSqlRepository
         this.logger.error('Erreur création ', e)
       })
     }
+    return resultatPushNotif
   }
 }

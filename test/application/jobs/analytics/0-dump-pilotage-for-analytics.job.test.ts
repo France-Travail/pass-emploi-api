@@ -46,7 +46,7 @@ describe('DumpPilotageForAnalyticsJobHandler', () => {
     expect(suiviJob.succes).to.equal(true)
     expect(exec).to.have.been.calledOnce()
     expect(exec.firstCall.args[1].env.DUMP_TABLES).to.equal(
-      'fonctionnalite population population_conseiller population_profil deploiement communication'
+      'fonctionnalite population population_conseiller population_profil deploiement communication communication_envoi'
     )
     expect(
       planificateurRepository.ajouterJob

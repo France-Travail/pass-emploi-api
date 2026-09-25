@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { QueryTypes, Transaction } from 'sequelize'
 import { Sequelize } from 'sequelize-typescript'
 import { JobHandler } from '../../../building-blocks/types/job-handler'
+import { Communication } from '../../../domain/communication'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { PopulationSqlRepository } from '../../../infrastructure/repositories/population.repository.db'
@@ -10,7 +11,8 @@ import {
   sqlDeploiementActif,
   sqlJoinConseillerDeReference,
   sqlJoinConseillersConcernes,
-  sqlJoinConseillersDestinataires
+  sqlJoinConseillersDestinataires,
+  sqlJoinJeunesDestinataires
 } from '../../../infrastructure/repositories/sql-helpers'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
@@ -303,20 +305,60 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     connexion: Sequelize,
     { dateCalcul, transaction }: Ecriture
   ): Promise<number> {
+    const nbConseillers = await this.ecrireLesConseillersDestinataires(
+      connexion,
+      dateCalcul,
+      transaction
+    )
+    const nbJeunes = await this.ecrireLesJeunesDestinataires(
+      connexion,
+      dateCalcul,
+      transaction
+    )
+    return nbConseillers + nbJeunes
+  }
+
+  private async ecrireLesConseillersDestinataires(
+    connexion: Sequelize,
+    dateCalcul: Date,
+    transaction: Transaction
+  ): Promise<number> {
     const [, nbLignes] = await connexion.query(
       `
         INSERT INTO ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
           (id_communication, id_population, destinataire, type, titre, contenu, date_debut, date_fin, statut,
            type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
         SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.contenu, co.date_debut, co.date_fin,
-               CASE
-                 WHEN co.date_fin <= :maintenant THEN 'PASSEE'
-                 WHEN ${sqlCommunicationEnCours('co', ':maintenant')} THEN 'EN_COURS'
-                 ELSE 'PREVUE'
-               END,
+               ${sqlStatutCommunication('co')},
                'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant
         FROM communication co
         ${sqlJoinConseillersDestinataires('co', 'c')}
+        ${JOIN_LIEU_CONSEILLER};
+      `,
+      { replacements: { maintenant: dateCalcul }, transaction }
+    )
+    return nbLignes as number
+  }
+
+  private async ecrireLesJeunesDestinataires(
+    connexion: Sequelize,
+    dateCalcul: Date,
+    transaction: Transaction
+  ): Promise<number> {
+    const [, nbLignes] = await connexion.query(
+      `
+        INSERT INTO ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+          (id_communication, id_population, destinataire, type, titre, contenu, date_debut, date_fin, statut,
+           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
+        SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.contenu, co.date_debut, co.date_fin,
+               ${sqlStatutCommunication('co')},
+               'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+               COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
+               COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
+               :maintenant
+        FROM communication co
+        ${sqlJoinJeunesDestinataires('co', 'j', 'c')}
+        LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
@@ -344,6 +386,17 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     )
     return nbLignes as number
   }
+}
+
+// Une NOTIFICATION n'a pas de date_fin : envoi ponctuel, passée dès sa date_debut.
+function sqlStatutCommunication(aliasCom: string): string {
+  return `
+    CASE
+      WHEN ${aliasCom}.date_fin <= :maintenant THEN 'PASSEE'
+      WHEN ${aliasCom}.type = '${Communication.Type.NOTIFICATION}' AND ${aliasCom}.date_debut <= :maintenant THEN 'PASSEE'
+      WHEN ${sqlCommunicationEnCours(aliasCom, ':maintenant')} THEN 'EN_COURS'
+      ELSE 'PREVUE'
+    END`
 }
 
 // Identifiants internes lus en base juste avant (jamais une saisie utilisateur) : interpolés tels quels.

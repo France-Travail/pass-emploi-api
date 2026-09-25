@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
@@ -9,12 +9,19 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
+import {
+  Communication,
+  CommunicationRepositoryToken
+} from '../../domain/communication'
 import { CommunicationSqlModel } from '../../infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../infrastructure/sequelize/models/deploiement.sql-model'
 import { PopulationConseillerSqlModel } from '../../infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../infrastructure/sequelize/models/population.sql-model'
-import { PopulationSupportQueryModel } from './query-models/population-support.query-model'
+import {
+  CommunicationSupportQueryModel,
+  PopulationSupportQueryModel
+} from './query-models/population-support.query-model'
 
 export interface GetPopulationSupportQuery extends Query {
   idPopulation: string
@@ -26,7 +33,10 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
   GetPopulationSupportQuery,
   Result<PopulationSupportQueryModel>
 > {
-  constructor() {
+  constructor(
+    @Inject(CommunicationRepositoryToken)
+    private readonly communicationRepository: Communication.Repository
+  ) {
     super('GetPopulationSupportQueryHandler')
   }
 
@@ -49,6 +59,9 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
         DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] }),
         CommunicationSqlModel.findAll({ where, order: [['id', 'ASC']] })
       ])
+    const envois = await Promise.all(
+      communications.map(co => envoiDe(co, this.communicationRepository))
+    )
 
     return success(
       toPopulationSupportQueryModel(
@@ -56,7 +69,8 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
         conseillers,
         profils,
         deploiements,
-        communications
+        communications,
+        envois
       )
     )
   }
@@ -70,12 +84,46 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
   }
 }
 
+export async function envoiDe(
+  co: CommunicationSqlModel,
+  communicationRepository: Communication.Repository
+): Promise<Pick<CommunicationSupportQueryModel, 'nbDestinataires' | 'envoi'>> {
+  switch (co.statutEnvoi) {
+    case Communication.StatutEnvoi.A_ENVOYER:
+      return {
+        nbDestinataires: await communicationRepository.compterDestinataires(
+          co.idPopulation,
+          co.push!
+        )
+      }
+    case Communication.StatutEnvoi.EN_COURS:
+      return {
+        envoi: await communicationRepository.compterEnvois(co.id)
+      }
+    case Communication.StatutEnvoi.ENVOYEE:
+    case Communication.StatutEnvoi.ANNULEE:
+    case Communication.StatutEnvoi.EN_ERREUR:
+      return {
+        envoi: {
+          envoyees: co.nbEnvoyees ?? 0,
+          erreurs: co.nbErreurs ?? 0,
+          tokensInvalides: co.nbTokensInvalides ?? 0
+        }
+      }
+    default:
+      return {}
+  }
+}
+
 export function toPopulationSupportQueryModel(
   population: PopulationSqlModel,
   conseillers: PopulationConseillerSqlModel[],
   profils: PopulationProfilSqlModel[],
   deploiements: DeploiementSqlModel[],
-  communications: CommunicationSqlModel[]
+  communications: CommunicationSqlModel[],
+  envois: Array<
+    Pick<CommunicationSupportQueryModel, 'nbDestinataires' | 'envoi'>
+  >
 ): PopulationSupportQueryModel {
   return {
     id: population.id,
@@ -91,7 +139,7 @@ export function toPopulationSupportQueryModel(
       idFonctionnalite: d.idFonctionnalite ?? undefined,
       dateActivation: DateTime.fromJSDate(d.dateActivation).toUTC().toISO()!
     })),
-    communications: communications.map(co => ({
+    communications: communications.map((co, index) => ({
       id: co.id,
       destinataire: co.destinataire,
       type: co.type,
@@ -103,7 +151,14 @@ export function toPopulationSupportQueryModel(
       contenu: co.contenu,
       ctaLabel: co.ctaLabel ?? undefined,
       ctaUrlAndroid: co.ctaUrlAndroid ?? undefined,
-      ctaUrlIos: co.ctaUrlIos ?? undefined
+      ctaUrlIos: co.ctaUrlIos ?? undefined,
+      typeNotification: co.typeNotification ?? undefined,
+      push: co.push ?? undefined,
+      statutEnvoi: co.statutEnvoi ?? undefined,
+      envoiTermineLe: co.envoiTermineLe
+        ? DateTime.fromJSDate(co.envoiTermineLe).toUTC().toISO()!
+        : undefined,
+      ...envois[index]
     }))
   }
 }

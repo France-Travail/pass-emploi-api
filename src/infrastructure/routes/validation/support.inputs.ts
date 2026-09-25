@@ -9,10 +9,8 @@ import {
   IsInt,
   IsISO8601,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
-  Max,
   MaxLength,
   Min,
   ValidateIf
@@ -313,7 +311,7 @@ export class CreerCommunicationPayload {
   @ApiProperty({
     enum: Communication.Type,
     description:
-      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : réservé, refusé tant que l’envoi n’est pas livré.',
+      'IN_APP : message affiché dans l’application entre les deux dates. NOTIFICATION : envoyée aux jeunes ciblés (destinataire JEUNE uniquement, push requis), une seule fois, au premier passage du cron quotidien après dateDebut.',
     example: 'IN_APP'
   })
   @IsEnum(Communication.Type)
@@ -374,6 +372,25 @@ export class CreerCommunicationPayload {
   @IsString()
   @IsNotEmpty()
   ctaUrlIos?: string
+
+  @ApiPropertyOptional({
+    enum: Notification.TypeNotifManuelle,
+    description:
+      'Interdit pour IN_APP. Pilote la page ouverte au clic sur la notification pour NOTIFICATION ; absent, l’app ne redirige nulle part.',
+    example: 'MIGRATION_PARCOURS_EMPLOI'
+  })
+  @IsOptional()
+  @IsEnum(Notification.TypeNotifManuelle)
+  typeNotification?: Notification.Type
+
+  @ApiPropertyOptional({
+    description:
+      'Requis pour NOTIFICATION (envoyée en push si true, visible seulement dans le centre de notifications si false), interdit pour IN_APP.',
+    example: true
+  })
+  @IsOptional()
+  @IsBoolean()
+  push?: boolean
 }
 
 export class ListerJobsQueryParams {
@@ -411,61 +428,4 @@ export class ListerJobsQueryParams {
   @IsInt()
   @Min(0)
   fin?: number
-}
-
-export class NotifierBeneficiairesPayload {
-  @ApiProperty({
-    enum: Notification.TypeNotifManuelle,
-    description: Object.values(Notification.Type).join(', ')
-  })
-  @IsString()
-  @IsNotEmpty()
-  @IsEnum(Notification.Type)
-  typeNotification: Notification.Type =
-    Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
-
-  @ApiProperty({
-    type: String
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50)
-  titre: string
-
-  @ApiProperty({
-    type: String
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(150)
-  description: string
-
-  @ApiPropertyOptional({
-    description:
-      "Id d'une population pour ne cibler que ses bénéficiaires, absent = tous les bénéficiaires"
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  idPopulation?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  @IsIn([true, false])
-  push: boolean
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Min(2000)
-  @Max(10000)
-  batchSize?: number
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Min(5)
-  @Max(60)
-  minutesEntreLesBatchs?: number
 }

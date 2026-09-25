@@ -49,6 +49,11 @@ import { LogModificationRendezVousSqlModel } from '../../../src/infrastructure/s
 import { ComptageJeuneSqlModel } from '../../../src/infrastructure/sequelize/models/comptage-jeune.sql-model'
 import { ActualiteMiloSqlModel } from '../../../src/infrastructure/sequelize/models/actualite-milo.sql-model'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { Communication } from '../../../src/domain/communication'
+import { CommunicationEnvoi } from '../../../src/domain/communication-envoi'
+import { CommunicationEnvoiSqlModel } from '../../../src/infrastructure/sequelize/models/communication-envoi.sql-model'
+import { CommunicationSqlModel } from '../../../src/infrastructure/sequelize/models/communication.sql-model'
+import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 
 let stats: SuiviJob
 
@@ -414,6 +419,85 @@ describe('NettoyerLesDonneesJobHandler', () => {
       }
     ])
 
+    // Given - Communications
+    await PopulationSqlModel.create({
+      id: 'population-nettoyer',
+      description: null
+    })
+    const communicationTermineeDepuisPlusDe30Jours =
+      await CommunicationSqlModel.create({
+        idPopulation: 'population-nettoyer',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        dateDebut: maintenant.minus({ days: 40 }).toJSDate(),
+        dateFin: null,
+        titre: 'Communication A',
+        contenu: 'Contenu A',
+        statutEnvoi: Communication.StatutEnvoi.ENVOYEE,
+        envoiTermineLe: maintenant.minus({ days: 31 }).toJSDate(),
+        echecsConsecutifs: 0,
+        nbEnvoyees: 2,
+        nbErreurs: 0,
+        nbTokensInvalides: 0
+      })
+    const communicationTermineeDepuisMoinsDe30Jours =
+      await CommunicationSqlModel.create({
+        idPopulation: 'population-nettoyer',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        dateDebut: maintenant.minus({ days: 10 }).toJSDate(),
+        dateFin: null,
+        titre: 'Communication B',
+        contenu: 'Contenu B',
+        statutEnvoi: Communication.StatutEnvoi.ENVOYEE,
+        envoiTermineLe: maintenant.minus({ days: 10 }).toJSDate(),
+        echecsConsecutifs: 0,
+        nbEnvoyees: 1,
+        nbErreurs: 0,
+        nbTokensInvalides: 0
+      })
+    const communicationEnCours = await CommunicationSqlModel.create({
+      idPopulation: 'population-nettoyer',
+      destinataire: Communication.Destinataire.JEUNE,
+      type: Communication.Type.NOTIFICATION,
+      dateDebut: maintenant.minus({ days: 40 }).toJSDate(),
+      dateFin: null,
+      titre: 'Communication C',
+      contenu: 'Contenu C',
+      statutEnvoi: Communication.StatutEnvoi.EN_COURS,
+      envoiTermineLe: null,
+      echecsConsecutifs: 0,
+      nbEnvoyees: null,
+      nbErreurs: null,
+      nbTokensInvalides: null
+    })
+    await CommunicationEnvoiSqlModel.bulkCreate([
+      {
+        idCommunication: communicationTermineeDepuisPlusDe30Jours.id,
+        idJeune: idJeune2,
+        statut: CommunicationEnvoi.Statut.ENVOYEE,
+        dateTraitement: maintenant.minus({ days: 31 }).toJSDate()
+      },
+      {
+        idCommunication: communicationTermineeDepuisPlusDe30Jours.id,
+        idJeune: idJeune3,
+        statut: CommunicationEnvoi.Statut.ENVOYEE,
+        dateTraitement: maintenant.minus({ days: 31 }).toJSDate()
+      },
+      {
+        idCommunication: communicationTermineeDepuisMoinsDe30Jours.id,
+        idJeune: idJeune2,
+        statut: CommunicationEnvoi.Statut.ENVOYEE,
+        dateTraitement: maintenant.minus({ days: 10 }).toJSDate()
+      },
+      {
+        idCommunication: communicationEnCours.id,
+        idJeune: idJeune2,
+        statut: CommunicationEnvoi.Statut.EN_COURS,
+        dateTraitement: null
+      }
+    ])
+
     // When
     stats = await nettoyerLesDonneesJobHandler.handle()
   })
@@ -667,6 +751,20 @@ describe('NettoyerLesDonneesJobHandler', () => {
         (stats.resultat as { nombreActualitesMiloSupprimees: number })
           .nombreActualitesMiloSupprimees
       ).to.equal(1)
+    })
+  })
+
+  describe('communications', () => {
+    it('supprime le détail des envois de communications terminées depuis plus de 30 jours', async () => {
+      // Then
+      expect(await CommunicationEnvoiSqlModel.count()).to.equal(2)
+      expect(
+        (
+          stats.resultat as {
+            nombreEnvoisCommunicationSupprimes: number
+          }
+        ).nombreEnvoisCommunicationSupprimes
+      ).to.equal(2)
     })
   })
 

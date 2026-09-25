@@ -24,6 +24,7 @@ import {
 import { DateTime } from 'luxon'
 import { AjouterConseillersPopulationCommandHandler } from '../../application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../application/commands/support/ajouter-profil-population.command.handler.db'
+import { AnnulerEnvoiCommunicationCommandHandler } from '../../application/commands/support/annuler-envoi-communication.command.handler.db'
 import {
   CommunicationCreee,
   CreerCommunicationCommandHandler
@@ -96,7 +97,8 @@ export class SupportDeploiementsController {
     private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
     private readonly creerCommunicationCommandHandler: CreerCommunicationCommandHandler,
     private readonly modifierCommunicationCommandHandler: ModifierCommunicationCommandHandler,
-    private readonly supprimerCommunicationCommandHandler: SupprimerCommunicationCommandHandler
+    private readonly supprimerCommunicationCommandHandler: SupprimerCommunicationCommandHandler,
+    private readonly annulerEnvoiCommunicationCommandHandler: AnnulerEnvoiCommunicationCommandHandler
   ) {}
 
   @ReserveAuSupport
@@ -599,6 +601,23 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
           contenu:
             'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible. Vos services seront accessibles sur l’application Parcours Emploi.\nNous vous recommandons de ne plus ajouter de nouveaux bénéficiaires à votre portefeuille.'
         }
+      },
+      notification: {
+        summary: 'Envoyer une notification aux jeunes',
+        value: {
+          idPopulation: 'PILOTE_1J1S',
+          destinataire: 'JEUNE',
+          type: 'NOTIFICATION',
+          dateDebut: '2026-10-01T10:00:00.000Z',
+          titre: 'Nouvelles offres disponibles',
+          contenu:
+            "5 offres d'alternance correspondent à votre profil. Consultez-les maintenant !",
+          typeNotification: 'NOUVELLE_OFFRE',
+          push: true,
+          ctaLabel: 'Voir les offres',
+          ctaUrlAndroid: 'passemploi://offres?domain=alternance',
+          ctaUrlIos: 'passemploi://offres?domain=alternance'
+        }
       }
     }
   })
@@ -632,7 +651,9 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,
         ctaUrlAndroid: payload.ctaUrlAndroid,
-        ctaUrlIos: payload.ctaUrlIos
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification,
+        push: payload.push
       },
       Authentification.unUtilisateurSupport()
     )
@@ -645,7 +666,9 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
     summary: 'Remplace une communication',
     description: `Remplace tout le contenu : un champ absent du corps est effacé, pas conservé (un CTA qu'on ne renvoie pas disparaît). L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation.
 
-Pratique : copier une communication depuis GET /support/populations/:idPopulation, corriger ce qu'il faut et renvoyer l'objet tel quel — le champ \`id\` est ignoré.`
+Pratique : copier une communication depuis GET /support/populations/:idPopulation, corriger ce qu'il faut et renvoyer l'objet tel quel — le champ \`id\` est ignoré.
+
+Refusé (400) dès que l'envoi d'une NOTIFICATION a démarré.`
   })
   @ApiParam({ name: 'idCommunication', example: 3 })
   @ApiBody({
@@ -695,7 +718,9 @@ Pratique : copier une communication depuis GET /support/populations/:idPopulatio
         contenu: payload.contenu,
         ctaLabel: payload.ctaLabel,
         ctaUrlAndroid: payload.ctaUrlAndroid,
-        ctaUrlIos: payload.ctaUrlIos
+        ctaUrlIos: payload.ctaUrlIos,
+        typeNotification: payload.typeNotification,
+        push: payload.push
       },
       Authentification.unUtilisateurSupport()
     )
@@ -707,10 +732,14 @@ Pratique : copier une communication depuis GET /support/populations/:idPopulatio
   @ApiOperation({
     summary: 'Supprime une communication',
     description:
-      'L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation. Le message disparaît immédiatement.'
+      'L’id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation. Le message disparaît immédiatement. Refusé (400) dès que l’envoi d’une NOTIFICATION a démarré.'
   })
   @ApiParam({ name: 'idCommunication', example: 3 })
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Supprimée' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "L'envoi de la communication a démarré"
+  })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'La communication n’existe pas'
@@ -721,6 +750,35 @@ Pratique : copier une communication depuis GET /support/populations/:idPopulatio
     @Param('idCommunication', ParseIntPipe) idCommunication: number
   ): Promise<void> {
     const result = await this.supprimerCommunicationCommandHandler.execute(
+      { id: idCommunication },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ReserveAuSupport
+  @ApiTags('Support - Communications')
+  @ApiOperation({
+    summary: "Annule l'envoi en cours d'une communication NOTIFICATION",
+    description:
+      'Kill switch : le cron ENVOYER_COMMUNICATIONS ne traite plus cette communication (un lot déjà en vol finit ses envois). Les jeunes déjà notifiés le restent ; pas de relance possible, créer une nouvelle communication.'
+  })
+  @ApiParam({ name: 'idCommunication', example: 3 })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Annulée' })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: "L'envoi n'est pas EN_COURS"
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'La communication n’existe pas'
+  })
+  @Post('communications/:idCommunication/envoi/annulation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async annulerEnvoiCommunication(
+    @Param('idCommunication', ParseIntPipe) idCommunication: number
+  ): Promise<void> {
+    const result = await this.annulerEnvoiCommunicationCommandHandler.execute(
       { id: idCommunication },
       Authentification.unUtilisateurSupport()
     )

@@ -12,13 +12,13 @@ import {
   Max,
   MaxLength,
   ValidateIf,
-  Matches,
-  IsPhoneNumber
+  Matches
 } from 'class-validator'
 import {
   transformStringToFloat,
   transformStringToInteger
 } from './utils/transformers'
+import { IsNumeroTelephoneFrancais } from './utils/validators'
 
 export class GetOffresImmersionQueryParamsV3 {
   @ApiPropertyOptional()
@@ -157,7 +157,7 @@ export class PostImmersionContactBodyV3 {
   })
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('FR')
+  @IsNumeroTelephoneFrancais()
   numeroTelephone: string
 
   @ApiProperty()

@@ -121,7 +121,8 @@ export const testConfig = (): ConfigService => {
       purgeInvites: {
         retentionJours: '365',
         pourcentageInactifsMax: '20'
-      }
+      },
+      envoiCommunications: { actif: true, tailleLot: '300' }
     },
     apiKeys: {
       keycloak: ['api-key-keycloak'],

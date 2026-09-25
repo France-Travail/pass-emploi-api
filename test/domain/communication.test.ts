@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { MauvaiseCommandeError } from '../../src/building-blocks/types/domain-error'
 import { isFailure, isSuccess } from '../../src/building-blocks/types/result'
 import { Communication } from '../../src/domain/communication'
+import { Notification } from '../../src/domain/notification/notification'
 import { expect } from '../utils'
 
 describe('Communication', () => {
@@ -121,19 +122,214 @@ describe('Communication', () => {
       }
     })
 
-    it("refuse une communication NOTIFICATION tant que l'envoi n'est pas livré", () => {
+    const aCreerNotification: Communication = {
+      ...aCreer,
+      destinataire: Communication.Destinataire.JEUNE,
+      type: Communication.Type.NOTIFICATION,
+      typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+      push: true,
+      titre: 'Courte',
+      contenu: 'Court',
+      dateFin: undefined
+    }
+
+    it('crée une communication NOTIFICATION valide', () => {
+      // When
+      const result = Communication.creer(aCreerNotification)
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('crée une communication NOTIFICATION sans typeNotification : l’app ne redirige nulle part', () => {
       // When
       const result = Communication.creer({
-        ...aCreer,
-        destinataire: Communication.Destinataire.JEUNE,
-        type: Communication.Type.NOTIFICATION,
-        dateFin: undefined
+        ...aCreerNotification,
+        typeNotification: undefined
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('crée une communication NOTIFICATION avec typeNotification CENTRE_DE_NOTIFS_UNIQUEMENT', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        typeNotification: Notification.Type.CENTRE_DE_NOTIFS_UNIQUEMENT
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse une communication NOTIFICATION sans push', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        push: undefined
       })
 
       // Then
       expect(isFailure(result)).to.equal(true)
       if (isFailure(result)) {
         expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec push: null', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        push: null as unknown as undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+    })
+
+    it('refuse une communication IN_APP avec push: null', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        push: null as unknown as undefined
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+    })
+
+    it('crée une communication NOTIFICATION avec push à false', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        push: false
+      })
+
+      // Then
+      expect(isSuccess(result)).to.equal(true)
+    })
+
+    it('refuse une communication NOTIFICATION avec une date de fin : une notification envoyée ne peut pas être rappelée', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        dateFin: DateTime.fromISO('2026-10-15T00:00:00.000Z')
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec un cta', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        ctaLabel: 'Télécharger l’application',
+        ctaUrlAndroid: 'https://play.google.com/store/apps/details?id=xxx',
+        ctaUrlIos: 'https://apps.apple.com/app/apple-store/id123'
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+        expect(result.error.message).to.equal(
+          'ctaLabel, ctaUrlAndroid et ctaUrlIos sont réservés aux communications IN_APP'
+        )
+      }
+    })
+
+    it('refuse une communication NOTIFICATION destinée aux conseillers', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        destinataire: Communication.Destinataire.CONSEILLER
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec un titre de plus de 50 caractères', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        titre: 'x'.repeat(51)
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication NOTIFICATION avec un contenu de plus de 150 caractères', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreerNotification,
+        contenu: 'x'.repeat(151)
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication IN_APP avec un typeNotification', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+
+    it('refuse une communication IN_APP avec un push', () => {
+      // When
+      const result = Communication.creer({
+        ...aCreer,
+        push: true
+      })
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+      if (isFailure(result)) {
+        expect(result.error).to.be.an.instanceOf(MauvaiseCommandeError)
+      }
+    })
+  })
+
+  describe('estModifiable', () => {
+    it('est vrai sans statut (IN_APP) ou en A_ENVOYER', () => {
+      expect(Communication.estModifiable(null)).to.equal(true)
+      expect(
+        Communication.estModifiable(Communication.StatutEnvoi.A_ENVOYER)
+      ).to.equal(true)
+    })
+
+    it('est faux dès que l’envoi a démarré', () => {
+      for (const statut of [
+        Communication.StatutEnvoi.EN_COURS,
+        Communication.StatutEnvoi.ENVOYEE,
+        Communication.StatutEnvoi.ANNULEE,
+        Communication.StatutEnvoi.EN_ERREUR
+      ]) {
+        expect(Communication.estModifiable(statut)).to.equal(false)
       }
     })
   })

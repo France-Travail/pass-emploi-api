@@ -8,7 +8,6 @@ import { Action } from './action/action'
 import { EvenementMilo } from './milo/evenement.milo'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
-import { Notification } from './notification/notification'
 import Bull from 'bull'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
@@ -45,10 +44,6 @@ export namespace Planificateur {
     existePlusQuUnJobActifDeCeType(
       jobType: Planificateur.JobType
     ): Promise<boolean>
-
-    recupererPremierJobNonTermine(
-      jobType: Planificateur.JobType
-    ): Promise<string | null>
 
     getJobInformations(jobId: Planificateur.JobId): Promise<Bull.Job>
 
@@ -111,7 +106,7 @@ export namespace Planificateur {
     NOTIFIER_CAMPAGNE = 'NOTIFIER_CAMPAGNE',
     NOTIFIER_ACTUALISATION = 'NOTIFIER_ACTUALISATION',
     CLORE_SESSIONS = 'CLORE_SESSIONS',
-    NOTIFIER_BENEFICIAIRES = 'NOTIFIER_BENEFICIAIRES',
+    ENVOYER_COMMUNICATIONS = 'ENVOYER_COMMUNICATIONS',
     NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
@@ -158,28 +153,6 @@ export namespace Planificateur {
   }
 
   export type JobTraiterEvenementMilo = EvenementMilo
-
-  export interface JobNotifierBeneficiaires {
-    typeNotification: Notification.Type
-    titre: string
-    description: string
-    params: ParamsJobNotif
-    stats?: StatsJobNotif
-  }
-
-  export interface StatsJobNotif {
-    taillePopulationTotale: number
-    nbBeneficiairesNotifies: number
-    offset: number
-    estLaDerniereExecution: false
-  }
-
-  export interface ParamsJobNotif {
-    idPopulation?: string
-    push: boolean
-    minutesEntreLesBatchs: number
-    batchSize?: number
-  }
 
   export interface JobNotifierNouvelleActualiteMilo {
     idStructureMilo: string
@@ -278,6 +251,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     expression: '0 6 * * *',
     description:
       'Tous les jours à 6h. Qualifie en NON SNP les actions EN COURS il y a plus de 4 mois.'
+  },
+  {
+    type: Planificateur.JobType.ENVOYER_COMMUNICATIONS,
+    expression: '* 8-16 * * 1-5',
+    description:
+      'Toutes les minutes, 8h-17h jours ouvrés. Envoie un lot de la communication NOTIFICATION en cours, ou démarre la prochaine due.'
   },
   {
     type: Planificateur.JobType.MAIL_CONSEILLER_MESSAGES,
