@@ -1,5 +1,8 @@
 import { ConfigService } from '@nestjs/config'
-import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
+import {
+  GenererPlanActionCommand,
+  GenererPlanActionCommandHandler
+} from '../../../src/application/commands/generer-plan-action.command.handler'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import { TypeActionPlan } from '../../../src/application/queries/query-models/plan-action.query-model'
@@ -8,17 +11,10 @@ import {
   failure,
   success
 } from '../../../src/building-blocks/types/result'
-import {
-  DroitsInsuffisants,
-  ErreurHttp
-} from '../../../src/building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
-import { PlanDto } from '../../../src/infrastructure/clients/dto/plan-action.dto'
-import { PlanActionClient } from '../../../src/infrastructure/clients/plan-action-client'
-import {
-  GoalPayload,
-  SituationPayload
-} from '../../../src/infrastructure/routes/validation/plan-action.inputs'
+import { PlanAction } from '../../../src/domain/plan-action'
+import { Questionnaire } from '../../../src/domain/questionnaire'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -29,30 +25,58 @@ import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
-  let planActionClient: StubbedClass<PlanActionClient>
+  let planActionService: StubbedClass<PlanAction.Service>
   let evenementService: StubbedClass<EvenementService>
   let handler: GenererPlanActionCommandHandler
 
   const utilisateur = unUtilisateurJeune({
     profil: unProfilInvite()
   })
-  const command = {
+  const command: GenererPlanActionCommand = {
     idJeune: utilisateur.id,
-    payload: {
-      situation: SituationPayload.LYCEE,
-      goals: [GoalPayload.ALTERNANCE]
+    situation: Questionnaire.Situation.LYCEE,
+    besoins: [Questionnaire.Besoin.ALTERNANCE],
+    contraintes: []
+  }
+
+  function unPlan(): PlanAction.Plan {
+    return {
+      id: 'plan-1',
+      objectifs: [
+        {
+          id: 'objective-1',
+          titre: 'Trouver une alternance',
+          theme: Questionnaire.Besoin.ALTERNANCE,
+          solutions: [
+            {
+              id: 'p-1',
+              category: Questionnaire.Besoin.ALTERNANCE,
+              blocker: null,
+              situations: [],
+              structures: [],
+              minAge: null,
+              maxAge: null,
+              territory: null,
+              kind: 'advice',
+              label: 'Je fais une action',
+              url: null,
+              serviceName: null
+            }
+          ]
+        }
+      ]
     }
   }
 
   beforeEach(() => {
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
-    planActionClient = stubClass(PlanActionClient)
+    planActionService = stubClass(PlanAction.Service)
     evenementService = stubClass(EvenementService)
     handler = new GenererPlanActionCommandHandler(
       jeuneAuthorizer,
       jeuneInviteAuthorizer,
-      planActionClient,
+      planActionService,
       evenementService,
       testConfig()
     )
@@ -64,7 +88,7 @@ describe('GenererPlanActionCommandHandler', () => {
       const handlerDesactive = new GenererPlanActionCommandHandler(
         jeuneAuthorizer,
         jeuneInviteAuthorizer,
-        planActionClient,
+        planActionService,
         evenementService,
         new ConfigService({ appJeuneActif: false })
       )
@@ -119,51 +143,28 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('handle', () => {
-    it('appelle le client avec le profil traduit et renvoie le plan traduit', async () => {
+    it('appelle le service avec le questionnaire traduit et renvoie le plan traduit', async () => {
       // Given
-      const plan: PlanDto = {
-        id: 'plan-1',
-        greeting: 'Salut !',
-        generatedAt: '2026-07-20T22:03:52.448Z',
-        generator: 'fallback',
-        objectives: [
-          {
-            id: 'objective-1',
-            title: 'Trouver une alternance',
-            theme: 'apprenticeship',
-            actions: [
-              {
-                id: 'p-1',
-                label: 'Je fais une action',
-                kind: 'advice',
-                done: false
-              }
-            ]
-          }
-        ]
-      }
-      planActionClient.genererPlan.resolves(success(plan))
+      planActionService.genererPlan.returns(unPlan())
 
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
-      expect(planActionClient.genererPlan).to.have.been.calledWithMatch({
-        authProvider: 'guest',
-        situation: 'LYCEE',
-        goals: ['ALTERNANCE']
+      expect(planActionService.genererPlan).to.have.been.calledWithExactly({
+        structure: Profil.Structure.INVITE,
+        situation: Questionnaire.Situation.LYCEE,
+        besoins: [Questionnaire.Besoin.ALTERNANCE],
+        contraintes: []
       })
       expect(result).to.deep.equal(
         success({
           id: 'plan-1',
-          accroche: 'Salut !',
-          genereLe: '2026-07-20T22:03:52.448Z',
-          generateur: 'fallback',
           objectives: [
             {
               id: 'objective-1',
               titre: 'Trouver une alternance',
-              theme: 'apprenticeship',
+              theme: 'ALTERNANCE',
               actions: [
                 {
                   id: 'p-1',
@@ -175,20 +176,6 @@ describe('GenererPlanActionCommandHandler', () => {
           ]
         })
       )
-    })
-
-    it('propage la failure du client sans la transformer', async () => {
-      // Given
-      const echec = failure(
-        new ErreurHttp("La génération du plan d'action a échoué", 502)
-      )
-      planActionClient.genererPlan.resolves(echec)
-
-      // When
-      const result = await handler.handle(command, utilisateur)
-
-      // Then
-      expect(result).to.deep.equal(echec)
     })
   })
 
@@ -206,7 +193,7 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('execute — autorisation refusée', () => {
-    it("n'appelle pas le client quand l'invité n'est pas autorisé", async () => {
+    it("n'appelle pas le service quand l'invité n'est pas autorisé", async () => {
       // Given
       jeuneInviteAuthorizer.autoriserLInvite.resolves(
         failure(new DroitsInsuffisants())
@@ -217,7 +204,7 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-      expect(planActionClient.genererPlan).not.to.have.been.called()
+      expect(planActionService.genererPlan).not.to.have.been.called()
     })
   })
 
@@ -227,24 +214,14 @@ describe('GenererPlanActionCommandHandler', () => {
     beforeEach(() => {
       logInfo = sinon.stub(rootLogger, 'info')
       jeuneInviteAuthorizer.autoriserLInvite.resolves(emptySuccess())
+      planActionService.genererPlan.returns(unPlan())
     })
 
     afterEach(() => {
       logInfo.restore()
     })
 
-    it('trace le générateur et les choix du jeune, un plan fallback étant un succès HTTP', async () => {
-      // Given
-      planActionClient.genererPlan.resolves(
-        success({
-          id: 'plan-1',
-          greeting: 'Salut !',
-          generatedAt: '2026-07-20T22:03:52.448Z',
-          generator: 'fallback',
-          objectives: []
-        })
-      )
-
+    it('trace les choix du jeune', async () => {
       // When
       await handler.execute(command, utilisateur)
 
@@ -253,27 +230,9 @@ describe('GenererPlanActionCommandHandler', () => {
         context: 'GenererPlanActionCommandHandler',
         event: { action: 'handler_executed', outcome: 'success' },
         labels: {
-          plan_action_generateur: 'fallback',
-          plan_action_situation: SituationPayload.LYCEE,
-          plan_action_goals: [GoalPayload.ALTERNANCE]
+          plan_action_situation: Questionnaire.Situation.LYCEE,
+          plan_action_goals: [Questionnaire.Besoin.ALTERNANCE]
         }
-      })
-    })
-
-    it('trace les choix du jeune sans générateur quand la génération échoue', async () => {
-      // Given
-      planActionClient.genererPlan.resolves(
-        failure(new ErreurHttp("La génération du plan d'action a échoué", 502))
-      )
-
-      // When
-      await handler.execute(command, utilisateur)
-
-      // Then
-      const labels = logInfo.firstCall.args[0].labels
-      expect(labels).to.deep.equal({
-        plan_action_situation: SituationPayload.LYCEE,
-        plan_action_goals: [GoalPayload.ALTERNANCE]
       })
     })
   })
