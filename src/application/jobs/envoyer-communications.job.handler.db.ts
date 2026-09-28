@@ -84,10 +84,14 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
     tailleLot: number,
     maintenant: DateTime
   ): Promise<SuiviJob> {
-    await this.communicationRepository.libererEnvoisBloques(
-      communication.id,
-      maintenant.minus({ minutes: MINUTES_AVANT_LIBERATION })
-    )
+    const nbEnvoisLiberes =
+      await this.communicationRepository.libererEnvoisBloques(
+        communication.id,
+        maintenant.minus({ minutes: MINUTES_AVANT_LIBERATION })
+      )
+    if (nbEnvoisLiberes > 0) {
+      this.loguerEnvoisLiberes(communication.id, nbEnvoisLiberes)
+    }
     const reserves = await this.communicationRepository.reserverEnvois(
       communication.id,
       tailleLot,
@@ -182,7 +186,8 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
         this.loguerTransition(
           communication.id,
           'communication_envoi_en_erreur',
-          'failure'
+          'failure',
+          await this.communicationRepository.compterEnvois(communication.id)
         )
       }
       return
@@ -281,7 +286,8 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
     this.loguerTransition(
       communication.id,
       'communication_envoi_termine',
-      'success'
+      'success',
+      compteurs
     )
     return this.suivi(maintenant, true, {
       idCommunication: communication.id,
@@ -292,15 +298,33 @@ export class EnvoyerCommunicationsJobHandler extends JobHandler<void> {
   private loguerTransition(
     idCommunication: number,
     action: string,
-    outcome: 'success' | 'failure'
+    outcome: 'success' | 'failure',
+    compteurs: CommunicationEnvoi.Compteurs
   ): void {
     rootLogger[outcome === 'success' ? 'info' : 'error'](
       {
         context: this.jobType,
         event: { action, outcome },
-        communication: { id: idCommunication }
+        communication: { id: idCommunication, ...compteurs }
       },
       action
+    )
+  }
+
+  // Un envoi resté EN_COURS au-delà du délai signale un lot interrompu (worker
+  // tué pendant un déploiement, crash) : le jeune en vol a pu recevoir le push
+  // sans être marqué, il le recevra une seconde fois.
+  private loguerEnvoisLiberes(
+    idCommunication: number,
+    nbEnvoisLiberes: number
+  ): void {
+    rootLogger.error(
+      {
+        context: this.jobType,
+        event: { action: 'communication_envois_liberes', outcome: 'failure' },
+        communication: { id: idCommunication, nbEnvoisLiberes }
+      },
+      'communication_envois_liberes'
     )
   }
 
