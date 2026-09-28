@@ -22,7 +22,7 @@ export function sqlJoinConseillerDeReferenceDuJeune(
 }
 
 // L'email du conseiller `aliasConseiller` est cité dans la population `idPopulation` (paramètre `:idPopulation` ou colonne `d.id_population`).
-export function sqlEmailDuConseillerDansPopulation(
+function sqlEmailDuConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
 ): string {
@@ -33,34 +33,25 @@ export function sqlEmailDuConseillerDansPopulation(
   )`
 }
 
-// Le profil structure × dispositif de `aliasPorteur` (jeune ou conseiller) correspond à un profil de la population ; un profil sans dispositif couvre toute la structure.
-export function sqlProfilDansPopulation(
-  aliasPorteur: string,
+// Le profil structure × dispositif du conseiller `aliasConseiller` correspond à un profil de la population ; un profil sans dispositif couvre toute la structure.
+function sqlProfilDansPopulation(
+  aliasConseiller: string,
   idPopulation: string
 ): string {
   return `EXISTS (
     SELECT 1 FROM population_profil pp
     WHERE pp.id_population = ${idPopulation}
-      AND pp.structure = ${aliasPorteur}.structure
-      AND (pp.dispositif IS NULL OR pp.dispositif = ${aliasPorteur}.dispositif)
+      AND pp.structure = ${aliasConseiller}.structure
+      AND (pp.dispositif IS NULL OR pp.dispositif = ${aliasConseiller}.dispositif)
   )`
 }
 
-// Un conseiller est dans la population s'il est cité par email ou si son propre profil correspond.
+// Un conseiller est dans la population s'il est cité par email ou si son profil correspond. Un jeune y est si et seulement si son conseiller de référence y est : son propre profil n'est jamais regardé (un conseiller MiLo n'ayant pas de dispositif, (MILO, CEJ) ne vise personne).
 export function sqlConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
 ): string {
   return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)} OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)})`
-}
-
-// Un jeune est dans la population si son conseiller de référence est cité par email ou si son propre profil correspond.
-export function sqlJeuneDansPopulation(
-  aliasJeune: string,
-  aliasConseillerDeReference: string,
-  idPopulation: string
-): string {
-  return `(${sqlEmailDuConseillerDansPopulation(aliasConseillerDeReference, idPopulation)} OR ${sqlProfilDansPopulation(aliasJeune, idPopulation)})`
 }
 
 // Jointure de la communication `aliasCom` vers les conseillers qui en sont destinataires. Même jointure côté fonctionnalité (filtrée sur un conseiller) et côté analytics (exhaustive).
@@ -84,7 +75,7 @@ export function sqlJoinJeunesDestinataires(
   return `
     JOIN jeune ${aliasJeune} ON ${aliasCom}.destinataire = '${Communication.Destinataire.JEUNE}'
     ${sqlJoinConseillerDeReference(aliasJeune, aliasConseiller)}
-    AND ${sqlJeuneDansPopulation(aliasJeune, aliasConseiller, `${aliasCom}.id_population`)}
+    AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}
     AND (${aliasCom}.push IS NOT TRUE OR ${aliasJeune}.push_notification_token IS NOT NULL)`
 }
 

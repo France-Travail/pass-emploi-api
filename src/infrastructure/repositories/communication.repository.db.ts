@@ -7,7 +7,7 @@ import { CommunicationEnvoiSqlModel } from '../sequelize/models/communication-en
 import { CommunicationSqlModel } from '../sequelize/models/communication.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
-  sqlJeuneDansPopulation,
+  sqlConseillerDansPopulation,
   sqlJoinConseillerDeReference,
   sqlJoinConseillerDeReferenceDuJeune,
   sqlJoinConseillersDestinataires
@@ -71,7 +71,7 @@ export class CommunicationSqlRepository implements Communication.Repository {
           AND co.type = :type
           AND co.date_debut <= :maintenant
           AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
-          AND ${sqlJeuneDansPopulation('j', 'c', 'co.id_population')}
+          AND ${sqlConseillerDansPopulation('c', 'co.id_population')}
         ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
@@ -374,7 +374,7 @@ function sqlDestinatairesDeLaPopulation(push: boolean): string {
   return `
     FROM jeune j
     ${sqlJoinConseillerDeReference('j', 'c')}
-    WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
+    WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
     ${filtreToken}`
 }
 

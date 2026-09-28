@@ -5,7 +5,7 @@ import { Deploiement } from '../../domain/deploiement'
 import { Fonctionnalite } from '../../domain/fonctionnalite'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
-  sqlJeuneDansPopulation,
+  sqlConseillerDansPopulation,
   sqlJoinConseillerDeReferenceDuJeune
 } from './sql-helpers'
 
@@ -26,7 +26,7 @@ export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
         ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE d.nature = :nature
           AND d.date_activation <= :maintenant
-          AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
+          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
         ORDER BY d.id_fonctionnalite
       `,
       {

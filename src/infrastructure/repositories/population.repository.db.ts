@@ -5,7 +5,6 @@ import { PopulationSqlModel } from '../sequelize/models/population.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlConseillerDansPopulation,
-  sqlJeuneDansPopulation,
   sqlJoinConseillerDeReference
 } from './sql-helpers'
 
@@ -28,7 +27,7 @@ export class PopulationSqlRepository implements Population.Repository {
         SELECT j.id
         FROM jeune j
         ${sqlJoinConseillerDeReference('j', 'c')}
-        WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
+        WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
       `,
       { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )
