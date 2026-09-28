@@ -3,17 +3,20 @@ import { DateTime } from 'luxon'
 import { QueryTypes } from 'sequelize'
 import {
   ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+  ANALYTICS_COMMUNICATIONS_TABLE_NAME,
   ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
   ANALYTICS_POPULATION_MEMBRES_TABLE_NAME,
   ChargerLesPopulationsJobHandler
 } from '../../../../src/application/jobs/analytics/0bis-charger-les-populations.job'
 import { Communication } from '../../../../src/domain/communication'
+import { CommunicationEnvoi } from '../../../../src/domain/communication-envoi'
 import { Core } from '../../../../src/domain/core'
 import { Deploiement } from '../../../../src/domain/deploiement'
 import { Planificateur } from '../../../../src/domain/planificateur'
 import { Profil } from '../../../../src/domain/profil'
 import { SuiviJob } from '../../../../src/domain/suivi-job'
 import { AgenceSqlModel } from '../../../../src/infrastructure/sequelize/models/agence.sql-model'
+import { CommunicationEnvoiSqlModel } from '../../../../src/infrastructure/sequelize/models/communication-envoi.sql-model'
 import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
@@ -62,6 +65,23 @@ interface Destinataire extends Utilisateur {
   date_debut: Date
   date_fin: Date | null
   statut: string
+  statut_envoi: string | null
+  date_traitement_envoi: Date | null
+}
+
+interface CommunicationAnalytics {
+  id_communication: string
+  type: string
+  push: boolean | null
+  statut: string
+  statut_envoi: string | null
+  nb_destinataires: number
+  nb_a_envoyer: number | null
+  nb_en_cours: number | null
+  nb_envoyees: number | null
+  nb_erreurs: number | null
+  nb_tokens_invalides: number | null
+  date_calcul: Date
 }
 
 interface MembreDeploiement extends Utilisateur {
@@ -211,7 +231,72 @@ describe('ChargerLesPopulationsJobHandler', () => {
         push: false,
         dateDebut: hier,
         dateFin: null
+      }),
+      uneCommunication({
+        id: 9,
+        titre: 'Notification envoyée',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        push: true,
+        dateDebut: hier,
+        dateFin: null,
+        statutEnvoi: Communication.StatutEnvoi.ENVOYEE,
+        envoiTermineLe: hier,
+        nbEnvoyees: 1,
+        nbErreurs: 0,
+        nbTokensInvalides: 1
+      }),
+      uneCommunication({
+        id: 10,
+        titre: "Notification en cours d'envoi",
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        push: true,
+        dateDebut: hier,
+        dateFin: null,
+        statutEnvoi: Communication.StatutEnvoi.EN_COURS
+      }),
+      uneCommunication({
+        id: 11,
+        titre: 'Notification envoyée dont les envois sont purgés',
+        destinataire: Communication.Destinataire.JEUNE,
+        type: Communication.Type.NOTIFICATION,
+        push: true,
+        dateDebut: hier,
+        dateFin: null,
+        statutEnvoi: Communication.StatutEnvoi.ENVOYEE,
+        envoiTermineLe: hier,
+        nbEnvoyees: 4,
+        nbErreurs: 0,
+        nbTokensInvalides: 1
       })
+    ])
+    // jeuneHors est sorti de la population depuis l'envoi : la population figée fait foi.
+    await CommunicationEnvoiSqlModel.bulkCreate([
+      {
+        idCommunication: 9,
+        idJeune: 'jeuneCite',
+        statut: CommunicationEnvoi.Statut.ENVOYEE,
+        dateTraitement: hier
+      },
+      {
+        idCommunication: 9,
+        idJeune: 'jeuneHors',
+        statut: CommunicationEnvoi.Statut.TOKEN_INVALIDE,
+        dateTraitement: hier
+      },
+      {
+        idCommunication: 10,
+        idJeune: 'jeuneCite',
+        statut: CommunicationEnvoi.Statut.ENVOYEE,
+        dateTraitement: hier
+      },
+      {
+        idCommunication: 10,
+        idJeune: 'jeuneFtCej',
+        statut: CommunicationEnvoi.Statut.A_ENVOYER,
+        dateTraitement: null
+      }
     ])
     await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
     await DeploiementSqlModel.bulkCreate([
@@ -242,6 +327,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
   after(async () => {
     await getDatabase().sequelize.query(`
       DROP TABLE IF EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
+      DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATIONS_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
     `)
@@ -256,6 +342,11 @@ describe('ChargerLesPopulationsJobHandler', () => {
     push?: boolean
     dateDebut?: Date
     dateFin?: Date | null
+    statutEnvoi?: Communication.StatutEnvoi
+    envoiTermineLe?: Date
+    nbEnvoyees?: number
+    nbErreurs?: number
+    nbTokensInvalides?: number
   }): {
     id: number
     idPopulation: string
@@ -266,6 +357,11 @@ describe('ChargerLesPopulationsJobHandler', () => {
     dateFin: Date | null
     titre: string
     contenu: string
+    statutEnvoi?: Communication.StatutEnvoi
+    envoiTermineLe?: Date
+    nbEnvoyees?: number
+    nbErreurs?: number
+    nbTokensInvalides?: number
   } {
     return {
       idPopulation: 'PILOTE',
@@ -302,9 +398,10 @@ describe('ChargerLesPopulationsJobHandler', () => {
       )
       expect(suiviJob.resultat).to.deep.equal({
         nbPopulations: 2,
+        nbCommunications: 11,
         nbConseillers: 2,
         nbJeunes: 4,
-        nbDestinatairesCommunications: 19,
+        nbDestinatairesCommunications: 23,
         nbMembresDeploiements: 4
       })
     })
@@ -473,6 +570,95 @@ describe('ChargerLesPopulationsJobHandler', () => {
       expect(new Set(statuts.map(s => s.join()))).to.deep.equal(
         new Set(['7,PREVUE', '8,PASSEE'])
       )
+    })
+
+    it("liste pour une notification dont l'envoi a démarré les jeunes de la population figée, avec leur statut d'envoi", async () => {
+      // Then
+      const destinataires = (
+        await lignes<Destinataire>(
+          ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+          'id_communication, id_utilisateur'
+        )
+      ).filter(d => ['9', '10', '11'].includes(d.id_communication))
+      expect(
+        destinataires.map(d => [
+          d.id_communication,
+          d.id_utilisateur,
+          d.statut_envoi,
+          d.date_traitement_envoi
+        ])
+      ).to.deep.equal([
+        ['10', 'jeuneCite', 'ENVOYEE', hier],
+        ['10', 'jeuneFtCej', 'A_ENVOYER', null],
+        ['9', 'jeuneCite', 'ENVOYEE', hier],
+        ['9', 'jeuneHors', 'TOKEN_INVALIDE', hier]
+      ])
+      expect(
+        destinataires.find(d => d.id_utilisateur === 'jeuneCite')
+      ).to.deep.include({
+        type_utilisateur: 'JEUNE',
+        email: 'jeune.cite@mail.fr',
+        agence: 'ML Aubenas'
+      })
+    })
+
+    it("liste une ligne par communication avec son nombre de destinataires, sans statut d'envoi pour un bandeau", async () => {
+      // Then
+      const communications = await lignes<CommunicationAnalytics>(
+        ANALYTICS_COMMUNICATIONS_TABLE_NAME,
+        'id_communication::int'
+      )
+      expect(
+        communications.map(c => [
+          c.id_communication,
+          c.statut,
+          c.nb_destinataires
+        ])
+      ).to.deep.equal([
+        ['1', 'PASSEE', 2],
+        ['2', 'EN_COURS', 2],
+        ['3', 'PREVUE', 2],
+        ['4', 'EN_COURS', 4],
+        ['5', 'EN_COURS', 0],
+        ['6', 'EN_COURS', 2],
+        ['7', 'PREVUE', 3],
+        ['8', 'PASSEE', 4],
+        ['9', 'PASSEE', 2],
+        ['10', 'PASSEE', 2],
+        ['11', 'PASSEE', 5]
+      ])
+      expect(communications[0]).to.deep.include({
+        type: 'IN_APP',
+        push: null,
+        statut_envoi: null,
+        nb_envoyees: null,
+        date_calcul: maintenant.toJSDate()
+      })
+    })
+
+    it("renseigne l'avancement de l'envoi : compteurs figés une fois terminé, sinon ceux de communication_envoi", async () => {
+      // Then
+      const communications = (
+        await lignes<CommunicationAnalytics>(
+          ANALYTICS_COMMUNICATIONS_TABLE_NAME,
+          'id_communication::int'
+        )
+      ).filter(c => ['9', '10', '11'].includes(c.id_communication))
+      expect(
+        communications.map(c => [
+          c.id_communication,
+          c.statut_envoi,
+          c.nb_a_envoyer,
+          c.nb_en_cours,
+          c.nb_envoyees,
+          c.nb_erreurs,
+          c.nb_tokens_invalides
+        ])
+      ).to.deep.equal([
+        ['9', 'ENVOYEE', 0, 0, 1, 0, 1],
+        ['10', 'EN_COURS', 1, 0, 1, 0, 0],
+        ['11', 'ENVOYEE', null, null, 4, 0, 1]
+      ])
     })
 
     it('liste les conseillers concernés par chaque déploiement, avec son statut figé à date_calcul', async () => {

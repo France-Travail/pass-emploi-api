@@ -3,6 +3,7 @@ import { QueryTypes, Transaction } from 'sequelize'
 import { Sequelize } from 'sequelize-typescript'
 import { JobHandler } from '../../../building-blocks/types/job-handler'
 import { Communication } from '../../../domain/communication'
+import { CommunicationEnvoi } from '../../../domain/communication-envoi'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { PopulationSqlRepository } from '../../../infrastructure/repositories/population.repository.db'
@@ -20,6 +21,7 @@ import { rootLogger, toEcsError } from '../../../utils/logger.module'
 
 export const ANALYTICS_POPULATION_MEMBRES_TABLE_NAME =
   'analytics_population_membres'
+export const ANALYTICS_COMMUNICATIONS_TABLE_NAME = 'analytics_communications'
 export const ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME =
   'analytics_communication_destinataires'
 export const ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME =
@@ -27,6 +29,7 @@ export const ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME =
 
 interface Volumetrie {
   nbPopulations: number
+  nbCommunications: number
   nbConseillers: number
   nbJeunes: number
   nbDestinatairesCommunications: number
@@ -69,8 +72,8 @@ const JOIN_LIEU_CONSEILLER = `
  * @see docs/ANALYTICS.md#0bis-charger-les-populationsjobts
  * @analytics.trigger ajouterJob depuis DUMP_ANALYTICS, ou TASK_NAME=CHARGER_POPULATIONS_ANALYTICS
  * @analytics.after DUMP_ANALYTICS
- * @analytics.tables_in population, population_conseiller, population_profil, communication, deploiement, conseiller, jeune
- * @analytics.tables_out analytics_population_membres, analytics_communication_destinataires, analytics_deploiement_membres
+ * @analytics.tables_in population, population_conseiller, population_profil, communication, communication_envoi, deploiement, conseiller, jeune
+ * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires, analytics_deploiement_membres
  */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_POPULATIONS_ANALYTICS)
@@ -99,15 +102,20 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         await this.viderLesTables(connexion, transaction)
         await this.ecrireLesConseillers(connexion, conseillers, ecriture)
         await this.ecrireLesJeunes(connexion, jeunes, ecriture)
+        const nbDestinatairesCommunications =
+          await this.ecrireLesDestinatairesDesCommunications(
+            connexion,
+            ecriture
+          )
         return {
           nbPopulations: idsPopulations.length,
+          nbCommunications: await this.ecrireLesCommunications(
+            connexion,
+            ecriture
+          ),
           nbConseillers: conseillers.length,
           nbJeunes: jeunes.length,
-          nbDestinatairesCommunications:
-            await this.ecrireLesDestinatairesDesCommunications(
-              connexion,
-              ecriture
-            ),
+          nbDestinatairesCommunications,
           nbMembresDeploiements: await this.ecrireLesMembresDesDeploiements(
             connexion,
             ecriture
@@ -154,6 +162,33 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       CREATE INDEX IF NOT EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}_id_population_index
         ON ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME} (id_population);
 
+      CREATE TABLE IF NOT EXISTS ${ANALYTICS_COMMUNICATIONS_TABLE_NAME}
+      (
+        id_communication    varchar NOT NULL,
+        id_population       varchar NOT NULL,
+        destinataire        varchar NOT NULL,
+        type                varchar NOT NULL,
+        push                boolean,
+        type_notification   varchar,
+        titre               varchar,
+        contenu             text,
+        cta_label           varchar,
+        date_debut          timestamptz NOT NULL,
+        date_fin            timestamptz,
+        statut              varchar NOT NULL,
+        statut_envoi        varchar,
+        envoi_termine_le    timestamptz,
+        nb_destinataires    integer NOT NULL,
+        nb_a_envoyer        integer,
+        nb_en_cours         integer,
+        nb_envoyees         integer,
+        nb_erreurs          integer,
+        nb_tokens_invalides integer,
+        date_calcul         timestamptz NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS ${ANALYTICS_COMMUNICATIONS_TABLE_NAME}_id_population_index
+        ON ${ANALYTICS_COMMUNICATIONS_TABLE_NAME} (id_population);
+
       CREATE TABLE IF NOT EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
       (
         id_communication varchar NOT NULL,
@@ -199,6 +234,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         ADD COLUMN IF NOT EXISTS id_agence varchar;
       ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
         ALTER COLUMN date_fin DROP NOT NULL;
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS statut_envoi varchar;
+      ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+        ADD COLUMN IF NOT EXISTS date_traitement_envoi timestamptz;
     `)
   }
 
@@ -209,6 +248,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     await connexion.query(
       `
         DELETE FROM ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
+        DELETE FROM ${ANALYTICS_COMMUNICATIONS_TABLE_NAME};
         DELETE FROM ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
         DELETE FROM ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
       `,
@@ -315,7 +355,12 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       dateCalcul,
       transaction
     )
-    return nbConseillers + nbJeunes
+    const nbJeunesNotifies = await this.ecrireLesJeunesNotifies(
+      connexion,
+      dateCalcul,
+      transaction
+    )
+    return nbConseillers + nbJeunes + nbJeunesNotifies
   }
 
   private async ecrireLesConseillersDestinataires(
@@ -359,7 +404,86 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         FROM communication co
         ${sqlJoinJeunesDestinataires('co', 'j', 'c')}
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
-        ${JOIN_LIEU_CONSEILLER};
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE ${sqlEnvoiNonDemarre('co')};
+      `,
+      { replacements: { maintenant: dateCalcul }, transaction }
+    )
+    return nbLignes as number
+  }
+
+  // Envoi démarré : la population a été figée dans communication_envoi, c'est elle
+  // qui fait foi, même si le jeune a changé de profil ou de conseiller depuis.
+  private async ecrireLesJeunesNotifies(
+    connexion: Sequelize,
+    dateCalcul: Date,
+    transaction: Transaction
+  ): Promise<number> {
+    const [, nbLignes] = await connexion.query(
+      `
+        INSERT INTO ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+          (id_communication, id_population, destinataire, type, titre, contenu, date_debut, date_fin, statut,
+           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
+           statut_envoi, date_traitement_envoi, date_calcul)
+        SELECT co.id, co.id_population, co.destinataire, co.type, co.titre, co.contenu, co.date_debut, co.date_fin,
+               ${sqlStatutCommunication('co')},
+               'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+               COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
+               COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
+               ce.statut, ce.date_traitement,
+               :maintenant
+        FROM communication co
+        JOIN communication_envoi ce ON ce.id_communication = co.id
+        JOIN jeune j ON j.id = ce.id_jeune
+        LEFT JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
+        LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE NOT ${sqlEnvoiNonDemarre('co')};
+      `,
+      { replacements: { maintenant: dateCalcul }, transaction }
+    )
+    return nbLignes as number
+  }
+
+  // Les compteurs figés à la fin de l'envoi priment : communication_envoi est purgé
+  // 30 jours après (NETTOYER_LES_DONNEES), il ne reste alors plus qu'eux.
+  private async ecrireLesCommunications(
+    connexion: Sequelize,
+    { dateCalcul, transaction }: Ecriture
+  ): Promise<number> {
+    const nbEnvoisAuStatut = (statut: CommunicationEnvoi.Statut): string =>
+      `count(*) FILTER (WHERE statut = '${statut}')`
+    const [, nbLignes] = await connexion.query(
+      `
+        INSERT INTO ${ANALYTICS_COMMUNICATIONS_TABLE_NAME}
+          (id_communication, id_population, destinataire, type, push, type_notification, titre, contenu, cta_label,
+           date_debut, date_fin, statut, statut_envoi, envoi_termine_le,
+           nb_destinataires, nb_a_envoyer, nb_en_cours, nb_envoyees, nb_erreurs, nb_tokens_invalides, date_calcul)
+        SELECT co.id, co.id_population, co.destinataire, co.type, co.push, co.type_notification, co.titre, co.contenu,
+               co.cta_label, co.date_debut, co.date_fin, ${sqlStatutCommunication('co')},
+               co.statut_envoi, co.envoi_termine_le,
+               GREATEST(COALESCE(d.nb_destinataires, 0), co.nb_envoyees + co.nb_erreurs + co.nb_tokens_invalides),
+               e.nb_a_envoyer, e.nb_en_cours,
+               COALESCE(co.nb_envoyees, e.nb_envoyees),
+               COALESCE(co.nb_erreurs, e.nb_erreurs),
+               COALESCE(co.nb_tokens_invalides, e.nb_tokens_invalides),
+               :maintenant
+        FROM communication co
+        LEFT JOIN (
+          SELECT id_communication, count(*) AS nb_destinataires
+          FROM ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
+          GROUP BY id_communication
+        ) d ON d.id_communication = co.id::varchar
+        LEFT JOIN (
+          SELECT id_communication,
+                 ${nbEnvoisAuStatut(CommunicationEnvoi.Statut.A_ENVOYER)} AS nb_a_envoyer,
+                 ${nbEnvoisAuStatut(CommunicationEnvoi.Statut.EN_COURS)} AS nb_en_cours,
+                 ${nbEnvoisAuStatut(CommunicationEnvoi.Statut.ENVOYEE)} AS nb_envoyees,
+                 ${nbEnvoisAuStatut(CommunicationEnvoi.Statut.ERREUR)} AS nb_erreurs,
+                 ${nbEnvoisAuStatut(CommunicationEnvoi.Statut.TOKEN_INVALIDE)} AS nb_tokens_invalides
+          FROM communication_envoi
+          GROUP BY id_communication
+        ) e ON e.id_communication = co.id;
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
@@ -397,6 +521,12 @@ function sqlStatutCommunication(aliasCom: string): string {
       WHEN ${sqlCommunicationEnCours(aliasCom, ':maintenant')} THEN 'EN_COURS'
       ELSE 'PREVUE'
     END`
+}
+
+// Tant que l'envoi n'a pas démarré (ou pour un bandeau, sans envoi), la population
+// n'est pas figée : les destinataires sont ceux qu'elle résout à date_calcul.
+function sqlEnvoiNonDemarre(aliasCom: string): string {
+  return `(${aliasCom}.statut_envoi IS NULL OR ${aliasCom}.statut_envoi = '${Communication.StatutEnvoi.A_ENVOYER}')`
 }
 
 // Identifiants internes lus en base juste avant (jamais une saisie utilisateur) : interpolés tels quels.
