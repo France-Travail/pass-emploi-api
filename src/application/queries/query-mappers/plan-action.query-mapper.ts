@@ -35,7 +35,7 @@ export function toPlanActionQueryModel(
         actions: objectif.taches
           .map(tache => {
             const solution = parId.get(tache.idSolution)
-            return solution ? toAction(tache.id, solution) : undefined
+            return solution ? toAction(tache, solution) : undefined
           })
           .filter(
             (action): action is ActionPlanQueryModel => action !== undefined
@@ -46,13 +46,14 @@ export function toPlanActionQueryModel(
 }
 
 function toAction(
-  idTache: string,
+  tache: PlanAction.Tache,
   solution: ReferentielPlanAction.Solution
 ): ActionPlanQueryModel {
   return {
-    id: idTache,
+    id: tache.id,
     libelle: solution.libelle,
     type: typeSolutionVersTypeAction[solution.type],
+    terminee: tache.terminee,
     ...(solution.url ? { url: solution.url } : {}),
     ...(solution.service ? { nomService: solution.service.nom } : {})
   }

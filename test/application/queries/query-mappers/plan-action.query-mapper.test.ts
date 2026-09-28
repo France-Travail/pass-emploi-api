@@ -63,6 +63,22 @@ describe('toPlanActionQueryModel', () => {
     expect(queryModel.objectives[0].actions[0].nomService).to.equal('ONISEP')
   })
 
+  it("expose l'état terminé de la tâche", () => {
+    // Given
+    const plan = unPlan()
+    plan.objectifs[0].taches[0] = {
+      ...plan.objectifs[0].taches[0],
+      terminee: true,
+      dateTerminee: maintenant
+    }
+
+    // When
+    const queryModel = toPlanActionQueryModel(plan, [uneSolution('p-2')])
+
+    // Then
+    expect(queryModel.objectives[0].actions[0].terminee).to.equal(true)
+  })
+
   it('écarte un objectif dont toutes les solutions ont disparu du référentiel', () => {
     // When
     const queryModel = toPlanActionQueryModel(unPlan(), [])
