@@ -91,14 +91,16 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       email: command.email?.toLocaleLowerCase()
     }
 
-    let result: Result<UtilisateurQueryModel>
+    let recuperationUtilisateurResult: Result<UtilisateurQueryModel>
 
     switch (commandSanitized.type) {
       case Authentification.Type.CONSEILLER:
-        result = await this.recupererConseiller(commandSanitized)
+        recuperationUtilisateurResult =
+          await this.recupererConseiller(commandSanitized)
         break
       case Authentification.Type.JEUNE:
-        result = await this.recupererBeneficiaire(commandSanitized)
+        recuperationUtilisateurResult =
+          await this.recupererBeneficiaire(commandSanitized)
         break
       case Authentification.Type.SUPPORT:
         return failure(
@@ -114,40 +116,40 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       commandSanitized.application !==
       Authentification.Application.UN_JEUNE_UNE_SOLUTION
 
+    // Utilisateur connu : sa vague de migration est passée. Inconnu : il a été archivé pour migration
+    // (un compte existant ou nouveau ne doit pas être refusé pour une vieille archive au même email).
     const leJeuneMigre =
       leJeuneVientDUneApplicationQuiMigre &&
-      (await this.leJeuneEstArchivePourMigration(commandSanitized.email))
+      ((isSuccess(recuperationUtilisateurResult) &&
+        (await this.leJeuneMigreVersParcoursEmploi(
+          recuperationUtilisateurResult.data
+        ))) ||
+        (isFailure(recuperationUtilisateurResult) &&
+          (await this.leJeuneEstArchivePourMigration(commandSanitized.email))))
 
-    if (isSuccess(result) && leJeuneMigre) {
+    const emailUtilisateur = isSuccess(recuperationUtilisateurResult)
+      ? recuperationUtilisateurResult.data.email
+      : commandSanitized.email
+
+    if (leJeuneMigre) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
           NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          result.data.email
-        )
-      )
-    }
-
-    if (isFailure(result) && leJeuneMigre) {
-      return failure(
-        new NonTraitableError(
-          'Utilisateur',
-          commandSanitized.idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          commandSanitized.email
+          emailUtilisateur
         )
       )
     }
 
     if (
-      isSuccess(result) &&
+      isSuccess(recuperationUtilisateurResult) &&
       commandSanitized.installationId &&
-      result.data.type === Authentification.Type.JEUNE
+      recuperationUtilisateurResult.data.type === Authentification.Type.JEUNE
     ) {
       try {
         await this.authentificationRepository.updateInstallationIdJeune(
-          result.data.id,
+          recuperationUtilisateurResult.data.id,
           commandSanitized.installationId
         )
       } catch (e) {
@@ -155,7 +157,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       }
     }
 
-    return result
+    return recuperationUtilisateurResult
   }
 
   async authorize(): Promise<Result> {

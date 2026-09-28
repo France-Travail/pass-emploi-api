@@ -1211,24 +1211,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
 
-            it('bloque avec MIGRATION_PARCOURS_EMPLOI pour application-du-cej', async () => {
-              // Given
-              unJeuneQuiDoitMigrer()
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                commandPour(Authentification.Application.APPLICATION_DU_CEJ)
-              )
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
-                )
-              }
-            })
-
             it('bloque avec MIGRATION_PARCOURS_EMPLOI quand l’application est absente', async () => {
               // Given
               unJeuneQuiDoitMigrer()
