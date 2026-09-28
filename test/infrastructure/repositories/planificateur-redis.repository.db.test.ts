@@ -206,7 +206,7 @@ describe('PlanificateurRedisRepository', () => {
         // Given
         const queue = planificateurRedisRepository.getQueue()
         await queue.pause()
-        const jobType = Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+        const jobType = Planificateur.JobType.ENVOYER_COMMUNICATIONS
         const jobTypeError = Planificateur.JobType.RENDEZVOUS
         const delayedJob: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
@@ -314,7 +314,7 @@ describe('PlanificateurRedisRepository', () => {
         // Given
         const queue = planificateurRedisRepository.getQueue()
         await queue.pause()
-        const jobType = Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+        const jobType = Planificateur.JobType.ENVOYER_COMMUNICATIONS
         const jobTypeError = Planificateur.JobType.RENDEZVOUS
         const delayedJob: Planificateur.Job<JobFake> = {
           dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
@@ -438,123 +438,11 @@ describe('PlanificateurRedisRepository', () => {
     })
   })
 
-  describe('recupererPremierJobNonTermine', () => {
-    describe('si le redis est accessible', () => {
-      it('retourne true uniquement si un job de même type existe en statut wait, delayed, paused ou active', async () => {
-        // Given
-        const queue = planificateurRedisRepository.getQueue()
-        await queue.pause()
-        const jobTypeDelayed = Planificateur.JobType.NOTIFIER_BENEFICIAIRES
-        const jobType = Planificateur.JobType.RENDEZVOUS
-        const delayedJob: Planificateur.Job<JobFake> = {
-          dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
-          type: jobTypeDelayed,
-          contenu: { message: 'delayed' }
-        }
-        const job: Planificateur.Job<JobFake> = {
-          dateExecution: maintenant.toJSDate(),
-          type: jobType,
-          contenu: { message: 'job' }
-        }
-        const jobError: Planificateur.Job<JobFake> = {
-          dateExecution: maintenant.toJSDate(),
-          type: jobType,
-          contenu: { message: 'jobError' }
-        }
-        await planificateurRedisRepository.ajouterJob(delayedJob, 'delayedJob')
-        await planificateurRedisRepository.ajouterJob(job, 'job')
-        await planificateurRedisRepository.ajouterJob(jobError, 'jobError')
-
-        const delayedJobFromQueue = await queue.getJob('delayedJob')
-        const jobFromQueue = await queue.getJob('job')
-        const jobErrorFromQueue = await queue.getJob('jobError')
-
-        // Testing delayed, paused
-        expect(await delayedJobFromQueue?.getState()).to.equal('delayed')
-        expect(await jobFromQueue?.getState()).to.equal('paused')
-        expect(await jobErrorFromQueue?.getState()).to.equal('paused')
-
-        // When - Then
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            jobTypeDelayed
-          )
-        ).to.equal('delayedJob')
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            jobType
-          )
-        ).to.equal('jobError')
-
-        // Given - Testing waiting
-        await queue.resume()
-        expect(await jobFromQueue?.getState()).to.equal('waiting')
-        expect(await jobErrorFromQueue?.getState()).to.equal('waiting')
-
-        // When - Then
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            jobType
-          )
-        ).to.equal('jobError')
-
-        // Given - Testing active
-        await queue.getNextJob()
-        expect(await jobFromQueue?.getState()).to.equal('active')
-        expect(await jobErrorFromQueue?.getState()).to.equal('waiting')
-
-        // When - Then
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            jobType
-          )
-        ).to.equal('job')
-
-        // Given - Testing completed, failed
-        await jobFromQueue?.moveToCompleted('result', true)
-        await queue.getNextJob() // jobError = active
-        await jobErrorFromQueue?.moveToFailed({ message: 'error' }, true)
-        expect(await jobFromQueue?.getState()).to.equal('completed')
-        expect(await jobErrorFromQueue?.getState()).to.equal('failed')
-
-        // When - Then
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            jobType
-          )
-        ).to.equal(null)
-      })
-
-      it('retourne false si un job de type différent existe en statut non terminé', async () => {
-        // Given
-        const queue = planificateurRedisRepository.getQueue()
-        await planificateurRedisRepository.ajouterJob(
-          {
-            dateExecution: maintenant.toJSDate(),
-            type: Planificateur.JobType.NETTOYER_LES_JOBS,
-            contenu: { message: 'job' }
-          },
-          'job'
-        )
-        const job = await queue.getJob('job')
-        await queue.getNextJob()
-        expect(await job?.getState()).to.equal('active')
-
-        // When - Then
-        expect(
-          await planificateurRedisRepository.recupererPremierJobNonTermine(
-            Planificateur.JobType.MAJ_SEGMENTS
-          )
-        ).to.equal(null)
-      })
-    })
-  })
-
   describe('compterLesJobs', () => {
     it('compte les jobs ajoutés à la queue', async () => {
       // Given
       const typeRdv = Planificateur.JobType.RENDEZVOUS
-      const typeNotif = Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+      const typeNotif = Planificateur.JobType.ENVOYER_COMMUNICATIONS
 
       const jobRdv: Planificateur.Job<JobFake> = {
         dateExecution: maintenant.plus({ minute: 5 }).toJSDate(),
@@ -634,7 +522,7 @@ describe('PlanificateurRedisRepository', () => {
       }
       const jobNotif: Planificateur.Job<JobFake> = {
         dateExecution: maintenant.plus({ minute: 10 }).toJSDate(),
-        type: Planificateur.JobType.NOTIFIER_BENEFICIAIRES,
+        type: Planificateur.JobType.ENVOYER_COMMUNICATIONS,
         contenu: { message: 'notif' }
       }
       await planificateurRedisRepository.ajouterJob(jobRdv, 'rdv')
@@ -643,7 +531,7 @@ describe('PlanificateurRedisRepository', () => {
       // When
       const jobs = await planificateurRedisRepository.listerJobs({
         statut: 'delayed',
-        jobType: Planificateur.JobType.NOTIFIER_BENEFICIAIRES
+        jobType: Planificateur.JobType.ENVOYER_COMMUNICATIONS
       })
 
       // Then

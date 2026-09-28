@@ -3,6 +3,7 @@
 # ENVIRONMENT=development : sinon Sequelize force le SSL (providers.ts) et le postgres Docker le refuse.
 ENVIRONMENT=development
 DATABASE_URL=${DATABASE_URL_LOCAL}
+REDIS_URL=${REDIS_URL_LOCAL}
 OIDC_ISSUER_URL=${OIDC_ISSUER_URL_STAGING}
 # Pour utiliser pass-emploi-connect local à la place du staging, remplacer la ligne ci-dessus par :
 #OIDC_ISSUER_URL=${OIDC_ISSUER_URL_LOCAL}

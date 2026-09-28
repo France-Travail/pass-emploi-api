@@ -297,6 +297,56 @@ describe('OffresImmersionController', () => {
         .expect(HttpStatus.CREATED)
     })
 
+    it("accepte un numéro de téléphone d'outre-mer (La Réunion)", async () => {
+      // Given
+      const payload = {
+        idJeune: '1',
+        appellationCode: '11573',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        numeroTelephone: '0692036376',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
+      }
+
+      envoyerFormulaireContactImmersionCommandHandler.execute
+        .withArgs(payload)
+        .resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.CREATED)
+    })
+
+    it('refuse un numéro de téléphone invalide', async () => {
+      // Given
+      const payload = {
+        idJeune: '1',
+        appellationCode: '11573',
+        siret: '10226726508419',
+        locationId: 'un-location-id',
+        prenom: 'prenom',
+        nom: 'nom',
+        numeroTelephone: '0692',
+        email: 'test@test.com',
+        contactMode: 'EMAIL',
+        datePreferences: 'lundi matin'
+      }
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/jeunes/1/offres-immersion/v3/contact')
+        .set('authorization', unHeaderAuthorization())
+        .send(payload)
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
     it('accepte et transmet experienceAdditionalInformation et resumeLink', async () => {
       // Given
       const payload = {

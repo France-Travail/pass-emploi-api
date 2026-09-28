@@ -20,9 +20,6 @@ import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { testConfig } from '../../utils/module-for-testing'
-import { Migration } from '../../../src/domain/migration'
-import { DateTime } from 'luxon'
-import { Authentification } from '../../../src/domain/authentification'
 import { Profil } from '../../../src/domain/profil'
 
 const token = 'un-token'
@@ -31,19 +28,16 @@ describe('GetDetailConseillerQueryHandler', () => {
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let conseillerMiloService: StubbedClass<Conseiller.Milo.Service>
   let getDetailConseillerQueryHandler: GetDetailConseillerQueryHandler
-  let migrationService: StubbedClass<Migration.Service>
   let sandbox: SinonSandbox
 
   before(() => {
     sandbox = createSandbox()
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     conseillerMiloService = stubClass(Conseiller.Milo.Service)
-    migrationService = stubClass(Migration.Service)
 
     getDetailConseillerQueryHandler = new GetDetailConseillerQueryHandler(
       conseillerAuthorizer,
       conseillerMiloService,
-      migrationService,
       testConfig()
     )
   })
@@ -60,7 +54,7 @@ describe('GetDetailConseillerQueryHandler', () => {
     describe('Conseiller non Milo', () => {
       const structure = Profil.Structure.FRANCE_TRAVAIL
 
-      it("retourne le conseiller quand il existe avec l'agence + dateDeMigration", async () => {
+      it("retourne le conseiller quand il existe avec l'agence", async () => {
         // Given
         const idConseiller = '1'
         const agenceSql = uneAgenceDto()
@@ -73,13 +67,6 @@ describe('GetDetailConseillerQueryHandler', () => {
             idAgence: agenceSql.id
           })
         )
-
-        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs({
-            id: idConseiller,
-            type: Authentification.Type.CONSEILLER
-          })
-          .resolves(DateTime.fromISO('2024-09-01T00:00:00.000+00:00'))
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({
@@ -101,8 +88,7 @@ describe('GetDetailConseillerQueryHandler', () => {
               dateSignatureCGU: undefined,
               dateVisionnageActus: undefined,
               dateMajAgence: undefined,
-              dateMajDispositif: undefined,
-              dateDeMigration: '2024-09-01T00:00:00.000Z'
+              dateMajDispositif: undefined
             })
           )
         )
@@ -119,12 +105,6 @@ describe('GetDetailConseillerQueryHandler', () => {
         await JeuneSqlModel.creer(
           unJeuneDto({ idConseillerInitial: idConseiller })
         )
-        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs({
-            id: idConseiller,
-            type: Authentification.Type.CONSEILLER
-          })
-          .resolves(undefined)
 
         const actual = await getDetailConseillerQueryHandler.handle({
           idConseiller,
@@ -180,12 +160,6 @@ describe('GetDetailConseillerQueryHandler', () => {
           })
         )
         conseillerMiloService.recupererEtMettreAJourStructure.resolves()
-        migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-          .withArgs({
-            id: idConseiller,
-            type: Authentification.Type.CONSEILLER
-          })
-          .resolves(undefined)
 
         // When
         const actual = await getDetailConseillerQueryHandler.handle({

@@ -32,6 +32,7 @@ import { SuiviJobSqlModel } from '../../infrastructure/sequelize/models/suivi-jo
 import { DateService } from '../../utils/date-service'
 import Source = RendezVous.Source
 import { ComptageJeuneSqlModel } from '../../infrastructure/sequelize/models/comptage-jeune.sql-model'
+import { Communication } from '../../domain/communication'
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.NETTOYER_LES_DONNEES)
@@ -72,6 +73,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     let nombreRecherchesSupprimees = -1
     let nombreComptageJeuneSupprimes = -1
     let nombreActualitesMiloSupprimees = -1
+    let nombreEnvoisCommunicationSupprimes = -1
 
     try {
       const jeunes = await JeuneSqlModel.findAll({
@@ -334,6 +336,34 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
       nbErreurs++
     }
 
+    try {
+      const envoisSupprimes: Array<{ idCommunication: number }> =
+        await this.sequelize.query(
+          `DELETE FROM communication_envoi
+            WHERE id_communication IN (
+              SELECT id FROM communication
+              WHERE statut_envoi IN (:statutsTerminaux)
+                AND envoi_termine_le < :avant
+            )
+            RETURNING id_communication as "idCommunication"`,
+          {
+            type: QueryTypes.SELECT,
+            replacements: {
+              statutsTerminaux: [
+                Communication.StatutEnvoi.ENVOYEE,
+                Communication.StatutEnvoi.ANNULEE,
+                Communication.StatutEnvoi.EN_ERREUR
+              ],
+              avant: maintenant.minus({ days: 30 }).toJSDate()
+            }
+          }
+        )
+      nombreEnvoisCommunicationSupprimes = envoisSupprimes.length
+    } catch (e) {
+      this.logger.warn(e)
+      nbErreurs++
+    }
+
     return {
       jobType: this.jobType,
       nbErreurs,
@@ -360,7 +390,8 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         nombreHistoriqueRdvSupprimes,
         nombreRecherchesSupprimees,
         nombreComptageJeuneSupprimes,
-        nombreActualitesMiloSupprimees
+        nombreActualitesMiloSupprimees,
+        nombreEnvoisCommunicationSupprimes
       }
     }
   }

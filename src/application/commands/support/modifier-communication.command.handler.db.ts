@@ -2,7 +2,10 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import { NonTrouveError } from '../../../building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../../building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
@@ -10,6 +13,7 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { Communication } from '../../../domain/communication'
+import { Notification } from '../../../domain/notification/notification'
 import {
   Population,
   PopulationRepositoryToken
@@ -28,6 +32,8 @@ export interface ModifierCommunicationCommand extends Command {
   ctaLabel?: string
   ctaUrlAndroid?: string
   ctaUrlIos?: string
+  typeNotification?: Notification.Type
+  push?: boolean
 }
 
 // Remplace la communication en entier (PUT) : un champ absent du payload est effacé,
@@ -57,6 +63,13 @@ export class ModifierCommunicationCommandHandler extends CommandHandler<
     if (!existante) {
       return failure(new NonTrouveError('Communication', String(command.id)))
     }
+    if (!Communication.estModifiable(existante.statutEnvoi)) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Une communication dont l'envoi a démarré ne peut plus être modifiée"
+        )
+      )
+    }
 
     const communicationResult = Communication.creer(command)
     if (isFailure(communicationResult)) return communicationResult
@@ -78,7 +91,13 @@ export class ModifierCommunicationCommandHandler extends CommandHandler<
       contenu: communication.contenu,
       ctaLabel: communication.ctaLabel ?? null,
       ctaUrlAndroid: communication.ctaUrlAndroid ?? null,
-      ctaUrlIos: communication.ctaUrlIos ?? null
+      ctaUrlIos: communication.ctaUrlIos ?? null,
+      typeNotification: communication.typeNotification ?? null,
+      push: communication.push ?? null,
+      statutEnvoi:
+        communication.type === Communication.Type.NOTIFICATION
+          ? Communication.StatutEnvoi.A_ENVOYER
+          : null
     })
     return emptySuccess()
   }

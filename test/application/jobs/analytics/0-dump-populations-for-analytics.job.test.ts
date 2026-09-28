@@ -2,15 +2,15 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import * as childProcess from 'node:child_process'
 import { SinonSandbox, SinonStub } from 'sinon'
-import { DumpPilotageForAnalyticsJobHandler } from '../../../../src/application/jobs/analytics/0-dump-pilotage-for-analytics.job'
+import { DumpPopulationsForAnalyticsJobHandler } from '../../../../src/application/jobs/analytics/0-dump-populations-for-analytics.job'
 import { Planificateur } from '../../../../src/domain/planificateur'
 import { SuiviJob } from '../../../../src/domain/suivi-job'
 import { DateService } from '../../../../src/utils/date-service'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 
-describe('DumpPilotageForAnalyticsJobHandler', () => {
+describe('DumpPopulationsForAnalyticsJobHandler', () => {
   let sandbox: SinonSandbox
-  let handler: DumpPilotageForAnalyticsJobHandler
+  let handler: DumpPopulationsForAnalyticsJobHandler
   let suiviJobService: StubbedType<SuiviJob.Service>
   let planificateurRepository: StubbedType<Planificateur.Repository>
   let dateService: StubbedClass<DateService>
@@ -27,7 +27,7 @@ describe('DumpPilotageForAnalyticsJobHandler', () => {
     exec = sandbox
       .stub(childProcess, 'exec')
       .yields(null, { stdout: 'dump OK', stderr: '' })
-    handler = new DumpPilotageForAnalyticsJobHandler(
+    handler = new DumpPopulationsForAnalyticsJobHandler(
       suiviJobService,
       dateService,
       planificateurRepository
@@ -38,7 +38,7 @@ describe('DumpPilotageForAnalyticsJobHandler', () => {
     sandbox.restore()
   })
 
-  it('ne dumpe que les tables de pilotage puis enfile le chargement des populations', async () => {
+  it('ne dumpe que les tables de populations puis enfile le chargement des populations', async () => {
     // When
     const suiviJob = await handler.handle()
 
@@ -46,7 +46,7 @@ describe('DumpPilotageForAnalyticsJobHandler', () => {
     expect(suiviJob.succes).to.equal(true)
     expect(exec).to.have.been.calledOnce()
     expect(exec.firstCall.args[1].env.DUMP_TABLES).to.equal(
-      'fonctionnalite population population_conseiller population_profil deploiement communication'
+      'fonctionnalite population population_conseiller population_profil deploiement communication communication_envoi'
     )
     expect(
       planificateurRepository.ajouterJob

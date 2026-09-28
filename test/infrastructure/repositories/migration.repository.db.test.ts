@@ -131,7 +131,7 @@ describe('MigrationSqlRepository', () => {
       ])
     })
 
-    it('renvoie les jeunes dont le propre profil correspond', async () => {
+    it('renvoie les jeunes dont le conseiller de référence a un profil qui correspond', async () => {
       // When
       const beneficiaires =
         await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PHASE_B')
@@ -192,7 +192,7 @@ describe('MigrationSqlRepository', () => {
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
     })
 
-    it('renvoie la date par le profil du jeune lui-même', async () => {
+    it('renvoie la date par le profil du conseiller du jeune', async () => {
       // When
       const date = await repo.getDateDeMigrationDuBeneficiaire('jeuneBrsa')
 

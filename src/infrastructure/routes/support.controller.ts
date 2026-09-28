@@ -18,7 +18,6 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
-  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiProperty,
@@ -30,7 +29,6 @@ import {
 import Bull from 'bull'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
-import { NotifierBeneficiairesCommandHandler } from '../../application/commands/notifier-beneficiaires.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
 import {
   CreerJeunePESupportCommand,
@@ -55,7 +53,6 @@ import { TransfererJeunesConseillerCommandHandler } from '../../application/comm
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { ChangementAgenceQueryModel } from '../../domain/agence'
 import { Authentification } from '../../domain/authentification'
-import { Notification } from '../../domain/notification/notification'
 import {
   Planificateur,
   PlanificateurRepositoryToken
@@ -72,7 +69,6 @@ import {
   ListerJobsQueryParams,
   ModifierAgenceFTConseillerPayload,
   ModifierDispositifFTConseillerPayload,
-  NotifierBeneficiairesPayload,
   SuperviseursPayload,
   TeleverserCsvPayload,
   TransfererJeunesPayload
@@ -141,7 +137,6 @@ export class SupportController {
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly creerSuperviseursCommandHandler: CreerSuperviseursCommandHandler,
     private readonly deleteSuperviseursCommandHandler: DeleteSuperviseursCommandHandler,
-    private readonly notifierBeneficiairesCommandHandler: NotifierBeneficiairesCommandHandler,
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
     private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
@@ -457,50 +452,6 @@ export class SupportController {
     Authentification.Partenaire.SUPPORT
   )
   @ApiOperation({
-    summary: 'Notifie les bénéficiaires, tous ou ceux d’une population.',
-    description: `
-Notifie tous les bénéficiaires, ou ceux d’une population
-(crée un job de type NOTIFIER_BENEFICIAIRES).
-
-**Champs du body :**
-- \`typeNotification\` (optionnel) : détermine la page et le point d'ancrage vers lequel l'utilisateur sera redirigé en cliquant sur la notification.
-<br>Valeurs possibles : ${Object.values(Notification.TypeNotifManuelle).join(
-      ', '
-    )}
-- \`titre\` : titre de la notification - maximum 50 caractères
-- \`description\` : texte corps de la notification - maximum 150 caractères
-- \`idPopulation\` (optionnel, défaut = tous les bénéficiaires) : id d'une population pour ne cibler que ses bénéficiaires
-- \`push\` (optionnel, défaut = true) : notifie les bénéficiaires en mode push (via Firebase) pour apparaître dans le centre de notifications de l'appareil
-- \`batchSize\` (optionnel, défaut = 1/4 de la population totale) : taille d’un batch
-- \`minutesEntreLesBatch\` (optionnel, défaut = 5) : minutes entre chaque batch
-`
-  })
-  @ApiBody({
-    schema: {
-      example: {
-        typeNotification: 'OUTILS',
-        titre: '1000 immersions sur la vente et la logistique !',
-        description: 'Explorez les métiers de vente et de la logistique',
-        idPopulation: 'PHASE_A',
-        push: true
-      }
-    }
-  })
-  @Post('notifier-beneficiaires')
-  @HttpCode(HttpStatus.CREATED)
-  async notifierBeneficiaires(
-    @Body() payload: NotifierBeneficiairesPayload
-  ): Promise<Planificateur.JobId> {
-    const createdJobId =
-      await this.notifierBeneficiairesCommandHandler.execute(payload)
-    return handleResult(createdJobId)
-  }
-
-  @SetMetadata(
-    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
-    Authentification.Partenaire.SUPPORT
-  )
-  @ApiOperation({
     summary: "Récupère les informations d'un job via son id."
   })
   @Get('job-information/:jobId')
@@ -533,7 +484,7 @@ Obtenus via \`Queue.getJobCounts()\`, qui fait un simple comptage Redis (ZCARD/L
 Opération O(1), instantanée, sûre quelle que soit la taille des sets. Statuts : \`waiting\`, \`active\`, \`delayed\`, \`completed\`, \`failed\`, \`paused\`.
 
 **2. \`parTypeStatutsVivants\` — ventilation par JobType, ÉCHANTILLONNÉE et BORNÉE**
-Le JobType (NOTIFIER_BENEFICIAIRES, etc.) n'est pas indexé par Bull : il vit dans \`job.data.type\`.
+Le JobType (e.g., ENVOYER_COMMUNICATIONS) n'est pas indexé par Bull : il vit dans \`job.data.type\`.
 Compter par type impose donc de charger les jobs et de les grouper côté Node. Pour rester non bloquant :
 - la ventilation ne porte QUE sur les statuts dits "vivants" : \`waiting\`, \`active\`, \`delayed\`, \`failed\` ;
 - le statut \`completed\` est VOLONTAIREMENT EXCLU : ce set peut contenir des centaines de milliers de jobs, le scanner saturerait Redis (cause d'incidents passés) et n'a aucun intérêt (simple historique) ;
@@ -570,7 +521,7 @@ Renvoie une fenêtre paginée de jobs pour un statut donné, sous forme d'un ré
 
 **Paramètres de requête :**
 - \`statut\` (requis) : \`waiting\` | \`active\` | \`delayed\` | \`completed\` | \`failed\` | \`paused\`.
-- \`jobType\` (optionnel) : filtre par type de job (ex. NOTIFIER_BENEFICIAIRES).
+- \`jobType\` (optionnel) : filtre par type de job (ex. ENVOYER_COMMUNICATIONS).
 - \`debut\` (optionnel, défaut 0) et \`fin\` (optionnel, défaut 20) : bornes de la fenêtre de pagination.
 
 **Comportement :**

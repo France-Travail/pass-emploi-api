@@ -114,6 +114,15 @@ describe('NotificationFirebaseSqlRepository', () => {
       expect(await NotificationJeuneSqlModel.findAll()).to.be.empty()
     })
 
+    it("n'enregistre pas de notification in-app mais envoie le push si notificationInApp = false", async () => {
+      // When
+      await repository.send(message, 'j1', true, false)
+
+      // Then
+      expect(await NotificationJeuneSqlModel.findAll()).to.be.empty()
+      expect(firebaseClient.send).to.have.been.calledOnceWithExactly(message)
+    })
+
     it('envoie aussi une notification push si pushNotification = true', async () => {
       // When
       await repository.send(message, 'j1', true)
@@ -145,6 +154,26 @@ describe('NotificationFirebaseSqlRepository', () => {
       expect(
         matomoClient.trackEventPushNotificationEnvoyee
       ).not.to.have.been.called()
+    })
+
+    it('retourne le résultat de Firebase quand le push est activé', async () => {
+      // Given
+      firebaseClient.send.resolves(Notification.ResultatEnvoi.TOKEN_INVALIDE)
+
+      // When
+      const resultat = await repository.send(message, 'idJeune', true)
+
+      // Then
+      expect(resultat).to.equal(Notification.ResultatEnvoi.TOKEN_INVALIDE)
+    })
+
+    it('retourne ENVOYEE sans appeler Firebase quand le push est désactivé', async () => {
+      // When
+      const resultat = await repository.send(message, 'idJeune', false)
+
+      // Then
+      expect(resultat).to.equal(Notification.ResultatEnvoi.ENVOYEE)
+      expect(firebaseClient.send).not.to.have.been.called()
     })
 
     describe('envoie le bon type de notification', () => {

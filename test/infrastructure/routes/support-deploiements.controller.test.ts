@@ -12,6 +12,7 @@ import { SupprimerDeploiementCommandHandler } from '../../../src/application/com
 import { SupprimerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/supprimer-fonctionnalite.command.handler.db'
 import { SupprimerPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-population.command.handler.db'
 import { SupprimerProfilPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-profil-population.command.handler.db'
+import { AnnulerEnvoiCommunicationCommandHandler } from '../../../src/application/commands/support/annuler-envoi-communication.command.handler.db'
 import { CreerCommunicationCommandHandler } from '../../../src/application/commands/support/creer-communication.command.handler.db'
 import { ModifierCommunicationCommandHandler } from '../../../src/application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from '../../../src/application/commands/support/supprimer-communication.command.handler.db'
@@ -30,6 +31,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Communication } from '../../../src/domain/communication'
+import { Notification } from '../../../src/domain/notification/notification'
 import { Deploiement } from '../../../src/domain/deploiement'
 import { Profil } from '../../../src/domain/profil'
 import { expect, StubbedClass } from '../../utils'
@@ -53,6 +55,7 @@ describe('SupportDeploiementsController', () => {
   let creerCommunicationCommandHandler: StubbedClass<CreerCommunicationCommandHandler>
   let modifierCommunicationCommandHandler: StubbedClass<ModifierCommunicationCommandHandler>
   let supprimerCommunicationCommandHandler: StubbedClass<SupprimerCommunicationCommandHandler>
+  let annulerEnvoiCommunicationCommandHandler: StubbedClass<AnnulerEnvoiCommunicationCommandHandler>
   let app: INestApplication
 
   before(async () => {
@@ -99,6 +102,9 @@ describe('SupportDeploiementsController', () => {
     )
     supprimerCommunicationCommandHandler = app.get(
       SupprimerCommunicationCommandHandler
+    )
+    annulerEnvoiCommunicationCommandHandler = app.get(
+      AnnulerEnvoiCommunicationCommandHandler
     )
   })
 
@@ -697,7 +703,9 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Le 15 octobre 2026…',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -765,7 +773,50 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Le 15 octobre 2026…',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined,
+          push: undefined
+        },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('transmet typeNotification et push pour une communication NOTIFICATION, sans date de fin', async () => {
+      // Given
+      creerCommunicationCommandHandler.execute.resolves(success({ id: 3 }))
+      const { dateFin: _dateFin, ...payloadNotification } = {
+        ...payload,
+        destinataire: 'JEUNE',
+        type: 'NOTIFICATION',
+        titre: 'Courte',
+        contenu: 'Court',
+        typeNotification: 'MIGRATION_PARCOURS_EMPLOI',
+        push: true
+      }
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications')
+        .send(payloadNotification)
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        creerCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idPopulation: 'PHASE_C',
+          destinataire: Communication.Destinataire.JEUNE,
+          type: Communication.Type.NOTIFICATION,
+          dateDebut: DateTime.fromISO('2026-09-30T00:00:00.000Z'),
+          dateFin: undefined,
+          titre: 'Courte',
+          contenu: 'Court',
+          ctaLabel: undefined,
+          ctaUrlAndroid: undefined,
+          ctaUrlIos: undefined,
+          typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
+          push: true
         },
         Authentification.unUtilisateurSupport()
       )
@@ -808,7 +859,9 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Contenu corrigé',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -840,7 +893,9 @@ describe('SupportDeploiementsController', () => {
           contenu: 'Contenu corrigé',
           ctaLabel: undefined,
           ctaUrlAndroid: undefined,
-          ctaUrlIos: undefined
+          ctaUrlIos: undefined,
+          typeNotification: undefined,
+          push: undefined
         },
         Authentification.unUtilisateurSupport()
       )
@@ -917,6 +972,67 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/communications/3')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    it("renvoie 400 quand l'envoi a démarré", async () => {
+      // Given
+      supprimerCommunicationCommandHandler.execute.resolves(
+        failure(new MauvaiseCommandeError("l'envoi a démarré"))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .delete('/support/communications/3')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+  })
+
+  describe('POST /support/communications/:idCommunication/envoi/annulation', () => {
+    it('renvoie 204', async () => {
+      // Given
+      annulerEnvoiCommunicationCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications/3/envoi/annulation')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        annulerEnvoiCommunicationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { id: 3 },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it("renvoie 400 quand l'envoi n'est pas EN_COURS", async () => {
+      // Given
+      annulerEnvoiCommunicationCommandHandler.execute.resolves(
+        failure(
+          new MauvaiseCommandeError('Seul un envoi EN_COURS peut être annulé')
+        )
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications/3/envoi/annulation')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 404 quand la communication n'existe pas", async () => {
+      // Given
+      annulerEnvoiCommunicationCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Communication', '3'))
+      )
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/communications/3/envoi/annulation')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NOT_FOUND)
     })

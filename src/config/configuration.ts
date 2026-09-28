@@ -105,12 +105,6 @@ export default () => {
       clientSecret: process.env.DIAGORIENTE_CLIENT_SECRET ?? '',
       disabled: process.env.DIAGORIENTE_DISABLED ?? false
     },
-    planAction: {
-      url: process.env.PLAN_ACTION_API_URL,
-      apiKey: process.env.PLAN_ACTION_API_KEY,
-      timeoutMs: process.env.PLAN_ACTION_TIMEOUT_MS || 15000,
-      modele: process.env.PLAN_ACTION_MODELE || undefined
-    },
     jecliqueoupas: {
       url: process.env.JECLIQUEOUPAS_API_URL,
       ip: process.env.JECLIQUEOUPAS_API_IP,
@@ -283,6 +277,10 @@ export default () => {
           process.env.JOB_MAJ_AGENCES_FT_POURCENTAGE_SUPPRESSIONS_MAX ?? '2',
         nombreSuppressionsMin:
           process.env.JOB_MAJ_AGENCES_FT_NOMBRE_SUPPRESSIONS_MIN ?? '5'
+      },
+      envoiCommunications: {
+        actif: process.env.ENVOI_COMMUNICATIONS_ACTIF !== 'false',
+        tailleLot: process.env.ENVOI_COMMUNICATIONS_TAILLE_LOT ?? '300'
       }
     },
     version: process.env.npm_package_version ?? '0.0.0',

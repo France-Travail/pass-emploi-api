@@ -7,7 +7,6 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { DISPOSITIFS_ACCOMPAGNES, estMilo, Profil } from '../../domain/profil'
-import { Migration } from '../../domain/migration'
 import { Conseiller } from '../../domain/milo/conseiller'
 import { fromSqlToDetailConseillerQueryModel } from '../../infrastructure/repositories/mappers/conseillers.mappers'
 import { AgenceSqlModel } from '../../infrastructure/sequelize/models/agence.sql-model'
@@ -16,7 +15,6 @@ import { JeuneSqlModel } from '../../infrastructure/sequelize/models/jeune.sql-m
 import { StructureMiloSqlModel } from '../../infrastructure/sequelize/models/structure-milo.sql-model'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DetailConseillerQueryModel } from './query-models/conseillers.query-model'
-import Type = Authentification.Type
 
 export interface GetDetailConseillerQuery extends Query {
   idConseiller: string
@@ -34,7 +32,6 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
   constructor(
     private conseillerAuthorizer: ConseillerAuthorizer,
     private conseillerMiloService: Conseiller.Milo.Service,
-    private readonly migrationService: Migration.Service,
     private configService: ConfigService
   ) {
     super('GetDetailConseillerQueryHandler')
@@ -78,16 +75,10 @@ export class GetDetailConseillerQueryHandler extends QueryHandler<
       })
     } catch {}
 
-    const dateDeMigration =
-      await this.migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-        { id: query.idConseiller, type: Type.CONSEILLER }
-      )
-
     return success(
       fromSqlToDetailConseillerQueryModel(
         conseillerSqlModel,
-        Boolean(jeuneARecuperer),
-        dateDeMigration
+        Boolean(jeuneARecuperer)
       )
     )
   }

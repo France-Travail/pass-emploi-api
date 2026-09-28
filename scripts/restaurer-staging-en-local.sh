@@ -28,10 +28,6 @@ echo "→ pg_dump depuis staging (tunnel)…"
 pg_dump --format c --no-owner --no-privileges --no-comments \
   --schema public --schema sequelize \
   --exclude-table spatial_ref_sys \
-  --exclude-table cache_api_partenaire \
-  --exclude-table suivi_job \
-  --exclude-table evenement_engagement \
-  --exclude-table evenement_engagement_hebdo \
   --dbname "$SOURCE" --file "$DUMP"
 echo "  dump OK ($(du -h "$DUMP" | cut -f1))"
 

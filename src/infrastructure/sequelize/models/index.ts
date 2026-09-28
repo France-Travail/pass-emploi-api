@@ -41,6 +41,7 @@ import { PopulationConseillerSqlModel } from './population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from './population-profil.sql-model'
 import { DeploiementSqlModel } from './deploiement.sql-model'
 import { CommunicationSqlModel } from './communication.sql-model'
+import { CommunicationEnvoiSqlModel } from './communication-envoi.sql-model'
 import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 
 export const sqlModels = [
@@ -87,5 +88,6 @@ export const sqlModels = [
   PopulationProfilSqlModel,
   DeploiementSqlModel,
   CommunicationSqlModel,
+  CommunicationEnvoiSqlModel,
   ActualiteMiloSqlModel
 ]

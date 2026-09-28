@@ -40,7 +40,9 @@ export abstract class JobHandler<TContenu = void> {
         this.suiviJobService.notifierResultatJob(suiviJob)
       }
 
-      this.logExecution(startNs, suiviJob, undefined)
+      if (!suiviJob.silencieux) {
+        this.logExecution(startNs, suiviJob, undefined)
+      }
       return suiviJob
     } catch (e) {
       this.apmService.captureError(e)

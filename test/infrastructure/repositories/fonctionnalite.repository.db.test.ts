@@ -58,7 +58,7 @@ describe('FonctionnaliteSqlRepository', () => {
         email: 'milo@milo.fr'
       })
     ])
-    // Le profil du jeune est le sien, pas celui de son conseiller : il est posé explicitement.
+    // Profils de jeunes volontairement différents de ceux de leur conseiller : ils doivent être ignorés.
     await JeuneSqlModel.bulkCreate([
       unJeuneDto({
         id: 'jeuneCite',
@@ -185,7 +185,7 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal(['PLAN_D_ACTION'])
     })
 
-    it('active par le profil structure et dispositif du jeune lui-même', async () => {
+    it('active par le profil structure et dispositif du conseiller de référence', async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
         'jeuneFtCej',
@@ -196,7 +196,7 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal(['FT_IA'])
     })
 
-    it("n'active pas quand le dispositif du jeune diffère", async () => {
+    it("n'active pas quand le dispositif du conseiller diffère", async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
         'jeuneFtBrsa',
@@ -207,7 +207,7 @@ describe('FonctionnaliteSqlRepository', () => {
       expect(ids).to.deep.equal([])
     })
 
-    it("ne regarde pas le profil du conseiller : un jeune BRSA chez un conseiller CEJ n'est pas ciblé", async () => {
+    it('ne regarde pas le profil du jeune : un jeune BRSA chez un conseiller CEJ est ciblé', async () => {
       // When
       const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
         'jeuneBrsaChezCej',
@@ -215,10 +215,10 @@ describe('FonctionnaliteSqlRepository', () => {
       )
 
       // Then
-      expect(ids).to.deep.equal([])
+      expect(ids).to.deep.equal(['FT_IA'])
     })
 
-    it('cible un dispositif MiLo directement sur le jeune, sans passer par un conseiller sans dispositif', async () => {
+    it("un profil MiLo avec dispositif ne cible personne : le conseiller MiLo n'a pas de dispositif", async () => {
       // Given
       await PopulationSqlModel.create({ id: 'MILO_PACEA', description: null })
       await PopulationProfilSqlModel.create({
@@ -244,7 +244,7 @@ describe('FonctionnaliteSqlRepository', () => {
       )
 
       // Then
-      expect(pacea).to.deep.equal(['PLAN_D_ACTION', 'QCM'])
+      expect(pacea).to.deep.equal(['PLAN_D_ACTION'])
       expect(cej).to.deep.equal(['PLAN_D_ACTION'])
     })
 

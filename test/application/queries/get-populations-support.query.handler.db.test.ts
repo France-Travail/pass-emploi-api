@@ -10,6 +10,7 @@ import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/mo
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
+import { CommunicationSqlRepository } from '../../../src/infrastructure/repositories/communication.repository.db'
 import { expect } from '../../utils'
 import {
   DatabaseForTesting,
@@ -30,7 +31,9 @@ describe('Listes support : populations et fonctionnalités', () => {
   })
 
   describe('GetPopulationsSupportQueryHandler', () => {
-    const handler = new GetPopulationsSupportQueryHandler()
+    const handler = new GetPopulationsSupportQueryHandler(
+      new CommunicationSqlRepository(getDatabase().sequelize)
+    )
 
     it('renvoie toutes les populations, chacune avec ses cibles et ses déploiements', async () => {
       // Given

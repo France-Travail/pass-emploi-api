@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
+import { Notification } from '../../../domain/notification/notification'
 import { Profil } from '../../../domain/profil'
 
 export class ProfilPopulationQueryModel {
@@ -23,6 +24,23 @@ export class DeploiementQueryModel {
 
   @ApiProperty({ description: 'Date d’activation, en UTC' })
   dateActivation: string
+}
+
+export class EnvoiCommunicationQueryModel {
+  @ApiPropertyOptional({ description: 'EN_COURS seulement' })
+  aEnvoyer?: number
+
+  @ApiPropertyOptional({ description: 'EN_COURS seulement' })
+  enCours?: number
+
+  @ApiProperty()
+  envoyees: number
+
+  @ApiProperty()
+  erreurs: number
+
+  @ApiProperty()
+  tokensInvalides: number
 }
 
 export class CommunicationSupportQueryModel {
@@ -58,6 +76,37 @@ export class CommunicationSupportQueryModel {
 
   @ApiPropertyOptional()
   ctaUrlIos?: string
+
+  @ApiPropertyOptional({ enum: Notification.TypeNotifManuelle })
+  typeNotification?: Notification.Type
+
+  @ApiPropertyOptional()
+  push?: boolean
+
+  @ApiPropertyOptional({
+    enum: Communication.StatutEnvoi,
+    description:
+      'NOTIFICATION seulement. A_ENVOYER → EN_COURS → ENVOYEE | ANNULEE | EN_ERREUR.'
+  })
+  statutEnvoi?: Communication.StatutEnvoi
+
+  @ApiPropertyOptional({
+    description: 'Fin de l’envoi (ENVOYEE, ANNULEE ou EN_ERREUR), en UTC'
+  })
+  envoiTermineLe?: string
+
+  @ApiPropertyOptional({
+    description:
+      'A_ENVOYER seulement : nombre de jeunes qui recevront la notification si elle partait maintenant (avec token si push). À relire avant dateDebut pour vérifier le ciblage.'
+  })
+  nbDestinataires?: number
+
+  @ApiPropertyOptional({
+    type: EnvoiCommunicationQueryModel,
+    description:
+      'EN_COURS : compteurs vivants. Terminée : totaux figés (le détail par jeune est purgé après 30 jours).'
+  })
+  envoi?: EnvoiCommunicationQueryModel
 }
 
 export class PopulationSupportQueryModel {

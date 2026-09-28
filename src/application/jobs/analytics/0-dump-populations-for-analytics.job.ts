@@ -9,29 +9,31 @@ import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import { DateService } from '../../../utils/date-service'
 import { dumperEtRestaurer } from './dump-restore'
 
-// Tables de pilotage (support) : ne sont référencées par aucune autre table, donc restaurables seules.
-export const TABLES_PILOTAGE = [
+// Populations et ce qui s'y rattache (fonctionnalités, déploiements, communications) : ne sont référencées que par d'autres tables de la liste, donc restaurables ensemble.
+// pg_restore --clean ne peut supprimer une table dont une clé étrangère non dumpée dépend : toute table qui en référence une doit être ajoutée ici.
+export const TABLES_POPULATIONS = [
   'fonctionnalite',
   'population',
   'population_conseiller',
   'population_profil',
   'deploiement',
-  'communication'
+  'communication',
+  'communication_envoi'
 ]
 
 /**
  * Analytics pipeline — rafraîchissement à la demande (hors cron).
- * Dump partiel des tables de pilotage puis recalcul du job 0bis, en quelques
+ * Dump partiel des tables de populations puis recalcul du job 0bis, en quelques
  * secondes, pour voir l'effet d'une population / communication / déploiement
  * modifié dans la journée. Conseillers, jeunes et agences restent à J-1.
  * @see docs/ANALYTICS.md#rafraîchir-avant-lheure
- * @analytics.trigger TASK_NAME=DUMP_PILOTAGE_ANALYTICS
+ * @analytics.trigger TASK_NAME=DUMP_POPULATIONS_ANALYTICS
  * @analytics.before CHARGER_POPULATIONS_ANALYTICS
  * @analytics.tables_out fonctionnalite, population, population_conseiller, population_profil, deploiement, communication
  */
 @Injectable()
-@ProcessJobType(Planificateur.JobType.DUMP_PILOTAGE_ANALYTICS)
-export class DumpPilotageForAnalyticsJobHandler extends JobHandler {
+@ProcessJobType(Planificateur.JobType.DUMP_POPULATIONS_ANALYTICS)
+export class DumpPopulationsForAnalyticsJobHandler extends JobHandler {
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
@@ -39,14 +41,14 @@ export class DumpPilotageForAnalyticsJobHandler extends JobHandler {
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository
   ) {
-    super(Planificateur.JobType.DUMP_PILOTAGE_ANALYTICS, suiviJobService)
+    super(Planificateur.JobType.DUMP_POPULATIONS_ANALYTICS, suiviJobService)
   }
 
   async handle(): Promise<SuiviJob> {
     const maintenant = this.dateService.now()
 
     const erreur = await dumperEtRestaurer(this.logger, {
-      DUMP_TABLES: TABLES_PILOTAGE.join(' ')
+      DUMP_TABLES: TABLES_POPULATIONS.join(' ')
     })
 
     const job: Planificateur.Job<void> = {

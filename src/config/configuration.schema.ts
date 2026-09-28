@@ -70,12 +70,6 @@ export const configurationSchema = Joi.object({
     clientSecret: Joi.string().required(),
     disabled: Joi.boolean().default(false)
   },
-  planAction: {
-    url: Joi.string().uri().required(),
-    apiKey: Joi.string().required(),
-    timeoutMs: Joi.number().default(15000),
-    modele: Joi.string().optional()
-  },
   jecliqueoupas: {
     url: Joi.string().uri().required(),
     ip: Joi.string().ip({ version: 'ipv4' }).required(),
@@ -216,6 +210,10 @@ export const configurationSchema = Joi.object({
       dryRun: Joi.boolean().required(),
       pourcentageSuppressionsMax: Joi.number().required(),
       nombreSuppressionsMin: Joi.number().required()
+    }),
+    envoiCommunications: Joi.object({
+      actif: Joi.boolean().required(),
+      tailleLot: Joi.number().required()
     })
   }),
   version: Joi.string().required(),

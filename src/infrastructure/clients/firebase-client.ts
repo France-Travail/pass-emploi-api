@@ -33,6 +33,7 @@ import {
   MessageRecherche
 } from '../../domain/chat'
 import { Jeune } from '../../domain/jeune/jeune'
+import { Notification } from '../../domain/notification/notification'
 import { ChatCryptoService } from '../../utils/chat-crypto-service'
 import { DateService } from '../../utils/date-service'
 import { buildError } from '../../utils/logger.module'
@@ -99,26 +100,26 @@ export class FirebaseClient {
     })
   }
 
-  async send(tokenMessage: TokenMessage): Promise<void> {
+  async send(tokenMessage: TokenMessage): Promise<Notification.ResultatEnvoi> {
     try {
       await this.messaging.send(tokenMessage)
       this.logger.log(tokenMessage)
+      return Notification.ResultatEnvoi.ENVOYEE
     } catch (e) {
       const errorMessage = `Impossible d'envoyer de notification sur le token ${tokenMessage.token}`
       if (
         e instanceof FirebaseMessagingError &&
-        e.code === 'messaging/registration-token-not-registered'
+        [
+          'messaging/registration-token-not-registered',
+          'messaging/invalid-registration-token'
+        ].includes(e.code)
       ) {
         this.logger.warn(buildError(errorMessage, e))
-      } else {
-        this.logger.error(
-          buildError(
-            `Impossible d'envoyer de notification sur le token ${tokenMessage.token}`,
-            e
-          )
-        )
-        this.apmService.captureError(e)
+        return Notification.ResultatEnvoi.TOKEN_INVALIDE
       }
+      this.logger.error(buildError(errorMessage, e))
+      this.apmService.captureError(e)
+      return Notification.ResultatEnvoi.ERREUR
     }
   }
 
