@@ -22,7 +22,10 @@ import {
 } from 'src/application/commands/archiver-jeune.command.handler'
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from 'src/application/commands/delete-jeune.command.handler'
-import { GenererPlanActionCommandHandler } from 'src/application/commands/generer-plan-action.command.handler'
+import {
+  GenererPlanActionCommand,
+  GenererPlanActionCommandHandler
+} from 'src/application/commands/generer-plan-action.command.handler'
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
 import { GenererPlanActionPayload } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import {
@@ -493,8 +496,22 @@ export class JeunesController {
     @Body() payload: GenererPlanActionPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<PlanActionQueryModel> {
+    const command: GenererPlanActionCommand = {
+      idJeune,
+      situation: payload.situation,
+      besoins: payload.goals,
+      contraintes: payload.obstacles ?? [],
+      // setZone conserve le décalage écrit dans la chaîne, pour que la date
+      // civile ne glisse pas d'un jour au passage dans le fuseau du serveur
+      dateNaissance: payload.dateNaissance
+        ? DateTime.fromISO(payload.dateNaissance, { setZone: true })
+        : undefined,
+      domaineProfessionnelVise: payload.domaine,
+      communeResidence: payload.habitation,
+      communeRecherche: payload.villeRecherche
+    }
     const result = await this.genererPlanActionCommandHandler.execute(
-      { idJeune, payload },
+      command,
       utilisateur
     )
 
