@@ -147,7 +147,7 @@ import { UpdatePrenomInviteCommandHandler } from './application/commands/update-
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
-import { DumpPilotageForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-pilotage-for-analytics.job'
+import { DumpPopulationsForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-populations-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
 import { NettoyerEvenementsChargesAnalyticsJobHandler } from './application/jobs/analytics/1bis-nettoyer-les-evenements-charges.job.handler.db'
 import { EnrichirEvenementsJobHandler } from './application/jobs/analytics/2-enrichir-les-evenements.job'
@@ -1011,7 +1011,7 @@ export const JobHandlerProviders = [
   SuivreEvenementsMiloCronJobHandler,
   TraiterEvenementMiloJobHandler,
   DumpForAnalyticsJobHandler,
-  DumpPilotageForAnalyticsJobHandler,
+  DumpPopulationsForAnalyticsJobHandler,
   ChargerEvenementsJobHandler,
   NettoyerEvenementsChargesAnalyticsJobHandler,
   EnrichirEvenementsJobHandler,

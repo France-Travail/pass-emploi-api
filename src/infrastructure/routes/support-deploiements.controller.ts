@@ -204,8 +204,8 @@ export class SupportDeploiementsController {
     description: `Une population est un groupe cible nommé. On la remplit ensuite avec des emails de conseillers (POST /support/populations/conseillers) et/ou des profils structure × dispositif (POST /support/populations/profils).
 
 **Qui en fait partie, résolu à la lecture :**
-- un conseiller, s’il est cité par email ou si son propre profil correspond ;
-- un jeune, si son propre profil correspond ou si son conseiller de référence (l’initial en cas de transfert temporaire) est cité par email.
+- un conseiller, s’il est cité par email ou si son profil correspond ;
+- un jeune, si et seulement si son conseiller de référence (l’initial en cas de transfert temporaire) en fait partie. Le profil du jeune n’est jamais regardé : un conseiller MiLo n’ayant pas de dispositif, (MILO, CEJ) ne vise personne.
 
 Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   })
@@ -462,7 +462,7 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
     summary: 'Crée un déploiement : une population, une nature, une date',
     description: `À partir de \`dateActivation\` (UTC) :
 - \`nature\` FONCTIONNALITE : \`idFonctionnalite\` requis, le drapeau apparaît dans GET /jeunes/:id/fonctionnalites pour les jeunes de la population ;
-- \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée (422 MIGRATION_PARCOURS_EMPLOI) aux jeunes et conseillers de la population, et \`dateDeMigration\` leur est renvoyée. Une seule migration par population.
+- \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée (422 MIGRATION_PARCOURS_EMPLOI) aux jeunes et conseillers de la population. Une seule migration par population.
 
 Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/deploiements/:id) ou le supprimer. Rejouer sur la même population et la même fonctionnalité déplace la date au lieu de créer un doublon.`
   })

@@ -59,7 +59,7 @@ cette base cible. Le "pourquoi ELT et pas ETL" (dump complet trop long, dashboar
 | Donnée | Mise à jour |
 | --- | --- |
 | Tables métier (dump) | Quotidien, après le cron 02h30 (job 0) |
-| `analytics_population_membres`, `analytics_communication_destinataires`, `analytics_deploiement_membres` | Quotidien, après le dump (job 0bis) — statuts figés à `date_calcul` |
+| `analytics_population_membres`, `analytics_communications`, `analytics_communication_destinataires`, `analytics_deploiement_membres` | Quotidien, après le dump (job 0bis) — statuts figés à `date_calcul` |
 | `evenement_engagement` | Quotidien (jobs 0 → 1) |
 | Colonnes enrichies (`semaine`, `jour`, géo) | Quotidien (job 2) |
 | Vues `analytics_*` | **Chaque lundi** — agrégats de la **semaine précédente** (job 3) |
@@ -135,7 +135,7 @@ vérifier le `SuiviJob` du dump avant de faire confiance à la suite.
 | --- | --- | --- |
 | Job 1 échoue (chargement EE) | Job 2 (et job 3 le lundi) non enfilés | Relancer via `TASK_NAME=CHARGER_EVENEMENTS_ANALYTICS` ; chargement **incrémental**, un run ultérieur rattrape les EE manquants |
 | Job 2 échoue un **lundi** | Job 3 non enfilé | Relancer via `TASK_NAME=ENRICHIR_EVENEMENTS_ANALYTICS` ; les lignes restent avec `semaine is null` jusqu'à un enrichissement réussi, puis enfiler / relancer les vues si besoin |
-| Job 0bis échoue (populations) | Les trois tables `analytics_population_membres` / `analytics_communication_destinataires` / `analytics_deploiement_membres` gardent le contenu de la veille (rebuild transactionnel) | Relancer via `yarn tasks:charger-populations` |
+| Job 0bis échoue (populations) | Les quatre tables `analytics_population_membres` / `analytics_communications` / `analytics_communication_destinataires` / `analytics_deploiement_membres` gardent le contenu de la veille (rebuild transactionnel) | Relancer via `yarn tasks:charger-populations` |
 | Job 3 manqué / échoué (vues) | Vues `analytics_*` non mises à jour pour la semaine | Relancer via `TASK_NAME=CHARGER_LES_VUES_ANALYTICS` (semaine précédente), ou `yarn tasks:initialiser-les-vues` / variante dernière année pour un recalcul large |
 
 Le run quotidien suivant repart du cron (job 0) : utile pour rattraper les EE, mais **ne
@@ -147,32 +147,51 @@ recalcule pas** automatiquement une semaine de vues déjà manquée (job 3 = lun
 
 Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant les tables de logs et d'événements d'engagement.
 
-### 0-dump-pilotage-for-analytics.job.ts
+### 0-dump-populations-for-analytics.job.ts
 
-Hors cron. Dump partiel des sept tables de pilotage (`DUMP_TABLES` dans
+Hors cron. Dump partiel des sept tables de populations (`DUMP_TABLES` dans
 `0_db_dump_restore.sh`), puis enfile le job 0bis. Voir « Rafraîchir avant l'heure » sous
 0bis.
 
 ### 0bis-charger-les-populations.job.ts
 
 Matérialise, pour Metabase, ce que les fonctionnalités calculent pour **un** utilisateur,
-mais de façon **exhaustive** — trois tables, reconstruites à chaque run (`DELETE` + `INSERT`
+mais de façon **exhaustive** — quatre tables, reconstruites à chaque run (`DELETE` + `INSERT`
 dans une transaction, `date_calcul` identique sur toutes les lignes) :
 
 | Table | Une ligne par | Colonnes propres | `statut` (figé à `date_calcul`) |
 | --- | --- | --- | --- |
 | `analytics_population_membres` | (population, conseiller ou jeune) | `email_conseiller_reference`, `type_conseiller_reference` (`ACTUEL` / `INITIAL` si transfert temporaire) | — |
-| `analytics_communication_destinataires` | (communication, conseiller ou jeune destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin` | `PASSEE` / `EN_COURS` / `PREVUE` — une `NOTIFICATION` (sans `date_fin`) est `PASSEE` dès sa `date_debut` |
+| `analytics_communications` | communication | `destinataire`, `type`, `push`, `type_notification`, `titre`, `contenu`, `cta_label`, `date_debut`, `date_fin`, `statut_envoi`, `envoi_termine_le`, `nb_destinataires`, `nb_a_envoyer`, `nb_en_cours`, `nb_envoyees`, `nb_erreurs`, `nb_tokens_invalides` | comme ci-dessous |
+| `analytics_communication_destinataires` | (communication, conseiller ou jeune destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin`, `statut_envoi` et `date_traitement_envoi` (statut et date de l'envoi au jeune) | `PASSEE` / `EN_COURS` / `PREVUE` — une `NOTIFICATION` (sans `date_fin`) est `PASSEE` dès sa `date_debut` |
 | `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
 Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
 `dispositif`) et son lieu d'accompagnement (`id_agence` / `agence` : id et nom de la
 structure MiLo, sinon de l'agence FT — pour un jeune, la sienne sinon celle de son
 conseiller de référence).
+`analytics_communications` ne porte pas l'identité : c'est la table des communications elles-mêmes.
 Jeunes : dans `analytics_population_membres` et `analytics_communication_destinataires` (pas de
-déploiement jeune). Pour une `NOTIFICATION` push, seuls les jeunes qui ont un
-`push_notification_token` sont destinataires, comme à l'envoi : c'est une **prévisualisation**,
-un jeune qui installe l'app entre le calcul et l'envoi sera ciblé sans y figurer.
+déploiement jeune).
+
+**Format d'une communication.** `type = IN_APP` : bandeau. `type = NOTIFICATION` : entrée dans
+le centre de notifications, plus un push si `push = true`.
+
+**Destinataires d'une notification jeune : prévisualisation, puis liste figée.**
+
+| `statut_envoi` de la communication | Destinataires listés | `statut_envoi` du destinataire |
+| --- | --- | --- |
+| vide (bandeau) ou `A_ENVOYER` | **prévisualisation** : la population résolue à `date_calcul`. Pour un push, seuls les jeunes qui ont un `push_notification_token`, comme à l'envoi ; un jeune qui installe l'app entre le calcul et l'envoi sera ciblé sans y figurer | vide |
+| `EN_COURS`, `ENVOYEE`, `ANNULEE`, `EN_ERREUR` | la population **figée** au démarrage de l'envoi (`communication_envoi`), même si un jeune a changé de profil ou de conseiller depuis | `A_ENVOYER`, `EN_COURS`, `ENVOYEE`, `ERREUR`, `TOKEN_INVALIDE` |
+
+`communication_envoi` est purgée 30 jours après la fin de l'envoi (`NETTOYER_LES_DONNEES`) :
+passé ce délai, la notification n'a plus de destinataires listés, mais
+`analytics_communications` garde les compteurs figés à la fin de l'envoi (`nb_envoyees`,
+`nb_erreurs`, `nb_tokens_invalides`) et `nb_destinataires` en reste la somme. Pendant l'envoi,
+les compteurs sont ceux de `communication_envoi` à `date_calcul` (`nb_a_envoyer` et
+`nb_en_cours` : avancement). Les notifications annulées à la reprise de l'historique
+(migration `20260922000000-communication-envoi`) n'ont jamais eu de population figée : ni
+destinataires, ni compteurs.
 
 **Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
 population, destinataires d'une communication, conseillers concernés par un déploiement et
@@ -195,12 +214,12 @@ le terminal) ; suivre l'avancement dans les `SuiviJob`.
 
 | Besoin | Commande | Durée | Ce qui est rafraîchi |
 | --- | --- | --- | --- |
-| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-pilotage` | secondes | les 7 tables de pilotage (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
+| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics-populations` | secondes | les 7 tables de populations (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
 | Tout à jour, y compris agences / structures des conseillers | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics` | > 20 min, dashboards incohérents pendant la restauration | toute la base, puis 0bis (et le job 1) enfilés |
 | Recalculer sans re-dumper (code du job changé) | `scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations` | secondes | rien : recalcul sur l'existant |
 
-Le dump partiel est possible parce que les tables de pilotage ne sont référencées que par
-d'autres tables de pilotage (`communication_envoi` → `communication`, d'où sa présence dans la
+Le dump partiel est possible parce que les tables de populations ne sont référencées que par
+d'autres tables de populations (`communication_envoi` → `communication`, d'où sa présence dans la
 liste) ; `conseiller` et `jeune`, référencés partout (actions, RDV…), ne
 peuvent pas être restaurés seuls avec `pg_restore --clean`.
 

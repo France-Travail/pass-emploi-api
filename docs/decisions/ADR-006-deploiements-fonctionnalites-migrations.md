@@ -56,15 +56,15 @@ supprime pas.
 
 **Appartenance.** Un conseiller est dans la population s'il est cité par
 email, ou si son propre profil (structure, dispositif) correspond à un profil
-de la population. Un jeune est dans la population si son conseiller de
-référence est cité par email, ou si son propre profil correspond. Un profil
-sans dispositif couvre toute la structure. « De référence » =
+de la population. Un jeune est dans la population si et seulement si son
+conseiller de référence y est : son propre profil n'est jamais regardé. Un
+profil sans dispositif couvre toute la structure. « De référence » =
 `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
-> Un conseiller MiLo n'a pas de dispositif : `(MILO, PACEA)` vise les jeunes
-> PACEA mais aucun conseiller MiLo. Pour toucher les conseillers MiLo, viser
-> `(MILO)`. Sur une migration par profil, un portefeuille mixte peut être coupé
-> en deux : c'est voulu, le profil du jeune fait foi.
+> Un conseiller MiLo n'a pas de dispositif : `(MILO, PACEA)` ou `(MILO, CEJ)`
+> ne vise personne, ni conseiller ni jeune. Pour toucher MiLo, viser `(MILO)`.
+> Un portefeuille n'est jamais coupé en deux : tout le portefeuille suit son
+> conseiller de référence.
 
 **Date et activation.** Un déploiement a une seule date J. Il est actif quand
 `J <= maintenant`. Le serveur fait autorité sur l'horloge, les dates sortent en
@@ -222,9 +222,9 @@ communication { id PK, id_population FK, destinataire JEUNE | CONSEILLER, type I
    laissés dans l'app et le web. Les deux marchent.
 2. **Cibler un jeune par id** pour la recette. Troisième sorte de cible,
    facile, hors première étape.
-3. **Match du jeune sur son propre profil**, pour viser `(MILO, CEJ)`. À
-   ouvrir seulement si le besoin se confirme, voir la limite en section
-   Règles.
+3. **Match du jeune sur son propre profil**, pour viser `(MILO, CEJ)`.
+   Écarté le 2026-09-28 : le ciblage passe uniquement par le conseiller, voir
+   la limite en section Règles.
 
 ## Liens
 
