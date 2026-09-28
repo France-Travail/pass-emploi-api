@@ -21,7 +21,6 @@ import {
   Result,
   success
 } from '../../../../src/building-blocks/types/result'
-import { Authentification } from '../../../../src/domain/authentification'
 import {
   TOUT_CONSEIL_DEPARTEMENTAL,
   TOUT_FRANCE_TRAVAIL,
@@ -29,7 +28,6 @@ import {
   verifierProfils
 } from '../../../../src/domain/profil'
 import { Demarche } from '../../../../src/domain/demarche'
-import { Migration } from '../../../../src/domain/migration'
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { unUtilisateurJeune } from '../../../fixtures/authentification.fixture'
 import { uneDemarcheQueryModel } from '../../../fixtures/query-models/demarche.query-model.fixtures'
@@ -44,7 +42,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
   let getRendezVousJeunePoleEmploiQueryGetter: StubbedClass<GetRendezVousJeunePoleEmploiQueryGetter>
   let getRecherchesSauvegardeesQueryGetter: StubbedClass<GetRecherchesSauvegardeesQueryGetter>
   let getFavorisQueryGetter: StubbedClass<GetFavorisAccueilQueryGetter>
-  let migrationService: StubbedClass<Migration.Service>
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
   let dateService: StubbedClass<DateService>
@@ -57,7 +54,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       GetRecherchesSauvegardeesQueryGetter
     )
     getFavorisQueryGetter = stubClass(GetFavorisAccueilQueryGetter)
-    migrationService = stubClass(Migration.Service)
     getRendezVousJeunePoleEmploiQueryGetter = stubClass(
       GetRendezVousJeunePoleEmploiQueryGetter
     )
@@ -75,7 +71,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
       getRecherchesSauvegardeesQueryGetter,
       getFavorisQueryGetter,
       getCampagneQueryGetter,
-      migrationService,
       dateService
     )
   })
@@ -272,40 +267,6 @@ describe('GetAccueilJeunePoleEmploiQueryHandler', () => {
           expect(isSuccess(result) && result.data.campagne).to.deep.equal(
             campagneQueryModel
           )
-        })
-        it('renvoie la date de migration quand elle existe', async () => {
-          // Given
-          migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-            .withArgs({
-              id: query.idJeune,
-              type: Authentification.Type.JEUNE
-            })
-            .resolves(DateTime.fromISO('2024-09-01T00:00:00.000Z'))
-
-          // When
-          result = await handler.handle(query)
-
-          // Then
-          expect(isSuccess(result) && result.data.dateDeMigration).to.equal(
-            '2024-09-01T00:00:00.000Z'
-          )
-        })
-        it('ne renvoie pas de date de migration quand elle est inexistente', async () => {
-          // Given
-          migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
-            .withArgs({
-              id: query.idJeune,
-              type: Authentification.Type.JEUNE
-            })
-            .resolves(undefined)
-
-          // When
-          result = await handler.handle(query)
-
-          // Then
-          expect(
-            isSuccess(result) && result.data.dateDeMigration
-          ).to.be.undefined()
         })
       })
     })

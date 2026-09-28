@@ -11,7 +11,6 @@ import {
 } from '../../../building-blocks/types/result'
 import { Authentification } from '../../../domain/authentification'
 import { Demarche } from '../../../domain/demarche'
-import { Migration } from '../../../domain/migration'
 import {
   Profil,
   TOUT_CONSEIL_DEPARTEMENTAL,
@@ -49,7 +48,6 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
     private getRecherchesSauvegardeesQueryGetter: GetRecherchesSauvegardeesQueryGetter,
     private getFavorisQueryGetter: GetFavorisAccueilQueryGetter,
     private getCampagneQueryGetter: GetCampagneQueryGetter,
-    private readonly migrationService: Migration.Service,
     private readonly dateService: DateService
   ) {
     super('GetAccueilJeunePoleEmploiQueryHandler')
@@ -164,22 +162,11 @@ export class GetAccueilJeunePoleEmploiQueryHandler extends QueryHandler<
           )[0]
         : undefined
 
-    const utilisateur: Migration.Utilisateur = {
-      id: query.idJeune,
-      type: Authentification.Type.JEUNE
-    }
-
-    const dateDeMigration =
-      await this.migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-        utilisateur
-      )
-
     const data: AccueilJeunePoleEmploiQueryModel = {
       dateDerniereMiseAJour: recupererLaDateLaPlusAncienne(
         demarches.dateDuCache,
         rendezVous.dateDuCache
       )?.toISO(),
-      dateDeMigration: dateDeMigration?.toUTC().toISO(),
       cetteSemaine: {
         nombreRendezVous: nombreDeRendezVous,
         nombreActionsDemarchesEnRetard: nombreDeDemarchesEnRetard,
