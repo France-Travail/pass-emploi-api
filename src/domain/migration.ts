@@ -28,7 +28,6 @@ export namespace Migration {
 
   export interface Repository {
     populationConcerneeParUneMigration(idPopulation: string): Promise<boolean>
-    // Jeunes dont le conseiller de référence est cité par email ou a un profil qui correspond à la population qui migre.
     getBeneficiairesAMigrerParProfilOuConseillerCite(
       idPopulation: string
     ): Promise<BeneficiaireMigration[]>
@@ -36,7 +35,6 @@ export namespace Migration {
     getDateDeMigrationDuConseiller(
       idConseiller: string
     ): Promise<DateTime | undefined>
-    // Date de la migration qui vise le jeune, via son conseiller de référence.
     getDateDeMigrationDuBeneficiaire(
       idBeneficiaire: string
     ): Promise<DateTime | undefined>
