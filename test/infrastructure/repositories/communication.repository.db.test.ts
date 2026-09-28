@@ -327,7 +327,7 @@ describe('CommunicationSqlRepository', () => {
       })
     }
 
-    it('renvoie la communication du jeune dont le profil correspond', async () => {
+    it('renvoie la communication du jeune dont le conseiller de référence a un profil qui correspond', async () => {
       // Given
       await CommunicationSqlModel.create(
         uneCommunicationJeune({ idPopulation: 'FT_CEJ' })

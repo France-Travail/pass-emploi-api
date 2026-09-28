@@ -141,7 +141,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         email: 'hors@milo.fr'
       })
     ])
-    // Le profil du jeune est le sien, pas celui de son conseiller : il est posé explicitement.
+    // Profils de jeunes volontairement différents de ceux de leur conseiller : ils doivent être ignorés.
     await JeuneSqlModel.bulkCreate([
       unJeuneDto({
         id: 'jeuneCite',
@@ -443,7 +443,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
           m.type_conseiller_reference
         ])
       ).to.deep.equal([
-        ['jeuneCejChezHors', 'hors@milo.fr', 'ACTUEL'],
+        ['jeuneBrsaChezCej', 'ftcej@ft.fr', 'ACTUEL'],
         ['jeuneCite', 'cite@milo.fr', 'ACTUEL'],
         ['jeuneFtCej', 'ftcej@ft.fr', 'ACTUEL'],
         ['jeuneTransfere', 'cite@milo.fr', 'INITIAL']
@@ -519,7 +519,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
       expect(
         destinataires.map(d => [d.id_communication, d.statut, d.id_utilisateur])
       ).to.deep.equal([
-        ['4', 'EN_COURS', 'jeuneCejChezHors'],
+        ['4', 'EN_COURS', 'jeuneBrsaChezCej'],
         ['4', 'EN_COURS', 'jeuneCite'],
         ['4', 'EN_COURS', 'jeuneFtCej'],
         ['4', 'EN_COURS', 'jeuneTransfere']
@@ -547,10 +547,10 @@ describe('ChargerLesPopulationsJobHandler', () => {
       expect(
         destinataires.map(d => [d.id_communication, d.id_utilisateur])
       ).to.deep.equal([
-        ['7', 'jeuneCejChezHors'],
+        ['7', 'jeuneBrsaChezCej'],
         ['7', 'jeuneCite'],
         ['7', 'jeuneTransfere'],
-        ['8', 'jeuneCejChezHors'],
+        ['8', 'jeuneBrsaChezCej'],
         ['8', 'jeuneCite'],
         ['8', 'jeuneFtCej'],
         ['8', 'jeuneTransfere']

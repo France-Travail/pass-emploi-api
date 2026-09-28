@@ -204,8 +204,8 @@ export class SupportDeploiementsController {
     description: `Une population est un groupe cible nommé. On la remplit ensuite avec des emails de conseillers (POST /support/populations/conseillers) et/ou des profils structure × dispositif (POST /support/populations/profils).
 
 **Qui en fait partie, résolu à la lecture :**
-- un conseiller, s’il est cité par email ou si son propre profil correspond ;
-- un jeune, si son propre profil correspond ou si son conseiller de référence (l’initial en cas de transfert temporaire) est cité par email.
+- un conseiller, s’il est cité par email ou si son profil correspond ;
+- un jeune, si et seulement si son conseiller de référence (l’initial en cas de transfert temporaire) en fait partie. Le profil du jeune n’est jamais regardé : un conseiller MiLo n’ayant pas de dispositif, (MILO, CEJ) ne vise personne.
 
 Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   })

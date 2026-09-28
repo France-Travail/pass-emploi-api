@@ -43,7 +43,7 @@ describe('PopulationSqlRepository', () => {
         email: 'hors@milo.fr'
       })
     ])
-    // Le profil du jeune est le sien, pas celui de son conseiller : il est posé explicitement.
+    // Profils de jeunes volontairement différents de ceux de leur conseiller : ils doivent être ignorés.
     await JeuneSqlModel.bulkCreate([
       unJeuneDto({
         id: 'jeuneCite',
@@ -97,7 +97,7 @@ describe('PopulationSqlRepository', () => {
   })
 
   describe('getIdsDesJeunesParProfilOuConseillerCite', () => {
-    it('renvoie les jeunes des conseillers cités et ceux dont le propre profil correspond', async () => {
+    it('renvoie le portefeuille des conseillers cités ou dont le profil correspond, sans regarder le profil du jeune', async () => {
       // When
       const ids = await repo.getIdsDesJeunesParProfilOuConseillerCite('PILOTE')
 
@@ -106,7 +106,7 @@ describe('PopulationSqlRepository', () => {
         'jeuneCite',
         'jeuneTransfere',
         'jeuneFtCej',
-        'jeuneCejChezHors'
+        'jeuneBrsaChezCej'
       ])
     })
 
@@ -118,7 +118,7 @@ describe('PopulationSqlRepository', () => {
   })
 
   describe('getIdsDesConseillersParProfilOuConseillerCite', () => {
-    it('renvoie les conseillers cités par email et ceux dont le propre profil correspond', async () => {
+    it('renvoie les conseillers cités par email et ceux dont le profil correspond', async () => {
       // When
       const ids =
         await repo.getIdsDesConseillersParProfilOuConseillerCite('PILOTE')
