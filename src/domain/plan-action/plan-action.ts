@@ -38,6 +38,25 @@ export namespace PlanAction {
     save(plan: PlanAction): Promise<void>
 
     getDernierPlan(idJeune: string): Promise<PlanAction | undefined>
+
+    getTache(idJeune: string, idTache: string): Promise<Tache | undefined>
+
+    saveTache(tache: Tache): Promise<void>
+
+    supprimerTache(idTache: string): Promise<void>
+  }
+
+  export function changerStatutTache(
+    tache: Tache,
+    terminee: boolean,
+    maintenant: DateTime
+  ): Tache {
+    if (tache.terminee === terminee) return tache
+
+    const { dateTerminee: _dateTerminee, ...tacheSansDateTerminee } = tache
+    return terminee
+      ? { ...tacheSansDateTerminee, terminee, dateTerminee: maintenant }
+      : { ...tacheSansDateTerminee, terminee }
   }
 
   export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {

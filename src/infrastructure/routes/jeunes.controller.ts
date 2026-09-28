@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -28,7 +29,12 @@ import {
 } from 'src/application/commands/generer-plan-action.command.handler'
 import { RecupererPlanActionQueryHandler } from 'src/application/queries/recuperer-plan-action.query.handler'
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
-import { GenererPlanActionPayload } from 'src/infrastructure/routes/validation/plan-action.inputs'
+import {
+  ChangerStatutTachePlanActionPayload,
+  GenererPlanActionPayload
+} from 'src/infrastructure/routes/validation/plan-action.inputs'
+import { ChangerStatutTachePlanActionCommandHandler } from 'src/application/commands/changer-statut-tache-plan-action.command.handler'
+import { SupprimerTachePlanActionCommandHandler } from 'src/application/commands/supprimer-tache-plan-action.command.handler'
 import {
   TransfererJeunesConseillerCommand,
   TransfererJeunesConseillerCommandHandler
@@ -107,7 +113,9 @@ export class JeunesController {
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
     private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
-    private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler
+    private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler,
+    private changerStatutTachePlanActionCommandHandler: ChangerStatutTachePlanActionCommandHandler,
+    private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -533,6 +541,48 @@ export class JeunesController {
   ): Promise<PlanActionQueryModel> {
     const result = await this.recupererPlanActionQueryHandler.execute(
       { idJeune },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Patch(':idJeune/plan-action/taches/:idTache')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UserJourney('update_plan_action_tache')
+  @ApiOperation({
+    summary: "Coche ou décoche une tâche du plan d'action",
+    description: 'Autorisé pour un bénéficiaire connecté'
+  })
+  async changerStatutTachePlanAction(
+    @Param('idJeune') idJeune: string,
+    @Param('idTache', new ParseUUIDPipe()) idTache: string,
+    @Body() payload: ChangerStatutTachePlanActionPayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result =
+      await this.changerStatutTachePlanActionCommandHandler.execute(
+        { idJeune, idTache, terminee: payload.terminee },
+        utilisateur
+      )
+
+    return handleResult(result)
+  }
+
+  @Delete(':idJeune/plan-action/taches/:idTache')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UserJourney('delete_plan_action_tache')
+  @ApiOperation({
+    summary: "Supprime une tâche du plan d'action",
+    description: 'Autorisé pour un bénéficiaire connecté'
+  })
+  async supprimerTachePlanAction(
+    @Param('idJeune') idJeune: string,
+    @Param('idTache', new ParseUUIDPipe()) idTache: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result = await this.supprimerTachePlanActionCommandHandler.execute(
+      { idJeune, idTache },
       utilisateur
     )
 

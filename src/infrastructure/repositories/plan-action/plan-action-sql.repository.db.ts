@@ -83,6 +83,45 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
       }))
     }
   }
+
+  async getTache(
+    idJeune: string,
+    idTache: string
+  ): Promise<PlanAction.Tache | undefined> {
+    const tacheSql = await PlanActionTacheSqlModel.findOne({
+      where: { id: idTache },
+      include: [
+        {
+          model: PlanActionObjectifSqlModel,
+          required: true,
+          include: [
+            {
+              model: PlanActionSqlModel,
+              required: true,
+              where: { idJeune }
+            }
+          ]
+        }
+      ]
+    })
+    if (!tacheSql) return undefined
+
+    return toTache(tacheSql)
+  }
+
+  async saveTache(tache: PlanAction.Tache): Promise<void> {
+    await PlanActionTacheSqlModel.update(
+      {
+        terminee: tache.terminee,
+        dateTerminee: tache.dateTerminee?.toJSDate() ?? null
+      },
+      { where: { id: tache.id } }
+    )
+  }
+
+  async supprimerTache(idTache: string): Promise<void> {
+    await PlanActionTacheSqlModel.destroy({ where: { id: idTache } })
+  }
 }
 
 function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {

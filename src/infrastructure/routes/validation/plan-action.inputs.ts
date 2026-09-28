@@ -3,6 +3,7 @@ import { Type } from 'class-transformer'
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -70,4 +71,10 @@ export class GenererPlanActionPayload {
   @IsEnum(Questionnaire.Contrainte, { each: true })
   @IsOptional()
   obstacles?: Questionnaire.Contrainte[]
+}
+
+export class ChangerStatutTachePlanActionPayload {
+  @ApiProperty()
+  @IsBoolean()
+  terminee: boolean
 }
