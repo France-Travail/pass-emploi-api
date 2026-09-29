@@ -43,6 +43,8 @@ import { DeploiementSqlModel } from './deploiement.sql-model'
 import { CommunicationSqlModel } from './communication.sql-model'
 import { CommunicationEnvoiSqlModel } from './communication-envoi.sql-model'
 import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
+import { ReferentielPlanActionServiceSqlModel } from './referentiel-plan-action-service.sql-model'
+import { ReferentielPlanActionSolutionSqlModel } from './referentiel-plan-action-solution.sql-model'
 
 export const sqlModels = [
   ConseillerSqlModel,
@@ -82,6 +84,8 @@ export const sqlModels = [
   NotificationJeuneSqlModel,
   ComptageJeuneSqlModel,
   FeedbackSqlModel,
+  ReferentielPlanActionServiceSqlModel,
+  ReferentielPlanActionSolutionSqlModel,
   FonctionnaliteSqlModel,
   PopulationSqlModel,
   PopulationConseillerSqlModel,

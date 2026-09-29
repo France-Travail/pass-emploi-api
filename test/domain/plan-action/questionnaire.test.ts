@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { Profil } from '../../src/domain/profil'
-import { Questionnaire } from '../../src/domain/questionnaire'
-import { expect } from '../utils'
+import { Profil } from '../../../src/domain/profil'
+import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
+import { expect } from '../../utils'
 
 function unQuestionnaire(args: Partial<Questionnaire> = {}): Questionnaire {
   return {

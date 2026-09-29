@@ -1,32 +1,28 @@
-import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
-import { PlanAction } from '../../src/domain/plan-action'
-import { Profil } from '../../src/domain/profil'
-import { Questionnaire } from '../../src/domain/questionnaire'
-import { DateService } from '../../src/utils/date-service'
-import { IdService } from '../../src/utils/id-service'
-import { createSandbox, expect, StubbedClass, stubClass } from '../utils'
+import { PlanAction } from 'src/domain/plan-action/plan-action'
+import { Questionnaire } from 'src/domain/plan-action/questionnaire'
+import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-action'
+import { Profil } from 'src/domain/profil'
+import { DateService } from 'src/utils/date-service'
+import { IdService } from 'src/utils/id-service'
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { createSandbox, expect, StubbedClass, stubClass } from 'test/utils'
 
 const maintenant = DateTime.fromISO('2026-08-27T10:00:00.000Z', {
   zone: 'utc'
 })
 
 function uneSolution(
-  args: Partial<PlanAction.Solution> = {}
-): PlanAction.Solution {
+  args: Partial<ReferentielPlanAction.Solution> = {}
+): ReferentielPlanAction.Solution {
   return {
     id: 's-1',
-    category: Questionnaire.Besoin.ALTERNANCE,
-    blocker: null,
+    besoin: Questionnaire.Besoin.ALTERNANCE,
+    type: ReferentielPlanAction.TypeSolution.CONSEIL,
+    libelle: 'Je fais une action',
     situations: [],
-    structures: [],
-    minAge: null,
-    maxAge: null,
-    territory: null,
-    kind: 'advice',
-    label: 'Je fais une action',
-    url: null,
-    serviceName: null,
+    authentifications: [],
+    territoires: [],
     ...args
   }
 }
@@ -45,7 +41,7 @@ describe('PlanAction', () => {
   describe('filtrerSolutionsEligibles', () => {
     function filtrer(
       questionnaire: Questionnaire,
-      solutions: PlanAction.Solution[]
+      solutions: ReferentielPlanAction.Solution[]
     ): string[] {
       return PlanAction.filtrerSolutionsEligibles({
         questionnaire,
@@ -59,21 +55,21 @@ describe('PlanAction', () => {
       const solutions = [
         uneSolution({
           id: 'besoin-choisi',
-          category: Questionnaire.Besoin.ALTERNANCE
+          besoin: Questionnaire.Besoin.ALTERNANCE
         }),
         uneSolution({
           id: 'besoin-non-choisi',
-          category: Questionnaire.Besoin.EMPLOI
+          besoin: Questionnaire.Besoin.EMPLOI
         }),
         uneSolution({
           id: 'contrainte-cochee',
-          category: null,
-          blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.PAS_DE_TRANSPORT
         }),
         uneSolution({
           id: 'contrainte-non-cochee',
-          category: null,
-          blocker: Questionnaire.Contrainte.SANTE
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.SANTE
         })
       ]
 
@@ -95,9 +91,9 @@ describe('PlanAction', () => {
       const solutions = [
         uneSolution({
           id: 'reservee-milo',
-          structures: [Profil.Structure.MILO]
+          authentifications: [Profil.Structure.MILO]
         }),
-        uneSolution({ id: 'ouverte-a-tous', structures: [] })
+        uneSolution({ id: 'ouverte-a-tous', authentifications: [] })
       ]
 
       // When
@@ -136,8 +132,8 @@ describe('PlanAction', () => {
 
     describe('âge', () => {
       const solutions = [
-        uneSolution({ id: 'majeurs', minAge: 18 }),
-        uneSolution({ id: 'mineurs', maxAge: 17 }),
+        uneSolution({ id: 'majeurs', ageMin: 18 }),
+        uneSolution({ id: 'mineurs', ageMax: 17 }),
         uneSolution({ id: 'sans-borne' })
       ]
 
@@ -175,7 +171,7 @@ describe('PlanAction', () => {
     describe('territoire', () => {
       it('matche le département dérivé du code INSEE, ville de recherche prioritaire', () => {
         // Given
-        const solutions = [uneSolution({ id: 'paris', territory: '75' })]
+        const solutions = [uneSolution({ id: 'paris', territoires: ['75'] })]
 
         // When
         const idsAvecRecherche = filtrer(
@@ -197,10 +193,10 @@ describe('PlanAction', () => {
         expect(idsSansRecherche).to.deep.equal([])
       })
 
-      it('gère la Corse (2A/2B) et les listes de départements', () => {
+      it('gère la Corse (2A/2B) et les départements séparés par des virgules', () => {
         // Given
         const solutions = [
-          uneSolution({ id: 'corse-et-paca', territory: '2A, 2B; 13' })
+          uneSolution({ id: 'corse-et-paca', territoires: ['2A, 2B', '13'] })
         ]
 
         // When
@@ -218,7 +214,7 @@ describe('PlanAction', () => {
       it("matche l'outre-mer sur les codes 97x/98x", () => {
         // Given
         const solutions = [
-          uneSolution({ id: 'dom', territory: "Territoires d'Outre-mer" })
+          uneSolution({ id: 'dom', territoires: ["Territoires d'Outre-mer"] })
         ]
 
         // When
@@ -242,7 +238,7 @@ describe('PlanAction', () => {
 
       it("exclut une solution territorialisée quand le questionnaire n'a pas de localisation", () => {
         // Given
-        const solutions = [uneSolution({ id: 'paris', territory: '75' })]
+        const solutions = [uneSolution({ id: 'paris', territoires: ['75'] })]
 
         // When
         const ids = filtrer(unQuestionnaire(), solutions)
@@ -256,7 +252,7 @@ describe('PlanAction', () => {
   describe('construirePlan', () => {
     function construire(
       questionnaire: Questionnaire,
-      solutionsEligibles: PlanAction.Solution[]
+      solutionsEligibles: ReferentielPlanAction.Solution[]
     ): PlanAction.Plan {
       return PlanAction.construirePlan({
         questionnaire,
@@ -269,20 +265,20 @@ describe('PlanAction', () => {
       // Given
       const alternance1 = uneSolution({
         id: 'alternance-1',
-        category: Questionnaire.Besoin.ALTERNANCE
+        besoin: Questionnaire.Besoin.ALTERNANCE
       })
       const former1 = uneSolution({
         id: 'former-1',
-        category: Questionnaire.Besoin.FORMER
+        besoin: Questionnaire.Besoin.FORMER
       })
       const transport1 = uneSolution({
         id: 'transport-1',
-        category: null,
-        blocker: Questionnaire.Contrainte.PAS_DE_TRANSPORT
+        besoin: undefined,
+        contrainte: Questionnaire.Contrainte.PAS_DE_TRANSPORT
       })
       const alternance2 = uneSolution({
         id: 'alternance-2',
-        category: Questionnaire.Besoin.ALTERNANCE
+        besoin: Questionnaire.Besoin.ALTERNANCE
       })
 
       // When
@@ -349,7 +345,7 @@ describe('PlanAction', () => {
         [
           uneSolution({
             id: 'alternance-1',
-            category: Questionnaire.Besoin.ALTERNANCE
+            besoin: Questionnaire.Besoin.ALTERNANCE
           })
         ]
       )
@@ -362,38 +358,39 @@ describe('PlanAction', () => {
   })
 
   describe('Service', () => {
-    let catalogue: StubbedType<PlanAction.CatalogueRepository>
+    let referentiel: StubbedType<ReferentielPlanAction.Repository>
     let idService: StubbedClass<IdService>
     let dateService: StubbedClass<DateService>
     let service: PlanAction.Service
 
     beforeEach(() => {
-      catalogue = stubInterface<PlanAction.CatalogueRepository>(createSandbox())
+      referentiel =
+        stubInterface<ReferentielPlanAction.Repository>(createSandbox())
       idService = stubClass(IdService)
       dateService = stubClass(DateService)
       idService.uuid.returns('un-uuid')
       dateService.now.returns(maintenant)
-      service = new PlanAction.Service(catalogue, idService, dateService)
+      service = new PlanAction.Service(referentiel, idService, dateService)
     })
 
-    it('génère le plan sur les seules solutions éligibles du catalogue à la date du jour, avec un uuid', () => {
+    it('génère le plan sur les seules solutions actives et éligibles du référentiel, avec un uuid', async () => {
       // Given
       const alternance = uneSolution({
         id: 'alternance-1',
-        category: Questionnaire.Besoin.ALTERNANCE
+        besoin: Questionnaire.Besoin.ALTERNANCE
       })
-      catalogue.getSolutions.returns([
+      referentiel.trouverSolutionsActives.resolves([
         alternance,
-        uneSolution({ id: 'emploi-1', category: Questionnaire.Besoin.EMPLOI }),
+        uneSolution({ id: 'emploi-1', besoin: Questionnaire.Besoin.EMPLOI }),
         uneSolution({
           id: 'alternance-majeurs',
-          category: Questionnaire.Besoin.ALTERNANCE,
-          minAge: 18
+          besoin: Questionnaire.Besoin.ALTERNANCE,
+          ageMin: 18
         })
       ])
 
       // When
-      const plan = service.genererPlan(
+      const plan = await service.genererPlan(
         unQuestionnaire({ dateNaissance: DateTime.fromISO('2010-01-01') })
       )
 

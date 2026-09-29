@@ -1,6 +1,7 @@
-import { PlanAction } from '../../../domain/plan-action'
+import { PlanAction } from '../../../domain/plan-action/plan-action'
+import { Questionnaire } from '../../../domain/plan-action/questionnaire'
+import { ReferentielPlanAction } from '../../../domain/plan-action/referentiel-plan-action'
 import { Profil } from '../../../domain/profil'
-import { Questionnaire } from '../../../domain/questionnaire'
 import {
   ActionPlanQueryModel,
   ObjectivePlanActionQueryModel,
@@ -9,10 +10,13 @@ import {
 } from '../../queries/query-models/plan-action.query-model'
 import { GenererPlanActionCommand } from '../generer-plan-action.command.handler'
 
-const kindVersType: Record<PlanAction.TypeSolution, TypeActionPlan> = {
-  link: TypeActionPlan.LIEN,
-  app: TypeActionPlan.NAVIGATION,
-  advice: TypeActionPlan.CONSEIL
+const typeSolutionVersTypeAction: Record<
+  ReferentielPlanAction.TypeSolution,
+  TypeActionPlan
+> = {
+  [ReferentielPlanAction.TypeSolution.LIEN]: TypeActionPlan.LIEN,
+  [ReferentielPlanAction.TypeSolution.NAVIGATION]: TypeActionPlan.NAVIGATION,
+  [ReferentielPlanAction.TypeSolution.CONSEIL]: TypeActionPlan.CONSEIL
 }
 
 export function toQuestionnaire(
@@ -52,13 +56,13 @@ export function toPlanActionQueryModel(
 }
 
 function toActionPlanQueryModel(
-  solution: PlanAction.Solution
+  solution: ReferentielPlanAction.Solution
 ): ActionPlanQueryModel {
   return {
     id: solution.id,
-    libelle: solution.label,
-    type: kindVersType[solution.kind],
+    libelle: solution.libelle,
+    type: typeSolutionVersTypeAction[solution.type],
     ...(solution.url ? { url: solution.url } : {}),
-    ...(solution.serviceName ? { nomService: solution.serviceName } : {})
+    ...(solution.service ? { nomService: solution.service.nom } : {})
   }
 }

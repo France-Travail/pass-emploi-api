@@ -11,7 +11,7 @@ import {
   IsString,
   ValidateNested
 } from 'class-validator'
-import { Questionnaire } from '../../../domain/questionnaire'
+import { Questionnaire } from '../../../domain/plan-action/questionnaire'
 
 export class CommunePayload {
   @ApiProperty()

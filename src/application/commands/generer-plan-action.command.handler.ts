@@ -7,13 +7,13 @@ import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { PlanAction } from '../../domain/plan-action'
+import { PlanAction } from '../../domain/plan-action/plan-action'
 import {
   DISPOSITIFS_ACCOMPAGNES,
   estInvite,
   TOUT_INVITE
 } from '../../domain/profil'
-import { Questionnaire } from '../../domain/questionnaire'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-model'
@@ -73,7 +73,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
     const questionnaire = toQuestionnaire(command, utilisateur.profil.structure)
-    const plan = this.planActionService.genererPlan(questionnaire)
+    const plan = await this.planActionService.genererPlan(questionnaire)
 
     return success(toPlanActionQueryModel(plan))
   }

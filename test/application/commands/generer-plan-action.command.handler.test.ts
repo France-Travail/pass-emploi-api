@@ -13,8 +13,9 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
-import { PlanAction } from '../../../src/domain/plan-action'
-import { Questionnaire } from '../../../src/domain/questionnaire'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
+import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
+import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -50,17 +51,12 @@ describe('GenererPlanActionCommandHandler', () => {
           solutions: [
             {
               id: 'p-1',
-              category: Questionnaire.Besoin.ALTERNANCE,
-              blocker: null,
+              besoin: Questionnaire.Besoin.ALTERNANCE,
+              type: ReferentielPlanAction.TypeSolution.CONSEIL,
+              libelle: 'Je fais une action',
               situations: [],
-              structures: [],
-              minAge: null,
-              maxAge: null,
-              territory: null,
-              kind: 'advice',
-              label: 'Je fais une action',
-              url: null,
-              serviceName: null
+              authentifications: [],
+              territoires: []
             }
           ]
         }
@@ -145,7 +141,7 @@ describe('GenererPlanActionCommandHandler', () => {
   describe('handle', () => {
     it('appelle le service avec le questionnaire traduit et renvoie le plan traduit', async () => {
       // Given
-      planActionService.genererPlan.returns(unPlan())
+      planActionService.genererPlan.resolves(unPlan())
 
       // When
       const result = await handler.handle(command, utilisateur)
@@ -214,7 +210,7 @@ describe('GenererPlanActionCommandHandler', () => {
     beforeEach(() => {
       logInfo = sinon.stub(rootLogger, 'info')
       jeuneInviteAuthorizer.autoriserLInvite.resolves(emptySuccess())
-      planActionService.genererPlan.returns(unPlan())
+      planActionService.genererPlan.resolves(unPlan())
     })
 
     afterEach(() => {
