@@ -165,6 +165,7 @@ import { MajCodesEvenementsJobHandler } from './application/jobs/maj-codes-evene
 import { MajReferentielRomeJobHandler } from './application/jobs/maj-referentiel-rome.job.handler.db'
 import { ReconcilierAgencesFTJobHandler } from './application/jobs/reconcilier-agences-ft.job.handler.db'
 import { MajReferentielAgencesFTJobHandler } from './application/jobs/maj-referentiel-agences-ft.job.handler.db'
+import { MajReferentielPlanActionJobHandler } from './application/jobs/maj-referentiel-plan-action.job.handler.db'
 import { MajMailingListConseillerJobHandler } from './application/jobs/maj-mailing-list-conseiller.job.handler'
 import { MonitorJobsJobHandler } from './application/jobs/monitor-jobs.job.handler.db'
 import { NettoyerLesDonneesJobHandler } from './application/jobs/nettoyer-les-donnees.job.handler.db'
@@ -343,10 +344,8 @@ import {
   SuggestionsPoleEmploiRepositoryToken,
   SuggestionsRepositoryToken
 } from './domain/offre/recherche/suggestion/suggestion'
-import {
-  PlanAction,
-  PlanActionCatalogueRepositoryToken
-} from './domain/plan-action'
+import { PlanAction } from './domain/plan-action/plan-action'
+import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
 import {
   PlanificateurRepositoryToken,
   PlanificateurService
@@ -365,6 +364,7 @@ import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
 import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
+import { GristClient } from './infrastructure/clients/grist-client'
 import { ImmersionClient } from './infrastructure/clients/immersion-client'
 import { InvitationIcsClient } from './infrastructure/clients/invitation-ics.client'
 import { MailBrevoService } from './infrastructure/clients/mail-brevo.service.db'
@@ -381,8 +381,8 @@ import {
   PoleEmploiPartenaireInMemoryClient
 } from './infrastructure/clients/pole-emploi-partenaire-client.db'
 import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
-import { ReferentielPlanActionStatique } from './infrastructure/clients/plan-action/referentiel-plan-action-statique'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
+import { ReferentielPlanActionSqlRepository } from './infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -528,6 +528,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     ExternalApiLoggerService,
     RateLimiterService,
     PoleEmploiClient,
+    GristClient,
     CacheApiPartenaireService,
     MiloClient,
     MiloClientV1,
@@ -570,8 +571,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     DiagorienteClient,
     PlanAction.Service,
     {
-      provide: PlanActionCatalogueRepositoryToken,
-      useClass: ReferentielPlanActionStatique
+      provide: ReferentielPlanActionRepositoryToken,
+      useClass: ReferentielPlanActionSqlRepository
     },
     {
       provide: APP_GUARD,
@@ -999,6 +1000,7 @@ export const JobHandlerProviders = [
   EnvoyerEmailsMessagesConseillersJobHandler,
   NotifierRecherchesOffreEmploiJobHandler,
   RecupererSituationsJeunesMiloJobHandler,
+  MajReferentielPlanActionJobHandler,
   MajCodesEvenementsJobHandler,
   NotifierRappelInstanceSessionMiloJobHandler,
   NotifierRendezVousPEJobHandler,

@@ -83,6 +83,14 @@ export const testConfig = (): ConfigService => {
       clientId: 'diagoriente-client-id',
       clientSecret: 'diagoriente-client-secret'
     },
+    grist: {
+      url: 'https://grist.test',
+      apiKey: 'grist-api-key',
+      docId: 'doc-test',
+      tableServices: 'Services',
+      tableSolutions: 'Solutions',
+      timeoutMs: 20000
+    },
     jecliqueoupas: {
       url: 'https://jecliqueoupas.fr/api',
       token: 'token-jecliqueoupas',

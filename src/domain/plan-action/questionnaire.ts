@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { Profil } from './profil'
+import { Profil } from '../profil'
 
 export interface Questionnaire {
   structure: Profil.Structure

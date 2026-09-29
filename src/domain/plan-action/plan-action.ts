@@ -1,57 +1,31 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { DateService } from '../utils/date-service'
-import { IdService } from '../utils/id-service'
-import { Profil } from './profil'
+import { DateService } from '../../utils/date-service'
+import { IdService } from '../../utils/id-service'
 import { Questionnaire } from './questionnaire'
-
-export const PlanActionCatalogueRepositoryToken =
-  'PlanActionCatalogueRepositoryToken'
+import {
+  ReferentielPlanAction,
+  ReferentielPlanActionRepositoryToken
+} from './referentiel-plan-action'
 
 export namespace PlanAction {
-  export type TypeSolution = 'link' | 'app' | 'advice'
-
-  // Une ligne du référentiel « services et solutions » (vocabulaire du back
-  // office Grist), réduite aux colonnes que l'app exploite. Une solution
-  // porte un besoin (category) OU une contrainte (blocker), jamais les deux.
-  // Une liste vide vaut « pas de filtre »
-  export interface Solution {
-    id: string
-    category: Questionnaire.Besoin | null
-    blocker: Questionnaire.Contrainte | null
-    situations: Questionnaire.Situation[]
-    structures: Profil.Structure[]
-    minAge: number | null
-    maxAge: number | null
-    // Liste de départements (« 75, 93 ») ou « Territoires d'Outre-mer »
-    territory: string | null
-    kind: TypeSolution
-    label: string
-    url: string | null
-    serviceName: string | null
-  }
-
-  export interface ObjectifPlan {
+  export interface Objectif {
     id: string
     titre: string
     theme: Questionnaire.Besoin | Questionnaire.Contrainte
-    solutions: Solution[]
+    solutions: ReferentielPlanAction.Solution[]
   }
 
   export interface Plan {
     id: string
-    objectifs: ObjectifPlan[]
-  }
-
-  export interface CatalogueRepository {
-    getSolutions(): Solution[]
+    objectifs: Objectif[]
   }
 
   export function filtrerSolutionsEligibles(args: {
     questionnaire: Questionnaire
-    solutions: Solution[]
+    solutions: ReferentielPlanAction.Solution[]
     maintenant: DateTime
-  }): Solution[] {
+  }): ReferentielPlanAction.Solution[] {
     const { questionnaire, solutions, maintenant } = args
     const age = Questionnaire.calculerAge(questionnaire, maintenant)
     return solutions.filter(
@@ -66,31 +40,31 @@ export namespace PlanAction {
 
   function matchTheme(
     questionnaire: Questionnaire,
-    solution: Solution
+    solution: ReferentielPlanAction.Solution
   ): boolean {
     const repondAUnBesoinDuJeune =
-      solution.category !== null &&
-      questionnaire.besoins.includes(solution.category)
+      solution.besoin !== undefined &&
+      questionnaire.besoins.includes(solution.besoin)
     const leveUneContrainteDuJeune =
-      solution.blocker !== null &&
-      questionnaire.contraintes.includes(solution.blocker)
+      solution.contrainte !== undefined &&
+      questionnaire.contraintes.includes(solution.contrainte)
 
     return repondAUnBesoinDuJeune || leveUneContrainteDuJeune
   }
 
   function matchStructure(
     questionnaire: Questionnaire,
-    solution: Solution
+    solution: ReferentielPlanAction.Solution
   ): boolean {
     return (
-      solution.structures.length === 0 ||
-      solution.structures.includes(questionnaire.structure)
+      solution.authentifications.length === 0 ||
+      solution.authentifications.includes(questionnaire.structure)
     )
   }
 
   function matchSituation(
     questionnaire: Questionnaire,
-    solution: Solution
+    solution: ReferentielPlanAction.Solution
   ): boolean {
     return (
       solution.situations.length === 0 ||
@@ -98,29 +72,33 @@ export namespace PlanAction {
     )
   }
 
-  function matchAge(age: number | undefined, solution: Solution): boolean {
+  function matchAge(
+    age: number | undefined,
+    solution: ReferentielPlanAction.Solution
+  ): boolean {
     if (age === undefined) return true
-    if (solution.minAge !== null && age < solution.minAge) return false
-    if (solution.maxAge !== null && age > solution.maxAge) return false
+    if (solution.ageMin !== undefined && age < solution.ageMin) return false
+    if (solution.ageMax !== undefined && age > solution.ageMax) return false
     return true
   }
 
   function matchTerritoire(
     questionnaire: Questionnaire,
-    solution: Solution
+    solution: ReferentielPlanAction.Solution
   ): boolean {
-    if (!solution.territory) return true
+    if (!solution.territoires.length) return true
     const departement = Questionnaire.calculerDepartement(questionnaire)
     if (!departement) return false
-    const territoire = solution.territory.toLowerCase()
-    if (territoire.includes('outre-mer'))
-      return departement.startsWith('97') || departement.startsWith('98')
     // Comparaison en minuscules pour la Corse (2A/2B) : le POC comparait le
     // département en majuscules à un territoire minusculisé et ne matchait jamais ces deux codes
-    return territoire
-      .split(/[,;]/)
-      .map(code => code.trim())
-      .includes(departement.toLowerCase())
+    return solution.territoires
+      .flatMap(territoire => territoire.split(','))
+      .map(territoire => territoire.trim().toLowerCase())
+      .some(territoire =>
+        territoire.includes('outre-mer')
+          ? departement.startsWith('97') || departement.startsWith('98')
+          : territoire === departement.toLowerCase()
+      )
   }
 
   export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {
@@ -158,16 +136,16 @@ export namespace PlanAction {
   // (ids objective-1, objective-2 : l'app y rattache les actions cochées)
   export function construirePlan(args: {
     questionnaire: Questionnaire
-    solutionsEligibles: Solution[]
+    solutionsEligibles: ReferentielPlanAction.Solution[]
     id: string
   }): Plan {
     const { questionnaire, solutionsEligibles, id } = args
-    const objectifs: ObjectifPlan[] = []
+    const objectifs: Objectif[] = []
 
     function ajouterObjectif(
       theme: Questionnaire.Besoin | Questionnaire.Contrainte,
       titre: string,
-      solutions: Solution[]
+      solutions: ReferentielPlanAction.Solution[]
     ): void {
       if (solutions.length === 0) return
       objectifs.push({
@@ -182,14 +160,16 @@ export namespace PlanAction {
       ajouterObjectif(
         besoin,
         TITRES_BESOINS[besoin],
-        solutionsEligibles.filter(solution => solution.category === besoin)
+        solutionsEligibles.filter(solution => solution.besoin === besoin)
       )
     }
     for (const contrainte of new Set(questionnaire.contraintes)) {
       ajouterObjectif(
         contrainte,
         TITRES_CONTRAINTES[contrainte],
-        solutionsEligibles.filter(solution => solution.blocker === contrainte)
+        solutionsEligibles.filter(
+          solution => solution.contrainte === contrainte
+        )
       )
     }
 
@@ -199,16 +179,16 @@ export namespace PlanAction {
   @Injectable()
   export class Service {
     constructor(
-      @Inject(PlanActionCatalogueRepositoryToken)
-      private readonly catalogue: CatalogueRepository,
+      @Inject(ReferentielPlanActionRepositoryToken)
+      private readonly referentiel: ReferentielPlanAction.Repository,
       private readonly idService: IdService,
       private readonly dateService: DateService
     ) {}
 
-    genererPlan(questionnaire: Questionnaire): Plan {
+    async genererPlan(questionnaire: Questionnaire): Promise<Plan> {
       const solutionsEligibles = filtrerSolutionsEligibles({
         questionnaire,
-        solutions: this.catalogue.getSolutions(),
+        solutions: await this.referentiel.trouverSolutionsActives(),
         maintenant: this.dateService.now()
       })
       return construirePlan({

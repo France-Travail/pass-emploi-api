@@ -5,9 +5,10 @@ import {
   toQuestionnaire
 } from '../../../../src/application/commands/mappers/plan-action.mapper'
 import { TypeActionPlan } from '../../../../src/application/queries/query-models/plan-action.query-model'
-import { PlanAction } from '../../../../src/domain/plan-action'
+import { PlanAction } from '../../../../src/domain/plan-action/plan-action'
 import { Profil } from '../../../../src/domain/profil'
-import { Questionnaire } from '../../../../src/domain/questionnaire'
+import { Questionnaire } from '../../../../src/domain/plan-action/questionnaire'
+import { ReferentielPlanAction } from '../../../../src/domain/plan-action/referentiel-plan-action'
 import { expect } from '../../../utils'
 
 function uneCommand(
@@ -99,26 +100,23 @@ describe('plan-action.mapper', () => {
 
   describe('toPlanActionQueryModel', () => {
     function uneSolution(
-      args: Partial<PlanAction.Solution> = {}
-    ): PlanAction.Solution {
+      args: Partial<ReferentielPlanAction.Solution> = {}
+    ): ReferentielPlanAction.Solution {
       return {
         id: 'p-1',
-        category: Questionnaire.Besoin.ALTERNANCE,
-        blocker: null,
+        besoin: Questionnaire.Besoin.ALTERNANCE,
+        type: ReferentielPlanAction.TypeSolution.CONSEIL,
+        libelle: 'Je fais une action',
         situations: [],
-        structures: [],
-        minAge: null,
-        maxAge: null,
-        territory: null,
-        kind: 'advice',
-        label: 'Je fais une action',
-        url: null,
-        serviceName: null,
+        authentifications: [],
+        territoires: [],
         ...args
       }
     }
 
-    function unPlan(solutions: PlanAction.Solution[]): PlanAction.Plan {
+    function unPlan(
+      solutions: ReferentielPlanAction.Solution[]
+    ): PlanAction.Plan {
       return {
         id: 'plan-1',
         objectifs: [
@@ -155,9 +153,9 @@ describe('plan-action.mapper', () => {
       const queryModel = toPlanActionQueryModel(
         unPlan([
           uneSolution({
-            kind: 'link',
+            type: ReferentielPlanAction.TypeSolution.LIEN,
             url: 'https://exemple.fr',
-            serviceName: 'Exemple'
+            service: { id: 'svc-1', nom: 'Exemple' }
           })
         ])
       )
@@ -175,7 +173,9 @@ describe('plan-action.mapper', () => {
     it('mappe app vers NAVIGATION', () => {
       // When
       const queryModel = toPlanActionQueryModel(
-        unPlan([uneSolution({ kind: 'app' })])
+        unPlan([
+          uneSolution({ type: ReferentielPlanAction.TypeSolution.NAVIGATION })
+        ])
       )
 
       // Then
@@ -187,7 +187,9 @@ describe('plan-action.mapper', () => {
     it("mappe advice vers CONSEIL, sans url ni service quand la solution n'en a pas", () => {
       // When
       const queryModel = toPlanActionQueryModel(
-        unPlan([uneSolution({ kind: 'advice' })])
+        unPlan([
+          uneSolution({ type: ReferentielPlanAction.TypeSolution.CONSEIL })
+        ])
       )
 
       // Then
