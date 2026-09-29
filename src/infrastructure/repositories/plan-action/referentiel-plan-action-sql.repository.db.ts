@@ -155,6 +155,19 @@ export class ReferentielPlanActionSqlRepository
     }
   }
 
+  async trouverSolutions(
+    ids: string[]
+  ): Promise<ReferentielPlanAction.Solution[]> {
+    if (!ids.length) return []
+
+    const solutionsSql = await ReferentielPlanActionSolutionSqlModel.findAll({
+      where: { id: { [Op.in]: ids }, active: true },
+      include: [ReferentielPlanActionServiceSqlModel]
+    })
+
+    return solutionsSql.map(toSolution)
+  }
+
   async trouverSolutionsActives(): Promise<ReferentielPlanAction.Solution[]> {
     const solutionsSql = await ReferentielPlanActionSolutionSqlModel.findAll({
       where: { active: true },

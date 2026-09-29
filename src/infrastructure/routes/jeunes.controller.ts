@@ -26,6 +26,7 @@ import {
   GenererPlanActionCommand,
   GenererPlanActionCommandHandler
 } from 'src/application/commands/generer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from 'src/application/queries/recuperer-plan-action.query.handler'
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
 import { GenererPlanActionPayload } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import {
@@ -105,7 +106,8 @@ export class JeunesController {
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
-    private genererPlanActionCommandHandler: GenererPlanActionCommandHandler
+    private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
+    private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -512,6 +514,25 @@ export class JeunesController {
     }
     const result = await this.genererPlanActionCommandHandler.execute(
       command,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Get(':idJeune/plan-action')
+  @UserJourney('suivi_actions')
+  @ApiOperation({
+    summary: "Récupère le dernier plan d'action généré pour un bénéficiaire",
+    description: 'Autorisé pour un bénéficiaire connecté'
+  })
+  @ApiResponse({ type: PlanActionQueryModel })
+  async recupererPlanAction(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<PlanActionQueryModel> {
+    const result = await this.recupererPlanActionQueryHandler.execute(
+      { idJeune },
       utilisateur
     )
 
