@@ -197,10 +197,12 @@ destinataires, ni compteurs.
 population, destinataires d'une communication, conseillers concernés par un déploiement et
 prédicats temporels sont les fragments de
 [`sql-helpers.ts`](../src/infrastructure/repositories/sql-helpers.ts), ceux-là mêmes
-qu'utilisent `CommunicationSqlRepository`, `MigrationSqlRepository` et
-`PopulationSqlRepository` en production. Si une règle change dans un repository, la table
-suit au déploiement suivant. Le test du job le vérifie en croisant la table avec ce que
-ces repositories renvoient pour un conseiller donné.
+qu'utilisent `CommunicationSqlRepository` et `MigrationSqlRepository` en production. En
+particulier, les jeunes destinataires d'une notification pas encore envoyée sont calculés
+par `sqlJoinJeunesDestinataires`, la fonction qui fige la population au démarrage de
+l'envoi. Si une règle change dans un repository, la table suit au déploiement suivant. Le
+test du job le vérifie en croisant la table avec ce que ces repositories renvoient
+(message et date de migration d'un conseiller, nombre de jeunes que l'envoi figera).
 
 **Fraîcheur.** Les statuts sont calculés à `date_calcul` (J-1, ~3h du matin) : une
 communication qui démarre à 10h reste `PREVUE` jusqu'au run suivant. Toujours afficher

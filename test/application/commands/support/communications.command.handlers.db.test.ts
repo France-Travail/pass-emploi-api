@@ -58,7 +58,7 @@ describe('Communications : handlers support', () => {
 
   describe('CreerCommunicationCommandHandler', () => {
     const handler = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository(getDatabase().sequelize)
+      new PopulationSqlRepository()
     )
 
     it('crée la communication et renvoie son id', async () => {
@@ -117,7 +117,7 @@ describe('Communications : handlers support', () => {
 
   describe('ModifierCommunicationCommandHandler', () => {
     const handler = new ModifierCommunicationCommandHandler(
-      new PopulationSqlRepository(getDatabase().sequelize)
+      new PopulationSqlRepository()
     )
 
     it('remplace la communication en entier', async () => {
@@ -302,7 +302,7 @@ describe('Communications : handlers support', () => {
 
   describe('CreerCommunicationCommandHandler : communication NOTIFICATION', () => {
     const handler = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository(getDatabase().sequelize)
+      new PopulationSqlRepository()
     )
 
     const commandeNotification = {

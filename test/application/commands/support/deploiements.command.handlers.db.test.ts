@@ -36,7 +36,7 @@ describe('Déploiements : handlers support', () => {
 
   describe('CreerDeploiementCommandHandler', () => {
     const handler = new CreerDeploiementCommandHandler(
-      new PopulationSqlRepository(getDatabase().sequelize)
+      new PopulationSqlRepository()
     )
 
     it('crée un déploiement de fonctionnalité', async () => {

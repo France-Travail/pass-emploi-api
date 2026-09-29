@@ -26,9 +26,7 @@ import {
 } from '../../../utils/database-for-testing'
 
 describe('Populations : handlers support', () => {
-  const populationRepository = new PopulationSqlRepository(
-    getDatabase().sequelize
-  )
+  const populationRepository = new PopulationSqlRepository()
   let databaseForTesting: DatabaseForTesting
 
   before(async () => {

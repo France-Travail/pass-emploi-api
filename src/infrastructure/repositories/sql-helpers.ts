@@ -65,18 +65,17 @@ export function sqlJoinConseillersDestinataires(
      AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}`
 }
 
-// Jointure de la communication `aliasCom` vers les jeunes qui en sont destinataires, via leur conseiller de référence `aliasConseiller`. Usage analytics (exhaustif).
-// Une NOTIFICATION push ne cible que les jeunes qui ont un token : même règle que l'envoi (CommunicationSqlRepository).
+// Restreint le jeune `aliasJeune` déjà présent dans la requête aux destinataires d'une communication de la population `idPopulation`, via son conseiller de référence `aliasConseiller` ; si `push` est vrai, seulement ceux qui ont un token.
+// Seule définition des jeunes destinataires : l'envoi, le décompte support et les analytics doivent trouver les mêmes.
 export function sqlJoinJeunesDestinataires(
-  aliasCom: string,
   aliasJeune: string,
-  aliasConseiller: string
+  aliasConseiller: string,
+  { idPopulation, push }: { idPopulation: string; push: string }
 ): string {
   return `
-    JOIN jeune ${aliasJeune} ON ${aliasCom}.destinataire = '${Communication.Destinataire.JEUNE}'
     ${sqlJoinConseillerDeReference(aliasJeune, aliasConseiller)}
-    AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}
-    AND (${aliasCom}.push IS NOT TRUE OR ${aliasJeune}.push_notification_token IS NOT NULL)`
+    AND ${sqlConseillerDansPopulation(aliasConseiller, idPopulation)}
+    AND (${push} IS NOT TRUE OR ${aliasJeune}.push_notification_token IS NOT NULL)`
 }
 
 // Visible entre date_debut (incluse) et date_fin (exclue) ; sans date_fin, visible indéfiniment.

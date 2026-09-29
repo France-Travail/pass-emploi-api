@@ -8,9 +8,9 @@ import { CommunicationSqlModel } from '../sequelize/models/communication.sql-mod
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlConseillerDansPopulation,
-  sqlJoinConseillerDeReference,
   sqlJoinConseillerDeReferenceDuJeune,
-  sqlJoinConseillersDestinataires
+  sqlJoinConseillersDestinataires,
+  sqlJoinJeunesDestinataires
 } from './sql-helpers'
 
 @Injectable()
@@ -163,13 +163,14 @@ export class CommunicationSqlRepository implements Communication.Repository {
       `
         INSERT INTO communication_envoi (id_communication, id_jeune, statut)
         SELECT :idCommunication, j.id, :aEnvoyer
-        ${sqlDestinatairesDeLaPopulation(communication.push!)}
+        ${SQL_DESTINATAIRES_DE_LA_POPULATION}
         ON CONFLICT DO NOTHING
       `,
       {
         replacements: {
           idCommunication: communication.id,
           idPopulation: communication.idPopulation,
+          push: communication.push!,
           aEnvoyer: CommunicationEnvoi.Statut.A_ENVOYER
         },
         type: QueryTypes.INSERT,
@@ -360,23 +361,21 @@ export class CommunicationSqlRepository implements Communication.Repository {
     const rows = await this.sequelize.query<{ nombre: string }>(
       `
         SELECT count(*) AS nombre
-        ${sqlDestinatairesDeLaPopulation(push)}
+        ${SQL_DESTINATAIRES_DE_LA_POPULATION}
       `,
-      { replacements: { idPopulation }, type: QueryTypes.SELECT }
+      { replacements: { idPopulation, push }, type: QueryTypes.SELECT }
     )
     return Number(rows[0].nombre)
   }
 }
 
-// Le SQL retourné référence :idPopulation — l'appelant doit le fournir dans replacements.
-function sqlDestinatairesDeLaPopulation(push: boolean): string {
-  const filtreToken = push ? 'AND j.push_notification_token IS NOT NULL' : ''
-  return `
-    FROM jeune j
-    ${sqlJoinConseillerDeReference('j', 'c')}
-    WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
-    ${filtreToken}`
-}
+// Référence :idPopulation et :push — l'appelant doit les fournir dans replacements.
+const SQL_DESTINATAIRES_DE_LA_POPULATION = `
+  FROM jeune j
+  ${sqlJoinJeunesDestinataires('j', 'c', {
+    idPopulation: ':idPopulation',
+    push: ':push'
+  })}`
 
 function toAEnvoyer(
   communication: CommunicationSqlModel

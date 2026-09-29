@@ -6,9 +6,9 @@ import { Communication } from '../../../domain/communication'
 import { CommunicationEnvoi } from '../../../domain/communication-envoi'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
-import { PopulationSqlRepository } from '../../../infrastructure/repositories/population.repository.db'
 import {
   sqlCommunicationEnCours,
+  sqlConseillerDansPopulation,
   sqlDeploiementActif,
   sqlJoinConseillerDeReference,
   sqlJoinConseillersConcernes,
@@ -34,11 +34,6 @@ interface Volumetrie {
   nbJeunes: number
   nbDestinatairesCommunications: number
   nbMembresDeploiements: number
-}
-
-interface Membre {
-  idPopulation: string
-  idUtilisateur: string
 }
 
 interface Ecriture {
@@ -94,27 +89,30 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       const connexion = await createSequelizeForAnalytics()
       await this.creerLesTables(connexion)
 
-      const { idsPopulations, conseillers, jeunes } =
-        await this.resoudreLesPopulations(connexion)
-
       volumetrie = await connexion.transaction(async transaction => {
         const ecriture = { dateCalcul: maintenant.toJSDate(), transaction }
         await this.viderLesTables(connexion, transaction)
-        await this.ecrireLesConseillers(connexion, conseillers, ecriture)
-        await this.ecrireLesJeunes(connexion, jeunes, ecriture)
+        const nbConseillers = await this.ecrireLesConseillers(
+          connexion,
+          ecriture
+        )
+        const nbJeunes = await this.ecrireLesJeunes(connexion, ecriture)
         const nbDestinatairesCommunications =
           await this.ecrireLesDestinatairesDesCommunications(
             connexion,
             ecriture
           )
         return {
-          nbPopulations: idsPopulations.length,
+          nbPopulations: await this.compterLesPopulations(
+            connexion,
+            transaction
+          ),
           nbCommunications: await this.ecrireLesCommunications(
             connexion,
             ecriture
           ),
-          nbConseillers: conseillers.length,
-          nbJeunes: jeunes.length,
+          nbConseillers,
+          nbJeunes,
           nbDestinatairesCommunications,
           nbMembresDeploiements: await this.ecrireLesMembresDesDeploiements(
             connexion,
@@ -256,89 +254,62 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
     )
   }
 
-  private async resoudreLesPopulations(connexion: Sequelize): Promise<{
-    idsPopulations: string[]
-    conseillers: Membre[]
-    jeunes: Membre[]
-  }> {
-    const populationRepository = new PopulationSqlRepository(connexion)
-    const rows = await connexion.query<{ id: string }>(
-      `SELECT id FROM population;`,
-      { type: QueryTypes.SELECT }
+  private async compterLesPopulations(
+    connexion: Sequelize,
+    transaction: Transaction
+  ): Promise<number> {
+    const rows = await connexion.query<{ nombre: string }>(
+      `SELECT count(*) AS nombre FROM population;`,
+      { type: QueryTypes.SELECT, transaction }
     )
-    const idsPopulations = rows.map(row => row.id)
-    const conseillers: Membre[] = []
-    const jeunes: Membre[] = []
-    for (const idPopulation of idsPopulations) {
-      const idsConseillers =
-        await populationRepository.getIdsDesConseillersParProfilOuConseillerCite(
-          idPopulation
-        )
-      const idsJeunes =
-        await populationRepository.getIdsDesJeunesParProfilOuConseillerCite(
-          idPopulation
-        )
-      conseillers.push(
-        ...idsConseillers.map(idUtilisateur => ({
-          idPopulation,
-          idUtilisateur
-        }))
-      )
-      jeunes.push(
-        ...idsJeunes.map(idUtilisateur => ({ idPopulation, idUtilisateur }))
-      )
-    }
-    return { idsPopulations, conseillers, jeunes }
+    return Number(rows[0].nombre)
   }
 
   private async ecrireLesConseillers(
     connexion: Sequelize,
-    conseillers: Membre[],
     { dateCalcul, transaction }: Ecriture
-  ): Promise<void> {
-    if (conseillers.length === 0) return
-
-    await connexion.query(
+  ): Promise<number> {
+    const [, nbLignes] = await connexion.query(
       `
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT m.id_population, 'CONSEILLER', ${SELECT_CONSEILLER},
+        SELECT p.id, 'CONSEILLER', ${SELECT_CONSEILLER},
                NULL, NULL, :dateCalcul
-        FROM (VALUES ${sqlValues(conseillers)}) AS m(id_population, id_utilisateur)
-        JOIN conseiller c ON c.id = m.id_utilisateur
+        FROM population p
+        JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'p.id')}
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
     )
+    return nbLignes as number
   }
 
   private async ecrireLesJeunes(
     connexion: Sequelize,
-    jeunes: Membre[],
     { dateCalcul, transaction }: Ecriture
-  ): Promise<void> {
-    if (jeunes.length === 0) return
-
-    await connexion.query(
+  ): Promise<number> {
+    const [, nbLignes] = await connexion.query(
       `
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT m.id_population, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+        SELECT p.id, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
                COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                c.email,
                CASE WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
                :dateCalcul
-        FROM (VALUES ${sqlValues(jeunes)}) AS m(id_population, id_utilisateur)
-        JOIN jeune j ON j.id = m.id_utilisateur
+        FROM population p
+        CROSS JOIN jeune j
         ${sqlJoinConseillerDeReference('j', 'c')}
+          AND ${sqlConseillerDansPopulation('c', 'p.id')}
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
     )
+    return nbLignes as number
   }
 
   private async ecrireLesDestinatairesDesCommunications(
@@ -402,7 +373,11 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                :maintenant
         FROM communication co
-        ${sqlJoinJeunesDestinataires('co', 'j', 'c')}
+        JOIN jeune j ON co.destinataire = '${Communication.Destinataire.JEUNE}'
+        ${sqlJoinJeunesDestinataires('j', 'c', {
+          idPopulation: 'co.id_population',
+          push: 'co.push'
+        })}
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER}
         WHERE ${sqlEnvoiNonDemarre('co')};
@@ -527,11 +502,4 @@ function sqlStatutCommunication(aliasCom: string): string {
 // n'est pas figée : les destinataires sont ceux qu'elle résout à date_calcul.
 function sqlEnvoiNonDemarre(aliasCom: string): string {
   return `(${aliasCom}.statut_envoi IS NULL OR ${aliasCom}.statut_envoi = '${Communication.StatutEnvoi.A_ENVOYER}')`
-}
-
-// Identifiants internes lus en base juste avant (jamais une saisie utilisateur) : interpolés tels quels.
-function sqlValues(membres: Membre[]): string {
-  return membres
-    .map(m => `('${m.idPopulation}', '${m.idUtilisateur}')`)
-    .join(', ')
 }

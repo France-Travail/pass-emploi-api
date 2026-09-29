@@ -743,6 +743,35 @@ describe('ChargerLesPopulationsJobHandler', () => {
       ])
     })
 
+    it("compte pour une notification pas encore envoyée autant de jeunes destinataires que l'envoi en figera", async () => {
+      // Given
+      const communicationRepository = new CommunicationSqlRepository(
+        getDatabase().sequelize
+      )
+
+      // When
+      const aFigerEnPush = await communicationRepository.compterDestinataires(
+        'PILOTE',
+        true
+      )
+      const aFigerSansPush = await communicationRepository.compterDestinataires(
+        'PILOTE',
+        false
+      )
+      const destinataires = await lignes<Destinataire>(
+        ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
+        'id_communication'
+      )
+
+      // Then
+      expect(
+        destinataires.filter(d => d.id_communication === '7').length
+      ).to.equal(aFigerEnPush)
+      expect(
+        destinataires.filter(d => d.id_communication === '8').length
+      ).to.equal(aFigerSansPush)
+    })
+
     it('repart de zéro à chaque run', async () => {
       // Then
       const lignes = await membres('JEUNE')
