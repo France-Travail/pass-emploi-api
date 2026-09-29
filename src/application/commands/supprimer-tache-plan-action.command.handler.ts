@@ -1,0 +1,71 @@
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Command } from '../../building-blocks/types/command'
+import { CommandHandler } from '../../building-blocks/types/command-handler'
+import {
+  DroitsInsuffisants,
+  NonTrouveError
+} from '../../building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure,
+  Result
+} from '../../building-blocks/types/result'
+import { Authentification } from '../../domain/authentification'
+import {
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
+import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+
+export interface SupprimerTachePlanActionCommand extends Command {
+  idJeune: string
+  idTache: string
+}
+
+@Injectable()
+export class SupprimerTachePlanActionCommandHandler extends CommandHandler<
+  SupprimerTachePlanActionCommand,
+  void
+> {
+  readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
+
+  constructor(
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
+    private readonly configService: ConfigService
+  ) {
+    super('SupprimerTachePlanActionCommandHandler')
+  }
+
+  async authorize(
+    command: SupprimerTachePlanActionCommand,
+    utilisateur: Authentification.Utilisateur
+  ): Promise<Result> {
+    if (!this.configService.get<boolean>('appJeuneActif')) {
+      return failure(new DroitsInsuffisants())
+    }
+
+    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
+  }
+
+  async handle(command: SupprimerTachePlanActionCommand): Promise<Result> {
+    const tache = await this.planActionRepository.getTache(
+      command.idJeune,
+      command.idTache
+    )
+    if (!tache) {
+      return failure(new NonTrouveError('TachePlanAction', command.idTache))
+    }
+
+    await this.planActionRepository.supprimerTache(tache.id)
+
+    return emptySuccess()
+  }
+
+  async monitor(): Promise<void> {
+    return
+  }
+}
