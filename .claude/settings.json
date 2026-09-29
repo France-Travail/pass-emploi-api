@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(DATABASE_URL=postgresql://test:test@localhost:56432/test_claude TZ=UTC npx mocha --exit --timeout 20000 -r ts-node/register -r tsconfig-paths/register test/infrastructure/repositories/authentification-sql.repository.db.test.ts)",
+      "Bash(break)",
+      "Bash(node node_modules/prettier/bin/prettier.cjs --write utils/auth/auth.ts components/ui/Button/LoginButton.tsx \"app/\\(connexion\\)/login/LoginHubPage.tsx\" \"app/\\(connexion\\)/login/france-travail\" app/autherror/page.tsx tests/app/LoginHubPage.test.tsx tests/app/LoginFranceTravailPage.test.tsx tests/app/LoginFranceTravailPage.server.test.tsx tests/app/LoginFranceTravailDispositifsPage.test.tsx tests/app/autherror/AuthError.test.tsx)",
+      "Bash(node node_modules/prettier/bin/prettier.cjs --write tests/app/LoginFranceTravailPage.test.tsx)",
+      "Bash(awk '/^ *)"
+    ],
+    "additionalDirectories": [
+      "/home/malek/Desktop/pass-emploi-connect/src/oidc-provider",
+      "/home/malek/Desktop/pass-emploi-connect/src/idp/service",
+      "/home/malek/Desktop/pass-emploi-connect/src/idp/francetravail-conseiller",
+      "/home/malek/Desktop/pass-emploi-web/utils/auth",
+      "/home/malek/Desktop/pass-emploi-web/components/ui/Button",
+      "/home/malek/Desktop/pass-emploi-web/app/(connexion)/login",
+      "/home/malek/Desktop/pass-emploi-web/app/autherror",
+      "/home/malek/Desktop/pass-emploi-web/tests/app"
+    ]
+  }
+}

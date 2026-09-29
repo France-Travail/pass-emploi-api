@@ -503,6 +503,33 @@ describe('AuthentificationSqlRepository', () => {
       }
       expect(utilisateur).to.deep.equal(expectedConseillerUtilisateur)
     })
+    it("met à jour le dispositif d'un conseiller France Travail", async () => {
+      // Given
+      await ConseillerSqlModel.creer(
+        unConseillerDto({
+          id: 'conseiller-ft',
+          idAuthentification: 'id-authentification-ft',
+          structure: Core.Structure.POLE_EMPLOI
+        })
+      )
+
+      // When
+      await repository.update(
+        unUtilisateurConseiller({
+          id: 'conseiller-ft',
+          idAuthentification: 'id-authentification-ft',
+          profil: unProfilFT(Profil.Dispositif.BRSA)
+        })
+      )
+
+      // Then
+      const utilisateur = await repository.getConseiller(
+        'id-authentification-ft'
+      )
+      expect(utilisateur?.profil).to.deep.equal(
+        unProfilFT(Profil.Dispositif.BRSA)
+      )
+    })
   })
 
   describe('save', () => {

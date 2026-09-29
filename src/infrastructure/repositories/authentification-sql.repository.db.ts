@@ -186,6 +186,7 @@ export class AuthentificationSqlOidcRepository
           username: utilisateur.username,
           nom: utilisateur.nom,
           prenom: utilisateur.prenom,
+          dispositif: utilisateur.profil.dispositif,
           dateDerniereConnexion: utilisateur.dateDerniereConnexion,
           datePremiereConnexion: utilisateur.datePremiereConnexion
         },

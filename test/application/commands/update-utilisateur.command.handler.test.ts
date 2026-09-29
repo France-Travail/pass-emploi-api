@@ -199,6 +199,39 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
+          describe('conseiller France Travail connu sans dispositif, première visite avec un dispositif', () => {
+            it('adopte le dispositif choisi', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                idUtilisateurAuth: 'nilstavernier',
+                type: Authentification.Type.CONSEILLER,
+                profil: unProfilFT(Profil.Dispositif.BRSA)
+              }
+              const utilisateur = unUtilisateurConseiller({
+                profil: unProfilFT(null)
+              })
+              authentificationRepository.getConseiller
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(utilisateur)
+
+              // When
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
+
+              // Then
+              expect(
+                authentificationRepository.update
+              ).to.have.been.calledWithExactly(
+                match({ profil: unProfilFT(Profil.Dispositif.BRSA) })
+              )
+              expect(isSuccess(result)).equal(true)
+              if (isSuccess(result)) {
+                expect(result.data.profil).to.deep.equal(
+                  unProfilFT(Profil.Dispositif.BRSA)
+                )
+              }
+            })
+          })
           describe('conseiller connu qui doit migrer vers Parcours Emploi', () => {
             it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI', async () => {
               // Given
@@ -506,7 +539,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               })
             })
           })
-          describe('quand il est un conseiller France Travail (connexion sans dispositif)', () => {
+          describe('quand il est un conseiller France Travail (bouton unique, sans dispositif)', () => {
             const command: UpdateUtilisateurCommand = {
               nom: 'Tavernier',
               prenom: 'Nils',
@@ -522,41 +555,55 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
-              authentificationRepository.estConseillerSuperviseur.resolves(
-                false
-              )
             })
-            it('crée le conseiller sans dispositif, à choisir sur le web', async () => {
+            it('refuse la connexion : le compte se crée à la première visite, avec un dispositif', async () => {
               // When
               const result =
                 await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              const utilisateurCree: Authentification.Utilisateur = {
-                id: '1',
-                idAuthentification: 'nilstavernier',
-                prenom: 'Nils',
-                nom: 'Tavernier',
-                email: 'nils.tavernier@passemploi.com',
-                username: 'milou',
-                type: Authentification.Type.CONSEILLER,
-                profil: unProfilFT(null),
-                roles: [],
-                dateDerniereConnexion: uneDate()
-              }
-              expect(
-                authentificationRepository.save
-              ).to.have.been.calledOnceWithExactly(utilisateurCree, uneDate())
-              expect(isSuccess(result)).equal(true)
-              if (isSuccess(result)) {
-                expect(result.data).to.deep.equal(
-                  unUtilisateurQueryModel({
-                    structure: Core.Structure.POLE_EMPLOI,
-                    profil: unProfilFT(null),
-                    username: 'milou'
-                  })
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.UTILISATEUR_INEXISTANT,
+                    'nils.tavernier@passemploi.com'
+                  )
                 )
+              )
+              expect(authentificationRepository.save).not.to.have.been.called()
+            })
+          })
+          describe('quand il est un conseiller France Travail avec un dispositif non accompagné', () => {
+            it('retourne une failure sans créer le conseiller', async () => {
+              // Given
+              const command: UpdateUtilisateurCommand = {
+                nom: 'Tavernier',
+                prenom: 'Nils',
+                type: Authentification.Type.CONSEILLER,
+                idUtilisateurAuth: 'nilstavernier',
+                profil: unProfilFT(Profil.Dispositif.PACEA)
               }
+              authentificationRepository.getConseiller
+                .withArgs(command.idUtilisateurAuth)
+                .resolves(undefined)
+
+              // When
+              const result =
+                await updateUtilisateurCommandHandler.execute(command)
+
+              // Then
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.STRUCTURE_UTILISATEUR_NON_TRAITABLE
+                  )
+                )
+              )
+              expect(authentificationRepository.save).not.to.have.been.called()
             })
           })
           describe("quand il est valide mais il manque l'email", () => {

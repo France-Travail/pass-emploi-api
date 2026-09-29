@@ -29,12 +29,13 @@ import {
 import { Migration } from '../../domain/migration'
 import { MailServiceToken } from '../../domain/mail'
 import {
-  estConseilDepartemental,
+  DISPOSITIFS_ACCOMPAGNES,
   estDispositifNonAccompagne,
   estFranceTravail,
   estMilo,
   memeProfil,
   Profil,
+  profilEstAutorise,
   TOUT_PROFIL
 } from '../../domain/profil'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
@@ -165,15 +166,13 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private recupererConseiller(
     commandSanitized: UpdateUtilisateurCommand
   ): Promise<Result<UtilisateurQueryModel>> {
-    // Un conseiller FT se connecte sans dispositif : il le choisit ensuite sur le web.
     const profil = commandSanitized.profil
-    const estConseillerTraitable =
-      estMilo(profil.structure) ||
-      estConseilDepartemental(profil.structure) ||
-      (estFranceTravail(profil.structure) &&
-        !estDispositifNonAccompagne(profil.dispositif))
+    // Bouton unique FT : compte existant seulement, le dispositif se choisit à la première visite
+    if (estFranceTravail(profil.structure) && profil.dispositif === null) {
+      return this.recupererUtilisateurConseillerExistant(commandSanitized)
+    }
 
-    if (estConseillerTraitable) {
+    if (profilEstAutorise(profil, DISPOSITIFS_ACCOMPAGNES)) {
       return this.recupererOuCreerUtilisateurConseiller(
         commandSanitized,
         profil
@@ -492,6 +491,42 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (!utilisateurTrouve) {
       return this.creerNouveauConseiller(commandSanitized, profil)
     }
+    return this.mettreAJourLeConseillerTrouve(
+      utilisateurTrouve,
+      commandSanitized,
+      profil
+    )
+  }
+
+  private async recupererUtilisateurConseillerExistant(
+    commandSanitized: UpdateUtilisateurCommand
+  ): Promise<Result<UtilisateurQueryModel>> {
+    const utilisateurTrouve =
+      await this.authentificationRepository.getConseiller(
+        commandSanitized.idUtilisateurAuth
+      )
+    if (!utilisateurTrouve) {
+      return failure(
+        new NonTraitableError(
+          'Utilisateur',
+          commandSanitized.idUtilisateurAuth,
+          NonTraitableReason.UTILISATEUR_INEXISTANT,
+          commandSanitized.email
+        )
+      )
+    }
+    return this.mettreAJourLeConseillerTrouve(
+      utilisateurTrouve,
+      commandSanitized,
+      commandSanitized.profil
+    )
+  }
+
+  private async mettreAJourLeConseillerTrouve(
+    utilisateurTrouve: Authentification.Utilisateur,
+    commandSanitized: UpdateUtilisateurCommand,
+    profil: Profil
+  ): Promise<Result<UtilisateurQueryModel>> {
     if (!memeProfil(profil, utilisateurTrouve.profil)) {
       return failure(
         new NonTraitableError(
@@ -503,7 +538,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     }
 
     const utilisateurMisAJour = await this.mettreAJourLUtilisateur(
-      utilisateurTrouve,
+      adopterLeDispositifChoisi(utilisateurTrouve, profil),
       commandSanitized
     )
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
@@ -583,6 +618,18 @@ function autoriseUtilisateurFTConnectOnly(
         )
       )
   }
+}
+
+// Conseiller FT créé sans dispositif qui repasse par la première visite : le choix est adopté
+function adopterLeDispositifChoisi(
+  utilisateur: Authentification.Utilisateur,
+  profil: Profil
+): Authentification.Utilisateur {
+  const sansDispositif =
+    estFranceTravail(utilisateur.profil.structure) &&
+    utilisateur.profil.dispositif === null
+  if (!sansDispositif || profil.dispositif === null) return utilisateur
+  return { ...utilisateur, profil }
 }
 
 function reasonFromProfil(profil: Profil): NonTraitableReason {
