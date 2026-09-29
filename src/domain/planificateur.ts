@@ -312,9 +312,9 @@ export const listeCronJobs: Planificateur.CronJob[] = [
   },
   {
     type: Planificateur.JobType.MAJ_REFERENTIEL_PLAN_ACTION,
-    expression: '0 5 1 * *',
+    expression: '0 8 * * *',
     description:
-      "Le 1er de chaque mois à 5h. Mise à jour du référentiel du plan d'action depuis Grist."
+      "Tous les jours à 8h. Mise à jour du référentiel du plan d'action depuis Grist."
   }
 ]
 
