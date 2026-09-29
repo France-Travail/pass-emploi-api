@@ -66,6 +66,8 @@ export class GristClient extends ExternalApiClient {
 
       return success(response.data.records)
     } catch (_e) {
+      // L'erreur est déjà tracée en ECS par l'instance axios d'ExternalApiClient ;
+      // le job appelant transforme cette failure en échec de SuiviJob
       return failure(new ErreurHttp(GRIST_ECHEC, 502))
     }
   }

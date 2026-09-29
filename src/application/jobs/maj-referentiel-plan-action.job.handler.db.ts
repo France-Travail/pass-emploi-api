@@ -99,8 +99,11 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
         reconciliation.services,
         reconciliation.solutions,
         {
-          pourcentageMax: parseInt(config.pourcentageDesactivationsMax, 10),
-          nombreMin: parseInt(config.nombreDesactivationsMin, 10)
+          pourcentageMax: Number.parseInt(
+            config.pourcentageDesactivationsMax,
+            10
+          ),
+          nombreMin: Number.parseInt(config.nombreDesactivationsMin, 10)
         },
         { dryRun: config.dryRun }
       )

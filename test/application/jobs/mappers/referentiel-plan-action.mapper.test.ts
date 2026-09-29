@@ -105,9 +105,9 @@ describe('reconcilierReferentiel', () => {
     )
 
     // Then
-    expect(resultat.solutions[0].contrainte).to.equal(undefined)
-    expect(resultat.solutions[0].domaine).to.equal(undefined)
-    expect(resultat.solutions[0].ageMin).to.equal(undefined)
+    expect(resultat.solutions[0].contrainte).to.be.undefined()
+    expect(resultat.solutions[0].domaine).to.be.undefined()
+    expect(resultat.solutions[0].ageMin).to.be.undefined()
   })
 
   it('mappe une navigation avec son écran', () => {
@@ -213,7 +213,7 @@ describe('reconcilierReferentiel', () => {
     )
 
     // Then
-    expect(resultat.solutions[0].service).to.equal(undefined)
+    expect(resultat.solutions[0].service).to.be.undefined()
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(1)
   })
 
@@ -264,7 +264,7 @@ describe('reconcilierReferentiel', () => {
 
     // Then
     expect(resultat.solutions).to.have.length(1)
-    expect(resultat.solutions[0].besoin).to.equal(undefined)
+    expect(resultat.solutions[0].besoin).to.be.undefined()
     expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
   })
 
@@ -277,7 +277,7 @@ describe('reconcilierReferentiel', () => {
 
     // Then
     expect(resultat.solutions).to.have.length(1)
-    expect(resultat.solutions[0].contrainte).to.equal(undefined)
+    expect(resultat.solutions[0].contrainte).to.be.undefined()
     expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
   })
 

@@ -87,24 +87,60 @@ export function reconcilierReferentiel(
     nbValeursNonReconnues: 0
   }
 
+  const { services, serviceParNom } = indexerServices(servicesGrist, anomalies)
+
+  const solutions: ReferentielPlanAction.Solution[] = []
+  const idsVus = new Set<string>()
+
+  for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
+    const idTechnique = record.fields.Id_technique
+    if (idsVus.has(idTechnique)) {
+      anomalies.nbDoublonsSolutions++
+      logAnomalie(
+        "Solution Grist en doublon d'identifiant technique, ligne ignorée",
+        {
+          id_technique: idTechnique,
+          ligne_grist: record.id
+        }
+      )
+      continue
+    }
+    idsVus.add(idTechnique)
+
+    const solution = construireSolution(record, serviceParNom, anomalies)
+    if (solution) solutions.push(solution)
+  }
+
+  return { services, solutions, anomalies }
+}
+
+// Les services sont indexés par nom : c'est la seule clé dont disposent les
+// solutions du Grist pour les désigner
+function indexerServices(
+  servicesGrist: Array<GristRecordDto<GristServiceFieldsDto>>,
+  anomalies: ReferentielPlanAction.Anomalies
+): {
+  services: ReferentielPlanAction.Service[]
+  serviceParNom: Map<string, ReferentielPlanAction.Service>
+} {
   const services: ReferentielPlanAction.Service[] = []
   const serviceParNom = new Map<string, ReferentielPlanAction.Service>()
 
   for (const record of [...servicesGrist].sort((a, b) => a.id - b.id)) {
-    const description = texte(record.fields.Description)
     const service: ReferentielPlanAction.Service = {
       id: String(record.id),
       nom: record.fields.Nom,
-      ...optionnel('description', description)
+      ...optionnel('description', texte(record.fields.Description))
     }
     services.push(service)
 
     const nomIndexe = record.fields.Nom.trim()
-    if (serviceParNom.has(nomIndexe)) {
+    const dejaIndexe = serviceParNom.get(nomIndexe)
+    if (dejaIndexe) {
       anomalies.nbDoublonsServices++
       logAnomalie("Service Grist en doublon de nom, entrée d'index ignorée", {
         nom: nomIndexe,
-        id_retenu: serviceParNom.get(nomIndexe)!.id,
+        id_retenu: dejaIndexe.id,
         id_ignore: service.id
       })
       continue
@@ -112,120 +148,106 @@ export function reconcilierReferentiel(
     serviceParNom.set(nomIndexe, service)
   }
 
-  const solutions: ReferentielPlanAction.Solution[] = []
-  const idsVus = new Set<string>()
+  return { services, serviceParNom }
+}
 
-  for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
-    const fields = record.fields
+// Rend undefined quand la ligne n'est pas exploitable, après avoir compté
+// l'anomalie correspondante
+function construireSolution(
+  record: GristRecordDto<GristSolutionFieldsDto>,
+  serviceParNom: Map<string, ReferentielPlanAction.Service>,
+  anomalies: ReferentielPlanAction.Anomalies
+): ReferentielPlanAction.Solution | undefined {
+  const fields = record.fields
 
-    if (idsVus.has(fields.Id_technique)) {
-      anomalies.nbDoublonsSolutions++
-      logAnomalie(
-        "Solution Grist en doublon d'identifiant technique, ligne ignorée",
-        {
-          id_technique: fields.Id_technique,
-          ligne_grist: record.id
-        }
-      )
-      continue
-    }
-    idsVus.add(fields.Id_technique)
+  const type = typeParLibelle[fields.Type]
+  if (!type) {
+    anomalies.nbSolutionsEcartees++
+    logAnomalie('Solution Grist écartée : type de tâche inconnu', {
+      id_technique: fields.Id_technique,
+      raison: 'type_inconnu',
+      valeur: fields.Type
+    })
+    return undefined
+  }
 
-    const type = typeParLibelle[fields.Type]
-    if (!type) {
-      anomalies.nbSolutionsEcartees++
-      logAnomalie('Solution Grist écartée : type de tâche inconnu', {
+  const valeurEcran = texte(fields.Ecran_de_l_app)
+  const ecranApp = valeurEcran ? destinationParValeur[valeurEcran] : undefined
+  if (type === ReferentielPlanAction.TypeSolution.NAVIGATION && !ecranApp) {
+    anomalies.nbSolutionsEcartees++
+    logAnomalie(
+      valeurEcran
+        ? 'Solution Grist écartée : écran de navigation inconnu'
+        : 'Solution Grist écartée : navigation sans écran renseigné',
+      {
         id_technique: fields.Id_technique,
-        raison: 'type_inconnu',
-        valeur: fields.Type
-      })
-      continue
-    }
-
-    const valeurEcran = texte(fields.Ecran_de_l_app)
-    const ecranApp = valeurEcran ? destinationParValeur[valeurEcran] : undefined
-    if (type === ReferentielPlanAction.TypeSolution.NAVIGATION && !ecranApp) {
-      anomalies.nbSolutionsEcartees++
-      if (valeurEcran) {
-        logAnomalie('Solution Grist écartée : écran de navigation inconnu', {
-          id_technique: fields.Id_technique,
-          raison: 'ecran_inconnu',
-          valeur: valeurEcran
-        })
-      } else {
-        logAnomalie(
-          'Solution Grist écartée : navigation sans écran renseigné',
-          {
-            id_technique: fields.Id_technique,
-            raison: 'navigation_sans_ecran'
-          }
-        )
+        raison: valeurEcran ? 'ecran_inconnu' : 'navigation_sans_ecran',
+        ...optionnel('valeur', valeurEcran)
       }
-      continue
-    }
-
-    const nomService = texte(fields.Service)
-    const service = nomService ? serviceParNom.get(nomService) : undefined
-    if (nomService && !service) {
-      anomalies.nbServicesNonResolus++
-      logAnomalie('Service Grist non résolu pour une solution', {
-        id_technique: fields.Id_technique,
-        nom_cherche: nomService
-      })
-    }
-
-    const besoin = resoudreEnum(
-      'Envie',
-      fields.Envie,
-      besoinParLibelle,
-      fields.Id_technique,
-      anomalies
     )
-    const contrainte = resoudreEnum(
-      'Blocage',
-      fields.Blocage,
-      contrainteParLibelle,
-      fields.Id_technique,
-      anomalies
-    )
-    const situations = resoudreListe(
+    return undefined
+  }
+
+  const nomService = texte(fields.Service)
+  const service = nomService ? serviceParNom.get(nomService) : undefined
+  if (nomService && !service) {
+    anomalies.nbServicesNonResolus++
+    logAnomalie('Service Grist non résolu pour une solution', {
+      id_technique: fields.Id_technique,
+      nom_cherche: nomService
+    })
+  }
+
+  return {
+    id: fields.Id_technique,
+    ...optionnel(
+      'besoin',
+      resoudreEnum(
+        'Envie',
+        fields.Envie,
+        besoinParLibelle,
+        fields.Id_technique,
+        anomalies
+      )
+    ),
+    ...optionnel(
+      'contrainte',
+      resoudreEnum(
+        'Blocage',
+        fields.Blocage,
+        contrainteParLibelle,
+        fields.Id_technique,
+        anomalies
+      )
+    ),
+    ...optionnel('sousCategorie', texte(fields.Sous_categorie)),
+    ...optionnel('besoinExprime', texte(fields.Besoin_exprime_par_le_jeune)),
+    type,
+    libelle: fields.Action_affichee_au_jeune,
+    ...optionnel('url', texte(fields.URL)),
+    ...optionnel('ecranApp', ecranApp),
+    ...optionnel('service', service),
+    situations: resoudreListe(
       'Situations',
       fields.Situations,
       situationParLibelle,
       fields.Id_technique,
       anomalies
-    )
-    const authentifications = resoudreListe(
+    ),
+    authentifications: resoudreListe(
       'Authentification',
       fields.Authentification,
       structuresParLibelle,
       fields.Id_technique,
       anomalies
-    ).flat()
-
-    solutions.push({
-      id: fields.Id_technique,
-      ...optionnel('besoin', besoin),
-      ...optionnel('contrainte', contrainte),
-      ...optionnel('sousCategorie', texte(fields.Sous_categorie)),
-      ...optionnel('besoinExprime', texte(fields.Besoin_exprime_par_le_jeune)),
-      type,
-      libelle: fields.Action_affichee_au_jeune,
-      ...optionnel('url', texte(fields.URL)),
-      ...optionnel('ecranApp', ecranApp),
-      ...optionnel('service', service),
-      situations,
-      authentifications,
-      territoires: liste(fields.Territoire),
-      ...optionnel('ageMin', entier(fields.Age_minimum)),
-      ...optionnel('ageMax', entier(fields.Age_maximum)),
-      ...optionnel('domaine', texte(fields.Domaine)),
-      ...optionnel('conversionFT', conversionFT(fields)),
-      ...optionnel('conversionML', conversionML(fields))
-    })
+    ).flat(),
+    territoires: liste(fields.Territoire),
+    ...optionnel('ageMin', entier(fields.Age_minimum)),
+    ...optionnel('ageMax', entier(fields.Age_maximum)),
+    ...optionnel('domaine', texte(fields.Domaine)),
+    ...optionnel('conversionFT', conversionFT(fields)),
+    ...optionnel('conversionML', conversionML(fields))
   }
-
-  return { services, solutions, anomalies }
 }
 
 function resoudreEnum<V>(
@@ -275,7 +297,7 @@ function resoudreListe<V>(
 
 function texte(valeur: string | null | undefined): string | undefined {
   const propre = valeur?.trim()
-  return propre ? propre : undefined
+  return propre || undefined
 }
 
 function liste(valeur: string | null | undefined): string[] {

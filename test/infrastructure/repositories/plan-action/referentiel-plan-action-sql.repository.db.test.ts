@@ -153,7 +153,7 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
       // Then
       const solutions = await repository.trouverSolutionsActives()
-      expect(solutions[0].service).to.equal(undefined)
+      expect(solutions[0].service).to.be.undefined()
     })
 
     it('refuse de désactiver au-delà du plafond et ne touche à rien', async () => {
