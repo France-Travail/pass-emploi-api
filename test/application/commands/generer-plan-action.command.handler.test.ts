@@ -1,3 +1,4 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
 import {
   GenererPlanActionCommand,
@@ -18,45 +19,50 @@ import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { rootLogger } from '../../../src/utils/logger.module'
 import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
+import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
-import { StubbedClass, expect, sinon, stubClass } from '../../utils'
+import {
+  StubbedClass,
+  createSandbox,
+  expect,
+  sinon,
+  stubClass
+} from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
-  let planActionService: StubbedClass<PlanAction.Service>
+  let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
+  let planActionRepository: StubbedType<PlanAction.Repository>
+  let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
   let handler: GenererPlanActionCommandHandler
+
+  const maintenant = uneDatetime()
 
   const utilisateur = unUtilisateurJeune({
     profil: unProfilInvite()
   })
-  const command: GenererPlanActionCommand = {
-    idJeune: utilisateur.id,
-    situation: Questionnaire.Situation.LYCEE,
-    besoins: [Questionnaire.Besoin.ALTERNANCE],
-    contraintes: []
-  }
+  let command: GenererPlanActionCommand
 
-  function unPlan(): PlanAction.Plan {
+  function unPlan(): PlanAction {
     return {
       id: 'plan-1',
+      idJeune: command.idJeune,
+      dateCreation: maintenant,
       objectifs: [
         {
-          id: 'objective-1',
+          id: 'objectif-1',
           titre: 'Trouver une alternance',
           theme: Questionnaire.Besoin.ALTERNANCE,
-          solutions: [
+          taches: [
             {
-              id: 'p-1',
-              besoin: Questionnaire.Besoin.ALTERNANCE,
-              type: ReferentielPlanAction.TypeSolution.CONSEIL,
-              libelle: 'Je fais une action',
-              situations: [],
-              authentifications: [],
-              territoires: []
+              id: 'tache-1',
+              idSolution: 'p-1',
+              terminee: false,
+              dateCreation: maintenant
             }
           ]
         }
@@ -64,28 +70,57 @@ describe('GenererPlanActionCommandHandler', () => {
     }
   }
 
-  beforeEach(() => {
-    jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
-    planActionService = stubClass(PlanAction.Service)
-    evenementService = stubClass(EvenementService)
-    handler = new GenererPlanActionCommandHandler(
+  function uneSolution(): ReferentielPlanAction.Solution {
+    return {
+      id: 'p-1',
+      besoin: Questionnaire.Besoin.ALTERNANCE,
+      type: ReferentielPlanAction.TypeSolution.CONSEIL,
+      libelle: 'Je fais une action',
+      situations: [],
+      authentifications: [],
+      territoires: []
+    }
+  }
+
+  function construireHandler(
+    configService: ConfigService
+  ): GenererPlanActionCommandHandler {
+    return new GenererPlanActionCommandHandler(
       jeuneAuthorizer,
       jeuneInviteAuthorizer,
-      planActionService,
+      referentielRepository,
+      planActionRepository,
+      planActionFactory,
       evenementService,
-      testConfig()
+      configService
     )
+  }
+
+  beforeEach(() => {
+    const sandbox = createSandbox()
+    jeuneAuthorizer = stubClass(JeuneAuthorizer)
+    jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
+    referentielRepository = stubInterface(sandbox)
+    planActionRepository = stubInterface(sandbox)
+    planActionFactory = stubClass(PlanAction.Factory)
+    evenementService = stubClass(EvenementService)
+    command = {
+      idJeune: utilisateur.id,
+      situation: Questionnaire.Situation.LYCEE,
+      besoins: [Questionnaire.Besoin.ALTERNANCE],
+      contraintes: []
+    }
+
+    referentielRepository.trouverSolutionsActives.resolves([uneSolution()])
+    planActionFactory.creer.returns(unPlan())
+
+    handler = construireHandler(testConfig())
   })
 
   describe('authorize', () => {
     it("refuse aussi bien un invité qu'un bénéficiaire accompagné quand le mode app jeune est désactivé", async () => {
       // Given
-      const handlerDesactive = new GenererPlanActionCommandHandler(
-        jeuneAuthorizer,
-        jeuneInviteAuthorizer,
-        planActionService,
-        evenementService,
+      const handlerDesactive = construireHandler(
         new ConfigService({ appJeuneActif: false })
       )
 
@@ -139,31 +174,89 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('handle', () => {
-    it('appelle le service avec le questionnaire traduit et renvoie le plan traduit', async () => {
-      // Given
-      planActionService.genererPlan.resolves(unPlan())
-
+    it('construit le plan à partir du questionnaire traduit et du référentiel actif, et renvoie le query model', async () => {
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
-      expect(planActionService.genererPlan).to.have.been.calledWithExactly({
-        structure: Profil.Structure.INVITE,
-        situation: Questionnaire.Situation.LYCEE,
-        besoins: [Questionnaire.Besoin.ALTERNANCE],
-        contraintes: []
-      })
+      expect(planActionFactory.creer).to.have.been.calledWithExactly(
+        command.idJeune,
+        {
+          structure: Profil.Structure.INVITE,
+          situation: Questionnaire.Situation.LYCEE,
+          besoins: [Questionnaire.Besoin.ALTERNANCE],
+          contraintes: []
+        },
+        [uneSolution()]
+      )
       expect(result).to.deep.equal(
         success({
           id: 'plan-1',
           objectives: [
             {
-              id: 'objective-1',
+              id: 'objectif-1',
               titre: 'Trouver une alternance',
               theme: 'ALTERNANCE',
               actions: [
                 {
-                  id: 'p-1',
+                  id: 'tache-1',
+                  libelle: 'Je fais une action',
+                  type: TypeActionPlan.CONSEIL
+                }
+              ]
+            }
+          ]
+        })
+      )
+    })
+
+    it('réduit les contraintes à RIEN_NE_ME_BLOQUE quand il est coché avec une autre', async () => {
+      // When
+      await handler.handle(
+        {
+          ...command,
+          contraintes: [
+            Questionnaire.Contrainte.SANTE,
+            Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+          ]
+        },
+        utilisateur
+      )
+
+      // Then
+      expect(
+        planActionFactory.creer.firstCall.args[1].contraintes
+      ).to.deep.equal([Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE])
+    })
+
+    it('sauvegarde le plan pour un bénéficiaire accompagné', async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+
+      // When
+      await handler.handle(command, jeuneMilo)
+
+      // Then
+      expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
+    })
+
+    it("ne sauvegarde pas le plan d'un invité mais le renvoie tout de même", async () => {
+      // When
+      const result = await handler.handle(command, utilisateur)
+
+      // Then
+      expect(planActionRepository.save).not.to.have.been.called()
+      expect(result).to.deep.equal(
+        success({
+          id: 'plan-1',
+          objectives: [
+            {
+              id: 'objectif-1',
+              titre: 'Trouver une alternance',
+              theme: 'ALTERNANCE',
+              actions: [
+                {
+                  id: 'tache-1',
                   libelle: 'Je fais une action',
                   type: TypeActionPlan.CONSEIL
                 }
@@ -189,7 +282,7 @@ describe('GenererPlanActionCommandHandler', () => {
   })
 
   describe('execute — autorisation refusée', () => {
-    it("n'appelle pas le service quand l'invité n'est pas autorisé", async () => {
+    it("ne construit pas de plan quand l'invité n'est pas autorisé", async () => {
       // Given
       jeuneInviteAuthorizer.autoriserLInvite.resolves(
         failure(new DroitsInsuffisants())
@@ -200,7 +293,7 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-      expect(planActionService.genererPlan).not.to.have.been.called()
+      expect(planActionFactory.creer).not.to.have.been.called()
     })
   })
 
@@ -210,7 +303,6 @@ describe('GenererPlanActionCommandHandler', () => {
     beforeEach(() => {
       logInfo = sinon.stub(rootLogger, 'info')
       jeuneInviteAuthorizer.autoriserLInvite.resolves(emptySuccess())
-      planActionService.genererPlan.resolves(unPlan())
     })
 
     afterEach(() => {
@@ -219,7 +311,14 @@ describe('GenererPlanActionCommandHandler', () => {
 
     it('trace les choix du jeune', async () => {
       // When
-      await handler.execute(command, utilisateur)
+      await handler.execute(
+        {
+          ...command,
+          contraintes: [Questionnaire.Contrainte.SANTE],
+          domaineProfessionnelVise: 'informatique'
+        },
+        utilisateur
+      )
 
       // Then
       expect(logInfo).to.have.been.calledWithMatch({
@@ -227,7 +326,9 @@ describe('GenererPlanActionCommandHandler', () => {
         event: { action: 'handler_executed', outcome: 'success' },
         labels: {
           plan_action_situation: Questionnaire.Situation.LYCEE,
-          plan_action_goals: [Questionnaire.Besoin.ALTERNANCE]
+          plan_action_goals: [Questionnaire.Besoin.ALTERNANCE],
+          plan_action_obstacles: [Questionnaire.Contrainte.SANTE],
+          plan_action_domain: 'informatique'
         }
       })
     })

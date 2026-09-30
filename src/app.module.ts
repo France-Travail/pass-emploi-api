@@ -145,6 +145,7 @@ import { UpdateUtilisateurCommandHandler } from './application/commands/update-u
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
+import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPopulationsForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-populations-for-analytics.job'
@@ -344,7 +345,10 @@ import {
   SuggestionsPoleEmploiRepositoryToken,
   SuggestionsRepositoryToken
 } from './domain/offre/recherche/suggestion/suggestion'
-import { PlanAction } from './domain/plan-action/plan-action'
+import {
+  PlanAction,
+  PlanActionRepositoryToken
+} from './domain/plan-action/plan-action'
 import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
 import {
   PlanificateurRepositoryToken,
@@ -382,6 +386,7 @@ import {
 } from './infrastructure/clients/pole-emploi-partenaire-client.db'
 import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
+import { PlanActionSqlRepository } from './infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { ReferentielPlanActionSqlRepository } from './infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
@@ -569,10 +574,14 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     RendezVousMilo.Factory,
     ActualiteMilo.Factory,
     DiagorienteClient,
-    PlanAction.Service,
+    PlanAction.Factory,
     {
       provide: ReferentielPlanActionRepositoryToken,
       useClass: ReferentielPlanActionSqlRepository
+    },
+    {
+      provide: PlanActionRepositoryToken,
+      useClass: PlanActionSqlRepository
     },
     {
       provide: APP_GUARD,
@@ -818,6 +827,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
+    RecupererPlanActionQueryHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
