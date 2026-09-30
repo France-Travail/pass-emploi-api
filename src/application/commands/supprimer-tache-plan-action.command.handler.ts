@@ -17,6 +17,7 @@ import {
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
+import { DateService } from '../../utils/date-service'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 
 export interface SupprimerTachePlanActionCommand extends Command {
@@ -35,6 +36,7 @@ export class SupprimerTachePlanActionCommandHandler extends CommandHandler<
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     @Inject(PlanActionRepositoryToken)
     private readonly planActionRepository: PlanAction.Repository,
+    private readonly dateService: DateService,
     private readonly configService: ConfigService
   ) {
     super('SupprimerTachePlanActionCommandHandler')
@@ -60,7 +62,10 @@ export class SupprimerTachePlanActionCommandHandler extends CommandHandler<
       return failure(new NonTrouveError('TachePlanAction', command.idTache))
     }
 
-    await this.planActionRepository.supprimerTache(tache.id)
+    await this.planActionRepository.supprimerTache(
+      tache.id,
+      this.dateService.now()
+    )
 
     return emptySuccess()
   }

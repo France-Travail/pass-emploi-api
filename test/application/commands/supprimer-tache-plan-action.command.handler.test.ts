@@ -12,6 +12,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
+import { DateService } from '../../../src/utils/date-service'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
@@ -20,8 +21,10 @@ import { testConfig } from '../../utils/module-for-testing'
 describe('SupprimerTachePlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let planActionRepository: StubbedType<PlanAction.Repository>
+  let dateService: StubbedClass<DateService>
   let handler: SupprimerTachePlanActionCommandHandler
 
+  const maintenant = uneDatetime().plus({ days: 2 })
   const utilisateur = unUtilisateurJeune()
   const idTache = '11111111-1111-1111-1111-111111111111'
   const command = { idJeune: utilisateur.id, idTache }
@@ -30,9 +33,12 @@ describe('SupprimerTachePlanActionCommandHandler', () => {
     const sandbox = createSandbox()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
     planActionRepository = stubInterface(sandbox)
+    dateService = stubClass(DateService)
+    dateService.now.returns(maintenant)
     handler = new SupprimerTachePlanActionCommandHandler(
       jeuneAuthorizer,
       planActionRepository,
+      dateService,
       testConfig()
     )
   })
@@ -47,6 +53,7 @@ describe('SupprimerTachePlanActionCommandHandler', () => {
       const handlerDesactive = new SupprimerTachePlanActionCommandHandler(
         jeuneAuthorizer,
         planActionRepository,
+        dateService,
         new ConfigService({ appJeuneActif: false })
       )
 
@@ -72,7 +79,7 @@ describe('SupprimerTachePlanActionCommandHandler', () => {
   })
 
   describe('handle', () => {
-    it('supprime la tâche du plan du jeune', async () => {
+    it('marque la tâche du plan du jeune comme supprimée à la date du jour', async () => {
       // Given
       planActionRepository.getTache.withArgs(utilisateur.id, idTache).resolves({
         id: idTache,
@@ -88,7 +95,7 @@ describe('SupprimerTachePlanActionCommandHandler', () => {
       expect(result).to.deep.equal(emptySuccess())
       expect(
         planActionRepository.supprimerTache
-      ).to.have.been.calledWithExactly(idTache)
+      ).to.have.been.calledWithExactly(idTache, maintenant)
     })
 
     it("échoue quand la tâche n'appartient pas au plan du jeune", async () => {

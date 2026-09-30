@@ -45,7 +45,8 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
             idSolution: tache.idSolution,
             terminee: tache.terminee,
             dateCreation: tache.dateCreation.toJSDate(),
-            dateTerminee: tache.dateTerminee?.toJSDate() ?? null
+            dateTerminee: tache.dateTerminee?.toJSDate() ?? null,
+            dateSuppression: tache.dateSuppression?.toJSDate() ?? null
           }))
         ),
         { transaction }
@@ -89,7 +90,7 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
     idTache: string
   ): Promise<PlanAction.Tache | undefined> {
     const tacheSql = await PlanActionTacheSqlModel.findOne({
-      where: { id: idTache },
+      where: { id: idTache, dateSuppression: null },
       include: [
         {
           model: PlanActionObjectifSqlModel,
@@ -119,8 +120,14 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
     )
   }
 
-  async supprimerTache(idTache: string): Promise<void> {
-    await PlanActionTacheSqlModel.destroy({ where: { id: idTache } })
+  async supprimerTache(
+    idTache: string,
+    dateSuppression: DateTime
+  ): Promise<void> {
+    await PlanActionTacheSqlModel.update(
+      { dateSuppression: dateSuppression.toJSDate() },
+      { where: { id: idTache } }
+    )
   }
 }
 
@@ -132,6 +139,9 @@ function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {
     dateCreation: DateTime.fromJSDate(tacheSql.dateCreation),
     ...(tacheSql.dateTerminee
       ? { dateTerminee: DateTime.fromJSDate(tacheSql.dateTerminee) }
+      : {}),
+    ...(tacheSql.dateSuppression
+      ? { dateSuppression: DateTime.fromJSDate(tacheSql.dateSuppression) }
       : {})
   }
 }

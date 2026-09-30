@@ -104,6 +104,28 @@ describe('PlanActionSqlRepository', () => {
       expect(tacheSql!.terminee).to.equal(false)
     })
 
+    it("persiste la date de suppression d'une tâche reprise d'un plan précédent", async () => {
+      // Given
+      await insererSolution('p-2')
+      const dateSuppression = maintenant.minus({ days: 1 })
+      const plan = unPlan()
+      plan.objectifs[0].taches[0] = {
+        ...plan.objectifs[0].taches[0],
+        dateSuppression
+      }
+
+      // When
+      await planActionSqlRepository.save(plan)
+
+      // Then
+      const tacheSql = await PlanActionTacheSqlModel.findByPk(
+        '11111111-1111-1111-1111-111111111111'
+      )
+      expect(tacheSql!.dateSuppression).to.deep.equal(
+        dateSuppression.toJSDate()
+      )
+    })
+
     it("n'écrit rien dans le référentiel", async () => {
       // Given
       await insererSolution('p-2')
@@ -166,6 +188,29 @@ describe('PlanActionSqlRepository', () => {
         idSolution: 'p-2',
         terminee: false,
         dateCreation: maintenant
+      })
+    })
+
+    it('rend les tâches supprimées avec leur date de suppression', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+      const dateSuppression = maintenant.plus({ days: 1 })
+      await planActionSqlRepository.supprimerTache(
+        '11111111-1111-1111-1111-111111111111',
+        dateSuppression
+      )
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan!.objectifs[0].taches[0]).to.deep.equal({
+        id: '11111111-1111-1111-1111-111111111111',
+        idSolution: 'p-2',
+        terminee: false,
+        dateCreation: maintenant,
+        dateSuppression
       })
     })
 
@@ -259,6 +304,19 @@ describe('PlanActionSqlRepository', () => {
       })
     })
 
+    it('rend undefined quand la tâche est supprimée', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+      await planActionSqlRepository.supprimerTache(idTache, maintenant)
+
+      // When
+      const tache = await planActionSqlRepository.getTache('jeune-1', idTache)
+
+      // Then
+      expect(tache).to.equal(undefined)
+    })
+
     it("rend undefined quand la tâche appartient au plan d'un autre jeune", async () => {
       // Given
       await insererSolution('p-2')
@@ -329,19 +387,25 @@ describe('PlanActionSqlRepository', () => {
   })
 
   describe('supprimerTache', () => {
-    it('supprime la tâche', async () => {
+    it('conserve la tâche en la datant comme supprimée', async () => {
       // Given
       await insererSolution('p-2')
       await planActionSqlRepository.save(unPlan())
+      const dateSuppression = maintenant.plus({ days: 1 })
 
       // When
       await planActionSqlRepository.supprimerTache(
-        '11111111-1111-1111-1111-111111111111'
+        '11111111-1111-1111-1111-111111111111',
+        dateSuppression
       )
 
       // Then
-      const nbTaches = await PlanActionTacheSqlModel.count()
-      expect(nbTaches).to.equal(0)
+      const tacheSql = await PlanActionTacheSqlModel.findByPk(
+        '11111111-1111-1111-1111-111111111111'
+      )
+      expect(tacheSql!.dateSuppression).to.deep.equal(
+        dateSuppression.toJSDate()
+      )
     })
   })
 })

@@ -79,6 +79,21 @@ describe('toPlanActionQueryModel', () => {
     expect(queryModel.objectives[0].actions[0].terminee).to.equal(true)
   })
 
+  it("n'expose pas une tâche supprimée, ni son objectif s'il se vide", () => {
+    // Given
+    const plan = unPlan()
+    plan.objectifs[0].taches[0] = {
+      ...plan.objectifs[0].taches[0],
+      dateSuppression: maintenant
+    }
+
+    // When
+    const queryModel = toPlanActionQueryModel(plan, [uneSolution('p-2')])
+
+    // Then
+    expect(queryModel.objectives).to.deep.equal([])
+  })
+
   it('écarte un objectif dont toutes les solutions ont disparu du référentiel', () => {
     // When
     const queryModel = toPlanActionQueryModel(unPlan(), [])

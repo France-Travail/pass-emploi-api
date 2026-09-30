@@ -397,5 +397,148 @@ describe('PlanAction', () => {
       // Then
       expect(plan.objectifs).to.have.length(1)
     })
+
+    describe('avec un plan précédent', () => {
+      const dateCreationPrecedente = maintenant.minus({ days: 10 })
+      const dateTermineePrecedente = maintenant.minus({ days: 5 })
+      const dateSuppressionPrecedente = maintenant.minus({ days: 3 })
+
+      function unPlanPrecedent(objectifs: PlanAction.Objectif[]): PlanAction {
+        return {
+          id: 'plan-precedent',
+          idJeune: 'jeune-1',
+          dateCreation: dateCreationPrecedente,
+          objectifs
+        }
+      }
+
+      function uneTachePrecedente(
+        override: Partial<PlanAction.Tache> = {}
+      ): PlanAction.Tache {
+        return {
+          id: 'tache-precedente',
+          idSolution: 'alternance-1',
+          terminee: false,
+          dateCreation: dateCreationPrecedente,
+          ...override
+        }
+      }
+
+      it("reprend l'état d'une tâche de même solution sous un objectif de même thème, avec un nouvel identifiant", () => {
+        // Given
+        const planPrecedent = unPlanPrecedent([
+          {
+            id: 'objectif-precedent',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              uneTachePrecedente({
+                terminee: true,
+                dateTerminee: dateTermineePrecedente
+              })
+            ]
+          }
+        ])
+
+        // When
+        const plan = factory.creer(
+          'jeune-1',
+          unQuestionnaire(),
+          [uneSolution({ id: 'alternance-1' })],
+          planPrecedent
+        )
+
+        // Then
+        expect(plan.objectifs[0].taches).to.deep.equal([
+          {
+            id: 'uuid-2',
+            idSolution: 'alternance-1',
+            terminee: true,
+            dateCreation: dateCreationPrecedente,
+            dateTerminee: dateTermineePrecedente
+          }
+        ])
+      })
+
+      it("garde supprimée une tâche supprimée d'un objectif toujours présent, et y ajoute les nouvelles solutions éligibles", () => {
+        // Given
+        const planPrecedent = unPlanPrecedent([
+          {
+            id: 'objectif-precedent',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              uneTachePrecedente({
+                dateSuppression: dateSuppressionPrecedente
+              })
+            ]
+          }
+        ])
+
+        // When
+        const plan = factory.creer(
+          'jeune-1',
+          unQuestionnaire(),
+          [
+            uneSolution({ id: 'alternance-1' }),
+            uneSolution({ id: 'alternance-nouvelle' })
+          ],
+          planPrecedent
+        )
+
+        // Then
+        expect(plan.objectifs[0].taches).to.deep.equal([
+          {
+            id: 'uuid-2',
+            idSolution: 'alternance-1',
+            terminee: false,
+            dateCreation: dateCreationPrecedente,
+            dateSuppression: dateSuppressionPrecedente
+          },
+          {
+            id: 'uuid-3',
+            idSolution: 'alternance-nouvelle',
+            terminee: false,
+            dateCreation: maintenant
+          }
+        ])
+      })
+
+      it("ne reprend pas l'état d'une tâche de même solution rattachée à un autre thème", () => {
+        // Given
+        const planPrecedent = unPlanPrecedent([
+          {
+            id: 'objectif-precedent',
+            titre: 'Trouver un emploi',
+            theme: Questionnaire.Besoin.EMPLOI,
+            taches: [
+              uneTachePrecedente({
+                terminee: true,
+                dateTerminee: dateTermineePrecedente,
+                dateSuppression: dateSuppressionPrecedente
+              })
+            ]
+          }
+        ])
+
+        // When
+        const plan = factory.creer(
+          'jeune-1',
+          unQuestionnaire(),
+          [uneSolution({ id: 'alternance-1' })],
+          planPrecedent
+        )
+
+        // Then
+        expect(plan.objectifs[0].taches).to.deep.equal([
+          {
+            id: 'uuid-2',
+            idSolution: 'alternance-1',
+            terminee: false,
+            dateCreation: maintenant
+          }
+        ])
+      })
+    })
   })
 })

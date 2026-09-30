@@ -187,7 +187,8 @@ describe('GenererPlanActionCommandHandler', () => {
           besoins: [Questionnaire.Besoin.ALTERNANCE],
           contraintes: []
         },
-        [uneSolution()]
+        [uneSolution()],
+        undefined
       )
       expect(result).to.deep.equal(
         success({
@@ -241,11 +242,29 @@ describe('GenererPlanActionCommandHandler', () => {
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
     })
 
+    it("construit le plan d'un bénéficiaire accompagné à partir de son dernier plan", async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const planPrecedent = { ...unPlan(), id: 'plan-precedent' }
+      planActionRepository.getDernierPlan
+        .withArgs(command.idJeune)
+        .resolves(planPrecedent)
+
+      // When
+      await handler.handle(command, jeuneMilo)
+
+      // Then
+      expect(planActionFactory.creer.firstCall.args[3]).to.deep.equal(
+        planPrecedent
+      )
+    })
+
     it("ne sauvegarde pas le plan d'un invité mais le renvoie tout de même", async () => {
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
+      expect(planActionRepository.getDernierPlan).not.to.have.been.called()
       expect(planActionRepository.save).not.to.have.been.called()
       expect(result).to.deep.equal(
         success({

@@ -32,6 +32,7 @@ export namespace PlanAction {
     terminee: boolean
     dateCreation: DateTime
     dateTerminee?: DateTime
+    dateSuppression?: DateTime
   }
 
   export interface Repository {
@@ -43,7 +44,7 @@ export namespace PlanAction {
 
     saveTache(tache: Tache): Promise<void>
 
-    supprimerTache(idTache: string): Promise<void>
+    supprimerTache(idTache: string, dateSuppression: DateTime): Promise<void>
   }
 
   export function changerStatutTache(
@@ -182,7 +183,8 @@ export namespace PlanAction {
     creer(
       idJeune: string,
       questionnaire: Questionnaire,
-      referentiel: ReferentielPlanAction.Solution[]
+      referentiel: ReferentielPlanAction.Solution[],
+      planPrecedent?: PlanAction
     ): PlanAction {
       const maintenant = this.dateService.now()
       // L'identifiant du plan est tiré avant ceux des objectifs et des tâches
@@ -212,17 +214,29 @@ export namespace PlanAction {
 
       const objectifs = themes
         .filter(({ solutions }) => solutions.length > 0)
-        .map(({ theme, titre, solutions }) => ({
-          id: this.idService.uuid(),
-          titre,
-          theme,
-          taches: solutions.map(solution => ({
+        .map(({ theme, titre, solutions }) => {
+          const tachesPrecedentes =
+            planPrecedent?.objectifs.find(objectif => objectif.theme === theme)
+              ?.taches ?? []
+          return {
             id: this.idService.uuid(),
-            idSolution: solution.id,
-            terminee: false,
-            dateCreation: maintenant
-          }))
-        }))
+            titre,
+            theme,
+            taches: solutions.map(solution => {
+              const tachePrecedente = tachesPrecedentes.find(
+                tache => tache.idSolution === solution.id
+              )
+              return tachePrecedente
+                ? { ...tachePrecedente, id: this.idService.uuid() }
+                : {
+                    id: this.idService.uuid(),
+                    idSolution: solution.id,
+                    terminee: false,
+                    dateCreation: maintenant
+                  }
+            })
+          }
+        })
 
       return { id, idJeune, dateCreation: maintenant, objectifs }
     }

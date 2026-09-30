@@ -85,14 +85,20 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     const referentiel =
       await this.referentielRepository.trouverSolutionsActives()
 
+    // L'invité n'a pas de compte : son plan vit dans l'app, pas en base
+    const planPersiste = !estInvite(utilisateur.profil.structure)
+    const planPrecedent = planPersiste
+      ? await this.planActionRepository.getDernierPlan(command.idJeune)
+      : undefined
+
     const plan = this.planActionFactory.creer(
       command.idJeune,
       questionnaire,
-      referentiel
+      referentiel,
+      planPrecedent
     )
 
-    // L'invité n'a pas de compte : son plan vit dans l'app, pas en base
-    if (!estInvite(utilisateur.profil.structure)) {
+    if (planPersiste) {
       await this.planActionRepository.save(plan)
     }
 
