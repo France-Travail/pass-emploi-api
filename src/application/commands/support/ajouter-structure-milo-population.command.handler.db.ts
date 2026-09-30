@@ -11,19 +11,17 @@ import {
   Population,
   PopulationRepositoryToken
 } from '../../../domain/population'
-import { Profil } from '../../../domain/profil'
 import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
 import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/structure-milo.sql-model'
 
-export interface AjouterStructureMiloPopulationCommand extends Command {
+export interface StructureMiloPopulationCommand extends Command {
   idPopulation: string
   idStructureMilo: string
-  dispositifs?: Profil.Dispositif[]
 }
 
 @Injectable()
 export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler<
-  AjouterStructureMiloPopulationCommand,
+  StructureMiloPopulationCommand,
   void
 > {
   constructor(
@@ -41,10 +39,8 @@ export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler
     return
   }
 
-  // Une structure MiLo cible ses conseillers, et leurs jeunes par leur conseiller de référence. Rejouer remplace la liste de dispositifs ; absente, toute la structure est visée ; renseignée, elle ne vise personne, un conseiller MiLo n'ayant pas de dispositif.
-  async handle(
-    command: AjouterStructureMiloPopulationCommand
-  ): Promise<Result> {
+  // Une structure MiLo cible ses conseillers, et leurs jeunes par leur conseiller de référence. Doublon ignoré.
+  async handle(command: StructureMiloPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
@@ -54,10 +50,11 @@ export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler
       )
     }
 
-    await PopulationStructureMiloSqlModel.upsert({
-      idPopulation: command.idPopulation,
-      idStructureMilo: command.idStructureMilo,
-      dispositifs: command.dispositifs ?? null
+    await PopulationStructureMiloSqlModel.findOrCreate({
+      where: {
+        idPopulation: command.idPopulation,
+        idStructureMilo: command.idStructureMilo
+      }
     })
     return emptySuccess()
   }

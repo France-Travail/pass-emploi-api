@@ -67,7 +67,7 @@ const JOIN_LIEU_CONSEILLER = `
  * @see docs/ANALYTICS.md#0bis-charger-les-populationsjobts
  * @analytics.trigger ajouterJob depuis DUMP_ANALYTICS, ou TASK_NAME=CHARGER_POPULATIONS_ANALYTICS
  * @analytics.after DUMP_ANALYTICS
- * @analytics.tables_in population, population_conseiller, population_profil, communication, communication_envoi, deploiement, conseiller, jeune
+ * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, communication, communication_envoi, deploiement, conseiller, jeune
  * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires, analytics_deploiement_membres
  */
 @Injectable()

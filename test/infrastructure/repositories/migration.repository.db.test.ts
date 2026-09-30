@@ -258,35 +258,6 @@ describe('MigrationSqlRepository', () => {
       expect(aijAutreAgence).to.be.undefined()
     })
 
-    it('ne cible pas un conseiller MiLo quand la structure est restreinte à des dispositifs, un conseiller MiLo n’en portant pas', async () => {
-      // Given
-      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
-      await ConseillerSqlModel.update(
-        { idStructureMilo: 'SM1' },
-        { where: { id: 'conseillerHorsMigration' } }
-      )
-      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
-      await PopulationStructureMiloSqlModel.create({
-        idPopulation: 'PHASE_ETAB',
-        idStructureMilo: 'SM1',
-        dispositifs: [Profil.Dispositif.PACEA]
-      })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'PHASE_ETAB',
-        idFonctionnalite: null,
-        dateActivation: DATE_PHASE_ETAB.toJSDate()
-      })
-
-      // When
-      const date = await repo.getDateDeMigrationDuConseiller(
-        'conseillerHorsMigration'
-      )
-
-      // Then
-      expect(date).to.be.undefined()
-    })
-
     it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
       // Given
       await PopulationConseillerSqlModel.create({

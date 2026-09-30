@@ -65,7 +65,6 @@ import {
   CreerPopulationPayload,
   AgenceFTPopulationPayload,
   AjouterAgenceFTPopulationPayload,
-  AjouterStructureMiloPopulationPayload,
   ModifierDateDeploiementPayload,
   ProfilPopulationPayload,
   StructureMiloPopulationPayload,
@@ -360,9 +359,9 @@ Rejouer avec un id existant met à jour la description sans toucher aux cibles.`
   @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute un profil structure × dispositif à une population',
-    description: `Sans dispositif, le profil couvre toute la structure. Le profil se lit sur chaque utilisateur : un jeune FT / CEJ est ciblé par \`(FRANCE_TRAVAIL, CEJ)\` quel que soit son conseiller.
+    description: `Sans dispositif, le profil couvre toute la structure. Le profil se lit sur le conseiller, jamais sur le jeune : \`(FRANCE_TRAVAIL, CEJ)\` vise les conseillers FT / CEJ et tout leur portefeuille, quel que soit le dispositif de chaque jeune.
 
-Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes PACEA mais aucun conseiller MiLo, viser \`(MILO)\` pour les toucher. Doublon ignoré.`
+Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` ou \`(MILO, CEJ)\` ne vise personne, viser \`(MILO)\`. Doublon ignoré.`
   })
   @ApiBody({
     type: ProfilPopulationPayload,
@@ -446,30 +445,21 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` vise les jeunes P
   @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Ajoute une structure MiLo à une population',
-    description: `Cible les conseillers rattachés à cette structure et les jeunes dont le conseiller de référence y est rattaché. Une seule ligne par structure : rejouer remplace la liste de dispositifs.
+    description: `Cible les conseillers rattachés à cette structure et les jeunes dont le conseiller de référence y est rattaché. Doublon ignoré.
 
-Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux, et leurs jeunes, sont visés. Un conseiller MiLo n’a pas de dispositif : pour viser une mission locale, laisser le champ absent.`
+Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
   })
   @ApiBody({
-    type: AjouterStructureMiloPopulationPayload,
+    type: StructureMiloPopulationPayload,
     examples: {
       missionLocale: {
-        summary: 'Toute la mission locale',
         value: { idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' }
-      },
-      missionLocalePacea: {
-        summary: 'Les jeunes CEJ et PACEA de la mission locale',
-        value: {
-          idPopulation: 'PILOTE_1J1S',
-          idStructureMilo: '80620S00',
-          dispositifs: ['CEJ', 'PACEA']
-        }
       }
     }
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Ajoutée, ou liste de dispositifs remplacée'
+    description: 'Ajoutée ou déjà présente'
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -478,14 +468,13 @@ Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux, et leurs
   @Post('populations/structures-milo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async ajouterStructureMiloPopulation(
-    @Body() payload: AjouterStructureMiloPopulationPayload
+    @Body() payload: StructureMiloPopulationPayload
   ): Promise<void> {
     const result =
       await this.ajouterStructureMiloPopulationCommandHandler.execute(
         {
           idPopulation: payload.idPopulation,
-          idStructureMilo: payload.idStructureMilo,
-          dispositifs: payload.dispositifs
+          idStructureMilo: payload.idStructureMilo
         },
         Authentification.unUtilisateurSupport()
       )
@@ -496,8 +485,7 @@ Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux, et leurs
   @ApiTags('Support - Populations')
   @ApiOperation({
     summary: 'Retire une structure MiLo d’une population',
-    description:
-      'Retire la structure quels que soient ses dispositifs. Pour n’en retirer qu’un, rejouer l’ajout avec la liste réduite.'
+    description: 'Même corps que l’ajout.'
   })
   @ApiBody({
     type: StructureMiloPopulationPayload,

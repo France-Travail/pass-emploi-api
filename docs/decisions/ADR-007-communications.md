@@ -17,7 +17,7 @@ le back envoie titre et contenu, le front affiche.
    Une campagne s'écrit une fois par population, quels que soient les
    déploiements qui la visent. L'appartenance à la population se lit avec les
    mêmes règles que pour les déploiements (`sqlConseillerDansPopulation`,
-   `sqlJeuneDansPopulation`, ADR-006 § Règles).
+   appliqué au conseiller de référence pour un jeune, ADR-006 § Règles).
 2. **Deux énumérations et rien d'autre.** `destinataire` (`JEUNE` |
    `CONSEILLER`) dit à qui, `type` (`IN_APP` | `NOTIFICATION`) dit comment. Le
    reste est du contenu.
@@ -133,7 +133,7 @@ Sous `X-API-KEY` support, dans le même groupe Swagger que les populations.
 | Route | Retour |
 |---|---|
 | `GET /conseillers/:id/communications` | 200 `{ messageInformatif?: { id, titre, contenu } }`. La communication `CONSEILLER` × `IN_APP` visible maintenant dont `date_fin` est la plus proche ; `messageInformatif` absent s'il n'y en a pas. Autorisation : le conseiller lui-même, `DISPOSITIFS_ACCOMPAGNES`. |
-| `GET /jeunes/:id/communications` | 200 `{ messageInformatif?: { id, titre, contenu, cta?: { label, urlAndroid, urlIos } } }`. Même lecture côté jeune (`JEUNE` × `IN_APP`, `sqlJeuneDansPopulation`) ; `cta` absent si la communication n'en a pas. Autorisation : le jeune lui-même, tous profils sauf invité. |
+| `GET /jeunes/:id/communications` | 200 `{ messageInformatif?: { id, titre, contenu, cta?: { label, urlAndroid, urlIos } } }`. Même lecture côté jeune (`JEUNE` × `IN_APP`, `sqlConseillerDansPopulation` sur le conseiller de référence) ; `cta` absent si la communication n'en a pas. Autorisation : le jeune lui-même, tous profils sauf invité. |
 | `GET /conseillers/:id` | `dateDeMigration` inchangé (l'app mobile et l'accueil FT s'en servent encore). Le web ne le lit plus. |
 
 ## Scénario

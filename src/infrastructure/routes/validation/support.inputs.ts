@@ -265,22 +265,6 @@ export class StructureMiloPopulationPayload {
   idStructureMilo: string
 }
 
-export class AjouterStructureMiloPopulationPayload extends StructureMiloPopulationPayload {
-  @ApiPropertyOptional({
-    enum: Profil.Dispositif,
-    isArray: true,
-    description:
-      'Restreint la cible aux jeunes qui portent l’un de ces dispositifs. Absent = toute la structure. Un conseiller MiLo n’a pas de dispositif : renseignée, la liste ne vise aucun conseiller.',
-    example: ['CEJ', 'PACEA']
-  })
-  @IsOptional()
-  @IsArray()
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  @IsEnum(Profil.Dispositif, { each: true })
-  dispositifs?: Profil.Dispositif[]
-}
-
 export class AgenceFTPopulationPayload {
   @ApiProperty({
     description: "Identifiant d'une population existante",
@@ -304,7 +288,7 @@ export class AjouterAgenceFTPopulationPayload extends AgenceFTPopulationPayload 
     enum: Profil.Dispositif,
     isArray: true,
     description:
-      'Restreint la cible aux utilisateurs qui portent eux-mêmes l’un de ces dispositifs. Absent = toute l’agence.',
+      'Restreint la cible aux conseillers qui portent l’un de ces dispositifs, et à leurs jeunes. Absent = toute l’agence.',
     example: ['CEJ', 'AIJ']
   })
   @IsOptional()

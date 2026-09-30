@@ -310,28 +310,6 @@ describe('Populations : handlers support', () => {
       expect(rows.map(r => r.idStructureMilo)).to.deep.equal(['SM1'])
     })
 
-    it('remplace la liste de dispositifs en rejouant, sur une seule ligne par structure', async () => {
-      // When
-      await handler.handle({ idPopulation: 'PILOTE', idStructureMilo: 'SM1' })
-      const apresAjout = await PopulationStructureMiloSqlModel.findAll()
-      const result = await handler.handle({
-        idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1',
-        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
-      })
-      const apresRestriction = await PopulationStructureMiloSqlModel.findAll()
-      await handler.handle({ idPopulation: 'PILOTE', idStructureMilo: 'SM1' })
-      const apresRetourATous = await PopulationStructureMiloSqlModel.findAll()
-
-      // Then
-      expect(result._isSuccess).to.equal(true)
-      expect(apresAjout.map(r => r.dispositifs)).to.deep.equal([null])
-      expect(apresRestriction.map(r => r.dispositifs)).to.deep.equal([
-        [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
-      ])
-      expect(apresRetourATous.map(r => r.dispositifs)).to.deep.equal([null])
-    })
-
     it("échoue quand la structure MiLo n'existe pas", async () => {
       // When
       const result = await handler.handle({
@@ -370,26 +348,6 @@ describe('Populations : handlers support', () => {
       await PopulationStructureMiloSqlModel.create({
         idPopulation: 'PILOTE',
         idStructureMilo: 'SM1'
-      })
-
-      // When
-      const result = await handler.handle({
-        idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1'
-      })
-
-      // Then
-      expect(result._isSuccess).to.equal(true)
-      expect(await PopulationStructureMiloSqlModel.count()).to.equal(0)
-    })
-
-    it('retire la structure avec ses dispositifs', async () => {
-      // Given
-      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
-      await PopulationStructureMiloSqlModel.create({
-        idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1',
-        dispositifs: [Profil.Dispositif.PACEA]
       })
 
       // When

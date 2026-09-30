@@ -356,6 +356,7 @@ describe('FonctionnaliteSqlRepository', () => {
         unConseillerDto({
           id: 'conseillerAgence',
           structure: Core.Structure.POLE_EMPLOI,
+          dispositif: Profil.Dispositif.AIJ,
           idAgence: 'AG1',
           email: 'agence@ft.fr'
         })
@@ -387,49 +388,6 @@ describe('FonctionnaliteSqlRepository', () => {
 
       // Then
       expect(ids).to.deep.equal(['QCM'])
-    })
-
-    it('ne cible aucun jeune MiLo quand la structure est restreinte à des dispositifs, un conseiller MiLo n’en portant pas', async () => {
-      // Given
-      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
-      await ConseillerSqlModel.create(
-        unConseillerDto({
-          id: 'conseillerSm1',
-          structure: Core.Structure.MILO,
-          email: 'sm1@milo.fr',
-          idStructureMilo: 'SM1'
-        })
-      )
-      await JeuneSqlModel.create(
-        unJeuneDto({
-          id: 'jeuneSm1Pacea',
-          idConseiller: 'conseillerSm1',
-          structure: Core.Structure.MILO,
-          idStructureMilo: 'SM1',
-          dispositif: Profil.Dispositif.PACEA
-        })
-      )
-      await PopulationSqlModel.create({ id: 'SM1_PACEA', description: null })
-      await PopulationStructureMiloSqlModel.create({
-        idPopulation: 'SM1_PACEA',
-        idStructureMilo: 'SM1',
-        dispositifs: [Profil.Dispositif.PACEA]
-      })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.FONCTIONNALITE,
-        idPopulation: 'SM1_PACEA',
-        idFonctionnalite: 'QCM',
-        dateActivation: hier
-      })
-
-      // When
-      const ids = await repo.getIdsFonctionnalitesActivesDuJeune(
-        'jeuneSm1Pacea',
-        maintenant
-      )
-
-      // Then
-      expect(ids).to.deep.equal(['PLAN_D_ACTION'])
     })
 
     it("restreint une agence FT aux dispositifs du conseiller de référence, jamais à ceux du jeune ni d'une autre agence", async () => {

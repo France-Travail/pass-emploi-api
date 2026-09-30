@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import {
@@ -8,15 +7,11 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
-
-export interface SupprimerStructureMiloPopulationCommand extends Command {
-  idPopulation: string
-  idStructureMilo: string
-}
+import { StructureMiloPopulationCommand } from './ajouter-structure-milo-population.command.handler.db'
 
 @Injectable()
 export class SupprimerStructureMiloPopulationCommandHandler extends CommandHandler<
-  SupprimerStructureMiloPopulationCommand,
+  StructureMiloPopulationCommand,
   void
 > {
   constructor() {
@@ -31,10 +26,7 @@ export class SupprimerStructureMiloPopulationCommandHandler extends CommandHandl
     return
   }
 
-  // Retire la structure de la population, quels que soient ses dispositifs.
-  async handle(
-    command: SupprimerStructureMiloPopulationCommand
-  ): Promise<Result> {
+  async handle(command: StructureMiloPopulationCommand): Promise<Result> {
     const nombreDeSuppressions = await PopulationStructureMiloSqlModel.destroy({
       where: {
         idPopulation: command.idPopulation,

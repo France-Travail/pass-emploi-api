@@ -72,8 +72,7 @@ describe('GetPopulationSupportQueryHandler', () => {
     await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
     await PopulationStructureMiloSqlModel.create({
       idPopulation: 'PILOTE_1J1S',
-      idStructureMilo: 'SM1',
-      dispositifs: [Profil.Dispositif.PACEA]
+      idStructureMilo: 'SM1'
     })
     await AgenceSqlModel.bulkCreate([
       uneAgenceDto({ id: 'AG1' }),
@@ -114,9 +113,7 @@ describe('GetPopulationSupportQueryHandler', () => {
         description: 'Beta testeurs 1J1S',
         conseillers: ['a@ft.fr', 'b@ft.fr'],
         profils: [{ structure: Profil.Structure.MILO, dispositif: undefined }],
-        structuresMilo: [
-          { idStructureMilo: 'SM1', dispositifs: [Profil.Dispositif.PACEA] }
-        ],
+        structuresMilo: ['SM1'],
         agencesFT: [
           {
             idAgence: 'AG1',
@@ -180,6 +177,8 @@ describe('GetPopulationSupportQueryHandler', () => {
         description: undefined,
         conseillers: [],
         profils: [],
+        structuresMilo: [],
+        agencesFT: [],
         deploiements: [],
         communications: [
           {

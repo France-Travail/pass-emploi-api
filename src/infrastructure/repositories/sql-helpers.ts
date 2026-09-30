@@ -46,7 +46,7 @@ function sqlProfilDansPopulation(
   )`
 }
 
-// La structure MiLo du conseiller `aliasConseiller` est citée dans la population ; `dispositifs` nul vise toute la structure, sinon le conseiller doit en porter un.
+// La structure MiLo du conseiller `aliasConseiller` est citée dans la population.
 function sqlStructureMiloDansPopulation(
   aliasConseiller: string,
   idPopulation: string
@@ -55,7 +55,6 @@ function sqlStructureMiloDansPopulation(
     SELECT 1 FROM population_structure_milo psm
     WHERE psm.id_population = ${idPopulation}
       AND psm.id_structure_milo = ${aliasConseiller}.id_structure_milo
-      AND (psm.dispositifs IS NULL OR ${aliasConseiller}.dispositif = ANY (psm.dispositifs))
   )`
 }
 

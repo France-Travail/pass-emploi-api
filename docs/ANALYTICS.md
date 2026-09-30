@@ -149,7 +149,7 @@ Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant l
 
 ### 0-dump-populations-for-analytics.job.ts
 
-Hors cron. Dump partiel des sept tables de populations (`DUMP_TABLES` dans
+Hors cron. Dump partiel des neuf tables de populations (`DUMP_TABLES` dans
 `0_db_dump_restore.sh`), puis enfile le job 0bis. Voir « Rafraîchir avant l'heure » sous
 0bis.
 
@@ -216,7 +216,7 @@ le terminal) ; suivre l'avancement dans les `SuiviJob`.
 
 | Besoin | Commande | Durée | Ce qui est rafraîchi |
 | --- | --- | --- | --- |
-| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics-populations` | secondes | les 7 tables de populations (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
+| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics-populations` | secondes | les 9 tables de populations (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
 | Tout à jour, y compris agences / structures des conseillers | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics` | > 20 min, dashboards incohérents pendant la restauration | toute la base, puis 0bis (et le job 1) enfilés |
 | Recalculer sans re-dumper (code du job changé) | `scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations` | secondes | rien : recalcul sur l'existant |
 

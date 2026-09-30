@@ -153,10 +153,7 @@ export function toPopulationSupportQueryModel(
       structure: p.structure,
       dispositif: p.dispositif ?? undefined
     })),
-    structuresMilo: structuresMilo.map(sm => ({
-      idStructureMilo: sm.idStructureMilo,
-      dispositifs: sm.dispositifs ?? undefined
-    })),
+    structuresMilo: structuresMilo.map(sm => sm.idStructureMilo),
     agencesFT: agences.map(a => ({
       idAgence: a.idAgence,
       dispositifs: a.dispositifs ?? undefined

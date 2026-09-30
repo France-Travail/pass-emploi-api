@@ -26,10 +26,10 @@ ensuite, sans toucher à ce socle.
    campagne par population, à dates absolues, indépendante des déploiements :
    « vous aurez l'app 1J1S » s'écrit une fois, pas une fois par fonctionnalité.
    Voir la section Suite.
-5. **Par email, tout part du conseiller ; par profil, chacun pour soi.** Un
-   jeune suit son conseiller de référence quand celui-ci est cité par email.
-   Un profil structure × dispositif se lit sur l'utilisateur lui-même, jeune
-   ou conseiller.
+5. **Tout part du conseiller.** Qu'il soit cité par email, par profil
+   structure × dispositif, par sa structure MiLo ou par son agence, c'est le
+   conseiller qui est dans la population, et son portefeuille le suit : un
+   jeune n'y est que par son conseiller de référence.
 
 ## Modèle
 
@@ -39,7 +39,7 @@ erDiagram
     population { string id PK  string description }
     population_conseiller { string id_population PK,FK  string email_conseiller PK }
     population_profil { int id PK  string id_population FK  string structure  string dispositif "nul = toute la structure" }
-    population_structure_milo { string id_population PK,FK  string id_structure_milo PK,FK  string[] dispositifs "nul = toute la structure MiLo" }
+    population_structure_milo { string id_population PK,FK  string id_structure_milo PK,FK }
     population_agence_ft { string id_population PK,FK  string id_agence PK,FK  string[] dispositifs "nul = toute l'agence" }
     deploiement { int id PK  string nature "FONCTIONNALITE | MIGRATION"  string id_population FK  string id_fonctionnalite FK "requis si FONCTIONNALITE, nul sinon"  timestamptz date_activation "J" }
     population ||--o{ population_conseiller : ""
@@ -70,23 +70,23 @@ son propre profil n'est jamais regardé. Un profil sans dispositif couvre toute
 la structure. « De référence » =
 `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
-**Établissement restreint à des dispositifs.** Une structure MiLo ou une agence
-FT porte une liste `dispositifs` nullable : nulle, tout l'établissement est
-ciblé ; renseignée, seuls les conseillers qui portent eux-mêmes l'un d'eux, et
-par eux leurs jeunes. D'où `(AG1, [CEJ, AIJ])` = les conseillers CEJ ou AIJ de
-AG1 et tout leur portefeuille, et jamais ceux d'une autre agence. Une seule
-ligne par établissement : rejouer l'ajout remplace la liste, retirer un
-dispositif = rejouer avec la liste réduite, et `DELETE` retire l'établissement
-entier. Ce tableau diverge volontairement de `population_profil` (une ligne par
-couple, déployée) : un profil se choisit parmi quatre structures, un
-établissement parmi des milliers, et c'est là que le support a besoin d'une
-ligne lisible par établissement.
+**Agence restreinte à des dispositifs.** Une agence FT porte une liste
+`dispositifs` nullable : nulle, toute l'agence est ciblée ; renseignée, seuls
+les conseillers qui portent eux-mêmes l'un d'eux, et par eux leurs jeunes.
+D'où `(AG1, [CEJ, AIJ])` = les conseillers CEJ ou AIJ de AG1 et tout leur
+portefeuille, et jamais ceux d'une autre agence. Une seule ligne par agence :
+rejouer l'ajout remplace la liste, retirer un dispositif = rejouer avec la
+liste réduite, et `DELETE` retire l'agence entière. Ce tableau diverge
+volontairement de `population_profil` (une ligne par couple, déployée) : un
+profil se choisit parmi quatre structures, une agence parmi des milliers, et
+c'est là que le support a besoin d'une ligne lisible par agence. Une structure
+MiLo, elle, n'a pas de liste : ses conseillers ne portant pas de dispositif,
+elle ne viserait personne.
 
 > Un conseiller MiLo n'a pas de dispositif : `(MILO, PACEA)` ou `(MILO, CEJ)`
-> ne vise personne, ni conseiller ni jeune, et il en va de même d'une structure
-> MiLo restreinte à des dispositifs. Pour toucher MiLo, viser `(MILO)` ou la
-> structure sans dispositifs. Un portefeuille n'est jamais coupé en deux : tout
-> le portefeuille suit son conseiller de référence.
+> ne vise personne, ni conseiller ni jeune. Pour toucher MiLo, viser `(MILO)`
+> ou une structure MiLo. Un portefeuille n'est jamais coupé en deux : tout le
+> portefeuille suit son conseiller de référence.
 
 **Date et activation.** Un déploiement a une seule date J. Il est actif quand
 `J <= maintenant`. Le serveur fait autorité sur l'horloge, les dates sortent en
@@ -114,14 +114,14 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 | `DELETE /support/fonctionnalites/:id` | | 204. 400 si un déploiement la vise. |
 | `GET /support/populations` | | 200, toutes les populations au format de `GET /support/populations/:id`. |
 | `POST /support/populations` | `{ id, description? }` | 204. Rejouer met à jour la description. |
-| `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], structuresMilo: [{ idStructureMilo, dispositifs? }], agencesFT: [{ idAgence, dispositifs? }], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
+| `GET /support/populations/:id` | | 200 `{ id, description?, conseillers: [email], profils: [{ structure, dispositif? }], structuresMilo: [idStructureMilo], agencesFT: [{ idAgence, dispositifs? }], deploiements: [{ id, nature, idFonctionnalite?, dateActivation }] }`. |
 | `DELETE /support/populations/:id` | | 204, emporte ses cibles. 400 si un déploiement la vise. |
 | `POST /support/populations/conseillers` | `{ idPopulation, emailConseillers: string[] }` | 204. Doublons ignorés. |
 | `DELETE /support/populations/conseillers` | `{ idPopulation, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
 | `POST /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. Doublon ignoré. |
 | `DELETE /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
-| `POST /support/populations/structures-milo` | `{ idPopulation, idStructureMilo, dispositifs?: Dispositif[] }` | 204. Rejouer remplace la liste ; liste vide refusée. 404 si population ou structure inconnue. |
-| `DELETE /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204, retire la structure avec ses dispositifs. 404 si elle n'est pas dans la population. |
+| `POST /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204, doublon ignoré. 404 si population ou structure inconnue. |
+| `DELETE /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204. 404 si elle n'est pas dans la population. |
 | `POST /support/populations/agences-ft` | `{ idPopulation, idAgence, dispositifs?: Dispositif[] }` | 204. Rejouer remplace la liste ; liste vide refusée. 404 si population ou agence inconnue, 400 si l'agence n'est pas France Travail. |
 | `DELETE /support/populations/agences-ft` | `{ idPopulation, idAgence }` | 204, retire l'agence avec ses dispositifs. 404 si elle n'est pas dans la population. |
 | `POST /support/deploiements` | `{ nature, idPopulation, idFonctionnalite?, dateActivation }` | 201 `{ id }`. 400 si `FONCTIONNALITE` sans `idFonctionnalite` ou `MIGRATION` avec. Rejouer sur la même population et la même fonctionnalité déplace la date. |
