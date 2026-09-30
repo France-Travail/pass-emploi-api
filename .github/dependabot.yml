@@ -13,17 +13,11 @@ updates:
     open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps):'
-    # Laisse à la communauté le temps de repérer une version compromise avant qu'on l'installe.
-    # Ne s'applique pas aux security updates.
+    # Laisse à la communauté le temps de repérer une version compromise avant qu'on l'installe,
+    # et aux majeures le temps de leurs premiers correctifs. Ne s'applique pas aux security updates.
     cooldown:
       default-days: 3
-    # Les majeures sont des migrations : elles sont traitées une fois par sprint avec le skill
-    # upgrade-dependency, pas par PR Dependabot. Cet ignore s'applique aussi aux security updates :
-    # une CVE dont le correctif impose une majeure passe par fix-cve.
-    ignore:
-      - dependency-name: '*'
-        update-types:
-          - version-update:semver-major
+      semver-major-days: 14
     groups:
       # Une seule PR par jour, auto-mergée côté CI : pas de PR auto-mergée qui attend un rebase derrière une autre
       minor-patch:
