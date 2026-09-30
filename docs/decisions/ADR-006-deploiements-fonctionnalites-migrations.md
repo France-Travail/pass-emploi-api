@@ -70,6 +70,11 @@ son propre profil n'est jamais regardé. Un profil sans dispositif couvre toute
 la structure. « De référence » =
 `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
+Cette règle est jouée par plusieurs consommateurs (fonctionnalités, bandeaux,
+date de migration, destinataires d'une notification, analytics). Le test de
+contrat `test/application/populations/appartenance.db.test.ts` les vérifie
+tous sur un même jeu de données : tout nouveau consommateur y est ajouté.
+
 **Agence restreinte à des dispositifs.** Une agence FT porte une liste
 `dispositifs` nullable : nulle, toute l'agence est ciblée ; renseignée, seuls
 les conseillers qui portent eux-mêmes l'un d'eux, et par eux leurs jeunes.
@@ -258,6 +263,7 @@ communication { id PK, id_population FK, destinataire JEUNE | CONSEILLER, type I
 * `src/domain/population.ts`, `src/domain/deploiement.ts`,
   `src/domain/fonctionnalite.ts`, `src/domain/migration.ts`,
   `src/infrastructure/repositories/sql-helpers.ts` (appartenance),
+  `test/application/populations/appartenance.db.test.ts` (test de contrat),
   `src/application/commands/update-utilisateur.command.handler.ts`
   (`lUtilisateurDoitMigrerVersParcoursEmploi`),
   `src/application/jobs/notifier-beneficiaires.job.handler.db.ts`.

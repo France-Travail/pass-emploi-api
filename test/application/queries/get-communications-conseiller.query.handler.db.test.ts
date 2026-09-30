@@ -81,13 +81,13 @@ describe('GetCommunicationsConseillerQueryHandler (use case)', () => {
     destinataire?: Communication.Destinataire
     type?: Communication.Type
     dateDebut?: Date
-    dateFin?: Date
+    dateFin?: Date | null
   }): {
     idPopulation: string
     destinataire: Communication.Destinataire
     type: Communication.Type
     dateDebut: Date
-    dateFin: Date
+    dateFin: Date | null
     titre: string
     contenu: string
   } {
@@ -133,27 +133,6 @@ describe('GetCommunicationsConseillerQueryHandler (use case)', () => {
     })
   })
 
-  it('affiche la communication au conseiller dont le profil correspond à la population', async () => {
-    // Given
-    await CommunicationSqlModel.create(
-      uneCommunication({ titre: 'Pour les FT CEJ', idPopulation: 'FT_CEJ' })
-    )
-
-    // When / Then
-    expect(await communicationsDe('conseillerFtCej')).to.deep.include({
-      titre: 'Pour les FT CEJ'
-    })
-    expect(await communicationsDe('conseillerCite')).to.equal(undefined)
-  })
-
-  it("n'affiche rien à un conseiller hors de toute population", async () => {
-    // Given
-    await CommunicationSqlModel.create(uneCommunication({ titre: 'Pilote' }))
-
-    // When / Then
-    expect(await communicationsDe('conseillerHors')).to.equal(undefined)
-  })
-
   it("n'affiche pas une communication avant sa date de début ni à partir de sa date de fin", async () => {
     // Given
     await CommunicationSqlModel.bulkCreate([
@@ -171,6 +150,23 @@ describe('GetCommunicationsConseillerQueryHandler (use case)', () => {
 
     // When / Then
     expect(await communicationsDe('conseillerCite')).to.equal(undefined)
+  })
+
+  it('affiche la communication dès sa date de début', async () => {
+    // Given
+    await CommunicationSqlModel.create(
+      uneCommunication({
+        titre: 'Disponible',
+        dateDebut: maintenant.toJSDate(),
+        dateFin: demain
+      })
+    )
+
+    // When
+    const message = await communicationsDe('conseillerCite')
+
+    // Then
+    expect(message).to.deep.include({ titre: 'Disponible' })
   })
 
   it("n'affiche ni les communications destinées aux jeunes ni les notifications", async () => {
@@ -200,6 +196,32 @@ describe('GetCommunicationsConseillerQueryHandler (use case)', () => {
     // When / Then
     expect(await communicationsDe('conseillerCite')).to.deep.include({
       titre: 'Courte'
+    })
+  })
+
+  it('reste visible sans date de fin', async () => {
+    // Given
+    await CommunicationSqlModel.create(
+      uneCommunication({ titre: 'Indéfinie', dateFin: null })
+    )
+
+    // When
+    const message = await communicationsDe('conseillerCite')
+
+    // Then
+    expect(message).to.deep.include({ titre: 'Indéfinie' })
+  })
+
+  it('priorise une communication avec une échéance sur une communication sans date de fin', async () => {
+    // Given
+    await CommunicationSqlModel.bulkCreate([
+      uneCommunication({ titre: 'Indéfinie', dateFin: null }),
+      uneCommunication({ titre: 'Urgente', dateFin: demain })
+    ])
+
+    // When / Then
+    expect(await communicationsDe('conseillerCite')).to.deep.include({
+      titre: 'Urgente'
     })
   })
 

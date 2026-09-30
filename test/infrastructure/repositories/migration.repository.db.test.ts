@@ -8,12 +8,6 @@ import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/model
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
-import { AgenceSqlModel } from '../../../src/infrastructure/sequelize/models/agence.sql-model'
-import { PopulationAgenceFTSqlModel } from '../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
-import { PopulationStructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/population-structure-milo.sql-model'
-import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
-import { uneAgenceDto } from '../../fixtures/sql-models/agence.sql-model'
-import { uneStructureMiloDto } from '../../fixtures/sql-models/structureMilo.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { unConseillerDto } from '../../fixtures/sql-models/conseiller.sql-model'
 import { unJeuneDto } from '../../fixtures/sql-models/jeune.sql-model'
@@ -25,7 +19,6 @@ import {
 
 const DATE_PHASE_A = DateTime.fromISO('2026-11-20T00:00:00.000Z')
 const DATE_PHASE_B = DateTime.fromISO('2026-12-15T00:00:00.000Z')
-const DATE_PHASE_ETAB = DateTime.fromISO('2027-01-10T00:00:00.000Z')
 
 describe('MigrationSqlRepository', () => {
   let databaseForTesting: DatabaseForTesting
@@ -137,15 +130,6 @@ describe('MigrationSqlRepository', () => {
         { id: 'jeuneTransfere' }
       ])
     })
-
-    it('renvoie les jeunes dont le conseiller de référence a un profil qui correspond', async () => {
-      // When
-      const beneficiaires =
-        await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PHASE_B')
-
-      // Then
-      expect(beneficiaires).to.have.deep.members([{ id: 'jeuneBrsa' }])
-    })
   })
 
   describe('getDateDeMigrationDuConseiller', () => {
@@ -157,14 +141,6 @@ describe('MigrationSqlRepository', () => {
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
     })
 
-    it('renvoie la date par profil', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuConseiller('conseillerBrsa')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
-    })
-
     it('ne renvoie rien quand aucune migration ne vise le conseiller', async () => {
       // When
       const date = await repo.getDateDeMigrationDuConseiller(
@@ -173,89 +149,6 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date).to.be.undefined()
-    })
-
-    it('renvoie la date par la structure MiLo du conseiller', async () => {
-      // Given
-      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
-      await ConseillerSqlModel.update(
-        { idStructureMilo: 'SM1' },
-        { where: { id: 'conseillerHorsMigration' } }
-      )
-      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
-      await PopulationStructureMiloSqlModel.create({
-        idPopulation: 'PHASE_ETAB',
-        idStructureMilo: 'SM1'
-      })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'PHASE_ETAB',
-        idFonctionnalite: null,
-        dateActivation: DATE_PHASE_ETAB.toJSDate()
-      })
-
-      // When
-      const date = await repo.getDateDeMigrationDuConseiller(
-        'conseillerHorsMigration'
-      )
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
-    })
-
-    it("restreint l'agence aux dispositifs du conseiller, sans attraper les mêmes dispositifs d'une autre agence", async () => {
-      // Given
-      await AgenceSqlModel.bulkCreate([
-        uneAgenceDto({ id: 'AG1' }),
-        uneAgenceDto({ id: 'AG2' })
-      ])
-      await ConseillerSqlModel.bulkCreate([
-        unConseillerDto({
-          id: 'conseillerAg1Aij',
-          structure: Core.Structure.POLE_EMPLOI,
-          dispositif: Profil.Dispositif.AIJ,
-          idAgence: 'AG1',
-          email: 'aij@ft.fr'
-        }),
-        unConseillerDto({
-          id: 'conseillerAg1Cej',
-          structure: Core.Structure.POLE_EMPLOI,
-          idAgence: 'AG1',
-          email: 'cej@ft.fr'
-        }),
-        unConseillerDto({
-          id: 'conseillerAg2Aij',
-          structure: Core.Structure.POLE_EMPLOI,
-          dispositif: Profil.Dispositif.AIJ,
-          idAgence: 'AG2',
-          email: 'aij2@ft.fr'
-        })
-      ])
-      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
-      await PopulationAgenceFTSqlModel.create({
-        idPopulation: 'PHASE_ETAB',
-        idAgence: 'AG1',
-        dispositifs: [Profil.Dispositif.AIJ]
-      })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'PHASE_ETAB',
-        idFonctionnalite: null,
-        dateActivation: DATE_PHASE_ETAB.toJSDate()
-      })
-
-      // When
-      const aijDansLAgence =
-        await repo.getDateDeMigrationDuConseiller('conseillerAg1Aij')
-      const cejDansLAgence =
-        await repo.getDateDeMigrationDuConseiller('conseillerAg1Cej')
-      const aijAutreAgence =
-        await repo.getDateDeMigrationDuConseiller('conseillerAg2Aij')
-
-      // Then
-      expect(aijDansLAgence?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
-      expect(cejDansLAgence).to.be.undefined()
-      expect(aijAutreAgence).to.be.undefined()
     })
 
     it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
@@ -280,49 +173,6 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-
-    it('renvoie la date par le profil du conseiller du jeune', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire('jeuneBrsa')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
-    })
-
-    it('renvoie la date du conseiller initial quand le jeune est transféré', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire('jeuneTransfere')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-
-    it("renvoie la date par l'agence du conseiller de référence du jeune", async () => {
-      // Given
-      await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
-      await ConseillerSqlModel.update(
-        { idAgence: 'AG1' },
-        { where: { id: 'conseillerHorsMigration' } }
-      )
-      await PopulationSqlModel.create({ id: 'PHASE_ETAB', description: null })
-      await PopulationAgenceFTSqlModel.create({
-        idPopulation: 'PHASE_ETAB',
-        idAgence: 'AG1'
-      })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'PHASE_ETAB',
-        idFonctionnalite: null,
-        dateActivation: DATE_PHASE_ETAB.toJSDate()
-      })
-
-      // When
-      const date =
-        await repo.getDateDeMigrationDuBeneficiaire('jeuneHorsMigration')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_ETAB.toISO())
     })
 
     it('ne renvoie rien quand le conseiller du jeune ne bascule pas', async () => {

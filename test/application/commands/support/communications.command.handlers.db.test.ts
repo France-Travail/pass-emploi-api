@@ -3,6 +3,7 @@ import { AnnulerEnvoiCommunicationCommandHandler } from '../../../../src/applica
 import { CreerCommunicationCommandHandler } from '../../../../src/application/commands/support/creer-communication.command.handler.db'
 import { ModifierCommunicationCommandHandler } from '../../../../src/application/commands/support/modifier-communication.command.handler.db'
 import { SupprimerCommunicationCommandHandler } from '../../../../src/application/commands/support/supprimer-communication.command.handler.db'
+import { GetPopulationSupportQueryHandler } from '../../../../src/application/queries/get-population-support.query.handler.db'
 import {
   MauvaiseCommandeError,
   NonTrouveError
@@ -46,6 +47,7 @@ describe('Communications : handlers support', () => {
   }
 
   let databaseForTesting: DatabaseForTesting
+  let getPopulation: GetPopulationSupportQueryHandler
 
   before(() => {
     databaseForTesting = getDatabase()
@@ -54,6 +56,9 @@ describe('Communications : handlers support', () => {
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
     await PopulationSqlModel.create({ id: 'PHASE_C', description: null })
+    getPopulation = new GetPopulationSupportQueryHandler(
+      new CommunicationSqlRepository(databaseForTesting.sequelize)
+    )
   })
 
   describe('CreerCommunicationCommandHandler', () => {
@@ -67,12 +72,17 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communication = await CommunicationSqlModel.findOne()
-      expect(communication!.idPopulation).to.equal('PHASE_C')
-      expect(communication!.titre).to.equal('Votre application évolue')
-      expect(communication!.ctaLabel).to.be.null()
-      expect(communication!.statutEnvoi).to.be.null()
-      if (isSuccess(result)) expect(result.data.id).to.equal(communication!.id)
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications).to.have.length(1)
+      const communication = population.data.communications[0]
+      expect(communication.destinataire).to.equal(
+        Communication.Destinataire.CONSEILLER
+      )
+      expect(communication.titre).to.equal('Votre application évolue')
+      expect(communication.ctaLabel).to.equal(undefined)
+      expect(communication.statutEnvoi).to.equal(undefined)
+      if (isSuccess(result)) expect(result.data.id).to.equal(communication.id)
     })
 
     it("refuse quand la population n'existe pas", async () => {
@@ -110,8 +120,9 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communication = await CommunicationSqlModel.findOne()
-      expect(communication!.dateFin).to.be.null()
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications[0].dateFin).to.equal(undefined)
     })
   })
 
@@ -119,51 +130,56 @@ describe('Communications : handlers support', () => {
     const handler = new ModifierCommunicationCommandHandler(
       new PopulationSqlRepository()
     )
+    const creer = new CreerCommunicationCommandHandler(
+      new PopulationSqlRepository()
+    )
 
     it('remplace la communication en entier', async () => {
       // Given
-      const communication = await CommunicationSqlModel.create({
+      const resultCreation = await creer.handle({
         ...commande,
-        dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: commande.dateFin.toJSDate(),
-        ctaLabel: 'Télécharger'
+        ctaLabel: 'Télécharger',
+        ctaUrlAndroid: 'https://android',
+        ctaUrlIos: 'https://ios'
       })
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idCommunication = resultCreation.data.id
 
       // When
       const result = await handler.handle({
         ...commande,
-        id: communication.id,
+        id: idCommunication,
         titre: 'Titre corrigé'
       })
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communicationModifiee = await CommunicationSqlModel.findByPk(
-        communication.id
-      )
-      expect(communicationModifiee!.titre).to.equal('Titre corrigé')
-      expect(communicationModifiee!.contenu).to.equal(commande.contenu)
-      expect(communicationModifiee!.idPopulation).to.equal('PHASE_C')
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      const communication = population.data.communications[0]
+      expect(communication.titre).to.equal('Titre corrigé')
+      expect(communication.contenu).to.equal(commande.contenu)
     })
 
     it('efface un CTA absent du nouveau payload', async () => {
       // Given
-      const communication = await CommunicationSqlModel.create({
+      const resultCreation = await creer.handle({
         ...commande,
-        dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: commande.dateFin.toJSDate(),
-        ctaLabel: 'Télécharger'
+        ctaLabel: 'Télécharger',
+        ctaUrlAndroid: 'https://android',
+        ctaUrlIos: 'https://ios'
       })
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idCommunication = resultCreation.data.id
 
       // When
-      const result = await handler.handle({ ...commande, id: communication.id })
+      const result = await handler.handle({ ...commande, id: idCommunication })
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communicationModifiee = await CommunicationSqlModel.findByPk(
-        communication.id
-      )
-      expect(communicationModifiee!.ctaLabel).to.equal(null)
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications[0].ctaLabel).to.equal(undefined)
     })
 
     it("refuse quand la communication n'existe pas", async () => {
@@ -228,7 +244,7 @@ describe('Communications : handlers support', () => {
 
     it("ne touche pas au statut d'envoi : le remplacement n'est pas un nouvel envoi", async () => {
       // Given
-      const communication = await CommunicationSqlModel.create({
+      const resultCreation = await creer.handle({
         ...commande,
         destinataire: Communication.Destinataire.JEUNE,
         type: Communication.Type.NOTIFICATION,
@@ -236,15 +252,15 @@ describe('Communications : handlers support', () => {
         push: true,
         titre: 'Courte',
         contenu: 'Court',
-        dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: null,
-        statutEnvoi: Communication.StatutEnvoi.A_ENVOYER
+        dateFin: undefined
       })
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idCommunication = resultCreation.data.id
 
       // When
       const result = await handler.handle({
         ...commande,
-        id: communication.id,
+        id: idCommunication,
         destinataire: Communication.Destinataire.JEUNE,
         type: Communication.Type.NOTIFICATION,
         typeNotification: Notification.Type.MIGRATION_PARCOURS_EMPLOI,
@@ -256,10 +272,9 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communicationModifiee = await CommunicationSqlModel.findByPk(
-        communication.id
-      )
-      expect(communicationModifiee!.statutEnvoi).to.equal(
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications[0].statutEnvoi).to.equal(
         Communication.StatutEnvoi.A_ENVOYER
       )
     })
@@ -322,12 +337,15 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communication = await CommunicationSqlModel.findOne()
-      expect(communication!.typeNotification).to.equal(
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      const communication = population.data.communications[0]
+      expect(communication.typeNotification).to.equal(
         Notification.Type.MIGRATION_PARCOURS_EMPLOI
       )
-      expect(communication!.dateFin).to.be.null()
-      expect(communication!.statutEnvoi).to.equal(
+      expect(communication.push).to.equal(true)
+      expect(communication.dateFin).to.equal(undefined)
+      expect(communication.statutEnvoi).to.equal(
         Communication.StatutEnvoi.A_ENVOYER
       )
     })
@@ -341,8 +359,11 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const communication = await CommunicationSqlModel.findOne()
-      expect(communication!.typeNotification).to.be.null()
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications[0].typeNotification).to.equal(
+        undefined
+      )
     })
 
     it('refuse une communication NOTIFICATION sans push', async () => {
@@ -376,21 +397,24 @@ describe('Communications : handlers support', () => {
 
   describe('SupprimerCommunicationCommandHandler', () => {
     const handler = new SupprimerCommunicationCommandHandler()
+    const creer = new CreerCommunicationCommandHandler(
+      new PopulationSqlRepository()
+    )
 
     it('supprime la communication', async () => {
       // Given
-      const communication = await CommunicationSqlModel.create({
-        ...commande,
-        dateDebut: commande.dateDebut.toJSDate(),
-        dateFin: commande.dateFin.toJSDate()
-      })
+      const resultCreation = await creer.handle(commande)
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idCommunication = resultCreation.data.id
 
       // When
-      const result = await handler.handle({ id: communication.id })
+      const result = await handler.handle({ id: idCommunication })
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      expect(await CommunicationSqlModel.count()).to.equal(0)
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.communications).to.deep.equal([])
     })
 
     it("renvoie une erreur quand la communication n'existe pas", async () => {
@@ -485,10 +509,16 @@ describe('Communications : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const annulee = (await CommunicationSqlModel.findByPk(communication.id))!
-      expect(annulee.statutEnvoi).to.equal(Communication.StatutEnvoi.ANNULEE)
-      expect(annulee.nbEnvoyees).to.equal(1)
-      expect(annulee.envoiTermineLe).to.deep.equal(maintenant.toJSDate())
+      const population = await getPopulation.handle({ idPopulation: 'PHASE_C' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      const comm = population.data.communications[0]
+      expect(comm.statutEnvoi).to.equal(Communication.StatutEnvoi.ANNULEE)
+      expect(comm.envoiTermineLe).to.equal(maintenant.toUTC().toISO())
+      expect(comm.envoi).to.deep.equal({
+        envoyees: 1,
+        erreurs: 0,
+        tokensInvalides: 0
+      })
     })
 
     it("refuse une communication qui n'est pas EN_COURS", async () => {

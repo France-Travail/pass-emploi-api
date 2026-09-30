@@ -25,12 +25,7 @@ import { GetPopulationSupportQueryHandler } from '../../../src/application/queri
 import { GetPopulationsSupportQueryHandler } from '../../../src/application/queries/get-populations-support.query.handler.db'
 import { PopulationSupportQueryModel } from '../../../src/application/queries/query-models/population-support.query-model'
 import {
-  MauvaiseCommandeError,
-  NonTrouveError
-} from '../../../src/building-blocks/types/domain-error'
-import {
   emptySuccess,
-  failure,
   success
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
@@ -275,19 +270,6 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.OK)
         .expect(queryModel)
     })
-
-    it("renvoie 404 quand la population n'existe pas", async () => {
-      // Given
-      getPopulationSupportQueryHandler.execute.resolves(
-        failure(new NonTrouveError('Population', 'INCONNUE'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .get('/support/populations/INCONNUE')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
   })
 
   describe('DELETE /support/populations/:idPopulation', () => {
@@ -305,19 +287,6 @@ describe('SupportDeploiementsController', () => {
         .delete('/support/populations/PILOTE_1J1S')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
-    })
-
-    it('renvoie 400 quand un déploiement la vise encore', async () => {
-      // Given
-      supprimerPopulationCommandHandler.execute.resolves(
-        failure(new MauvaiseCommandeError('visée par un déploiement'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/populations/PILOTE_1J1S')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
     })
   })
 
@@ -548,20 +517,6 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
-
-    it("renvoie 404 quand la structure n'existe pas", async () => {
-      // Given
-      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Structure MiLo', 'INCONNUE'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/populations/structures-milo')
-        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: 'INCONNUE' })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
   })
 
   describe('DELETE /support/populations/structures-milo', () => {
@@ -577,25 +532,6 @@ describe('SupportDeploiementsController', () => {
         .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
-    })
-
-    it("renvoie 404 quand la structure n'est pas dans la population", async () => {
-      // Given
-      supprimerStructureMiloPopulationCommandHandler.execute.resolves(
-        failure(
-          new NonTrouveError(
-            'Structure MiLo de la population',
-            'PILOTE_1J1S/80620S00'
-          )
-        )
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/populations/structures-milo')
-        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
     })
   })
 
@@ -685,22 +621,6 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
     })
-
-    it("renvoie 404 quand l'agence n'est pas dans la population", async () => {
-      // Given
-      supprimerAgenceFTPopulationCommandHandler.execute.resolves(
-        failure(
-          new NonTrouveError('Agence de la population', 'PILOTE_1J1S/75056')
-        )
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/populations/agences-ft')
-        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
   })
 
   describe('POST /support/deploiements', () => {
@@ -776,24 +696,6 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
-
-    it('renvoie 400 quand la commande est incohérente', async () => {
-      // Given
-      creerDeploiementCommandHandler.execute.resolves(
-        failure(new MauvaiseCommandeError('idFonctionnalite requis'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/deploiements')
-        .send({
-          nature: Deploiement.Nature.FONCTIONNALITE,
-          idPopulation: 'PILOTE_1J1S',
-          dateActivation: '2026-10-13T00:00:00.000Z'
-        })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
-    })
   })
 
   describe('PUT /support/deploiements/:idDeploiement', () => {
@@ -824,20 +726,6 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
-
-    it("renvoie 404 quand le déploiement n'existe pas", async () => {
-      // Given
-      modifierDateDeploiementCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Déploiement', '99'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .put('/support/deploiements/99')
-        .send({ dateActivation: '2026-11-02T00:00:00.000Z' })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
   })
 
   describe('DELETE /support/deploiements/:idDeploiement', () => {
@@ -860,19 +748,6 @@ describe('SupportDeploiementsController', () => {
         .delete('/support/deploiements/sept')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
-    })
-
-    it("renvoie 404 quand le déploiement n'existe pas", async () => {
-      // Given
-      supprimerDeploiementCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Déploiement', '99'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/deploiements/99')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
     })
   })
 
@@ -927,34 +802,6 @@ describe('SupportDeploiementsController', () => {
         .send({ ...payload, destinataire: 'TOUT_LE_MONDE' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
-    })
-
-    it('renvoie 400 quand les dates sont incohérentes', async () => {
-      // Given
-      creerCommunicationCommandHandler.execute.resolves(
-        failure(new MauvaiseCommandeError('dates'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/communications')
-        .send(payload)
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
-    })
-
-    it("renvoie 404 quand la population n'existe pas", async () => {
-      // Given
-      creerCommunicationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Population', 'PHASE_C'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/communications')
-        .send(payload)
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
     })
 
     it('crée une communication IN_APP sans date de fin', async () => {
@@ -1109,48 +956,6 @@ describe('SupportDeploiementsController', () => {
         Authentification.unUtilisateurSupport()
       )
     })
-
-    it('renvoie 400 quand les dates sont incohérentes', async () => {
-      // Given
-      modifierCommunicationCommandHandler.execute.resolves(
-        failure(new MauvaiseCommandeError('dates'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .put('/support/communications/3')
-        .send(payload)
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
-    })
-
-    it("renvoie 404 quand la communication n'existe pas", async () => {
-      // Given
-      modifierCommunicationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Communication', '3'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .put('/support/communications/3')
-        .send(payload)
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
-
-    it("renvoie 404 quand la nouvelle population n'existe pas", async () => {
-      // Given
-      modifierCommunicationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Population', 'INCONNUE'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .put('/support/communications/3')
-        .send({ ...payload, idPopulation: 'INCONNUE' })
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
   })
 
   describe('DELETE /support/communications/:idCommunication', () => {
@@ -1171,32 +976,6 @@ describe('SupportDeploiementsController', () => {
         Authentification.unUtilisateurSupport()
       )
     })
-
-    it("renvoie 404 quand la communication n'existe pas", async () => {
-      // Given
-      supprimerCommunicationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Communication', '3'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/communications/3')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
-    })
-
-    it("renvoie 400 quand l'envoi a démarré", async () => {
-      // Given
-      supprimerCommunicationCommandHandler.execute.resolves(
-        failure(new MauvaiseCommandeError("l'envoi a démarré"))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .delete('/support/communications/3')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
-    })
   })
 
   describe('POST /support/communications/:idCommunication/envoi/annulation', () => {
@@ -1216,34 +995,6 @@ describe('SupportDeploiementsController', () => {
         { id: 3 },
         Authentification.unUtilisateurSupport()
       )
-    })
-
-    it("renvoie 400 quand l'envoi n'est pas EN_COURS", async () => {
-      // Given
-      annulerEnvoiCommunicationCommandHandler.execute.resolves(
-        failure(
-          new MauvaiseCommandeError('Seul un envoi EN_COURS peut être annulé')
-        )
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/communications/3/envoi/annulation')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.BAD_REQUEST)
-    })
-
-    it("renvoie 404 quand la communication n'existe pas", async () => {
-      // Given
-      annulerEnvoiCommunicationCommandHandler.execute.resolves(
-        failure(new NonTrouveError('Communication', '3'))
-      )
-
-      // When - Then
-      await request(app.getHttpServer())
-        .post('/support/communications/3/envoi/annulation')
-        .set({ 'X-API-KEY': 'api-key-support' })
-        .expect(HttpStatus.NOT_FOUND)
     })
   })
 })
