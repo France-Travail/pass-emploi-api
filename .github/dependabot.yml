@@ -13,56 +13,24 @@ updates:
     open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps):'
+    # Laisse à la communauté le temps de repérer une version compromise avant qu'on l'installe.
+    # Ne s'applique pas aux security updates.
+    cooldown:
+      default-days: 3
+    # Les majeures sont des migrations : elles sont traitées une fois par sprint avec le skill
+    # upgrade-dependency, pas par PR Dependabot. Cet ignore s'applique aussi aux security updates :
+    # une CVE dont le correctif impose une majeure passe par fix-cve.
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
     groups:
-      # Écosystèmes (prioritaires, couvrent tous les update-types)
-      nestjs:
+      # Une seule PR par jour, auto-mergée côté CI : pas de PR auto-mergée qui attend un rebase derrière une autre
+      minor-patch:
         applies-to: version-updates
-        patterns:
-          - "@nestjs/*"
-      aws-sdk:
-        applies-to: version-updates
-        patterns:
-          - "@aws-sdk/*"
-      eslint:
-        applies-to: version-updates
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@typescript-eslint/*"
-          - "@eslint/*"
-      sequelize:
-        applies-to: version-updates
-        patterns:
-          - "sequelize"
-          - "sequelize-cli"
-          - "sequelize-typescript"
-      testing:
-        applies-to: version-updates
-        patterns:
-          - "jest*"
-          - "@testing-library/*"
-          - "@types/jest*"
-      elastic-apm:
-        applies-to: version-updates
-        patterns:
-          - "@elastic/*"
-          - "elastic-apm-*"
-
-      # Production dependencies - patch and minor (auto-merge côté CI)
-      prod-minor-patch:
-        applies-to: version-updates
-        dependency-type: production
         update-types:
           - patch
           - minor
-      # Development dependencies - patch and minor (auto-merge côté CI)
-      dev-minor-patch:
-        applies-to: version-updates
-        dependency-type: development
-        update-types:
-          - patch
-          - minor
-      # Autres majors : chaque dépendance a sa propre PR
 
   # ===========================================
   # GitHub Actions
@@ -75,6 +43,8 @@ updates:
       timezone: Europe/Paris
     commit-message:
       prefix: 'ci(deps):'
+    cooldown:
+      default-days: 3
     groups:
       # GitHub Actions - patch and minor (auto-merge côté CI)
       actions-minor-patch:
