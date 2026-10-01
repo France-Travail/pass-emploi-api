@@ -5,7 +5,14 @@ import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-a
 import { Profil } from 'src/domain/profil'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
+import { uneDatetime } from 'test/fixtures/date.fixture'
 import { expect, StubbedClass, stubClass } from 'test/utils'
+import {
+  unProfilCD,
+  unProfilFT,
+  unProfilInvite,
+  unProfilMilo
+} from 'test/fixtures/profil.fixture'
 
 const maintenant = DateTime.fromISO('2026-08-27T10:00:00.000Z', {
   zone: 'utc'
@@ -539,6 +546,118 @@ describe('PlanAction', () => {
           }
         ])
       })
+    })
+  })
+
+  describe('cocherTache', () => {
+    const dateCreation = uneDatetime()
+    const dateTerminee = dateCreation.plus({ days: 1 })
+
+    it('coche la tâche avec la date de réalisation fournie', () => {
+      // Given
+      const tache: PlanAction.Tache = {
+        id: 'tache-1',
+        idSolution: 'p-1',
+        terminee: false,
+        dateCreation
+      }
+
+      // When
+      const tacheCochee = PlanAction.cocherTache(tache, dateTerminee)
+
+      // Then
+      expect(tacheCochee).to.deep.equal({
+        ...tache,
+        terminee: true,
+        dateTerminee
+      })
+    })
+
+    it("conserve la date d'origine d'une tâche déjà cochée", () => {
+      // Given
+      const tache: PlanAction.Tache = {
+        id: 'tache-1',
+        idSolution: 'p-1',
+        terminee: true,
+        dateCreation,
+        dateTerminee: dateCreation
+      }
+
+      // When
+      const tacheCochee = PlanAction.cocherTache(tache, dateTerminee)
+
+      // Then
+      expect(tacheCochee).to.deep.equal(tache)
+    })
+  })
+
+  describe('decocherTache', () => {
+    it('décoche la tâche en effaçant sa date de réalisation', () => {
+      // Given
+      const dateCreation = uneDatetime()
+      const tache: PlanAction.Tache = {
+        id: 'tache-1',
+        idSolution: 'p-1',
+        terminee: true,
+        dateCreation,
+        dateTerminee: dateCreation
+      }
+
+      // When
+      const tacheDecochee = PlanAction.decocherTache(tache)
+
+      // Then
+      expect(tacheDecochee).to.deep.equal({
+        id: 'tache-1',
+        idSolution: 'p-1',
+        terminee: false,
+        dateCreation
+      })
+    })
+  })
+
+  describe('modeDeclaration', () => {
+    it('déclare une action pour tout jeune Mission Locale', () => {
+      expect(
+        PlanAction.modeDeclaration(unProfilMilo(Profil.Dispositif.CEJ))
+      ).to.equal(PlanAction.ModeDeclaration.ACTION_MILO)
+      expect(
+        PlanAction.modeDeclaration(unProfilMilo(Profil.Dispositif.PACEA))
+      ).to.equal(PlanAction.ModeDeclaration.ACTION_MILO)
+    })
+
+    it('déclare une démarche pour un jeune France Travail avec démarches', () => {
+      expect(
+        PlanAction.modeDeclaration(unProfilFT(Profil.Dispositif.CEJ))
+      ).to.equal(PlanAction.ModeDeclaration.DEMARCHE_FT)
+      expect(
+        PlanAction.modeDeclaration(
+          unProfilFT(Profil.Dispositif.DEMANDEUR_D_EMPLOI)
+        )
+      ).to.equal(PlanAction.ModeDeclaration.DEMARCHE_FT)
+    })
+
+    it('déclare une démarche pour un jeune France Travail sans dispositif connu', () => {
+      expect(PlanAction.modeDeclaration(unProfilFT(null))).to.equal(
+        PlanAction.ModeDeclaration.DEMARCHE_FT
+      )
+    })
+
+    it('déclare une démarche pour un jeune du Conseil départemental', () => {
+      expect(PlanAction.modeDeclaration(unProfilCD())).to.equal(
+        PlanAction.ModeDeclaration.DEMARCHE_FT
+      )
+    })
+
+    it("ne déclare rien pour l'Espace candidat ni pour l'invité", () => {
+      expect(
+        PlanAction.modeDeclaration(
+          unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+        )
+      ).to.equal(PlanAction.ModeDeclaration.AUCUNE)
+      expect(PlanAction.modeDeclaration(unProfilInvite())).to.equal(
+        PlanAction.ModeDeclaration.AUCUNE
+      )
     })
   })
 })
