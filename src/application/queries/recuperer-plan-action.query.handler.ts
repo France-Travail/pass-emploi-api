@@ -57,7 +57,8 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
   }
 
   async handle(
-    query: RecupererPlanActionQuery
+    query: RecupererPlanActionQuery,
+    utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
     const plan = await this.planActionRepository.getDernierPlan(query.idJeune)
 
@@ -71,7 +72,11 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     const solutions =
       await this.referentielRepository.trouverSolutions(idsSolutions)
 
-    const queryModel = toPlanActionQueryModel(plan, solutions)
+    const queryModel = toPlanActionQueryModel(
+      plan,
+      solutions,
+      utilisateur.profil
+    )
     if (!queryModel.objectives.length) {
       return failure(new NonTrouveError('PlanAction', query.idJeune))
     }

@@ -19,11 +19,17 @@ export class ActionPlanQueryModel {
   @ApiProperty()
   terminee: boolean
 
+  @ApiProperty()
+  declarationRequise: boolean
+
   @ApiPropertyOptional()
   url?: string
 
   @ApiPropertyOptional()
   nomService?: string
+
+  @ApiPropertyOptional()
+  categorie?: string
 }
 
 export class ObjectivePlanActionQueryModel {
