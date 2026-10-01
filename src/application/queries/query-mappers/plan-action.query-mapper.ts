@@ -33,9 +33,10 @@ export function toPlanActionQueryModel(
         // Une solution retirée du référentiel depuis la génération du plan
         // disparaît de l'affichage, et son objectif avec s'il se vide
         actions: objectif.taches
+          .filter(tache => !tache.dateSuppression)
           .map(tache => {
             const solution = parId.get(tache.idSolution)
-            return solution ? toAction(tache.id, solution) : undefined
+            return solution ? toAction(tache, solution) : undefined
           })
           .filter(
             (action): action is ActionPlanQueryModel => action !== undefined
@@ -46,13 +47,14 @@ export function toPlanActionQueryModel(
 }
 
 function toAction(
-  idTache: string,
+  tache: PlanAction.Tache,
   solution: ReferentielPlanAction.Solution
 ): ActionPlanQueryModel {
   return {
-    id: idTache,
+    id: tache.id,
     libelle: solution.libelle,
     type: typeSolutionVersTypeAction[solution.type],
+    terminee: tache.terminee,
     ...(solution.url ? { url: solution.url } : {}),
     ...(solution.service ? { nomService: solution.service.nom } : {})
   }

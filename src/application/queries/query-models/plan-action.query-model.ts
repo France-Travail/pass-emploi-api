@@ -16,6 +16,9 @@ export class ActionPlanQueryModel {
   @ApiProperty({ enum: TypeActionPlan })
   type: TypeActionPlan
 
+  @ApiProperty()
+  terminee: boolean
+
   @ApiPropertyOptional()
   url?: string
 

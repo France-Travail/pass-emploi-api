@@ -45,7 +45,8 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
             idSolution: tache.idSolution,
             terminee: tache.terminee,
             dateCreation: tache.dateCreation.toJSDate(),
-            dateTerminee: tache.dateTerminee?.toJSDate() ?? null
+            dateTerminee: tache.dateTerminee?.toJSDate() ?? null,
+            dateSuppression: tache.dateSuppression?.toJSDate() ?? null
           }))
         ),
         { transaction }
@@ -83,6 +84,51 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
       }))
     }
   }
+
+  async getTache(
+    idJeune: string,
+    idTache: string
+  ): Promise<PlanAction.Tache | undefined> {
+    const tacheSql = await PlanActionTacheSqlModel.findOne({
+      where: { id: idTache, dateSuppression: null },
+      include: [
+        {
+          model: PlanActionObjectifSqlModel,
+          required: true,
+          include: [
+            {
+              model: PlanActionSqlModel,
+              required: true,
+              where: { idJeune }
+            }
+          ]
+        }
+      ]
+    })
+    if (!tacheSql) return undefined
+
+    return toTache(tacheSql)
+  }
+
+  async saveTache(tache: PlanAction.Tache): Promise<void> {
+    await PlanActionTacheSqlModel.update(
+      {
+        terminee: tache.terminee,
+        dateTerminee: tache.dateTerminee?.toJSDate() ?? null
+      },
+      { where: { id: tache.id } }
+    )
+  }
+
+  async supprimerTache(
+    idTache: string,
+    dateSuppression: DateTime
+  ): Promise<void> {
+    await PlanActionTacheSqlModel.update(
+      { dateSuppression: dateSuppression.toJSDate() },
+      { where: { id: idTache } }
+    )
+  }
 }
 
 function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {
@@ -93,6 +139,9 @@ function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {
     dateCreation: DateTime.fromJSDate(tacheSql.dateCreation),
     ...(tacheSql.dateTerminee
       ? { dateTerminee: DateTime.fromJSDate(tacheSql.dateTerminee) }
+      : {}),
+    ...(tacheSql.dateSuppression
+      ? { dateSuppression: DateTime.fromJSDate(tacheSql.dateSuppression) }
       : {})
   }
 }

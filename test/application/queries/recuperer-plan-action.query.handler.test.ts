@@ -140,7 +140,8 @@ describe('RecupererPlanActionQueryHandler', () => {
                 {
                   id: 'tache-1',
                   libelle: "Je vais sur l'appli",
-                  type: TypeActionPlan.NAVIGATION
+                  type: TypeActionPlan.NAVIGATION,
+                  terminee: false
                 }
               ]
             }
@@ -223,7 +224,8 @@ describe('RecupererPlanActionQueryHandler', () => {
                 {
                   id: 'tache-1',
                   libelle: "Je vais sur l'appli",
-                  type: TypeActionPlan.NAVIGATION
+                  type: TypeActionPlan.NAVIGATION,
+                  terminee: false
                 }
               ]
             }

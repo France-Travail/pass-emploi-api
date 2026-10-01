@@ -59,6 +59,8 @@ import { ensureUserAuthenticationFailsIfInvalid } from 'test/utils/ensure-user-a
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
 import { GetComptageJeuneQueryHandler } from '../../../src/application/queries/get-comptage-jeune.query.handler.db'
 import { unDetailJeuneQueryModel } from '../../fixtures/query-models/jeunes.query-model.fixtures'
+import { ChangerStatutTachePlanActionCommandHandler } from '../../../src/application/commands/changer-statut-tache-plan-action.command.handler'
+import { SupprimerTachePlanActionCommandHandler } from '../../../src/application/commands/supprimer-tache-plan-action.command.handler'
 
 describe('JeunesController', () => {
   let getDetailJeuneQueryHandler: StubbedClass<GetDetailJeuneQueryHandler>
@@ -76,6 +78,8 @@ describe('JeunesController', () => {
   let getCommunicationsJeuneQueryHandler: StubbedClass<GetCommunicationsJeuneQueryHandler>
   let rechercherMessageQueryHandler: StubbedClass<RechercherMessageQueryHandler>
   let getComptageJeuneQueryHandler: StubbedClass<GetComptageJeuneQueryHandler>
+  let changerStatutTachePlanActionCommandHandler: StubbedClass<ChangerStatutTachePlanActionCommandHandler>
+  let supprimerTachePlanActionCommandHandler: StubbedClass<SupprimerTachePlanActionCommandHandler>
 
   let jwtService: StubbedClass<JwtService>
   let dateService: StubbedClass<DateService>
@@ -111,6 +115,12 @@ describe('JeunesController', () => {
     )
     rechercherMessageQueryHandler = app.get(RechercherMessageQueryHandler)
     getComptageJeuneQueryHandler = app.get(GetComptageJeuneQueryHandler)
+    changerStatutTachePlanActionCommandHandler = app.get(
+      ChangerStatutTachePlanActionCommandHandler
+    )
+    supprimerTachePlanActionCommandHandler = app.get(
+      SupprimerTachePlanActionCommandHandler
+    )
 
     jwtService = app.get(JwtService)
     dateService = app.get(DateService)
@@ -954,5 +964,84 @@ describe('JeunesController', () => {
 
       rechercherMessageQueryHandler.execute.withArgs(query).resolves()
     })
+  })
+
+  describe('PATCH /jeunes/:idJeune/plan-action/taches/:idTache', () => {
+    const idTache = '11111111-1111-1111-1111-111111111111'
+
+    it('coche la tâche', async () => {
+      // Given
+      changerStatutTachePlanActionCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({ terminee: true })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        changerStatutTachePlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idJeune: 'id-jeune', idTache, terminee: true },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('rejette un payload sans statut', async () => {
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({})
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("rejette un identifiant de tâche qui n'est pas un UUID", async () => {
+      // When
+      await request(app.getHttpServer())
+        .patch('/jeunes/id-jeune/plan-action/taches/pas-un-uuid')
+        .set('authorization', unHeaderAuthorization())
+        .send({ terminee: true })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'patch',
+      `/jeunes/id-jeune/plan-action/taches/${idTache}`
+    )
+  })
+
+  describe('DELETE /jeunes/:idJeune/plan-action/taches/:idTache', () => {
+    const idTache = '11111111-1111-1111-1111-111111111111'
+
+    it('supprime la tâche', async () => {
+      // Given
+      supprimerTachePlanActionCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .delete(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        supprimerTachePlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idJeune: 'id-jeune', idTache },
+        unUtilisateurDecode()
+      )
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'delete',
+      `/jeunes/id-jeune/plan-action/taches/${idTache}`
+    )
   })
 })

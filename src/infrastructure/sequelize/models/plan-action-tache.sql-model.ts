@@ -31,6 +31,9 @@ export class PlanActionTacheDto extends Model {
 
   @Column({ field: 'date_terminee', type: DataType.DATE })
   dateTerminee: Date | null
+
+  @Column({ field: 'date_suppression', type: DataType.DATE })
+  dateSuppression: Date | null
 }
 
 @Table({ timestamps: false, tableName: 'plan_action_tache' })

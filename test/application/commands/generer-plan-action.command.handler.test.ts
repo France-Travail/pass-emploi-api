@@ -18,7 +18,7 @@ import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { rootLogger } from '../../../src/utils/logger.module'
-import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
+import { TOUT_PROFIL, Profil } from '../../../src/domain/profil'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import {
@@ -187,7 +187,8 @@ describe('GenererPlanActionCommandHandler', () => {
           besoins: [Questionnaire.Besoin.ALTERNANCE],
           contraintes: []
         },
-        [uneSolution()]
+        [uneSolution()],
+        undefined
       )
       expect(result).to.deep.equal(
         success({
@@ -201,7 +202,8 @@ describe('GenererPlanActionCommandHandler', () => {
                 {
                   id: 'tache-1',
                   libelle: 'Je fais une action',
-                  type: TypeActionPlan.CONSEIL
+                  type: TypeActionPlan.CONSEIL,
+                  terminee: false
                 }
               ]
             }
@@ -240,11 +242,29 @@ describe('GenererPlanActionCommandHandler', () => {
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
     })
 
+    it("construit le plan d'un bénéficiaire accompagné à partir de son dernier plan", async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const planPrecedent = { ...unPlan(), id: 'plan-precedent' }
+      planActionRepository.getDernierPlan
+        .withArgs(command.idJeune)
+        .resolves(planPrecedent)
+
+      // When
+      await handler.handle(command, jeuneMilo)
+
+      // Then
+      expect(planActionFactory.creer.firstCall.args[3]).to.deep.equal(
+        planPrecedent
+      )
+    })
+
     it("ne sauvegarde pas le plan d'un invité mais le renvoie tout de même", async () => {
       // When
       const result = await handler.handle(command, utilisateur)
 
       // Then
+      expect(planActionRepository.getDernierPlan).not.to.have.been.called()
       expect(planActionRepository.save).not.to.have.been.called()
       expect(result).to.deep.equal(
         success({
@@ -258,7 +278,8 @@ describe('GenererPlanActionCommandHandler', () => {
                 {
                   id: 'tache-1',
                   libelle: 'Je fais une action',
-                  type: TypeActionPlan.CONSEIL
+                  type: TypeActionPlan.CONSEIL,
+                  terminee: false
                 }
               ]
             }
@@ -337,23 +358,7 @@ describe('GenererPlanActionCommandHandler', () => {
   describe('profilsAutorises', () => {
     it('déclare les profils autorisés', () => {
       // Then
-      expect(handler.profilsAutorises).to.deep.equal([
-        { structure: Profil.Structure.MILO },
-        {
-          structure: Profil.Structure.FRANCE_TRAVAIL,
-          dispositifs: [
-            Profil.Dispositif.CEJ,
-            Profil.Dispositif.BRSA,
-            Profil.Dispositif.AIJ,
-            Profil.Dispositif.AVENIR_PRO,
-            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
-          ]
-        },
-        TOUT_CONSEIL_DEPARTEMENTAL,
-        { structure: Profil.Structure.INVITE }
-      ])
+      expect(handler.profilsAutorises).to.equal(TOUT_PROFIL)
     })
   })
 })
