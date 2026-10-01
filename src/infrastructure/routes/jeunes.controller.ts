@@ -551,18 +551,29 @@ export class JeunesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UserJourney('update_plan_action_tache')
   @ApiOperation({
-    summary: "Coche ou décoche une tâche du plan d'action",
+    summary:
+      "Coche ou décoche une tâche du plan d'action, en déclarant une action ou une démarche selon le profil",
     description: 'Autorisé pour un bénéficiaire connecté'
   })
   async changerStatutTachePlanAction(
     @Param('idJeune') idJeune: string,
     @Param('idTache', new ParseUUIDPipe()) idTache: string,
     @Body() payload: ChangerStatutTachePlanActionPayload,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
   ): Promise<void> {
     const result =
       await this.changerStatutTachePlanActionCommandHandler.execute(
-        { idJeune, idTache, terminee: payload.terminee },
+        {
+          idJeune,
+          idTache,
+          terminee: payload.terminee,
+          date: payload.date
+            ? DateTime.fromISO(payload.date, { setZone: true })
+            : undefined,
+          commentaire: payload.commentaire,
+          accessToken
+        },
         utilisateur
       )
 

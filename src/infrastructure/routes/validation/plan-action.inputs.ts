@@ -77,4 +77,14 @@ export class ChangerStatutTachePlanActionPayload {
   @ApiProperty()
   @IsBoolean()
   terminee: boolean
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  date?: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  commentaire?: string
 }
