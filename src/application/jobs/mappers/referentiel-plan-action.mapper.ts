@@ -94,6 +94,14 @@ export function reconcilierReferentiel(
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
     const idTechnique = record.fields.Id_technique
+    if (!texte(idTechnique)) {
+      anomalies.nbSolutionsEcartees++
+      logAnomalie('Solution Grist écartée : identifiant technique manquant', {
+        raison: 'id_manquant',
+        ligne_grist: record.id
+      })
+      continue
+    }
     if (idsVus.has(idTechnique)) {
       anomalies.nbDoublonsSolutions++
       logAnomalie(
