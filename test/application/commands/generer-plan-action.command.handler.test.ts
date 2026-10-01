@@ -18,7 +18,7 @@ import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { rootLogger } from '../../../src/utils/logger.module'
-import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
+import { TOUT_PROFIL, Profil } from '../../../src/domain/profil'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import {
@@ -358,23 +358,7 @@ describe('GenererPlanActionCommandHandler', () => {
   describe('profilsAutorises', () => {
     it('déclare les profils autorisés', () => {
       // Then
-      expect(handler.profilsAutorises).to.deep.equal([
-        { structure: Profil.Structure.MILO },
-        {
-          structure: Profil.Structure.FRANCE_TRAVAIL,
-          dispositifs: [
-            Profil.Dispositif.CEJ,
-            Profil.Dispositif.BRSA,
-            Profil.Dispositif.AIJ,
-            Profil.Dispositif.AVENIR_PRO,
-            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
-          ]
-        },
-        TOUT_CONSEIL_DEPARTEMENTAL,
-        { structure: Profil.Structure.INVITE }
-      ])
+      expect(handler.profilsAutorises).to.equal(TOUT_PROFIL)
     })
   })
 })

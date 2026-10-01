@@ -16,12 +16,7 @@ import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
 } from '../../domain/plan-action/referentiel-plan-action'
-import {
-  DISPOSITIFS_ACCOMPAGNES,
-  estInvite,
-  Profil,
-  TOUT_INVITE
-} from '../../domain/profil'
+import { TOUT_PROFIL, estInvite, Profil } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
@@ -44,7 +39,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
   GenererPlanActionCommand,
   PlanActionQueryModel
 > {
-  readonly profilsAutorises = [...DISPOSITIFS_ACCOMPAGNES, TOUT_INVITE]
+  readonly profilsAutorises = TOUT_PROFIL
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
