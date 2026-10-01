@@ -2,6 +2,13 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
+import {
+  DISPOSITIFS_FT_AVEC_DEMARCHES,
+  Profil,
+  profilEstAutorise,
+  TOUT_CONSEIL_DEPARTEMENTAL,
+  TOUT_MILO
+} from '../profil'
 import { Questionnaire } from './questionnaire'
 import { ReferentielPlanAction } from './referentiel-plan-action'
 
@@ -47,17 +54,35 @@ export namespace PlanAction {
     supprimerTache(idTache: string, dateSuppression: DateTime): Promise<void>
   }
 
-  export function changerStatutTache(
-    tache: Tache,
-    terminee: boolean,
-    maintenant: DateTime
-  ): Tache {
-    if (tache.terminee === terminee) return tache
+  export function cocherTache(tache: Tache, dateTerminee: DateTime): Tache {
+    if (tache.terminee) return tache
+    return { ...tache, terminee: true, dateTerminee }
+  }
 
+  export function decocherTache(tache: Tache): Tache {
     const { dateTerminee: _dateTerminee, ...tacheSansDateTerminee } = tache
-    return terminee
-      ? { ...tacheSansDateTerminee, terminee, dateTerminee: maintenant }
-      : { ...tacheSansDateTerminee, terminee }
+    return { ...tacheSansDateTerminee, terminee: false }
+  }
+
+  export enum ModeDeclaration {
+    ACTION_MILO = 'ACTION_MILO',
+    DEMARCHE_FT = 'DEMARCHE_FT',
+    AUCUNE = 'AUCUNE'
+  }
+
+  export function modeDeclaration(profil: Profil): ModeDeclaration {
+    if (profilEstAutorise(profil, [TOUT_MILO])) {
+      return ModeDeclaration.ACTION_MILO
+    }
+    if (
+      profilEstAutorise(profil, [
+        DISPOSITIFS_FT_AVEC_DEMARCHES,
+        TOUT_CONSEIL_DEPARTEMENTAL
+      ])
+    ) {
+      return ModeDeclaration.DEMARCHE_FT
+    }
+    return ModeDeclaration.AUCUNE
   }
 
   export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {

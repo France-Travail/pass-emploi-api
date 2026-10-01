@@ -969,7 +969,7 @@ describe('JeunesController', () => {
   describe('PATCH /jeunes/:idJeune/plan-action/taches/:idTache', () => {
     const idTache = '11111111-1111-1111-1111-111111111111'
 
-    it('coche la tâche', async () => {
+    it('transmet la déclaration au handler', async () => {
       // Given
       changerStatutTachePlanActionCommandHandler.execute.resolves(
         emptySuccess()
@@ -979,16 +979,94 @@ describe('JeunesController', () => {
       await request(app.getHttpServer())
         .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
         .set('authorization', unHeaderAuthorization())
-        .send({ terminee: true })
+        .send({
+          terminee: true,
+          date: '2026-09-30T00:00:00+02:00',
+          commentaire: "J'ai refait mon CV"
+        })
         // Then
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
         changerStatutTachePlanActionCommandHandler.execute
       ).to.have.been.calledWithExactly(
-        { idJeune: 'id-jeune', idTache, terminee: true },
+        {
+          idJeune: 'id-jeune',
+          idTache,
+          terminee: true,
+          date: DateTime.fromISO('2026-09-30T00:00:00+02:00', {
+            setZone: true
+          }),
+          commentaire: "J'ai refait mon CV",
+          accessToken: 'coucou'
+        },
         unUtilisateurDecode()
       )
+    })
+
+    it('transmet une décoche sans date ni commentaire', async () => {
+      // Given
+      changerStatutTachePlanActionCommandHandler.execute.resolves(
+        emptySuccess()
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({ terminee: false })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        changerStatutTachePlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idJeune: 'id-jeune',
+          idTache,
+          terminee: false,
+          date: undefined,
+          commentaire: undefined,
+          accessToken: 'coucou'
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    it("rejette une date qui n'est pas une date ISO", async () => {
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({ terminee: true, date: 'hier' })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('rejette une date sans décalage', async () => {
+      for (const date of ['2026-10-02', '2026-10-02T00:30:00.000']) {
+        // When
+        await request(app.getHttpServer())
+          .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+          .set('authorization', unHeaderAuthorization())
+          .send({ terminee: true, date })
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      }
+    })
+
+    it('rejette un commentaire de plus de 1024 caractères', async () => {
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          terminee: true,
+          date: '2026-09-30T00:00:00+02:00',
+          commentaire: 'a'.repeat(1025)
+        })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
     })
 
     it('rejette un payload sans statut', async () => {
