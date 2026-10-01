@@ -1581,19 +1581,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/platform-express@npm:11.2.1":
-  version: 11.2.1
-  resolution: "@nestjs/platform-express@npm:11.2.1"
+"@nestjs/platform-express@npm:12.1.1":
+  version: 12.1.1
+  resolution: "@nestjs/platform-express@npm:12.1.1"
   dependencies:
     cors: "npm:2.8.6"
     express: "npm:5.2.1"
-    multer: "npm:2.2.0"
+    multer: "npm:2.4.0"
     path-to-regexp: "npm:8.4.2"
     tslib: "npm:2.8.1"
   peerDependencies:
-    "@nestjs/common": ^11.0.0
-    "@nestjs/core": ^11.0.0
-  checksum: 10/5ede65148fdd315283fae7e31c9332f556954fcc1794f715150fc978d3fb3d735acdb607557302f0a2ce306dd86d0b4720e96121f8c292608dc9e508d2c1f976
+    "@nestjs/common": ^12.0.0
+    "@nestjs/core": ^12.0.0
+  checksum: 10/336f22981a045ccfd79414b546913e2b87bbb356891fc02692d1b51305c94a125996f4a7ba0ad69418c58eed1a8be15c063257c61e03394bb382eec7c4dc12a2
   languageName: node
   linkType: hard
 
@@ -7673,7 +7673,7 @@ __metadata:
     "@nestjs/common": "npm:11.2.1"
     "@nestjs/config": "npm:4.0.4"
     "@nestjs/core": "npm:11.2.1"
-    "@nestjs/platform-express": "npm:11.2.1"
+    "@nestjs/platform-express": "npm:12.1.1"
     "@nestjs/schematics": "npm:^11.1.0"
     "@nestjs/swagger": "npm:11.4.7"
     "@nestjs/terminus": "npm:11.1.1"
