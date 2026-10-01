@@ -205,6 +205,28 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
   })
 
+  it('écarte une solution sans identifiant technique', () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({ Id_technique: '' }),
+        { id: 2, fields: uneSolutionGrist({ Id_technique: '  ' }).fields },
+        {
+          id: 3,
+          fields: uneSolutionGrist({
+            Id_technique: null as unknown as string
+          }).fields
+        }
+      ]
+    )
+
+    // Then
+    expect(resultat.solutions).to.deep.equal([])
+    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(3)
+    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(0)
+  })
+
   it('importe sans service une solution dont le nom ne résout rien', () => {
     // When
     const resultat = reconcilierReferentiel(
