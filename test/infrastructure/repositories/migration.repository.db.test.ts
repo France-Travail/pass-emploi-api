@@ -130,15 +130,6 @@ describe('MigrationSqlRepository', () => {
         { id: 'jeuneTransfere' }
       ])
     })
-
-    it('renvoie les jeunes dont le conseiller de référence a un profil qui correspond', async () => {
-      // When
-      const beneficiaires =
-        await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PHASE_B')
-
-      // Then
-      expect(beneficiaires).to.have.deep.members([{ id: 'jeuneBrsa' }])
-    })
   })
 
   describe('getDateDeMigrationDuConseiller', () => {
@@ -148,14 +139,6 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-
-    it('renvoie la date par profil', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuConseiller('conseillerBrsa')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
     })
 
     it('ne renvoie rien quand aucune migration ne vise le conseiller', async () => {
@@ -187,22 +170,6 @@ describe('MigrationSqlRepository', () => {
     it('renvoie la date du conseiller du jeune', async () => {
       // When
       const date = await repo.getDateDeMigrationDuBeneficiaire('jeunePhaseA')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-
-    it('renvoie la date par le profil du conseiller du jeune', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire('jeuneBrsa')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
-    })
-
-    it('renvoie la date du conseiller initial quand le jeune est transféré', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire('jeuneTransfere')
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())

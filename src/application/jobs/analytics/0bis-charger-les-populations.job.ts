@@ -61,13 +61,15 @@ const JOIN_LIEU_CONSEILLER = `
 /**
  * Analytics pipeline — step 0bis (quotidien, en parallèle du job 1).
  * Matérialise ce que les fonctionnalités calculent pour un utilisateur, de
- * façon exhaustive : les jointures et prédicats viennent de sql-helpers (les
- * mêmes que les repositories), rien n'est réécrit ici. Les statuts sont
- * figés à date_calcul.
+ * façon exhaustive. L'appartenance et les règles « en cours » / « actif »
+ * viennent de sql-helpers (les mêmes que les repositories) ; seuls le statut
+ * affiché d'une communication et le lieu d'accompagnement sont propres à ce
+ * job. Une fois l'envoi démarré, les destinataires sont ceux figés dans
+ * communication_envoi. Les statuts sont figés à date_calcul.
  * @see docs/ANALYTICS.md#0bis-charger-les-populationsjobts
  * @analytics.trigger ajouterJob depuis DUMP_ANALYTICS, ou TASK_NAME=CHARGER_POPULATIONS_ANALYTICS
  * @analytics.after DUMP_ANALYTICS
- * @analytics.tables_in population, population_conseiller, population_profil, communication, communication_envoi, deploiement, conseiller, jeune
+ * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, communication, communication_envoi, deploiement, conseiller, jeune
  * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires, analytics_deploiement_membres
  */
 @Injectable()

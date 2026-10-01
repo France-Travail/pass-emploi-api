@@ -3,6 +3,7 @@ import { before } from 'mocha'
 import { CreerDeploiementCommandHandler } from '../../../../src/application/commands/support/creer-deploiement.command.handler.db'
 import { ModifierDateDeploiementCommandHandler } from '../../../../src/application/commands/support/modifier-date-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from '../../../../src/application/commands/support/supprimer-deploiement.command.handler.db'
+import { GetPopulationSupportQueryHandler } from '../../../../src/application/queries/get-population-support.query.handler.db'
 import {
   MauvaiseCommandeError,
   NonTrouveError
@@ -10,6 +11,7 @@ import {
 import { isSuccess } from '../../../../src/building-blocks/types/result'
 import { Deploiement } from '../../../../src/domain/deploiement'
 import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
+import { CommunicationSqlRepository } from '../../../../src/infrastructure/repositories/communication.repository.db'
 import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -23,6 +25,7 @@ describe('Déploiements : handlers support', () => {
   const date = DateTime.fromISO('2026-10-13T00:00:00.000Z')
 
   let databaseForTesting: DatabaseForTesting
+  let getPopulation: GetPopulationSupportQueryHandler
 
   before(async () => {
     databaseForTesting = getDatabase()
@@ -32,6 +35,9 @@ describe('Déploiements : handlers support', () => {
     await databaseForTesting.cleanPG()
     await PopulationSqlModel.create({ id: 'PILOTE', description: null })
     await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+    getPopulation = new GetPopulationSupportQueryHandler(
+      new CommunicationSqlRepository(databaseForTesting.sequelize)
+    )
   })
 
   describe('CreerDeploiementCommandHandler', () => {
@@ -50,11 +56,17 @@ describe('Déploiements : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const deploiement = await DeploiementSqlModel.findOne()
-      expect(deploiement!.idPopulation).to.equal('PILOTE')
-      expect(deploiement!.idFonctionnalite).to.equal('PLAN_D_ACTION')
-      expect(deploiement!.dateActivation.toISOString()).to.equal(
-        date.toJSDate().toISOString()
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.have.length(1)
+      expect(population.data.deploiements[0].nature).to.equal(
+        Deploiement.Nature.FONCTIONNALITE
+      )
+      expect(population.data.deploiements[0].idFonctionnalite).to.equal(
+        'PLAN_D_ACTION'
+      )
+      expect(population.data.deploiements[0].dateActivation).to.equal(
+        date.toUTC().toISO()
       )
     })
 
@@ -68,9 +80,15 @@ describe('Déploiements : handlers support', () => {
 
       // Then
       expect(isSuccess(result)).to.equal(true)
-      const deploiement = await DeploiementSqlModel.findOne()
-      expect(deploiement!.nature).to.equal(Deploiement.Nature.MIGRATION)
-      expect(deploiement!.idFonctionnalite).to.be.null()
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.have.length(1)
+      expect(population.data.deploiements[0].nature).to.equal(
+        Deploiement.Nature.MIGRATION
+      )
+      expect(population.data.deploiements[0].idFonctionnalite).to.equal(
+        undefined
+      )
     })
 
     it('déplace la date quand le couple population et fonctionnalité existe déjà', async () => {
@@ -92,10 +110,11 @@ describe('Déploiements : handlers support', () => {
 
       // Then
       expect(second).to.deep.equal(premier)
-      expect(await DeploiementSqlModel.count()).to.equal(1)
-      const deploiement = await DeploiementSqlModel.findOne()
-      expect(deploiement!.dateActivation.toISOString()).to.equal(
-        date.plus({ days: 7 }).toJSDate().toISOString()
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.have.length(1)
+      expect(population.data.deploiements[0].dateActivation).to.equal(
+        date.plus({ days: 7 }).toUTC().toISO()
       )
     })
 
@@ -116,10 +135,11 @@ describe('Déploiements : handlers support', () => {
 
       // Then
       expect(second).to.deep.equal(premier)
-      expect(await DeploiementSqlModel.count()).to.equal(1)
-      const deploiement = await DeploiementSqlModel.findOne()
-      expect(deploiement!.dateActivation.toISOString()).to.equal(
-        date.plus({ days: 7 }).toJSDate().toISOString()
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.have.length(1)
+      expect(population.data.deploiements[0].dateActivation).to.equal(
+        date.plus({ days: 7 }).toUTC().toISO()
       )
     })
 
@@ -205,30 +225,38 @@ describe('Déploiements : handlers support', () => {
 
   describe('ModifierDateDeploiementCommandHandler', () => {
     const handler = new ModifierDateDeploiementCommandHandler()
+    const creer = new CreerDeploiementCommandHandler(
+      new PopulationSqlRepository()
+    )
 
     it('déplace la date sans toucher au reste', async () => {
       // Given
-      const deploiement = await DeploiementSqlModel.create({
+      const resultCreation = await creer.handle({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
         idFonctionnalite: 'PLAN_D_ACTION',
-        dateActivation: date.toJSDate()
+        dateActivation: date
       })
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idDeploiement = resultCreation.data.id
 
       // When
       const result = await handler.handle({
-        id: deploiement.id,
+        id: idDeploiement,
         dateActivation: date.plus({ days: 20 })
       })
 
       // Then
       expect(result._isSuccess).to.equal(true)
-      const modifie = await DeploiementSqlModel.findByPk(deploiement.id)
-      expect(modifie!.dateActivation.toISOString()).to.equal(
-        date.plus({ days: 20 }).toJSDate().toISOString()
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.have.length(1)
+      expect(population.data.deploiements[0].dateActivation).to.equal(
+        date.plus({ days: 20 }).toUTC().toISO()
       )
-      expect(modifie!.idPopulation).to.equal('PILOTE')
-      expect(modifie!.idFonctionnalite).to.equal('PLAN_D_ACTION')
+      expect(population.data.deploiements[0].idFonctionnalite).to.equal(
+        'PLAN_D_ACTION'
+      )
     })
 
     it('échoue sur un id inconnu', async () => {
@@ -245,22 +273,28 @@ describe('Déploiements : handlers support', () => {
 
   describe('SupprimerDeploiementCommandHandler', () => {
     const handler = new SupprimerDeploiementCommandHandler()
+    const creer = new CreerDeploiementCommandHandler(
+      new PopulationSqlRepository()
+    )
 
     it('supprime le déploiement', async () => {
       // Given
-      const deploiement = await DeploiementSqlModel.create({
+      const resultCreation = await creer.handle({
         nature: Deploiement.Nature.MIGRATION,
         idPopulation: 'PILOTE',
-        idFonctionnalite: null,
-        dateActivation: date.toJSDate()
+        dateActivation: date
       })
+      if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
+      const idDeploiement = resultCreation.data.id
 
       // When
-      const result = await handler.handle({ id: deploiement.id })
+      const result = await handler.handle({ id: idDeploiement })
 
       // Then
       expect(result._isSuccess).to.equal(true)
-      expect(await DeploiementSqlModel.count()).to.equal(0)
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.deploiements).to.deep.equal([])
     })
 
     it('échoue sur un id inconnu', async () => {

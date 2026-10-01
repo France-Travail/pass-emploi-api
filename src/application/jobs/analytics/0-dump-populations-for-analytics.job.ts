@@ -16,6 +16,8 @@ export const TABLES_POPULATIONS = [
   'population',
   'population_conseiller',
   'population_profil',
+  'population_structure_milo',
+  'population_agence_ft',
   'deploiement',
   'communication',
   'communication_envoi'
@@ -29,7 +31,7 @@ export const TABLES_POPULATIONS = [
  * @see docs/ANALYTICS.md#rafraîchir-avant-lheure
  * @analytics.trigger TASK_NAME=DUMP_POPULATIONS_ANALYTICS
  * @analytics.before CHARGER_POPULATIONS_ANALYTICS
- * @analytics.tables_out fonctionnalite, population, population_conseiller, population_profil, deploiement, communication
+ * @analytics.tables_out fonctionnalite, population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, deploiement, communication, communication_envoi
  */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.DUMP_POPULATIONS_ANALYTICS)

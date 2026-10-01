@@ -39,6 +39,8 @@ import { FonctionnaliteSqlModel } from './fonctionnalite.sql-model'
 import { PopulationSqlModel } from './population.sql-model'
 import { PopulationConseillerSqlModel } from './population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from './population-profil.sql-model'
+import { PopulationStructureMiloSqlModel } from './population-structure-milo.sql-model'
+import { PopulationAgenceFTSqlModel } from './population-agence-ft.sql-model'
 import { DeploiementSqlModel } from './deploiement.sql-model'
 import { CommunicationSqlModel } from './communication.sql-model'
 import { CommunicationEnvoiSqlModel } from './communication-envoi.sql-model'
@@ -96,6 +98,8 @@ export const sqlModels = [
   PopulationSqlModel,
   PopulationConseillerSqlModel,
   PopulationProfilSqlModel,
+  PopulationStructureMiloSqlModel,
+  PopulationAgenceFTSqlModel,
   DeploiementSqlModel,
   CommunicationSqlModel,
   CommunicationEnvoiSqlModel,

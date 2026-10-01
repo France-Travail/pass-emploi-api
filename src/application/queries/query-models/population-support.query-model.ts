@@ -109,6 +109,18 @@ export class CommunicationSupportQueryModel {
   envoi?: EnvoiCommunicationQueryModel
 }
 
+export class AgenceFTPopulationQueryModel {
+  @ApiProperty()
+  idAgence: string
+
+  @ApiPropertyOptional({
+    enum: Profil.Dispositif,
+    isArray: true,
+    description: 'Absent = toute l’agence'
+  })
+  dispositifs?: Profil.Dispositif[]
+}
+
 export class PopulationSupportQueryModel {
   @ApiProperty()
   id: string
@@ -121,6 +133,22 @@ export class PopulationSupportQueryModel {
 
   @ApiProperty({ type: ProfilPopulationQueryModel, isArray: true })
   profils: ProfilPopulationQueryModel[]
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    description:
+      'Ids des structures MiLo citées : leurs conseillers et les jeunes de référence de ces conseillers'
+  })
+  structuresMilo: string[]
+
+  @ApiProperty({
+    type: AgenceFTPopulationQueryModel,
+    isArray: true,
+    description:
+      'Agences France Travail citées : leurs conseillers et les jeunes de référence de ces conseillers, restreints aux conseillers des dispositifs quand ils sont renseignés'
+  })
+  agencesFT: AgenceFTPopulationQueryModel[]
 
   @ApiProperty({ type: DeploiementQueryModel, isArray: true })
   deploiements: DeploiementQueryModel[]
