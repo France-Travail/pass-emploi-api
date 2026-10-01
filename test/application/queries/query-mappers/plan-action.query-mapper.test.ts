@@ -220,6 +220,23 @@ describe('toPlanActionQueryModel', () => {
       )
     })
 
+    it('requiert la déclaration à un jeune France Travail sans conversion France Travail', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [uneSolution('p-2')],
+        unProfilFT(Profil.Dispositif.CEJ)
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        true
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
+
     it("n'annonce rien à l'Espace candidat ni à l'invité", () => {
       for (const profil of [
         unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT),

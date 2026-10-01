@@ -334,6 +334,43 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
         ).to.equal(undefined)
       })
 
+      it("échoue quand le jeune n'existe pas", async () => {
+        // Given
+        jeuneRepository.get.withArgs(jeuneMilo.id).resolves(undefined)
+
+        // When
+        const result = await handler.handle(
+          uneCommande({ commentaire }),
+          jeuneMilo,
+          uneTache()
+        )
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(new NonTrouveError('Jeune', jeuneMilo.id))
+        )
+        expect(actionRepository.save).not.to.have.been.called()
+        expect(planActionRepository.saveTache).not.to.have.been.called()
+      })
+
+      it("renvoie l'échec de construction de l'action sans rien sauvegarder", async () => {
+        // Given
+        const echec = failure(new MauvaiseCommandeError('x'))
+        actionFactory.buildAction.returns(echec)
+
+        // When
+        const result = await handler.handle(
+          uneCommande({ commentaire }),
+          jeuneMilo,
+          uneTache()
+        )
+
+        // Then
+        expect(result).to.deep.equal(echec)
+        expect(actionRepository.save).not.to.have.been.called()
+        expect(planActionRepository.saveTache).not.to.have.been.called()
+      })
+
       it('refuse une déclaration sans commentaire', async () => {
         for (const commentaireAbsent of [undefined, '   ']) {
           // When
@@ -450,6 +487,21 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
         expect(demarcheRepository.save).not.to.have.been.called()
       })
 
+      it('accepte un commentaire vide pour une démarche', async () => {
+        for (const commentaireVide of ['', '  ']) {
+          // When
+          const result = await handler.handle(
+            uneCommande({ idJeune: jeuneFT.id, commentaire: commentaireVide }),
+            jeuneFT,
+            uneTache()
+          )
+
+          // Then
+          expect(result).to.deep.equal(emptySuccess())
+        }
+        expect(demarcheRepository.save).to.have.been.calledTwice()
+      })
+
       it('ne coche pas la tâche quand France Travail est en erreur', async () => {
         // Given
         const erreur = failure(new ErreurHttp('Service indisponible', 503))
@@ -480,6 +532,36 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
         )
         expect(demarcheRepository.save).not.to.have.been.called()
         expect(actionRepository.save).not.to.have.been.called()
+      })
+    })
+
+    describe('jeune France Travail Espace candidat avec date', () => {
+      it('refuse une date future sans rien sauvegarder', async () => {
+        // When
+        const result = await handler.handle(
+          uneCommande({ date: maintenant.plus({ days: 1 }) }),
+          jeuneEspaceCandidat,
+          uneTache()
+        )
+
+        // Then
+        expect(result).to.deep.equal(failure(new DateNonAutoriseeError()))
+        expect(planActionRepository.saveTache).not.to.have.been.called()
+      })
+
+      it('coche la tâche à la date fournie quand elle est passée', async () => {
+        // When
+        const result = await handler.handle(
+          uneCommande(),
+          jeuneEspaceCandidat,
+          uneTache()
+        )
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.saveTache).to.have.been.calledWithExactly(
+          uneTache({ terminee: true, dateTerminee: hier })
+        )
       })
     })
 
@@ -587,6 +669,11 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
         jeuneMilo,
         uneCommande({ terminee: false }),
         uneTache({ terminee: true, dateTerminee: dateCreation })
+      )
+      await handler.monitor(
+        jeuneMilo,
+        uneCommande({ terminee: false }),
+        uneTache()
       )
       await handler.monitor(jeuneEspaceCandidat, uneCommande(), uneTache())
 

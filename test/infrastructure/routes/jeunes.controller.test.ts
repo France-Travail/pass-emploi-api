@@ -1043,6 +1043,32 @@ describe('JeunesController', () => {
         .expect(HttpStatus.BAD_REQUEST)
     })
 
+    it('rejette une date sans décalage', async () => {
+      for (const date of ['2026-10-02', '2026-10-02T00:30:00.000']) {
+        // When
+        await request(app.getHttpServer())
+          .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+          .set('authorization', unHeaderAuthorization())
+          .send({ terminee: true, date })
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      }
+    })
+
+    it('rejette un commentaire de plus de 1024 caractères', async () => {
+      // When
+      await request(app.getHttpServer())
+        .patch(`/jeunes/id-jeune/plan-action/taches/${idTache}`)
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          terminee: true,
+          date: '2026-09-30T00:00:00+02:00',
+          commentaire: 'a'.repeat(1025)
+        })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
     it('rejette un payload sans statut', async () => {
       // When
       await request(app.getHttpServer())

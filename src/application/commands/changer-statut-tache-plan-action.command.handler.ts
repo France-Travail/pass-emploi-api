@@ -106,6 +106,9 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
 
     const mode = PlanAction.modeDeclaration(utilisateur.profil)
     if (mode === PlanAction.ModeDeclaration.AUCUNE) {
+      if (command.date && this.estDansLeFutur(command.date)) {
+        return failure(new DateNonAutoriseeError())
+      }
       await this.planActionRepository.saveTache(
         PlanAction.cocherTache(tache, command.date ?? this.dateService.now())
       )
@@ -172,11 +175,7 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
         new MauvaiseCommandeError('La date de réalisation est requise')
       )
     }
-    const aujourdhui = this.dateService
-      .now()
-      .setZone(command.date.zone)
-      .startOf('day')
-    if (command.date.startOf('day') > aujourdhui) {
+    if (this.estDansLeFutur(command.date)) {
       return failure(new DateNonAutoriseeError())
     }
     if (
@@ -187,7 +186,7 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
     }
     if (
       mode === PlanAction.ModeDeclaration.DEMARCHE_FT &&
-      command.commentaire !== undefined
+      command.commentaire?.trim()
     ) {
       return failure(
         new MauvaiseCommandeError(
@@ -196,6 +195,11 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
       )
     }
     return emptySuccess()
+  }
+
+  private estDansLeFutur(date: DateTime): boolean {
+    const aujourdhui = this.dateService.now().setZone(date.zone).startOf('day')
+    return date.startOf('day') > aujourdhui
   }
 
   private async creerAction(

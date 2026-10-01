@@ -19,7 +19,10 @@ export class ActionPlanQueryModel {
   @ApiProperty()
   terminee: boolean
 
-  @ApiProperty()
+  @ApiProperty({
+    description:
+      'Vrai quand cocher ouvre la déclaration : date, et commentaire pour Mission Locale'
+  })
   declarationRequise: boolean
 
   @ApiPropertyOptional()
@@ -28,7 +31,10 @@ export class ActionPlanQueryModel {
   @ApiPropertyOptional()
   nomService?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      "Catégorie Mission Locale ou thématique France Travail selon le profil, absente pour l'Espace candidat et l'invité"
+  })
   categorie?: string
 }
 
