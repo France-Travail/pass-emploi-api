@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { Command } from '../../building-blocks/types/command'
@@ -7,20 +7,25 @@ import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
-import { PlanAction } from '../../domain/plan-action/plan-action'
+import {
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
+import {
+  ReferentielPlanAction,
+  ReferentielPlanActionRepositoryToken
+} from '../../domain/plan-action/referentiel-plan-action'
 import {
   DISPOSITIFS_ACCOMPAGNES,
   estInvite,
+  Profil,
   TOUT_INVITE
 } from '../../domain/profil'
-import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
+import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
 import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-model'
-import {
-  toPlanActionQueryModel,
-  toQuestionnaire
-} from './mappers/plan-action.mapper'
 
 export interface GenererPlanActionCommand extends Command {
   idJeune: string
@@ -44,7 +49,11 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
-    private readonly planActionService: PlanAction.Service,
+    @Inject(ReferentielPlanActionRepositoryToken)
+    private readonly referentielRepository: ReferentielPlanAction.Repository,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
+    private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService
   ) {
@@ -73,9 +82,21 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     utilisateur: Authentification.Utilisateur
   ): Promise<Result<PlanActionQueryModel>> {
     const questionnaire = toQuestionnaire(command, utilisateur.profil.structure)
-    const plan = await this.planActionService.genererPlan(questionnaire)
+    const referentiel =
+      await this.referentielRepository.trouverSolutionsActives()
 
-    return success(toPlanActionQueryModel(plan))
+    const plan = this.planActionFactory.creer(
+      command.idJeune,
+      questionnaire,
+      referentiel
+    )
+
+    // L'invité n'a pas de compte : son plan vit dans l'app, pas en base
+    if (!estInvite(utilisateur.profil.structure)) {
+      await this.planActionRepository.save(plan)
+    }
+
+    return success(toPlanActionQueryModel(plan, referentiel))
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
@@ -101,5 +122,24 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
         ? { plan_action_obstacles: command.contraintes }
         : {})
     }
+  }
+}
+
+function toQuestionnaire(
+  command: GenererPlanActionCommand,
+  structure: Profil.Structure
+): Questionnaire {
+  return {
+    structure,
+    situation: command.situation,
+    besoins: command.besoins,
+    contraintes: Questionnaire.calculerContraintes(command.contraintes),
+    ...(command.dateNaissance ? { dateNaissance: command.dateNaissance } : {}),
+    ...(command.communeResidence
+      ? { communeResidence: command.communeResidence }
+      : {}),
+    ...(command.communeRecherche
+      ? { communeRecherche: command.communeRecherche }
+      : {})
   }
 }

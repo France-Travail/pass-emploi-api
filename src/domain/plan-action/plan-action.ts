@@ -1,24 +1,74 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
 import { Questionnaire } from './questionnaire'
-import {
-  ReferentielPlanAction,
-  ReferentielPlanActionRepositoryToken
-} from './referentiel-plan-action'
+import { ReferentielPlanAction } from './referentiel-plan-action'
+
+export const PlanActionRepositoryToken = 'PlanActionRepositoryToken'
+
+// Plan d'action suggéré au jeune à la fin de l'onboarding, puis conservé pour
+// qu'il retrouve ses tâches et leur avancement d'une session à l'autre
+export interface PlanAction {
+  id: string
+  idJeune: string
+  dateCreation: DateTime
+  objectifs: PlanAction.Objectif[]
+}
 
 export namespace PlanAction {
   export interface Objectif {
     id: string
     titre: string
     theme: Questionnaire.Besoin | Questionnaire.Contrainte
-    solutions: ReferentielPlanAction.Solution[]
+    taches: Tache[]
   }
 
-  export interface Plan {
+  // Une solution du référentiel rendue adressable : c'est la tâche, pas la
+  // solution, que le jeune coche
+  export interface Tache {
     id: string
-    objectifs: Objectif[]
+    idSolution: string
+    terminee: boolean
+    dateCreation: DateTime
+    dateTerminee?: DateTime
+  }
+
+  export interface Repository {
+    save(plan: PlanAction): Promise<void>
+
+    getDernierPlan(idJeune: string): Promise<PlanAction | undefined>
+  }
+
+  export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {
+    ORIENTER: "Je cherche à m'orienter",
+    DECOUVRIR_METIERS: 'Découvrir des métiers',
+    FORMER: 'Me former, me qualifier',
+    STAGE_IMMERSION: 'Un stage ou une immersion',
+    ALTERNANCE: 'Trouver une alternance',
+    EMPLOI: 'Trouver un emploi',
+    ENGAGER: "M'engager",
+    MOBILITE_INTERNATIONALE: 'Ma mobilité internationale',
+    ACCOMPAGNE: 'Être accompagné dans mes démarches',
+    CREER_ACTIVITE: 'Créer mon activité',
+    VIE_QUOTIDIENNE: 'Ma vie quotidienne'
+  }
+
+  export const TITRES_CONTRAINTES: Record<Questionnaire.Contrainte, string> = {
+    PAS_DE_PERMIS: 'Passer mon permis',
+    PAS_DE_TRANSPORT: 'Me déplacer plus facilement',
+    PAS_DE_LOGEMENT: 'Trouver un logement',
+    MANQUE_CONFIANCE: 'Ma confiance en moi',
+    FIN_DE_MOIS: 'Boucler mes fins de mois',
+    PAS_DE_DIPLOME: 'Valider mon expérience',
+    PEU_EXPERIENCE: 'Gagner en expérience',
+    HANDICAP: 'Être accompagné avec mon handicap',
+    SANTE: 'Prendre soin de ma santé',
+    GARDE_ENFANT: 'Faire garder mon enfant',
+    NUMERIQUE: 'Le numérique',
+    FRANCAIS: 'Progresser en français',
+    AUTRE: 'Lever mes blocages',
+    RIEN_NE_ME_BLOQUE: 'Rien ne me bloque'
   }
 
   export function filtrerSolutionsEligibles(args: {
@@ -101,101 +151,61 @@ export namespace PlanAction {
       )
   }
 
-  export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {
-    ORIENTER: "Je cherche à m'orienter",
-    DECOUVRIR_METIERS: 'Découvrir des métiers',
-    FORMER: 'Me former, me qualifier',
-    STAGE_IMMERSION: 'Un stage ou une immersion',
-    ALTERNANCE: 'Trouver une alternance',
-    EMPLOI: 'Trouver un emploi',
-    ENGAGER: "M'engager",
-    MOBILITE_INTERNATIONALE: 'Ma mobilité internationale',
-    ACCOMPAGNE: 'Être accompagné dans mes démarches',
-    CREER_ACTIVITE: 'Créer mon activité',
-    VIE_QUOTIDIENNE: 'Ma vie quotidienne'
-  }
-
-  export const TITRES_CONTRAINTES: Record<Questionnaire.Contrainte, string> = {
-    PAS_DE_PERMIS: 'Passer mon permis',
-    PAS_DE_TRANSPORT: 'Me déplacer plus facilement',
-    PAS_DE_LOGEMENT: 'Trouver un logement',
-    MANQUE_CONFIANCE: 'Ma confiance en moi',
-    FIN_DE_MOIS: 'Boucler mes fins de mois',
-    PAS_DE_DIPLOME: 'Valider mon expérience',
-    PEU_EXPERIENCE: 'Gagner en expérience',
-    HANDICAP: 'Être accompagné avec mon handicap',
-    SANTE: 'Prendre soin de ma santé',
-    GARDE_ENFANT: 'Faire garder mon enfant',
-    NUMERIQUE: 'Le numérique',
-    FRANCAIS: 'Progresser en français',
-    AUTRE: 'Lever mes blocages',
-    RIEN_NE_ME_BLOQUE: 'Rien ne me bloque'
-  }
-
-  // Regroupe les solutions éligibles par besoin puis par contrainte du jeune
-  // (ids objective-1, objective-2 : l'app y rattache les actions cochées)
-  export function construirePlan(args: {
-    questionnaire: Questionnaire
-    solutionsEligibles: ReferentielPlanAction.Solution[]
-    id: string
-  }): Plan {
-    const { questionnaire, solutionsEligibles, id } = args
-    const objectifs: Objectif[] = []
-
-    function ajouterObjectif(
-      theme: Questionnaire.Besoin | Questionnaire.Contrainte,
-      titre: string,
-      solutions: ReferentielPlanAction.Solution[]
-    ): void {
-      if (solutions.length === 0) return
-      objectifs.push({
-        id: `objective-${objectifs.length + 1}`,
-        titre,
-        theme,
-        solutions
-      })
-    }
-
-    for (const besoin of new Set(questionnaire.besoins)) {
-      ajouterObjectif(
-        besoin,
-        TITRES_BESOINS[besoin],
-        solutionsEligibles.filter(solution => solution.besoin === besoin)
-      )
-    }
-    for (const contrainte of new Set(questionnaire.contraintes)) {
-      ajouterObjectif(
-        contrainte,
-        TITRES_CONTRAINTES[contrainte],
-        solutionsEligibles.filter(
-          solution => solution.contrainte === contrainte
-        )
-      )
-    }
-
-    return { id, objectifs }
-  }
-
   @Injectable()
-  export class Service {
+  export class Factory {
     constructor(
-      @Inject(ReferentielPlanActionRepositoryToken)
-      private readonly referentiel: ReferentielPlanAction.Repository,
       private readonly idService: IdService,
       private readonly dateService: DateService
     ) {}
 
-    async genererPlan(questionnaire: Questionnaire): Promise<Plan> {
+    // Un objectif par besoin puis par contrainte du questionnaire, chacun avec
+    // toutes les solutions éligibles de son thème, dans l'ordre du référentiel
+    creer(
+      idJeune: string,
+      questionnaire: Questionnaire,
+      referentiel: ReferentielPlanAction.Solution[]
+    ): PlanAction {
+      const maintenant = this.dateService.now()
+      // L'identifiant du plan est tiré avant ceux des objectifs et des tâches
+      const id = this.idService.uuid()
       const solutionsEligibles = filtrerSolutionsEligibles({
         questionnaire,
-        solutions: await this.referentiel.trouverSolutionsActives(),
-        maintenant: this.dateService.now()
+        solutions: referentiel,
+        maintenant
       })
-      return construirePlan({
-        questionnaire,
-        solutionsEligibles,
-        id: this.idService.uuid()
-      })
+
+      const themes = [
+        ...Array.from(new Set(questionnaire.besoins)).map(besoin => ({
+          theme: besoin,
+          titre: TITRES_BESOINS[besoin],
+          solutions: solutionsEligibles.filter(
+            solution => solution.besoin === besoin
+          )
+        })),
+        ...Array.from(new Set(questionnaire.contraintes)).map(contrainte => ({
+          theme: contrainte,
+          titre: TITRES_CONTRAINTES[contrainte],
+          solutions: solutionsEligibles.filter(
+            solution => solution.contrainte === contrainte
+          )
+        }))
+      ]
+
+      const objectifs = themes
+        .filter(({ solutions }) => solutions.length > 0)
+        .map(({ theme, titre, solutions }) => ({
+          id: this.idService.uuid(),
+          titre,
+          theme,
+          taches: solutions.map(solution => ({
+            id: this.idService.uuid(),
+            idSolution: solution.id,
+            terminee: false,
+            dateCreation: maintenant
+          }))
+        }))
+
+      return { id, idJeune, dateCreation: maintenant, objectifs }
     }
   }
 }

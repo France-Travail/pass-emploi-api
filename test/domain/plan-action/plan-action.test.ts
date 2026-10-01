@@ -5,8 +5,7 @@ import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-a
 import { Profil } from 'src/domain/profil'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
-import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { createSandbox, expect, StubbedClass, stubClass } from 'test/utils'
+import { expect, StubbedClass, stubClass } from 'test/utils'
 
 const maintenant = DateTime.fromISO('2026-08-27T10:00:00.000Z', {
   zone: 'utc'
@@ -249,40 +248,44 @@ describe('PlanAction', () => {
     })
   })
 
-  describe('construirePlan', () => {
-    function construire(
-      questionnaire: Questionnaire,
-      solutionsEligibles: ReferentielPlanAction.Solution[]
-    ): PlanAction.Plan {
-      return PlanAction.construirePlan({
-        questionnaire,
-        solutionsEligibles,
-        id: 'plan-1'
-      })
-    }
+  describe('Factory', () => {
+    let factory: PlanAction.Factory
+    let idService: StubbedClass<IdService>
+    let dateService: StubbedClass<DateService>
+
+    beforeEach(() => {
+      idService = stubClass(IdService)
+      dateService = stubClass(DateService)
+      dateService.now.returns(maintenant)
+
+      let compteur = 0
+      idService.uuid.callsFake(() => `uuid-${compteur++}`)
+
+      factory = new PlanAction.Factory(idService, dateService)
+    })
 
     it("construit un objectif par besoin puis par contrainte, dans l'ordre du questionnaire, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
       // Given
-      const alternance1 = uneSolution({
-        id: 'alternance-1',
-        besoin: Questionnaire.Besoin.ALTERNANCE
-      })
-      const former1 = uneSolution({
-        id: 'former-1',
-        besoin: Questionnaire.Besoin.FORMER
-      })
-      const transport1 = uneSolution({
-        id: 'transport-1',
-        besoin: undefined,
-        contrainte: Questionnaire.Contrainte.PAS_DE_TRANSPORT
-      })
-      const alternance2 = uneSolution({
-        id: 'alternance-2',
-        besoin: Questionnaire.Besoin.ALTERNANCE
-      })
+      const referentiel = [
+        uneSolution({
+          id: 'alternance-1',
+          besoin: Questionnaire.Besoin.ALTERNANCE
+        }),
+        uneSolution({ id: 'former-1', besoin: Questionnaire.Besoin.FORMER }),
+        uneSolution({
+          id: 'transport-1',
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.PAS_DE_TRANSPORT
+        }),
+        uneSolution({
+          id: 'alternance-2',
+          besoin: Questionnaire.Besoin.ALTERNANCE
+        })
+      ]
 
       // When
-      const plan = construire(
+      const plan = factory.creer(
+        'jeune-1',
         unQuestionnaire({
           besoins: [
             Questionnaire.Besoin.FORMER,
@@ -290,38 +293,83 @@ describe('PlanAction', () => {
           ],
           contraintes: [Questionnaire.Contrainte.PAS_DE_TRANSPORT]
         }),
-        [alternance1, former1, transport1, alternance2]
+        referentiel
       )
 
       // Then
-      expect(plan).to.deep.equal({
-        id: 'plan-1',
-        objectifs: [
-          {
-            id: 'objective-1',
-            titre: 'Me former, me qualifier',
-            theme: Questionnaire.Besoin.FORMER,
-            solutions: [former1]
-          },
-          {
-            id: 'objective-2',
-            titre: 'Trouver une alternance',
-            theme: Questionnaire.Besoin.ALTERNANCE,
-            solutions: [alternance1, alternance2]
-          },
-          {
-            id: 'objective-3',
-            titre: 'Me déplacer plus facilement',
-            theme: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
-            solutions: [transport1]
-          }
+      expect(
+        plan.objectifs.map(objectif => ({
+          titre: objectif.titre,
+          theme: objectif.theme,
+          idsSolutions: objectif.taches.map(tache => tache.idSolution)
+        }))
+      ).to.deep.equal([
+        {
+          titre: 'Me former, me qualifier',
+          theme: Questionnaire.Besoin.FORMER,
+          idsSolutions: ['former-1']
+        },
+        {
+          titre: 'Trouver une alternance',
+          theme: Questionnaire.Besoin.ALTERNANCE,
+          idsSolutions: ['alternance-1', 'alternance-2']
+        },
+        {
+          titre: 'Me déplacer plus facilement',
+          theme: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
+          idsSolutions: ['transport-1']
+        }
+      ])
+    })
+
+    it('attribue nos propres identifiants au plan, aux objectifs et aux tâches', () => {
+      // When
+      const plan = factory.creer('jeune-1', unQuestionnaire(), [
+        uneSolution({ id: 'p-2' })
+      ])
+
+      // Then
+      expect(plan.id).to.equal('uuid-0')
+      expect(plan.objectifs[0].id).to.equal('uuid-1')
+      expect(plan.objectifs[0].taches[0].id).to.equal('uuid-2')
+      expect(plan.objectifs[0].taches[0].idSolution).to.equal('p-2')
+    })
+
+    it('pose le jeune, la date de création et des tâches non terminées', () => {
+      // When
+      const plan = factory.creer('jeune-1', unQuestionnaire(), [uneSolution()])
+
+      // Then
+      expect(plan.idJeune).to.equal('jeune-1')
+      expect(plan.dateCreation).to.deep.equal(maintenant)
+      expect(plan.objectifs[0].taches[0].terminee).to.equal(false)
+      expect(plan.objectifs[0].taches[0].dateTerminee).to.equal(undefined)
+    })
+
+    it('ne retient que les solutions éligibles à la date du jour', () => {
+      // When
+      const plan = factory.creer(
+        'jeune-1',
+        unQuestionnaire({ dateNaissance: DateTime.fromISO('2010-01-01') }),
+        [
+          uneSolution({ id: 'alternance-1' }),
+          uneSolution({ id: 'emploi-1', besoin: Questionnaire.Besoin.EMPLOI }),
+          uneSolution({ id: 'alternance-majeurs', ageMin: 18 })
         ]
-      })
+      )
+
+      // Then
+      expect(
+        plan.objectifs.flatMap(objectif =>
+          objectif.taches.map(tache => tache.idSolution)
+        )
+      ).to.deep.equal(['alternance-1'])
     })
 
     it('saute les thèmes sans solution éligible', () => {
       // When
-      const plan = construire(
+      const plan = factory.creer(
+        'jeune-1',
         unQuestionnaire({
           besoins: [Questionnaire.Besoin.FORMER],
           contraintes: [Questionnaire.Contrainte.SANTE]
@@ -335,77 +383,19 @@ describe('PlanAction', () => {
 
     it("ne construit qu'un objectif par thème quand le questionnaire répète un besoin", () => {
       // When
-      const plan = construire(
+      const plan = factory.creer(
+        'jeune-1',
         unQuestionnaire({
           besoins: [
             Questionnaire.Besoin.ALTERNANCE,
             Questionnaire.Besoin.ALTERNANCE
           ]
         }),
-        [
-          uneSolution({
-            id: 'alternance-1',
-            besoin: Questionnaire.Besoin.ALTERNANCE
-          })
-        ]
+        [uneSolution()]
       )
 
       // Then
-      expect(plan.objectifs.map(objectif => objectif.id)).to.deep.equal([
-        'objective-1'
-      ])
-    })
-  })
-
-  describe('Service', () => {
-    let referentiel: StubbedType<ReferentielPlanAction.Repository>
-    let idService: StubbedClass<IdService>
-    let dateService: StubbedClass<DateService>
-    let service: PlanAction.Service
-
-    beforeEach(() => {
-      referentiel =
-        stubInterface<ReferentielPlanAction.Repository>(createSandbox())
-      idService = stubClass(IdService)
-      dateService = stubClass(DateService)
-      idService.uuid.returns('un-uuid')
-      dateService.now.returns(maintenant)
-      service = new PlanAction.Service(referentiel, idService, dateService)
-    })
-
-    it('génère le plan sur les seules solutions actives et éligibles du référentiel, avec un uuid', async () => {
-      // Given
-      const alternance = uneSolution({
-        id: 'alternance-1',
-        besoin: Questionnaire.Besoin.ALTERNANCE
-      })
-      referentiel.trouverSolutionsActives.resolves([
-        alternance,
-        uneSolution({ id: 'emploi-1', besoin: Questionnaire.Besoin.EMPLOI }),
-        uneSolution({
-          id: 'alternance-majeurs',
-          besoin: Questionnaire.Besoin.ALTERNANCE,
-          ageMin: 18
-        })
-      ])
-
-      // When
-      const plan = await service.genererPlan(
-        unQuestionnaire({ dateNaissance: DateTime.fromISO('2010-01-01') })
-      )
-
-      // Then
-      expect(plan).to.deep.equal({
-        id: 'un-uuid',
-        objectifs: [
-          {
-            id: 'objective-1',
-            titre: 'Trouver une alternance',
-            theme: Questionnaire.Besoin.ALTERNANCE,
-            solutions: [alternance]
-          }
-        ]
-      })
+      expect(plan.objectifs).to.have.length(1)
     })
   })
 })
