@@ -626,6 +626,12 @@ describe('PlanAction', () => {
       ).to.equal(PlanAction.ModeDeclaration.ACTION_MILO)
     })
 
+    it('déclare une action pour un jeune Mission Locale sans dispositif connu', () => {
+      expect(PlanAction.modeDeclaration(unProfilMilo(null))).to.equal(
+        PlanAction.ModeDeclaration.ACTION_MILO
+      )
+    })
+
     it('déclare une démarche pour un jeune France Travail avec démarches', () => {
       expect(
         PlanAction.modeDeclaration(unProfilFT(Profil.Dispositif.CEJ))
