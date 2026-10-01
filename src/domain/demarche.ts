@@ -49,6 +49,7 @@ export namespace Demarche {
     comment?: string
     description?: string
     promptIa?: string
+    realisee?: boolean
   }
 
   export interface Creee {
@@ -142,9 +143,11 @@ export namespace Demarche {
       const maintenant = setHoursTo12h00(this.dateService.now())
       const dateTimeFin = setHoursTo12h00(demarcheACreer.dateFin)
 
-      let statut = Demarche.Statut.A_FAIRE
       const laDateDeFinEstDansLePasse = dateTimeFin < maintenant
-      if (laDateDeFinEstDansLePasse) statut = Demarche.Statut.REALISEE
+      const statut =
+        demarcheACreer.realisee || laDateDeFinEstDansLePasse
+          ? Demarche.Statut.REALISEE
+          : Demarche.Statut.A_FAIRE
 
       if (
         demarcheACreer.quoi &&

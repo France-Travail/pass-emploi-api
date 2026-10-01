@@ -341,5 +341,56 @@ describe('Demarche', () => {
         })
       })
     })
+
+    context('quand la démarche est déclarée réalisée', () => {
+      it('crée une démarche réalisée datée du jour', () => {
+        // Given
+        const demarcheACreer: Demarche.ACreer = {
+          dateFin: uneDatetime(),
+          quoi: 'C21',
+          pourquoi: 'A42',
+          realisee: true
+        }
+
+        // When
+        const demarche = demarcheFactory.creerDemarche(demarcheACreer)
+
+        // Then
+        const demarcheCree: Demarche.Creee = {
+          statut: Demarche.Statut.REALISEE,
+          dateCreation: uneDateAMidi,
+          dateFin: uneDatetime().set(parametreHeureAMidi),
+          quoi: 'C21',
+          pourquoi: 'A42',
+          comment: undefined,
+          promptIa: undefined
+        }
+        expect(demarche).to.deep.equal(success(demarcheCree))
+      })
+
+      it('crée une démarche personnelle réalisée', () => {
+        // Given
+        const demarcheACreer: Demarche.ACreer = {
+          dateFin: uneDatetime(),
+          description: 'Je consulte les offres de bénévolat',
+          realisee: true
+        }
+
+        // When
+        const demarche = demarcheFactory.creerDemarche(demarcheACreer)
+
+        // Then
+        const demarcheCree: Demarche.Creee = {
+          statut: Demarche.Statut.REALISEE,
+          dateCreation: uneDateAMidi,
+          dateFin: uneDatetime().set(parametreHeureAMidi),
+          pourquoi: 'P01',
+          quoi: 'Q38',
+          description: 'Je consulte les offres de bénévolat',
+          promptIa: undefined
+        }
+        expect(demarche).to.deep.equal(success(demarcheCree))
+      })
+    })
   })
 })
