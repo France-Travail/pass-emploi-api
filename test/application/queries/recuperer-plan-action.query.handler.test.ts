@@ -125,7 +125,7 @@ describe('RecupererPlanActionQueryHandler', () => {
         .resolves([uneSolution()])
 
       // When
-      const result = await handler.handle(query)
+      const result = await handler.handle(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(
@@ -141,7 +141,8 @@ describe('RecupererPlanActionQueryHandler', () => {
                   id: 'tache-1',
                   libelle: "Je vais sur l'appli",
                   type: TypeActionPlan.NAVIGATION,
-                  terminee: false
+                  terminee: false,
+                  declarationRequise: true
                 }
               ]
             }
@@ -157,7 +158,7 @@ describe('RecupererPlanActionQueryHandler', () => {
         .resolves(undefined)
 
       // When
-      const result = await handler.handle(query)
+      const result = await handler.handle(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(
@@ -174,7 +175,7 @@ describe('RecupererPlanActionQueryHandler', () => {
       referentielRepository.trouverSolutions.withArgs(['p-1']).resolves([])
 
       // When
-      const result = await handler.handle(query)
+      const result = await handler.handle(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(
@@ -209,7 +210,7 @@ describe('RecupererPlanActionQueryHandler', () => {
         .resolves([uneSolution()])
 
       // When
-      const result = await handler.handle(query)
+      const result = await handler.handle(query, utilisateur)
 
       // Then
       expect(result).to.deep.equal(
@@ -225,7 +226,8 @@ describe('RecupererPlanActionQueryHandler', () => {
                   id: 'tache-1',
                   libelle: "Je vais sur l'appli",
                   type: TypeActionPlan.NAVIGATION,
-                  terminee: false
+                  terminee: false,
+                  declarationRequise: true
                 }
               ]
             }

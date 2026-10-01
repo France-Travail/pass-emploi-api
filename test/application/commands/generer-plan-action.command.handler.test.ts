@@ -203,7 +203,8 @@ describe('GenererPlanActionCommandHandler', () => {
                   id: 'tache-1',
                   libelle: 'Je fais une action',
                   type: TypeActionPlan.CONSEIL,
-                  terminee: false
+                  terminee: false,
+                  declarationRequise: false
                 }
               ]
             }
@@ -279,7 +280,8 @@ describe('GenererPlanActionCommandHandler', () => {
                   id: 'tache-1',
                   libelle: 'Je fais une action',
                   type: TypeActionPlan.CONSEIL,
-                  terminee: false
+                  terminee: false,
+                  declarationRequise: false
                 }
               ]
             }

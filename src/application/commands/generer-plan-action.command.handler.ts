@@ -97,7 +97,9 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
       await this.planActionRepository.save(plan)
     }
 
-    return success(toPlanActionQueryModel(plan, referentiel))
+    return success(
+      toPlanActionQueryModel(plan, referentiel, utilisateur.profil)
+    )
   }
 
   async monitor(utilisateur: Authentification.Utilisateur): Promise<void> {
