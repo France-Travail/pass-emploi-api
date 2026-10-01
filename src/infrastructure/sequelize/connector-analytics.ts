@@ -18,7 +18,8 @@ export async function createSequelizeForAnalytics(): Promise<Sequelize> {
     logging: false
   }
 
-  if (process.env.ENVIRONMENT === 'staging') {
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1'
+  if (process.env.ENVIRONMENT === 'staging' && !isLocalhost) {
     options.dialectOptions = {
       ssl: {
         require: true,
@@ -61,7 +62,8 @@ async function getPGConnexion(databaseUrl: string): Promise<PgConnexion> {
     database: database as string
   }
 
-  if (process.env.ENVIRONMENT === 'staging') {
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1'
+  if (process.env.ENVIRONMENT === 'staging' && !isLocalhost) {
     options.ssl = true
   }
   const pool = new Pool(options)

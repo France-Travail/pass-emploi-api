@@ -7,6 +7,7 @@ import { CommunicationEnvoiSqlModel } from '../sequelize/models/communication-en
 import { CommunicationSqlModel } from '../sequelize/models/communication.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
+  sqlCommunicationEnCours,
   sqlConseillerDansPopulation,
   sqlJoinConseillerDeReferenceDuJeune,
   sqlJoinConseillersDestinataires,
@@ -34,8 +35,7 @@ export class CommunicationSqlRepository implements Communication.Repository {
         ${sqlJoinConseillersDestinataires('co', 'c')}
         WHERE c.id = :idConseiller
           AND co.type = :type
-          AND co.date_debut <= :maintenant
-          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
+          AND ${sqlCommunicationEnCours('co', ':maintenant')}
         ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
@@ -69,8 +69,7 @@ export class CommunicationSqlRepository implements Communication.Repository {
         ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE co.destinataire = :destinataire
           AND co.type = :type
-          AND co.date_debut <= :maintenant
-          AND (co.date_fin IS NULL OR :maintenant < co.date_fin)
+          AND ${sqlCommunicationEnCours('co', ':maintenant')}
           AND ${sqlConseillerDansPopulation('c', 'co.id_population')}
         ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1

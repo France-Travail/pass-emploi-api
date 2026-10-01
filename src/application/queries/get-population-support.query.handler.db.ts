@@ -15,8 +15,10 @@ import {
 } from '../../domain/communication'
 import { CommunicationSqlModel } from '../../infrastructure/sequelize/models/communication.sql-model'
 import { DeploiementSqlModel } from '../../infrastructure/sequelize/models/deploiement.sql-model'
+import { PopulationAgenceFTSqlModel } from '../../infrastructure/sequelize/models/population-agence-ft.sql-model'
 import { PopulationConseillerSqlModel } from '../../infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../infrastructure/sequelize/models/population-profil.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../infrastructure/sequelize/models/population-structure-milo.sql-model'
 import { PopulationSqlModel } from '../../infrastructure/sequelize/models/population.sql-model'
 import {
   CommunicationSupportQueryModel,
@@ -49,16 +51,30 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
     }
 
     const where = { idPopulation: query.idPopulation }
-    const [conseillers, profils, deploiements, communications] =
-      await Promise.all([
-        PopulationConseillerSqlModel.findAll({
-          where,
-          order: [['emailConseiller', 'ASC']]
-        }),
-        PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
-        DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] }),
-        CommunicationSqlModel.findAll({ where, order: [['id', 'ASC']] })
-      ])
+    const [
+      conseillers,
+      profils,
+      structuresMilo,
+      agences,
+      deploiements,
+      communications
+    ] = await Promise.all([
+      PopulationConseillerSqlModel.findAll({
+        where,
+        order: [['emailConseiller', 'ASC']]
+      }),
+      PopulationProfilSqlModel.findAll({ where, order: [['id', 'ASC']] }),
+      PopulationStructureMiloSqlModel.findAll({
+        where,
+        order: [['idStructureMilo', 'ASC']]
+      }),
+      PopulationAgenceFTSqlModel.findAll({
+        where,
+        order: [['idAgence', 'ASC']]
+      }),
+      DeploiementSqlModel.findAll({ where, order: [['id', 'ASC']] }),
+      CommunicationSqlModel.findAll({ where, order: [['id', 'ASC']] })
+    ])
     const envois = await Promise.all(
       communications.map(co => envoiDe(co, this.communicationRepository))
     )
@@ -68,6 +84,8 @@ export class GetPopulationSupportQueryHandler extends QueryHandler<
         population,
         conseillers,
         profils,
+        structuresMilo,
+        agences,
         deploiements,
         communications,
         envois
@@ -119,6 +137,8 @@ export function toPopulationSupportQueryModel(
   population: PopulationSqlModel,
   conseillers: PopulationConseillerSqlModel[],
   profils: PopulationProfilSqlModel[],
+  structuresMilo: PopulationStructureMiloSqlModel[],
+  agences: PopulationAgenceFTSqlModel[],
   deploiements: DeploiementSqlModel[],
   communications: CommunicationSqlModel[],
   envois: Array<
@@ -132,6 +152,11 @@ export function toPopulationSupportQueryModel(
     profils: profils.map(p => ({
       structure: p.structure,
       dispositif: p.dispositif ?? undefined
+    })),
+    structuresMilo: structuresMilo.map(sm => sm.idStructureMilo),
+    agencesFT: agences.map(a => ({
+      idAgence: a.idAgence,
+      dispositifs: a.dispositifs ?? undefined
     })),
     deploiements: deploiements.map(d => ({
       id: d.id,

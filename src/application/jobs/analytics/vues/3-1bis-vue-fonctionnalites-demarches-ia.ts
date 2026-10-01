@@ -32,8 +32,7 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
       SELECT DISTINCT j.id AS id_jeune
       FROM jeune j
       JOIN conseillers_concernes cc
-        ON j.id_conseiller = cc.id
-        OR j.id_conseiller_initial = cc.id
+        ON COALESCE(j.id_conseiller_initial, j.id_conseiller) = cc.id
 
       UNION
 

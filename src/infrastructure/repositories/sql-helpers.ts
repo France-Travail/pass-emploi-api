@@ -46,12 +46,40 @@ function sqlProfilDansPopulation(
   )`
 }
 
-// Un conseiller est dans la population s'il est cité par email ou si son profil correspond. Un jeune y est si et seulement si son conseiller de référence y est : son propre profil n'est jamais regardé (un conseiller MiLo n'ayant pas de dispositif, (MILO, CEJ) ne vise personne).
+// La structure MiLo du conseiller `aliasConseiller` est citée dans la population.
+function sqlStructureMiloDansPopulation(
+  aliasConseiller: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_structure_milo psm
+    WHERE psm.id_population = ${idPopulation}
+      AND psm.id_structure_milo = ${aliasConseiller}.id_structure_milo
+  )`
+}
+
+// L'agence du conseiller `aliasConseiller` est citée dans la population ; `dispositifs` nul vise toute l'agence, sinon le conseiller doit en porter un.
+function sqlAgenceDuConseillerDansPopulation(
+  aliasConseiller: string,
+  idPopulation: string
+): string {
+  return `EXISTS (
+    SELECT 1 FROM population_agence_ft pa
+    WHERE pa.id_population = ${idPopulation}
+      AND pa.id_agence = ${aliasConseiller}.id_agence
+      AND (pa.dispositifs IS NULL OR ${aliasConseiller}.dispositif = ANY (pa.dispositifs))
+  )`
+}
+
+// Un conseiller est dans la population s'il est cité par email, si son profil correspond, ou si sa structure MiLo ou son agence est citée. Un jeune y est si et seulement si son conseiller de référence y est : son propre profil n'est jamais regardé (un conseiller MiLo n'ayant pas de dispositif, (MILO, CEJ) ne vise personne).
 export function sqlConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
 ): string {
-  return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)} OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)})`
+  return `(${sqlEmailDuConseillerDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlStructureMiloDansPopulation(aliasConseiller, idPopulation)}
+    OR ${sqlAgenceDuConseillerDansPopulation(aliasConseiller, idPopulation)})`
 }
 
 // Jointure de la communication `aliasCom` vers les conseillers qui en sont destinataires. Même jointure côté fonctionnalité (filtrée sur un conseiller) et côté analytics (exhaustive).

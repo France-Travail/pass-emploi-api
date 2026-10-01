@@ -3,9 +3,20 @@ import { DateTime } from 'luxon'
 import { QueryTypes } from 'sequelize'
 import { InitialiserLaVueDemarchesIAJobHandler } from '../../../../src/application/jobs/analytics/initialiser-la-vue-demarches-ia.job'
 import { DATE_GENERALISATION_DEMARCHES_IA } from '../../../../src/application/jobs/analytics/vues/3-1bis-vue-fonctionnalites-demarches-ia'
+import { Core } from '../../../../src/domain/core'
+import { Deploiement } from '../../../../src/domain/deploiement'
 import { Planificateur } from '../../../../src/domain/planificateur'
+import { Profil } from '../../../../src/domain/profil'
 import { SuiviJob } from '../../../../src/domain/suivi-job'
+import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
+import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
+import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
+import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
+import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
+import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
 import { DateService } from '../../../../src/utils/date-service'
+import { unConseillerDto } from '../../../fixtures/sql-models/conseiller.sql-model'
+import { unJeuneDto } from '../../../fixtures/sql-models/jeune.sql-model'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
 import { getDatabase } from '../../../utils/database-for-testing'
 
@@ -55,12 +66,64 @@ describe('InitialiserLaVueDemarchesIAJobHandler', () => {
           code varchar, semaine date, jour date, agence varchar, departement varchar, region varchar
         );`)
     }
+
+    await PopulationSqlModel.create({
+      id: 'BETA_DEMARCHES_IA',
+      description: 'Population bêta démarches IA'
+    })
+
+    await PopulationProfilSqlModel.create({
+      idPopulation: 'BETA_DEMARCHES_IA',
+      structure: Profil.Structure.FRANCE_TRAVAIL,
+      dispositif: Profil.Dispositif.AIJ
+    })
+
+    await ConseillerSqlModel.bulkCreate([
+      unConseillerDto({
+        id: 'conseiller-beta-aij',
+        structure: Core.Structure.POLE_EMPLOI,
+        dispositif: Profil.Dispositif.AIJ,
+        email: 'beta-aij@ft.fr'
+      }),
+      unConseillerDto({
+        id: 'conseiller-hors-population',
+        structure: Core.Structure.POLE_EMPLOI,
+        dispositif: Profil.Dispositif.CEJ,
+        email: 'hors@ft.fr'
+      })
+    ])
+
+    await JeuneSqlModel.bulkCreate([
+      unJeuneDto({
+        id: 'jeune-suivi-par-beta',
+        idConseiller: 'conseiller-beta-aij',
+        idConseillerInitial: null,
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeune-transfere-vers-beta',
+        idConseiller: 'conseiller-beta-aij',
+        idConseillerInitial: 'conseiller-hors-population',
+        structure: Core.Structure.POLE_EMPLOI
+      })
+    ])
+
+    await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
+    await DeploiementSqlModel.create({
+      nature: Deploiement.Nature.FONCTIONNALITE,
+      idPopulation: 'BETA_DEMARCHES_IA',
+      idFonctionnalite: 'DEMARCHES_IA',
+      dateActivation: new Date('2025-01-01')
+    })
+
     await sequelize.query(`
       INSERT INTO evenement_engagement VALUES
         ('1', '${semaineAvantGeneralisation} 10:00+00', 'Action', 'Création', 'x', 'jeune-sans-ia', 'JEUNE', 'FRANCE_TRAVAIL', 'CEJ', 'ACTION_CREE', '${semaineAvantGeneralisation}', '${semaineAvantGeneralisation}', 'A', '75', 'IDF'),
         ('2', '${semaineAvantGeneralisation} 11:00+00', 'Démarche', 'IA', 'y', 'jeune-ia', 'JEUNE', 'FRANCE_TRAVAIL', 'BRSA', 'DEMARCHE_IA_CREEE', '${semaineAvantGeneralisation}', '${semaineAvantGeneralisation}', 'A', '75', 'IDF'),
         ('3', '${semaineApresGeneralisation} 10:00+00', 'Action', 'Création', 'x', 'jeune-sans-ia', 'JEUNE', 'FRANCE_TRAVAIL', 'CEJ', 'ACTION_CREE', '${semaineApresGeneralisation}', '${semaineApresGeneralisation}', 'A', '75', 'IDF'),
-        ('4', '${semaineApresGeneralisation} 11:00+00', 'Message', 'Envoi', 'z', 'conseiller', 'CONSEILLER', 'MILO', NULL, 'MSG', '${semaineApresGeneralisation}', '${semaineApresGeneralisation}', 'B', '69', 'ARA');
+        ('4', '${semaineApresGeneralisation} 11:00+00', 'Message', 'Envoi', 'z', 'conseiller', 'CONSEILLER', 'MILO', NULL, 'MSG', '${semaineApresGeneralisation}', '${semaineApresGeneralisation}', 'B', '69', 'ARA'),
+        ('5', '${semaineAvantGeneralisation} 12:00+00', 'Action', 'Création', 'x', 'jeune-suivi-par-beta', 'JEUNE', 'FRANCE_TRAVAIL', 'AIJ', 'ACTION_CREE', '${semaineAvantGeneralisation}', '${semaineAvantGeneralisation}', 'A', '75', 'IDF'),
+        ('6', '${semaineAvantGeneralisation} 13:00+00', 'Action', 'Création', 'x', 'jeune-transfere-vers-beta', 'JEUNE', 'FRANCE_TRAVAIL', 'CEJ', 'ACTION_CREE', '${semaineAvantGeneralisation}', '${semaineAvantGeneralisation}', 'A', '75', 'IDF');
     `)
   })
 
@@ -87,13 +150,14 @@ describe('InitialiserLaVueDemarchesIAJobHandler', () => {
       )
     })
 
-    it('ne garde que les bêta-testeurs avant la généralisation', async () => {
+    it('ne garde que les bêta-testeurs dont le conseiller de référence est dans la population, avant la généralisation', async () => {
       // Then
       expect(
         semaineAvantGeneralisation < DATE_GENERALISATION_DEMARCHES_IA
       ).to.be.true()
       const lignes = await lignesDeLaVue(semaineAvantGeneralisation)
       expect(lignes).to.deep.equal([
+        { structure: 'FRANCE_TRAVAIL', dispositif: 'AIJ', nb_users_total: 1 },
         { structure: 'FRANCE_TRAVAIL', dispositif: 'BRSA', nb_users_total: 1 }
       ])
     })
