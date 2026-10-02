@@ -10,6 +10,10 @@ import { rootLogger } from '../../../utils/logger.module'
 
 const CONTEXT = 'ReferentielPlanActionMapper'
 
+// Taille des colonnes id des solutions et nom des services : au-delà,
+// l'insertion échouerait et ferait tomber toute la synchronisation
+const LONGUEUR_MAX_COLONNE = 255
+
 const typeParLibelle: Record<string, ReferentielPlanAction.TypeSolution> = {
   'Lien web': ReferentielPlanAction.TypeSolution.LIEN,
   "Écran de l'app": ReferentielPlanAction.TypeSolution.NAVIGATION,
@@ -82,7 +86,9 @@ export function reconcilierReferentiel(
   const anomalies: ReferentielPlanAction.Anomalies = {
     nbServicesNonResolus: 0,
     nbDoublonsServices: 0,
+    nbServicesEcartes: 0,
     nbDoublonsSolutions: 0,
+    nbIdentifiantsInvalides: 0,
     nbSolutionsEcartees: 0,
     nbValeursNonReconnues: 0
   }
@@ -93,7 +99,16 @@ export function reconcilierReferentiel(
   const idsVus = new Set<string>()
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
-    const idTechnique = record.fields.Id_technique
+    const idTechnique = chaineNonVide(record.fields.Id_technique)
+    if (!idTechnique || idTechnique.length > LONGUEUR_MAX_COLONNE) {
+      anomalies.nbIdentifiantsInvalides++
+      logAnomalie('Solution Grist écartée : identifiant technique invalide', {
+        ligne_grist: record.id,
+        raison: idTechnique ? 'identifiant_trop_long' : 'identifiant_vide'
+      })
+      continue
+    }
+    // La première ligne du Grist qui porte un identifiant le garde
     if (idsVus.has(idTechnique)) {
       anomalies.nbDoublonsSolutions++
       logAnomalie(
@@ -107,7 +122,12 @@ export function reconcilierReferentiel(
     }
     idsVus.add(idTechnique)
 
-    const solution = construireSolution(record, serviceParNom, anomalies)
+    const solution = construireSolution(
+      idTechnique,
+      record,
+      serviceParNom,
+      anomalies
+    )
     if (solution) solutions.push(solution)
   }
 
@@ -127,14 +147,24 @@ function indexerServices(
   const serviceParNom = new Map<string, ReferentielPlanAction.Service>()
 
   for (const record of [...servicesGrist].sort((a, b) => a.id - b.id)) {
+    // Le nom est la clé de jointure : sans lui le service est inutilisable
+    const nomIndexe = chaineNonVide(record.fields.Nom)
+    if (!nomIndexe || String(record.fields.Nom).length > LONGUEUR_MAX_COLONNE) {
+      anomalies.nbServicesEcartes++
+      logAnomalie('Service Grist écarté : nom invalide', {
+        ligne_grist: record.id,
+        raison: nomIndexe ? 'nom_trop_long' : 'nom_vide'
+      })
+      continue
+    }
+
     const service: ReferentielPlanAction.Service = {
       id: String(record.id),
-      nom: record.fields.Nom,
+      nom: String(record.fields.Nom),
       ...optionnel('description', texte(record.fields.Description))
     }
     services.push(service)
 
-    const nomIndexe = record.fields.Nom.trim()
     const dejaIndexe = serviceParNom.get(nomIndexe)
     if (dejaIndexe) {
       anomalies.nbDoublonsServices++
@@ -154,6 +184,7 @@ function indexerServices(
 // Rend undefined quand la ligne n'est pas exploitable, après avoir compté
 // l'anomalie correspondante
 function construireSolution(
+  idTechnique: string,
   record: GristRecordDto<GristSolutionFieldsDto>,
   serviceParNom: Map<string, ReferentielPlanAction.Service>,
   anomalies: ReferentielPlanAction.Anomalies
@@ -164,7 +195,7 @@ function construireSolution(
   if (!type) {
     anomalies.nbSolutionsEcartees++
     logAnomalie('Solution Grist écartée : type de tâche inconnu', {
-      id_technique: fields.Id_technique,
+      id_technique: idTechnique,
       raison: 'type_inconnu',
       valeur: fields.Type
     })
@@ -180,7 +211,7 @@ function construireSolution(
         ? 'Solution Grist écartée : écran de navigation inconnu'
         : 'Solution Grist écartée : navigation sans écran renseigné',
       {
-        id_technique: fields.Id_technique,
+        id_technique: idTechnique,
         raison: valeurEcran ? 'ecran_inconnu' : 'navigation_sans_ecran',
         ...optionnel('valeur', valeurEcran)
       }
@@ -193,20 +224,20 @@ function construireSolution(
   if (nomService && !service) {
     anomalies.nbServicesNonResolus++
     logAnomalie('Service Grist non résolu pour une solution', {
-      id_technique: fields.Id_technique,
+      id_technique: idTechnique,
       nom_cherche: nomService
     })
   }
 
   return {
-    id: fields.Id_technique,
+    id: idTechnique,
     ...optionnel(
       'besoin',
       resoudreEnum(
         'Envie',
         fields.Envie,
         besoinParLibelle,
-        fields.Id_technique,
+        idTechnique,
         anomalies
       )
     ),
@@ -216,7 +247,7 @@ function construireSolution(
         'Blocage',
         fields.Blocage,
         contrainteParLibelle,
-        fields.Id_technique,
+        idTechnique,
         anomalies
       )
     ),
@@ -231,14 +262,14 @@ function construireSolution(
       'Situations',
       fields.Situations,
       situationParLibelle,
-      fields.Id_technique,
+      idTechnique,
       anomalies
     ),
     authentifications: resoudreListe(
       'Authentification',
       fields.Authentification,
       structuresParLibelle,
-      fields.Id_technique,
+      idTechnique,
       anomalies
     ).flat(),
     territoires: liste(fields.Territoire),
@@ -293,6 +324,13 @@ function resoudreListe<V>(
     }
   }
   return resolues
+}
+
+// Une cellule Grist vide vaut null ou une chaîne vide, et une colonne de type
+// nombre rend un nombre : tout est ramené à une chaîne sans espaces autour
+function chaineNonVide(valeur: unknown): string | undefined {
+  if (valeur === null || valeur === undefined) return undefined
+  return String(valeur).trim() || undefined
 }
 
 function texte(valeur: string | null | undefined): string | undefined {

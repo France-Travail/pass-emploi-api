@@ -8,12 +8,12 @@ export interface GristRecordsDto<T> {
 }
 
 export interface GristServiceFieldsDto {
-  Nom: string
+  Nom: string | null
   Description: string
 }
 
 export interface GristSolutionFieldsDto {
-  Id_technique: string
+  Id_technique: string | null
   Envie: string
   Blocage: string
   Sous_categorie: string
