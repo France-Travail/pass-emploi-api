@@ -202,6 +202,21 @@ describe('Appartenance à une population', () => {
         id: 'jeuneMiloHorsStructure',
         idConseiller: 'conseillerMiloHorsStructure',
         structure: Core.Structure.MILO
+      }),
+      unJeuneDto({
+        id: 'jeuneNonAccompagneDemandeurDEmploi',
+        idConseiller: undefined,
+        structure: Core.Structure.FT_DEMANDEUR_D_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneNonAccompagneEspaceCandidat',
+        idConseiller: undefined,
+        structure: Core.Structure.FT_ESPACE_CANDIDAT
+      }),
+      unJeuneDto({
+        id: 'jeuneNonAccompagneConseilDepartemental',
+        idConseiller: undefined,
+        structure: Core.Structure.CONSEIL_DEPT
       })
     ])
 
@@ -230,6 +245,11 @@ describe('Appartenance à une population', () => {
         idPopulation: 'PILOTE',
         structure: Profil.Structure.MILO,
         dispositif: Profil.Dispositif.CEJ
+      },
+      {
+        idPopulation: 'PILOTE',
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.ESPACE_CANDIDAT
       }
     ])
 
@@ -329,11 +349,14 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneNonAccompagneEspaceCandidat',
+      'jeuneNonAccompagneConseilDepartemental'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneNonAccompagneDemandeurDEmploi'
     ]
 
     const resultats = await Promise.all(
@@ -371,11 +394,14 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneNonAccompagneEspaceCandidat',
+      'jeuneNonAccompagneConseilDepartemental'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneNonAccompagneDemandeurDEmploi'
     ]
 
     const resultats = await Promise.all(
@@ -480,11 +506,14 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneNonAccompagneEspaceCandidat',
+      'jeuneNonAccompagneConseilDepartemental'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneNonAccompagneDemandeurDEmploi'
     ]
 
     const resultatsDate = await Promise.all(
@@ -517,7 +546,9 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneNonAccompagneEspaceCandidat',
+      'jeuneNonAccompagneConseilDepartemental'
     ]
 
     const compte = await repo.compterDestinataires('PILOTE', false)
@@ -554,7 +585,9 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneNonAccompagneEspaceCandidat',
+      'jeuneNonAccompagneConseilDepartemental'
     ]
 
     // When
