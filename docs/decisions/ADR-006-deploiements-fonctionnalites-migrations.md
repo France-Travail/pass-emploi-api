@@ -66,14 +66,28 @@ supprime pas.
 email, si son propre profil (structure, dispositif) correspond à un profil de
 la population, ou si sa structure MiLo ou son agence FT y est citée. Un jeune
 est dans la population si et seulement si son conseiller de référence y est :
-son propre profil n'est jamais regardé. Un profil sans dispositif couvre toute
-la structure. « De référence » =
-`id_conseiller_initial` s'il existe, sinon `id_conseiller`.
+son propre profil n'est jamais regardé (sauf jeune non accompagné, voir
+ci-dessous). Un profil sans dispositif couvre toute la structure. « De
+référence » = `id_conseiller_initial` s'il existe, sinon `id_conseiller`.
 
-Cette règle est jouée par plusieurs consommateurs (fonctionnalités, bandeaux,
-date de migration, destinataires d'une notification, analytics). Le test de
-contrat `test/application/populations/appartenance.db.test.ts` les vérifie
-tous sur un même jeu de données : tout nouveau consommateur y est ajouté.
+**Jeune non accompagné.** Un jeune sans conseiller de référence
+(`COALESCE(id_conseiller_initial, id_conseiller) IS NULL`) est dans la
+population si son propre profil y correspond — uniquement pour les
+pseudo-dispositifs `DEMANDEUR_D_EMPLOI` et `ESPACE_CANDIDAT`. Un profil à vrai
+dispositif (CEJ, AIJ…) ne vise aucun non accompagné, car le jeune pris en
+accompagnement reçoit le dispositif de son conseiller. Cas prévu pour les
+migrants Parcours Emploi qui perdent leur conseiller, et les jeunes invités de
+la nouvelle app.
+
+**Vues SQL.** `appartenance_population_conseiller (id_population, id_conseiller)`
+et `appartenance_population_jeune (id_population, id_jeune)` matérialisent la
+règle (migration `20261002000000-appartenance-populations.js`). Les
+repositories (fonctionnalités, communications, migration) interrogent le port
+`Population.Repository` qui lit les vues, puis opèrent par ids de population.
+
+Le test de contrat `test/application/populations/appartenance.db.test.ts`
+vérifie tous les consommateurs (une personne, en masse, analytics) sur un même
+jeu de données : tout nouveau consommateur y est ajouté.
 
 **Agence restreinte à des dispositifs.** Une agence FT porte une liste
 `dispositifs` nullable : nulle, toute l'agence est ciblée ; renseignée, seuls
@@ -254,16 +268,18 @@ communication { id PK, id_population FK, destinataire JEUNE | CONSEILLER, type I
    laissés dans l'app et le web. Les deux marchent.
 2. **Cibler un jeune par id** pour la recette. Troisième sorte de cible,
    facile, hors première étape.
-3. **Match du jeune sur son propre profil**, pour viser `(MILO, CEJ)`.
-   Écarté le 2026-09-28 : le ciblage passe uniquement par le conseiller, voir
-   la limite en section Règles.
+3. ~~**Match du jeune sur son propre profil**~~ : livré le 2026-10-02 pour
+   les jeunes non accompagnés uniquement (pseudo-dispositifs), voir section
+   Règles. Un profil à vrai dispositif ne vise toujours aucun non accompagné.
 
 ## Liens
 
-* `src/domain/population.ts`, `src/domain/deploiement.ts`,
+* `src/domain/population.ts` (port), `src/domain/deploiement.ts`,
   `src/domain/fonctionnalite.ts`, `src/domain/migration.ts`,
-  `src/infrastructure/repositories/sql-helpers.ts` (appartenance),
-  `test/application/populations/appartenance.db.test.ts` (test de contrat),
+  `src/infrastructure/repositories/population.repository.db.ts` (vues SQL
+  d'appartenance), `test/application/populations/appartenance.db.test.ts` (test
+  de contrat),
   `src/application/commands/update-utilisateur.command.handler.ts`
   (`lUtilisateurDoitMigrerVersParcoursEmploi`),
-  `src/application/jobs/notifier-beneficiaires.job.handler.db.ts`.
+  `src/application/jobs/notifier-beneficiaires.job.handler.db.ts`,
+  migration `20261002000000-appartenance-populations.js` (vues + index).
