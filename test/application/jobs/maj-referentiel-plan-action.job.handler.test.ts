@@ -113,6 +113,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
       nbDoublonsSolutions: 0,
+      nbIdentifiantsInvalides: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     })
@@ -249,6 +250,33 @@ describe('MajReferentielPlanActionJobHandler', () => {
     // Then
     expect(
       (suiviJob.resultat as { nbDoublonsSolutions: number }).nbDoublonsSolutions
+    ).to.equal(1)
+  })
+
+  it('poursuit la synchronisation et remonte les identifiants invalides dans le résultat', async () => {
+    // Given
+    gristClient.recupererServices.resolves(success([serviceGrist]))
+    gristClient.recupererSolutions.resolves(
+      success([
+        solutionGrist,
+        { id: 2, fields: { ...solutionGrist.fields, Id_technique: '' } }
+      ])
+    )
+    repository.remplacer.resolves({
+      nbCreees: 1,
+      nbMisesAJour: 0,
+      nbDesactivees: 0
+    })
+
+    // When
+    const suiviJob = await handler.handle(job)
+
+    // Then
+    expect(suiviJob.succes).to.equal(true)
+    expect(repository.remplacer.firstCall.args[1]).to.have.length(1)
+    expect(
+      (suiviJob.resultat as { nbIdentifiantsInvalides: number })
+        .nbIdentifiantsInvalides
     ).to.equal(1)
   })
 

@@ -299,20 +299,112 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
-  it("écarte les solutions en doublon d'identifiant technique", () => {
-    // Given
-    const premiere = uneSolutionGrist()
-    const seconde = { id: 9, fields: uneSolutionGrist().fields }
+  describe('identifiant technique', () => {
+    it('ne garde que la première ligne du Grist quand un identifiant est en doublon, espaces compris', () => {
+      // Given
+      const premiere = uneSolutionGrist({
+        Action_affichee_au_jeune: 'Première ligne'
+      })
+      const seconde = {
+        id: 9,
+        fields: uneSolutionGrist({
+          Id_technique: ' p-2 ',
+          Action_affichee_au_jeune: 'Seconde ligne'
+        }).fields
+      }
 
-    // When
-    const resultat = reconcilierReferentiel(
-      [serviceOnisep],
-      [premiere, seconde]
-    )
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [seconde, premiere]
+      )
 
-    // Then
-    expect(resultat.solutions).to.have.length(1)
-    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+      // Then
+      expect(
+        resultat.solutions.map(solution => solution.libelle)
+      ).to.deep.equal(['Première ligne'])
+      expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+    })
+
+    ;[
+      ['vide', ''],
+      ["fait d'espaces", '   '],
+      ['absent', null]
+    ].forEach(([cas, idTechnique]) => {
+      it(`écarte une solution dont l'identifiant est ${cas} et garde les autres`, () => {
+        // Given
+        const sansIdentifiant = uneSolutionGrist({ Id_technique: idTechnique })
+        const valide = { id: 2, fields: uneSolutionGrist().fields }
+
+        // When
+        const resultat = reconcilierReferentiel(
+          [serviceOnisep],
+          [sansIdentifiant, valide]
+        )
+
+        // Then
+        expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+          'p-2'
+        ])
+        expect(resultat.anomalies.nbIdentifiantsInvalides).to.equal(1)
+      })
+    })
+
+    it('ne compte pas en doublon deux solutions sans identifiant', () => {
+      // Given
+      const premiere = uneSolutionGrist({ Id_technique: '' })
+      const seconde = {
+        id: 2,
+        fields: uneSolutionGrist({ Id_technique: '' }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [premiere, seconde]
+      )
+
+      // Then
+      expect(resultat.solutions).to.deep.equal([])
+      expect(resultat.anomalies.nbIdentifiantsInvalides).to.equal(2)
+      expect(resultat.anomalies.nbDoublonsSolutions).to.equal(0)
+    })
+
+    it("écarte une solution dont l'identifiant dépasse la taille de la colonne", () => {
+      // Given
+      const tropLong = uneSolutionGrist({ Id_technique: 'x'.repeat(256) })
+      const aLaLimite = {
+        id: 2,
+        fields: uneSolutionGrist({ Id_technique: 'x'.repeat(255) }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [tropLong, aLaLimite]
+      )
+
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        'x'.repeat(255)
+      ])
+      expect(resultat.anomalies.nbIdentifiantsInvalides).to.equal(1)
+    })
+
+    it('accepte un identifiant numérique rendu par une colonne Grist de type nombre', () => {
+      // Given
+      const numerique = uneSolutionGrist({
+        Id_technique: 42 as unknown as string
+      })
+
+      // When
+      const resultat = reconcilierReferentiel([serviceOnisep], [numerique])
+
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        '42'
+      ])
+    })
   })
 
   it('traduit les libellés de situation du questionnaire', () => {

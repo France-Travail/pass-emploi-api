@@ -80,6 +80,8 @@ export namespace ReferentielPlanAction {
     nbServicesNonResolus: number
     nbDoublonsServices: number
     nbDoublonsSolutions: number
+    // Identifiant technique vide ou plus long que la colonne
+    nbIdentifiantsInvalides: number
     nbSolutionsEcartees: number
     nbValeursNonReconnues: number
   }

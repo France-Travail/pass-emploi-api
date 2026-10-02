@@ -13,7 +13,7 @@ export interface GristServiceFieldsDto {
 }
 
 export interface GristSolutionFieldsDto {
-  Id_technique: string
+  Id_technique: string | null
   Envie: string
   Blocage: string
   Sous_categorie: string

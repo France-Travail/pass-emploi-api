@@ -23,6 +23,7 @@ export interface StatsMajReferentielPlanAction {
   nbServicesNonResolus: number
   nbDoublonsServices: number
   nbDoublonsSolutions: number
+  nbIdentifiantsInvalides: number
   nbSolutionsEcartees: number
   nbValeursNonReconnues: number
 }
@@ -54,6 +55,7 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
       nbDoublonsSolutions: 0,
+      nbIdentifiantsInvalides: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     }
@@ -85,6 +87,8 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       stats.nbServicesNonResolus = reconciliation.anomalies.nbServicesNonResolus
       stats.nbDoublonsServices = reconciliation.anomalies.nbDoublonsServices
       stats.nbDoublonsSolutions = reconciliation.anomalies.nbDoublonsSolutions
+      stats.nbIdentifiantsInvalides =
+        reconciliation.anomalies.nbIdentifiantsInvalides
       stats.nbSolutionsEcartees = reconciliation.anomalies.nbSolutionsEcartees
       stats.nbValeursNonReconnues =
         reconciliation.anomalies.nbValeursNonReconnues
