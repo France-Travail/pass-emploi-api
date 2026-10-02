@@ -8,10 +8,11 @@ import { CommunicationSqlModel } from '../sequelize/models/communication.sql-mod
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlCommunicationEnCours,
-  sqlConseillerDansPopulation,
+  sqlJeuneDansPopulation,
+  sqlJeuneDestinataire,
+  sqlJoinConseillerDeReference,
   sqlJoinConseillerDeReferenceDuJeune,
-  sqlJoinConseillersDestinataires,
-  sqlJoinJeunesDestinataires
+  sqlJoinConseillersDestinataires
 } from './sql-helpers'
 
 @Injectable()
@@ -70,7 +71,7 @@ export class CommunicationSqlRepository implements Communication.Repository {
         WHERE co.destinataire = :destinataire
           AND co.type = :type
           AND ${sqlCommunicationEnCours('co', ':maintenant')}
-          AND ${sqlConseillerDansPopulation('c', 'co.id_population')}
+          AND ${sqlJeuneDansPopulation('j', 'c', 'co.id_population')}
         ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
@@ -371,7 +372,8 @@ export class CommunicationSqlRepository implements Communication.Repository {
 // Référence :idPopulation et :push — l'appelant doit les fournir dans replacements.
 const SQL_DESTINATAIRES_DE_LA_POPULATION = `
   FROM jeune j
-  ${sqlJoinJeunesDestinataires('j', 'c', {
+  ${sqlJoinConseillerDeReference('j', 'c')}
+  WHERE ${sqlJeuneDestinataire('j', 'c', {
     idPopulation: ':idPopulation',
     push: ':push'
   })}`
