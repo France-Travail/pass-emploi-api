@@ -256,9 +256,8 @@ Hors de cette ADR :
 
 * [ADR-006](ADR-006-deploiements-fonctionnalites-migrations.md) : populations
   et déploiements, règles d'appartenance.
-* `src/domain/communication.ts`,
-  `src/infrastructure/repositories/communication.repository.db.ts`,
-  `src/infrastructure/repositories/sql-helpers.ts` (appartenance).
+* `src/domain/communication.ts`, `src/domain/population.ts` (port),
+  `src/infrastructure/repositories/communication.repository.db.ts`.
 * `src/application/jobs/envoyer-communications.job.handler.db.ts` (cron,
   lots), `src/config/configuration.ts` (`jobs.envoiCommunications`, kill
   switch et taille de lot).
