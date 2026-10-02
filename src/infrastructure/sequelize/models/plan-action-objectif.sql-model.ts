@@ -25,6 +25,9 @@ export class PlanActionObjectifDto extends Model {
 
   @Column({ field: 'theme', type: DataType.STRING })
   theme: string
+
+  @Column({ field: 'ordre', type: DataType.INTEGER })
+  ordre: number | null
 }
 
 @Table({ timestamps: false, tableName: 'plan_action_objectif' })

@@ -222,10 +222,11 @@ describe('PlanActionSqlRepository', () => {
       expect(plan).to.equal(undefined)
     })
 
-    it("rend les objectifs et les tâches ordonnés, quel que soit l'ordre d'insertion", async () => {
+    it("rend les objectifs et les tâches dans l'ordre du plan sauvegardé, pas dans celui des identifiants ni des dates", async () => {
       // Given
       await insererSolution('p-2')
       await insererSolution('p-3')
+      await insererSolution('p-4')
       const plan = unPlan({
         objectifs: [
           {
@@ -246,15 +247,22 @@ describe('PlanActionSqlRepository', () => {
             titre: 'Trouver une alternance',
             theme: Questionnaire.Besoin.ALTERNANCE,
             taches: [
+              // Nouvelle tâche, placée avant une tâche reprise d'un plan précédent
               {
                 id: '22222222-2222-2222-2222-222222222222',
                 idSolution: 'p-3',
                 terminee: false,
-                dateCreation: maintenant.plus({ minutes: 1 })
+                dateCreation: maintenant
               },
               {
                 id: '11111111-1111-1111-1111-111111111111',
                 idSolution: 'p-2',
+                terminee: true,
+                dateCreation: maintenant.minus({ days: 10 })
+              },
+              {
+                id: '00000000-0000-4000-8000-000000000000',
+                idSolution: 'p-4',
                 terminee: false,
                 dateCreation: maintenant
               }
@@ -268,19 +276,60 @@ describe('PlanActionSqlRepository', () => {
       const planRendu = await planActionSqlRepository.getDernierPlan('jeune-1')
 
       // Then
-      expect(planRendu!.objectifs).to.have.length(2)
       expect(planRendu!.objectifs.map(objectif => objectif.id)).to.deep.equal([
-        'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
-        'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb'
+        'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb',
+        'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa'
       ])
-      expect(planRendu!.objectifs[0].taches).to.have.length(2)
+      expect(
+        planRendu!.objectifs[1].taches.map(tache => tache.id)
+      ).to.deep.equal([
+        '22222222-2222-2222-2222-222222222222',
+        '11111111-1111-1111-1111-111111111111',
+        '00000000-0000-4000-8000-000000000000'
+      ])
+    })
+
+    it("retombe sur l'ancien tri pour un plan stocké avant la colonne ordre", async () => {
+      // Given
+      await insererSolution('p-2')
+      await insererSolution('p-3')
+      await planActionSqlRepository.save(
+        unPlan({
+          objectifs: [
+            {
+              id: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+              titre: 'Trouver une alternance',
+              theme: Questionnaire.Besoin.ALTERNANCE,
+              taches: [
+                {
+                  id: '22222222-2222-2222-2222-222222222222',
+                  idSolution: 'p-3',
+                  terminee: false,
+                  dateCreation: maintenant.plus({ minutes: 1 })
+                },
+                {
+                  id: '11111111-1111-1111-1111-111111111111',
+                  idSolution: 'p-2',
+                  terminee: false,
+                  dateCreation: maintenant
+                }
+              ]
+            }
+          ]
+        })
+      )
+      await PlanActionTacheSqlModel.update({ ordre: null }, { where: {} })
+
+      // When
+      const planRendu = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
       expect(
         planRendu!.objectifs[0].taches.map(tache => tache.id)
       ).to.deep.equal([
         '11111111-1111-1111-1111-111111111111',
         '22222222-2222-2222-2222-222222222222'
       ])
-      expect(planRendu!.objectifs[1].taches).to.have.length(1)
     })
   })
 

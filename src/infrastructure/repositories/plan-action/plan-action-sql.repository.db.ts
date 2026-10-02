@@ -28,25 +28,27 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
       )
 
       await PlanActionObjectifSqlModel.bulkCreate(
-        plan.objectifs.map(objectif => ({
+        plan.objectifs.map((objectif, ordre) => ({
           id: objectif.id,
           idPlanAction: plan.id,
           titre: objectif.titre,
-          theme: objectif.theme
+          theme: objectif.theme,
+          ordre
         })),
         { transaction }
       )
 
       await PlanActionTacheSqlModel.bulkCreate(
         plan.objectifs.flatMap(objectif =>
-          objectif.taches.map(tache => ({
+          objectif.taches.map((tache, ordre) => ({
             id: tache.id,
             idObjectif: objectif.id,
             idSolution: tache.idSolution,
             terminee: tache.terminee,
             dateCreation: tache.dateCreation.toJSDate(),
             dateTerminee: tache.dateTerminee?.toJSDate() ?? null,
-            dateSuppression: tache.dateSuppression?.toJSDate() ?? null
+            dateSuppression: tache.dateSuppression?.toJSDate() ?? null,
+            ordre
           }))
         ),
         { transaction }
@@ -57,9 +59,13 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
   async getDernierPlan(idJeune: string): Promise<PlanAction | undefined> {
     const planSql = await PlanActionSqlModel.findOne({
       where: { idJeune },
+      // L'ordre du plan est celui dans lequel il a été construit : objectifs dans l'ordre du questionnaire, tâches dans l'ordre du référentiel.
+      // Les plans antérieurs à la colonne ordre retombent sur l'ancien tri
       order: [
         ['dateCreation', 'DESC'],
+        ['objectifs', 'ordre', 'ASC'],
         ['objectifs', 'id', 'ASC'],
+        ['objectifs', 'taches', 'ordre', 'ASC'],
         ['objectifs', 'taches', 'dateCreation', 'ASC']
       ],
       include: [
