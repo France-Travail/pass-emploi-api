@@ -9,11 +9,6 @@ import {
 } from '../../domain/migration'
 import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import {
-  sqlJeuneDansPopulation,
-  sqlJoinConseillersConcernes,
-  sqlJoinConseillerDeReferenceDuJeune
-} from './sql-helpers'
 
 @Injectable()
 export class MigrationSqlRepository implements Migration.Repository {
@@ -85,45 +80,24 @@ export class MigrationSqlRepository implements Migration.Repository {
     }))
   }
 
-  async getMigrationDuConseiller(
-    idConseiller: string
+  async getMigration(
+    idsPopulations: string[]
   ): Promise<Migration.MigrationActive | undefined> {
-    const rows = await this.sequelize.query<MigrationActiveSql>(
-      `
-        SELECT d.date_activation, d.id_population
-        FROM deploiement d
-        ${sqlJoinConseillersConcernes('d', 'c')}
-        WHERE c.id = :idConseiller
-          AND d.nature = :nature
-          AND d.date_activation IS NOT NULL
-        ORDER BY d.date_activation
-        LIMIT 1
-      `,
-      {
-        replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },
-        type: QueryTypes.SELECT
-      }
-    )
-    return fromSqlToMigrationActive(rows)
-  }
+    if (!idsPopulations.length) return undefined
 
-  async getMigrationDuBeneficiaire(
-    idBeneficiaire: string
-  ): Promise<Migration.MigrationActive | undefined> {
     const rows = await this.sequelize.query<MigrationActiveSql>(
       `
-        SELECT d.date_activation, d.id_population
-        FROM deploiement d
-        ${sqlJoinConseillerDeReferenceDuJeune()}
-        WHERE d.nature = :nature
-          AND d.date_activation IS NOT NULL
-          AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
-        ORDER BY d.date_activation
+        SELECT date_activation, id_population
+        FROM deploiement
+        WHERE id_population IN (:idsPopulations)
+          AND nature = :nature
+          AND date_activation IS NOT NULL
+        ORDER BY date_activation
         LIMIT 1
       `,
       {
         replacements: {
-          idJeune: idBeneficiaire,
+          idsPopulations,
           nature: Deploiement.Nature.MIGRATION
         },
         type: QueryTypes.SELECT

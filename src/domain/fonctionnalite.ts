@@ -10,13 +10,8 @@ export namespace Fonctionnalite {
 
   export interface Repository {
     // Une affectation sans date d'activation est active immédiatement
-    getIdsFonctionnalitesActivesDuJeune(
-      idJeune: string,
-      maintenant: DateTime
-    ): Promise<string[]>
-
-    getIdsFonctionnalitesActivesDuConseiller(
-      idConseiller: string,
+    getIdsFonctionnalitesActives(
+      idsPopulations: string[],
       maintenant: DateTime
     ): Promise<string[]>
   }

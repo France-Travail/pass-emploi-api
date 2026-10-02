@@ -24,6 +24,7 @@ import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { CommunicationSqlRepository } from '../../../../src/infrastructure/repositories/communication.repository.db'
 import { MigrationSqlRepository } from '../../../../src/infrastructure/repositories/migration.repository.db'
+import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -767,9 +768,16 @@ describe('ChargerLesPopulationsJobHandler', () => {
       )
 
       // When
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuConseiller(
+          'conseillerCite'
+        )
       const affichee =
         await communicationRepository.getMessageInformatifDuConseiller(
-          'conseillerCite',
+          idsPopulations,
           maintenant
         )
       const enCours = (
@@ -788,13 +796,19 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('montre pour un conseiller la date de migration que la fonctionnalité lui annonce', async () => {
       // Given
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
       const migrationRepository = new MigrationSqlRepository(
         getDatabase().sequelize
       )
 
       // When
-      const annoncee =
-        await migrationRepository.getMigrationDuConseiller('conseillerCite')
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuConseiller(
+          'conseillerCite'
+        )
+      const annoncee = await migrationRepository.getMigration(idsPopulations)
       const migrations = (
         await lignes<MembreDeploiement>(
           ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,

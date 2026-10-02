@@ -10,6 +10,7 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { CommunicationSqlRepository } from '../../../src/infrastructure/repositories/communication.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { CommunicationSqlModel } from '../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
@@ -41,6 +42,7 @@ describe('GetCommunicationsJeuneQueryHandler (use case)', () => {
     jeuneRepository = stubInterface(createSandbox())
     jeuneRepository.existe.resolves(true)
     handler = new GetCommunicationsJeuneQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new CommunicationSqlRepository(getDatabase().sequelize),
       dateService,
       new JeuneAuthorizer(jeuneRepository)

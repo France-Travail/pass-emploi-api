@@ -10,6 +10,7 @@ import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../../src/domain/profil'
 import { CommunicationSqlRepository } from '../../../src/infrastructure/repositories/communication.repository.db'
 import { ConseillerSqlRepository } from '../../../src/infrastructure/repositories/conseiller-sql.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { CommunicationSqlModel } from '../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
@@ -38,6 +39,7 @@ describe('GetCommunicationsConseillerQueryHandler (use case)', () => {
     dateService.now.returns(maintenant)
     jeuneRepository = stubInterface(createSandbox())
     handler = new GetCommunicationsConseillerQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new CommunicationSqlRepository(getDatabase().sequelize),
       dateService,
       new ConseillerAuthorizer(new ConseillerSqlRepository(), jeuneRepository)

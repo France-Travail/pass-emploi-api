@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { createSandbox } from 'sinon'
 import { Authentification } from '../../src/domain/authentification'
 import { BeneficiaireMigration, Migration } from '../../src/domain/migration'
+import { Population } from '../../src/domain/population'
 import { DateService } from '../../src/utils/date-service'
 import { StubbedClass, expect, stubClass } from '../utils'
 
@@ -17,16 +18,22 @@ describe('Migration', () => {
     type: Authentification.Type.CONSEILLER
   }
 
+  let populationRepository: StubbedType<Population.Repository>
   let migrationRepository: StubbedType<Migration.Repository>
   let dateService: StubbedClass<DateService>
   let service: Migration.Service
 
   beforeEach(() => {
     const sandbox = createSandbox()
+    populationRepository = stubInterface<Population.Repository>(sandbox)
     migrationRepository = stubInterface<Migration.Repository>(sandbox)
     dateService = stubClass(DateService)
     dateService.now.returns(maintenant)
-    service = new Migration.Service(migrationRepository, dateService)
+    service = new Migration.Service(
+      populationRepository,
+      migrationRepository,
+      dateService
+    )
   })
 
   const uneMigration = (
@@ -37,14 +44,15 @@ describe('Migration', () => {
   })
 
   describe('recupererMigrationDeLUtilisateur', () => {
-    it('interroge la migration du bénéficiaire pour un jeune', async () => {
+    it('interroge la migration des populations du jeune', async () => {
       // Given
       const migration = uneMigration(
         DateTime.fromISO('2026-11-20T00:00:00.000Z')
       )
-      migrationRepository.getMigrationDuBeneficiaire
+      populationRepository.getIdsPopulationsDuJeune
         .withArgs('id-jeune')
-        .resolves(migration)
+        .resolves(['pop1'])
+      migrationRepository.getMigration.withArgs(['pop1']).resolves(migration)
 
       // When
       const resultat = await service.recupererMigrationDeLUtilisateur(unJeune)
@@ -53,14 +61,15 @@ describe('Migration', () => {
       expect(resultat).to.deep.equal(migration)
     })
 
-    it('interroge directement le conseiller pour un conseiller', async () => {
+    it('interroge la migration des populations du conseiller', async () => {
       // Given
       const migration = uneMigration(
         DateTime.fromISO('2026-11-20T00:00:00.000Z')
       )
-      migrationRepository.getMigrationDuConseiller
+      populationRepository.getIdsPopulationsDuConseiller
         .withArgs('id-conseiller')
-        .resolves(migration)
+        .resolves(['pop1'])
+      migrationRepository.getMigration.withArgs(['pop1']).resolves(migration)
 
       // When
       const resultat =
@@ -69,15 +78,31 @@ describe('Migration', () => {
       // Then
       expect(resultat).to.deep.equal(migration)
       expect(
-        migrationRepository.getMigrationDuBeneficiaire
+        populationRepository.getIdsPopulationsDuJeune
       ).not.to.have.been.called()
+    })
+
+    it("ne renvoie rien quand aucune date n'est posée", async () => {
+      // Given
+      populationRepository.getIdsPopulationsDuJeune.resolves(['pop1'])
+      migrationRepository.getMigration.resolves(undefined)
+
+      // When
+      const resultat = await service.recupererMigrationDeLUtilisateur(unJeune)
+
+      // Then
+      expect(resultat).to.be.undefined()
     })
   })
 
   describe('populationDeMigrationActive', () => {
+    beforeEach(() => {
+      populationRepository.getIdsPopulationsDuJeune.resolves(['pop1'])
+    })
+
     it('renvoie la population quand la date de migration est passée', async () => {
       // Given
-      migrationRepository.getMigrationDuBeneficiaire.resolves(
+      migrationRepository.getMigration.resolves(
         uneMigration(maintenant.minus({ days: 1 }))
       )
 
@@ -89,7 +114,7 @@ describe('Migration', () => {
 
     it('renvoie la population le jour même de la migration', async () => {
       // Given
-      migrationRepository.getMigrationDuBeneficiaire.resolves(
+      migrationRepository.getMigration.resolves(
         uneMigration(maintenant.startOf('day'))
       )
 
@@ -101,7 +126,7 @@ describe('Migration', () => {
 
     it("ne renvoie rien quand la date de migration n'est pas atteinte", async () => {
       // Given
-      migrationRepository.getMigrationDuBeneficiaire.resolves(
+      migrationRepository.getMigration.resolves(
         uneMigration(maintenant.plus({ days: 1 }))
       )
 
@@ -113,7 +138,7 @@ describe('Migration', () => {
 
     it("ne renvoie rien quand l'utilisateur n'est dans aucune migration", async () => {
       // Given
-      migrationRepository.getMigrationDuBeneficiaire.resolves(undefined)
+      migrationRepository.getMigration.resolves(undefined)
 
       // When / Then
       expect(

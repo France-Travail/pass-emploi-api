@@ -10,6 +10,7 @@ import { Deploiement } from '../../../src/domain/deploiement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { FonctionnaliteSqlRepository } from '../../../src/infrastructure/repositories/fonctionnalite.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/models/deploiement.sql-model'
 import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
@@ -41,6 +42,7 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
     jeuneRepository = stubInterface(createSandbox())
     jeuneRepository.existe.resolves(true)
     handler = new GetFonctionnalitesJeuneQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new FonctionnaliteSqlRepository(getDatabase().sequelize),
       dateService,
       new JeuneAuthorizer(jeuneRepository)

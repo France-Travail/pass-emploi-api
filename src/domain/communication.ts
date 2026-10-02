@@ -77,12 +77,12 @@ export namespace Communication {
   export interface Repository {
     // Visible entre date_debut (incluse) et date_fin (exclue) ; s'il y en a plusieurs, celle dont la fin est la plus proche.
     getMessageInformatifDuConseiller(
-      idConseiller: string,
+      idsPopulations: string[],
       maintenant: DateTime
     ): Promise<MessageInformatif | undefined>
 
     getMessageInformatifDuJeune(
-      idJeune: string,
+      idsPopulations: string[],
       maintenant: DateTime
     ): Promise<MessageInformatifJeune | undefined>
 

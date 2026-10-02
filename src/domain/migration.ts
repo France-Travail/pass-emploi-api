@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../utils/date-service'
 import { Authentification } from './authentification'
+import { Population, PopulationRepositoryToken } from './population'
 
 export const MigrationRepositoryToken = 'MigrationRepositoryToken'
 
@@ -37,17 +38,14 @@ export namespace Migration {
       idPopulation: string
     ): Promise<BeneficiaireMigration[]>
     rebasculerOrphelins(idPopulation: string): Promise<RebasculementOrphelin[]>
-    getMigrationDuConseiller(
-      idConseiller: string
-    ): Promise<MigrationActive | undefined>
-    getMigrationDuBeneficiaire(
-      idBeneficiaire: string
-    ): Promise<MigrationActive | undefined>
+    getMigration(idsPopulations: string[]): Promise<MigrationActive | undefined>
   }
 
   @Injectable()
   export class Service {
     constructor(
+      @Inject(PopulationRepositoryToken)
+      private readonly populationRepository: Population.Repository,
       @Inject(MigrationRepositoryToken)
       private readonly migrationRepository: Repository,
       private readonly dateService: DateService
@@ -56,16 +54,22 @@ export namespace Migration {
     async recupererMigrationDeLUtilisateur(
       utilisateur: Utilisateur
     ): Promise<MigrationActive | undefined> {
+      let idsPopulations: string[]
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
-          return this.migrationRepository.getMigrationDuConseiller(
-            utilisateur.id
-          )
+          idsPopulations =
+            await this.populationRepository.getIdsPopulationsDuConseiller(
+              utilisateur.id
+            )
+          break
         case Authentification.Type.JEUNE:
-          return this.migrationRepository.getMigrationDuBeneficiaire(
-            utilisateur.id
-          )
+          idsPopulations =
+            await this.populationRepository.getIdsPopulationsDuJeune(
+              utilisateur.id
+            )
+          break
       }
+      return this.migrationRepository.getMigration(idsPopulations)
     }
 
     async recupererIdsDesBeneficiaireAMigrer(

@@ -6,10 +6,8 @@ import { Communication } from '../../../domain/communication'
 import { CommunicationEnvoi } from '../../../domain/communication-envoi'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
-import {
-  sqlCommunicationEnCours,
-  sqlDeploiementActif
-} from '../../../infrastructure/repositories/sql-helpers'
+import { sqlCommunicationEnCours } from '../../../infrastructure/repositories/communication.repository.db'
+import { sqlDeploiementActif } from '../../../infrastructure/repositories/fonctionnalite.repository.db'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
 import { rootLogger, toEcsError } from '../../../utils/logger.module'
