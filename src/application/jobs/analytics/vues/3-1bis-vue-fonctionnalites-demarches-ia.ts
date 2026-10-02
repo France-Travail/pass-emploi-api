@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize-typescript'
-import { sqlJoinConseillersConcernes } from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_DEMARCHES_IA_TABLE_NAME } from './3-0-migrate-schema'
 
 // Généralisation des démarches IA à tous les bénéficiaires (feat: généralisation FT IA).
@@ -22,17 +21,20 @@ export async function chargerLaVueFonctionnaliteDemarchesIA(
      where semaine = '${semaine}';`
   )
   await connexion.query(`
-    WITH conseillers_concernes AS (
-      SELECT DISTINCT c.id
-      FROM deploiement d
-      ${sqlJoinConseillersConcernes('d', 'c')}
-      WHERE d.nature = 'FONCTIONNALITE' AND d.id_fonctionnalite = 'DEMARCHES_IA'
+    WITH deploiements_demarches_ia AS (
+      SELECT id_population
+      FROM deploiement
+      WHERE nature = 'FONCTIONNALITE' AND id_fonctionnalite = 'DEMARCHES_IA'
+    ),
+    conseillers_concernes AS (
+      SELECT DISTINCT apc.id_conseiller AS id
+      FROM deploiements_demarches_ia d
+      JOIN appartenance_population_conseiller apc ON apc.id_population = d.id_population
     ),
     utilisateurs_demarches_ia AS (
-      SELECT DISTINCT j.id AS id_jeune
-      FROM jeune j
-      JOIN conseillers_concernes cc
-        ON COALESCE(j.id_conseiller_initial, j.id_conseiller) = cc.id
+      SELECT DISTINCT apj.id_jeune AS id_jeune
+      FROM deploiements_demarches_ia d
+      JOIN appartenance_population_jeune apj ON apj.id_population = d.id_population
 
       UNION
 

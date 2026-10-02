@@ -8,13 +8,7 @@ import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
 import {
   sqlCommunicationEnCours,
-  sqlConseillerDansPopulation,
-  sqlDeploiementActif,
-  sqlJeuneDansPopulation,
-  sqlJeuneDestinataire,
-  sqlJoinConseillerDeReference,
-  sqlJoinConseillersConcernes,
-  sqlJoinConseillersDestinataires
+  sqlDeploiementActif
 } from '../../../infrastructure/repositories/sql-helpers'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
@@ -70,7 +64,7 @@ const JOIN_LIEU_CONSEILLER = `
  * @see docs/ANALYTICS.md#0bis-charger-les-populationsjobts
  * @analytics.trigger ajouterJob depuis DUMP_ANALYTICS, ou TASK_NAME=CHARGER_POPULATIONS_ANALYTICS
  * @analytics.after DUMP_ANALYTICS
- * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, communication, communication_envoi, deploiement, conseiller, jeune
+ * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, appartenance_population_conseiller, appartenance_population_jeune, communication, communication_envoi, deploiement, conseiller, jeune
  * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires, analytics_deploiement_membres
  */
 @Injectable()
@@ -277,10 +271,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT p.id, 'CONSEILLER', ${SELECT_CONSEILLER},
+        SELECT apc.id_population, 'CONSEILLER', ${SELECT_CONSEILLER},
                NULL, NULL, :dateCalcul
-        FROM population p
-        JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'p.id')}
+        FROM appartenance_population_conseiller apc
+        JOIN conseiller c ON c.id = apc.id_conseiller
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
@@ -297,18 +291,17 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT p.id, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+        SELECT apj.id_population, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
                COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                c.email,
                CASE WHEN c.id IS NULL THEN NULL WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
                :dateCalcul
-        FROM population p
-        CROSS JOIN jeune j
-        ${sqlJoinConseillerDeReference('j', 'c')}
+        FROM appartenance_population_jeune apj
+        JOIN jeune j ON j.id = apj.id_jeune
+        LEFT JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
-        ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlJeuneDansPopulation('j', 'c', 'p.id')};
+        ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
     )
@@ -351,8 +344,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                ${sqlStatutCommunication('co')},
                'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant
         FROM communication co
-        ${sqlJoinConseillersDestinataires('co', 'c')}
-        ${JOIN_LIEU_CONSEILLER};
+        JOIN appartenance_population_conseiller apc ON apc.id_population = co.id_population
+        JOIN conseiller c ON c.id = apc.id_conseiller
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE co.destinataire = '${Communication.Destinataire.CONSEILLER}';
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
@@ -376,15 +371,14 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                :maintenant
         FROM communication co
-        JOIN jeune j ON co.destinataire = '${Communication.Destinataire.JEUNE}'
-        ${sqlJoinConseillerDeReference('j', 'c')}
+        JOIN appartenance_population_jeune apj ON apj.id_population = co.id_population
+        JOIN jeune j ON j.id = apj.id_jeune
+        LEFT JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlEnvoiNonDemarre('co')}
-          AND ${sqlJeuneDestinataire('j', 'c', {
-            idPopulation: 'co.id_population',
-            push: 'co.push'
-          })};
+        WHERE co.destinataire = '${Communication.Destinataire.JEUNE}'
+          AND ${sqlEnvoiNonDemarre('co')}
+          AND (co.push IS NOT TRUE OR j.push_notification_token IS NOT NULL);
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
@@ -482,7 +476,8 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                CASE WHEN ${sqlDeploiementActif('d', ':maintenant')} THEN 'ACTIF' ELSE 'PREVU' END,
                'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant
         FROM deploiement d
-        ${sqlJoinConseillersConcernes('d', 'c')}
+        JOIN appartenance_population_conseiller apc ON apc.id_population = d.id_population
+        JOIN conseiller c ON c.id = apc.id_conseiller
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
