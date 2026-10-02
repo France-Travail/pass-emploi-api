@@ -7,6 +7,7 @@ import {
   Communication,
   CommunicationRepositoryToken
 } from '../../domain/communication'
+import { Population, PopulationRepositoryToken } from '../../domain/population'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -24,6 +25,8 @@ export class GetCommunicationsJeuneQueryHandler extends QueryHandler<
   readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository,
     @Inject(CommunicationRepositoryToken)
     private readonly communicationRepository: Communication.Repository,
     private readonly dateService: DateService,
@@ -35,9 +38,11 @@ export class GetCommunicationsJeuneQueryHandler extends QueryHandler<
   async handle(
     query: GetCommunicationsJeuneQuery
   ): Promise<Result<CommunicationsJeuneQueryModel>> {
+    const idsPopulations =
+      await this.populationRepository.getIdsPopulationsDuJeune(query.idJeune)
     const messageInformatif =
       await this.communicationRepository.getMessageInformatifDuJeune(
-        query.idJeune,
+        idsPopulations,
         this.dateService.now()
       )
     return success(messageInformatif ? { messageInformatif } : {})

@@ -158,75 +158,37 @@ describe('MigrationSqlRepository', () => {
     })
   })
 
-  describe('getDateDeMigrationDuConseiller', () => {
-    it('renvoie la date du déploiement de migration qui vise le conseiller', async () => {
+  describe('getDateDeMigration', () => {
+    it('renvoie la date du déploiement de migration de la population', async () => {
       // When
-      const date = await repo.getDateDeMigrationDuConseiller('conseillerPhaseA')
+      const date = await repo.getDateDeMigration(['PHASE_A'])
 
       // Then
       expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
     })
 
-    it('ne renvoie rien quand aucune migration ne vise le conseiller', async () => {
+    it('renvoie la date la plus proche parmi les populations', async () => {
       // When
-      const date = await repo.getDateDeMigrationDuConseiller(
-        'conseillerHorsMigration'
-      )
+      const date = await repo.getDateDeMigration(['PHASE_B', 'PHASE_A'])
+
+      // Then
+      expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
+    })
+
+    it("ne renvoie rien quand aucune population n'a de migration", async () => {
+      // When
+      const date = await repo.getDateDeMigration(['SANS_DEPLOIEMENT'])
 
       // Then
       expect(date).to.be.undefined()
     })
 
-    it('renvoie la date la plus proche quand plusieurs migrations visent le conseiller', async () => {
-      // Given
-      await PopulationConseillerSqlModel.create({
-        idPopulation: 'PHASE_B',
-        emailConseiller: 'phasea@ft.fr'
-      })
-
+    it('ne renvoie rien sans population', async () => {
       // When
-      const date = await repo.getDateDeMigrationDuConseiller('conseillerPhaseA')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-  })
-
-  describe('getDateDeMigrationDuBeneficiaire', () => {
-    it('renvoie la date du conseiller du jeune', async () => {
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire('jeunePhaseA')
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_A.toISO())
-    })
-
-    it('ne renvoie rien quand le conseiller du jeune ne bascule pas', async () => {
-      // When
-      const date =
-        await repo.getDateDeMigrationDuBeneficiaire('jeuneHorsMigration')
+      const date = await repo.getDateDeMigration([])
 
       // Then
       expect(date).to.be.undefined()
-    })
-
-    it('renvoie la date du profil ciblé pour un jeune sans conseiller', async () => {
-      // Given
-      await JeuneSqlModel.create(
-        unJeuneDto({
-          id: 'jeuneBrsaSansConseiller',
-          idConseiller: undefined,
-          structure: Core.Structure.POLE_EMPLOI_BRSA
-        })
-      )
-
-      // When
-      const date = await repo.getDateDeMigrationDuBeneficiaire(
-        'jeuneBrsaSansConseiller'
-      )
-
-      // Then
-      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
     })
   })
 
