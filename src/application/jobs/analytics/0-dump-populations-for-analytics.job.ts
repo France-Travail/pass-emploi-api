@@ -10,7 +10,7 @@ import { DateService } from '../../../utils/date-service'
 import { dumperEtRestaurer } from './dump-restore'
 
 // Populations et ce qui s'y rattache (fonctionnalités, déploiements, communications) : ne sont référencées que par d'autres tables de la liste, donc restaurables ensemble.
-// pg_restore --clean ne peut supprimer une table dont une clé étrangère non dumpée dépend : toute table qui en référence une doit être ajoutée ici.
+// pg_restore --clean ne peut supprimer une table dont une clé étrangère non dumpée dépend, ni une table dont une vue non dumpée dépend : toute table ou vue qui en référence une doit être ajoutée ici.
 export const TABLES_POPULATIONS = [
   'fonctionnalite',
   'population',
@@ -20,7 +20,9 @@ export const TABLES_POPULATIONS = [
   'population_agence_ft',
   'deploiement',
   'communication',
-  'communication_envoi'
+  'communication_envoi',
+  'appartenance_population_conseiller',
+  'appartenance_population_jeune'
 ]
 
 /**
@@ -31,7 +33,7 @@ export const TABLES_POPULATIONS = [
  * @see docs/ANALYTICS.md#rafraîchir-avant-lheure
  * @analytics.trigger TASK_NAME=DUMP_POPULATIONS_ANALYTICS
  * @analytics.before CHARGER_POPULATIONS_ANALYTICS
- * @analytics.tables_out fonctionnalite, population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, deploiement, communication, communication_envoi
+ * @analytics.tables_out fonctionnalite, population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, deploiement, communication, communication_envoi, appartenance_population_conseiller, appartenance_population_jeune
  */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.DUMP_POPULATIONS_ANALYTICS)
