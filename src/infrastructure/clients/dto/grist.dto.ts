@@ -8,7 +8,7 @@ export interface GristRecordsDto<T> {
 }
 
 export interface GristServiceFieldsDto {
-  Nom: string
+  Nom: string | null
   Description: string
 }
 

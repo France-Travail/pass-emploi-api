@@ -299,6 +299,90 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
+  describe('nom du service', () => {
+    ;[
+      ['vide', ''],
+      ["fait d'espaces", '   '],
+      ['absent', null]
+    ].forEach(([cas, nom]) => {
+      it(`écarte un service dont le nom est ${cas}, garde les autres et importe les solutions`, () => {
+        // Given
+        const sansNom: GristRecordDto<GristServiceFieldsDto> = {
+          id: 7,
+          fields: { Nom: nom, Description: 'un service sans nom' }
+        }
+
+        // When
+        const resultat = reconcilierReferentiel(
+          [sansNom, serviceOnisep],
+          [uneSolutionGrist()]
+        )
+
+        // Then
+        expect(resultat.services.map(service => service.id)).to.deep.equal([
+          '1'
+        ])
+        expect(resultat.solutions[0].service?.nom).to.equal('ONISEP')
+        expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+      })
+    })
+
+    it('écarte un service dont le nom dépasse la taille de la colonne', () => {
+      // Given
+      const nomTropLong: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: { Nom: 'x'.repeat(256), Description: '' }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [nomTropLong, serviceOnisep],
+        [uneSolutionGrist()]
+      )
+
+      // Then
+      expect(resultat.services.map(service => service.id)).to.deep.equal(['1'])
+      expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+    })
+
+    it("écarte un service dont le nom n'est pas un texte plutôt que de le convertir", () => {
+      // Given : une cellule en erreur de formule arrive sous forme de liste
+      const nomEnErreur: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: {
+          Nom: ['E', 'ValueError'] as unknown as string,
+          Description: ''
+        }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel([nomEnErreur], [])
+
+      // Then
+      expect(resultat.services).to.deep.equal([])
+      expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+    })
+
+    it("importe sans service la solution qui désignait un service écarté, sans l'écarter elle-même", () => {
+      // Given
+      const sansNom: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: { Nom: null, Description: '' }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [sansNom],
+        [uneSolutionGrist({ Service: 'ONISEP' })]
+      )
+
+      // Then
+      expect(resultat.solutions).to.have.length(1)
+      expect(resultat.solutions[0].service).to.be.undefined()
+      expect(resultat.anomalies.nbServicesNonResolus).to.equal(1)
+    })
+  })
+
   describe('visibilité et identifiant', () => {
     it('identifie la solution par son numéro de ligne Grist, sans identifiant saisi', () => {
       // Given
