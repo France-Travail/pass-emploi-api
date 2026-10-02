@@ -734,13 +734,17 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('montre pour un jeune la date de migration que la fonctionnalité lui annonce', async () => {
       // Given
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
       const migrationRepository = new MigrationSqlRepository(
         getDatabase().sequelize
       )
 
       // When
-      const annoncee =
-        await migrationRepository.getMigrationDuBeneficiaire('jeuneTransfere')
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuJeune('jeuneTransfere')
+      const annoncee = await migrationRepository.getMigration(idsPopulations)
       const migrations = (
         await lignes<MembreDeploiement>(
           ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,

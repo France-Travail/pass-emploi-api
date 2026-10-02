@@ -9,8 +9,6 @@ import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlCommunicationEnCours,
   sqlJeuneDansPopulation,
-  sqlJeuneDestinataire,
-  sqlJoinConseillerDeReference,
   sqlJoinConseillerDeReferenceDuJeune,
   sqlJoinConseillersDestinataires
 } from './sql-helpers'
@@ -371,12 +369,10 @@ export class CommunicationSqlRepository implements Communication.Repository {
 
 // Référence :idPopulation et :push — l'appelant doit les fournir dans replacements.
 const SQL_DESTINATAIRES_DE_LA_POPULATION = `
-  FROM jeune j
-  ${sqlJoinConseillerDeReference('j', 'c')}
-  WHERE ${sqlJeuneDestinataire('j', 'c', {
-    idPopulation: ':idPopulation',
-    push: ':push'
-  })}`
+  FROM appartenance_population_jeune apj
+  JOIN jeune j ON j.id = apj.id_jeune
+  WHERE apj.id_population = :idPopulation
+    AND (:push IS NOT TRUE OR j.push_notification_token IS NOT NULL)`
 
 function toAEnvoyer(
   communication: CommunicationSqlModel
