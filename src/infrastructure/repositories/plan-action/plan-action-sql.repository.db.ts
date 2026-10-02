@@ -57,11 +57,9 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
   async getDernierPlan(idJeune: string): Promise<PlanAction | undefined> {
     const planSql = await PlanActionSqlModel.findOne({
       where: { idJeune },
-      order: [
-        ['dateCreation', 'DESC'],
-        ['objectifs', 'id', 'ASC'],
-        ['objectifs', 'taches', 'dateCreation', 'ASC']
-      ],
+      // Objectifs et tâches sont rendus sans ordre garanti : c'est
+      // PlanAction.ordonner qui les présente
+      order: [['dateCreation', 'DESC']],
       include: [
         {
           model: PlanActionObjectifSqlModel,

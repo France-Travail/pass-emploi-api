@@ -27,6 +27,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .query({ sort: 'manualSort' })
         .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, {
           records: [{ id: 1, fields: { Nom: 'ONISEP', Description: 'site' } }]
@@ -48,6 +49,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .query({ sort: 'manualSort' })
         .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(401)
 
@@ -62,6 +64,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableServices}/records`)
+        .query({ sort: 'manualSort' })
         .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, { erreur: 'Table not found' })
 
@@ -78,6 +81,7 @@ describe('GristClient', () => {
       // Given
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableSolutions}/records`)
+        .query({ sort: 'manualSort' })
         .matchHeader('authorization', `Bearer ${grist.apiKey}`)
         .reply(200, { records: [{ id: 1, fields: { Id_technique: 'p-2' } }] })
 

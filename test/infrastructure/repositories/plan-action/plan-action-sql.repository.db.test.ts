@@ -221,67 +221,6 @@ describe('PlanActionSqlRepository', () => {
       // Then
       expect(plan).to.equal(undefined)
     })
-
-    it("rend les objectifs et les tâches ordonnés, quel que soit l'ordre d'insertion", async () => {
-      // Given
-      await insererSolution('p-2')
-      await insererSolution('p-3')
-      const plan = unPlan({
-        objectifs: [
-          {
-            id: 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb',
-            titre: 'Se former',
-            theme: Questionnaire.Besoin.FORMER,
-            taches: [
-              {
-                id: '33333333-3333-3333-3333-333333333333',
-                idSolution: 'p-2',
-                terminee: false,
-                dateCreation: maintenant
-              }
-            ]
-          },
-          {
-            id: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
-            titre: 'Trouver une alternance',
-            theme: Questionnaire.Besoin.ALTERNANCE,
-            taches: [
-              {
-                id: '22222222-2222-2222-2222-222222222222',
-                idSolution: 'p-3',
-                terminee: false,
-                dateCreation: maintenant.plus({ minutes: 1 })
-              },
-              {
-                id: '11111111-1111-1111-1111-111111111111',
-                idSolution: 'p-2',
-                terminee: false,
-                dateCreation: maintenant
-              }
-            ]
-          }
-        ]
-      })
-      await planActionSqlRepository.save(plan)
-
-      // When
-      const planRendu = await planActionSqlRepository.getDernierPlan('jeune-1')
-
-      // Then
-      expect(planRendu!.objectifs).to.have.length(2)
-      expect(planRendu!.objectifs.map(objectif => objectif.id)).to.deep.equal([
-        'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
-        'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb'
-      ])
-      expect(planRendu!.objectifs[0].taches).to.have.length(2)
-      expect(
-        planRendu!.objectifs[0].taches.map(tache => tache.id)
-      ).to.deep.equal([
-        '11111111-1111-1111-1111-111111111111',
-        '22222222-2222-2222-2222-222222222222'
-      ])
-      expect(planRendu!.objectifs[1].taches).to.have.length(1)
-    })
   })
 
   describe('getTache', () => {

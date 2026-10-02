@@ -71,7 +71,10 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     const solutions =
       await this.referentielRepository.trouverSolutions(idsSolutions)
 
-    const queryModel = toPlanActionQueryModel(plan, solutions)
+    const queryModel = toPlanActionQueryModel(
+      PlanAction.ordonner(plan, solutions),
+      solutions
+    )
     if (!queryModel.objectives.length) {
       return failure(new NonTrouveError('PlanAction', query.idJeune))
     }

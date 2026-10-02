@@ -105,6 +105,8 @@ export namespace ReferentielPlanAction {
       options: { dryRun: boolean }
     ): Promise<Diff>
 
+    // Les deux lectures rendent les solutions dans l'ordre des lignes du Grist
+
     // Relecture d'un plan stocké : seules les solutions de ses tâches
     trouverSolutions(ids: string[]): Promise<Solution[]>
 

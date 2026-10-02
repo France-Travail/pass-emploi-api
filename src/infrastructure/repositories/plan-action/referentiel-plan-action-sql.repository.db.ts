@@ -162,7 +162,11 @@ export class ReferentielPlanActionSqlRepository
 
     const solutionsSql = await ReferentielPlanActionSolutionSqlModel.findAll({
       where: { id: { [Op.in]: ids }, active: true },
-      include: [ReferentielPlanActionServiceSqlModel]
+      include: [ReferentielPlanActionServiceSqlModel],
+      order: [
+        ['ordre', 'ASC'],
+        ['id', 'ASC']
+      ]
     })
 
     return solutionsSql.map(toSolution)
