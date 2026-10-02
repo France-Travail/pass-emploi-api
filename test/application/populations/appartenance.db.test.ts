@@ -35,6 +35,7 @@ import { StructureMiloSqlModel } from '../../../src/infrastructure/sequelize/mod
 import { CommunicationSqlRepository } from '../../../src/infrastructure/repositories/communication.repository.db'
 import { ConseillerSqlRepository } from '../../../src/infrastructure/repositories/conseiller-sql.repository.db'
 import { FonctionnaliteSqlRepository } from '../../../src/infrastructure/repositories/fonctionnalite.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { MigrationSqlRepository } from '../../../src/infrastructure/repositories/migration.repository.db'
 import { DateService } from '../../../src/utils/date-service'
 import {
@@ -342,6 +343,7 @@ describe('Appartenance à une population', () => {
 
   it('active les fonctionnalités des jeunes dont le conseiller de référence est dans la population', async () => {
     const handler = new GetFonctionnalitesJeuneQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new FonctionnaliteSqlRepository(getDatabase().sequelize),
       dateService,
       new JeuneAuthorizer(jeuneRepository)
@@ -388,6 +390,7 @@ describe('Appartenance à une population', () => {
 
   it('affiche le bandeau jeune aux jeunes dont le conseiller de référence est dans la population', async () => {
     const handler = new GetCommunicationsJeuneQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new CommunicationSqlRepository(getDatabase().sequelize),
       dateService,
       new JeuneAuthorizer(jeuneRepository)
@@ -430,6 +433,7 @@ describe('Appartenance à une population', () => {
 
   it('affiche le bandeau conseiller aux conseillers dans la population', async () => {
     const handler = new GetCommunicationsConseillerQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new CommunicationSqlRepository(getDatabase().sequelize),
       dateService,
       new ConseillerAuthorizer(new ConseillerSqlRepository(), jeuneRepository)
@@ -470,7 +474,8 @@ describe('Appartenance à une population', () => {
   })
 
   it('renvoie la date de migration des conseillers dans la population', async () => {
-    const repo = new MigrationSqlRepository(getDatabase().sequelize)
+    const populationRepo = new PopulationSqlRepository(getDatabase().sequelize)
+    const migrationRepo = new MigrationSqlRepository(getDatabase().sequelize)
 
     const idsConseillersDans = [
       'conseillerCiteParEmail',
@@ -491,7 +496,9 @@ describe('Appartenance à une population', () => {
       [...idsConseillersDans, ...idsConseillersHors].map(
         async idConseiller => ({
           idConseiller,
-          date: await repo.getDateDeMigrationDuConseiller(idConseiller)
+          date: await migrationRepo.getDateDeMigration(
+            await populationRepo.getIdsPopulationsDuConseiller(idConseiller)
+          )
         })
       )
     )
@@ -504,7 +511,8 @@ describe('Appartenance à une population', () => {
   })
 
   it('renvoie la date de migration des jeunes dont le conseiller de référence est dans la population', async () => {
-    const repo = new MigrationSqlRepository(getDatabase().sequelize)
+    const populationRepo = new PopulationSqlRepository(getDatabase().sequelize)
+    const migrationRepo = new MigrationSqlRepository(getDatabase().sequelize)
 
     const idsJeunesDans = [
       'jeuneCiteParEmail',
@@ -527,7 +535,9 @@ describe('Appartenance à une population', () => {
     const resultatsDate = await Promise.all(
       [...idsJeunesDans, ...idsJeunesHors].map(async idJeune => ({
         idJeune,
-        date: await repo.getDateDeMigrationDuBeneficiaire(idJeune)
+        date: await migrationRepo.getDateDeMigration(
+          await populationRepo.getIdsPopulationsDuJeune(idJeune)
+        )
       }))
     )
 
@@ -538,7 +548,9 @@ describe('Appartenance à une population', () => {
     expect(jeunesAvecDate).to.have.members(idsJeunesDans)
 
     const beneficiaires =
-      await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PILOTE')
+      await migrationRepo.getBeneficiairesAMigrerParProfilOuConseillerCite(
+        'PILOTE'
+      )
     const idsBeneficiaires = beneficiaires.map(b => b.id)
 
     expect(idsBeneficiaires).to.have.members(idsJeunesDans)
