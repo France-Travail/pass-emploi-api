@@ -29,6 +29,12 @@ export namespace Authentification {
     ADMIN = 'ADMIN'
   }
 
+  // Application cliente ayant déclenché l'authentification (paramètre `application` transmis par Connect)
+  export enum Application {
+    PASS_EMPLOI = 'pass-emploi',
+    UN_JEUNE_UNE_SOLUTION = '1j1s'
+  }
+
   export function unUtilisateurSupport(): Utilisateur {
     return {
       id: 'SUPPORT',
