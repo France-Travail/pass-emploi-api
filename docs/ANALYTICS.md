@@ -149,7 +149,7 @@ Copie de la base prod vers analytics via `pg_dump` / `pg_restore`, en excluant l
 
 ### 0-dump-populations-for-analytics.job.ts
 
-Hors cron. Dump partiel des neuf tables de populations (`DUMP_TABLES` dans
+Hors cron. Dump partiel des neuf tables de populations et des deux vues d'appartenance (`DUMP_TABLES` dans
 `0_db_dump_restore.sh`), puis enfile le job 0bis. Voir « Rafraîchir avant l'heure » sous
 0bis.
 
@@ -194,12 +194,12 @@ les compteurs sont ceux de `communication_envoi` à `date_calcul` (`nb_a_envoyer
 destinataires, ni compteurs.
 
 **Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
-population, destinataires d'une communication, conseillers concernés par un déploiement et
-prédicats temporels sont les fragments de
-[`sql-helpers.ts`](../src/infrastructure/repositories/sql-helpers.ts), ceux-là mêmes
-qu'utilisent `CommunicationSqlRepository` et `MigrationSqlRepository` en production. En
-particulier, les jeunes destinataires d'une notification pas encore envoyée sont calculés
-par `sqlJoinJeunesDestinataires`, la fonction qui fige la population au démarrage de
+population (vues SQL `appartenance_population_{conseiller|jeune}`), les
+destinataires d'une communication et les conseillers concernés par un
+déploiement viennent du même chemin que l'app mobile et le web
+(`Population.Repository → vues`, puis repositories par ids de population). Les
+jeunes destinataires d'une notification pas encore envoyée sont calculés
+par la même requête que celle qui fige la population au démarrage de
 l'envoi. Si une règle change dans un repository, la table suit au déploiement suivant. Le
 test du job le vérifie en croisant la table avec ce que ces repositories renvoient
 (message et date de migration d'un conseiller, nombre de jeunes que l'envoi figera).
@@ -216,7 +216,7 @@ le terminal) ; suivre l'avancement dans les `SuiviJob`.
 
 | Besoin | Commande | Durée | Ce qui est rafraîchi |
 | --- | --- | --- | --- |
-| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics-populations` | secondes | les 9 tables de populations (`population*`, `communication*`, `deploiement`, `fonctionnalite`), puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
+| Voir l'effet d'une population / communication / déploiement | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics-populations` | secondes | les 9 tables de populations (`population*`, `communication*`, `deploiement`, `fonctionnalite`) et les vues `appartenance_population_*`, puis 0bis enfilé automatiquement. Conseillers, jeunes, agences restent à J-1 |
 | Tout à jour, y compris agences / structures des conseillers | `scalingo --app pass-emploi-api-prod run yarn tasks:dump-analytics` | > 20 min, dashboards incohérents pendant la restauration | toute la base, puis 0bis (et le job 1) enfilés |
 | Recalculer sans re-dumper (code du job changé) | `scalingo --app pass-emploi-api-prod run yarn tasks:charger-populations` | secondes | rien : recalcul sur l'existant |
 
