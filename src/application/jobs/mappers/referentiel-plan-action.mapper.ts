@@ -92,7 +92,9 @@ export function reconcilierReferentiel(
   const solutions: ReferentielPlanAction.Solution[] = []
   const idsVus = new Set<string>()
 
-  for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
+  // L'ordre reçu est celui des lignes du document Grist : c'est l'ordre dans
+  // lequel les tâches seront présentées au jeune
+  for (const record of solutionsGrist) {
     const idTechnique = record.fields.Id_technique
     if (idsVus.has(idTechnique)) {
       anomalies.nbDoublonsSolutions++

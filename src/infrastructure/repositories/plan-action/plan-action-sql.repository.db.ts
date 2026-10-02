@@ -28,27 +28,25 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
       )
 
       await PlanActionObjectifSqlModel.bulkCreate(
-        plan.objectifs.map((objectif, ordre) => ({
+        plan.objectifs.map(objectif => ({
           id: objectif.id,
           idPlanAction: plan.id,
           titre: objectif.titre,
-          theme: objectif.theme,
-          ordre
+          theme: objectif.theme
         })),
         { transaction }
       )
 
       await PlanActionTacheSqlModel.bulkCreate(
         plan.objectifs.flatMap(objectif =>
-          objectif.taches.map((tache, ordre) => ({
+          objectif.taches.map(tache => ({
             id: tache.id,
             idObjectif: objectif.id,
             idSolution: tache.idSolution,
             terminee: tache.terminee,
             dateCreation: tache.dateCreation.toJSDate(),
             dateTerminee: tache.dateTerminee?.toJSDate() ?? null,
-            dateSuppression: tache.dateSuppression?.toJSDate() ?? null,
-            ordre
+            dateSuppression: tache.dateSuppression?.toJSDate() ?? null
           }))
         ),
         { transaction }
@@ -59,15 +57,9 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
   async getDernierPlan(idJeune: string): Promise<PlanAction | undefined> {
     const planSql = await PlanActionSqlModel.findOne({
       where: { idJeune },
-      // L'ordre du plan est celui dans lequel il a été construit : objectifs dans l'ordre du questionnaire, tâches dans l'ordre du référentiel.
-      // Les plans antérieurs à la colonne ordre retombent sur l'ancien tri
-      order: [
-        ['dateCreation', 'DESC'],
-        ['objectifs', 'ordre', 'ASC'],
-        ['objectifs', 'id', 'ASC'],
-        ['objectifs', 'taches', 'ordre', 'ASC'],
-        ['objectifs', 'taches', 'dateCreation', 'ASC']
-      ],
+      // Objectifs et tâches sont rendus sans ordre garanti : c'est
+      // PlanAction.ordonner qui les présente
+      order: [['dateCreation', 'DESC']],
       include: [
         {
           model: PlanActionObjectifSqlModel,

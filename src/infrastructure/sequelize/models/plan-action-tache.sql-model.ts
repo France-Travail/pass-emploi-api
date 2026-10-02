@@ -34,9 +34,6 @@ export class PlanActionTacheDto extends Model {
 
   @Column({ field: 'date_suppression', type: DataType.DATE })
   dateSuppression: Date | null
-
-  @Column({ field: 'ordre', type: DataType.INTEGER })
-  ordre: number | null
 }
 
 @Table({ timestamps: false, tableName: 'plan_action_tache' })

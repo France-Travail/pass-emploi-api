@@ -299,6 +299,27 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
+  it("garde les solutions dans l'ordre des lignes reçu du Grist, pas dans celui des numéros de ligne", () => {
+    // Given : le métier a remonté la ligne 9 au-dessus de la ligne 1
+    const remontee = {
+      id: 9,
+      fields: uneSolutionGrist({ Id_technique: 'p-9' }).fields
+    }
+    const premiereCreee = uneSolutionGrist({ Id_technique: 'p-1' })
+
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [remontee, premiereCreee]
+    )
+
+    // Then
+    expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+      'p-9',
+      'p-1'
+    ])
+  })
+
   it("écarte les solutions en doublon d'identifiant technique", () => {
     // Given
     const premiere = uneSolutionGrist()
