@@ -130,6 +130,32 @@ describe('MigrationSqlRepository', () => {
         { id: 'jeuneTransfere' }
       ])
     })
+
+    it('renvoie les jeunes sans conseiller dont le profil est ciblé, pas ceux dont seul le profil correspond', async () => {
+      // Given
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeuneBrsaSansConseiller',
+          idConseiller: undefined,
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        }),
+        unJeuneDto({
+          id: 'jeuneBrsaChezMilo',
+          idConseiller: 'conseillerHorsMigration',
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        })
+      ])
+
+      // When
+      const beneficiaires =
+        await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PHASE_B')
+
+      // Then
+      expect(beneficiaires).to.have.deep.members([
+        { id: 'jeuneBrsa' },
+        { id: 'jeuneBrsaSansConseiller' }
+      ])
+    })
   })
 
   describe('getDateDeMigrationDuConseiller', () => {
@@ -182,6 +208,25 @@ describe('MigrationSqlRepository', () => {
 
       // Then
       expect(date).to.be.undefined()
+    })
+
+    it('renvoie la date du profil ciblé pour un jeune sans conseiller', async () => {
+      // Given
+      await JeuneSqlModel.create(
+        unJeuneDto({
+          id: 'jeuneBrsaSansConseiller',
+          idConseiller: undefined,
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        })
+      )
+
+      // When
+      const date = await repo.getDateDeMigrationDuBeneficiaire(
+        'jeuneBrsaSansConseiller'
+      )
+
+      // Then
+      expect(date?.toISO()).to.equal(DATE_PHASE_B.toISO())
     })
   })
 
