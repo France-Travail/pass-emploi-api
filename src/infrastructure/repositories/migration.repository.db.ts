@@ -11,6 +11,7 @@ import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
   sqlConseillerDansPopulation,
+  sqlJeuneDansPopulation,
   sqlJoinConseillerDeReference,
   sqlJoinConseillersConcernes,
   sqlJoinConseillerDeReferenceDuJeune
@@ -39,7 +40,7 @@ export class MigrationSqlRepository implements Migration.Repository {
         SELECT j.id
         FROM jeune j
         ${sqlJoinConseillerDeReference('j', 'c')}
-        WHERE ${sqlConseillerDansPopulation('c', ':idPopulation')}
+        WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
       `,
       { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )
@@ -110,7 +111,7 @@ export class MigrationSqlRepository implements Migration.Repository {
         FROM deploiement d
         ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE d.nature = :nature
-          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
+          AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
       `,
       {
         replacements: {

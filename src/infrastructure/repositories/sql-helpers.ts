@@ -1,13 +1,13 @@
 // Fragments SQL partagés par les dépôts qui lisent les populations, communications et déploiements.
 import { Communication } from '../../domain/communication'
 
-// Jointure vers le conseiller de référence du jeune déjà présent dans la requête : l'initial en cas de transfert temporaire, sinon le courant.
+// Jointure vers le conseiller de référence du jeune déjà présent dans la requête : l'initial en cas de transfert temporaire, sinon le courant. Un jeune sans conseiller (Espace candidat) est gardé, les colonnes du conseiller à NULL : filtrer avec sqlJeuneDansPopulation.
 export function sqlJoinConseillerDeReference(
   aliasJeune = 'j',
   aliasConseiller = 'c'
 ): string {
   return `
-    JOIN conseiller ${aliasConseiller} ON ${aliasConseiller}.id = COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller)`
+    LEFT JOIN conseiller ${aliasConseiller} ON ${aliasConseiller}.id = COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller)`
 }
 
 // Jointure du jeune `:paramIdJeune` vers son conseiller de référence.
@@ -71,7 +71,7 @@ function sqlAgenceDuConseillerDansPopulation(
   )`
 }
 
-// Un conseiller est dans la population s'il est cité par email, si son profil correspond, ou si sa structure MiLo ou son agence est citée. Un jeune y est si et seulement si son conseiller de référence y est : son propre profil n'est jamais regardé (un conseiller MiLo n'ayant pas de dispositif, (MILO, CEJ) ne vise personne).
+// Un conseiller est dans la population s'il est cité par email, si son profil correspond, ou si sa structure MiLo ou son agence est citée. Un jeune y est si son conseiller de référence y est, voir sqlJeuneDansPopulation (un conseiller MiLo n'ayant pas de dispositif, (MILO, CEJ) ne vise aucun jeune suivi).
 export function sqlConseillerDansPopulation(
   aliasConseiller: string,
   idPopulation: string
@@ -80,6 +80,17 @@ export function sqlConseillerDansPopulation(
     OR ${sqlProfilDansPopulation(aliasConseiller, idPopulation)}
     OR ${sqlStructureMiloDansPopulation(aliasConseiller, idPopulation)}
     OR ${sqlAgenceDuConseillerDansPopulation(aliasConseiller, idPopulation)})`
+}
+
+// Un jeune est dans la population si son conseiller de référence `aliasConseiller` y est. Seul un jeune sans conseiller (Espace candidat) y entre par son propre profil : sinon un jeune FT/CEJ suivi par un conseiller FT/AIJ serait embarqué par un ciblage FT/CEJ.
+export function sqlJeuneDansPopulation(
+  aliasJeune: string,
+  aliasConseiller: string,
+  idPopulation: string
+): string {
+  return `(${sqlConseillerDansPopulation(aliasConseiller, idPopulation)}
+    OR (COALESCE(${aliasJeune}.id_conseiller_initial, ${aliasJeune}.id_conseiller) IS NULL
+      AND ${sqlProfilDansPopulation(aliasJeune, idPopulation)}))`
 }
 
 // Jointure de la communication `aliasCom` vers les conseillers qui en sont destinataires. Même jointure côté fonctionnalité (filtrée sur un conseiller) et côté analytics (exhaustive).
@@ -93,16 +104,14 @@ export function sqlJoinConseillersDestinataires(
      AND ${sqlConseillerDansPopulation(aliasConseiller, `${aliasCom}.id_population`)}`
 }
 
-// Restreint le jeune `aliasJeune` déjà présent dans la requête aux destinataires d'une communication de la population `idPopulation`, via son conseiller de référence `aliasConseiller` ; si `push` est vrai, seulement ceux qui ont un token.
+// Le jeune `aliasJeune`, joint à son conseiller de référence `aliasConseiller` par sqlJoinConseillerDeReference, est destinataire d'une communication de la population `idPopulation` ; si `push` est vrai, seulement s'il a un token.
 // Seule définition des jeunes destinataires : l'envoi, le décompte support et les analytics doivent trouver les mêmes.
-export function sqlJoinJeunesDestinataires(
+export function sqlJeuneDestinataire(
   aliasJeune: string,
   aliasConseiller: string,
   { idPopulation, push }: { idPopulation: string; push: string }
 ): string {
-  return `
-    ${sqlJoinConseillerDeReference(aliasJeune, aliasConseiller)}
-    AND ${sqlConseillerDansPopulation(aliasConseiller, idPopulation)}
+  return `${sqlJeuneDansPopulation(aliasJeune, aliasConseiller, idPopulation)}
     AND (${push} IS NOT TRUE OR ${aliasJeune}.push_notification_token IS NOT NULL)`
 }
 

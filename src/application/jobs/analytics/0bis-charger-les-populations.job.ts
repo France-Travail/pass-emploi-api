@@ -10,10 +10,11 @@ import {
   sqlCommunicationEnCours,
   sqlConseillerDansPopulation,
   sqlDeploiementActif,
+  sqlJeuneDansPopulation,
+  sqlJeuneDestinataire,
   sqlJoinConseillerDeReference,
   sqlJoinConseillersConcernes,
-  sqlJoinConseillersDestinataires,
-  sqlJoinJeunesDestinataires
+  sqlJoinConseillersDestinataires
 } from '../../../infrastructure/repositories/sql-helpers'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
@@ -300,14 +301,14 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                c.email,
-               CASE WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
+               CASE WHEN c.id IS NULL THEN NULL WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
                :dateCalcul
         FROM population p
         CROSS JOIN jeune j
         ${sqlJoinConseillerDeReference('j', 'c')}
-          AND ${sqlConseillerDansPopulation('c', 'p.id')}
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
-        ${JOIN_LIEU_CONSEILLER};
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE ${sqlJeuneDansPopulation('j', 'c', 'p.id')};
       `,
       { replacements: { dateCalcul }, transaction }
     )
@@ -376,13 +377,14 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                :maintenant
         FROM communication co
         JOIN jeune j ON co.destinataire = '${Communication.Destinataire.JEUNE}'
-        ${sqlJoinJeunesDestinataires('j', 'c', {
-          idPopulation: 'co.id_population',
-          push: 'co.push'
-        })}
+        ${sqlJoinConseillerDeReference('j', 'c')}
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlEnvoiNonDemarre('co')};
+        WHERE ${sqlEnvoiNonDemarre('co')}
+          AND ${sqlJeuneDestinataire('j', 'c', {
+            idPopulation: 'co.id_population',
+            push: 'co.push'
+          })};
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
