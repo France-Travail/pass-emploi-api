@@ -79,6 +79,8 @@ export namespace ReferentielPlanAction {
   export interface Anomalies {
     nbServicesNonResolus: number
     nbDoublonsServices: number
+    // Nom vide ou plus long que la colonne
+    nbServicesEcartes: number
     nbDoublonsSolutions: number
     // Identifiant technique vide ou plus long que la colonne
     nbIdentifiantsInvalides: number

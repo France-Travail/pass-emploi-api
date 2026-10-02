@@ -10,8 +10,9 @@ import { rootLogger } from '../../../utils/logger.module'
 
 const CONTEXT = 'ReferentielPlanActionMapper'
 
-// Taille de la colonne id de referentiel_plan_action_solution
-const LONGUEUR_MAX_IDENTIFIANT = 255
+// Taille des colonnes id des solutions et nom des services : au-delà,
+// l'insertion échouerait et ferait tomber toute la synchronisation
+const LONGUEUR_MAX_COLONNE = 255
 
 const typeParLibelle: Record<string, ReferentielPlanAction.TypeSolution> = {
   'Lien web': ReferentielPlanAction.TypeSolution.LIEN,
@@ -85,6 +86,7 @@ export function reconcilierReferentiel(
   const anomalies: ReferentielPlanAction.Anomalies = {
     nbServicesNonResolus: 0,
     nbDoublonsServices: 0,
+    nbServicesEcartes: 0,
     nbDoublonsSolutions: 0,
     nbIdentifiantsInvalides: 0,
     nbSolutionsEcartees: 0,
@@ -97,8 +99,8 @@ export function reconcilierReferentiel(
   const idsVus = new Set<string>()
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
-    const idTechnique = identifiant(record.fields.Id_technique)
-    if (!idTechnique || idTechnique.length > LONGUEUR_MAX_IDENTIFIANT) {
+    const idTechnique = chaineNonVide(record.fields.Id_technique)
+    if (!idTechnique || idTechnique.length > LONGUEUR_MAX_COLONNE) {
       anomalies.nbIdentifiantsInvalides++
       logAnomalie('Solution Grist écartée : identifiant technique invalide', {
         ligne_grist: record.id,
@@ -145,14 +147,24 @@ function indexerServices(
   const serviceParNom = new Map<string, ReferentielPlanAction.Service>()
 
   for (const record of [...servicesGrist].sort((a, b) => a.id - b.id)) {
+    // Le nom est la clé de jointure : sans lui le service est inutilisable
+    const nomIndexe = chaineNonVide(record.fields.Nom)
+    if (!nomIndexe || String(record.fields.Nom).length > LONGUEUR_MAX_COLONNE) {
+      anomalies.nbServicesEcartes++
+      logAnomalie('Service Grist écarté : nom invalide', {
+        ligne_grist: record.id,
+        raison: nomIndexe ? 'nom_trop_long' : 'nom_vide'
+      })
+      continue
+    }
+
     const service: ReferentielPlanAction.Service = {
       id: String(record.id),
-      nom: record.fields.Nom,
+      nom: String(record.fields.Nom),
       ...optionnel('description', texte(record.fields.Description))
     }
     services.push(service)
 
-    const nomIndexe = record.fields.Nom.trim()
     const dejaIndexe = serviceParNom.get(nomIndexe)
     if (dejaIndexe) {
       anomalies.nbDoublonsServices++
@@ -314,9 +326,9 @@ function resoudreListe<V>(
   return resolues
 }
 
-// N'importe quelle chaîne non vide convient ; une colonne Grist numérique
-// rend un nombre, converti plutôt que de faire échouer la synchronisation
-function identifiant(valeur: unknown): string | undefined {
+// Une cellule Grist vide vaut null ou une chaîne vide, et une colonne de type
+// nombre rend un nombre : tout est ramené à une chaîne sans espaces autour
+function chaineNonVide(valeur: unknown): string | undefined {
   if (valeur === null || valeur === undefined) return undefined
   return String(valeur).trim() || undefined
 }

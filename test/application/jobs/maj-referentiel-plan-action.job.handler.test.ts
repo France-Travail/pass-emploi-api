@@ -112,6 +112,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
       nbDesactivees: 0,
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
+      nbServicesEcartes: 0,
       nbDoublonsSolutions: 0,
       nbIdentifiantsInvalides: 0,
       nbSolutionsEcartees: 0,
