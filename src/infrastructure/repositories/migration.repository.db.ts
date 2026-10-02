@@ -9,11 +9,6 @@ import {
 } from '../../domain/migration'
 import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import {
-  sqlJeuneDansPopulation,
-  sqlJoinConseillersConcernes,
-  sqlJoinConseillerDeReferenceDuJeune
-} from './sql-helpers'
 
 @Injectable()
 export class MigrationSqlRepository implements Migration.Repository {
@@ -85,39 +80,21 @@ export class MigrationSqlRepository implements Migration.Repository {
     }))
   }
 
-  async getDateDeMigrationDuConseiller(
-    idConseiller: string
+  async getDateDeMigration(
+    idsPopulations: string[]
   ): Promise<DateTime | undefined> {
-    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
-      `
-        SELECT MIN(d.date_activation) AS date_activation
-        FROM deploiement d
-        ${sqlJoinConseillersConcernes('d', 'c')}
-        WHERE c.id = :idConseiller
-          AND d.nature = :nature
-      `,
-      {
-        replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },
-        type: QueryTypes.SELECT
-      }
-    )
-    return fromSqlToDateDeMigration(rows)
-  }
+    if (!idsPopulations.length) return undefined
 
-  async getDateDeMigrationDuBeneficiaire(
-    idBeneficiaire: string
-  ): Promise<DateTime | undefined> {
     const rows = await this.sequelize.query<{ date_activation: Date | null }>(
       `
-        SELECT MIN(d.date_activation) AS date_activation
-        FROM deploiement d
-        ${sqlJoinConseillerDeReferenceDuJeune()}
-        WHERE d.nature = :nature
-          AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
+        SELECT MIN(date_activation) AS date_activation
+        FROM deploiement
+        WHERE id_population IN (:idsPopulations)
+          AND nature = :nature
       `,
       {
         replacements: {
-          idJeune: idBeneficiaire,
+          idsPopulations,
           nature: Deploiement.Nature.MIGRATION
         },
         type: QueryTypes.SELECT

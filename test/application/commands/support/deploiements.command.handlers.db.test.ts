@@ -42,7 +42,7 @@ describe('Déploiements : handlers support', () => {
 
   describe('CreerDeploiementCommandHandler', () => {
     const handler = new CreerDeploiementCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('crée un déploiement de fonctionnalité', async () => {
@@ -226,7 +226,7 @@ describe('Déploiements : handlers support', () => {
   describe('ModifierDateDeploiementCommandHandler', () => {
     const handler = new ModifierDateDeploiementCommandHandler()
     const creer = new CreerDeploiementCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('déplace la date sans toucher au reste', async () => {
@@ -274,7 +274,7 @@ describe('Déploiements : handlers support', () => {
   describe('SupprimerDeploiementCommandHandler', () => {
     const handler = new SupprimerDeploiementCommandHandler()
     const creer = new CreerDeploiementCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('supprime le déploiement', async () => {

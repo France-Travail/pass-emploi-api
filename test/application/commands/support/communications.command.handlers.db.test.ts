@@ -63,7 +63,7 @@ describe('Communications : handlers support', () => {
 
   describe('CreerCommunicationCommandHandler', () => {
     const handler = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('crée la communication et renvoie son id', async () => {
@@ -128,10 +128,10 @@ describe('Communications : handlers support', () => {
 
   describe('ModifierCommunicationCommandHandler', () => {
     const handler = new ModifierCommunicationCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
     const creer = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('remplace la communication en entier', async () => {
@@ -317,7 +317,7 @@ describe('Communications : handlers support', () => {
 
   describe('CreerCommunicationCommandHandler : communication NOTIFICATION', () => {
     const handler = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     const commandeNotification = {
@@ -398,7 +398,7 @@ describe('Communications : handlers support', () => {
   describe('SupprimerCommunicationCommandHandler', () => {
     const handler = new SupprimerCommunicationCommandHandler()
     const creer = new CreerCommunicationCommandHandler(
-      new PopulationSqlRepository()
+      new PopulationSqlRepository(getDatabase().sequelize)
     )
 
     it('supprime la communication', async () => {
