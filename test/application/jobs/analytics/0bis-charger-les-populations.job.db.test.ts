@@ -24,6 +24,7 @@ import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { CommunicationSqlRepository } from '../../../../src/infrastructure/repositories/communication.repository.db'
 import { MigrationSqlRepository } from '../../../../src/infrastructure/repositories/migration.repository.db'
+import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -178,6 +179,17 @@ describe('ChargerLesPopulationsJobHandler', () => {
         id: 'jeuneHors',
         idConseiller: 'conseillerHors',
         structure: Core.Structure.MILO
+      }),
+      // Sans conseiller, seul le profil du jeune compte.
+      unJeuneDto({
+        id: 'jeuneSansConseiller',
+        idConseiller: undefined,
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneEspaceCandidat',
+        idConseiller: undefined,
+        structure: Core.Structure.FT_ESPACE_CANDIDAT
       })
     ])
     await PopulationSqlModel.bulkCreate([
@@ -400,8 +412,8 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbPopulations: 2,
         nbCommunications: 11,
         nbConseillers: 2,
-        nbJeunes: 4,
-        nbDestinatairesCommunications: 23,
+        nbJeunes: 5,
+        nbDestinatairesCommunications: 26,
         nbMembresDeploiements: 4
       })
     })
@@ -446,6 +458,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         ['jeuneBrsaChezCej', 'ftcej@ft.fr', 'ACTUEL'],
         ['jeuneCite', 'cite@milo.fr', 'ACTUEL'],
         ['jeuneFtCej', 'ftcej@ft.fr', 'ACTUEL'],
+        ['jeuneSansConseiller', null, null],
         ['jeuneTransfere', 'cite@milo.fr', 'INITIAL']
       ])
       expect(jeunes.every(m => m.id_population === 'PILOTE')).to.equal(true)
@@ -522,6 +535,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         ['4', 'EN_COURS', 'jeuneBrsaChezCej'],
         ['4', 'EN_COURS', 'jeuneCite'],
         ['4', 'EN_COURS', 'jeuneFtCej'],
+        ['4', 'EN_COURS', 'jeuneSansConseiller'],
         ['4', 'EN_COURS', 'jeuneTransfere']
       ])
       expect(destinataires[1]).to.deep.include({
@@ -549,10 +563,12 @@ describe('ChargerLesPopulationsJobHandler', () => {
       ).to.deep.equal([
         ['7', 'jeuneBrsaChezCej'],
         ['7', 'jeuneCite'],
+        ['7', 'jeuneSansConseiller'],
         ['7', 'jeuneTransfere'],
         ['8', 'jeuneBrsaChezCej'],
         ['8', 'jeuneCite'],
         ['8', 'jeuneFtCej'],
+        ['8', 'jeuneSansConseiller'],
         ['8', 'jeuneTransfere']
       ])
     })
@@ -618,11 +634,11 @@ describe('ChargerLesPopulationsJobHandler', () => {
         ['1', 'PASSEE', 2],
         ['2', 'EN_COURS', 2],
         ['3', 'PREVUE', 2],
-        ['4', 'EN_COURS', 4],
+        ['4', 'EN_COURS', 5],
         ['5', 'EN_COURS', 0],
         ['6', 'EN_COURS', 2],
-        ['7', 'PREVUE', 3],
-        ['8', 'PASSEE', 4],
+        ['7', 'PREVUE', 4],
+        ['8', 'PASSEE', 5],
         ['9', 'PASSEE', 2],
         ['10', 'PASSEE', 2],
         ['11', 'PASSEE', 5]
@@ -698,9 +714,16 @@ describe('ChargerLesPopulationsJobHandler', () => {
       )
 
       // When
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuConseiller(
+          'conseillerCite'
+        )
       const affichee =
         await communicationRepository.getMessageInformatifDuConseiller(
-          'conseillerCite',
+          idsPopulations,
           maintenant
         )
       const enCours = (
@@ -719,15 +742,20 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('montre pour un conseiller la date de migration que la fonctionnalité lui annonce', async () => {
       // Given
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
       const migrationRepository = new MigrationSqlRepository(
         getDatabase().sequelize
       )
 
       // When
-      const annoncee =
-        await migrationRepository.getDateDeMigrationDuConseiller(
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuConseiller(
           'conseillerCite'
         )
+      const annoncee =
+        await migrationRepository.getDateDeMigration(idsPopulations)
       const migrations = (
         await lignes<MembreDeploiement>(
           ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,

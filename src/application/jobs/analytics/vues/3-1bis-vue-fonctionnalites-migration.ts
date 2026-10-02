@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize-typescript'
-import { sqlJoinConseillersConcernes } from '../../../../infrastructure/repositories/sql-helpers'
 import { ANALYTICS_FCT_MIGRATION_TABLE_NAME } from './3-0-migrate-schema'
 
 export async function chargerLaVueFonctionnaliteMigration(
@@ -14,9 +13,9 @@ export async function chargerLaVueFonctionnaliteMigration(
   )
   await connexion.query(`
     WITH conseillers_migration AS (
-      SELECT DISTINCT c.id AS id_utilisateur
+      SELECT DISTINCT apc.id_conseiller AS id_utilisateur
       FROM deploiement d
-      ${sqlJoinConseillersConcernes('d', 'c')}
+      JOIN appartenance_population_conseiller apc ON apc.id_population = d.id_population
       WHERE d.nature = 'MIGRATION'
     ),
     jeunes_migration AS (

@@ -8,7 +8,7 @@ describe('PopulationSqlRepository', () => {
 
   beforeEach(async () => {
     await getDatabase().cleanPG()
-    repo = new PopulationSqlRepository()
+    repo = new PopulationSqlRepository(getDatabase().sequelize)
 
     await PopulationSqlModel.create({ id: 'PILOTE', description: 'Pilote' })
   })
