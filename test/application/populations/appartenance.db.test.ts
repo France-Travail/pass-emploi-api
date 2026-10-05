@@ -202,6 +202,16 @@ describe('Appartenance à une population', () => {
         id: 'jeuneMiloHorsStructure',
         idConseiller: 'conseillerMiloHorsStructure',
         structure: Core.Structure.MILO
+      }),
+      unJeuneDto({
+        id: 'jeuneSansConseillerProfilCible',
+        idConseiller: undefined,
+        structure: Core.Structure.POLE_EMPLOI
+      }),
+      unJeuneDto({
+        id: 'jeuneSansConseillerProfilHors',
+        idConseiller: undefined,
+        structure: Core.Structure.FT_DEMANDEUR_D_EMPLOI
       })
     ])
 
@@ -329,11 +339,13 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneSansConseillerProfilCible'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneSansConseillerProfilHors'
     ]
 
     const resultats = await Promise.all(
@@ -371,11 +383,13 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneSansConseillerProfilCible'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneSansConseillerProfilHors'
     ]
 
     const resultats = await Promise.all(
@@ -480,11 +494,13 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneSansConseillerProfilCible'
     ]
     const idsJeunesHors = [
       'jeuneTransfereInitialHors',
-      'jeuneMiloHorsStructure'
+      'jeuneMiloHorsStructure',
+      'jeuneSansConseillerProfilHors'
     ]
 
     const resultatsDate = await Promise.all(
@@ -517,7 +533,8 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneSansConseillerProfilCible'
     ]
 
     const compte = await repo.compterDestinataires('PILOTE', false)
@@ -554,7 +571,8 @@ describe('Appartenance à une population', () => {
       'jeuneStructureMilo',
       'jeuneAgenceSansRestriction',
       'jeuneAgenceAij',
-      'jeuneTransfereInitialDedans'
+      'jeuneTransfereInitialDedans',
+      'jeuneSansConseillerProfilCible'
     ]
 
     // When
