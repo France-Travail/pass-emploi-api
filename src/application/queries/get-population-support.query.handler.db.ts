@@ -166,6 +166,7 @@ export function toPopulationSupportQueryModel(
     })),
     communications: communications.map((co, index) => ({
       id: co.id,
+      idPopulation: co.idPopulation,
       destinataire: co.destinataire,
       type: co.type,
       dateDebut: DateTime.fromJSDate(co.dateDebut).toUTC().toISO()!,

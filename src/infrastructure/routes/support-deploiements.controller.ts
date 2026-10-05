@@ -49,9 +49,13 @@ import { SupprimerPopulationCommandHandler } from '../../application/commands/su
 import { SupprimerProfilPopulationCommandHandler } from '../../application/commands/support/supprimer-profil-population.command.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from '../../application/queries/get-fonctionnalites-support.query.handler.db'
 import { GetPopulationSupportQueryHandler } from '../../application/queries/get-population-support.query.handler.db'
+import { GetCommunicationSupportQueryHandler } from '../../application/queries/get-communication-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from '../../application/queries/get-populations-support.query.handler.db'
 import { FonctionnalitesSupportQueryModel } from '../../application/queries/query-models/fonctionnalites.query-model'
-import { PopulationSupportQueryModel } from '../../application/queries/query-models/population-support.query-model'
+import {
+  CommunicationSupportDetailQueryModel,
+  PopulationSupportQueryModel
+} from '../../application/queries/query-models/population-support.query-model'
 import { Authentification } from '../../domain/authentification'
 import { ApiKeyAuthGuard } from '../auth/api-key.auth-guard'
 import { SkipOidcAuth } from '../decorators/skip-oidc-auth.decorator'
@@ -93,6 +97,7 @@ export class SupportDeploiementsController {
     private readonly supprimerFonctionnaliteCommandHandler: SupprimerFonctionnaliteCommandHandler,
     private readonly getPopulationsSupportQueryHandler: GetPopulationsSupportQueryHandler,
     private readonly getPopulationSupportQueryHandler: GetPopulationSupportQueryHandler,
+    private readonly getCommunicationSupportQueryHandler: GetCommunicationSupportQueryHandler,
     private readonly creerPopulationCommandHandler: CreerPopulationCommandHandler,
     private readonly supprimerPopulationCommandHandler: SupprimerPopulationCommandHandler,
     private readonly ajouterConseillersPopulationCommandHandler: AjouterConseillersPopulationCommandHandler,
@@ -753,6 +758,29 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
   @ReserveAuSupport
   @ApiTags('Support - Communications')
   @ApiOperation({
+    summary: 'Récupère une communication par son id',
+    description:
+      "Pratique pour copier-coller une communication existante avant de la modifier via PUT. L'id est celui renvoyé par POST /support/communications, ou lu dans GET /support/populations/:idPopulation."
+  })
+  @ApiParam({ name: 'idCommunication', example: 3 })
+  @ApiOkResponse({ type: CommunicationSupportDetailQueryModel })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "La communication n'existe pas"
+  })
+  @Get('communications/:idCommunication')
+  async getCommunication(
+    @Param('idCommunication', ParseIntPipe) idCommunication: number
+  ): Promise<CommunicationSupportDetailQueryModel> {
+    const result = await this.getCommunicationSupportQueryHandler.execute(
+      { idCommunication },
+      Authentification.unUtilisateurSupport()
+    )
+    return handleResult(result)
+  }
+
+  @ApiTags('Support - Communications')
+  @ApiOperation({
     summary: 'Crée une communication pour une population',
     description: `Message visible de \`dateDebut\` (incluse) à \`dateFin\` (exclue), en UTC, par les utilisateurs de la population. \`dateFin\` absente pour IN_APP = visible indéfiniment, jusqu'à suppression. \`dateFin\` interdite pour NOTIFICATION (pas de rappel possible une fois envoyée).
 
@@ -774,6 +802,22 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
             'Le 15 octobre 2026, l’application pass emploi ne sera plus disponible. Vos services seront accessibles sur l’application Parcours Emploi.\nNous vous recommandons de ne plus ajouter de nouveaux bénéficiaires à votre portefeuille.'
         }
       },
+      bandeauInAppAvecCta: {
+        summary: 'Bandeau in-app avec CTA',
+        value: {
+          idPopulation: 'PILOTE_1J1S',
+          destinataire: 'JEUNE',
+          type: 'IN_APP',
+          dateDebut: '2026-10-01T00:00:00.000Z',
+          dateFin: '2026-10-31T00:00:00.000Z',
+          titre: 'Nouvelle fonctionnalité disponible',
+          contenu:
+            "Découvrez votre plan d'action personnalisé pour vous aider dans votre recherche.",
+          ctaLabel: 'Découvrir',
+          ctaUrlAndroid: 'passemploi://plan-action',
+          ctaUrlIos: 'passemploi://plan-action'
+        }
+      },
       notification: {
         summary: 'Envoyer une notification aux jeunes',
         value: {
@@ -785,10 +829,7 @@ Plusieurs communications peuvent viser la même population ; un utilisateur ne v
           contenu:
             "5 offres d'alternance correspondent à votre profil. Consultez-les maintenant !",
           typeNotification: 'NOUVELLE_OFFRE',
-          push: true,
-          ctaLabel: 'Voir les offres',
-          ctaUrlAndroid: 'passemploi://offres?domain=alternance',
-          ctaUrlIos: 'passemploi://offres?domain=alternance'
+          push: true
         }
       }
     }

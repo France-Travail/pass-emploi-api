@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger'
 import { Communication } from '../../../domain/communication'
 import { Deploiement } from '../../../domain/deploiement'
 import { Notification } from '../../../domain/notification/notification'
@@ -47,6 +47,9 @@ export class CommunicationSupportQueryModel {
   @ApiProperty()
   id: number
 
+  @ApiProperty()
+  idPopulation: string
+
   @ApiProperty({ enum: Communication.Destinataire })
   destinataire: Communication.Destinataire
 
@@ -91,7 +94,7 @@ export class CommunicationSupportQueryModel {
   statutEnvoi?: Communication.StatutEnvoi
 
   @ApiPropertyOptional({
-    description: 'Fin de l’envoi (ENVOYEE, ANNULEE ou EN_ERREUR), en UTC'
+    description: "Fin de l'envoi (ENVOYEE, ANNULEE ou EN_ERREUR), en UTC"
   })
   envoiTermineLe?: string
 
@@ -108,6 +111,11 @@ export class CommunicationSupportQueryModel {
   })
   envoi?: EnvoiCommunicationQueryModel
 }
+
+export class CommunicationSupportDetailQueryModel extends OmitType(
+  CommunicationSupportQueryModel,
+  ['id'] as const
+) {}
 
 export class AgenceFTPopulationQueryModel {
   @ApiProperty()
