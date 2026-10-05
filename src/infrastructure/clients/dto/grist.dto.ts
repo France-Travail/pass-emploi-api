@@ -13,7 +13,8 @@ export interface GristServiceFieldsDto {
 }
 
 export interface GristSolutionFieldsDto {
-  Id_technique: string
+  // Case à cocher du métier : seules les lignes cochées sont synchronisées
+  Visible: boolean
   Envie: string
   Blocage: string
   Sous_categorie: string

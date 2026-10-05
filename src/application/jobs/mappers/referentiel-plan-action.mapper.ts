@@ -82,7 +82,6 @@ export function reconcilierReferentiel(
   const anomalies: ReferentielPlanAction.Anomalies = {
     nbServicesNonResolus: 0,
     nbDoublonsServices: 0,
-    nbDoublonsSolutions: 0,
     nbSolutionsEcartees: 0,
     nbValeursNonReconnues: 0
   }
@@ -90,36 +89,20 @@ export function reconcilierReferentiel(
   const { services, serviceParNom } = indexerServices(servicesGrist, anomalies)
 
   const solutions: ReferentielPlanAction.Solution[] = []
-  const idsVus = new Set<string>()
+  let nbSolutionsMasquees = 0
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
-    const idTechnique = record.fields.Id_technique
-    if (!texte(idTechnique)) {
-      anomalies.nbSolutionsEcartees++
-      logAnomalie('Solution Grist écartée : identifiant technique manquant', {
-        raison: 'id_manquant',
-        ligne_grist: record.id
-      })
+    // Le métier décide de ce qui est servi aux jeunes en cochant « Visible »
+    if (record.fields.Visible !== true) {
+      nbSolutionsMasquees++
       continue
     }
-    if (idsVus.has(idTechnique)) {
-      anomalies.nbDoublonsSolutions++
-      logAnomalie(
-        "Solution Grist en doublon d'identifiant technique, ligne ignorée",
-        {
-          id_technique: idTechnique,
-          ligne_grist: record.id
-        }
-      )
-      continue
-    }
-    idsVus.add(idTechnique)
 
     const solution = construireSolution(record, serviceParNom, anomalies)
     if (solution) solutions.push(solution)
   }
 
-  return { services, solutions, anomalies }
+  return { services, solutions, nbSolutionsMasquees, anomalies }
 }
 
 // Les services sont indexés par nom : c'est la seule clé dont disposent les
@@ -172,7 +155,7 @@ function construireSolution(
   if (!type) {
     anomalies.nbSolutionsEcartees++
     logAnomalie('Solution Grist écartée : type de tâche inconnu', {
-      id_technique: fields.Id_technique,
+      ligne_grist: record.id,
       raison: 'type_inconnu',
       valeur: fields.Type
     })
@@ -188,7 +171,7 @@ function construireSolution(
         ? 'Solution Grist écartée : écran de navigation inconnu'
         : 'Solution Grist écartée : navigation sans écran renseigné',
       {
-        id_technique: fields.Id_technique,
+        ligne_grist: record.id,
         raison: valeurEcran ? 'ecran_inconnu' : 'navigation_sans_ecran',
         ...optionnel('valeur', valeurEcran)
       }
@@ -201,20 +184,20 @@ function construireSolution(
   if (nomService && !service) {
     anomalies.nbServicesNonResolus++
     logAnomalie('Service Grist non résolu pour une solution', {
-      id_technique: fields.Id_technique,
+      ligne_grist: record.id,
       nom_cherche: nomService
     })
   }
 
   return {
-    id: fields.Id_technique,
+    id: String(record.id),
     ...optionnel(
       'besoin',
       resoudreEnum(
         'Envie',
         fields.Envie,
         besoinParLibelle,
-        fields.Id_technique,
+        record.id,
         anomalies
       )
     ),
@@ -224,7 +207,7 @@ function construireSolution(
         'Blocage',
         fields.Blocage,
         contrainteParLibelle,
-        fields.Id_technique,
+        record.id,
         anomalies
       )
     ),
@@ -239,14 +222,14 @@ function construireSolution(
       'Situations',
       fields.Situations,
       situationParLibelle,
-      fields.Id_technique,
+      record.id,
       anomalies
     ),
     authentifications: resoudreListe(
       'Authentification',
       fields.Authentification,
       structuresParLibelle,
-      fields.Id_technique,
+      record.id,
       anomalies
     ).flat(),
     territoires: liste(fields.Territoire),
@@ -262,7 +245,7 @@ function resoudreEnum<V>(
   colonne: string,
   valeurGrist: string,
   table: Record<string, V>,
-  idTechnique: string,
+  ligneGrist: number,
   anomalies: ReferentielPlanAction.Anomalies
 ): V | undefined {
   const propre = texte(valeurGrist)
@@ -271,7 +254,7 @@ function resoudreEnum<V>(
   if (!resolu) {
     anomalies.nbValeursNonReconnues++
     logAnomalie('Valeur Grist non reconnue, solution conservée', {
-      id_technique: idTechnique,
+      ligne_grist: ligneGrist,
       colonne,
       valeur: propre
     })
@@ -283,7 +266,7 @@ function resoudreListe<V>(
   colonne: string,
   valeurGrist: string | null | undefined,
   table: Record<string, V>,
-  idTechnique: string,
+  ligneGrist: number,
   anomalies: ReferentielPlanAction.Anomalies
 ): V[] {
   const resolues: V[] = []
@@ -294,7 +277,7 @@ function resoudreListe<V>(
     } else {
       anomalies.nbValeursNonReconnues++
       logAnomalie('Valeur Grist non reconnue, solution conservée', {
-        id_technique: idTechnique,
+        ligne_grist: ligneGrist,
         colonne,
         valeur: libelle
       })

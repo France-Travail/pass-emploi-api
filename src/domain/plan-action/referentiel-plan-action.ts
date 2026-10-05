@@ -47,6 +47,8 @@ export namespace ReferentielPlanAction {
   // Une ligne du référentiel. Elle porte un besoin OU une contrainte, jamais
   // les deux. Une liste de ciblage vide vaut « pas de filtre »
   export interface Solution {
+    // Numéro de ligne interne du Grist, comme pour les services : attribué par
+    // Grist, unique et stable tant que la ligne existe, sans saisie manuelle
     id: string
     besoin?: Questionnaire.Besoin
     contrainte?: Questionnaire.Contrainte
@@ -79,7 +81,6 @@ export namespace ReferentielPlanAction {
   export interface Anomalies {
     nbServicesNonResolus: number
     nbDoublonsServices: number
-    nbDoublonsSolutions: number
     nbSolutionsEcartees: number
     nbValeursNonReconnues: number
   }
@@ -87,6 +88,8 @@ export namespace ReferentielPlanAction {
   export interface Reconciliation {
     services: Service[]
     solutions: Solution[]
+    // Lignes non cochées « Visible » dans le Grist, donc non synchronisées
+    nbSolutionsMasquees: number
     anomalies: Anomalies
   }
 

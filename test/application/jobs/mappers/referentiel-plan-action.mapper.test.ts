@@ -21,7 +21,7 @@ describe('reconcilierReferentiel', () => {
     return {
       id: 1,
       fields: {
-        Id_technique: 'p-2',
+        Visible: true,
         Envie: "M'orienter",
         Blocage: '',
         Sous_categorie: "Consulter des sites d'orientation",
@@ -205,28 +205,6 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
   })
 
-  it('écarte une solution sans identifiant technique', () => {
-    // When
-    const resultat = reconcilierReferentiel(
-      [serviceOnisep],
-      [
-        uneSolutionGrist({ Id_technique: '' }),
-        { id: 2, fields: uneSolutionGrist({ Id_technique: '  ' }).fields },
-        {
-          id: 3,
-          fields: uneSolutionGrist({
-            Id_technique: null as unknown as string
-          }).fields
-        }
-      ]
-    )
-
-    // Then
-    expect(resultat.solutions).to.deep.equal([])
-    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(3)
-    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(0)
-  })
-
   it('importe sans service une solution dont le nom ne résout rien', () => {
     // When
     const resultat = reconcilierReferentiel(
@@ -321,20 +299,59 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
-  it("écarte les solutions en doublon d'identifiant technique", () => {
-    // Given
-    const premiere = uneSolutionGrist()
-    const seconde = { id: 9, fields: uneSolutionGrist().fields }
+  describe('visibilité et identifiant', () => {
+    it('identifie la solution par son numéro de ligne Grist, sans identifiant saisi', () => {
+      // Given
+      const ligne42 = { id: 42, fields: uneSolutionGrist().fields }
 
-    // When
-    const resultat = reconcilierReferentiel(
-      [serviceOnisep],
-      [premiere, seconde]
-    )
+      // When
+      const resultat = reconcilierReferentiel([serviceOnisep], [ligne42])
 
-    // Then
-    expect(resultat.solutions).to.have.length(1)
-    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        '42'
+      ])
+    })
+
+    it('ne synchronise que les lignes cochées Visible et compte les autres', () => {
+      // Given
+      const visible = uneSolutionGrist()
+      const decochee = {
+        id: 2,
+        fields: uneSolutionGrist({ Visible: false }).fields
+      }
+      const jamaisCochee = {
+        id: 3,
+        fields: uneSolutionGrist({
+          Visible: null as unknown as boolean
+        }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [visible, decochee, jamaisCochee]
+      )
+
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        '1'
+      ])
+      expect(resultat.nbSolutionsMasquees).to.equal(2)
+    })
+
+    it('ne compte pas en anomalie une ligne masquée, même incomplète', () => {
+      // Given : une ligne en cours de rédaction, sans type
+      const brouillon = uneSolutionGrist({ Visible: false, Type: '' })
+
+      // When
+      const resultat = reconcilierReferentiel([serviceOnisep], [brouillon])
+
+      // Then
+      expect(resultat.solutions).to.deep.equal([])
+      expect(resultat.nbSolutionsMasquees).to.equal(1)
+      expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    })
   })
 
   it('traduit les libellés de situation du questionnaire', () => {

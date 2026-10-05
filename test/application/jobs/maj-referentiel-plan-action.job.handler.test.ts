@@ -32,7 +32,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
   const solutionGrist = {
     id: 1,
     fields: {
-      Id_technique: 'p-2',
+      Visible: true,
       Envie: "M'orienter",
       Blocage: '',
       Sous_categorie: '',
@@ -107,12 +107,12 @@ describe('MajReferentielPlanActionJobHandler', () => {
       dryRun: false,
       nbServices: 1,
       nbSolutions: 1,
+      nbSolutionsMasquees: 0,
       nbCreees: 1,
       nbMisesAJour: 0,
       nbDesactivees: 0,
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
-      nbDoublonsSolutions: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     })
@@ -209,7 +209,6 @@ describe('MajReferentielPlanActionJobHandler', () => {
           id: 2,
           fields: {
             ...solutionGrist.fields,
-            Id_technique: 'p-3',
             Service: 'INCONNU'
           }
         }
@@ -231,11 +230,14 @@ describe('MajReferentielPlanActionJobHandler', () => {
     ).to.equal(1)
   })
 
-  it('remonte les doublons de solutions dans le résultat', async () => {
+  it('ne transmet que les solutions visibles et remonte le nombre de masquées', async () => {
     // Given
     gristClient.recupererServices.resolves(success([serviceGrist]))
     gristClient.recupererSolutions.resolves(
-      success([solutionGrist, { id: 2, fields: { ...solutionGrist.fields } }])
+      success([
+        solutionGrist,
+        { id: 2, fields: { ...solutionGrist.fields, Visible: false } }
+      ])
     )
     repository.remplacer.resolves({
       nbCreees: 1,
@@ -248,7 +250,12 @@ describe('MajReferentielPlanActionJobHandler', () => {
 
     // Then
     expect(
-      (suiviJob.resultat as { nbDoublonsSolutions: number }).nbDoublonsSolutions
+      repository.remplacer.firstCall.args[1].map(
+        (solution: ReferentielPlanAction.Solution) => solution.id
+      )
+    ).to.deep.equal(['1'])
+    expect(
+      (suiviJob.resultat as { nbSolutionsMasquees: number }).nbSolutionsMasquees
     ).to.equal(1)
   })
 

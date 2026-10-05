@@ -17,12 +17,12 @@ export interface StatsMajReferentielPlanAction {
   dryRun: boolean
   nbServices: number
   nbSolutions: number
+  nbSolutionsMasquees: number
   nbCreees: number
   nbMisesAJour: number
   nbDesactivees: number
   nbServicesNonResolus: number
   nbDoublonsServices: number
-  nbDoublonsSolutions: number
   nbSolutionsEcartees: number
   nbValeursNonReconnues: number
 }
@@ -48,12 +48,12 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       dryRun: config.dryRun,
       nbServices: 0,
       nbSolutions: 0,
+      nbSolutionsMasquees: 0,
       nbCreees: 0,
       nbMisesAJour: 0,
       nbDesactivees: 0,
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
-      nbDoublonsSolutions: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     }
@@ -82,9 +82,9 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
 
       stats.nbServices = reconciliation.services.length
       stats.nbSolutions = reconciliation.solutions.length
+      stats.nbSolutionsMasquees = reconciliation.nbSolutionsMasquees
       stats.nbServicesNonResolus = reconciliation.anomalies.nbServicesNonResolus
       stats.nbDoublonsServices = reconciliation.anomalies.nbDoublonsServices
-      stats.nbDoublonsSolutions = reconciliation.anomalies.nbDoublonsSolutions
       stats.nbSolutionsEcartees = reconciliation.anomalies.nbSolutionsEcartees
       stats.nbValeursNonReconnues =
         reconciliation.anomalies.nbValeursNonReconnues
