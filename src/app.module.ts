@@ -135,6 +135,7 @@ import { ModifierCommunicationCommandHandler } from './application/commands/supp
 import { SupprimerCommunicationCommandHandler } from './application/commands/support/supprimer-communication.command.handler.db'
 import { AnnulerEnvoiCommunicationCommandHandler } from './application/commands/support/annuler-envoi-communication.command.handler.db'
 import { GetPopulationSupportQueryHandler } from './application/queries/get-population-support.query.handler.db'
+import { GetCommunicationSupportQueryHandler } from './application/queries/get-communication-support.query.handler.db'
 import { GetPopulationsSupportQueryHandler } from './application/queries/get-populations-support.query.handler.db'
 import { GetFonctionnalitesSupportQueryHandler } from './application/queries/get-fonctionnalites-support.query.handler.db'
 import { SupprimerFichierCommandHandler } from './application/commands/supprimer-fichier.command.handler'
@@ -893,6 +894,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetPreferencesJeuneQueryHandler,
     GetFonctionnalitesJeuneQueryHandler,
     GetPopulationSupportQueryHandler,
+    GetCommunicationSupportQueryHandler,
     GetPopulationsSupportQueryHandler,
     GetFonctionnalitesSupportQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
