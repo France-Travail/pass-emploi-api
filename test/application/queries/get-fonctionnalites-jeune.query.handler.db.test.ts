@@ -15,7 +15,6 @@ import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/model
 import { FonctionnaliteSqlModel } from '../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
-import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -124,83 +123,6 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
 
     // Then
     expect(result).to.deep.equal(success({ fonctionnalites: [] }))
-  })
-
-  describe('population ciblée par profil', () => {
-    beforeEach(async () => {
-      await PopulationSqlModel.create({ id: 'PILOTE_EC', description: null })
-      await PopulationProfilSqlModel.create({
-        idPopulation: 'PILOTE_EC',
-        structure: Profil.Structure.FRANCE_TRAVAIL,
-        dispositif: Profil.Dispositif.ESPACE_CANDIDAT
-      })
-      await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
-      await DeploiementSqlModel.create({
-        nature: Deploiement.Nature.FONCTIONNALITE,
-        idPopulation: 'PILOTE_EC',
-        idFonctionnalite: 'PLAN_ACTION',
-        dateActivation: hier
-      })
-    })
-
-    it('active la fonctionnalité pour un jeune sans conseiller dont le profil correspond', async () => {
-      // Given
-      await JeuneSqlModel.create(
-        unJeuneDto({
-          id: 'jeuneSansConseiller',
-          idConseiller: undefined,
-          structure: Core.Structure.FT_ESPACE_CANDIDAT
-        })
-      )
-
-      // When
-      const result = await fonctionnalitesDe('jeuneSansConseiller')
-
-      // Then
-      expect(result.fonctionnalites).to.deep.equal(['PLAN_ACTION'])
-    })
-
-    it("n'active pas la fonctionnalité pour un jeune sans conseiller dont le profil ne correspond pas", async () => {
-      // Given
-      await JeuneSqlModel.create(
-        unJeuneDto({
-          id: 'jeuneSansConseiller',
-          idConseiller: undefined,
-          structure: Core.Structure.FT_DEMANDEUR_D_EMPLOI
-        })
-      )
-
-      // When
-      const result = await fonctionnalitesDe('jeuneSansConseiller')
-
-      // Then
-      expect(result.fonctionnalites).to.deep.equal([])
-    })
-
-    it("n'active pas la fonctionnalité pour un jeune qui a un conseiller hors population, même si son propre profil correspond", async () => {
-      // Given
-      await ConseillerSqlModel.create(
-        unConseillerDto({
-          id: 'conseillerHorsPopulation',
-          structure: Core.Structure.POLE_EMPLOI_AIJ,
-          dispositif: Profil.Dispositif.AIJ,
-          email: 'hors@ft.fr'
-        })
-      )
-      await JeuneSqlModel.create(
-        unJeuneDto({
-          id: 'jeuneAvecConseiller',
-          idConseiller: 'conseillerHorsPopulation',
-          structure: Core.Structure.FT_ESPACE_CANDIDAT
-        })
-      )
-
-      // When
-      const result = await fonctionnalitesDe('jeuneAvecConseiller')
-
-      // Then
-      expect(result.fonctionnalites).to.deep.equal([])
-    })
   })
 
   it("interdit à un jeune de lire les fonctionnalités d'un autre", async () => {

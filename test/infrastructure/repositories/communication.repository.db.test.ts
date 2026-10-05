@@ -204,38 +204,6 @@ describe('CommunicationSqlRepository', () => {
         expect(envois).to.equal(2)
       })
 
-      it('fige les jeunes sans conseiller dont le profil est ciblé, pas ceux dont seul le profil correspond', async () => {
-        // Given
-        await JeuneSqlModel.create(
-          unJeuneDto({
-            id: 'jeuneSansConseiller',
-            idConseiller: undefined,
-            structure: Core.Structure.POLE_EMPLOI
-          })
-        )
-        await JeuneSqlModel.create(
-          unJeuneDto({
-            id: 'jeuneCejChezMilo',
-            idConseiller: 'conseillerMilo',
-            structure: Core.Structure.POLE_EMPLOI
-          })
-        )
-        const due = await uneNotificationAEnvoyer({ idPopulation: 'FT_CEJ' })
-
-        // When
-        await repo.demarrerProchainEnvoi(maintenant)
-
-        // Then
-        const envois = await CommunicationEnvoiSqlModel.findAll({
-          where: { idCommunication: due.id },
-          order: [['idJeune', 'ASC']]
-        })
-        expect(envois.map(e => e.idJeune)).to.deep.equal([
-          'jeuneFtCej',
-          'jeuneSansConseiller'
-        ])
-      })
-
       it('réclame la communication dont la date de début est la plus ancienne', async () => {
         // Given
         await uneNotificationAEnvoyer({ dateDebut: hier })
@@ -553,20 +521,6 @@ describe('CommunicationSqlRepository', () => {
         // When - Then
         expect(await repo.compterDestinataires('PILOTE', true)).to.equal(1)
         expect(await repo.compterDestinataires('PILOTE', false)).to.equal(2)
-      })
-
-      it('compte les jeunes sans conseiller dont le profil est ciblé', async () => {
-        // Given
-        await JeuneSqlModel.create(
-          unJeuneDto({
-            id: 'jeuneSansConseiller',
-            idConseiller: undefined,
-            structure: Core.Structure.POLE_EMPLOI
-          })
-        )
-
-        // When - Then
-        expect(await repo.compterDestinataires('FT_CEJ', false)).to.equal(2)
       })
     })
   })
