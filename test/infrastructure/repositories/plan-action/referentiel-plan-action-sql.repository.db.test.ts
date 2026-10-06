@@ -18,11 +18,6 @@ describe('ReferentielPlanActionSqlRepository', () => {
     description: 'site pour trouver une formation'
   }
 
-  const plafondLarge: ReferentielPlanAction.PlafondDesactivations = {
-    pourcentageMax: 100,
-    nombreMin: 100
-  }
-
   const enEcriture: { dryRun: boolean } = { dryRun: false }
 
   function uneSolution(
@@ -53,13 +48,12 @@ describe('ReferentielPlanActionSqlRepository', () => {
     )
   })
 
-  describe('remplacer', () => {
+  describe('synchroniser', () => {
     it('crée les services et les solutions', async () => {
       // When
-      const diff = await repository.remplacer(
+      const diff = await repository.synchroniser(
         [onisep],
         [uneSolution()],
-        plafondLarge,
         enEcriture
       )
 
@@ -73,18 +67,12 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('met à jour une solution déjà connue sans la dupliquer', async () => {
       // Given
-      await repository.remplacer(
-        [onisep],
-        [uneSolution()],
-        plafondLarge,
-        enEcriture
-      )
+      await repository.synchroniser([onisep], [uneSolution()], enEcriture)
 
       // When
-      const diff = await repository.remplacer(
+      const diff = await repository.synchroniser(
         [onisep],
         [uneSolution({ libelle: 'Nouveau libellé' })],
-        plafondLarge,
         enEcriture
       )
 
@@ -97,18 +85,16 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('désactive les solutions absentes du nouveau référentiel', async () => {
       // Given
-      await repository.remplacer(
+      await repository.synchroniser(
         [onisep],
         [uneSolution(), uneSolution({ id: 'p-3' })],
-        plafondLarge,
         enEcriture
       )
 
       // When
-      const diff = await repository.remplacer(
+      const diff = await repository.synchroniser(
         [onisep],
         [uneSolution()],
-        plafondLarge,
         enEcriture
       )
 
@@ -121,21 +107,11 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('réactive une solution revenue dans le référentiel', async () => {
       // Given
-      await repository.remplacer(
-        [onisep],
-        [uneSolution()],
-        plafondLarge,
-        enEcriture
-      )
-      await repository.remplacer([onisep], [], plafondLarge, enEcriture)
+      await repository.synchroniser([onisep], [uneSolution()], enEcriture)
+      await repository.synchroniser([onisep], [], enEcriture)
 
       // When
-      await repository.remplacer(
-        [onisep],
-        [uneSolution()],
-        plafondLarge,
-        enEcriture
-      )
+      await repository.synchroniser([onisep], [uneSolution()], enEcriture)
 
       // Then
       const solutions = await repository.trouverSolutionsActives()
@@ -144,10 +120,9 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('persiste une solution sans service', async () => {
       // When
-      await repository.remplacer(
+      await repository.synchroniser(
         [],
         [uneSolution({ service: undefined })],
-        plafondLarge,
         enEcriture
       )
 
@@ -156,39 +131,32 @@ describe('ReferentielPlanActionSqlRepository', () => {
       expect(solutions[0].service).to.be.undefined()
     })
 
-    it('refuse de désactiver au-delà du plafond et ne touche à rien', async () => {
+    it('désactive en masse sans supprimer, pour préserver les tâches qui référencent les solutions', async () => {
       // Given
-      await repository.remplacer(
+      await repository.synchroniser(
         [onisep],
         [uneSolution(), uneSolution({ id: 'p-3' }), uneSolution({ id: 'p-4' })],
-        plafondLarge,
         enEcriture
       )
 
       // When
-      const promesse = repository.remplacer(
+      const diff = await repository.synchroniser(
         [onisep],
         [uneSolution()],
-        { pourcentageMax: 10, nombreMin: 1 },
         enEcriture
       )
 
       // Then
-      await expect(promesse).to.be.rejectedWith(
-        'Plafond de désactivations dépassé : 2 > 1'
-      )
-      const encoreActives = await repository.trouverSolutionsActives()
-      expect(encoreActives).to.have.length(3)
+      expect(diff.nbDesactivees).to.equal(2)
+      expect(await repository.trouverSolutionsActives()).to.have.length(1)
+      expect(await ReferentielPlanActionSolutionSqlModel.count()).to.equal(3)
     })
 
     it('simule sans rien écrire en mode dryRun', async () => {
       // When
-      const diff = await repository.remplacer(
-        [onisep],
-        [uneSolution()],
-        plafondLarge,
-        { dryRun: true }
-      )
+      const diff = await repository.synchroniser([onisep], [uneSolution()], {
+        dryRun: true
+      })
 
       // Then
       expect(diff).to.deep.equal({
@@ -207,14 +175,13 @@ describe('ReferentielPlanActionSqlRepository', () => {
   describe('trouverSolutionsActives', () => {
     it("rend les solutions actives dans l'ordre reçu du référentiel, pas dans l'ordre des identifiants", async () => {
       // Given
-      await repository.remplacer(
+      await repository.synchroniser(
         [onisep],
         [
           uneSolution({ id: 'p-10' }),
           uneSolution({ id: 'p-2' }),
           uneSolution({ id: 'p-9' })
         ],
-        plafondLarge,
         enEcriture
       )
 
@@ -231,16 +198,14 @@ describe('ReferentielPlanActionSqlRepository', () => {
 
     it('ignore les solutions désactivées', async () => {
       // Given
-      await repository.remplacer(
+      await repository.synchroniser(
         [onisep],
         [uneSolution({ id: 'p-2' }), uneSolution({ id: 'p-3' })],
-        plafondLarge,
         enEcriture
       )
-      await repository.remplacer(
+      await repository.synchroniser(
         [onisep],
         [uneSolution({ id: 'p-3' })],
-        plafondLarge,
         enEcriture
       )
 

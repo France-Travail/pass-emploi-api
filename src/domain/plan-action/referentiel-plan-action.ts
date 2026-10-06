@@ -95,18 +95,13 @@ export namespace ReferentielPlanAction {
     anomalies: Anomalies
   }
 
-  // Garde-fou contre un Grist tronqué : au-delà, la synchronisation échoue
-  // plutôt que de vider le référentiel servi aux jeunes
-  export interface PlafondDesactivations {
-    pourcentageMax: number
-    nombreMin: number
-  }
-
   export interface Repository {
-    remplacer(
+    // Synchronisation par identifiant : les solutions reçues sont créées ou
+    // mises à jour, celles qui ne le sont plus restent en base mais sont
+    // désactivées, pour que les tâches des plans qui les référencent survivent
+    synchroniser(
       services: Service[],
       solutions: Solution[],
-      plafond: PlafondDesactivations,
       options: { dryRun: boolean }
     ): Promise<Diff>
 

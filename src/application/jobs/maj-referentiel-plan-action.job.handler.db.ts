@@ -98,16 +98,9 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
         )
       }
 
-      const diff = await this.referentielRepository.remplacer(
+      const diff = await this.referentielRepository.synchroniser(
         reconciliation.services,
         reconciliation.solutions,
-        {
-          pourcentageMax: Number.parseInt(
-            config.pourcentageDesactivationsMax,
-            10
-          ),
-          nombreMin: Number.parseInt(config.nombreDesactivationsMin, 10)
-        },
         { dryRun: config.dryRun }
       )
       stats.nbCreees = diff.nbCreees

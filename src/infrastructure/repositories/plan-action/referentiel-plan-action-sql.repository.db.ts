@@ -18,34 +18,18 @@ export class ReferentielPlanActionSqlRepository
     private readonly sequelize: Sequelize
   ) {}
 
-  async remplacer(
+  async synchroniser(
     services: ReferentielPlanAction.Service[],
     solutions: ReferentielPlanAction.Solution[],
-    plafond: ReferentielPlanAction.PlafondDesactivations,
     options: { dryRun: boolean }
   ): Promise<ReferentielPlanAction.Diff> {
     const maintenant = this.dateService.now().toJSDate()
 
     const idsRecus = solutions.map(solution => solution.id)
     const existantes = await ReferentielPlanActionSolutionSqlModel.findAll({
-      attributes: ['id', 'active']
+      attributes: ['id']
     })
     const idsExistants = new Set(existantes.map(solution => solution.id))
-
-    const actives = existantes.filter(solution => solution.active)
-    const idsRecusSet = new Set(idsRecus)
-    const aDesactiver = actives.filter(
-      solution => !idsRecusSet.has(solution.id)
-    )
-    const plafondCalcule = Math.max(
-      plafond.nombreMin,
-      Math.floor((actives.length * plafond.pourcentageMax) / 100)
-    )
-    if (aDesactiver.length > plafondCalcule) {
-      throw new Error(
-        `Plafond de désactivations dépassé : ${aDesactiver.length} > ${plafondCalcule}`
-      )
-    }
 
     const transaction = await this.sequelize.transaction()
     let nbDesactivees: number
