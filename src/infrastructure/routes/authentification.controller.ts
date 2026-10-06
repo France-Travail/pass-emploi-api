@@ -130,7 +130,8 @@ export class AuthentificationController {
       profil: {
         structure: queryParams.structure,
         dispositif: queryParams.dispositif ?? null
-      }
+      },
+      application: queryParams.application
     })
 
     return handleResult(result)
