@@ -9,13 +9,6 @@ import {
 } from '../../domain/migration'
 import { DeploiementSqlModel } from '../sequelize/models/deploiement.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import {
-  sqlConseillerDansPopulation,
-  sqlJeuneDansPopulation,
-  sqlJoinConseillerDeReference,
-  sqlJoinConseillersConcernes,
-  sqlJoinConseillerDeReferenceDuJeune
-} from './sql-helpers'
 
 @Injectable()
 export class MigrationSqlRepository implements Migration.Repository {
@@ -37,10 +30,9 @@ export class MigrationSqlRepository implements Migration.Repository {
   ): Promise<BeneficiaireMigration[]> {
     const rows = await this.sequelize.query<{ id: string }>(
       `
-        SELECT j.id
-        FROM jeune j
-        ${sqlJoinConseillerDeReference('j', 'c')}
-        WHERE ${sqlJeuneDansPopulation('j', 'c', ':idPopulation')}
+        SELECT id_jeune AS id
+        FROM appartenance_population_jeune
+        WHERE id_population = :idPopulation
       `,
       { replacements: { idPopulation }, type: QueryTypes.SELECT }
     )
@@ -62,12 +54,17 @@ export class MigrationSqlRepository implements Migration.Repository {
         FROM conseiller c_actuel
         WHERE c_actuel.id = jeune.id_conseiller
           AND jeune.id_conseiller_initial IS NOT NULL
-          AND ${sqlConseillerDansPopulation('c_actuel', ':idPopulation')}
+          AND EXISTS (
+            SELECT 1
+            FROM appartenance_population_conseiller apc
+            WHERE apc.id_population = :idPopulation
+              AND apc.id_conseiller = c_actuel.id
+          )
           AND NOT EXISTS (
             SELECT 1
-            FROM conseiller c_initial
-            WHERE c_initial.id = jeune.id_conseiller_initial
-              AND ${sqlConseillerDansPopulation('c_initial', ':idPopulation')}
+            FROM appartenance_population_conseiller apc
+            WHERE apc.id_population = :idPopulation
+              AND apc.id_conseiller = jeune.id_conseiller_initial
           )
         RETURNING
           jeune.id AS id_jeune,
@@ -83,39 +80,21 @@ export class MigrationSqlRepository implements Migration.Repository {
     }))
   }
 
-  async getDateDeMigrationDuConseiller(
-    idConseiller: string
+  async getDateDeMigration(
+    idsPopulations: string[]
   ): Promise<DateTime | undefined> {
-    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
-      `
-        SELECT MIN(d.date_activation) AS date_activation
-        FROM deploiement d
-        ${sqlJoinConseillersConcernes('d', 'c')}
-        WHERE c.id = :idConseiller
-          AND d.nature = :nature
-      `,
-      {
-        replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },
-        type: QueryTypes.SELECT
-      }
-    )
-    return fromSqlToDateDeMigration(rows)
-  }
+    if (!idsPopulations.length) return undefined
 
-  async getDateDeMigrationDuBeneficiaire(
-    idBeneficiaire: string
-  ): Promise<DateTime | undefined> {
     const rows = await this.sequelize.query<{ date_activation: Date | null }>(
       `
-        SELECT MIN(d.date_activation) AS date_activation
-        FROM deploiement d
-        ${sqlJoinConseillerDeReferenceDuJeune()}
-        WHERE d.nature = :nature
-          AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
+        SELECT MIN(date_activation) AS date_activation
+        FROM deploiement
+        WHERE id_population IN (:idsPopulations)
+          AND nature = :nature
       `,
       {
         replacements: {
-          idJeune: idBeneficiaire,
+          idsPopulations,
           nature: Deploiement.Nature.MIGRATION
         },
         type: QueryTypes.SELECT

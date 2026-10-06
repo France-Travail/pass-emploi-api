@@ -6,14 +6,14 @@ import { CommunicationEnvoi } from '../../domain/communication-envoi'
 import { CommunicationEnvoiSqlModel } from '../sequelize/models/communication-envoi.sql-model'
 import { CommunicationSqlModel } from '../sequelize/models/communication.sql-model'
 import { SequelizeInjectionToken } from '../sequelize/providers'
-import {
-  sqlCommunicationEnCours,
-  sqlJeuneDansPopulation,
-  sqlJeuneDestinataire,
-  sqlJoinConseillerDeReference,
-  sqlJoinConseillerDeReferenceDuJeune,
-  sqlJoinConseillersDestinataires
-} from './sql-helpers'
+
+// Visible entre date_debut (incluse) et date_fin (exclue) ; sans date_fin, visible indéfiniment.
+export function sqlCommunicationEnCours(
+  aliasCom: string,
+  maintenant: string
+): string {
+  return `(${aliasCom}.date_debut <= ${maintenant} AND (${aliasCom}.date_fin IS NULL OR ${maintenant} < ${aliasCom}.date_fin))`
+}
 
 @Injectable()
 export class CommunicationSqlRepository implements Communication.Repository {
@@ -22,9 +22,11 @@ export class CommunicationSqlRepository implements Communication.Repository {
   ) {}
 
   async getMessageInformatifDuConseiller(
-    idConseiller: string,
+    idsPopulations: string[],
     maintenant: DateTime
   ): Promise<Communication.MessageInformatif | undefined> {
+    if (!idsPopulations.length) return undefined
+
     const rows = await this.sequelize.query<{
       id: number
       titre: string
@@ -33,8 +35,8 @@ export class CommunicationSqlRepository implements Communication.Repository {
       `
         SELECT co.id, co.titre, co.contenu
         FROM communication co
-        ${sqlJoinConseillersDestinataires('co', 'c')}
-        WHERE c.id = :idConseiller
+        WHERE co.id_population IN (:idsPopulations)
+          AND co.destinataire = :destinataire
           AND co.type = :type
           AND ${sqlCommunicationEnCours('co', ':maintenant')}
         ORDER BY co.date_fin ASC NULLS LAST
@@ -42,7 +44,8 @@ export class CommunicationSqlRepository implements Communication.Repository {
       `,
       {
         replacements: {
-          idConseiller,
+          idsPopulations,
+          destinataire: Communication.Destinataire.CONSEILLER,
           type: Communication.Type.IN_APP,
           maintenant: maintenant.toJSDate()
         },
@@ -53,9 +56,11 @@ export class CommunicationSqlRepository implements Communication.Repository {
   }
 
   async getMessageInformatifDuJeune(
-    idJeune: string,
+    idsPopulations: string[],
     maintenant: DateTime
   ): Promise<Communication.MessageInformatifJeune | undefined> {
+    if (!idsPopulations.length) return undefined
+
     const rows = await this.sequelize.query<{
       id: number
       titre: string
@@ -67,17 +72,16 @@ export class CommunicationSqlRepository implements Communication.Repository {
       `
         SELECT co.id, co.titre, co.contenu, co.cta_label, co.cta_url_android, co.cta_url_ios
         FROM communication co
-        ${sqlJoinConseillerDeReferenceDuJeune()}
-        WHERE co.destinataire = :destinataire
+        WHERE co.id_population IN (:idsPopulations)
+          AND co.destinataire = :destinataire
           AND co.type = :type
           AND ${sqlCommunicationEnCours('co', ':maintenant')}
-          AND ${sqlJeuneDansPopulation('j', 'c', 'co.id_population')}
         ORDER BY co.date_fin ASC NULLS LAST
         LIMIT 1
       `,
       {
         replacements: {
-          idJeune,
+          idsPopulations,
           destinataire: Communication.Destinataire.JEUNE,
           type: Communication.Type.IN_APP,
           maintenant: maintenant.toJSDate()
@@ -371,12 +375,10 @@ export class CommunicationSqlRepository implements Communication.Repository {
 
 // Référence :idPopulation et :push — l'appelant doit les fournir dans replacements.
 const SQL_DESTINATAIRES_DE_LA_POPULATION = `
-  FROM jeune j
-  ${sqlJoinConseillerDeReference('j', 'c')}
-  WHERE ${sqlJeuneDestinataire('j', 'c', {
-    idPopulation: ':idPopulation',
-    push: ':push'
-  })}`
+  FROM appartenance_population_jeune apj
+  JOIN jeune j ON j.id = apj.id_jeune
+  WHERE apj.id_population = :idPopulation
+    AND (:push IS NOT TRUE OR j.push_notification_token IS NOT NULL)`
 
 function toAEnvoyer(
   communication: CommunicationSqlModel
