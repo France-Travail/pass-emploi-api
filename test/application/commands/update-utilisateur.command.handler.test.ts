@@ -1275,6 +1275,37 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 archiverJeuneRepository.estArchiveAvecMotif
               ).not.to.have.been.called()
             })
+
+            it('bloque un conseiller même avec application 1j1s (pas de contournement)', async () => {
+              // Given : un conseiller qui doit migrer forge le paramètre application
+              const conseiller = unUtilisateurConseiller()
+              authentificationRepository.getConseiller
+                .withArgs('nilstavernier')
+                .resolves(conseiller)
+              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+                .withArgs({
+                  id: conseiller.id,
+                  type: Authentification.Type.CONSEILLER
+                })
+                .resolves(true)
+
+              // When
+              const result = await updateUtilisateurCommandHandler.execute({
+                ...commandPour(
+                  Authentification.Application.UN_JEUNE_UNE_SOLUTION
+                ),
+                type: Authentification.Type.CONSEILLER,
+                profil: unProfilMilo()
+              })
+
+              // Then
+              expect(isFailure(result)).to.be.true()
+              if (isFailure(result)) {
+                expect((result.error as NonTraitableError).reason).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              }
+            })
           })
           describe('jeune connu par son email (première connexion)', () => {
             it("retourne le jeune et enregistre l'id d'authentification + mise à jour date premiere connexion", async () => {

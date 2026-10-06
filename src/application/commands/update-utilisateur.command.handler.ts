@@ -112,26 +112,16 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
     }
 
-    const leJeuneVientDUneApplicationQuiMigre =
-      commandSanitized.application !==
-      Authentification.Application.UN_JEUNE_UNE_SOLUTION
-
-    // Utilisateur connu : sa vague de migration est passée. Inconnu : il a été archivé pour migration
-    // (un compte existant ou nouveau ne doit pas être refusé pour une vieille archive au même email).
-    const leJeuneMigre =
-      leJeuneVientDUneApplicationQuiMigre &&
-      ((isSuccess(recuperationUtilisateurResult) &&
-        (await this.leJeuneMigreVersParcoursEmploi(
-          recuperationUtilisateurResult.data
-        ))) ||
-        (isFailure(recuperationUtilisateurResult) &&
-          (await this.leJeuneEstArchivePourMigration(commandSanitized.email))))
-
     const emailUtilisateur = isSuccess(recuperationUtilisateurResult)
       ? recuperationUtilisateurResult.data.email
       : commandSanitized.email
 
-    if (leJeuneMigre) {
+    const lUtilisateurMigre = await this.lUtilisateurMigre(
+      commandSanitized,
+      recuperationUtilisateurResult
+    )
+
+    if (lUtilisateurMigre) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
@@ -515,7 +505,24 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async leJeuneMigreVersParcoursEmploi(
+  private async lUtilisateurMigre(
+    command: UpdateUtilisateurCommand,
+    recuperationUtilisateurResult: Result<UtilisateurQueryModel>
+  ): Promise<boolean> {
+    const estUnJeune = command.type === Authentification.Type.JEUNE
+    const vientDe1j1s =
+      command.application === Authentification.Application.UN_JEUNE_UNE_SOLUTION
+    if (estUnJeune && vientDe1j1s) return false
+
+    if (isSuccess(recuperationUtilisateurResult)) {
+      return this.lUtilisateurMigreVersParcoursEmploi(
+        recuperationUtilisateurResult.data
+      )
+    }
+    return this.leJeuneEstArchivePourMigration(command.email)
+  }
+
+  private async lUtilisateurMigreVersParcoursEmploi(
     utilisateur: UtilisateurQueryModel
   ): Promise<boolean> {
     if (utilisateur.type === Type.SUPPORT) return false
