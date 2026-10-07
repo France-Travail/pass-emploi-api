@@ -33,7 +33,12 @@ export class DatabaseForTesting {
   }
 
   cleanPG = async (): Promise<void> => {
-    await this.sequelize.truncate({ cascade: true })
+    const deletes = sqlModels
+      .map(model => `DELETE FROM "${model.tableName}";`)
+      .join('')
+    await this.sequelize.query(
+      `BEGIN; SET LOCAL session_replication_role = replica; ${deletes} COMMIT;`
+    )
   }
 
   cleanRedis = async (): Promise<void> => {
