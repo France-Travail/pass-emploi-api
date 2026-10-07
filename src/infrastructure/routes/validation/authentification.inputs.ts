@@ -79,4 +79,9 @@ export class GetUtilisateurQueryParams {
   @IsOptional()
   @IsEnum(Profil.Dispositif)
   dispositif?: Profil.Dispositif
+
+  @ApiProperty({ required: false, enum: Authentification.Application })
+  @IsString()
+  @IsOptional()
+  application?: string
 }
