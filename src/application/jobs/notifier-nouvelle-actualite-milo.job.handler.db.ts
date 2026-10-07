@@ -84,9 +84,7 @@ export class NotifierNouvelleActualiteMiloJobHandler extends JobHandler<Planific
           nbErreurs++
         }
 
-        await new Promise(resolve =>
-          setTimeout(resolve, MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF)
-        )
+        await this.dateService.attendre(MS_ENTRE_CHAQUE_ENVOI_DE_NOTIF)
       }
 
       if (jeunes.length === this.batchSize) {

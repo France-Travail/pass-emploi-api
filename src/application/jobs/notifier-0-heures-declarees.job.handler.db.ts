@@ -85,7 +85,7 @@ export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur
           jeune.id_jeune_a_notifier,
           jeune.push_notification_token
         )
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await this.dateService.attendre(500)
       }
 
       if (

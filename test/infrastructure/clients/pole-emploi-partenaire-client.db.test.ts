@@ -29,7 +29,8 @@ import {
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { uneDemarcheDto } from '../../fixtures/demarches-dto.fixtures'
 import { unePrestationDto } from '../../fixtures/pole-emploi-partenaire.fixture'
-import { expect, StubbedClass, stubClass } from '../../utils'
+import { DateService } from 'src/utils/date-service'
+import { expect, StubbedClass, stubClass, waitFor } from '../../utils'
 import {
   DatabaseForTesting,
   getDatabase
@@ -64,7 +65,8 @@ describe('PoleEmploiPartenaireClient', () => {
     poleEmploiPartenaireClient = new PoleEmploiPartenaireClient(
       configService,
       cacheApiPartenaire,
-      externalApiLogger
+      externalApiLogger,
+      stubClass(DateService)
     )
   })
 
@@ -347,19 +349,19 @@ describe('PoleEmploiPartenaireClient', () => {
         // Then
         expect(demarcheDtos).to.deep.equal(success([uneDemarcheDto()]))
 
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        expect(context.get).to.have.been.calledOnceWithExactly('UTILISATEUR')
-
-        const cacheAPI = await CacheApiPartenaireSqlModel.findOne({
-          where: {
-            pathPartenaire: {
-              [Op.like]: `%peconnect-demarches/v1/demarches%`
+        await waitFor(async () => {
+          const cacheAPI = await CacheApiPartenaireSqlModel.findOne({
+            where: {
+              pathPartenaire: {
+                [Op.like]: `%peconnect-demarches/v1/demarches%`
+              },
+              idUtilisateur: utilisateurJeunePE.id
             },
-            idUtilisateur: utilisateurJeunePE.id
-          },
-          order: [['date', 'DESC']]
+            order: [['date', 'DESC']]
+          })
+          expect(cacheAPI?.resultatPartenaire).to.deep.equal([uneDemarcheDto()])
         })
-        expect(cacheAPI?.resultatPartenaire).to.deep.equal([uneDemarcheDto()])
+        expect(context.get).to.have.been.calledOnceWithExactly('UTILISATEUR')
       })
     })
     describe('quand il y a no content', () => {

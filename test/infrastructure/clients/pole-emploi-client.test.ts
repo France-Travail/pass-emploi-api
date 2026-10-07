@@ -17,7 +17,7 @@ import {
   notificationsRDVPEDto,
   uneOffreEmploiDto
 } from 'test/fixtures/offre-emploi.fixture'
-import { expect, stubClass } from 'test/utils'
+import { expect, StubbedClass, stubClass } from 'test/utils'
 import { testConfig } from 'test/utils/module-for-testing'
 
 describe('PoleEmploiClient', () => {
@@ -25,9 +25,10 @@ describe('PoleEmploiClient', () => {
   const uneDatetimeDeMaintenant = DateTime.fromISO('2020-04-06T12:00:00.000Z')
   const configService = testConfig()
   const rateLimiterService = new RateLimiterService(configService)
+  let dateService: StubbedClass<DateService>
 
   beforeEach(() => {
-    const dateService = stubClass(DateService)
+    dateService = stubClass(DateService)
     dateService.now.returns(uneDatetimeDeMaintenant)
 
     const externalApiLogger = stubClass(ExternalApiLoggerService)
@@ -204,6 +205,7 @@ describe('PoleEmploiClient', () => {
 
         // Then
         expect(result._isSuccess).to.be.true()
+        expect(dateService.attendre).to.have.been.calledOnceWithExactly(1000)
       })
       it("quand c'est une 429, rejette quand ce n'est plus le premier retry", async () => {
         // Given

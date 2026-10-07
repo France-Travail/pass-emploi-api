@@ -587,7 +587,7 @@ export class FirebaseClient {
         return message.data()
       }
       if (tentative < delais.length) {
-        await new Promise(resolve => setTimeout(resolve, delais[tentative]))
+        await this.dateService.attendre(delais[tentative])
       }
     }
     return undefined

@@ -152,7 +152,7 @@ export class NotifierActualisationJobHandler extends JobHandler<JobNotifierActua
           buildError(`Échec envoi notif pour le jeune ${id}`, e)
         )
       }
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await this.dateService.attendre(150)
     }
   }
 }

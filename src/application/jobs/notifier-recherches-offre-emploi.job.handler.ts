@@ -135,10 +135,10 @@ export class NotifierRecherchesOffreEmploiJobHandler extends JobHandler {
         }
         if (ilYAeuUne429) {
           this.logger.warn('Une 429 est apparue, on attend 10 secondes')
-          await new Promise(resolve => setTimeout(resolve, 10000))
+          await this.dateService.attendre(10000)
         } else {
           this.logger.log('On attend 1 seconde')
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          await this.dateService.attendre(1000)
         }
       }
       stats.nombreDeRecherchesTotal = stats.succes + stats.echecs

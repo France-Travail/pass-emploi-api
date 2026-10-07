@@ -378,7 +378,7 @@ export class MiloClientV1 implements MiloClientPort {
       if (result.data) {
         dto.push(result.data)
       }
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await this.dateService.attendre(50)
     }
 
     return success(dto)
@@ -394,7 +394,7 @@ export class MiloClientV1 implements MiloClientPort {
         auth: { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
       })
       if (isFailure(result)) return result
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await this.dateService.attendre(50)
     }
 
     return emptySuccess()
@@ -421,7 +421,7 @@ export class MiloClientV1 implements MiloClientPort {
         auth: { apiKey: this.apiKeyInstanceSessionEcritureConseiller, idpToken }
       })
       if (isFailure(result)) return result
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await this.dateService.attendre(50)
     }
 
     return emptySuccess()

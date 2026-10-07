@@ -29,3 +29,18 @@ setAPMInstance(instanceMock)
 export function enleverLesUndefined<T>(objet: T): T {
   return JSON.parse(JSON.stringify(objet))
 }
+
+export async function waitFor<T>(
+  callback: () => Promise<T>,
+  { timeout = 1000, interval = 50 } = {}
+): Promise<T> {
+  const start = Date.now()
+  while (true) {
+    try {
+      return await callback()
+    } catch (e) {
+      if (Date.now() - start > timeout) throw e
+      await new Promise(r => setTimeout(r, interval))
+    }
+  }
+}

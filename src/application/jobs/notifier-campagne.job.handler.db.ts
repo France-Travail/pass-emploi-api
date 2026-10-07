@@ -101,7 +101,7 @@ export class NotifierCampagneJobHandler extends JobHandler<JobCampagne> {
             buildError(`Échec envoi notif pour le jeune ${jeune.id}`, e)
           )
         }
-        await new Promise(resolve => setTimeout(resolve, 150))
+        await this.dateService.attendre(150)
       }
 
       stats.nbNotifsEnvoyees += idsJeunesANotifier.length

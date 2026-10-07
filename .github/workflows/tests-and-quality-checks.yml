@@ -10,6 +10,10 @@ on:
       - synchronize
       - ready_for_review
 
+env:
+  DATABASE_URL: postgres://test:test@localhost:5432/test
+  REDIS_URL: redis://localhost:6767
+
 jobs:
   lint:
     name: Lint
@@ -19,8 +23,31 @@ jobs:
     steps:
       - uses: France-Travail/pass-emploi-tools/.github/actions/lint-and-typecheck@645baca94d9825a7502bc1b143097cc8a9c6b707
 
-  test:
-    name: Tests
+  test-unit:
+    name: Tests unitaires
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+
+    # Le module des tests HTTP instancie le vrai PlanificateurRedisRepository
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6767:6379
+
+    steps:
+      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@645baca94d9825a7502bc1b143097cc8a9c6b707
+
+      - run: yarn test:ci:unit
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: coverage-unit
+          path: coverage/
+          retention-days: 1
+
+  test-db:
+    name: Tests DB
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request.draft }}
 
@@ -43,19 +70,39 @@ jobs:
         ports:
           - 6767:6379
 
-    env:
-      DATABASE_URL: postgres://test:test@localhost:5432/test
-      REDIS_URL: redis://localhost:6767
+    steps:
+      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@645baca94d9825a7502bc1b143097cc8a9c6b707
+
+      - run: yarn test:ci:db
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: coverage-db
+          path: coverage/
+          retention-days: 1
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-db]
+    # Check requis par la protection de branche : un job skippé compte comme réussi
+    if: ${{ always() && !github.event.pull_request.draft }}
 
     steps:
-      - uses: France-Travail/pass-emploi-tools/.github/actions/test-and-upload@645baca94d9825a7502bc1b143097cc8a9c6b707
+      - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
+
+      - uses: actions/upload-artifact/merge@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          test-command: 'yarn test:ci'
+          name: coverage-report
+          pattern: coverage-{unit,db}
+          delete-merged: true
+          retention-days: 1
 
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: test
+    needs: tests
     # 49699333 = Dependabot bot user ID
     if: >
       !github.event.pull_request.draft &&

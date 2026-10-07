@@ -87,7 +87,7 @@ export class NotifierBonneAlternanceJobHandler extends JobHandler<Planificateur.
           this.logger.error(e)
           this.logger.log(`Echec envoi notif pour le jeune ${jeune.id}`)
         }
-        await new Promise(resolve => setTimeout(resolve, 250))
+        await this.dateService.attendre(250)
       }
 
       if (idsJeunesANotifier.length === PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM) {
