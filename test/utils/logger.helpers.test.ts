@@ -44,6 +44,25 @@ describe('logger.helpers', () => {
       })
     })
 
+    it("convertit l'erreur d'un SuiviJob, objet { message, stack } sans classe Error", () => {
+      expect(
+        toEcsError({
+          message: 'La lecture du référentiel Grist a échoué : timeout',
+          stack: 'Error: timeout\n    at GristClient.recupererTable'
+        })
+      ).to.deep.equal({
+        type: 'Error',
+        message: 'La lecture du référentiel Grist a échoué : timeout',
+        stack_trace: 'Error: timeout\n    at GristClient.recupererTable'
+      })
+    })
+
+    it("omet stack_trace quand l'erreur d'un SuiviJob n'a pas de stack", () => {
+      expect(
+        toEcsError({ message: 'Aucune solution exploitable' })
+      ).to.deep.equal({ type: 'Error', message: 'Aucune solution exploitable' })
+    })
+
     it('convertit une valeur inconnue', () => {
       expect(toEcsError('oops')).to.deep.equal({
         type: 'Unknown',
