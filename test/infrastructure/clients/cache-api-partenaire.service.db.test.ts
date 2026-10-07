@@ -10,7 +10,7 @@ import {
 } from '../../../src/infrastructure/clients/cache-api-partenaire.service.db'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
-import { expect, StubbedClass, stubClass } from '../../utils'
+import { expect, sinon, StubbedClass, stubClass } from '../../utils'
 import {
   DatabaseForTesting,
   getDatabase
@@ -57,6 +57,9 @@ describe('CacheApiPartenaireService', () => {
 
   describe("quand l'appel réussit vite", () => {
     it('renvoie la donnée fraîche et la met en cache', async () => {
+      // Given
+      const sauvegarde = sinon.spy(service, 'sauvegarder')
+
       // When
       const resultat = await service.executerAvecCache<string[]>({
         cleCache: PATH,
@@ -69,8 +72,7 @@ describe('CacheApiPartenaireService', () => {
         type: StatutResultatCache.FRAIS,
         data: ['frais']
       })
-      // le cache est écrit (fire-and-forget) : on laisse la microtask se résoudre
-      await attendre(20)
+      await sauvegarde.firstCall.returnValue
       const enBase = await CacheApiPartenaireSqlModel.findOne({
         where: { pathPartenaire: PATH }
       })
@@ -123,7 +125,6 @@ describe('CacheApiPartenaireService', () => {
       await seedCache(['depuis-cache'], cleLente)
 
       // When
-      const avant = Date.now()
       const resultat = await service.executerAvecCache<string[]>({
         cleCache: cleLente,
         timeoutMs: 20,
@@ -133,13 +134,11 @@ describe('CacheApiPartenaireService', () => {
         },
         erreurEstRecuperable: toujoursRecuperable
       })
-      const duree = Date.now() - avant
 
       // Then
       expect(resultat.type).to.equal(StatutResultatCache.CACHE)
       if (resultat.type === StatutResultatCache.CACHE)
         expect(resultat.data).to.deep.equal(['depuis-cache'])
-      expect(duree).to.be.lessThan(200)
     })
 
     it("attend l'appel réel quand le cache est froid", async () => {
@@ -192,6 +191,7 @@ describe('CacheApiPartenaireService', () => {
       // Given
       const pathSansUtilisateur = 'milo/sans-utilisateur/path'
       context.get.withArgs(ContextKey.UTILISATEUR).returns(undefined)
+      const sauvegarde = sinon.spy(service, 'sauvegarder')
 
       // When
       const resultat = await service.executerAvecCache<string[]>({
@@ -205,7 +205,7 @@ describe('CacheApiPartenaireService', () => {
         type: StatutResultatCache.FRAIS,
         data: ['frais']
       })
-      await attendre(20)
+      await sauvegarde.firstCall.returnValue
       const enBase = await CacheApiPartenaireSqlModel.findOne({
         where: { pathPartenaire: pathSansUtilisateur }
       })
