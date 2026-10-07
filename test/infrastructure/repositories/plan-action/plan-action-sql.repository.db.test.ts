@@ -317,6 +317,39 @@ describe('PlanActionSqlRepository', () => {
       expect(tache).to.equal(undefined)
     })
 
+    it('rend undefined quand la tâche appartient à un plan précédent', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+      await planActionSqlRepository.save(
+        unPlan({
+          id: '22222222-2222-4222-8222-222222222222',
+          dateCreation: maintenant.plus({ days: 1 }),
+          objectifs: [
+            {
+              id: 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb',
+              titre: 'Trouver une alternance',
+              theme: Questionnaire.Besoin.ALTERNANCE,
+              taches: [
+                {
+                  id: '33333333-3333-3333-3333-333333333333',
+                  idSolution: 'p-2',
+                  terminee: false,
+                  dateCreation: maintenant.plus({ days: 1 })
+                }
+              ]
+            }
+          ]
+        })
+      )
+
+      // When
+      const tache = await planActionSqlRepository.getTache('jeune-1', idTache)
+
+      // Then
+      expect(tache).to.equal(undefined)
+    })
+
     it("rend undefined quand la tâche appartient au plan d'un autre jeune", async () => {
       // Given
       await insererSolution('p-2')

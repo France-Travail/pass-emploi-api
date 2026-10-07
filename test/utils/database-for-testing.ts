@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize-typescript'
 import { sqlModels } from '../../src/infrastructure/sequelize/models'
+import { activerTransactionsImplicites } from '../../src/infrastructure/sequelize/transactions-implicites'
 import { createClient } from 'redis'
 import { testConfig } from './test-config'
 import { RedisClientType as _RedisClientType } from '@redis/client/dist/lib/client'
@@ -13,6 +14,7 @@ export class DatabaseForTesting {
   constructor() {
     const { host, port, database, user, password } =
       testConfig().get('database')
+    activerTransactionsImplicites()
     this.sequelize = new Sequelize({
       host: host as string,
       port: parseInt(port as string),

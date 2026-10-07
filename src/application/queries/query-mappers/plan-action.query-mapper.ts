@@ -1,3 +1,4 @@
+import { Profil } from '../../../domain/profil'
 import { PlanAction } from '../../../domain/plan-action/plan-action'
 import { ReferentielPlanAction } from '../../../domain/plan-action/referentiel-plan-action'
 import {
@@ -19,8 +20,10 @@ const typeSolutionVersTypeAction: Record<
 // qui rend la tâche adressable, donc cochable
 export function toPlanActionQueryModel(
   plan: PlanAction,
-  solutions: ReferentielPlanAction.Solution[]
+  solutions: ReferentielPlanAction.Solution[],
+  profil: Profil
 ): PlanActionQueryModel {
+  const mode = PlanAction.modeDeclaration(profil)
   const parId = new Map(solutions.map(solution => [solution.id, solution]))
 
   return {
@@ -36,7 +39,7 @@ export function toPlanActionQueryModel(
           .filter(tache => !tache.dateSuppression)
           .map(tache => {
             const solution = parId.get(tache.idSolution)
-            return solution ? toAction(tache, solution) : undefined
+            return solution ? toAction(tache, solution, mode) : undefined
           })
           .filter(
             (action): action is ActionPlanQueryModel => action !== undefined
@@ -48,14 +51,32 @@ export function toPlanActionQueryModel(
 
 function toAction(
   tache: PlanAction.Tache,
-  solution: ReferentielPlanAction.Solution
+  solution: ReferentielPlanAction.Solution,
+  mode: PlanAction.ModeDeclaration
 ): ActionPlanQueryModel {
+  const categorie = categorieAnnoncee(solution, mode)
   return {
     id: tache.id,
     libelle: solution.libelle,
     type: typeSolutionVersTypeAction[solution.type],
     terminee: tache.terminee,
+    declarationRequise: mode !== PlanAction.ModeDeclaration.AUCUNE,
     ...(solution.url ? { url: solution.url } : {}),
-    ...(solution.service ? { nomService: solution.service.nom } : {})
+    ...(solution.service ? { nomService: solution.service.nom } : {}),
+    ...(categorie ? { categorie } : {})
+  }
+}
+
+function categorieAnnoncee(
+  solution: ReferentielPlanAction.Solution,
+  mode: PlanAction.ModeDeclaration
+): string | undefined {
+  switch (mode) {
+    case PlanAction.ModeDeclaration.ACTION_MILO:
+      return solution.conversionML?.categorie
+    case PlanAction.ModeDeclaration.DEMARCHE_FT:
+      return solution.conversionFT?.thematique
+    case PlanAction.ModeDeclaration.AUCUNE:
+      return undefined
   }
 }

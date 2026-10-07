@@ -178,7 +178,8 @@ export namespace Evenement {
     ACTUALITE_MILO_SUPPRIMEE = 'ACTUALITE_MILO_SUPPRIMEE',
     ACTUALITE_MILO_CONSULTATION = 'ACTUALITE_MILO_CONSULTATION',
     PLAN_ACTION_GENERE = 'PLAN_ACTION_GENERE',
-    PLAN_ACTION_CONSULTATION = 'PLAN_ACTION_CONSULTATION'
+    PLAN_ACTION_CONSULTATION = 'PLAN_ACTION_CONSULTATION',
+    ACTION_CREEE_PLAN_ACTION = 'ACTION_CREEE_PLAN_ACTION'
   }
 
   export interface Repository {
@@ -927,6 +928,10 @@ const evenements: {
   [Evenement.Code.PLAN_ACTION_CONSULTATION]: {
     categorie: "Plan d'action",
     action: 'Consultation'
+  },
+  [Evenement.Code.ACTION_CREEE_PLAN_ACTION]: {
+    categorie: 'Action',
+    action: "Plan d'action"
   }
 }
 
@@ -942,13 +947,15 @@ export class EvenementService {
 
   async creer(
     code: Evenement.Code,
-    utilisateur: Authentification.Utilisateur
+    utilisateur: Authentification.Utilisateur,
+    nom?: string
   ): Promise<void> {
     const libelles: { categorie: string; action: string; nom?: string } =
       evenements[code]
 
     await this.evenementRepository.save({
       ...libelles,
+      ...(nom ? { nom } : {}),
       utilisateur,
       code,
       date: this.dateService.nowJs()

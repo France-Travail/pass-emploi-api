@@ -47,6 +47,30 @@ describe('Evenements', () => {
       }
       expect(evenementRepository.save).to.have.been.calledWithExactly(evenement)
     })
+
+    it("crée l'événement de déclaration du plan d'action avec l'identifiant de la solution", () => {
+      // Given
+      dateService.nowJs.returns(uneDate())
+      const utilisateur = unUtilisateurJeune()
+
+      // When
+      evenementService.creer(
+        Evenement.Code.ACTION_CREEE_PLAN_ACTION,
+        utilisateur,
+        'p-164'
+      )
+
+      // Then
+      const evenement: Evenement = {
+        categorie: 'Action',
+        action: "Plan d'action",
+        nom: 'p-164',
+        date: uneDate(),
+        code: Evenement.Code.ACTION_CREEE_PLAN_ACTION,
+        utilisateur
+      }
+      expect(evenementRepository.save).to.have.been.calledWithExactly(evenement)
+    })
   })
 
   describe('creerEvenementSugggestion', () => {

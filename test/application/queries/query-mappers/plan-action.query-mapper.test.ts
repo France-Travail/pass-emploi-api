@@ -3,6 +3,12 @@ import { Questionnaire } from 'src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-action'
 import { Profil } from 'src/domain/profil'
 import { toPlanActionQueryModel } from 'src/application/queries/query-mappers/plan-action.query-mapper'
+import {
+  unProfilCD,
+  unProfilFT,
+  unProfilInvite,
+  unProfilMilo
+} from 'test/fixtures/profil.fixture'
 import { uneDatetime } from 'test/fixtures/date.fixture'
 import { expect } from 'test/utils'
 
@@ -46,7 +52,11 @@ describe('toPlanActionQueryModel', () => {
 
   it("expose l'identifiant de la tâche, jamais celui de la solution", () => {
     // When
-    const queryModel = toPlanActionQueryModel(unPlan(), [uneSolution('p-2')])
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
 
     // Then
     expect(queryModel.objectives[0].actions[0].id).to.equal('tache-1')
@@ -54,7 +64,11 @@ describe('toPlanActionQueryModel', () => {
 
   it('matérialise le libellé et le service depuis le référentiel', () => {
     // When
-    const queryModel = toPlanActionQueryModel(unPlan(), [uneSolution('p-2')])
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
 
     // Then
     expect(queryModel.objectives[0].actions[0].libelle).to.equal(
@@ -73,7 +87,11 @@ describe('toPlanActionQueryModel', () => {
     }
 
     // When
-    const queryModel = toPlanActionQueryModel(plan, [uneSolution('p-2')])
+    const queryModel = toPlanActionQueryModel(
+      plan,
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
 
     // Then
     expect(queryModel.objectives[0].actions[0].terminee).to.equal(true)
@@ -88,7 +106,11 @@ describe('toPlanActionQueryModel', () => {
     }
 
     // When
-    const queryModel = toPlanActionQueryModel(plan, [uneSolution('p-2')])
+    const queryModel = toPlanActionQueryModel(
+      plan,
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
 
     // Then
     expect(queryModel.objectives).to.deep.equal([])
@@ -96,7 +118,7 @@ describe('toPlanActionQueryModel', () => {
 
   it('écarte un objectif dont toutes les solutions ont disparu du référentiel', () => {
     // When
-    const queryModel = toPlanActionQueryModel(unPlan(), [])
+    const queryModel = toPlanActionQueryModel(unPlan(), [], unProfilMilo())
 
     // Then
     expect(queryModel.objectives).to.deep.equal([])
@@ -127,10 +149,139 @@ describe('toPlanActionQueryModel', () => {
     }
 
     // When
-    const queryModel = toPlanActionQueryModel(plan, [uneSolution('p-2')])
+    const queryModel = toPlanActionQueryModel(
+      plan,
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
 
     // Then
     expect(queryModel.objectives).to.have.length(1)
     expect(queryModel.objectives[0].id).to.equal('objectif-1')
+  })
+
+  describe('déclaration', () => {
+    const solutionConvertie: ReferentielPlanAction.Solution = {
+      ...uneSolution('p-2'),
+      conversionML: { categorie: 'Emploi', codeCategorie: 'EMPLOI' },
+      conversionFT: {
+        thematique: 'Mes candidatures',
+        codePourquoi: 'P03',
+        codeQuoi: 'Q12'
+      }
+    }
+
+    it('annonce la catégorie Mission Locale à un jeune Mission Locale', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilMilo(Profil.Dispositif.CEJ)
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0]).to.include({
+        declarationRequise: true,
+        categorie: 'Emploi'
+      })
+    })
+
+    it('annonce la thématique France Travail à un jeune France Travail', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilFT(Profil.Dispositif.CEJ)
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0]).to.include({
+        declarationRequise: true,
+        categorie: 'Mes candidatures'
+      })
+    })
+
+    it('annonce la thématique France Travail à un jeune du Conseil départemental', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilCD()
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0]).to.include({
+        declarationRequise: true,
+        categorie: 'Mes candidatures'
+      })
+    })
+
+    it('requiert la déclaration même sans catégorie renseignée', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [uneSolution('p-2')],
+        unProfilMilo()
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        true
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
+
+    it('requiert la déclaration à un jeune France Travail sans conversion France Travail', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [uneSolution('p-2')],
+        unProfilFT(Profil.Dispositif.CEJ)
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        true
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
+
+    it("n'annonce rien à un jeune de l'Espace candidat", () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        false
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
+
+    it("n'annonce rien à l'invité", () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilInvite()
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        false
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
   })
 })

@@ -464,6 +464,8 @@ import { StructuresMiloController } from './infrastructure/routes/structures.mil
 import { SupportController } from './infrastructure/routes/support.controller'
 import { SupportDeploiementsController } from './infrastructure/routes/support-deploiements.controller'
 import { databaseProviders } from './infrastructure/sequelize/providers'
+import { TransactionSqlService } from './infrastructure/sequelize/transaction-sql.service.db'
+import { TransactionServiceToken } from './building-blocks/transaction'
 import { ChatCryptoService } from './utils/chat-crypto-service'
 import { DateService } from './utils/date-service'
 import { ExternalApiLoggerService } from './utils/external-api-logger.service'
@@ -589,6 +591,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: PlanActionRepositoryToken,
       useClass: PlanActionSqlRepository
+    },
+    {
+      provide: TransactionServiceToken,
+      useClass: TransactionSqlService
     },
     {
       provide: APP_GUARD,

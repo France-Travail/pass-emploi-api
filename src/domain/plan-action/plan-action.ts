@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
+import { Profil } from '../profil'
 import { Questionnaire } from './questionnaire'
 import { ReferentielPlanAction } from './referentiel-plan-action'
 
@@ -47,17 +48,36 @@ export namespace PlanAction {
     supprimerTache(idTache: string, dateSuppression: DateTime): Promise<void>
   }
 
-  export function changerStatutTache(
-    tache: Tache,
-    terminee: boolean,
-    maintenant: DateTime
-  ): Tache {
-    if (tache.terminee === terminee) return tache
+  export function cocherTache(tache: Tache, dateTerminee: DateTime): Tache {
+    if (tache.terminee) return tache
+    return { ...tache, terminee: true, dateTerminee }
+  }
 
+  export function decocherTache(tache: Tache): Tache {
     const { dateTerminee: _dateTerminee, ...tacheSansDateTerminee } = tache
-    return terminee
-      ? { ...tacheSansDateTerminee, terminee, dateTerminee: maintenant }
-      : { ...tacheSansDateTerminee, terminee }
+    return { ...tacheSansDateTerminee, terminee: false }
+  }
+
+  export enum ModeDeclaration {
+    ACTION_MILO = 'ACTION_MILO',
+    DEMARCHE_FT = 'DEMARCHE_FT',
+    AUCUNE = 'AUCUNE'
+  }
+
+  export function modeDeclaration(profil: Profil): ModeDeclaration {
+    if (profil.structure === Profil.Structure.MILO) {
+      return ModeDeclaration.ACTION_MILO
+    }
+    if (profil.structure === Profil.Structure.CONSEIL_DEPARTEMENTAL) {
+      return ModeDeclaration.DEMARCHE_FT
+    }
+    if (
+      profil.structure === Profil.Structure.FRANCE_TRAVAIL &&
+      profil.dispositif !== Profil.Dispositif.ESPACE_CANDIDAT
+    ) {
+      return ModeDeclaration.DEMARCHE_FT
+    }
+    return ModeDeclaration.AUCUNE
   }
 
   export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {

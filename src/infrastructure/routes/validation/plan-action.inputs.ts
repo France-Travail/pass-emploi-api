@@ -10,6 +10,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
+  MaxLength,
   ValidateNested
 } from 'class-validator'
 import { Questionnaire } from '../../../domain/plan-action/questionnaire'
@@ -77,4 +79,22 @@ export class ChangerStatutTachePlanActionPayload {
   @ApiProperty()
   @IsBoolean()
   terminee: boolean
+
+  @ApiPropertyOptional({
+    format: 'date-time',
+    description:
+      'Datetime ISO avec décalage UTC, requise pour cocher quand declarationRequise est vrai'
+  })
+  @IsOptional()
+  @IsDateString()
+  @Matches(/T.+(Z|[+-]\d{2}:?\d{2})$/, {
+    message: 'date doit être un datetime ISO avec décalage UTC'
+  })
+  date?: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(1024)
+  commentaire?: string
 }
