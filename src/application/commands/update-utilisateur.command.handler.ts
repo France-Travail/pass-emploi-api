@@ -56,6 +56,7 @@ export interface UpdateUtilisateurCommand extends Command {
   profil: Profil
   federatedToken?: string
   installationId?: string
+  application?: string
 }
 
 @Injectable()
@@ -90,14 +91,16 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       email: command.email?.toLocaleLowerCase()
     }
 
-    let result: Result<UtilisateurQueryModel>
+    let recuperationUtilisateurResult: Result<UtilisateurQueryModel>
 
     switch (commandSanitized.type) {
       case Authentification.Type.CONSEILLER:
-        result = await this.recupererConseiller(commandSanitized)
+        recuperationUtilisateurResult =
+          await this.recupererConseiller(commandSanitized)
         break
       case Authentification.Type.JEUNE:
-        result = await this.recupererBeneficiaire(commandSanitized)
+        recuperationUtilisateurResult =
+          await this.recupererBeneficiaire(commandSanitized)
         break
       case Authentification.Type.SUPPORT:
         return failure(
@@ -109,41 +112,34 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         )
     }
 
-    if (
-      isSuccess(result) &&
-      (await this.lUtilisateurDoitMigrerVersParcoursEmploi(result.data))
-    ) {
+    const emailUtilisateur = isSuccess(recuperationUtilisateurResult)
+      ? recuperationUtilisateurResult.data.email
+      : commandSanitized.email
+
+    const lUtilisateurMigre = await this.lUtilisateurMigre(
+      commandSanitized,
+      recuperationUtilisateurResult
+    )
+
+    if (lUtilisateurMigre) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
           NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          result.data.email
-        )
-      )
-    }
-    if (
-      isFailure(result) &&
-      (await this.lUtilisateurEstArchive(commandSanitized.email))
-    ) {
-      return failure(
-        new NonTraitableError(
-          'Utilisateur',
-          commandSanitized.idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          commandSanitized.email
+          emailUtilisateur
         )
       )
     }
 
     if (
-      isSuccess(result) &&
+      isSuccess(recuperationUtilisateurResult) &&
       commandSanitized.installationId &&
-      result.data.type === Authentification.Type.JEUNE
+      recuperationUtilisateurResult.data.type === Authentification.Type.JEUNE
     ) {
       try {
         await this.authentificationRepository.updateInstallationIdJeune(
-          result.data.id,
+          recuperationUtilisateurResult.data.id,
           commandSanitized.installationId
         )
       } catch (e) {
@@ -151,7 +147,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       }
     }
 
-    return result
+    return recuperationUtilisateurResult
   }
 
   async authorize(): Promise<Result> {
@@ -509,24 +505,39 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async lUtilisateurDoitMigrerVersParcoursEmploi(
+  private async lUtilisateurMigre(
+    command: UpdateUtilisateurCommand,
+    recuperationUtilisateurResult: Result<UtilisateurQueryModel>
+  ): Promise<boolean> {
+    const estUnJeune = command.type === Authentification.Type.JEUNE
+    const vientDe1j1s =
+      command.application === Authentification.Application.UN_JEUNE_UNE_SOLUTION
+    if (estUnJeune && vientDe1j1s) return false
+
+    if (isSuccess(recuperationUtilisateurResult)) {
+      return this.lUtilisateurMigreVersParcoursEmploi(
+        recuperationUtilisateurResult.data
+      )
+    }
+    return this.leJeuneEstArchivePourMigration(command.email)
+  }
+
+  private async lUtilisateurMigreVersParcoursEmploi(
     utilisateur: UtilisateurQueryModel
   ): Promise<boolean> {
     if (utilisateur.type === Type.SUPPORT) return false
 
-    return await this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee(
-      {
-        id: utilisateur.id,
-        type: utilisateur.type
-      }
-    )
+    return this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
+      id: utilisateur.id,
+      type: utilisateur.type
+    })
   }
 
-  private async lUtilisateurEstArchive(
+  private async leJeuneEstArchivePourMigration(
     email: string | undefined
   ): Promise<boolean> {
     if (!email) return false
-    return await this.archiverJeuneRepository.estArchiveAvecMotif(
+    return this.archiverJeuneRepository.estArchiveAvecMotif(
       email,
       MotifSuppressionSupport.MIGRATION
     )

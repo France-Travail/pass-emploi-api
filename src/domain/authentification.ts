@@ -29,6 +29,11 @@ export namespace Authentification {
     ADMIN = 'ADMIN'
   }
 
+  export enum Application {
+    PASS_EMPLOI = 'pass-emploi',
+    UN_JEUNE_UNE_SOLUTION = '1j1s'
+  }
+
   export function unUtilisateurSupport(): Utilisateur {
     return {
       id: 'SUPPORT',
