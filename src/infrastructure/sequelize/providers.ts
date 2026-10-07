@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { Sequelize } from 'sequelize-typescript'
 import { buildError } from '../../utils/logger.module'
 import { sqlModels } from './models'
+import { activerTransactionsImplicites } from './transactions-implicites'
 
 export const SequelizeInjectionToken = 'SEQUELIZE'
 
@@ -23,6 +24,7 @@ export const databaseProviders = [
         }
       }
 
+      activerTransactionsImplicites()
       const sequelize = new Sequelize({
         host: configService.get<string>('database.host'),
         port: configService.get<number>('database.port'),

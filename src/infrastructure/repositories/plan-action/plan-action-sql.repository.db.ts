@@ -89,19 +89,20 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
     idJeune: string,
     idTache: string
   ): Promise<PlanAction.Tache | undefined> {
+    const dernierPlanSql = await PlanActionSqlModel.findOne({
+      attributes: ['id'],
+      where: { idJeune },
+      order: [['dateCreation', 'DESC']]
+    })
+    if (!dernierPlanSql) return undefined
+
     const tacheSql = await PlanActionTacheSqlModel.findOne({
       where: { id: idTache, dateSuppression: null },
       include: [
         {
           model: PlanActionObjectifSqlModel,
           required: true,
-          include: [
-            {
-              model: PlanActionSqlModel,
-              required: true,
-              where: { idJeune }
-            }
-          ]
+          where: { idPlanAction: dernierPlanSql.id }
         }
       ]
     })

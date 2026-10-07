@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import {
+  Transaction,
+  TransactionServiceToken
+} from '../../building-blocks/transaction'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -66,6 +70,8 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
     private readonly demarcheFactory: Demarche.Factory,
     private readonly evenementService: EvenementService,
     private readonly dateService: DateService,
+    @Inject(TransactionServiceToken)
+    private readonly transactionService: Transaction.Service,
     private readonly configService: ConfigService
   ) {
     super('ChangerStatutTachePlanActionCommandHandler')
@@ -132,18 +138,14 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
       )
     }
 
-    const creation =
-      mode === PlanAction.ModeDeclaration.ACTION_MILO
-        ? await this.creerAction(command, solution, date)
-        : await this.creerDemarche(command, solution, date, utilisateur)
-    if (isFailure(creation)) {
-      return creation
-    }
-
-    await this.planActionRepository.saveTache(
-      PlanAction.cocherTache(tache, date)
-    )
-    return emptySuccess()
+    return this.transactionService.executer(async () => {
+      await this.planActionRepository.saveTache(
+        PlanAction.cocherTache(tache, date)
+      )
+      return mode === PlanAction.ModeDeclaration.ACTION_MILO
+        ? this.creerAction(command, solution, date)
+        : this.creerDemarche(command, solution, date, utilisateur)
+    })
   }
 
   async monitor(
@@ -151,13 +153,12 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
     command: ChangerStatutTachePlanActionCommand,
     tache?: PlanAction.Tache
   ): Promise<void> {
-    const aDeclare =
-      command.terminee &&
-      tache !== undefined &&
-      !tache.terminee &&
+    const vientDeCocherLaTache =
+      command.terminee && tache !== undefined && !tache.terminee
+    const leProfilDeclareUneActionOuUneDemarche =
       PlanAction.modeDeclaration(utilisateur.profil) !==
-        PlanAction.ModeDeclaration.AUCUNE
-    if (!aDeclare) return
+      PlanAction.ModeDeclaration.AUCUNE
+    if (!vientDeCocherLaTache || !leProfilDeclareUneActionOuUneDemarche) return
 
     await this.evenementService.creer(
       Evenement.Code.ACTION_CREEE_PLAN_ACTION,

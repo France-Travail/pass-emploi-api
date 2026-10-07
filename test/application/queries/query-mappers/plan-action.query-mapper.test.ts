@@ -186,21 +186,34 @@ describe('toPlanActionQueryModel', () => {
       })
     })
 
-    it('annonce la thématique France Travail à un jeune France Travail ou CD', () => {
-      for (const profil of [unProfilFT(Profil.Dispositif.CEJ), unProfilCD()]) {
-        // When
-        const queryModel = toPlanActionQueryModel(
-          unPlan(),
-          [solutionConvertie],
-          profil
-        )
+    it('annonce la thématique France Travail à un jeune France Travail', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilFT(Profil.Dispositif.CEJ)
+      )
 
-        // Then
-        expect(queryModel.objectives[0].actions[0]).to.include({
-          declarationRequise: true,
-          categorie: 'Mes candidatures'
-        })
-      }
+      // Then
+      expect(queryModel.objectives[0].actions[0]).to.include({
+        declarationRequise: true,
+        categorie: 'Mes candidatures'
+      })
+    })
+
+    it('annonce la thématique France Travail à un jeune du Conseil départemental', () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilCD()
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0]).to.include({
+        declarationRequise: true,
+        categorie: 'Mes candidatures'
+      })
     })
 
     it('requiert la déclaration même sans catégorie renseignée', () => {
@@ -237,26 +250,38 @@ describe('toPlanActionQueryModel', () => {
       )
     })
 
-    it("n'annonce rien à l'Espace candidat ni à l'invité", () => {
-      for (const profil of [
-        unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT),
-        unProfilInvite()
-      ]) {
-        // When
-        const queryModel = toPlanActionQueryModel(
-          unPlan(),
-          [solutionConvertie],
-          profil
-        )
+    it("n'annonce rien à un jeune de l'Espace candidat", () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
+      )
 
-        // Then
-        expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
-          false
-        )
-        expect(queryModel.objectives[0].actions[0]).not.to.have.property(
-          'categorie'
-        )
-      }
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        false
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
+    })
+
+    it("n'annonce rien à l'invité", () => {
+      // When
+      const queryModel = toPlanActionQueryModel(
+        unPlan(),
+        [solutionConvertie],
+        unProfilInvite()
+      )
+
+      // Then
+      expect(queryModel.objectives[0].actions[0].declarationRequise).to.equal(
+        false
+      )
+      expect(queryModel.objectives[0].actions[0]).not.to.have.property(
+        'categorie'
+      )
     })
   })
 })

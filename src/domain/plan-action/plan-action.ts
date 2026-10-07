@@ -2,13 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
-import {
-  DISPOSITIFS_FT_AVEC_DEMARCHES,
-  Profil,
-  profilEstAutorise,
-  TOUT_CONSEIL_DEPARTEMENTAL,
-  TOUT_MILO
-} from '../profil'
+import { Profil } from '../profil'
 import { Questionnaire } from './questionnaire'
 import { ReferentielPlanAction } from './referentiel-plan-action'
 
@@ -71,14 +65,15 @@ export namespace PlanAction {
   }
 
   export function modeDeclaration(profil: Profil): ModeDeclaration {
-    if (profilEstAutorise(profil, [TOUT_MILO])) {
+    if (profil.structure === Profil.Structure.MILO) {
       return ModeDeclaration.ACTION_MILO
     }
+    if (profil.structure === Profil.Structure.CONSEIL_DEPARTEMENTAL) {
+      return ModeDeclaration.DEMARCHE_FT
+    }
     if (
-      profilEstAutorise(profil, [
-        DISPOSITIFS_FT_AVEC_DEMARCHES,
-        TOUT_CONSEIL_DEPARTEMENTAL
-      ])
+      profil.structure === Profil.Structure.FRANCE_TRAVAIL &&
+      profil.dispositif !== Profil.Dispositif.ESPACE_CANDIDAT
     ) {
       return ModeDeclaration.DEMARCHE_FT
     }

@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common'
 import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { DateTime } from 'luxon'
+import { DateService } from '../../utils/date-service'
 import {
   ArchiverJeuneCommand,
   ArchiverJeuneCommandHandler
@@ -568,9 +569,7 @@ export class JeunesController {
           idJeune,
           idTache,
           terminee: payload.terminee,
-          date: payload.date
-            ? DateTime.fromISO(payload.date, { setZone: true })
-            : undefined,
+          date: DateService.fromStringToLocaleDateTime(payload.date),
           commentaire: payload.commentaire,
           accessToken
         },
