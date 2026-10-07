@@ -7731,7 +7731,7 @@ __metadata:
     lodash.isequal: "npm:4.5.0"
     luxon: "npm:3.7.2"
     mocha: "npm:^11.8.0"
-    nestjs-pino: "npm:4.6.1"
+    nestjs-pino: "npm:5.3.1"
     nock: "npm:^14.0.17"
     npm-check-updates: "npm:^19.6.3"
     nyc: "npm:^18.0.0"
@@ -7766,15 +7766,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"nestjs-pino@npm:4.6.1":
-  version: 4.6.1
-  resolution: "nestjs-pino@npm:4.6.1"
+"nestjs-pino@npm:5.3.1":
+  version: 5.3.1
+  resolution: "nestjs-pino@npm:5.3.1"
   peerDependencies:
-    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
-    pino: ^7.5.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-    pino-http: ^6.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+    "@nestjs/common": ^11.0.8 || ^12.0.2
+    "@nestjs/core": ^11.0.8 || ^12.0.2
+    pino: ^10.0.0
+    pino-http: ^11.0.0
     rxjs: ^7.1.0
-  checksum: 10/866ba826056798c583c613ba720e3930d6102f03ebde37a94f8b714703bc7789540d147e317aa776f2629a734c2394a7b06aa31851b04600b43d1cb235b1469b
+  checksum: 10/fce51a7ecc6303a1723a24c4173e99acaa147159ba5cd53fd0aaa846c161b6e937a45b8327e0b741024dca22749f88f24c8e65928f9c63ca18e95de9aeaf2d07
   languageName: node
   linkType: hard
 
