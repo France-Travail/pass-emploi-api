@@ -6,6 +6,7 @@ import { TypeActionPlan } from '../../../src/application/queries/query-models/pl
 import {
   emptySuccess,
   failure,
+  isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
 import {
@@ -148,6 +149,67 @@ describe('RecupererPlanActionQueryHandler', () => {
           ]
         })
       )
+    })
+
+    it("rend les objectifs dans l'ordre du questionnaire et les tâches dans celui du référentiel, quel que soit l'ordre de relecture", async () => {
+      // Given : la base rend le plan dans le désordre
+      const plan: PlanAction = {
+        ...unPlan(),
+        objectifs: [
+          {
+            id: 'objectif-permis',
+            titre: 'Passer mon permis',
+            theme: Questionnaire.Contrainte.PAS_DE_PERMIS,
+            taches: [
+              {
+                id: 'tache-permis',
+                idSolution: 'p-3',
+                terminee: false,
+                dateCreation: maintenant
+              }
+            ]
+          },
+          {
+            id: 'objectif-alternance',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              {
+                id: 'tache-2',
+                idSolution: 'p-2',
+                terminee: false,
+                dateCreation: maintenant
+              },
+              {
+                id: 'tache-1',
+                idSolution: 'p-1',
+                terminee: false,
+                dateCreation: maintenant
+              }
+            ]
+          }
+        ]
+      }
+      planActionRepository.getDernierPlan.resolves(plan)
+      referentielRepository.trouverSolutions.resolves([
+        uneSolution(),
+        { ...uneSolution(), id: 'p-2' },
+        { ...uneSolution(), id: 'p-3' }
+      ])
+
+      // When
+      const result = await handler.handle(query)
+
+      // Then
+      const objectives = isSuccess(result) ? result.data.objectives : []
+      expect(objectives.map(objectif => objectif.id)).to.deep.equal([
+        'objectif-alternance',
+        'objectif-permis'
+      ])
+      expect(objectives[0].actions.map(action => action.id)).to.deep.equal([
+        'tache-1',
+        'tache-2'
+      ])
     })
 
     it("renvoie une NonTrouveError quand le jeune n'a pas de plan sauvegardé", async () => {

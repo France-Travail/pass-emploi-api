@@ -248,6 +248,125 @@ describe('PlanAction', () => {
     })
   })
 
+  describe('ordonner', () => {
+    function uneTache(idSolution: string): PlanAction.Tache {
+      return {
+        id: `tache-${idSolution}`,
+        idSolution,
+        terminee: false,
+        dateCreation: maintenant
+      }
+    }
+
+    it("range les objectifs dans l'ordre du questionnaire et les tâches dans celui du référentiel", () => {
+      // Given : un plan relu dans le désordre
+      const plan: PlanAction = {
+        id: 'plan-1',
+        idJeune: 'jeune-1',
+        dateCreation: maintenant,
+        objectifs: [
+          {
+            id: 'objectif-permis',
+            titre: 'Passer mon permis',
+            theme: Questionnaire.Contrainte.PAS_DE_PERMIS,
+            taches: [uneTache('permis-1')]
+          },
+          {
+            id: 'objectif-emploi',
+            titre: 'Trouver un emploi',
+            theme: Questionnaire.Besoin.EMPLOI,
+            taches: [
+              uneTache('emploi-3'),
+              uneTache('emploi-1'),
+              uneTache('emploi-2')
+            ]
+          },
+          {
+            id: 'objectif-orienter',
+            titre: "Je cherche à m'orienter",
+            theme: Questionnaire.Besoin.ORIENTER,
+            taches: [uneTache('orienter-1')]
+          }
+        ]
+      }
+      const referentiel = [
+        'orienter-1',
+        'emploi-1',
+        'emploi-2',
+        'emploi-3',
+        'permis-1'
+      ].map(id => uneSolution({ id }))
+
+      // When
+      const planOrdonne = PlanAction.ordonner(plan, referentiel)
+
+      // Then
+      expect(planOrdonne.objectifs.map(objectif => objectif.id)).to.deep.equal([
+        'objectif-orienter',
+        'objectif-emploi',
+        'objectif-permis'
+      ])
+      expect(
+        planOrdonne.objectifs[1].taches.map(tache => tache.idSolution)
+      ).to.deep.equal(['emploi-1', 'emploi-2', 'emploi-3'])
+    })
+
+    it('place en dernier une tâche dont la solution a quitté le référentiel', () => {
+      // Given
+      const plan: PlanAction = {
+        id: 'plan-1',
+        idJeune: 'jeune-1',
+        dateCreation: maintenant,
+        objectifs: [
+          {
+            id: 'objectif-emploi',
+            titre: 'Trouver un emploi',
+            theme: Questionnaire.Besoin.EMPLOI,
+            taches: [uneTache('retiree'), uneTache('emploi-1')]
+          }
+        ]
+      }
+
+      // When
+      const planOrdonne = PlanAction.ordonner(plan, [
+        uneSolution({ id: 'emploi-1' })
+      ])
+
+      // Then
+      expect(
+        planOrdonne.objectifs[0].taches.map(tache => tache.idSolution)
+      ).to.deep.equal(['emploi-1', 'retiree'])
+    })
+
+    it('ne modifie pas le plan reçu', () => {
+      // Given
+      const plan: PlanAction = {
+        id: 'plan-1',
+        idJeune: 'jeune-1',
+        dateCreation: maintenant,
+        objectifs: [
+          {
+            id: 'objectif-emploi',
+            titre: 'Trouver un emploi',
+            theme: Questionnaire.Besoin.EMPLOI,
+            taches: [uneTache('emploi-2'), uneTache('emploi-1')]
+          }
+        ]
+      }
+
+      // When
+      PlanAction.ordonner(plan, [
+        uneSolution({ id: 'emploi-1' }),
+        uneSolution({ id: 'emploi-2' })
+      ])
+
+      // Then
+      expect(
+        plan.objectifs[0].taches.map(tache => tache.idSolution)
+      ).to.deep.equal(['emploi-2', 'emploi-1'])
+    })
+  })
+
   describe('Factory', () => {
     let factory: PlanAction.Factory
     let idService: StubbedClass<IdService>
@@ -319,6 +438,45 @@ describe('PlanAction', () => {
           theme: Questionnaire.Contrainte.PAS_DE_TRANSPORT,
           idsSolutions: ['transport-1']
         }
+      ])
+    })
+
+    it("range les objectifs dans l'ordre des écrans du questionnaire, pas dans celui où le jeune a coché", () => {
+      // Given
+      const referentiel = [
+        uneSolution({ id: 'emploi-1', besoin: Questionnaire.Besoin.EMPLOI }),
+        uneSolution({
+          id: 'sante-1',
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.SANTE
+        }),
+        uneSolution({
+          id: 'permis-1',
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.PAS_DE_PERMIS
+        }),
+        uneSolution({ id: 'orienter-1', besoin: Questionnaire.Besoin.ORIENTER })
+      ]
+
+      // When : coché dans le désordre
+      const plan = factory.creer(
+        'jeune-1',
+        unQuestionnaire({
+          besoins: [Questionnaire.Besoin.EMPLOI, Questionnaire.Besoin.ORIENTER],
+          contraintes: [
+            Questionnaire.Contrainte.SANTE,
+            Questionnaire.Contrainte.PAS_DE_PERMIS
+          ]
+        }),
+        referentiel
+      )
+
+      // Then : besoins de l'étape 5 puis contraintes de l'étape 8
+      expect(plan.objectifs.map(objectif => objectif.theme)).to.deep.equal([
+        Questionnaire.Besoin.ORIENTER,
+        Questionnaire.Besoin.EMPLOI,
+        Questionnaire.Contrainte.PAS_DE_PERMIS,
+        Questionnaire.Contrainte.SANTE
       ])
     })
 

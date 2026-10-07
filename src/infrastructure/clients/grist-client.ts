@@ -56,7 +56,10 @@ export class GristClient extends ExternalApiClient {
         `${this.apiUrl}/api/docs/${this.docId}/tables/${table}/records`,
         {
           timeout: this.timeoutMs,
-          headers: { Authorization: `Bearer ${this.apiKey}` }
+          headers: { Authorization: `Bearer ${this.apiKey}` },
+          // Sans ce tri, Grist rend les lignes par numéro de création et non
+          // dans l'ordre où le métier les a rangées dans le document
+          params: { sort: 'manualSort' }
         }
       )
 

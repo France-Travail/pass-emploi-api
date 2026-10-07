@@ -60,6 +60,45 @@ export namespace PlanAction {
       : { ...tacheSansDateTerminee, terminee }
   }
 
+  // Ordre des écrans du questionnaire : les besoins de l'étape 5 puis les
+  // contraintes de l'étape 8, chacun dans l'ordre où l'écran les propose
+  const ORDRE_THEMES: Array<Questionnaire.Besoin | Questionnaire.Contrainte> = [
+    ...Object.values(Questionnaire.Besoin),
+    ...Object.values(Questionnaire.Contrainte)
+  ]
+
+  function rangTheme(
+    theme: Questionnaire.Besoin | Questionnaire.Contrainte
+  ): number {
+    return ORDRE_THEMES.indexOf(theme)
+  }
+
+  // Présente les objectifs dans l'ordre du questionnaire et les tâches dans
+  // celui du référentiel, quel que soit l'ordre dans lequel le plan a été
+  // construit ou relu. Le référentiel est attendu dans l'ordre du Grist
+  export function ordonner(
+    plan: PlanAction,
+    referentiel: ReferentielPlanAction.Solution[]
+  ): PlanAction {
+    const rangSolution = new Map(
+      referentiel.map((solution, rang) => [solution.id, rang])
+    )
+    const rangTache = (tache: Tache): number =>
+      rangSolution.get(tache.idSolution) ?? Number.MAX_SAFE_INTEGER
+
+    return {
+      ...plan,
+      objectifs: [...plan.objectifs]
+        .sort((a, b) => rangTheme(a.theme) - rangTheme(b.theme))
+        .map(objectif => ({
+          ...objectif,
+          taches: [...objectif.taches].sort(
+            (a, b) => rangTache(a) - rangTache(b)
+          )
+        }))
+    }
+  }
+
   export const TITRES_BESOINS: Record<Questionnaire.Besoin, string> = {
     ORIENTER: "Je cherche à m'orienter",
     DECOUVRIR_METIERS: 'Découvrir des métiers',
@@ -178,8 +217,9 @@ export namespace PlanAction {
       private readonly dateService: DateService
     ) {}
 
-    // Un objectif par besoin puis par contrainte du questionnaire, chacun avec
-    // toutes les solutions éligibles de son thème, dans l'ordre du référentiel
+    // Un objectif par besoin puis par contrainte, dans l'ordre des écrans du
+    // questionnaire et non dans celui où le jeune a coché, chacun avec toutes
+    // les solutions éligibles de son thème dans l'ordre du référentiel
     creer(
       idJeune: string,
       questionnaire: Questionnaire,
@@ -213,6 +253,7 @@ export namespace PlanAction {
       ]
 
       const objectifs = themes
+        .sort((a, b) => rangTheme(a.theme) - rangTheme(b.theme))
         .filter(({ solutions }) => solutions.length > 0)
         .map(({ theme, titre, solutions }) => {
           const tachesPrecedentes =
