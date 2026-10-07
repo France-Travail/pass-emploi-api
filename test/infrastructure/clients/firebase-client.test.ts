@@ -412,6 +412,7 @@ describe('FirebaseClient', () => {
       firebaseClient = Object.create(FirebaseClient.prototype) as FirebaseClient
       const internals = firebaseClient as unknown as {
         logger: { log: () => void; error: () => void; warn: SinonStub }
+        dateService: DateService
         firestore: { collection: SinonStub }
       }
       internals.logger = {
@@ -419,6 +420,7 @@ describe('FirebaseClient', () => {
         error: (): void => {},
         warn: warnStub
       }
+      internals.dateService = stubClass(DateService)
       internals.firestore = {
         collection: sandbox.stub().returns(whereChain)
       }

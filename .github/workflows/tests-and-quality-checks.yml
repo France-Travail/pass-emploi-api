@@ -28,6 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request.draft }}
 
+    # Le module des tests HTTP instancie le vrai PlanificateurRedisRepository
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6767:6379
+
     steps:
       - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@645baca94d9825a7502bc1b143097cc8a9c6b707
 
