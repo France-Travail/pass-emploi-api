@@ -310,6 +310,33 @@ describe('Demarche', () => {
             quoi: 'C21',
             pourquoi: 'A42',
             comment: undefined,
+            description: undefined,
+            promptIa: undefined
+          }
+          expect(demarche).to.deep.equal(success(demarcheCree))
+        })
+        it('transmet la description', () => {
+          // Given
+          const dateFin = uneDatetime()
+          const demarcheACreer: Demarche.ACreer = {
+            dateFin,
+            pourquoi: 'P07',
+            quoi: 'Q39',
+            description: 'Je me renseigne sur les aides au permis'
+          }
+
+          // When
+          const demarche = demarcheFactory.creerDemarche(demarcheACreer)
+
+          // Then
+          const demarcheCree: Demarche.Creee = {
+            statut: Demarche.Statut.A_FAIRE,
+            dateCreation: uneDateAMidi,
+            dateFin: dateFin.set(parametreHeureAMidi),
+            pourquoi: 'P07',
+            quoi: 'Q39',
+            comment: 'C39.03',
+            description: 'Je me renseigne sur les aides au permis',
             promptIa: undefined
           }
           expect(demarche).to.deep.equal(success(demarcheCree))
@@ -335,6 +362,7 @@ describe('Demarche', () => {
             quoi: 'C21',
             pourquoi: 'A42',
             comment: undefined,
+            description: undefined,
             promptIa: undefined
           }
           expect(demarche).to.deep.equal(success(demarcheCree))
@@ -363,6 +391,7 @@ describe('Demarche', () => {
           quoi: 'C21',
           pourquoi: 'A42',
           comment: undefined,
+          description: undefined,
           promptIa: undefined
         }
         expect(demarche).to.deep.equal(success(demarcheCree))
