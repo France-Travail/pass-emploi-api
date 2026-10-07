@@ -25,6 +25,10 @@ export class DateService {
     return now
   }
 
+  attendre(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
   static isSameDateDay(date1: DateTime, date2: DateTime): boolean {
     return date1.toUTC().startOf('day').equals(date2.toUTC().startOf('day'))
   }

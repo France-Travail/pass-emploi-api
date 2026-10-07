@@ -4,7 +4,7 @@ import {
   PlanificateurRepositoryToken
 } from '../../src/domain/planificateur'
 import { PlanificateurRedisRepository } from '../../src/infrastructure/repositories/planificateur-redis.repository.db'
-import { expect, stubClass } from '../utils'
+import { expect, stubClass, waitFor } from '../utils'
 import { INestApplication } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import {
@@ -64,12 +64,12 @@ describe('WorkerService', () => {
       await planificateurRepository.ajouterJob(job)
     })
 
-    it('exécute la commande idoine', done => {
+    it('exécute la commande idoine', async () => {
       // Then
-      setTimeout(() => {
-        expect(fakeJobHandler.execute).to.have.been.calledWith()
-        done()
-      }, 1500)
+      await waitFor(
+        async () => expect(fakeJobHandler.execute).to.have.been.calledWith(),
+        { timeout: 5000 }
+      )
     })
   })
 })

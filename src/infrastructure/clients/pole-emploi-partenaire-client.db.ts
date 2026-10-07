@@ -4,6 +4,7 @@ import { AxiosError, AxiosResponse } from 'axios'
 import * as https from 'https'
 import { DateTime } from 'luxon'
 import { ExternalApiLoggerService } from '../../utils/external-api-logger.service'
+import { DateService } from '../../utils/date-service'
 import { ErreurHttp } from '../../building-blocks/types/domain-error'
 import { Result, failure, success } from '../../building-blocks/types/result'
 import {
@@ -82,7 +83,8 @@ export class PoleEmploiPartenaireClient
   constructor(
     private configService: ConfigService,
     private readonly cacheApiPartenaire: CacheApiPartenaireService,
-    externalApiLogger: ExternalApiLoggerService
+    externalApiLogger: ExternalApiLoggerService,
+    private readonly dateService: DateService
   ) {
     super('PoleEmploiPartenaireClient', externalApiLogger)
     this.logger = new Logger('PoleEmploiPartenaireClient')
@@ -311,9 +313,7 @@ export class PoleEmploiPartenaireClient
     secondesAAttendre?: number
   ): Promise<AxiosResponse<T>> {
     if (secondesAAttendre) {
-      await new Promise(resolve =>
-        setTimeout(resolve, secondesAAttendre * 1000)
-      )
+      await this.dateService.attendre(secondesAAttendre * 1000)
     }
 
     return this.get<T>(suffixUrl, tokenDuJeune, params)

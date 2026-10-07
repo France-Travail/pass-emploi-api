@@ -7,7 +7,7 @@ import {
 } from 'src/infrastructure/repositories/notification-firebase.repository.db'
 import { DateService } from 'src/utils/date-service'
 import { IdService } from 'src/utils/id-service'
-import { StubbedClass, stubClass } from '../../utils'
+import { StubbedClass, stubClass, waitFor } from '../../utils'
 import { uneDatetime } from '../../fixtures/date.fixture'
 import { expect } from 'chai'
 import { getDatabase } from '../../utils/database-for-testing'
@@ -71,21 +71,6 @@ describe('NotificationFirebaseSqlRepository', () => {
     }
 
     it('persiste une notification en base quand idJeune est fourni', async () => {
-      async function waitFor<T>(
-        callback: () => Promise<T>,
-        { timeout = 1000, interval = 50 } = {}
-      ): Promise<T> {
-        const start = Date.now()
-        while (true) {
-          try {
-            return await callback()
-          } catch (e) {
-            if (Date.now() - start > timeout) throw e
-            await new Promise(r => setTimeout(r, interval))
-          }
-        }
-      }
-
       // When
       await repository.send(message, 'j1')
 

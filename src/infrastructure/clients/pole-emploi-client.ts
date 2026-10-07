@@ -298,9 +298,7 @@ export class PoleEmploiClient extends ExternalApiClient {
     secondesAAttendre?: number
   ): Promise<Result<AxiosResponse<T>>> {
     if (secondesAAttendre) {
-      await new Promise(resolve =>
-        setTimeout(resolve, secondesAAttendre * 1000)
-      )
+      await this.dateService.attendre(secondesAAttendre * 1000)
     }
 
     return this.get<T>(suffixUrl, params)

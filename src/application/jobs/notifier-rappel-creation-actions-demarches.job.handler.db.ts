@@ -120,7 +120,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
           jeune.nb_actions,
           jeune.peut_voir_le_comptage_des_heures ?? undefined
         )
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await this.dateService.attendre(500)
       }
 
       if (idsJeunesANotifier.length === PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM) {
