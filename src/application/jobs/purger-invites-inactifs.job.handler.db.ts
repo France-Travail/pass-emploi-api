@@ -49,6 +49,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
     let pourcentageInactifs = 0
     let total = 0
     let nombreInactifs = 0
+    let nombreRepris = 0
     let resultatPurge: ResultatPurge = {
       nbPurges: 0,
       nbEchecsIdp: 0,
@@ -56,15 +57,18 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
     }
 
     try {
-      const [totalInvites, candidats] = await Promise.all([
+      const [totalInvites, inactifs, repris] = await Promise.all([
         this.jeuneInviteRepository.compterTout(),
-        this.jeuneInviteRepository.recupererInvitesInactifs(dateSeuil)
+        this.jeuneInviteRepository.recupererInvitesInactifs(dateSeuil),
+        this.jeuneInviteRepository.recupererInvitesRepris()
       ])
       total = totalInvites
-      nombreInactifs = candidats.length
+      nombreInactifs = inactifs.length
+      nombreRepris = repris.length
       pourcentageInactifs = total > 0 ? (nombreInactifs / total) * 100 : 0
 
-      if (pourcentageInactifs > Number(pourcentageInactifsMax)) {
+      const seuilDepasse = pourcentageInactifs > Number(pourcentageInactifsMax)
+      if (seuilDepasse) {
         rootLogger.error(
           {
             context: 'PurgerInvitesInactifsJobHandler',
@@ -80,10 +84,14 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
           'purge_invites_abandonnee'
         )
         nbErreurs++
-      } else {
-        resultatPurge = await this.purger(candidats)
-        nbErreurs += resultatPurge.nbEchecsIdp + resultatPurge.nbEchecsDb
       }
+      // Les repris sont purgés quoi qu'il arrive : leur suppression est
+      // demandée explicitement, le garde-fou ne vise que l'inactivité
+      const candidats = dedoublonner(
+        seuilDepasse ? repris : [...repris, ...inactifs]
+      )
+      resultatPurge = await this.purger(candidats)
+      nbErreurs += resultatPurge.nbEchecsIdp + resultatPurge.nbEchecsDb
     } catch (e) {
       this.logger.error(
         'Echec du job de purge des invités inactifs',
@@ -102,6 +110,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
         ...resultatPurge,
         pourcentageInactifs,
         nombreInactifs,
+        nombreRepris,
         total
       }
     }
@@ -151,4 +160,10 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
       }
     }
   }
+}
+
+function dedoublonner(
+  invites: Array<{ id: string; idAuthentification: string }>
+): Array<{ id: string; idAuthentification: string }> {
+  return [...new Map(invites.map(invite => [invite.id, invite])).values()]
 }
