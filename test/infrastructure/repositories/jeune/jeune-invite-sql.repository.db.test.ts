@@ -116,4 +116,97 @@ describe('JeuneInviteSqlRepository', () => {
       expect(await JeuneInviteSqlModel.findByPk('a-garder')).not.to.equal(null)
     })
   })
+
+  describe('recupererPourReprise', () => {
+    it("retourne l'invité non repris, sans repreneur", async () => {
+      // Given
+      const dateCreation = maintenant.minus({ days: 3 })
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'invite',
+          dateCreation: dateCreation.toJSDate()
+        })
+      )
+
+      // When
+      const invite = await repository.recupererPourReprise('invite')
+
+      // Then
+      expect(invite).to.deep.equal({ id: 'invite', dateCreation })
+    })
+
+    it("retourne le repreneur quand l'invité a été repris", async () => {
+      // Given
+      const dateCreation = maintenant.minus({ days: 3 })
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'invite',
+          dateCreation: dateCreation.toJSDate(),
+          idJeuneRepreneur: 'id-jeune',
+          dateReprise: maintenant.toJSDate()
+        })
+      )
+
+      // When
+      const invite = await repository.recupererPourReprise('invite')
+
+      // Then
+      expect(invite).to.deep.equal({
+        id: 'invite',
+        dateCreation,
+        idJeuneRepreneur: 'id-jeune'
+      })
+    })
+
+    it('retourne undefined pour un invité inconnu', async () => {
+      // When
+      const invite = await repository.recupererPourReprise('inconnu')
+
+      // Then
+      expect(invite).to.equal(undefined)
+    })
+  })
+
+  describe('marquerRepris', () => {
+    it('enregistre le jeune repreneur et la date de reprise', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(unJeuneInviteDto({ id: 'invite' }))
+
+      // When
+      await repository.marquerRepris('invite', 'id-jeune', maintenant)
+
+      // Then
+      const invite = await JeuneInviteSqlModel.findByPk('invite')
+      expect(invite!.idJeuneRepreneur).to.equal('id-jeune')
+      expect(invite!.dateReprise).to.deep.equal(maintenant.toJSDate())
+    })
+  })
+
+  describe('recupererInvitesRepris', () => {
+    it('ne retourne que les invités repris', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'repris',
+          idAuthentification: 'sub-repris',
+          idJeuneRepreneur: 'id-jeune',
+          dateReprise: maintenant.toJSDate()
+        })
+      )
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'non-repris',
+          idAuthentification: 'sub-non-repris'
+        })
+      )
+
+      // When
+      const invites = await repository.recupererInvitesRepris()
+
+      // Then
+      expect(invites).to.deep.equal([
+        { id: 'repris', idAuthentification: 'sub-repris' }
+      ])
+    })
+  })
 })

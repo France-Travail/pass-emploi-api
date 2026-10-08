@@ -151,7 +151,7 @@ function getRoles(
 // Le claim `userProfile` (structure × dispositif) est la cible ; `userStructure`
 // (legacy) reste émis par connect pour l'app mobile et sert de repli tant que
 // le token ne porte pas encore le profil.
-function profilDuClaim(payload: JWTPayload): Profil {
+export function profilDuClaim(payload: JWTPayload): Profil {
   const claim = payload.userProfile as Partial<Profil> | undefined
   if (
     claim?.structure &&

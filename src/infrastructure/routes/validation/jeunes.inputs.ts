@@ -130,3 +130,10 @@ export class MaintenantQueryParams {
   @IsISO8601({ strict: true })
   maintenant: string
 }
+
+export class ReprendreCompteInvitePayload {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  jetonInvite: string
+}

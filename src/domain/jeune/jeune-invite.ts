@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon'
+
 export const JeuneInviteRepositoryToken = 'JeuneInviteRepositoryToken'
 
 export const JeuneInviteConfigurationApplicationRepositoryToken =
@@ -13,5 +15,19 @@ export namespace JeuneInvite {
     >
     compterTout(): Promise<number>
     supprimerPlusieurs(ids: string[]): Promise<void>
+    recupererPourReprise(
+      id: string
+    ): Promise<
+      | { id: string; dateCreation: DateTime; idJeuneRepreneur?: string }
+      | undefined
+    >
+    marquerRepris(
+      id: string,
+      idJeuneRepreneur: string,
+      dateReprise: DateTime
+    ): Promise<void>
+    recupererInvitesRepris(): Promise<
+      Array<{ id: string; idAuthentification: string }>
+    >
   }
 }

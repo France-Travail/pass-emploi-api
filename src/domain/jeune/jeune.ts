@@ -165,6 +165,11 @@ export namespace Jeune {
 
     reinitialiserDatePremiereConnexion(idJeune: string): Promise<void>
 
+    enregistrerPremiereUtilisationInvite(
+      idJeune: string,
+      dateUtilisation: DateTime
+    ): Promise<void>
+
     changerDispositifDesJeunesDuConseiller(
       idConseiller: string,
       dispositif: Profil.Dispositif

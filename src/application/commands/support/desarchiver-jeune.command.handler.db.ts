@@ -489,6 +489,7 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       idStructureMilo,
       dateCreation: archive.dateCreation ?? archive.dateArchivage,
       datePremiereConnexion: archive.datePremiereConnexion,
+      datePremiereUtilisationInvite: null,
       dateDerniereConnexion: null,
       dateFinCEJ: null,
       dateSignatureCGU: null,

@@ -60,6 +60,7 @@ import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-tes
 import { GetComptageJeuneQueryHandler } from '../../../src/application/queries/get-comptage-jeune.query.handler.db'
 import { unDetailJeuneQueryModel } from '../../fixtures/query-models/jeunes.query-model.fixtures'
 import { ChangerStatutTachePlanActionCommandHandler } from '../../../src/application/commands/changer-statut-tache-plan-action.command.handler'
+import { ReprendreCompteInviteCommandHandler } from '../../../src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from '../../../src/application/commands/supprimer-tache-plan-action.command.handler'
 
 describe('JeunesController', () => {
@@ -79,6 +80,7 @@ describe('JeunesController', () => {
   let rechercherMessageQueryHandler: StubbedClass<RechercherMessageQueryHandler>
   let getComptageJeuneQueryHandler: StubbedClass<GetComptageJeuneQueryHandler>
   let changerStatutTachePlanActionCommandHandler: StubbedClass<ChangerStatutTachePlanActionCommandHandler>
+  let reprendreCompteInviteCommandHandler: StubbedClass<ReprendreCompteInviteCommandHandler>
   let supprimerTachePlanActionCommandHandler: StubbedClass<SupprimerTachePlanActionCommandHandler>
 
   let jwtService: StubbedClass<JwtService>
@@ -117,6 +119,9 @@ describe('JeunesController', () => {
     getComptageJeuneQueryHandler = app.get(GetComptageJeuneQueryHandler)
     changerStatutTachePlanActionCommandHandler = app.get(
       ChangerStatutTachePlanActionCommandHandler
+    )
+    reprendreCompteInviteCommandHandler = app.get(
+      ReprendreCompteInviteCommandHandler
     )
     supprimerTachePlanActionCommandHandler = app.get(
       SupprimerTachePlanActionCommandHandler
@@ -963,6 +968,42 @@ describe('JeunesController', () => {
       ).to.have.been.calledWithExactly(query, unUtilisateurDecode())
 
       rechercherMessageQueryHandler.execute.withArgs(query).resolves()
+    })
+  })
+
+  describe('POST /jeunes/:idJeune/reprise-invite', () => {
+    it('transmet le jeton invité au handler', async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({ jetonInvite: 'jeton-invite' })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idJeune: 'id-jeune', jetonInvite: 'jeton-invite' },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('renvoie 400 sans jeton invité', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({})
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).not.to.have.been.called()
     })
   })
 

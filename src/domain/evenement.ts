@@ -68,6 +68,7 @@ export namespace Evenement {
     COMPTE_SUPPRIME = 'COMPTE_SUPPRIME',
     COMPTE_ARCHIVE = 'COMPTE_ARCHIVE',
     COMPTE_CREE = 'COMPTE_CREE',
+    COMPTE_INVITE_REPRIS = 'COMPTE_INVITE_REPRIS',
     LISTE_DIFFUSION_CREEE = 'LISTE_DIFFUSION_CREEE',
     LISTE_DIFFUSION_MODIFIEE = 'LISTE_DIFFUSION_MODIFIEE',
     LISTE_DIFFUSION_SUPPRIMEE = 'LISTE_DIFFUSION_SUPPRIMEE',
@@ -392,6 +393,10 @@ const evenements: {
   [Evenement.Code.COMPTE_CREE]: {
     categorie: 'Compte',
     action: 'Création'
+  },
+  [Evenement.Code.COMPTE_INVITE_REPRIS]: {
+    categorie: 'Compte',
+    action: 'Reprise invité'
   },
   [Evenement.Code.LISTE_DIFFUSION_CREEE]: {
     categorie: 'Liste de diffusion',

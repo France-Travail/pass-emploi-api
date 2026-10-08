@@ -35,6 +35,7 @@ import {
   GenererPlanActionPayload
 } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import { ChangerStatutTachePlanActionCommandHandler } from 'src/application/commands/changer-statut-tache-plan-action.command.handler'
+import { ReprendreCompteInviteCommandHandler } from 'src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from 'src/application/commands/supprimer-tache-plan-action.command.handler'
 import {
   TransfererJeunesConseillerCommand,
@@ -84,6 +85,7 @@ import { handleResult } from './result.handler'
 import {
   ArchiverJeunePayload,
   MaintenantQueryParams,
+  ReprendreCompteInvitePayload,
   TransfererConseillerPayload,
   UpdateConfigurationInput,
   UpdateJeunePayload,
@@ -116,7 +118,8 @@ export class JeunesController {
     private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
     private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler,
     private changerStatutTachePlanActionCommandHandler: ChangerStatutTachePlanActionCommandHandler,
-    private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler
+    private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler,
+    private reprendreCompteInviteCommandHandler: ReprendreCompteInviteCommandHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -542,6 +545,27 @@ export class JeunesController {
   ): Promise<PlanActionQueryModel> {
     const result = await this.recupererPlanActionQueryHandler.execute(
       { idJeune },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Post(':idJeune/reprise-invite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UserJourney('compte_jeune')
+  @ApiOperation({
+    summary: "Rattache au jeune connecté le compte invité qu'il utilisait",
+    description:
+      "Preuve : access token de l'invité. Rejouable : 204 si l'invité est déjà rattaché à ce jeune."
+  })
+  async reprendreCompteInvite(
+    @Param('idJeune') idJeune: string,
+    @Body() payload: ReprendreCompteInvitePayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result = await this.reprendreCompteInviteCommandHandler.execute(
+      { idJeune, jetonInvite: payload.jetonInvite },
       utilisateur
     )
 

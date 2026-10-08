@@ -1,0 +1,174 @@
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import {
+  Transaction,
+  TransactionServiceToken
+} from '../../building-blocks/transaction'
+import { Command } from '../../building-blocks/types/command'
+import { CommandHandler } from '../../building-blocks/types/command-handler'
+import {
+  DomainError,
+  DroitsInsuffisants,
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../building-blocks/types/domain-error'
+import {
+  emptySuccess,
+  failure,
+  Result
+} from '../../building-blocks/types/result'
+import { Authentification } from '../../domain/authentification'
+import { Evenement, EvenementService } from '../../domain/evenement'
+import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
+import {
+  JeuneInvite,
+  JeuneInviteRepositoryToken
+} from '../../domain/jeune/jeune-invite'
+import { estInvite, TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
+import { JwtService } from '../../infrastructure/auth/jwt.service'
+import { profilDuClaim } from '../../infrastructure/auth/oidc.auth-guard'
+import { DateService } from '../../utils/date-service'
+import { toEcsError } from '../../utils/logger.helpers'
+import { rootLogger } from '../../utils/logger.module'
+import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+
+export interface ReprendreCompteInviteCommand extends Command {
+  idJeune: string
+  jetonInvite: string
+}
+
+const CONTEXT_LOG = 'ReprendreCompteInviteCommandHandler'
+
+@Injectable()
+export class ReprendreCompteInviteCommandHandler extends CommandHandler<
+  ReprendreCompteInviteCommand,
+  void
+> {
+  readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
+
+  constructor(
+    private readonly jeuneAuthorizer: JeuneAuthorizer,
+    private readonly jwtService: JwtService,
+    @Inject(JeuneInviteRepositoryToken)
+    private readonly jeuneInviteRepository: JeuneInvite.Repository,
+    @Inject(JeuneRepositoryToken)
+    private readonly jeuneRepository: Jeune.Repository,
+    private readonly evenementService: EvenementService,
+    private readonly dateService: DateService,
+    @Inject(TransactionServiceToken)
+    private readonly transactionService: Transaction.Service,
+    private readonly configService: ConfigService
+  ) {
+    super('ReprendreCompteInviteCommandHandler')
+  }
+
+  async authorize(
+    command: ReprendreCompteInviteCommand,
+    utilisateur: Authentification.Utilisateur
+  ): Promise<Result> {
+    if (!this.configService.get<boolean>('appJeuneActif')) {
+      return failure(new DroitsInsuffisants())
+    }
+    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
+  }
+
+  async handle(
+    command: ReprendreCompteInviteCommand,
+    utilisateur: Authentification.Utilisateur
+  ): Promise<Result> {
+    const idInvite = await this.idInviteDuJeton(command.jetonInvite)
+    if (!idInvite) {
+      return this.echec(
+        'preuve',
+        new MauvaiseCommandeError('Jeton invité invalide')
+      )
+    }
+
+    const invite =
+      await this.jeuneInviteRepository.recupererPourReprise(idInvite)
+    if (!invite) {
+      return this.echec(
+        'introuvable',
+        new NonTrouveError('JeuneInvite', idInvite)
+      )
+    }
+    if (invite.idJeuneRepreneur === command.idJeune) {
+      this.logSucces('rejeu')
+      return emptySuccess()
+    }
+    if (invite.idJeuneRepreneur) {
+      return this.echec('deja_repris', new DroitsInsuffisants())
+    }
+
+    try {
+      await this.transactionService.executer(async () => {
+        await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
+          command.idJeune,
+          invite.dateCreation
+        )
+        await this.jeuneInviteRepository.marquerRepris(
+          invite.id,
+          command.idJeune,
+          this.dateService.now()
+        )
+        return emptySuccess()
+      })
+    } catch (e) {
+      this.logEchec('enregistrement', e)
+      throw e
+    }
+
+    // Ici et pas dans monitor : monitor ne distingue pas reprise et rejeu,
+    // et un rejeu ne doit pas compter deux fois
+    await this.evenementService.creer(
+      Evenement.Code.COMPTE_INVITE_REPRIS,
+      utilisateur
+    )
+    this.logSucces('nouvelle')
+    return emptySuccess()
+  }
+
+  async monitor(): Promise<void> {
+    return
+  }
+
+  // jwtVerify ne contrôle ni iss ni aud : n'importe quel access token de
+  // connect passe la signature, d'où le contrôle explicite du profil invité
+  private async idInviteDuJeton(jeton: string): Promise<string | undefined> {
+    try {
+      const payload = await this.jwtService.verifyTokenAndGetJwt(jeton)
+      if (!estInvite(profilDuClaim(payload).structure)) return undefined
+      return typeof payload.userId === 'string' ? payload.userId : undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  private echec(step: string, erreur: DomainError): Result {
+    this.logEchec(step, erreur)
+    return failure(erreur)
+  }
+
+  private logEchec(step: string, erreur: unknown): void {
+    rootLogger.warn(
+      {
+        context: CONTEXT_LOG,
+        event: { action: 'invite_account_migrated', outcome: 'failure' },
+        labels: { step },
+        error: toEcsError(erreur)
+      },
+      'invite_account_migrated'
+    )
+  }
+
+  private logSucces(reprise: 'nouvelle' | 'rejeu'): void {
+    rootLogger.info(
+      {
+        context: CONTEXT_LOG,
+        event: { action: 'invite_account_migrated', outcome: 'success' },
+        labels: { reprise }
+      },
+      'invite_account_migrated'
+    )
+  }
+}

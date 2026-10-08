@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { Op, Sequelize } from 'sequelize'
 import { Jeune } from '../../../domain/jeune/jeune'
 import { Profil } from '../../../domain/profil'
@@ -173,6 +174,21 @@ export class JeuneSqlRepository implements Jeune.Repository {
     await JeuneSqlModel.upsert(jeuneDto)
   }
 
+  // En SQL pour que la date la plus ancienne gagne même si deux reprises
+  // d'invités se croisent (la requête rejoint la transaction CLS de l'appelant)
+  async enregistrerPremiereUtilisationInvite(
+    idJeune: string,
+    dateUtilisation: DateTime
+  ): Promise<void> {
+    await this.sequelize.query(
+      `UPDATE jeune
+       SET date_premiere_utilisation_invite =
+         LEAST(COALESCE(date_premiere_utilisation_invite, :date), :date)
+       WHERE id = :idJeune`,
+      { replacements: { idJeune, date: dateUtilisation.toJSDate() } }
+    )
+  }
+
   async reinitialiserDatePremiereConnexion(idJeune: string): Promise<void> {
     await JeuneSqlModel.update(
       { datePremiereConnexion: null },
@@ -245,6 +261,7 @@ export class JeuneSqlRepository implements Jeune.Repository {
         AsSql<JeuneDto>,
         | 'idAuthentification'
         | 'datePremiereConnexion'
+        | 'datePremiereUtilisationInvite'
         | 'dateDerniereConnexion'
         | 'appVersion'
         | 'installationId'
