@@ -220,9 +220,7 @@ export const configurationSchema = Joi.object({
       nombreSuppressionsMin: Joi.number().required()
     }),
     majReferentielPlanAction: Joi.object({
-      dryRun: Joi.boolean().required(),
-      pourcentageDesactivationsMax: Joi.number().required(),
-      nombreDesactivationsMin: Joi.number().required()
+      dryRun: Joi.boolean().required()
     }),
     envoiCommunications: Joi.object({
       actif: Joi.boolean().required(),

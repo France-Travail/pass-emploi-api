@@ -32,7 +32,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
   const solutionGrist = {
     id: 1,
     fields: {
-      Id_technique: 'p-2',
+      Visible: true,
       Envie: "M'orienter",
       Blocage: '',
       Sous_categorie: '',
@@ -62,11 +62,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
   function unConfigService(dryRun = false): ConfigService {
     return new ConfigService({
       jobs: {
-        majReferentielPlanAction: {
-          dryRun,
-          pourcentageDesactivationsMax: '10',
-          nombreDesactivationsMin: '5'
-        }
+        majReferentielPlanAction: { dryRun }
       }
     })
   }
@@ -92,7 +88,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
     // Given
     gristClient.recupererServices.resolves(success([serviceGrist]))
     gristClient.recupererSolutions.resolves(success([solutionGrist]))
-    repository.remplacer.resolves({
+    repository.synchroniser.resolves({
       nbCreees: 1,
       nbMisesAJour: 0,
       nbDesactivees: 0
@@ -107,16 +103,17 @@ describe('MajReferentielPlanActionJobHandler', () => {
       dryRun: false,
       nbServices: 1,
       nbSolutions: 1,
+      nbSolutionsMasquees: 0,
       nbCreees: 1,
       nbMisesAJour: 0,
       nbDesactivees: 0,
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
-      nbDoublonsSolutions: 0,
+      nbServicesEcartes: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     })
-    expect(repository.remplacer.firstCall.args[3]).to.deep.equal({
+    expect(repository.synchroniser.firstCall.args[2]).to.deep.equal({
       dryRun: false
     })
   })
@@ -133,7 +130,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
 
     // Then
     expect(suiviJob.succes).to.equal(false)
-    expect(repository.remplacer).not.to.have.been.called()
+    expect(repository.synchroniser).not.to.have.been.called()
   })
 
   it('échoue sans rien écrire quand le Grist ne rend aucune solution', async () => {
@@ -146,7 +143,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
 
     // Then
     expect(suiviJob.succes).to.equal(false)
-    expect(repository.remplacer).not.to.have.been.called()
+    expect(repository.synchroniser).not.to.have.been.called()
   })
 
   it('échoue en nommant la vraie cause quand la réconciliation écarte toutes les solutions', async () => {
@@ -161,7 +158,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
 
     // Then
     expect(suiviJob.succes).to.equal(false)
-    expect(repository.remplacer).not.to.have.been.called()
+    expect(repository.synchroniser).not.to.have.been.called()
     expect(suiviJob.erreur?.message).to.contain(
       'Aucune solution exploitable après réconciliation'
     )
@@ -170,7 +167,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
     ).to.equal(1)
   })
 
-  it('appelle remplacer en dryRun sans rien changer côté lecture', async () => {
+  it('synchronise en dryRun sans rien changer côté lecture', async () => {
     // Given
     handler = new MajReferentielPlanActionJobHandler(
       gristClient,
@@ -181,7 +178,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
     )
     gristClient.recupererServices.resolves(success([serviceGrist]))
     gristClient.recupererSolutions.resolves(success([solutionGrist]))
-    repository.remplacer.resolves({
+    repository.synchroniser.resolves({
       nbCreees: 1,
       nbMisesAJour: 0,
       nbDesactivees: 0
@@ -191,7 +188,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
     const suiviJob = await handler.handle(job)
 
     // Then
-    expect(repository.remplacer.firstCall.args[3]).to.deep.equal({
+    expect(repository.synchroniser.firstCall.args[2]).to.deep.equal({
       dryRun: true
     })
     expect(suiviJob.succes).to.equal(true)
@@ -209,13 +206,12 @@ describe('MajReferentielPlanActionJobHandler', () => {
           id: 2,
           fields: {
             ...solutionGrist.fields,
-            Id_technique: 'p-3',
             Service: 'INCONNU'
           }
         }
       ])
     )
-    repository.remplacer.resolves({
+    repository.synchroniser.resolves({
       nbCreees: 2,
       nbMisesAJour: 0,
       nbDesactivees: 0
@@ -231,13 +227,16 @@ describe('MajReferentielPlanActionJobHandler', () => {
     ).to.equal(1)
   })
 
-  it('remonte les doublons de solutions dans le résultat', async () => {
+  it('ne transmet que les solutions visibles et remonte le nombre de masquées', async () => {
     // Given
     gristClient.recupererServices.resolves(success([serviceGrist]))
     gristClient.recupererSolutions.resolves(
-      success([solutionGrist, { id: 2, fields: { ...solutionGrist.fields } }])
+      success([
+        solutionGrist,
+        { id: 2, fields: { ...solutionGrist.fields, Visible: false } }
+      ])
     )
-    repository.remplacer.resolves({
+    repository.synchroniser.resolves({
       nbCreees: 1,
       nbMisesAJour: 0,
       nbDesactivees: 0
@@ -248,24 +247,27 @@ describe('MajReferentielPlanActionJobHandler', () => {
 
     // Then
     expect(
-      (suiviJob.resultat as { nbDoublonsSolutions: number }).nbDoublonsSolutions
+      repository.synchroniser.firstCall.args[1].map(
+        (solution: ReferentielPlanAction.Solution) => solution.id
+      )
+    ).to.deep.equal(['1'])
+    expect(
+      (suiviJob.resultat as { nbSolutionsMasquees: number }).nbSolutionsMasquees
     ).to.equal(1)
   })
 
-  it('renseigne erreur.message quand remplacer échoue, en préservant les compteurs', async () => {
+  it('renseigne erreur.message quand la synchronisation échoue, en préservant les compteurs', async () => {
     // Given
     gristClient.recupererServices.resolves(success([serviceGrist]))
     gristClient.recupererSolutions.resolves(success([solutionGrist]))
-    repository.remplacer.rejects(new Error('Plafond de désactivations dépassé'))
+    repository.synchroniser.rejects(new Error('connexion perdue'))
 
     // When
     const suiviJob = await handler.handle(job)
 
     // Then
     expect(suiviJob.succes).to.equal(false)
-    expect(suiviJob.erreur?.message).to.equal(
-      'Plafond de désactivations dépassé'
-    )
+    expect(suiviJob.erreur?.message).to.equal('connexion perdue')
     expect(
       (suiviJob.resultat as { nbServices: number; nbSolutions: number })
         .nbServices

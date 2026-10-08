@@ -17,12 +17,13 @@ export interface StatsMajReferentielPlanAction {
   dryRun: boolean
   nbServices: number
   nbSolutions: number
+  nbSolutionsMasquees: number
   nbCreees: number
   nbMisesAJour: number
   nbDesactivees: number
   nbServicesNonResolus: number
   nbDoublonsServices: number
-  nbDoublonsSolutions: number
+  nbServicesEcartes: number
   nbSolutionsEcartees: number
   nbValeursNonReconnues: number
 }
@@ -48,12 +49,13 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       dryRun: config.dryRun,
       nbServices: 0,
       nbSolutions: 0,
+      nbSolutionsMasquees: 0,
       nbCreees: 0,
       nbMisesAJour: 0,
       nbDesactivees: 0,
       nbServicesNonResolus: 0,
       nbDoublonsServices: 0,
-      nbDoublonsSolutions: 0,
+      nbServicesEcartes: 0,
       nbSolutionsEcartees: 0,
       nbValeursNonReconnues: 0
     }
@@ -82,9 +84,10 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
 
       stats.nbServices = reconciliation.services.length
       stats.nbSolutions = reconciliation.solutions.length
+      stats.nbSolutionsMasquees = reconciliation.nbSolutionsMasquees
       stats.nbServicesNonResolus = reconciliation.anomalies.nbServicesNonResolus
       stats.nbDoublonsServices = reconciliation.anomalies.nbDoublonsServices
-      stats.nbDoublonsSolutions = reconciliation.anomalies.nbDoublonsSolutions
+      stats.nbServicesEcartes = reconciliation.anomalies.nbServicesEcartes
       stats.nbSolutionsEcartees = reconciliation.anomalies.nbSolutionsEcartees
       stats.nbValeursNonReconnues =
         reconciliation.anomalies.nbValeursNonReconnues
@@ -95,16 +98,9 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
         )
       }
 
-      const diff = await this.referentielRepository.remplacer(
+      const diff = await this.referentielRepository.synchroniser(
         reconciliation.services,
         reconciliation.solutions,
-        {
-          pourcentageMax: Number.parseInt(
-            config.pourcentageDesactivationsMax,
-            10
-          ),
-          nombreMin: Number.parseInt(config.nombreDesactivationsMin, 10)
-        },
         { dryRun: config.dryRun }
       )
       stats.nbCreees = diff.nbCreees
