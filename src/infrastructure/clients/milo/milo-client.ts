@@ -31,6 +31,7 @@ import { MiloClientV1 } from './milo-client-v1'
 import { MiloClientV2 } from './milo-client-v2'
 import { SequelizeInjectionToken } from '../../sequelize/providers'
 import { QueryTypes, Sequelize } from 'sequelize'
+import { rootLogger } from '../../../utils/logger.module'
 
 @Injectable()
 export class MiloClient implements MiloClientPort {
@@ -298,7 +299,10 @@ export class MiloClient implements MiloClientPort {
     const utilisateur = this.context.get<Authentification.Utilisateur>(
       ContextKey.UTILISATEUR
     )
-
+    rootLogger.info(
+      { context: 'MiloClient', debug: { utilisateur } },
+      'debug_beta_testeur_milo'
+    )
     if (useV2 && utilisateur) {
       useV2 =
         this.estUnConseillerBetaTesteur(utilisateur) ||
