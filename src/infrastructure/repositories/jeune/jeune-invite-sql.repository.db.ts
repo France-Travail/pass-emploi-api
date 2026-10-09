@@ -64,15 +64,18 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     }
   }
 
+  // Conditionnel : deux reprises concurrentes du même invité ne peuvent pas
+  // réussir toutes les deux. false = l'invité était déjà repris (ou n'existe plus)
   async marquerRepris(
     id: string,
     idJeuneRepreneur: string,
     dateReprise: DateTime
-  ): Promise<void> {
-    await JeuneInviteSqlModel.update(
+  ): Promise<boolean> {
+    const [nombreMisAJour] = await JeuneInviteSqlModel.update(
       { idJeuneRepreneur, dateReprise: dateReprise.toJSDate() },
-      { where: { id } }
+      { where: { id, idJeuneRepreneur: null } }
     )
+    return nombreMisAJour > 0
   }
 
   async recupererInvitesRepris(): Promise<

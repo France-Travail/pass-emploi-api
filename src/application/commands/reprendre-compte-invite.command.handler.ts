@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { errors } from 'jose'
 import {
   Transaction,
   TransactionServiceToken
@@ -86,36 +87,36 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
 
     const invite =
       await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-    if (!invite) {
-      return this.echec(
-        'introuvable',
-        new NonTrouveError('JeuneInvite', idInvite)
-      )
-    }
-    if (invite.idJeuneRepreneur === command.idJeune) {
-      this.logSucces('rejeu')
-      return emptySuccess()
-    }
-    if (invite.idJeuneRepreneur) {
-      return this.echec('deja_repris', new DroitsInsuffisants())
+    if (!invite || invite.idJeuneRepreneur) {
+      return this.issueSansReprise(idInvite, invite, command.idJeune)
     }
 
+    let reprisParCetAppel = false
     try {
       await this.transactionService.executer(async () => {
-        await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
-          command.idJeune,
-          invite.dateCreation
-        )
-        await this.jeuneInviteRepository.marquerRepris(
+        reprisParCetAppel = await this.jeuneInviteRepository.marquerRepris(
           invite.id,
           command.idJeune,
           this.dateService.now()
+        )
+        if (!reprisParCetAppel) return emptySuccess()
+        await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
+          command.idJeune,
+          invite.dateCreation
         )
         return emptySuccess()
       })
     } catch (e) {
       this.logEchec('enregistrement', e)
       throw e
+    }
+
+    if (!reprisParCetAppel) {
+      // Un appel concurrent a repris (ou la purge a supprimé) l'invité entre
+      // la lecture et l'écriture : on relit pour répondre selon son issue
+      const inviteRelu =
+        await this.jeuneInviteRepository.recupererPourReprise(idInvite)
+      return this.issueSansReprise(idInvite, inviteRelu, command.idJeune)
     }
 
     // Ici et pas dans monitor : monitor ne distingue pas reprise et rejeu,
@@ -126,6 +127,24 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     )
     this.logSucces('nouvelle')
     return emptySuccess()
+  }
+
+  private issueSansReprise(
+    idInvite: string,
+    invite: { idJeuneRepreneur?: string } | undefined,
+    idJeune: string
+  ): Result {
+    if (!invite) {
+      return this.echec(
+        'introuvable',
+        new NonTrouveError('JeuneInvite', idInvite)
+      )
+    }
+    if (invite.idJeuneRepreneur === idJeune) {
+      this.logSucces('rejeu')
+      return emptySuccess()
+    }
+    return this.echec('deja_repris', new DroitsInsuffisants())
   }
 
   async monitor(): Promise<void> {
@@ -139,8 +158,13 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       const payload = await this.jwtService.verifyTokenAndGetJwt(jeton)
       if (!estInvite(profilDuClaim(payload).structure)) return undefined
       return typeof payload.userId === 'string' ? payload.userId : undefined
-    } catch {
-      return undefined
+    } catch (e) {
+      // Seul un jeton refusé est une preuve invalide (400) ; une panne de
+      // Connect/JWKS doit remonter en 500 pour que l'app réessaie
+      if (e instanceof errors.JOSEError && !(e instanceof errors.JWKSTimeout)) {
+        return undefined
+      }
+      throw e
     }
   }
 

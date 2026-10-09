@@ -173,12 +173,35 @@ describe('JeuneInviteSqlRepository', () => {
       await JeuneInviteSqlModel.creer(unJeuneInviteDto({ id: 'invite' }))
 
       // When
-      await repository.marquerRepris('invite', 'id-jeune', maintenant)
+      const marque = await repository.marquerRepris(
+        'invite',
+        'id-jeune',
+        maintenant
+      )
 
       // Then
+      expect(marque).to.equal(true)
       const invite = await JeuneInviteSqlModel.findByPk('invite')
       expect(invite!.idJeuneRepreneur).to.equal('id-jeune')
       expect(invite!.dateReprise).to.deep.equal(maintenant.toJSDate())
+    })
+
+    it("n'écrase pas une reprise déjà enregistrée", async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(unJeuneInviteDto({ id: 'invite' }))
+      await repository.marquerRepris('invite', 'premier-jeune', maintenant)
+
+      // When
+      const marque = await repository.marquerRepris(
+        'invite',
+        'second-jeune',
+        maintenant.plus({ minutes: 1 })
+      )
+
+      // Then
+      expect(marque).to.equal(false)
+      const invite = await JeuneInviteSqlModel.findByPk('invite')
+      expect(invite!.idJeuneRepreneur).to.equal('premier-jeune')
     })
   })
 

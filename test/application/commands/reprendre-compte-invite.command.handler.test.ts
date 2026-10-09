@@ -1,5 +1,6 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
+import { errors } from 'jose'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import {
   ReprendreCompteInviteCommand,
@@ -126,6 +127,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       jeuneInviteRepository.recupererPourReprise
         .withArgs(idInvite)
         .resolves({ id: idInvite, dateCreation: dateCreationInvite })
+      jeuneInviteRepository.marquerRepris.resolves(true)
 
       // When
       const result = await handler.handle(command, utilisateur)
@@ -147,7 +149,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it('refuse un jeton invalide', async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt.rejects(new Error('signature invalide'))
+      jwtService.verifyTokenAndGetJwt.rejects(
+        new errors.JWSSignatureVerificationFailed()
+      )
 
       // When
       const result = await handler.handle(command, utilisateur)
@@ -230,6 +234,79 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
       expect(transactionService.executer).not.to.have.been.called()
+    })
+
+    it('remonte une panne technique de vérification du jeton au lieu de refuser la preuve', async () => {
+      // Given
+      jwtService.verifyTokenAndGetJwt.rejects(new Error('connect injoignable'))
+
+      // When
+      const promesse = handler.handle(command, utilisateur)
+
+      // Then
+      await expect(promesse).to.be.rejectedWith('connect injoignable')
+      expect(jeuneInviteRepository.marquerRepris).not.to.have.been.called()
+    })
+
+    describe("quand un autre appel a repris l'invité entre la lecture et l'écriture", () => {
+      beforeEach(() => {
+        jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
+        jeuneInviteRepository.recupererPourReprise
+          .onFirstCall()
+          .resolves({ id: idInvite, dateCreation: dateCreationInvite })
+        jeuneInviteRepository.marquerRepris.resolves(false)
+      })
+
+      it('refuse sans écrire la date ni tracer la reprise si un autre jeune a gagné', async () => {
+        // Given
+        jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
+          id: idInvite,
+          dateCreation: dateCreationInvite,
+          idJeuneRepreneur: 'un-autre-jeune'
+        })
+
+        // When
+        const result = await handler.handle(command, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+        expect(
+          jeuneRepository.enregistrerPremiereUtilisationInvite
+        ).not.to.have.been.called()
+        expect(evenementService.creer).not.to.have.been.called()
+      })
+
+      it('répond comme un rejeu si ce jeune avait déjà gagné', async () => {
+        // Given
+        jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
+          id: idInvite,
+          dateCreation: dateCreationInvite,
+          idJeuneRepreneur: idJeune
+        })
+
+        // When
+        const result = await handler.handle(command, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(evenementService.creer).not.to.have.been.called()
+      })
+
+      it("échoue en introuvable si l'invité a été purgé entre-temps", async () => {
+        // Given
+        jeuneInviteRepository.recupererPourReprise
+          .onSecondCall()
+          .resolves(undefined)
+
+        // When
+        const result = await handler.handle(command, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(new NonTrouveError('JeuneInvite', idInvite))
+        )
+        expect(evenementService.creer).not.to.have.been.called()
+      })
     })
   })
 })

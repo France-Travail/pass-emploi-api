@@ -25,7 +25,7 @@ export namespace JeuneInvite {
       id: string,
       idJeuneRepreneur: string,
       dateReprise: DateTime
-    ): Promise<void>
+    ): Promise<boolean>
     recupererInvitesRepris(): Promise<
       Array<{ id: string; idAuthentification: string }>
     >
