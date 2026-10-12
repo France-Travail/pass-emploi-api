@@ -386,7 +386,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
       it('ne stocke pas le plan en rejeu (invité déjà repris)', async () => {
         // Given
-        jeuneInviteRepository.recupererPourReprise.resolves({
+        jeuneInviteRepository.recupererPourReprise.withArgs(idInvite).resolves({
           id: idInvite,
           dateCreation: dateCreationInvite,
           dateReprise: maintenant
