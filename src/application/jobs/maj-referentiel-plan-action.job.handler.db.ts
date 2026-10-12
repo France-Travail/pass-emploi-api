@@ -25,6 +25,7 @@ export interface StatsMajReferentielPlanAction {
   nbDoublonsServices: number
   nbServicesEcartes: number
   nbSolutionsEcartees: number
+  nbDoublonsSolutions: number
   nbValeursNonReconnues: number
 }
 
@@ -57,6 +58,7 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       nbDoublonsServices: 0,
       nbServicesEcartes: 0,
       nbSolutionsEcartees: 0,
+      nbDoublonsSolutions: 0,
       nbValeursNonReconnues: 0
     }
     let succes = true
@@ -89,6 +91,7 @@ export class MajReferentielPlanActionJobHandler extends JobHandler<void> {
       stats.nbDoublonsServices = reconciliation.anomalies.nbDoublonsServices
       stats.nbServicesEcartes = reconciliation.anomalies.nbServicesEcartes
       stats.nbSolutionsEcartees = reconciliation.anomalies.nbSolutionsEcartees
+      stats.nbDoublonsSolutions = reconciliation.anomalies.nbDoublonsSolutions
       stats.nbValeursNonReconnues =
         reconciliation.anomalies.nbValeursNonReconnues
 

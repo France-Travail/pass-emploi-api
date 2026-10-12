@@ -88,12 +88,14 @@ export function reconcilierReferentiel(
     nbDoublonsServices: 0,
     nbServicesEcartes: 0,
     nbSolutionsEcartees: 0,
+    nbDoublonsSolutions: 0,
     nbValeursNonReconnues: 0
   }
 
   const { services, serviceParNom } = indexerServices(servicesGrist, anomalies)
 
   const solutions: ReferentielPlanAction.Solution[] = []
+  const uuidsVus = new Set<string>()
   let nbSolutionsMasquees = 0
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
@@ -103,7 +105,10 @@ export function reconcilierReferentiel(
       continue
     }
 
-    const solution = construireSolution(record, serviceParNom, anomalies)
+    const uuid = resoudreUuid(record, uuidsVus, anomalies)
+    if (!uuid) continue
+
+    const solution = construireSolution(record, uuid, serviceParNom, anomalies)
     if (solution) solutions.push(solution)
   }
 
@@ -162,10 +167,39 @@ function indexerServices(
   return { services, serviceParNom }
 }
 
+// L'UUID est l'identité de la solution : sans lui la ligne est écartée, et une
+// ligne dupliquée (même UUID) est ignorée au profit de la première
+function resoudreUuid(
+  record: GristRecordDto<GristSolutionFieldsDto>,
+  uuidsVus: Set<string>,
+  anomalies: ReferentielPlanAction.Anomalies
+): string | undefined {
+  const uuid = texte(record.fields.UUID)
+  if (!uuid) {
+    anomalies.nbSolutionsEcartees++
+    logAnomalie('Solution Grist écartée : UUID manquant', {
+      ligne_grist: record.id,
+      raison: 'uuid_manquant'
+    })
+    return undefined
+  }
+  if (uuidsVus.has(uuid)) {
+    anomalies.nbDoublonsSolutions++
+    logAnomalie("Solution Grist en doublon d'UUID, ligne ignorée", {
+      ligne_grist: record.id,
+      uuid
+    })
+    return undefined
+  }
+  uuidsVus.add(uuid)
+  return uuid
+}
+
 // Rend undefined quand la ligne n'est pas exploitable, après avoir compté
 // l'anomalie correspondante
 function construireSolution(
   record: GristRecordDto<GristSolutionFieldsDto>,
+  uuid: string,
   serviceParNom: Map<string, ReferentielPlanAction.Service>,
   anomalies: ReferentielPlanAction.Anomalies
 ): ReferentielPlanAction.Solution | undefined {
@@ -210,7 +244,7 @@ function construireSolution(
   }
 
   return {
-    id: String(record.id),
+    id: uuid,
     ...optionnel(
       'besoin',
       resoudreEnum(

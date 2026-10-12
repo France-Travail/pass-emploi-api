@@ -32,6 +32,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
   const solutionGrist = {
     id: 1,
     fields: {
+      UUID: 'uuid-1',
       Visible: true,
       Envie: "M'orienter",
       Blocage: '',
@@ -111,6 +112,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
       nbDoublonsServices: 0,
       nbServicesEcartes: 0,
       nbSolutionsEcartees: 0,
+      nbDoublonsSolutions: 0,
       nbValeursNonReconnues: 0
     })
     expect(repository.synchroniser.firstCall.args[2]).to.deep.equal({
@@ -206,6 +208,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
           id: 2,
           fields: {
             ...solutionGrist.fields,
+            UUID: 'uuid-2',
             Service: 'INCONNU'
           }
         }
@@ -250,7 +253,7 @@ describe('MajReferentielPlanActionJobHandler', () => {
       repository.synchroniser.firstCall.args[1].map(
         (solution: ReferentielPlanAction.Solution) => solution.id
       )
-    ).to.deep.equal(['1'])
+    ).to.deep.equal(['uuid-1'])
     expect(
       (suiviJob.resultat as { nbSolutionsMasquees: number }).nbSolutionsMasquees
     ).to.equal(1)

@@ -47,8 +47,10 @@ export namespace ReferentielPlanAction {
   // Une ligne du référentiel. Elle porte un besoin OU une contrainte, jamais
   // les deux. Une liste de ciblage vide vaut « pas de filtre »
   export interface Solution {
-    // Numéro de ligne interne du Grist, comme pour les services : attribué par
-    // Grist, unique et stable tant que la ligne existe, sans saisie manuelle
+    // UUID généré par Grist à la création de la ligne, sans saisie manuelle.
+    // Contrairement au numéro de ligne, jamais réattribué : une ligne supprimée
+    // puis recréée est une autre solution, les tâches de l'ancienne restent
+    // masquées au lieu de changer de sens
     id: string
     besoin?: Questionnaire.Besoin
     contrainte?: Questionnaire.Contrainte
@@ -84,6 +86,8 @@ export namespace ReferentielPlanAction {
     // Nom vide ou plus long que la colonne
     nbServicesEcartes: number
     nbSolutionsEcartees: number
+    // Même UUID sur plusieurs lignes : la première fait foi
+    nbDoublonsSolutions: number
     nbValeursNonReconnues: number
   }
 

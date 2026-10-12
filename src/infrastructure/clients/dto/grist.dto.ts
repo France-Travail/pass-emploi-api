@@ -13,6 +13,9 @@ export interface GristServiceFieldsDto {
 }
 
 export interface GristSolutionFieldsDto {
+  // Posé par formule déclencheur à la création de la ligne : identité stable
+  // de la solution, le numéro de ligne Grist pouvant être réattribué
+  UUID: string | null
   // Case à cocher du métier : seules les lignes cochées sont synchronisées
   Visible: boolean
   Envie: string

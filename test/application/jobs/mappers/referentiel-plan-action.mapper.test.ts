@@ -21,6 +21,7 @@ describe('reconcilierReferentiel', () => {
     return {
       id: 1,
       fields: {
+        UUID: 'uuid-1',
         Visible: true,
         Envie: "M'orienter",
         Blocage: '',
@@ -384,17 +385,66 @@ describe('reconcilierReferentiel', () => {
   })
 
   describe('visibilité et identifiant', () => {
-    it('identifie la solution par son numéro de ligne Grist, sans identifiant saisi', () => {
+    it("identifie la solution par l'UUID posé par Grist, pas par son numéro de ligne", () => {
       // Given
-      const ligne42 = { id: 42, fields: uneSolutionGrist().fields }
+      const ligne42 = {
+        id: 42,
+        fields: uneSolutionGrist({ UUID: ' 6f1c-atelier-cv ' }).fields
+      }
 
       // When
       const resultat = reconcilierReferentiel([serviceOnisep], [ligne42])
 
       // Then
       expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
-        '42'
+        '6f1c-atelier-cv'
       ])
+    })
+
+    for (const [cas, uuid] of [
+      ['vide', ''],
+      ["fait d'espaces", '  '],
+      ['absent', null]
+    ] as const) {
+      it(`écarte une solution visible dont l'UUID est ${cas}, en la comptant`, () => {
+        // Given
+        const sansUuid = {
+          id: 2,
+          fields: uneSolutionGrist({ UUID: uuid as string | null }).fields
+        }
+
+        // When
+        const resultat = reconcilierReferentiel(
+          [serviceOnisep],
+          [uneSolutionGrist(), sansUuid]
+        )
+
+        // Then
+        expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+          'uuid-1'
+        ])
+        expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
+      })
+    }
+
+    it('ignore une ligne dupliquée (même UUID) au profit de la première, et la compte', () => {
+      // Given : la ligne 7 est une copie de la ligne 1 retouchée
+      const copie = {
+        id: 7,
+        fields: uneSolutionGrist({ Action_affichee_au_jeune: 'Copie' }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [copie, uneSolutionGrist()]
+      )
+
+      // Then
+      expect(resultat.solutions).to.have.length(1)
+      expect(resultat.solutions[0].libelle).to.equal('Je consulte des sites')
+      expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+      expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
     })
 
     it('ne synchronise que les lignes cochées Visible et compte les autres', () => {
@@ -419,7 +469,7 @@ describe('reconcilierReferentiel', () => {
 
       // Then
       expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
-        '1'
+        'uuid-1'
       ])
       expect(resultat.nbSolutionsMasquees).to.equal(2)
     })
