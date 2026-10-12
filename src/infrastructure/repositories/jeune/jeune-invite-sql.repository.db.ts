@@ -48,32 +48,27 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
   async recupererPourReprise(
     id: string
   ): Promise<
-    | { id: string; dateCreation: DateTime; idJeuneRepreneur?: string }
-    | undefined
+    { id: string; dateCreation: DateTime; dateReprise?: DateTime } | undefined
   > {
     const invite = await JeuneInviteSqlModel.findByPk(id, {
-      attributes: ['id', 'dateCreation', 'idJeuneRepreneur']
+      attributes: ['id', 'dateCreation', 'dateReprise']
     })
     if (!invite) return undefined
     return {
       id: invite.id,
       dateCreation: DateTime.fromJSDate(invite.dateCreation),
-      ...(invite.idJeuneRepreneur
-        ? { idJeuneRepreneur: invite.idJeuneRepreneur }
+      ...(invite.dateReprise
+        ? { dateReprise: DateTime.fromJSDate(invite.dateReprise) }
         : {})
     }
   }
 
   // Conditionnel : deux reprises concurrentes du même invité ne peuvent pas
   // réussir toutes les deux. false = l'invité était déjà repris (ou n'existe plus)
-  async marquerRepris(
-    id: string,
-    idJeuneRepreneur: string,
-    dateReprise: DateTime
-  ): Promise<boolean> {
+  async marquerRepris(id: string, dateReprise: DateTime): Promise<boolean> {
     const [nombreMisAJour] = await JeuneInviteSqlModel.update(
-      { idJeuneRepreneur, dateReprise: dateReprise.toJSDate() },
-      { where: { id, idJeuneRepreneur: null } }
+      { dateReprise: dateReprise.toJSDate() },
+      { where: { id, dateReprise: null } }
     )
     return nombreMisAJour > 0
   }

@@ -76,12 +76,6 @@ export class JeuneInviteDto extends Model {
   dateSignatureCGU: Date | null
 
   @Column({
-    field: 'id_jeune_repreneur',
-    type: DataType.STRING
-  })
-  idJeuneRepreneur: string | null
-
-  @Column({
     field: 'date_reprise',
     type: DataType.DATE
   })

@@ -11,12 +11,6 @@ module.exports = {
       )
       await queryInterface.addColumn(
         'jeune_invite',
-        'id_jeune_repreneur',
-        { type: Sequelize.STRING, allowNull: true },
-        { transaction }
-      )
-      await queryInterface.addColumn(
-        'jeune_invite',
         'date_reprise',
         { type: Sequelize.DATE, allowNull: true },
         { transaction }
@@ -27,9 +21,6 @@ module.exports = {
   down: async queryInterface => {
     await queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.removeColumn('jeune_invite', 'date_reprise', {
-        transaction
-      })
-      await queryInterface.removeColumn('jeune_invite', 'id_jeune_repreneur', {
         transaction
       })
       await queryInterface.removeColumn(

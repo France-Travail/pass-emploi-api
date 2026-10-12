@@ -18,14 +18,9 @@ export namespace JeuneInvite {
     recupererPourReprise(
       id: string
     ): Promise<
-      | { id: string; dateCreation: DateTime; idJeuneRepreneur?: string }
-      | undefined
+      { id: string; dateCreation: DateTime; dateReprise?: DateTime } | undefined
     >
-    marquerRepris(
-      id: string,
-      idJeuneRepreneur: string,
-      dateReprise: DateTime
-    ): Promise<boolean>
+    marquerRepris(id: string, dateReprise: DateTime): Promise<boolean>
     recupererInvitesRepris(): Promise<
       Array<{ id: string; idAuthentification: string }>
     >

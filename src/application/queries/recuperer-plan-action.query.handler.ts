@@ -69,13 +69,10 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     const idsSolutions = plan.objectifs.flatMap(objectif =>
       objectif.taches.map(tache => tache.idSolution)
     )
-    const solutions =
+
+    const solutionsAccessibles = (
       await this.referentielRepository.trouverSolutions(idsSolutions)
-    // Le plan survit à un changement de structure : on le conserve tel quel
-    // pour retrouver ses solutions si le jeune revient à son ancienne
-    // structure, mais on n'affiche que celles accessibles à sa structure
-    // actuelle
-    const solutionsAccessibles = solutions.filter(solution =>
+    ).filter(solution =>
       PlanAction.estAccessible(solution, utilisateur.profil.structure)
     )
 

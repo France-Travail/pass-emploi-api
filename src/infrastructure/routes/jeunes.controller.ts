@@ -553,7 +553,7 @@ export class JeunesController {
 
   @Post(':idJeune/reprise-invite')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UserJourney('compte_jeune')
+  @UserJourney('reprise_invite')
   @ApiOperation({
     summary: "Rattache au jeune connecté le compte invité qu'il utilisait",
     description:

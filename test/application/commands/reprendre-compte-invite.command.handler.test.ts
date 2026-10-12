@@ -140,7 +140,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       ).to.have.been.calledOnceWithExactly(idJeune, dateCreationInvite)
       expect(
         jeuneInviteRepository.marquerRepris
-      ).to.have.been.calledOnceWithExactly(idInvite, idJeune, maintenant)
+      ).to.have.been.calledOnceWithExactly(idInvite, maintenant)
       expect(evenementService.creer).to.have.been.calledOnceWithExactly(
         Evenement.Code.COMPTE_INVITE_REPRIS,
         utilisateur
@@ -201,13 +201,13 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(jeuneInviteRepository.marquerRepris).not.to.have.been.called()
     })
 
-    it("ne refait rien quand l'invité a déjà été repris par ce jeune", async () => {
+    it("ne refait rien quand l'invité a déjà été repris", async () => {
       // Given
       jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
       jeuneInviteRepository.recupererPourReprise.resolves({
         id: idInvite,
         dateCreation: dateCreationInvite,
-        idJeuneRepreneur: idJeune
+        dateReprise: maintenant
       })
 
       // When
@@ -217,23 +217,6 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(result).to.deep.equal(emptySuccess())
       expect(transactionService.executer).not.to.have.been.called()
       expect(evenementService.creer).not.to.have.been.called()
-    })
-
-    it("refuse quand l'invité a déjà été repris par un autre jeune", async () => {
-      // Given
-      jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
-      jeuneInviteRepository.recupererPourReprise.resolves({
-        id: idInvite,
-        dateCreation: dateCreationInvite,
-        idJeuneRepreneur: 'un-autre-jeune'
-      })
-
-      // When
-      const result = await handler.handle(command, utilisateur)
-
-      // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-      expect(transactionService.executer).not.to.have.been.called()
     })
 
     it('remonte une panne technique de vérification du jeton au lieu de refuser la preuve', async () => {
@@ -257,31 +240,12 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         jeuneInviteRepository.marquerRepris.resolves(false)
       })
 
-      it('refuse sans écrire la date ni tracer la reprise si un autre jeune a gagné', async () => {
+      it('répond comme un rejeu sans écrire la date ni tracer la reprise', async () => {
         // Given
         jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
           id: idInvite,
           dateCreation: dateCreationInvite,
-          idJeuneRepreneur: 'un-autre-jeune'
-        })
-
-        // When
-        const result = await handler.handle(command, utilisateur)
-
-        // Then
-        expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-        expect(
-          jeuneRepository.enregistrerPremiereUtilisationInvite
-        ).not.to.have.been.called()
-        expect(evenementService.creer).not.to.have.been.called()
-      })
-
-      it('répond comme un rejeu si ce jeune avait déjà gagné', async () => {
-        // Given
-        jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
-          id: idInvite,
-          dateCreation: dateCreationInvite,
-          idJeuneRepreneur: idJeune
+          dateReprise: maintenant
         })
 
         // When
@@ -289,6 +253,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
+        expect(
+          jeuneRepository.enregistrerPremiereUtilisationInvite
+        ).not.to.have.been.called()
         expect(evenementService.creer).not.to.have.been.called()
       })
 

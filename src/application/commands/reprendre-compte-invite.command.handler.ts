@@ -87,8 +87,8 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
 
     const invite =
       await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-    if (!invite || invite.idJeuneRepreneur) {
-      return this.issueSansReprise(idInvite, invite, command.idJeune)
+    if (!invite || invite.dateReprise) {
+      return this.issueSansReprise(idInvite, invite)
     }
 
     let reprisParCetAppel = false
@@ -96,7 +96,6 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       await this.transactionService.executer(async () => {
         reprisParCetAppel = await this.jeuneInviteRepository.marquerRepris(
           invite.id,
-          command.idJeune,
           this.dateService.now()
         )
         if (!reprisParCetAppel) return emptySuccess()
@@ -116,7 +115,7 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       // la lecture et l'écriture : on relit pour répondre selon son issue
       const inviteRelu =
         await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-      return this.issueSansReprise(idInvite, inviteRelu, command.idJeune)
+      return this.issueSansReprise(idInvite, inviteRelu)
     }
 
     // Ici et pas dans monitor : monitor ne distingue pas reprise et rejeu,
@@ -131,8 +130,7 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
 
   private issueSansReprise(
     idInvite: string,
-    invite: { idJeuneRepreneur?: string } | undefined,
-    idJeune: string
+    invite: { id: string } | undefined
   ): Result {
     if (!invite) {
       return this.echec(
@@ -140,11 +138,10 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
         new NonTrouveError('JeuneInvite', idInvite)
       )
     }
-    if (invite.idJeuneRepreneur === idJeune) {
-      this.logSucces('rejeu')
-      return emptySuccess()
-    }
-    return this.echec('deja_repris', new DroitsInsuffisants())
+    // Déjà repris : succès sans rien réécrire, pour que l'appel soit rejouable.
+    // Inutile de vérifier par qui : seul le détenteur du jeton invité appelle
+    this.logSucces('rejeu')
+    return emptySuccess()
   }
 
   async monitor(): Promise<void> {

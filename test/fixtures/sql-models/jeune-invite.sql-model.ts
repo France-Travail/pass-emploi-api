@@ -17,7 +17,6 @@ export function unJeuneInviteDto(
     instanceId: 'abcdef',
     timezone: 'Europe/Paris',
     dateSignatureCGU: null,
-    idJeuneRepreneur: null,
     dateReprise: null
   }
 
