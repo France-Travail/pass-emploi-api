@@ -25,17 +25,39 @@ import {
   JeuneInvite,
   JeuneInviteRepositoryToken
 } from '../../domain/jeune/jeune-invite'
+import {
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
+import {
+  ReferentielPlanAction,
+  ReferentielPlanActionRepositoryToken
+} from '../../domain/plan-action/referentiel-plan-action'
 import { estInvite, TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { JwtService } from '../../infrastructure/auth/jwt.service'
 import { profilDuClaim } from '../../infrastructure/auth/oidc.auth-guard'
 import { DateService } from '../../utils/date-service'
 import { toEcsError } from '../../utils/logger.helpers'
-import { rootLogger } from '../../utils/logger.module'
+import { rootLogger } from '../../utils/root-logger'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 
 export interface ReprendreCompteInviteCommand extends Command {
   idJeune: string
   jetonInvite: string
+  plan?: {
+    id: string
+    objectives: Array<{
+      id: string
+      titre: string
+      theme: string
+      actions: Array<{
+        id: string
+        idSolution: string
+        terminee: boolean
+      }>
+    }>
+  }
 }
 
 const CONTEXT_LOG = 'ReprendreCompteInviteCommandHandler'
@@ -54,6 +76,10 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     private readonly jeuneInviteRepository: JeuneInvite.Repository,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
+    @Inject(ReferentielPlanActionRepositoryToken)
+    private readonly referentielRepository: ReferentielPlanAction.Repository,
     private readonly evenementService: EvenementService,
     private readonly dateService: DateService,
     @Inject(TransactionServiceToken)
@@ -103,6 +129,15 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
           command.idJeune,
           invite.dateCreation
         )
+        if (command.plan) {
+          const planDomaine = await this.construirePlanDomaine(
+            command.idJeune,
+            command.plan
+          )
+          if (planDomaine) {
+            await this.planActionRepository.save(planDomaine)
+          }
+        }
         return emptySuccess()
       })
     } catch (e) {
@@ -191,5 +226,54 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       },
       'invite_account_migrated'
     )
+  }
+
+  private async construirePlanDomaine(
+    idJeune: string,
+    planPayload: NonNullable<ReprendreCompteInviteCommand['plan']>
+  ): Promise<PlanAction | undefined> {
+    const idsRequis = planPayload.objectives.flatMap(objectif =>
+      objectif.actions.map(action => action.idSolution)
+    )
+    const solutionsConnues =
+      await this.referentielRepository.trouverSolutions(idsRequis)
+    const idsSolutionsValides = new Set(
+      solutionsConnues.map(solution => solution.id)
+    )
+
+    const maintenant = this.dateService.now()
+    const objectifsFiltre = planPayload.objectives
+      .map(objectif => {
+        const actionsValides = objectif.actions.filter(action =>
+          idsSolutionsValides.has(action.idSolution)
+        )
+        if (actionsValides.length === 0) return undefined
+
+        return {
+          id: objectif.id,
+          titre: objectif.titre,
+          theme: objectif.theme as
+            Questionnaire.Besoin | Questionnaire.Contrainte,
+          taches: actionsValides.map(action => ({
+            id: action.id,
+            idSolution: action.idSolution,
+            terminee: action.terminee,
+            dateCreation: maintenant,
+            ...(action.terminee ? { dateTerminee: maintenant } : {})
+          }))
+        }
+      })
+      .filter(
+        (objectif): objectif is PlanAction.Objectif => objectif !== undefined
+      )
+
+    if (objectifsFiltre.length === 0) return undefined
+
+    return {
+      id: planPayload.id,
+      idJeune,
+      dateCreation: maintenant,
+      objectifs: objectifsFiltre
+    }
   }
 }

@@ -20,6 +20,9 @@ import {
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { JeuneInvite } from '../../../src/domain/jeune/jeune-invite'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
+import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
+import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import { DateService } from '../../../src/utils/date-service'
@@ -34,6 +37,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
   let jwtService: StubbedClass<JwtService>
   let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
+  let planActionRepository: StubbedType<PlanAction.Repository>
+  let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
   let evenementService: StubbedClass<EvenementService>
   let dateService: StubbedClass<DateService>
   let transactionService: StubbedType<Transaction.Service>
@@ -62,6 +67,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       jwtService,
       jeuneInviteRepository,
       jeuneRepository,
+      planActionRepository,
+      referentielRepository,
       evenementService,
       dateService,
       transactionService,
@@ -75,6 +82,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
     jwtService = stubClass(JwtService)
     jeuneInviteRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
+    planActionRepository = stubInterface(sandbox)
+    referentielRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     dateService = stubClass(DateService)
     dateService.now.returns(maintenant)
@@ -274,6 +283,158 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         )
         expect(evenementService.creer).not.to.have.been.called()
       })
+    })
+
+    describe('avec un plan fourni', () => {
+      const idSolution1 = 'solution-1'
+      const idSolution2 = 'solution-2'
+      const idSolutionInconnue = 'solution-inconnue'
+      const commandAvecPlan: ReprendreCompteInviteCommand = {
+        ...command,
+        plan: {
+          id: 'plan-id',
+          objectives: [
+            {
+              id: 'objectif-1',
+              titre: "M'orienter",
+              theme: Questionnaire.Besoin.ORIENTER,
+              actions: [
+                { id: 'action-1', idSolution: idSolution1, terminee: true },
+                { id: 'action-2', idSolution: idSolution2, terminee: false }
+              ]
+            },
+            {
+              id: 'objectif-2',
+              titre: 'Passer mon permis',
+              theme: Questionnaire.Contrainte.PAS_DE_PERMIS,
+              actions: [
+                {
+                  id: 'action-3',
+                  idSolution: idSolutionInconnue,
+                  terminee: false
+                }
+              ]
+            }
+          ]
+        }
+      }
+
+      beforeEach(() => {
+        jwtService.verifyTokenAndGetJwt
+          .withArgs('jeton-invite')
+          .resolves(payloadInvite)
+        jeuneInviteRepository.recupererPourReprise
+          .withArgs(idInvite)
+          .resolves({ id: idInvite, dateCreation: dateCreationInvite })
+        jeuneInviteRepository.marquerRepris.resolves(true)
+      })
+
+      it('stocke le plan fourni avec les ids du client, en écartant les solutions inconnues et les objectifs vides', async () => {
+        // Given
+        referentielRepository.trouverSolutions
+          .withArgs([idSolution1, idSolution2, idSolutionInconnue])
+          .resolves([
+            { id: idSolution1 } as ReferentielPlanAction.Solution,
+            { id: idSolution2 } as ReferentielPlanAction.Solution
+          ])
+
+        // When
+        const result = await handler.handle(commandAvecPlan, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.save).to.have.been.calledOnceWithExactly({
+          id: 'plan-id',
+          idJeune,
+          dateCreation: maintenant,
+          objectifs: [
+            {
+              id: 'objectif-1',
+              titre: "M'orienter",
+              theme: Questionnaire.Besoin.ORIENTER,
+              taches: [
+                {
+                  id: 'action-1',
+                  idSolution: idSolution1,
+                  terminee: true,
+                  dateCreation: maintenant,
+                  dateTerminee: maintenant
+                },
+                {
+                  id: 'action-2',
+                  idSolution: idSolution2,
+                  terminee: false,
+                  dateCreation: maintenant
+                }
+              ]
+            }
+          ]
+        })
+      })
+
+      it('ne stocke pas le plan quand toutes les solutions sont inconnues', async () => {
+        // Given
+        referentielRepository.trouverSolutions.resolves([])
+
+        // When
+        const result = await handler.handle(commandAvecPlan, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.save).not.to.have.been.called()
+      })
+
+      it('ne stocke pas le plan en rejeu (invité déjà repris)', async () => {
+        // Given
+        jeuneInviteRepository.recupererPourReprise.resolves({
+          id: idInvite,
+          dateCreation: dateCreationInvite,
+          dateReprise: maintenant
+        })
+
+        // When
+        const result = await handler.handle(commandAvecPlan, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.save).not.to.have.been.called()
+      })
+
+      it('ne stocke pas le plan en concurrence perdue', async () => {
+        // Given
+        jeuneInviteRepository.marquerRepris.resolves(false)
+        jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
+          id: idInvite,
+          dateCreation: dateCreationInvite,
+          dateReprise: maintenant
+        })
+
+        // When
+        const result = await handler.handle(commandAvecPlan, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.save).not.to.have.been.called()
+      })
+    })
+
+    it("ne stocke pas de plan quand il n'est pas fourni", async () => {
+      // Given
+      jwtService.verifyTokenAndGetJwt
+        .withArgs('jeton-invite')
+        .resolves(payloadInvite)
+      jeuneInviteRepository.recupererPourReprise
+        .withArgs(idInvite)
+        .resolves({ id: idInvite, dateCreation: dateCreationInvite })
+      jeuneInviteRepository.marquerRepris.resolves(true)
+
+      // When
+      const result = await handler.handle(command, utilisateur)
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(planActionRepository.save).not.to.have.been.called()
+      expect(referentielRepository.trouverSolutions).not.to.have.been.called()
     })
   })
 })

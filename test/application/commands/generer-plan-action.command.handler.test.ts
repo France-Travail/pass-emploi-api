@@ -7,9 +7,11 @@ import {
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import { TypeActionPlan } from '../../../src/application/queries/query-models/plan-action.query-model'
+import { Transaction } from '../../../src/building-blocks/transaction'
 import {
   emptySuccess,
   failure,
+  Result,
   success
 } from '../../../src/building-blocks/types/result'
 import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
@@ -38,6 +40,7 @@ describe('GenererPlanActionCommandHandler', () => {
   let planActionRepository: StubbedType<PlanAction.Repository>
   let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
+  let transactionService: StubbedType<Transaction.Service>
   let handler: GenererPlanActionCommandHandler
 
   const maintenant = uneDatetime()
@@ -92,7 +95,8 @@ describe('GenererPlanActionCommandHandler', () => {
       planActionRepository,
       planActionFactory,
       evenementService,
-      configService
+      configService,
+      transactionService
     )
   }
 
@@ -104,6 +108,10 @@ describe('GenererPlanActionCommandHandler', () => {
     planActionRepository = stubInterface(sandbox)
     planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
+    transactionService = stubInterface(sandbox)
+    transactionService.executer.callsFake((operation: () => Promise<Result>) =>
+      operation()
+    )
     command = {
       idJeune: utilisateur.id,
       situation: Questionnaire.Situation.LYCEE,

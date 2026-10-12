@@ -565,7 +565,11 @@ export class JeunesController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<void> {
     const result = await this.reprendreCompteInviteCommandHandler.execute(
-      { idJeune, jetonInvite: payload.jetonInvite },
+      {
+        idJeune,
+        jetonInvite: payload.jetonInvite,
+        ...(payload.plan ? { plan: payload.plan } : {})
+      },
       utilisateur
     )
 

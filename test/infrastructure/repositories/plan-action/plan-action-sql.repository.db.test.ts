@@ -70,7 +70,7 @@ describe('PlanActionSqlRepository', () => {
     const idService = stubClass(IdService)
     const dateService = stubClass(DateService)
 
-    planActionSqlRepository = new PlanActionSqlRepository(database.sequelize)
+    planActionSqlRepository = new PlanActionSqlRepository()
 
     const conseillerRepository = new ConseillerSqlRepository()
     await conseillerRepository.save(unConseiller())
