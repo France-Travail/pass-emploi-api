@@ -56,14 +56,17 @@ describe('RecupererPlanActionQueryHandler', () => {
     }
   }
 
-  function uneSolution(): ReferentielPlanAction.Solution {
+  function uneSolution(
+    args: Partial<ReferentielPlanAction.Solution> = {}
+  ): ReferentielPlanAction.Solution {
     return {
       id: 'p-1',
       type: ReferentielPlanAction.TypeSolution.NAVIGATION,
       libelle: "Je vais sur l'appli",
       situations: [],
-      authentifications: [Profil.Structure.FRANCE_TRAVAIL],
-      territoires: []
+      authentifications: [Profil.Structure.MILO],
+      territoires: [],
+      ...args
     }
   }
 
@@ -233,6 +236,102 @@ describe('RecupererPlanActionQueryHandler', () => {
             }
           ]
         })
+      )
+    })
+
+    it("n'affiche que les solutions accessibles à la structure actuelle du jeune", async () => {
+      // Given
+      const plan: PlanAction = {
+        ...unPlan(),
+        objectifs: [
+          {
+            ...unPlan().objectifs[0],
+            taches: [
+              ...unPlan().objectifs[0].taches,
+              {
+                id: 'tache-2',
+                idSolution: 'p-2',
+                terminee: true,
+                dateCreation: maintenant
+              },
+              {
+                id: 'tache-3',
+                idSolution: 'p-3',
+                terminee: false,
+                dateCreation: maintenant
+              }
+            ]
+          }
+        ]
+      }
+      planActionRepository.getDernierPlan.withArgs(query.idJeune).resolves(plan)
+      referentielRepository.trouverSolutions
+        .withArgs(['p-1', 'p-2', 'p-3'])
+        .resolves([
+          uneSolution(),
+          uneSolution({
+            id: 'p-2',
+            libelle: 'Réservée France Travail',
+            authentifications: [Profil.Structure.FRANCE_TRAVAIL]
+          }),
+          uneSolution({
+            id: 'p-3',
+            libelle: 'Ouverte à tous',
+            authentifications: []
+          })
+        ])
+
+      // When
+      const result = await handler.handle(query, utilisateur)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          id: 'plan-1',
+          objectives: [
+            {
+              id: 'objectif-1',
+              titre: 'Trouver une alternance',
+              theme: Questionnaire.Besoin.ALTERNANCE,
+              actions: [
+                {
+                  id: 'tache-1',
+                  libelle: "Je vais sur l'appli",
+                  type: TypeActionPlan.NAVIGATION,
+                  terminee: false,
+                  declarationRequise: true
+                },
+                {
+                  id: 'tache-3',
+                  libelle: 'Ouverte à tous',
+                  type: TypeActionPlan.NAVIGATION,
+                  terminee: false,
+                  declarationRequise: true
+                }
+              ]
+            }
+          ]
+        })
+      )
+    })
+
+    it("renvoie une NonTrouveError quand aucune solution du plan n'est accessible à la structure actuelle du jeune", async () => {
+      // Given
+      planActionRepository.getDernierPlan
+        .withArgs(query.idJeune)
+        .resolves(unPlan())
+      referentielRepository.trouverSolutions
+        .withArgs(['p-1'])
+        .resolves([
+          uneSolution({ authentifications: [Profil.Structure.FRANCE_TRAVAIL] })
+        ])
+
+      // When
+      const result = await handler.handle(query, utilisateur)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('PlanAction', query.idJeune))
       )
     })
   })

@@ -71,10 +71,17 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     )
     const solutions =
       await this.referentielRepository.trouverSolutions(idsSolutions)
+    // Le plan survit à un changement de structure : on le conserve tel quel
+    // pour retrouver ses solutions si le jeune revient à son ancienne
+    // structure, mais on n'affiche que celles accessibles à sa structure
+    // actuelle
+    const solutionsAccessibles = solutions.filter(solution =>
+      PlanAction.estAccessible(solution, utilisateur.profil.structure)
+    )
 
     const queryModel = toPlanActionQueryModel(
       plan,
-      solutions,
+      solutionsAccessibles,
       utilisateur.profil
     )
     if (!queryModel.objectives.length) {

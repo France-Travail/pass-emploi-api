@@ -146,9 +146,16 @@ export namespace PlanAction {
     questionnaire: Questionnaire,
     solution: ReferentielPlanAction.Solution
   ): boolean {
+    return estAccessible(solution, questionnaire.structure)
+  }
+
+  export function estAccessible(
+    solution: ReferentielPlanAction.Solution,
+    structure: Profil.Structure
+  ): boolean {
     return (
       solution.authentifications.length === 0 ||
-      solution.authentifications.includes(questionnaire.structure)
+      solution.authentifications.includes(structure)
     )
   }
 
