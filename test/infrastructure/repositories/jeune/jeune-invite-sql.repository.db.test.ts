@@ -111,9 +111,9 @@ describe('JeuneInviteSqlRepository', () => {
       await repository.supprimerPlusieurs(['a-supprimer-1', 'a-supprimer-2'])
 
       // Then
-      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-1')).to.equal(null)
-      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-2')).to.equal(null)
-      expect(await JeuneInviteSqlModel.findByPk('a-garder')).not.to.equal(null)
+      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-1')).to.be.null()
+      expect(await JeuneInviteSqlModel.findByPk('a-supprimer-2')).to.be.null()
+      expect(await JeuneInviteSqlModel.findByPk('a-garder')).to.not.be.null()
     })
   })
 
@@ -162,7 +162,7 @@ describe('JeuneInviteSqlRepository', () => {
       const invite = await repository.recupererPourReprise('inconnu')
 
       // Then
-      expect(invite).to.equal(undefined)
+      expect(invite).to.be.undefined()
     })
   })
 

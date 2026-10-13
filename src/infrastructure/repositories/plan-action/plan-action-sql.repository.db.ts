@@ -73,6 +73,14 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
     }
   }
 
+  async existePourJeune(idJeune: string): Promise<boolean> {
+    const plan = await PlanActionSqlModel.findOne({
+      where: { idJeune },
+      attributes: ['id']
+    })
+    return plan !== null
+  }
+
   async getTache(
     idJeune: string,
     idTache: string

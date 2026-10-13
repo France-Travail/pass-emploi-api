@@ -167,6 +167,8 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     planInvite: PlanAction.PlanInvite,
     maintenant: DateTime
   ): Promise<void> {
+    if (await this.planActionRepository.existePourJeune(idJeune)) return
+
     const idsSolutions = planInvite.objectifs.flatMap(objectif =>
       objectif.taches.map(tache => tache.idSolution)
     )

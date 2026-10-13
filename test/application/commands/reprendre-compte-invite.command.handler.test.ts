@@ -358,6 +358,21 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         expect(planActionRepository.save).not.to.have.been.called()
       })
 
+      it('ne stocke pas le plan quand le compte connecté a déjà un plan', async () => {
+        // Given
+        planActionRepository.existePourJeune.withArgs(idJeune).resolves(true)
+
+        // When
+        const result = await handler.handle(commandAvecPlan, utilisateur)
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(planActionRepository.save).not.to.have.been.called()
+        expect(
+          jeuneRepository.enregistrerPremiereUtilisationInvite
+        ).to.have.been.calledOnce()
+      })
+
       it('ne stocke pas le plan en rejeu (invité déjà repris)', async () => {
         // Given
         jeuneInviteRepository.recupererPourReprise.withArgs(idInvite).resolves({

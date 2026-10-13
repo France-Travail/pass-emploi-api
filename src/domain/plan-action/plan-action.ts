@@ -52,6 +52,8 @@ export namespace PlanAction {
 
     getDernierPlan(idJeune: string): Promise<PlanAction | undefined>
 
+    existePourJeune(idJeune: string): Promise<boolean>
+
     getTache(idJeune: string, idTache: string): Promise<Tache | undefined>
 
     saveTache(tache: Tache): Promise<void>

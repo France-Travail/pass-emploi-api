@@ -284,6 +284,28 @@ describe('PlanActionSqlRepository', () => {
     })
   })
 
+  describe('existePourJeune', () => {
+    it('rend true quand le jeune a un plan', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+
+      // When
+      const existe = await planActionSqlRepository.existePourJeune('jeune-1')
+
+      // Then
+      expect(existe).to.equal(true)
+    })
+
+    it("rend false quand le jeune n'a pas de plan", async () => {
+      // When
+      const existe = await planActionSqlRepository.existePourJeune('jeune-1')
+
+      // Then
+      expect(existe).to.equal(false)
+    })
+  })
+
   describe('getTache', () => {
     const idTache = '11111111-1111-1111-1111-111111111111'
 

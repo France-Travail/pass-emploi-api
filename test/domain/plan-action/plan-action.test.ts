@@ -350,7 +350,7 @@ describe('PlanAction', () => {
       expect(plan.idJeune).to.equal('jeune-1')
       expect(plan.dateCreation).to.deep.equal(maintenant)
       expect(plan.objectifs[0].taches[0].terminee).to.equal(false)
-      expect(plan.objectifs[0].taches[0].dateTerminee).to.equal(undefined)
+      expect(plan.objectifs[0].taches[0].dateTerminee).to.be.undefined()
     })
 
     it('ne retient que les solutions éligibles à la date du jour', () => {
@@ -775,7 +775,7 @@ describe('PlanAction', () => {
       )
 
       // Then
-      expect(plan).to.equal(undefined)
+      expect(plan).to.be.undefined()
     })
   })
 
