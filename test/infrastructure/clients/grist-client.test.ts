@@ -79,7 +79,7 @@ describe('GristClient', () => {
       nock(grist.url)
         .get(`/api/docs/${grist.docId}/tables/${grist.tableSolutions}/records`)
         .matchHeader('authorization', `Bearer ${grist.apiKey}`)
-        .reply(200, { records: [{ id: 1, fields: { Id_technique: 'p-2' } }] })
+        .reply(200, { records: [{ id: 1, fields: { Visible: true } }] })
 
       // When
       const result = await client.recupererSolutions()

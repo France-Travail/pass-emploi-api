@@ -8,12 +8,16 @@ export interface GristRecordsDto<T> {
 }
 
 export interface GristServiceFieldsDto {
-  Nom: string
+  Nom: string | null
   Description: string
 }
 
 export interface GristSolutionFieldsDto {
-  Id_technique: string
+  // Posé par formule déclencheur à la création de la ligne : identité stable
+  // de la solution, le numéro de ligne Grist pouvant être réattribué
+  UUID: string | null
+  // Case à cocher du métier : seules les lignes cochées sont synchronisées
+  Visible: boolean
   Envie: string
   Blocage: string
   Sous_categorie: string

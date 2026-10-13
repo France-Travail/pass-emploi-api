@@ -10,6 +10,10 @@ import { rootLogger } from '../../../utils/logger.module'
 
 const CONTEXT = 'ReferentielPlanActionMapper'
 
+// Taille de la colonne nom des services : au-delà, l'insertion échouerait et
+// ferait tomber toute la synchronisation
+const LONGUEUR_MAX_NOM_SERVICE = 255
+
 const typeParLibelle: Record<string, ReferentielPlanAction.TypeSolution> = {
   'Lien web': ReferentielPlanAction.TypeSolution.LIEN,
   "Écran de l'app": ReferentielPlanAction.TypeSolution.NAVIGATION,
@@ -82,44 +86,33 @@ export function reconcilierReferentiel(
   const anomalies: ReferentielPlanAction.Anomalies = {
     nbServicesNonResolus: 0,
     nbDoublonsServices: 0,
-    nbDoublonsSolutions: 0,
+    nbServicesEcartes: 0,
     nbSolutionsEcartees: 0,
+    nbDoublonsSolutions: 0,
     nbValeursNonReconnues: 0
   }
 
   const { services, serviceParNom } = indexerServices(servicesGrist, anomalies)
 
   const solutions: ReferentielPlanAction.Solution[] = []
-  const idsVus = new Set<string>()
+  const uuidsVus = new Set<string>()
+  let nbSolutionsMasquees = 0
 
   for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
-    const idTechnique = record.fields.Id_technique
-    if (!texte(idTechnique)) {
-      anomalies.nbSolutionsEcartees++
-      logAnomalie('Solution Grist écartée : identifiant technique manquant', {
-        raison: 'id_manquant',
-        ligne_grist: record.id
-      })
+    // Le métier décide de ce qui est servi aux jeunes en cochant « Visible »
+    if (record.fields.Visible !== true) {
+      nbSolutionsMasquees++
       continue
     }
-    if (idsVus.has(idTechnique)) {
-      anomalies.nbDoublonsSolutions++
-      logAnomalie(
-        "Solution Grist en doublon d'identifiant technique, ligne ignorée",
-        {
-          id_technique: idTechnique,
-          ligne_grist: record.id
-        }
-      )
-      continue
-    }
-    idsVus.add(idTechnique)
 
-    const solution = construireSolution(record, serviceParNom, anomalies)
+    const uuid = resoudreUuid(record, uuidsVus, anomalies)
+    if (!uuid) continue
+
+    const solution = construireSolution(record, uuid, serviceParNom, anomalies)
     if (solution) solutions.push(solution)
   }
 
-  return { services, solutions, anomalies }
+  return { services, solutions, nbSolutionsMasquees, anomalies }
 }
 
 // Les services sont indexés par nom : c'est la seule clé dont disposent les
@@ -135,14 +128,29 @@ function indexerServices(
   const serviceParNom = new Map<string, ReferentielPlanAction.Service>()
 
   for (const record of [...servicesGrist].sort((a, b) => a.id - b.id)) {
+    // Le nom est la clé de jointure : sans lui le service est inutilisable
+    const nom = record.fields.Nom
+    const nomIndexe = typeof nom === 'string' ? nom.trim() : ''
+    if (
+      typeof nom !== 'string' ||
+      !nomIndexe ||
+      nom.length > LONGUEUR_MAX_NOM_SERVICE
+    ) {
+      anomalies.nbServicesEcartes++
+      logAnomalie('Service Grist écarté : nom invalide', {
+        ligne_grist: record.id,
+        raison: nomIndexe ? 'nom_trop_long' : 'nom_vide'
+      })
+      continue
+    }
+
     const service: ReferentielPlanAction.Service = {
       id: String(record.id),
-      nom: record.fields.Nom,
+      nom,
       ...optionnel('description', texte(record.fields.Description))
     }
     services.push(service)
 
-    const nomIndexe = record.fields.Nom.trim()
     const dejaIndexe = serviceParNom.get(nomIndexe)
     if (dejaIndexe) {
       anomalies.nbDoublonsServices++
@@ -159,10 +167,39 @@ function indexerServices(
   return { services, serviceParNom }
 }
 
+// L'UUID est l'identité de la solution : sans lui la ligne est écartée, et une
+// ligne dupliquée (même UUID) est ignorée au profit de la première
+function resoudreUuid(
+  record: GristRecordDto<GristSolutionFieldsDto>,
+  uuidsVus: Set<string>,
+  anomalies: ReferentielPlanAction.Anomalies
+): string | undefined {
+  const uuid = texte(record.fields.UUID)
+  if (!uuid) {
+    anomalies.nbSolutionsEcartees++
+    logAnomalie('Solution Grist écartée : UUID manquant', {
+      ligne_grist: record.id,
+      raison: 'uuid_manquant'
+    })
+    return undefined
+  }
+  if (uuidsVus.has(uuid)) {
+    anomalies.nbDoublonsSolutions++
+    logAnomalie("Solution Grist en doublon d'UUID, ligne ignorée", {
+      ligne_grist: record.id,
+      uuid
+    })
+    return undefined
+  }
+  uuidsVus.add(uuid)
+  return uuid
+}
+
 // Rend undefined quand la ligne n'est pas exploitable, après avoir compté
 // l'anomalie correspondante
 function construireSolution(
   record: GristRecordDto<GristSolutionFieldsDto>,
+  uuid: string,
   serviceParNom: Map<string, ReferentielPlanAction.Service>,
   anomalies: ReferentielPlanAction.Anomalies
 ): ReferentielPlanAction.Solution | undefined {
@@ -172,7 +209,7 @@ function construireSolution(
   if (!type) {
     anomalies.nbSolutionsEcartees++
     logAnomalie('Solution Grist écartée : type de tâche inconnu', {
-      id_technique: fields.Id_technique,
+      ligne_grist: record.id,
       raison: 'type_inconnu',
       valeur: fields.Type
     })
@@ -188,7 +225,7 @@ function construireSolution(
         ? 'Solution Grist écartée : écran de navigation inconnu'
         : 'Solution Grist écartée : navigation sans écran renseigné',
       {
-        id_technique: fields.Id_technique,
+        ligne_grist: record.id,
         raison: valeurEcran ? 'ecran_inconnu' : 'navigation_sans_ecran',
         ...optionnel('valeur', valeurEcran)
       }
@@ -201,20 +238,20 @@ function construireSolution(
   if (nomService && !service) {
     anomalies.nbServicesNonResolus++
     logAnomalie('Service Grist non résolu pour une solution', {
-      id_technique: fields.Id_technique,
+      ligne_grist: record.id,
       nom_cherche: nomService
     })
   }
 
   return {
-    id: fields.Id_technique,
+    id: uuid,
     ...optionnel(
       'besoin',
       resoudreEnum(
         'Envie',
         fields.Envie,
         besoinParLibelle,
-        fields.Id_technique,
+        record.id,
         anomalies
       )
     ),
@@ -224,7 +261,7 @@ function construireSolution(
         'Blocage',
         fields.Blocage,
         contrainteParLibelle,
-        fields.Id_technique,
+        record.id,
         anomalies
       )
     ),
@@ -239,14 +276,14 @@ function construireSolution(
       'Situations',
       fields.Situations,
       situationParLibelle,
-      fields.Id_technique,
+      record.id,
       anomalies
     ),
     authentifications: resoudreListe(
       'Authentification',
       fields.Authentification,
       structuresParLibelle,
-      fields.Id_technique,
+      record.id,
       anomalies
     ).flat(),
     territoires: liste(fields.Territoire),
@@ -262,7 +299,7 @@ function resoudreEnum<V>(
   colonne: string,
   valeurGrist: string,
   table: Record<string, V>,
-  idTechnique: string,
+  ligneGrist: number,
   anomalies: ReferentielPlanAction.Anomalies
 ): V | undefined {
   const propre = texte(valeurGrist)
@@ -271,7 +308,7 @@ function resoudreEnum<V>(
   if (!resolu) {
     anomalies.nbValeursNonReconnues++
     logAnomalie('Valeur Grist non reconnue, solution conservée', {
-      id_technique: idTechnique,
+      ligne_grist: ligneGrist,
       colonne,
       valeur: propre
     })
@@ -283,7 +320,7 @@ function resoudreListe<V>(
   colonne: string,
   valeurGrist: string | null | undefined,
   table: Record<string, V>,
-  idTechnique: string,
+  ligneGrist: number,
   anomalies: ReferentielPlanAction.Anomalies
 ): V[] {
   const resolues: V[] = []
@@ -294,7 +331,7 @@ function resoudreListe<V>(
     } else {
       anomalies.nbValeursNonReconnues++
       logAnomalie('Valeur Grist non reconnue, solution conservée', {
-        id_technique: idTechnique,
+        ligne_grist: ligneGrist,
         colonne,
         valeur: libelle
       })

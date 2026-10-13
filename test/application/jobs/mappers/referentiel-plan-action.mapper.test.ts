@@ -21,7 +21,8 @@ describe('reconcilierReferentiel', () => {
     return {
       id: 1,
       fields: {
-        Id_technique: 'p-2',
+        UUID: 'uuid-1',
+        Visible: true,
         Envie: "M'orienter",
         Blocage: '',
         Sous_categorie: "Consulter des sites d'orientation",
@@ -205,28 +206,6 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
   })
 
-  it('écarte une solution sans identifiant technique', () => {
-    // When
-    const resultat = reconcilierReferentiel(
-      [serviceOnisep],
-      [
-        uneSolutionGrist({ Id_technique: '' }),
-        { id: 2, fields: uneSolutionGrist({ Id_technique: '  ' }).fields },
-        {
-          id: 3,
-          fields: uneSolutionGrist({
-            Id_technique: null as unknown as string
-          }).fields
-        }
-      ]
-    )
-
-    // Then
-    expect(resultat.solutions).to.deep.equal([])
-    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(3)
-    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(0)
-  })
-
   it('importe sans service une solution dont le nom ne résout rien', () => {
     // When
     const resultat = reconcilierReferentiel(
@@ -321,20 +300,192 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
-  it("écarte les solutions en doublon d'identifiant technique", () => {
-    // Given
-    const premiere = uneSolutionGrist()
-    const seconde = { id: 9, fields: uneSolutionGrist().fields }
+  describe('nom du service', () => {
+    ;[
+      ['vide', ''],
+      ["fait d'espaces", '   '],
+      ['absent', null]
+    ].forEach(([cas, nom]) => {
+      it(`écarte un service dont le nom est ${cas}, garde les autres et importe les solutions`, () => {
+        // Given
+        const sansNom: GristRecordDto<GristServiceFieldsDto> = {
+          id: 7,
+          fields: { Nom: nom, Description: 'un service sans nom' }
+        }
 
-    // When
-    const resultat = reconcilierReferentiel(
-      [serviceOnisep],
-      [premiere, seconde]
-    )
+        // When
+        const resultat = reconcilierReferentiel(
+          [sansNom, serviceOnisep],
+          [uneSolutionGrist()]
+        )
 
-    // Then
-    expect(resultat.solutions).to.have.length(1)
-    expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+        // Then
+        expect(resultat.services.map(service => service.id)).to.deep.equal([
+          '1'
+        ])
+        expect(resultat.solutions[0].service?.nom).to.equal('ONISEP')
+        expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+      })
+    })
+
+    it('écarte un service dont le nom dépasse la taille de la colonne', () => {
+      // Given
+      const nomTropLong: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: { Nom: 'x'.repeat(256), Description: '' }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [nomTropLong, serviceOnisep],
+        [uneSolutionGrist()]
+      )
+
+      // Then
+      expect(resultat.services.map(service => service.id)).to.deep.equal(['1'])
+      expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+    })
+
+    it("écarte un service dont le nom n'est pas un texte plutôt que de le convertir", () => {
+      // Given : une cellule en erreur de formule arrive sous forme de liste
+      const nomEnErreur: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: {
+          Nom: ['E', 'ValueError'] as unknown as string,
+          Description: ''
+        }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel([nomEnErreur], [])
+
+      // Then
+      expect(resultat.services).to.deep.equal([])
+      expect(resultat.anomalies.nbServicesEcartes).to.equal(1)
+    })
+
+    it("importe sans service la solution qui désignait un service écarté, sans l'écarter elle-même", () => {
+      // Given
+      const sansNom: GristRecordDto<GristServiceFieldsDto> = {
+        id: 7,
+        fields: { Nom: null, Description: '' }
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [sansNom],
+        [uneSolutionGrist({ Service: 'ONISEP' })]
+      )
+
+      // Then
+      expect(resultat.solutions).to.have.length(1)
+      expect(resultat.solutions[0].service).to.be.undefined()
+      expect(resultat.anomalies.nbServicesNonResolus).to.equal(1)
+    })
+  })
+
+  describe('visibilité et identifiant', () => {
+    it("identifie la solution par l'UUID posé par Grist, pas par son numéro de ligne", () => {
+      // Given
+      const ligne42 = {
+        id: 42,
+        fields: uneSolutionGrist({ UUID: ' 6f1c-atelier-cv ' }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel([serviceOnisep], [ligne42])
+
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        '6f1c-atelier-cv'
+      ])
+    })
+
+    for (const [cas, uuid] of [
+      ['vide', ''],
+      ["fait d'espaces", '  '],
+      ['absent', null]
+    ] as const) {
+      it(`écarte une solution visible dont l'UUID est ${cas}, en la comptant`, () => {
+        // Given
+        const sansUuid = {
+          id: 2,
+          fields: uneSolutionGrist({ UUID: uuid as string | null }).fields
+        }
+
+        // When
+        const resultat = reconcilierReferentiel(
+          [serviceOnisep],
+          [uneSolutionGrist(), sansUuid]
+        )
+
+        // Then
+        expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+          'uuid-1'
+        ])
+        expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
+      })
+    }
+
+    it('ignore une ligne dupliquée (même UUID) au profit de la première, et la compte', () => {
+      // Given : la ligne 7 est une copie de la ligne 1 retouchée
+      const copie = {
+        id: 7,
+        fields: uneSolutionGrist({ Action_affichee_au_jeune: 'Copie' }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [copie, uneSolutionGrist()]
+      )
+
+      // Then
+      expect(resultat.solutions).to.have.length(1)
+      expect(resultat.solutions[0].libelle).to.equal('Je consulte des sites')
+      expect(resultat.anomalies.nbDoublonsSolutions).to.equal(1)
+      expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    })
+
+    it('ne synchronise que les lignes cochées Visible et compte les autres', () => {
+      // Given
+      const visible = uneSolutionGrist()
+      const decochee = {
+        id: 2,
+        fields: uneSolutionGrist({ Visible: false }).fields
+      }
+      const jamaisCochee = {
+        id: 3,
+        fields: uneSolutionGrist({
+          Visible: null as unknown as boolean
+        }).fields
+      }
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [visible, decochee, jamaisCochee]
+      )
+
+      // Then
+      expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+        'uuid-1'
+      ])
+      expect(resultat.nbSolutionsMasquees).to.equal(2)
+    })
+
+    it('ne compte pas en anomalie une ligne masquée, même incomplète', () => {
+      // Given : une ligne en cours de rédaction, sans type
+      const brouillon = uneSolutionGrist({ Visible: false, Type: '' })
+
+      // When
+      const resultat = reconcilierReferentiel([serviceOnisep], [brouillon])
+
+      // Then
+      expect(resultat.solutions).to.deep.equal([])
+      expect(resultat.nbSolutionsMasquees).to.equal(1)
+      expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    })
   })
 
   it('traduit les libellés de situation du questionnaire', () => {
