@@ -250,8 +250,9 @@ export function buildError(message: string, error: Error): LogError {
 }
 
 // Conversion d'une erreur vers le format ECS error.{type,message,stack_trace}.
-// Gère trois shapes : Error JS (handlers job/exception), DomainError
-// (Result.failure code/message[,reason]), valeur inconnue.
+// Gère quatre shapes : Error JS (handlers job/exception), DomainError
+// (Result.failure code/message[,reason]), SuiviJob.erreur ({ message, stack }
+// sans classe), valeur inconnue.
 export function toEcsError(error: unknown): Record<string, unknown> {
   if (error instanceof Error) {
     return {
@@ -274,6 +275,21 @@ export function toEcsError(error: unknown): Record<string, unknown> {
       type: String(error.code),
       message: String(error.message),
       ...(reason !== undefined && { reason: String(reason) })
+    }
+  }
+  if (
+    error &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    // Un job qui échoue sans lever d'exception remonte son erreur sous cette
+    // forme : sans ce cas, Kibana affichait « [object Object] »
+    const stack = 'stack' in error ? error.stack : undefined
+    return {
+      type: 'Error',
+      message: error.message,
+      ...(typeof stack === 'string' && stack && { stack_trace: stack })
     }
   }
   return { type: 'Unknown', message: String(error) }

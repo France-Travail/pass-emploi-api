@@ -47,6 +47,10 @@ export namespace ReferentielPlanAction {
   // Une ligne du référentiel. Elle porte un besoin OU une contrainte, jamais
   // les deux. Une liste de ciblage vide vaut « pas de filtre »
   export interface Solution {
+    // UUID généré par Grist à la création de la ligne, sans saisie manuelle.
+    // Contrairement au numéro de ligne, jamais réattribué : une ligne supprimée
+    // puis recréée est une autre solution, les tâches de l'ancienne restent
+    // masquées au lieu de changer de sens
     id: string
     besoin?: Questionnaire.Besoin
     contrainte?: Questionnaire.Contrainte
@@ -79,29 +83,29 @@ export namespace ReferentielPlanAction {
   export interface Anomalies {
     nbServicesNonResolus: number
     nbDoublonsServices: number
-    nbDoublonsSolutions: number
+    // Nom vide ou plus long que la colonne
+    nbServicesEcartes: number
     nbSolutionsEcartees: number
+    // Même UUID sur plusieurs lignes : la première fait foi
+    nbDoublonsSolutions: number
     nbValeursNonReconnues: number
   }
 
   export interface Reconciliation {
     services: Service[]
     solutions: Solution[]
+    // Lignes non cochées « Visible » dans le Grist, donc non synchronisées
+    nbSolutionsMasquees: number
     anomalies: Anomalies
   }
 
-  // Garde-fou contre un Grist tronqué : au-delà, la synchronisation échoue
-  // plutôt que de vider le référentiel servi aux jeunes
-  export interface PlafondDesactivations {
-    pourcentageMax: number
-    nombreMin: number
-  }
-
   export interface Repository {
-    remplacer(
+    // Synchronisation par identifiant : les solutions reçues sont créées ou
+    // mises à jour, celles qui ne le sont plus restent en base mais sont
+    // désactivées, pour que les tâches des plans qui les référencent survivent
+    synchroniser(
       services: Service[],
       solutions: Solution[],
-      plafond: PlafondDesactivations,
       options: { dryRun: boolean }
     ): Promise<Diff>
 
