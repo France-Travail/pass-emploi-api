@@ -8,7 +8,6 @@ import {
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
-  DomainError,
   DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
@@ -20,12 +19,14 @@ import {
   Result,
   success
 } from '../../building-blocks/types/result'
-import { Authentification } from '../../domain/authentification'
+import {
+  Authentification,
+  AuthentificationJetonServiceToken
+} from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import {
   JeuneInvite,
-  JeuneInviteJetonServiceToken,
   JeuneInviteRepositoryToken
 } from '../../domain/jeune/jeune-invite'
 import {
@@ -36,31 +37,27 @@ import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
 } from '../../domain/plan-action/referentiel-plan-action'
-import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
+import { TOUT_INVITE } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
-import { toEcsError } from '../../utils/logger.helpers'
-import { rootLogger } from '../../utils/root-logger'
-import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 
 export interface ReprendreCompteInviteCommand extends Command {
-  idJeune: string
-  jetonInvite: string
+  idInvite: string
+  jetonConnecte: string
   plan?: PlanAction.PlanInvite
 }
-
-const CONTEXT_LOG = 'ReprendreCompteInviteCommandHandler'
 
 @Injectable()
 export class ReprendreCompteInviteCommandHandler extends CommandHandler<
   ReprendreCompteInviteCommand,
   void
 > {
-  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
+  readonly profilsAutorises = [TOUT_INVITE]
 
   constructor(
-    private readonly jeuneAuthorizer: JeuneAuthorizer,
-    @Inject(JeuneInviteJetonServiceToken)
-    private readonly jetonInviteService: JeuneInvite.JetonService,
+    private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer,
+    @Inject(AuthentificationJetonServiceToken)
+    private readonly jetonService: Authentification.JetonService,
     @Inject(JeuneInviteRepositoryToken)
     private readonly jeuneInviteRepository: JeuneInvite.Repository,
     @Inject(JeuneRepositoryToken)
@@ -85,54 +82,45 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     if (!this.configService.get<boolean>('appJeuneActif')) {
       return failure(new DroitsInsuffisants())
     }
-    return this.jeuneAuthorizer.autoriserLeJeune(command.idJeune, utilisateur)
-  }
-
-  async handle(
-    command: ReprendreCompteInviteCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    const idInvite = await this.jetonInviteService.idInviteDuJeton(
-      command.jetonInvite
-    )
-    if (!idInvite) {
-      return this.echec(
-        'preuve',
-        new MauvaiseCommandeError('Jeton invité invalide')
-      )
-    }
-
-    const invite =
-      await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-    if (!invite || invite.dateReprise) {
-      return this.issueSansReprise(idInvite, invite !== undefined)
-    }
-
-    let reprise: Result<boolean>
-    try {
-      reprise = await this.transactionService.executer(() =>
-        this.reprendre(invite, command)
-      )
-    } catch (e) {
-      this.logEchec('enregistrement', e)
-      throw e
-    }
-
-    if (isSuccess(reprise) && !reprise.data) {
-      // Un appel concurrent a repris (ou la purge a supprimé) l'invité entre
-      // la lecture et l'écriture : on relit pour répondre selon son issue
-      const inviteRelu =
-        await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-      return this.issueSansReprise(idInvite, inviteRelu !== undefined)
-    }
-
-    // Ici et pas dans monitor : monitor ne distingue pas reprise et rejeu,
-    // et un rejeu ne doit pas compter deux fois
-    await this.evenementService.creer(
-      Evenement.Code.COMPTE_INVITE_REPRIS,
+    return this.jeuneInviteAuthorizer.autoriserLInvite(
+      command.idInvite,
       utilisateur
     )
-    this.logSucces('nouvelle')
+  }
+
+  async handle(command: ReprendreCompteInviteCommand): Promise<Result> {
+    const jeune = await this.jetonService.jeuneDuJeton(command.jetonConnecte)
+    if (!jeune) {
+      return failure(
+        new MauvaiseCommandeError('Jeton compte connecté invalide')
+      )
+    }
+    if (!(await this.jeuneRepository.existe(jeune.id))) {
+      return failure(new NonTrouveError('Jeune', jeune.id))
+    }
+
+    const invite = await this.jeuneInviteRepository.recupererPourReprise(
+      command.idInvite
+    )
+    if (!invite || invite.dateReprise) {
+      return this.issueSansReprise(command.idInvite, invite !== undefined)
+    }
+
+    const reprise = await this.transactionService.executer(() =>
+      this.reprendre(invite, jeune.id, command)
+    )
+
+    if (isSuccess(reprise) && !reprise.data) {
+      const inviteRelu = await this.jeuneInviteRepository.recupererPourReprise(
+        command.idInvite
+      )
+      return this.issueSansReprise(command.idInvite, inviteRelu !== undefined)
+    }
+
+    await this.evenementService.creer(
+      Evenement.Code.COMPTE_INVITE_REPRIS,
+      jeune
+    )
     return emptySuccess()
   }
 
@@ -140,9 +128,9 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     return
   }
 
-  // false : l'invité a été repris ou purgé entre la lecture et l'écriture
   private async reprendre(
     invite: JeuneInvite.PourReprise,
+    idJeuneConnecte: string,
     command: ReprendreCompteInviteCommand
   ): Promise<Result<boolean>> {
     const maintenant = this.dateService.now()
@@ -153,11 +141,11 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     if (!marque) return success(false)
 
     await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
-      command.idJeune,
+      idJeuneConnecte,
       invite.dateCreation
     )
     if (command.plan) {
-      await this.enregistrerPlan(command.idJeune, command.plan, maintenant)
+      await this.enregistrerPlan(idJeuneConnecte, command.plan, maintenant)
     }
     return success(true)
   }
@@ -185,42 +173,8 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
 
   private issueSansReprise(idInvite: string, inviteExiste: boolean): Result {
     if (!inviteExiste) {
-      return this.echec(
-        'introuvable',
-        new NonTrouveError('JeuneInvite', idInvite)
-      )
+      return failure(new NonTrouveError('JeuneInvite', idInvite))
     }
-    // Déjà repris : succès sans rien réécrire, pour que l'appel soit rejouable.
-    // Inutile de vérifier par qui : seul le détenteur du jeton invité appelle
-    this.logSucces('rejeu')
     return emptySuccess()
-  }
-
-  private echec(step: string, erreur: DomainError): Result {
-    this.logEchec(step, erreur)
-    return failure(erreur)
-  }
-
-  private logEchec(step: string, erreur: unknown): void {
-    rootLogger.warn(
-      {
-        context: CONTEXT_LOG,
-        event: { action: 'invite_account_migrated', outcome: 'failure' },
-        labels: { step },
-        error: toEcsError(erreur)
-      },
-      'invite_account_migrated'
-    )
-  }
-
-  private logSucces(reprise: 'nouvelle' | 'rejeu'): void {
-    rootLogger.info(
-      {
-        context: CONTEXT_LOG,
-        event: { action: 'invite_account_migrated', outcome: 'success' },
-        labels: { reprise }
-      },
-      'invite_account_migrated'
-    )
   }
 }

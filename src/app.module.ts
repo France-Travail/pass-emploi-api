@@ -296,7 +296,8 @@ import {
 } from './domain/archive-jeune'
 import {
   Authentification,
-  AuthentificationRepositoryToken
+  AuthentificationRepositoryToken,
+  AuthentificationJetonServiceToken
 } from './domain/authentification'
 import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
@@ -316,7 +317,6 @@ import {
 } from './domain/jeune/jeune'
 import {
   JeuneInviteConfigurationApplicationRepositoryToken,
-  JeuneInviteJetonServiceToken,
   JeuneInviteRepositoryToken
 } from './domain/jeune/jeune-invite'
 import { JeuneInviteConfigurationApplicationSqlRepository } from './infrastructure/repositories/jeune/jeune-invite-configuration-application-sql.repository.db'
@@ -372,7 +372,7 @@ import {
 import { SuiviJobServiceToken } from './domain/suivi-job'
 import { SuperviseursRepositoryToken } from './domain/superviseur'
 import { ApiKeyAuthGuard } from './infrastructure/auth/api-key.auth-guard'
-import { JetonInviteJwtService } from './infrastructure/auth/jeton-invite.service'
+import { JetonJeuneJwtService } from './infrastructure/auth/jeton-jeune.service'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
@@ -728,8 +728,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
       useClass: JeuneInviteSqlRepository
     },
     {
-      provide: JeuneInviteJetonServiceToken,
-      useClass: JetonInviteJwtService
+      provide: AuthentificationJetonServiceToken,
+      useClass: JetonJeuneJwtService
     },
     {
       provide: JeuneInviteConfigurationApplicationRepositoryToken,

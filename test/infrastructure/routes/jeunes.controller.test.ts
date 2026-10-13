@@ -971,23 +971,23 @@ describe('JeunesController', () => {
     })
   })
 
-  describe('POST /jeunes/:idJeune/reprise-invite', () => {
-    it('transmet le jeton invité au handler', async () => {
+  describe('POST /jeunes/:idInvite/reprise-invite', () => {
+    it('transmet le jeton du compte connecté au handler', async () => {
       // Given
       reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
 
       // When
       await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/reprise-invite')
+        .post('/jeunes/id-invite/reprise-invite')
         .set('authorization', unHeaderAuthorization())
-        .send({ jetonInvite: 'jeton-invite' })
+        .send({ jetonConnecte: 'jeton-connecte' })
         // Then
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
         reprendreCompteInviteCommandHandler.execute
       ).to.have.been.calledWithExactly(
-        { idJeune: 'id-jeune', jetonInvite: 'jeton-invite' },
+        { idInvite: 'id-invite', jetonConnecte: 'jeton-connecte' },
         unUtilisateurDecode()
       )
     })
@@ -998,10 +998,10 @@ describe('JeunesController', () => {
 
       // When
       await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/reprise-invite')
+        .post('/jeunes/id-invite/reprise-invite')
         .set('authorization', unHeaderAuthorization())
         .send({
-          jetonInvite: 'jeton-invite',
+          jetonConnecte: 'jeton-connecte',
           plan: {
             id: 'd2705d6b-7802-4936-a594-a35a170871e5',
             objectives: [
@@ -1027,8 +1027,8 @@ describe('JeunesController', () => {
         reprendreCompteInviteCommandHandler.execute
       ).to.have.been.calledWithExactly(
         {
-          idJeune: 'id-jeune',
-          jetonInvite: 'jeton-invite',
+          idInvite: 'id-invite',
+          jetonConnecte: 'jeton-connecte',
           plan: {
             id: 'd2705d6b-7802-4936-a594-a35a170871e5',
             objectifs: [
@@ -1051,10 +1051,10 @@ describe('JeunesController', () => {
       )
     })
 
-    it('renvoie 400 sans jeton invité', async () => {
+    it('renvoie 400 sans jeton du compte connecté', async () => {
       // When
       await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/reprise-invite')
+        .post('/jeunes/id-invite/reprise-invite')
         .set('authorization', unHeaderAuthorization())
         .send({})
         // Then
@@ -1068,10 +1068,10 @@ describe('JeunesController', () => {
     it("renvoie 400 si le theme n'est ni un Besoin ni une Contrainte", async () => {
       // When
       await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/reprise-invite')
+        .post('/jeunes/id-invite/reprise-invite')
         .set('authorization', unHeaderAuthorization())
         .send({
-          jetonInvite: 'jeton-invite',
+          jetonConnecte: 'jeton-connecte',
           plan: {
             id: 'c242d2de-bcf2-412a-9953-758310cdd038',
             objectives: [

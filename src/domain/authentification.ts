@@ -5,6 +5,7 @@ import { IdService } from '../utils/id-service'
 import { Profil, StructureEtDispositifs } from './profil'
 
 export const AuthentificationRepositoryToken = 'Authentification.Repository'
+export const AuthentificationJetonServiceToken = 'Authentification.JetonService'
 
 export namespace Authentification {
   export enum Type {
@@ -137,6 +138,10 @@ export namespace Authentification {
       bearer: string,
       structure: Profil.Structure
     ): Promise<Result<string>>
+  }
+
+  export interface JetonService {
+    jeuneDuJeton(jeton: string): Promise<Utilisateur | undefined>
   }
 
   @Injectable()

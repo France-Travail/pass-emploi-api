@@ -53,7 +53,7 @@ export class OidcAuthGuard implements CanActivate {
     try {
       const payload: JWTPayload =
         await this.jwtService.verifyTokenAndGetJwt(accessToken)
-      utilisateur = OidcAuthGuard.buildUtilisateur(payload)
+      utilisateur = utilisateurDuJeton(payload)
       /*
       ts-ignore accepté ici
       On ajoute un nouvel attribut à la request au runtime pour le mettre dans le context et pouvoir l'utiliser plus tard dans l'execution
@@ -104,22 +104,6 @@ export class OidcAuthGuard implements CanActivate {
     return true
   }
 
-  private static buildUtilisateur(
-    payload: JWTPayload
-  ): Authentification.Utilisateur {
-    const type = payload.userType as Authentification.Type
-    return {
-      id: payload.userId as string,
-      email: payload.email as string,
-      nom: payload.family_name as string,
-      prenom: payload.given_name as string,
-      type,
-      profil: profilDuClaim(payload),
-      username: (payload.preferred_username as string) ?? undefined,
-      roles: getRoles(payload.userRoles as Authentification.Role[] | undefined)
-    }
-  }
-
   private isPublic(context: ExecutionContext): boolean {
     return this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
@@ -151,7 +135,7 @@ function getRoles(
 // Le claim `userProfile` (structure × dispositif) est la cible ; `userStructure`
 // (legacy) reste émis par connect pour l'app mobile et sert de repli tant que
 // le token ne porte pas encore le profil.
-export function profilDuClaim(payload: JWTPayload): Profil {
+function profilDuClaim(payload: JWTPayload): Profil {
   const claim = payload.userProfile as Partial<Profil> | undefined
   if (
     claim?.structure &&
@@ -160,4 +144,20 @@ export function profilDuClaim(payload: JWTPayload): Profil {
     return { structure: claim.structure, dispositif: claim.dispositif ?? null }
   }
   return structureLegacyVersProfil(payload.userStructure as Core.Structure)
+}
+
+export function utilisateurDuJeton(
+  payload: JWTPayload
+): Authentification.Utilisateur {
+  const type = payload.userType as Authentification.Type
+  return {
+    id: payload.userId as string,
+    email: payload.email as string,
+    nom: payload.family_name as string,
+    prenom: payload.given_name as string,
+    type,
+    profil: profilDuClaim(payload),
+    username: (payload.preferred_username as string) ?? undefined,
+    roles: getRoles(payload.userRoles as Authentification.Role[] | undefined)
+  }
 }

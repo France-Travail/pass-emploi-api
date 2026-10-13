@@ -138,7 +138,7 @@ export class ReprendreCompteInvitePayload {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  jetonInvite: string
+  jetonConnecte: string
 
   @ApiPropertyOptional({ type: PlanInvitePayload })
   @IsOptional()

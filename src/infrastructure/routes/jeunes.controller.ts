@@ -552,23 +552,23 @@ export class JeunesController {
     return handleResult(result)
   }
 
-  @Post(':idJeune/reprise-invite')
+  @Post(':idInvite/reprise-invite')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UserJourney('reprise_invite')
   @ApiOperation({
-    summary: "Rattache au jeune connecté le compte invité qu'il utilisait",
+    summary: 'Rattache au compte connecté les données du compte invité',
     description:
-      "Preuve : access token de l'invité. Rejouable : 204 si l'invité est déjà repris, quel que soit le jeune. Le plan invité optionnel est stocké tel quel."
+      "Appelé par l'invité. Preuve : access token du compte connecté. Rejouable : 204 si l'invité est déjà repris. Le plan invité optionnel est enregistré si le jeune connecté n'en a pas déjà un."
   })
   async reprendreCompteInvite(
-    @Param('idJeune') idJeune: string,
+    @Param('idInvite') idInvite: string,
     @Body() payload: ReprendreCompteInvitePayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<void> {
     const result = await this.reprendreCompteInviteCommandHandler.execute(
       {
-        idJeune,
-        jetonInvite: payload.jetonInvite,
+        idInvite,
+        jetonConnecte: payload.jetonConnecte,
         ...(payload.plan ? { plan: toPlanInvite(payload.plan) } : {})
       },
       utilisateur

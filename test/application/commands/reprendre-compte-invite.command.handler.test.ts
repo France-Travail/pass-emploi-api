@@ -1,6 +1,6 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
-import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
+import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
 import {
   ReprendreCompteInviteCommand,
   ReprendreCompteInviteCommandHandler
@@ -16,23 +16,24 @@ import {
   failure,
   Result
 } from '../../../src/building-blocks/types/result'
+import { Authentification } from '../../../src/domain/authentification'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { JeuneInvite } from '../../../src/domain/jeune/jeune-invite'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
-import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
+import { Profil, TOUT_INVITE } from '../../../src/domain/profil'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
-import { unProfilMilo } from '../../fixtures/profil.fixture'
+import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 
 describe('ReprendreCompteInviteCommandHandler', () => {
-  let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let jetonInviteService: StubbedType<JeuneInvite.JetonService>
+  let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
+  let jetonService: StubbedType<Authentification.JetonService>
   let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let planActionRepository: StubbedType<PlanAction.Repository>
@@ -44,21 +45,25 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
   const maintenant = uneDatetime()
   const dateCreationInvite = maintenant.minus({ days: 12 })
-  const idJeune = 'id-jeune'
-  const idInvite = 'id-invite'
-  const utilisateur = unUtilisateurJeune({
-    id: idJeune,
+  const idJeuneConnecte = 'id-jeune-connecte'
+  const jeuneConnecte = unUtilisateurJeune({
+    id: idJeuneConnecte,
     profil: unProfilMilo(Profil.Dispositif.CEJ)
   })
+  const idInvite = 'id-invite'
+  const utilisateur = unUtilisateurJeune({
+    id: idInvite,
+    profil: unProfilInvite()
+  })
   const command: ReprendreCompteInviteCommand = {
-    idJeune,
-    jetonInvite: 'jeton-invite'
+    idInvite,
+    jetonConnecte: 'jeton-connecte'
   }
 
   function construireHandler(configService: ConfigService): void {
     handler = new ReprendreCompteInviteCommandHandler(
-      jeuneAuthorizer,
-      jetonInviteService,
+      jeuneInviteAuthorizer,
+      jetonService,
       jeuneInviteRepository,
       jeuneRepository,
       planActionRepository,
@@ -72,8 +77,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
   beforeEach(() => {
     const sandbox = createSandbox()
-    jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    jetonInviteService = stubInterface(sandbox)
+    jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
+    jetonService = stubInterface(sandbox)
     jeuneInviteRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
     planActionRepository = stubInterface(sandbox)
@@ -89,10 +94,10 @@ describe('ReprendreCompteInviteCommandHandler', () => {
   })
 
   describe('authorize', () => {
-    it('autorise le jeune connecté sur son propre compte', async () => {
+    it("autorise l'invité sur son propre compte", async () => {
       // Given
-      jeuneAuthorizer.autoriserLeJeune
-        .withArgs(idJeune, utilisateur)
+      jeuneInviteAuthorizer.autoriserLInvite
+        .withArgs(idInvite, utilisateur)
         .resolves(emptySuccess())
 
       // When
@@ -111,55 +116,73 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
-      expect(jeuneAuthorizer.autoriserLeJeune).not.to.have.been.called()
+      expect(jeuneInviteAuthorizer.autoriserLInvite).not.to.have.been.called()
     })
 
-    it('est réservé aux comptes connectés, pas aux invités', () => {
-      expect(handler.profilsAutorises).to.deep.equal([
-        ...TOUT_PROFIL_SAUF_INVITE
-      ])
+    it('est réservé aux invités', () => {
+      expect(handler.profilsAutorises).to.deep.equal([TOUT_INVITE])
     })
   })
 
   describe('handle', () => {
     it("rattache l'invité au jeune et conserve sa date de première utilisation", async () => {
       // Given
-      jetonInviteService.idInviteDuJeton
-        .withArgs('jeton-invite')
-        .resolves(idInvite)
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
       jeuneInviteRepository.recupererPourReprise
         .withArgs(idInvite)
         .resolves({ id: idInvite, dateCreation: dateCreationInvite })
       jeuneInviteRepository.marquerRepris.resolves(true)
 
       // When
-      const result = await handler.handle(command, utilisateur)
+      const result = await handler.handle(command)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
       expect(transactionService.executer).to.have.been.calledOnce()
       expect(
         jeuneRepository.enregistrerPremiereUtilisationInvite
-      ).to.have.been.calledOnceWithExactly(idJeune, dateCreationInvite)
+      ).to.have.been.calledOnceWithExactly(idJeuneConnecte, dateCreationInvite)
       expect(
         jeuneInviteRepository.marquerRepris
       ).to.have.been.calledOnceWithExactly(idInvite, maintenant)
       expect(evenementService.creer).to.have.been.calledOnceWithExactly(
         Evenement.Code.COMPTE_INVITE_REPRIS,
-        utilisateur
+        jeuneConnecte
       )
     })
 
     it('refuse un jeton invalide', async () => {
       // Given
-      jetonInviteService.idInviteDuJeton.resolves(undefined)
+      jetonService.jeuneDuJeton.resolves(undefined)
 
       // When
-      const result = await handler.handle(command, utilisateur)
+      const result = await handler.handle(command)
 
       // Then
       expect(result).to.deep.equal(
-        failure(new MauvaiseCommandeError('Jeton invité invalide'))
+        failure(new MauvaiseCommandeError('Jeton compte connecté invalide'))
+      )
+      expect(jeuneRepository.existe).not.to.have.been.called()
+      expect(
+        jeuneInviteRepository.recupererPourReprise
+      ).not.to.have.been.called()
+      expect(jeuneInviteRepository.marquerRepris).not.to.have.been.called()
+    })
+
+    it("échoue quand le jeune connecté n'existe pas", async () => {
+      // Given
+      jetonService.jeuneDuJeton.resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(false)
+
+      // When
+      const result = await handler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('Jeune', idJeuneConnecte))
       )
       expect(
         jeuneInviteRepository.recupererPourReprise
@@ -169,11 +192,12 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it("échoue quand l'invité n'existe plus", async () => {
       // Given
-      jetonInviteService.idInviteDuJeton.resolves(idInvite)
+      jetonService.jeuneDuJeton.resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
       jeuneInviteRepository.recupererPourReprise.resolves(undefined)
 
       // When
-      const result = await handler.handle(command, utilisateur)
+      const result = await handler.handle(command)
 
       // Then
       expect(result).to.deep.equal(
@@ -184,7 +208,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it("ne refait rien quand l'invité a déjà été repris", async () => {
       // Given
-      jetonInviteService.idInviteDuJeton.resolves(idInvite)
+      jetonService.jeuneDuJeton.resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
       jeuneInviteRepository.recupererPourReprise.resolves({
         id: idInvite,
         dateCreation: dateCreationInvite,
@@ -192,7 +217,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       })
 
       // When
-      const result = await handler.handle(command, utilisateur)
+      const result = await handler.handle(command)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -202,12 +227,10 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it('remonte une panne technique de vérification du jeton au lieu de refuser la preuve', async () => {
       // Given
-      jetonInviteService.idInviteDuJeton.rejects(
-        new Error('connect injoignable')
-      )
+      jetonService.jeuneDuJeton.rejects(new Error('connect injoignable'))
 
       // When
-      const promesse = handler.handle(command, utilisateur)
+      const promesse = handler.handle(command)
 
       // Then
       await expect(promesse).to.be.rejectedWith('connect injoignable')
@@ -216,7 +239,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     describe("quand un autre appel a repris l'invité entre la lecture et l'écriture", () => {
       beforeEach(() => {
-        jetonInviteService.idInviteDuJeton.resolves(idInvite)
+        jetonService.jeuneDuJeton.resolves(jeuneConnecte)
+        jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
         jeuneInviteRepository.recupererPourReprise
           .onFirstCall()
           .resolves({ id: idInvite, dateCreation: dateCreationInvite })
@@ -232,7 +256,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         })
 
         // When
-        const result = await handler.handle(command, utilisateur)
+        const result = await handler.handle(command)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -249,7 +273,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
           .resolves(undefined)
 
         // When
-        const result = await handler.handle(command, utilisateur)
+        const result = await handler.handle(command)
 
         // Then
         expect(result).to.deep.equal(
@@ -294,9 +318,10 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       }
 
       beforeEach(() => {
-        jetonInviteService.idInviteDuJeton
-          .withArgs('jeton-invite')
-          .resolves(idInvite)
+        jetonService.jeuneDuJeton
+          .withArgs('jeton-connecte')
+          .resolves(jeuneConnecte)
+        jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
         jeuneInviteRepository.recupererPourReprise
           .withArgs(idInvite)
           .resolves({ id: idInvite, dateCreation: dateCreationInvite })
@@ -313,13 +338,13 @@ describe('ReprendreCompteInviteCommandHandler', () => {
           ])
 
         // When
-        const result = await handler.handle(commandAvecPlan, utilisateur)
+        const result = await handler.handle(commandAvecPlan)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
         expect(planActionRepository.save).to.have.been.calledOnceWithExactly({
           id: 'plan-id',
-          idJeune,
+          idJeune: idJeuneConnecte,
           dateCreation: maintenant,
           objectifs: [
             {
@@ -351,7 +376,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         referentielRepository.trouverSolutions.resolves([])
 
         // When
-        const result = await handler.handle(commandAvecPlan, utilisateur)
+        const result = await handler.handle(commandAvecPlan)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -360,10 +385,12 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
       it('ne stocke pas le plan quand le compte connecté a déjà un plan', async () => {
         // Given
-        planActionRepository.existePourJeune.withArgs(idJeune).resolves(true)
+        planActionRepository.existePourJeune
+          .withArgs(idJeuneConnecte)
+          .resolves(true)
 
         // When
-        const result = await handler.handle(commandAvecPlan, utilisateur)
+        const result = await handler.handle(commandAvecPlan)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -382,7 +409,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         })
 
         // When
-        const result = await handler.handle(commandAvecPlan, utilisateur)
+        const result = await handler.handle(commandAvecPlan)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -399,7 +426,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         })
 
         // When
-        const result = await handler.handle(commandAvecPlan, utilisateur)
+        const result = await handler.handle(commandAvecPlan)
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
@@ -409,16 +436,17 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it("ne stocke pas de plan quand il n'est pas fourni", async () => {
       // Given
-      jetonInviteService.idInviteDuJeton
-        .withArgs('jeton-invite')
-        .resolves(idInvite)
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
       jeuneInviteRepository.recupererPourReprise
         .withArgs(idInvite)
         .resolves({ id: idInvite, dateCreation: dateCreationInvite })
       jeuneInviteRepository.marquerRepris.resolves(true)
 
       // When
-      const result = await handler.handle(command, utilisateur)
+      const result = await handler.handle(command)
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
