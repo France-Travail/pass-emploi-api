@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { DateTime } from 'luxon'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -37,6 +39,7 @@ import {
   Profil,
   TOUT_PROFIL
 } from '../../domain/profil'
+import { TIME_ZONE_EUROPE_PARIS } from '../../config/configuration'
 import { MailBrevoService } from '../../infrastructure/clients/mail-brevo.service.db'
 import { DateService } from '../../utils/date-service'
 import {
@@ -78,7 +81,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly archiverJeuneRepository: ArchiveJeune.Repository,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
-    private readonly jeuneFactory: Jeune.Factory
+    private readonly jeuneFactory: Jeune.Factory,
+    private readonly configService: ConfigService
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -116,17 +120,17 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       ? recuperationUtilisateurResult.data.email
       : commandSanitized.email
 
-    const lUtilisateurMigre = await this.lUtilisateurMigre(
+    const reasonDeBlocage = await this.recupererReasonDeBlocage(
       commandSanitized,
       recuperationUtilisateurResult
     )
 
-    if (lUtilisateurMigre) {
+    if (reasonDeBlocage) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          reasonDeBlocage,
           emailUtilisateur
         )
       )
@@ -505,41 +509,72 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async lUtilisateurMigre(
+  private async recupererReasonDeBlocage(
     command: UpdateUtilisateurCommand,
     recuperationUtilisateurResult: Result<UtilisateurQueryModel>
-  ): Promise<boolean> {
+  ): Promise<NonTraitableReason | undefined> {
     const estUnJeune = command.type === Authentification.Type.JEUNE
     const vientDe1j1s =
       command.application === Authentification.Application.UN_JEUNE_UNE_SOLUTION
-    if (estUnJeune && vientDe1j1s) return false
+    if (estUnJeune && vientDe1j1s) return undefined
 
-    if (isSuccess(recuperationUtilisateurResult)) {
-      return this.lUtilisateurMigreVersParcoursEmploi(
-        recuperationUtilisateurResult.data
-      )
+    const reasonDeMigration = await this.recupererReasonDeMigration(
+      command,
+      recuperationUtilisateurResult
+    )
+    if (reasonDeMigration) return reasonDeMigration
+
+    const profil = isSuccess(recuperationUtilisateurResult)
+      ? recuperationUtilisateurResult.data.profil
+      : command.profil
+    if (estUnJeune && this.leJeuneDoitPasserA1j1s(profil)) {
+      return NonTraitableReason.MIGRATION_1J1S
     }
-    return this.leJeuneEstArchivePourMigration(command.email)
+    return undefined
   }
 
-  private async lUtilisateurMigreVersParcoursEmploi(
-    utilisateur: UtilisateurQueryModel
-  ): Promise<boolean> {
-    if (utilisateur.type === Type.SUPPORT) return false
+  private async recupererReasonDeMigration(
+    command: UpdateUtilisateurCommand,
+    recuperationUtilisateurResult: Result<UtilisateurQueryModel>
+  ): Promise<NonTraitableReason | undefined> {
+    if (isSuccess(recuperationUtilisateurResult)) {
+      const utilisateur = recuperationUtilisateurResult.data
+      if (utilisateur.type === Type.SUPPORT) return undefined
 
-    return this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
-      id: utilisateur.id,
-      type: utilisateur.type
-    })
+      const doitMigrer =
+        await this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
+          id: utilisateur.id,
+          type: utilisateur.type
+        })
+      return doitMigrer
+        ? Migration.reasonDeMigration(utilisateur.profil)
+        : undefined
+    }
+
+    if (!command.email) return undefined
+    const profilArchive =
+      await this.archiverJeuneRepository.trouverArchiveAvecMotif(
+        command.email,
+        MotifSuppressionSupport.MIGRATION
+      )
+    return profilArchive
+      ? Migration.reasonDeMigration(profilArchive)
+      : undefined
   }
 
-  private async leJeuneEstArchivePourMigration(
-    email: string | undefined
-  ): Promise<boolean> {
-    if (!email) return false
-    return this.archiverJeuneRepository.estArchiveAvecMotif(
-      email,
-      MotifSuppressionSupport.MIGRATION
+  private leJeuneDoitPasserA1j1s(profil: Profil): boolean {
+    const estDeLAppPassEmploi =
+      estFranceTravail(profil.structure) &&
+      profil.dispositif !== Profil.Dispositif.CEJ
+    if (!estDeLAppPassEmploi) return false
+
+    const dateRenommage1j1s =
+      this.configService.get<string>('dateRenommage1j1s')
+    if (!dateRenommage1j1s) return false
+
+    return (
+      this.dateService.now() >=
+      DateTime.fromISO(dateRenommage1j1s, { zone: TIME_ZONE_EUROPE_PARIS })
     )
   }
 }

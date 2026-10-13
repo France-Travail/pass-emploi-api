@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
+import { NonTraitableReason } from '../building-blocks/types/domain-error'
 import { DateService } from '../utils/date-service'
 import { Authentification } from './authentification'
+import { Profil } from './profil'
 
 export const MigrationRepositoryToken = 'MigrationRepositoryToken'
 
@@ -24,6 +26,26 @@ export namespace Migration {
   export interface Utilisateur {
     id: string
     type: Authentification.Type.JEUNE | Authentification.Type.CONSEILLER
+  }
+
+  const DISPOSITIFS_PASS_EMPLOI: Array<Profil.Dispositif | null> = [
+    Profil.Dispositif.BRSA,
+    Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
+    Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
+    Profil.Dispositif.EQUIP_EMPLOI_RECRUT,
+    null
+  ]
+
+  export function reasonDeMigration(profil: {
+    structure: Profil.Structure | null
+    dispositif: Profil.Dispositif | null
+  }): NonTraitableReason {
+    const estPassEmploi =
+      profil.structure === Profil.Structure.FRANCE_TRAVAIL &&
+      DISPOSITIFS_PASS_EMPLOI.includes(profil.dispositif)
+    return estPassEmploi
+      ? NonTraitableReason.MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI
+      : NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
   }
 
   export interface Repository {

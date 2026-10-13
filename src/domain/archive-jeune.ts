@@ -326,14 +326,19 @@ export namespace ArchiveJeune {
     contenuPrecedent: string
   }
 
+  export interface ProfilArchive {
+    structure: Profil.Structure | null
+    dispositif: Profil.Dispositif | null
+  }
+
   export interface Repository {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
     archiverSansDonnees(metadonnees: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
-    estArchiveAvecMotif(
+    trouverArchiveAvecMotif(
       emailJeune: string,
       motif: MotifSuppression | MotifSuppressionSupport
-    ): Promise<boolean>
+    ): Promise<ProfilArchive | undefined>
     findById(idArchive: number): Promise<boolean>
     delete(idArchive: number): Promise<void>
   }

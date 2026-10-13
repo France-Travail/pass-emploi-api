@@ -21,6 +21,7 @@ export default () => {
   const configuration = {
     environment: process.env.ENVIRONMENT,
     appJeuneActif: process.env.APP_JEUNE_ACTIF === 'true',
+    dateRenommage1j1s: process.env.DATE_RENOMMAGE_1J1S,
     isWeb: process.env.IS_WEB !== 'false',
     isWorker,
     isInMemory: process.env.IS_IN_MEMORY === 'true',

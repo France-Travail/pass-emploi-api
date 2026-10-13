@@ -8,6 +8,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Action } from '../../../src/domain/action/action'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
+import { Profil } from '../../../src/domain/profil'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
 import { FirebaseClient } from '../../../src/infrastructure/clients/firebase-client'
 import { ArchiveJeuneSqlRepository } from '../../../src/infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -488,8 +489,8 @@ describe('ArchiveJeuneSqlRepository', () => {
       expect(results.length).to.equal(2)
     })
   })
-  describe('.estArchiveAvecMotif()', () => {
-    it('retourne true si le bénéficiaire est archivé avec le motif renseigné', async () => {
+  describe('.trouverArchiveAvecMotif()', () => {
+    it("retourne le profil de l'archive si le bénéficiaire est archivé avec le motif renseigné", async () => {
       // Given
       const jeuneDto = unJeuneDto({
         id: 'j1',
@@ -504,7 +505,9 @@ describe('ArchiveJeuneSqlRepository', () => {
       const archiveMigration = uneArchiveJeuneMetadonnees({
         idJeune: jeuneDto.id,
         motif: MotifSuppressionSupport.MIGRATION,
-        email: jeuneDto.email!
+        email: jeuneDto.email!,
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.BRSA
       })
       const archiveAutre = uneArchiveJeuneMetadonnees({
         idJeune: jeuneSecondDto.id,
@@ -519,23 +522,26 @@ describe('ArchiveJeuneSqlRepository', () => {
 
       // When / Then
       expect(
-        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+        await archiveJeuneSqlRepository.trouverArchiveAvecMotif(
           jeuneDto.email!,
           MotifSuppressionSupport.MIGRATION
         )
-      ).to.be.true()
+      ).to.deep.equal({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.BRSA
+      })
       expect(
-        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+        await archiveJeuneSqlRepository.trouverArchiveAvecMotif(
           jeuneSecondDto.email!,
           MotifSuppressionSupport.MIGRATION
         )
-      ).to.be.false()
+      ).to.be.undefined()
       expect(
-        await archiveJeuneSqlRepository.estArchiveAvecMotif(
+        await archiveJeuneSqlRepository.trouverArchiveAvecMotif(
           'j0@mail.fr',
           MotifSuppressionSupport.MIGRATION
         )
-      ).to.be.false()
+      ).to.be.undefined()
     })
   })
 

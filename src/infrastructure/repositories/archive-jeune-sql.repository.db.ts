@@ -10,6 +10,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { ArchiveJeune } from '../../domain/archive-jeune'
+import { Profil } from '../../domain/profil'
 import { FirebaseClient } from '../clients/firebase-client'
 import { ActionSqlModel } from '../sequelize/models/action.sql-model'
 import { ArchiveJeuneSqlModel } from '../sequelize/models/archive-jeune.sql-model'
@@ -123,22 +124,27 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     return archivesSql.map(archive => archive.id)
   }
 
-  async estArchiveAvecMotif(
+  async trouverArchiveAvecMotif(
     emailJeune: string,
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
-  ): Promise<boolean> {
-    return (
-      (await ArchiveJeuneSqlModel.findOne({
-        where: {
-          email: {
-            [Op.eq]: emailJeune
-          },
-          motif: {
-            [Op.eq]: motif
-          }
+  ): Promise<ArchiveJeune.ProfilArchive | undefined> {
+    const archiveSql = await ArchiveJeuneSqlModel.findOne({
+      attributes: ['structure', 'dispositif'],
+      where: {
+        email: {
+          [Op.eq]: emailJeune
+        },
+        motif: {
+          [Op.eq]: motif
         }
-      })) !== null
-    )
+      },
+      order: [['dateArchivage', 'DESC']]
+    })
+    if (!archiveSql) return undefined
+    return {
+      structure: archiveSql.structure as Profil.Structure | null,
+      dispositif: archiveSql.dispositif as Profil.Dispositif | null
+    }
   }
 
   private async construire(
