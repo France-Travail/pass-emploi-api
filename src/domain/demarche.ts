@@ -173,6 +173,7 @@ export namespace Demarche {
           pourquoi: demarcheACreer.pourquoi,
           quoi: demarcheACreer.quoi,
           comment: codeCommentParUnAutreMoyen,
+          description: demarcheACreer.description,
           promptIa: demarcheACreer.promptIa
         })
       } else if (demarcheACreer.description) {
