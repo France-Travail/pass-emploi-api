@@ -117,7 +117,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
   }
 
   private async purger(
-    candidats: Array<{ id: string; idAuthentification: string }>
+    candidats: JeuneInvite.PourPurge[]
   ): Promise<ResultatPurge> {
     const idsSupprimesCoteIdp: string[] = []
     let nbEchecsIdp = 0
@@ -163,7 +163,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
 }
 
 function dedoublonner(
-  invites: Array<{ id: string; idAuthentification: string }>
-): Array<{ id: string; idAuthentification: string }> {
+  invites: JeuneInvite.PourPurge[]
+): JeuneInvite.PourPurge[] {
   return [...new Map(invites.map(invite => [invite.id, invite])).values()]
 }

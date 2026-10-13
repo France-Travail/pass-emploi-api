@@ -1,6 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { ConfigService } from '@nestjs/config'
-import { errors } from 'jose'
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import {
   ReprendreCompteInviteCommand,
@@ -24,7 +23,6 @@ import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from '../../../src/domain/plan-action/referentiel-plan-action'
 import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
-import { JwtService } from '../../../src/infrastructure/auth/jwt.service'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -34,7 +32,7 @@ import { testConfig } from '../../utils/module-for-testing'
 
 describe('ReprendreCompteInviteCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let jwtService: StubbedClass<JwtService>
+  let jetonInviteService: StubbedType<JeuneInvite.JetonService>
   let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let planActionRepository: StubbedType<PlanAction.Repository>
@@ -56,15 +54,11 @@ describe('ReprendreCompteInviteCommandHandler', () => {
     idJeune,
     jetonInvite: 'jeton-invite'
   }
-  const payloadInvite = {
-    userId: idInvite,
-    userProfile: { structure: Profil.Structure.INVITE, dispositif: null }
-  }
 
   function construireHandler(configService: ConfigService): void {
     handler = new ReprendreCompteInviteCommandHandler(
       jeuneAuthorizer,
-      jwtService,
+      jetonInviteService,
       jeuneInviteRepository,
       jeuneRepository,
       planActionRepository,
@@ -79,7 +73,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
   beforeEach(() => {
     const sandbox = createSandbox()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    jwtService = stubClass(JwtService)
+    jetonInviteService = stubInterface(sandbox)
     jeuneInviteRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
     planActionRepository = stubInterface(sandbox)
@@ -130,9 +124,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
   describe('handle', () => {
     it("rattache l'invité au jeune et conserve sa date de première utilisation", async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt
+      jetonInviteService.idInviteDuJeton
         .withArgs('jeton-invite')
-        .resolves(payloadInvite)
+        .resolves(idInvite)
       jeuneInviteRepository.recupererPourReprise
         .withArgs(idInvite)
         .resolves({ id: idInvite, dateCreation: dateCreationInvite })
@@ -158,9 +152,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it('refuse un jeton invalide', async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt.rejects(
-        new errors.JWSSignatureVerificationFailed()
-      )
+      jetonInviteService.idInviteDuJeton.resolves(undefined)
 
       // When
       const result = await handler.handle(command, utilisateur)
@@ -175,29 +167,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(jeuneInviteRepository.marquerRepris).not.to.have.been.called()
     })
 
-    it("refuse un jeton qui n'est pas celui d'un invité", async () => {
-      // Given
-      jwtService.verifyTokenAndGetJwt.resolves({
-        userId: 'un-autre-jeune',
-        userProfile: {
-          structure: Profil.Structure.MILO,
-          dispositif: Profil.Dispositif.CEJ
-        }
-      })
-
-      // When
-      const result = await handler.handle(command, utilisateur)
-
-      // Then
-      expect(result).to.deep.equal(
-        failure(new MauvaiseCommandeError('Jeton invité invalide'))
-      )
-      expect(jeuneInviteRepository.marquerRepris).not.to.have.been.called()
-    })
-
     it("échoue quand l'invité n'existe plus", async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
+      jetonInviteService.idInviteDuJeton.resolves(idInvite)
       jeuneInviteRepository.recupererPourReprise.resolves(undefined)
 
       // When
@@ -212,7 +184,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it("ne refait rien quand l'invité a déjà été repris", async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
+      jetonInviteService.idInviteDuJeton.resolves(idInvite)
       jeuneInviteRepository.recupererPourReprise.resolves({
         id: idInvite,
         dateCreation: dateCreationInvite,
@@ -230,7 +202,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it('remonte une panne technique de vérification du jeton au lieu de refuser la preuve', async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt.rejects(new Error('connect injoignable'))
+      jetonInviteService.idInviteDuJeton.rejects(
+        new Error('connect injoignable')
+      )
 
       // When
       const promesse = handler.handle(command, utilisateur)
@@ -242,7 +216,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     describe("quand un autre appel a repris l'invité entre la lecture et l'écriture", () => {
       beforeEach(() => {
-        jwtService.verifyTokenAndGetJwt.resolves(payloadInvite)
+        jetonInviteService.idInviteDuJeton.resolves(idInvite)
         jeuneInviteRepository.recupererPourReprise
           .onFirstCall()
           .resolves({ id: idInvite, dateCreation: dateCreationInvite })
@@ -293,12 +267,12 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         ...command,
         plan: {
           id: 'plan-id',
-          objectives: [
+          objectifs: [
             {
               id: 'objectif-1',
               titre: "M'orienter",
               theme: Questionnaire.Besoin.ORIENTER,
-              actions: [
+              taches: [
                 { id: 'action-1', idSolution: idSolution1, terminee: true },
                 { id: 'action-2', idSolution: idSolution2, terminee: false }
               ]
@@ -307,7 +281,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
               id: 'objectif-2',
               titre: 'Passer mon permis',
               theme: Questionnaire.Contrainte.PAS_DE_PERMIS,
-              actions: [
+              taches: [
                 {
                   id: 'action-3',
                   idSolution: idSolutionInconnue,
@@ -320,9 +294,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       }
 
       beforeEach(() => {
-        jwtService.verifyTokenAndGetJwt
+        jetonInviteService.idInviteDuJeton
           .withArgs('jeton-invite')
-          .resolves(payloadInvite)
+          .resolves(idInvite)
         jeuneInviteRepository.recupererPourReprise
           .withArgs(idInvite)
           .resolves({ id: idInvite, dateCreation: dateCreationInvite })
@@ -420,9 +394,9 @@ describe('ReprendreCompteInviteCommandHandler', () => {
 
     it("ne stocke pas de plan quand il n'est pas fourni", async () => {
       // Given
-      jwtService.verifyTokenAndGetJwt
+      jetonInviteService.idInviteDuJeton
         .withArgs('jeton-invite')
-        .resolves(payloadInvite)
+        .resolves(idInvite)
       jeuneInviteRepository.recupererPourReprise
         .withArgs(idInvite)
         .resolves({ id: idInvite, dateCreation: dateCreationInvite })

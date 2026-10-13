@@ -47,9 +47,7 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
 
   async recupererPourReprise(
     id: string
-  ): Promise<
-    { id: string; dateCreation: DateTime; dateReprise?: DateTime } | undefined
-  > {
+  ): Promise<JeuneInvite.PourReprise | undefined> {
     const invite = await JeuneInviteSqlModel.findByPk(id, {
       attributes: ['id', 'dateCreation', 'dateReprise']
     })
@@ -73,9 +71,7 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     return nombreMisAJour > 0
   }
 
-  async recupererInvitesRepris(): Promise<
-    Array<{ id: string; idAuthentification: string }>
-  > {
+  async recupererInvitesRepris(): Promise<JeuneInvite.PourPurge[]> {
     const invites = await JeuneInviteSqlModel.findAll({
       attributes: ['id', 'idAuthentification'],
       where: { dateReprise: { [Op.ne]: null } }

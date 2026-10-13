@@ -36,6 +36,17 @@ export namespace PlanAction {
     dateSuppression?: DateTime
   }
 
+  // Plan tel que l'invité l'avait sur son téléphone, transmis à la reprise
+  export interface PlanInvite {
+    id: string
+    objectifs: Array<{
+      id: string
+      titre: string
+      theme: Questionnaire.Besoin | Questionnaire.Contrainte
+      taches: Array<{ id: string; idSolution: string; terminee: boolean }>
+    }>
+  }
+
   export interface Repository {
     save(plan: PlanAction): Promise<void>
 
@@ -56,6 +67,47 @@ export namespace PlanAction {
   export function decocherTache(tache: Tache): Tache {
     const { dateTerminee: _dateTerminee, ...tacheSansDateTerminee } = tache
     return { ...tacheSansDateTerminee, terminee: false }
+  }
+
+  // Construit un plan à partir du plan d'un invité lors de la reprise de
+  // compte, en écartant les tâches dont la solution a disparu du référentiel
+  // (une FK en base ferait échouer l'insert)
+  export function depuisPlanInvite(
+    idJeune: string,
+    planInvite: PlanInvite,
+    idsSolutionsConnues: Set<string>,
+    maintenant: DateTime
+  ): PlanAction | undefined {
+    const objectifsFiltre = planInvite.objectifs
+      .map(objectif => {
+        const tachesValides = objectif.taches.filter(tache =>
+          idsSolutionsConnues.has(tache.idSolution)
+        )
+        if (tachesValides.length === 0) return undefined
+
+        return {
+          id: objectif.id,
+          titre: objectif.titre,
+          theme: objectif.theme,
+          taches: tachesValides.map(tache => ({
+            id: tache.id,
+            idSolution: tache.idSolution,
+            terminee: tache.terminee,
+            dateCreation: maintenant,
+            ...(tache.terminee ? { dateTerminee: maintenant } : {})
+          }))
+        }
+      })
+      .filter((objectif): objectif is Objectif => objectif !== undefined)
+
+    if (objectifsFiltre.length === 0) return undefined
+
+    return {
+      id: planInvite.id,
+      idJeune,
+      dateCreation: maintenant,
+      objectifs: objectifsFiltre
+    }
   }
 
   export enum ModeDeclaration {

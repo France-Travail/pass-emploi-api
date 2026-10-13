@@ -32,6 +32,7 @@ import { RecupererPlanActionQueryHandler } from 'src/application/queries/recuper
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
 import {
   ChangerStatutTachePlanActionPayload,
+  toPlanInvite,
   GenererPlanActionPayload
 } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import { ChangerStatutTachePlanActionCommandHandler } from 'src/application/commands/changer-statut-tache-plan-action.command.handler'
@@ -557,7 +558,7 @@ export class JeunesController {
   @ApiOperation({
     summary: "Rattache au jeune connecté le compte invité qu'il utilisait",
     description:
-      "Preuve : access token de l'invité. Rejouable : 204 si l'invité est déjà rattaché à ce jeune."
+      "Preuve : access token de l'invité. Rejouable : 204 si l'invité est déjà repris, quel que soit le jeune. Le plan invité optionnel est stocké tel quel."
   })
   async reprendreCompteInvite(
     @Param('idJeune') idJeune: string,
@@ -568,7 +569,7 @@ export class JeunesController {
       {
         idJeune,
         jetonInvite: payload.jetonInvite,
-        ...(payload.plan ? { plan: payload.plan } : {})
+        ...(payload.plan ? { plan: toPlanInvite(payload.plan) } : {})
       },
       utilisateur
     )

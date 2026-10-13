@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { errors } from 'jose'
+import { DateTime } from 'luxon'
 import {
   Transaction,
   TransactionServiceToken
@@ -16,27 +16,27 @@ import {
 import {
   emptySuccess,
   failure,
-  Result
+  isSuccess,
+  Result,
+  success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import {
   JeuneInvite,
+  JeuneInviteJetonServiceToken,
   JeuneInviteRepositoryToken
 } from '../../domain/jeune/jeune-invite'
 import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
-import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
 } from '../../domain/plan-action/referentiel-plan-action'
-import { estInvite, TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
-import { JwtService } from '../../infrastructure/auth/jwt.service'
-import { profilDuClaim } from '../../infrastructure/auth/oidc.auth-guard'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { toEcsError } from '../../utils/logger.helpers'
 import { rootLogger } from '../../utils/root-logger'
@@ -45,19 +45,7 @@ import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 export interface ReprendreCompteInviteCommand extends Command {
   idJeune: string
   jetonInvite: string
-  plan?: {
-    id: string
-    objectives: Array<{
-      id: string
-      titre: string
-      theme: string
-      actions: Array<{
-        id: string
-        idSolution: string
-        terminee: boolean
-      }>
-    }>
-  }
+  plan?: PlanAction.PlanInvite
 }
 
 const CONTEXT_LOG = 'ReprendreCompteInviteCommandHandler'
@@ -67,11 +55,12 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
   ReprendreCompteInviteCommand,
   void
 > {
-  readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    private readonly jwtService: JwtService,
+    @Inject(JeuneInviteJetonServiceToken)
+    private readonly jetonInviteService: JeuneInvite.JetonService,
     @Inject(JeuneInviteRepositoryToken)
     private readonly jeuneInviteRepository: JeuneInvite.Repository,
     @Inject(JeuneRepositoryToken)
@@ -103,7 +92,9 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     command: ReprendreCompteInviteCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const idInvite = await this.idInviteDuJeton(command.jetonInvite)
+    const idInvite = await this.jetonInviteService.idInviteDuJeton(
+      command.jetonInvite
+    )
     if (!idInvite) {
       return this.echec(
         'preuve',
@@ -114,43 +105,25 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     const invite =
       await this.jeuneInviteRepository.recupererPourReprise(idInvite)
     if (!invite || invite.dateReprise) {
-      return this.issueSansReprise(idInvite, invite)
+      return this.issueSansReprise(idInvite, invite !== undefined)
     }
 
-    let reprisParCetAppel = false
+    let reprise: Result<boolean>
     try {
-      await this.transactionService.executer(async () => {
-        reprisParCetAppel = await this.jeuneInviteRepository.marquerRepris(
-          invite.id,
-          this.dateService.now()
-        )
-        if (!reprisParCetAppel) return emptySuccess()
-        await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
-          command.idJeune,
-          invite.dateCreation
-        )
-        if (command.plan) {
-          const planDomaine = await this.construirePlanDomaine(
-            command.idJeune,
-            command.plan
-          )
-          if (planDomaine) {
-            await this.planActionRepository.save(planDomaine)
-          }
-        }
-        return emptySuccess()
-      })
+      reprise = await this.transactionService.executer(() =>
+        this.reprendre(invite, command)
+      )
     } catch (e) {
       this.logEchec('enregistrement', e)
       throw e
     }
 
-    if (!reprisParCetAppel) {
+    if (isSuccess(reprise) && !reprise.data) {
       // Un appel concurrent a repris (ou la purge a supprimé) l'invité entre
       // la lecture et l'écriture : on relit pour répondre selon son issue
       const inviteRelu =
         await this.jeuneInviteRepository.recupererPourReprise(idInvite)
-      return this.issueSansReprise(idInvite, inviteRelu)
+      return this.issueSansReprise(idInvite, inviteRelu !== undefined)
     }
 
     // Ici et pas dans monitor : monitor ne distingue pas reprise et rejeu,
@@ -163,11 +136,53 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     return emptySuccess()
   }
 
-  private issueSansReprise(
-    idInvite: string,
-    invite: { id: string } | undefined
-  ): Result {
-    if (!invite) {
+  async monitor(): Promise<void> {
+    return
+  }
+
+  // false : l'invité a été repris ou purgé entre la lecture et l'écriture
+  private async reprendre(
+    invite: JeuneInvite.PourReprise,
+    command: ReprendreCompteInviteCommand
+  ): Promise<Result<boolean>> {
+    const maintenant = this.dateService.now()
+    const marque = await this.jeuneInviteRepository.marquerRepris(
+      invite.id,
+      maintenant
+    )
+    if (!marque) return success(false)
+
+    await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
+      command.idJeune,
+      invite.dateCreation
+    )
+    if (command.plan) {
+      await this.enregistrerPlan(command.idJeune, command.plan, maintenant)
+    }
+    return success(true)
+  }
+
+  private async enregistrerPlan(
+    idJeune: string,
+    planInvite: PlanAction.PlanInvite,
+    maintenant: DateTime
+  ): Promise<void> {
+    const idsSolutions = planInvite.objectifs.flatMap(objectif =>
+      objectif.taches.map(tache => tache.idSolution)
+    )
+    const solutionsConnues =
+      await this.referentielRepository.trouverSolutions(idsSolutions)
+    const plan = PlanAction.depuisPlanInvite(
+      idJeune,
+      planInvite,
+      new Set(solutionsConnues.map(solution => solution.id)),
+      maintenant
+    )
+    if (plan) await this.planActionRepository.save(plan)
+  }
+
+  private issueSansReprise(idInvite: string, inviteExiste: boolean): Result {
+    if (!inviteExiste) {
       return this.echec(
         'introuvable',
         new NonTrouveError('JeuneInvite', idInvite)
@@ -177,27 +192,6 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     // Inutile de vérifier par qui : seul le détenteur du jeton invité appelle
     this.logSucces('rejeu')
     return emptySuccess()
-  }
-
-  async monitor(): Promise<void> {
-    return
-  }
-
-  // jwtVerify ne contrôle ni iss ni aud : n'importe quel access token de
-  // connect passe la signature, d'où le contrôle explicite du profil invité
-  private async idInviteDuJeton(jeton: string): Promise<string | undefined> {
-    try {
-      const payload = await this.jwtService.verifyTokenAndGetJwt(jeton)
-      if (!estInvite(profilDuClaim(payload).structure)) return undefined
-      return typeof payload.userId === 'string' ? payload.userId : undefined
-    } catch (e) {
-      // Seul un jeton refusé est une preuve invalide (400) ; une panne de
-      // Connect/JWKS doit remonter en 500 pour que l'app réessaie
-      if (e instanceof errors.JOSEError && !(e instanceof errors.JWKSTimeout)) {
-        return undefined
-      }
-      throw e
-    }
   }
 
   private echec(step: string, erreur: DomainError): Result {
@@ -226,54 +220,5 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       },
       'invite_account_migrated'
     )
-  }
-
-  private async construirePlanDomaine(
-    idJeune: string,
-    planPayload: NonNullable<ReprendreCompteInviteCommand['plan']>
-  ): Promise<PlanAction | undefined> {
-    const idsRequis = planPayload.objectives.flatMap(objectif =>
-      objectif.actions.map(action => action.idSolution)
-    )
-    const solutionsConnues =
-      await this.referentielRepository.trouverSolutions(idsRequis)
-    const idsSolutionsValides = new Set(
-      solutionsConnues.map(solution => solution.id)
-    )
-
-    const maintenant = this.dateService.now()
-    const objectifsFiltre = planPayload.objectives
-      .map(objectif => {
-        const actionsValides = objectif.actions.filter(action =>
-          idsSolutionsValides.has(action.idSolution)
-        )
-        if (actionsValides.length === 0) return undefined
-
-        return {
-          id: objectif.id,
-          titre: objectif.titre,
-          theme: objectif.theme as
-            Questionnaire.Besoin | Questionnaire.Contrainte,
-          taches: actionsValides.map(action => ({
-            id: action.id,
-            idSolution: action.idSolution,
-            terminee: action.terminee,
-            dateCreation: maintenant,
-            ...(action.terminee ? { dateTerminee: maintenant } : {})
-          }))
-        }
-      })
-      .filter(
-        (objectif): objectif is PlanAction.Objectif => objectif !== undefined
-      )
-
-    if (objectifsFiltre.length === 0) return undefined
-
-    return {
-      id: planPayload.id,
-      idJeune,
-      dateCreation: maintenant,
-      objectifs: objectifsFiltre
-    }
   }
 }

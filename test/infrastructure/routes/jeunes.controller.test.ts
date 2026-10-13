@@ -992,12 +992,98 @@ describe('JeunesController', () => {
       )
     })
 
+    it('convertit le plan HTTP en PlanInvite du domaine (objectives→objectifs, actions→taches)', async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonInvite: 'jeton-invite',
+          plan: {
+            id: 'd2705d6b-7802-4936-a594-a35a170871e5',
+            objectives: [
+              {
+                id: '446451d5-ef7f-4214-b9a9-2a0dd8bb017f',
+                titre: 'Trouver un emploi',
+                theme: 'EMPLOI',
+                actions: [
+                  {
+                    id: 'f29beca4-cded-4723-b8a6-87c9a927760a',
+                    idSolution: 'solution-1',
+                    terminee: true
+                  }
+                ]
+              }
+            ]
+          }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idJeune: 'id-jeune',
+          jetonInvite: 'jeton-invite',
+          plan: {
+            id: 'd2705d6b-7802-4936-a594-a35a170871e5',
+            objectifs: [
+              {
+                id: '446451d5-ef7f-4214-b9a9-2a0dd8bb017f',
+                titre: 'Trouver un emploi',
+                theme: 'EMPLOI',
+                taches: [
+                  {
+                    id: 'f29beca4-cded-4723-b8a6-87c9a927760a',
+                    idSolution: 'solution-1',
+                    terminee: true
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        unUtilisateurDecode()
+      )
+    })
+
     it('renvoie 400 sans jeton invité', async () => {
       // When
       await request(app.getHttpServer())
         .post('/jeunes/id-jeune/reprise-invite')
         .set('authorization', unHeaderAuthorization())
         .send({})
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).not.to.have.been.called()
+    })
+
+    it("renvoie 400 si le theme n'est ni un Besoin ni une Contrainte", async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonInvite: 'jeton-invite',
+          plan: {
+            id: 'c242d2de-bcf2-412a-9953-758310cdd038',
+            objectives: [
+              {
+                id: '55058e3a-a732-4b20-a19b-df87054b16c1',
+                titre: 'Objectif',
+                theme: 'THEME_INVALIDE',
+                actions: []
+              }
+            ]
+          }
+        })
         // Then
         .expect(HttpStatus.BAD_REQUEST)
 

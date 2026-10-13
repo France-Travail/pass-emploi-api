@@ -11,14 +11,13 @@ import {
   IsOptional,
   IsString,
   IsTimeZone,
-  IsUUID,
   MaxLength,
   ValidateIf,
   ValidateNested
 } from 'class-validator'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
-import { Questionnaire } from '../../../domain/plan-action/questionnaire'
 import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
+import { PlanInvitePayload } from './plan-action.inputs'
 
 export class GetRendezVousJeuneQueryParams {
   @IsOptional()
@@ -135,66 +134,13 @@ export class MaintenantQueryParams {
   maintenant: string
 }
 
-export class ActionInvitePlanPayload {
-  @ApiProperty()
-  @IsUUID()
-  id: string
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  idSolution: string
-
-  @ApiProperty()
-  @IsBoolean()
-  terminee: boolean
-}
-
-export class ObjectifInvitePlanPayload {
-  @ApiProperty()
-  @IsUUID()
-  id: string
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  titre: string
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  @IsEnum([
-    ...Object.values(Questionnaire.Besoin),
-    ...Object.values(Questionnaire.Contrainte)
-  ])
-  theme: Questionnaire.Besoin | Questionnaire.Contrainte
-
-  @ApiProperty({ type: [ActionInvitePlanPayload] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ActionInvitePlanPayload)
-  actions: ActionInvitePlanPayload[]
-}
-
-export class PlanInvitePayload {
-  @ApiProperty()
-  @IsUUID()
-  id: string
-
-  @ApiProperty({ type: [ObjectifInvitePlanPayload] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ObjectifInvitePlanPayload)
-  objectives: ObjectifInvitePlanPayload[]
-}
-
 export class ReprendreCompteInvitePayload {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   jetonInvite: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: PlanInvitePayload })
   @IsOptional()
   @ValidateNested()
   @Type(() => PlanInvitePayload)
