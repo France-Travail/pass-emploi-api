@@ -108,7 +108,11 @@ describe('ReferentielPlanActionSqlRepository', () => {
     it('réactive une solution revenue dans le référentiel', async () => {
       // Given
       await repository.synchroniser([onisep], [uneSolution()], enEcriture)
-      await repository.synchroniser([onisep], [], enEcriture)
+      await repository.synchroniser(
+        [onisep],
+        [uneSolution({ id: 'p-3' })],
+        enEcriture
+      )
 
       // When
       await repository.synchroniser([onisep], [uneSolution()], enEcriture)
@@ -150,6 +154,24 @@ describe('ReferentielPlanActionSqlRepository', () => {
       expect(diff.nbDesactivees).to.equal(2)
       expect(await repository.trouverSolutionsActives()).to.have.length(1)
       expect(await ReferentielPlanActionSolutionSqlModel.count()).to.equal(3)
+    })
+
+    it('refuse une synchronisation sans solution plutôt que de tout désactiver', async () => {
+      // Given
+      await repository.synchroniser(
+        [onisep],
+        [uneSolution(), uneSolution({ id: 'p-3' })],
+        enEcriture
+      )
+
+      // When
+      const promesse = repository.synchroniser([onisep], [], enEcriture)
+
+      // Then
+      await expect(promesse).to.be.rejectedWith(
+        'Synchronisation du référentiel refusée : aucune solution reçue'
+      )
+      expect(await repository.trouverSolutionsActives()).to.have.length(2)
     })
 
     it('simule sans rien écrire en mode dryRun', async () => {

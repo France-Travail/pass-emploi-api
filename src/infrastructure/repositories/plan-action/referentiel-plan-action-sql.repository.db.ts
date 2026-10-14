@@ -23,6 +23,14 @@ export class ReferentielPlanActionSqlRepository
     solutions: ReferentielPlanAction.Solution[],
     options: { dryRun: boolean }
   ): Promise<ReferentielPlanAction.Diff> {
+    // Sans solution reçue, la désactivation « tout ce qui n'est pas reçu »
+    // viderait le référentiel : refus explicite, en plus de la garde du job
+    if (solutions.length === 0) {
+      throw new Error(
+        'Synchronisation du référentiel refusée : aucune solution reçue'
+      )
+    }
+
     const maintenant = this.dateService.now().toJSDate()
 
     const idsRecus = solutions.map(solution => solution.id)
@@ -112,10 +120,7 @@ export class ReferentielPlanActionSqlRepository
           { active: false },
           {
             transaction,
-            where: {
-              active: true,
-              ...(idsRecus.length ? { id: { [Op.notIn]: idsRecus } } : {})
-            }
+            where: { active: true, id: { [Op.notIn]: idsRecus } }
           }
         )
       nbDesactivees = nbDesactiveesTransaction
