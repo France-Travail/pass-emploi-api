@@ -165,7 +165,7 @@ describe('reconcilierReferentiel', () => {
     }
   })
 
-  it('écarte une navigation sans écran renseigné', () => {
+  it('importe une navigation sans écran renseigné, sans écran et sans anomalie', () => {
     // When
     const resultat = reconcilierReferentiel(
       [serviceOnisep],
@@ -173,25 +173,29 @@ describe('reconcilierReferentiel', () => {
     )
 
     // Then
-    expect(resultat.solutions).to.deep.equal([])
-    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
+    expect(resultat.solutions).to.have.length(1)
+    expect(resultat.solutions[0].ecranApp).to.be.undefined()
+    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
   })
 
-  it('écarte une navigation vers un écran inconnu', () => {
+  it('importe une navigation vers un écran inconnu, sans écran, en comptant la valeur non reconnue', () => {
     // When
     const resultat = reconcilierReferentiel(
       [serviceOnisep],
       [
         uneSolutionGrist({
           Type: "Écran de l'app",
-          Ecran_de_l_app: 'offres-formation'
+          Ecran_de_l_app: 'Offres - Immersions'
         })
       ]
     )
 
     // Then
-    expect(resultat.solutions).to.deep.equal([])
-    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(1)
+    expect(resultat.solutions).to.have.length(1)
+    expect(resultat.solutions[0].ecranApp).to.be.undefined()
+    expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
   })
 
   it('écarte une solution dont le type est inconnu', () => {
