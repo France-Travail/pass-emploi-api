@@ -304,6 +304,27 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbServicesNonResolus).to.equal(0)
   })
 
+  it("garde les solutions dans l'ordre des lignes reçu du Grist, pas dans celui des numéros internes", () => {
+    // Given : le métier a remonté la ligne 9 au-dessus de la ligne 1
+    const remontee = {
+      id: 9,
+      fields: uneSolutionGrist({ UUID: 'uuid-9' }).fields
+    }
+    const premiereCreee = uneSolutionGrist({ UUID: 'uuid-1' })
+
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [remontee, premiereCreee]
+    )
+
+    // Then
+    expect(resultat.solutions.map(solution => solution.id)).to.deep.equal([
+      'uuid-9',
+      'uuid-1'
+    ])
+  })
+
   describe('nom du service', () => {
     ;[
       ['vide', ''],
@@ -432,7 +453,7 @@ describe('reconcilierReferentiel', () => {
     }
 
     it('ignore une ligne dupliquée (même UUID) au profit de la première, et la compte', () => {
-      // Given : la ligne 7 est une copie de la ligne 1 retouchée
+      // Given : la ligne 7, copie retouchée de la ligne 1, est affichée après elle
       const copie = {
         id: 7,
         fields: uneSolutionGrist({ Action_affichee_au_jeune: 'Copie' }).fields
@@ -441,7 +462,7 @@ describe('reconcilierReferentiel', () => {
       // When
       const resultat = reconcilierReferentiel(
         [serviceOnisep],
-        [copie, uneSolutionGrist()]
+        [uneSolutionGrist(), copie]
       )
 
       // Then
