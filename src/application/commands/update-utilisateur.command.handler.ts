@@ -558,7 +558,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         MotifSuppressionSupport.MIGRATION
       )
     return profilArchive
-      ? Migration.reasonDeMigration(profilArchive)
+      ? NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
       : undefined
   }
 

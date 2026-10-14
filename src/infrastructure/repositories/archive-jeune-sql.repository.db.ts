@@ -10,7 +10,6 @@ import {
 } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { ArchiveJeune } from '../../domain/archive-jeune'
-import { Profil } from '../../domain/profil'
 import { FirebaseClient } from '../clients/firebase-client'
 import { ActionSqlModel } from '../sequelize/models/action.sql-model'
 import { ArchiveJeuneSqlModel } from '../sequelize/models/archive-jeune.sql-model'
@@ -84,6 +83,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       nom: metadonnees.nomJeune,
       structure: metadonnees.structure,
       dispositif: metadonnees.dispositif ?? null,
+      idPopulation: metadonnees.idPopulation ?? null,
       idPartenaire: metadonnees.idPartenaire ?? null,
       dateCreation: metadonnees.dateCreation,
       datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
@@ -127,9 +127,9 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   async trouverArchiveAvecMotif(
     emailJeune: string,
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
-  ): Promise<ArchiveJeune.ProfilArchive | undefined> {
+  ): Promise<ArchiveJeune.ArchiveMigration | undefined> {
     const archiveSql = await ArchiveJeuneSqlModel.findOne({
-      attributes: ['structure', 'dispositif'],
+      attributes: ['idPopulation'],
       where: {
         email: {
           [Op.eq]: emailJeune
@@ -141,10 +141,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       order: [['dateArchivage', 'DESC']]
     })
     if (!archiveSql) return undefined
-    return {
-      structure: archiveSql.structure as Profil.Structure | null,
-      dispositif: archiveSql.dispositif as Profil.Dispositif | null
-    }
+    return { idPopulation: archiveSql.idPopulation }
   }
 
   private async construire(

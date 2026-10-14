@@ -275,6 +275,7 @@ export namespace ArchiveJeune {
     nomJeune: string
     structure: Profil.Structure
     dispositif?: Profil.Dispositif
+    idPopulation?: string
     idPartenaire?: string
     dateCreation: Date
     datePremiereConnexion?: Date
@@ -326,9 +327,8 @@ export namespace ArchiveJeune {
     contenuPrecedent: string
   }
 
-  export interface ProfilArchive {
-    structure: Profil.Structure | null
-    dispositif: Profil.Dispositif | null
+  export interface ArchiveMigration {
+    idPopulation: string | null
   }
 
   export interface Repository {
@@ -338,7 +338,7 @@ export namespace ArchiveJeune {
     trouverArchiveAvecMotif(
       emailJeune: string,
       motif: MotifSuppression | MotifSuppressionSupport
-    ): Promise<ProfilArchive | undefined>
+    ): Promise<ArchiveMigration | undefined>
     findById(idArchive: number): Promise<boolean>
     delete(idArchive: number): Promise<void>
   }

@@ -8,7 +8,6 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Action } from '../../../src/domain/action/action'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Profil } from '../../../src/domain/profil'
 import { Recherche } from '../../../src/domain/offre/recherche/recherche'
 import { FirebaseClient } from '../../../src/infrastructure/clients/firebase-client'
 import { ArchiveJeuneSqlRepository } from '../../../src/infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -490,7 +489,7 @@ describe('ArchiveJeuneSqlRepository', () => {
     })
   })
   describe('.trouverArchiveAvecMotif()', () => {
-    it("retourne le profil de l'archive si le bénéficiaire est archivé avec le motif renseigné", async () => {
+    it("retourne la population de l'archive si le bénéficiaire est archivé avec le motif renseigné", async () => {
       // Given
       const jeuneDto = unJeuneDto({
         id: 'j1',
@@ -502,23 +501,24 @@ describe('ArchiveJeuneSqlRepository', () => {
         idConseiller: secondConseillerDto.id,
         email: 'j2@mail.fr'
       })
-      const archiveMigration = uneArchiveJeuneMetadonnees({
-        idJeune: jeuneDto.id,
-        motif: MotifSuppressionSupport.MIGRATION,
-        email: jeuneDto.email!,
-        structure: Profil.Structure.FRANCE_TRAVAIL,
-        dispositif: Profil.Dispositif.BRSA
-      })
-      const archiveAutre = uneArchiveJeuneMetadonnees({
-        idJeune: jeuneSecondDto.id,
-        motif: MotifSuppression.AUTRE,
-        email: jeuneSecondDto.email!
-      })
       await ConseillerSqlModel.creer(secondConseillerDto)
       await JeuneSqlModel.creer(jeuneDto)
       await JeuneSqlModel.creer(jeuneSecondDto)
-      await archiveJeuneSqlRepository.archiver(archiveMigration)
-      await archiveJeuneSqlRepository.archiver(archiveAutre)
+      await archiveJeuneSqlRepository.archiver(
+        uneArchiveJeuneMetadonnees({
+          idJeune: jeuneDto.id,
+          motif: MotifSuppressionSupport.MIGRATION,
+          email: jeuneDto.email!,
+          idPopulation: 'POP_PASS_EMPLOI'
+        })
+      )
+      await archiveJeuneSqlRepository.archiver(
+        uneArchiveJeuneMetadonnees({
+          idJeune: jeuneSecondDto.id,
+          motif: MotifSuppression.AUTRE,
+          email: jeuneSecondDto.email!
+        })
+      )
 
       // When / Then
       expect(
@@ -526,10 +526,7 @@ describe('ArchiveJeuneSqlRepository', () => {
           jeuneDto.email!,
           MotifSuppressionSupport.MIGRATION
         )
-      ).to.deep.equal({
-        structure: Profil.Structure.FRANCE_TRAVAIL,
-        dispositif: Profil.Dispositif.BRSA
-      })
+      ).to.deep.equal({ idPopulation: 'POP_PASS_EMPLOI' })
       expect(
         await archiveJeuneSqlRepository.trouverArchiveAvecMotif(
           jeuneSecondDto.email!,
@@ -542,6 +539,32 @@ describe('ArchiveJeuneSqlRepository', () => {
           MotifSuppressionSupport.MIGRATION
         )
       ).to.be.undefined()
+    })
+
+    it('retourne une population nulle pour une archive de migration sans population', async () => {
+      // Given
+      const jeuneDto = unJeuneDto({
+        id: 'j1',
+        idConseiller: secondConseillerDto.id,
+        email: 'j1@mail.fr'
+      })
+      await ConseillerSqlModel.creer(secondConseillerDto)
+      await JeuneSqlModel.creer(jeuneDto)
+      await archiveJeuneSqlRepository.archiver(
+        uneArchiveJeuneMetadonnees({
+          idJeune: jeuneDto.id,
+          motif: MotifSuppressionSupport.MIGRATION,
+          email: jeuneDto.email!
+        })
+      )
+
+      // When / Then
+      expect(
+        await archiveJeuneSqlRepository.trouverArchiveAvecMotif(
+          jeuneDto.email!,
+          MotifSuppressionSupport.MIGRATION
+        )
+      ).to.deep.equal({ idPopulation: null })
     })
   })
 

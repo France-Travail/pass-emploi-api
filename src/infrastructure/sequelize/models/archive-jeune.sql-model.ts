@@ -58,6 +58,12 @@ export class ArchiveJeuneDto extends Model {
   dispositif: string | null
 
   @Column({
+    field: 'id_population',
+    type: DataType.STRING
+  })
+  idPopulation: string | null
+
+  @Column({
     field: 'id_structure_milo',
     type: DataType.STRING
   })
