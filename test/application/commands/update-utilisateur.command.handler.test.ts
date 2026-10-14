@@ -238,6 +238,39 @@ describe('UpdateUtilisateurCommandHandler', () => {
               )
             })
           })
+          describe('conseiller AIJ ou Avenir Pro dans une population de migration', () => {
+            ;[Profil.Dispositif.AIJ, Profil.Dispositif.AVENIR_PRO].forEach(
+              dispositif => {
+                it(`laisse passer un conseiller ${dispositif}, qui garde l’accès au web`, async () => {
+                  // Given
+                  const command: UpdateUtilisateurCommand = {
+                    idUtilisateurAuth: 'nilstavernier',
+                    type: Authentification.Type.CONSEILLER,
+                    profil: unProfilFT(null)
+                  }
+                  const utilisateur = unUtilisateurConseiller({
+                    profil: unProfilFT(dispositif)
+                  })
+                  authentificationRepository.getConseiller
+                    .withArgs(command.idUtilisateurAuth)
+                    .resolves(utilisateur)
+                  migrationService.populationDeMigrationActive
+                    .withArgs({
+                      id: utilisateur.id,
+                      type: Authentification.Type.CONSEILLER
+                    })
+                    .resolves('POP_1J1S')
+
+                  // When
+                  const result =
+                    await updateUtilisateurCommandHandler.execute(command)
+
+                  // Then
+                  expect(isSuccess(result)).to.be.true()
+                })
+              }
+            )
+          })
           describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', () => {
             it('retourne le conseiller', async () => {
               // Given
