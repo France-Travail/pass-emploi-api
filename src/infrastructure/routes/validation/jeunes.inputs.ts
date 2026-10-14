@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
@@ -11,10 +12,12 @@ import {
   IsString,
   IsTimeZone,
   MaxLength,
-  ValidateIf
+  ValidateIf,
+  ValidateNested
 } from 'class-validator'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
+import { PlanInvitePayload } from './plan-action.inputs'
 
 export class GetRendezVousJeuneQueryParams {
   @IsOptional()
@@ -129,4 +132,17 @@ export class MaintenantQueryParams {
   @ApiProperty()
   @IsISO8601({ strict: true })
   maintenant: string
+}
+
+export class ReprendreCompteInvitePayload {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  jetonConnecte: string
+
+  @ApiPropertyOptional({ type: PlanInvitePayload })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PlanInvitePayload)
+  plan?: PlanInvitePayload
 }

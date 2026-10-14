@@ -16,7 +16,8 @@ export function unJeuneInviteDto(
     installationId: '123456',
     instanceId: 'abcdef',
     timezone: 'Europe/Paris',
-    dateSignatureCGU: null
+    dateSignatureCGU: null,
+    dateReprise: null
   }
 
   return { ...defaults, ...args }

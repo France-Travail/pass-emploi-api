@@ -40,6 +40,7 @@ export function unJeuneDto(args: JeuneDtoArgs = {}): AsSql<JeuneDto> {
     idConseillerInitial: undefined,
     dateCreation: new Date('2021-11-11T08:03:30.000Z'),
     datePremiereConnexion: new Date('2021-11-11T08:03:30.000Z'),
+    datePremiereUtilisationInvite: null,
     dateFinCEJ: null,
     pushNotificationToken: 'token',
     dateDerniereActivite: uneDate(),

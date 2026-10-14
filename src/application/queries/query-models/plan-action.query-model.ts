@@ -11,6 +11,9 @@ export class ActionPlanQueryModel {
   id: string
 
   @ApiProperty()
+  idSolution: string
+
+  @ApiProperty()
   libelle: string
 
   @ApiProperty({ enum: TypeActionPlan })

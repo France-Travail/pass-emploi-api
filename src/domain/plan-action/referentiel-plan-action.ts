@@ -109,7 +109,6 @@ export namespace ReferentielPlanAction {
       options: { dryRun: boolean }
     ): Promise<Diff>
 
-    // Relecture d'un plan stocké : seules les solutions de ses tâches
     trouverSolutions(ids: string[]): Promise<Solution[]>
 
     trouverSolutionsActives(): Promise<Solution[]>

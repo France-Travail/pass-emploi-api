@@ -202,6 +202,79 @@ describe('JeuneSqlRepository', () => {
     })
   })
 
+  describe('enregistrerPremiereUtilisationInvite', () => {
+    const idJeune = 'jeune-ex-invite'
+    const dateExistante = DateTime.fromISO('2026-05-01T10:00:00.000Z')
+
+    async function creerJeune(
+      datePremiereUtilisationInvite: Date | null
+    ): Promise<void> {
+      const conseillerDto = unConseillerDto({
+        structure: Core.Structure.POLE_EMPLOI
+      })
+      await ConseillerSqlModel.creer(conseillerDto)
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id: idJeune,
+          idConseiller: conseillerDto.id,
+          datePremiereUtilisationInvite
+        })
+      )
+    }
+
+    it("enregistre la date quand le jeune n'en a pas", async () => {
+      // Given
+      await creerJeune(null)
+
+      // When
+      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
+        idJeune,
+        dateExistante
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+        dateExistante.toJSDate()
+      )
+    })
+
+    it('conserve la date existante quand elle est plus ancienne', async () => {
+      // Given
+      await creerJeune(dateExistante.toJSDate())
+
+      // When
+      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
+        idJeune,
+        dateExistante.plus({ days: 10 })
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+        dateExistante.toJSDate()
+      )
+    })
+
+    it('remplace la date existante quand la nouvelle est plus ancienne', async () => {
+      // Given
+      await creerJeune(dateExistante.toJSDate())
+      const plusAncienne = dateExistante.minus({ days: 10 })
+
+      // When
+      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
+        idJeune,
+        plusAncienne
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+        plusAncienne.toJSDate()
+      )
+    })
+  })
+
   describe('changerDispositifDesJeunesDuConseiller', () => {
     it("rattache au dispositif les jeunes du conseiller, dont ceux qu'il a transférés temporairement, mais pas ceux qu'il suit pour un autre", async () => {
       // Given

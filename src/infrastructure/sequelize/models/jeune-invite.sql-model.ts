@@ -74,6 +74,12 @@ export class JeuneInviteDto extends Model {
     type: DataType.DATE
   })
   dateSignatureCGU: Date | null
+
+  @Column({
+    field: 'date_reprise',
+    type: DataType.DATE
+  })
+  dateReprise: Date | null
 }
 
 @Table({

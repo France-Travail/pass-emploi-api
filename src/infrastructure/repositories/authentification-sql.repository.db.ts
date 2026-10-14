@@ -115,7 +115,8 @@ export class AuthentificationSqlOidcRepository
       installationId: null,
       instanceId: null,
       timezone: null,
-      dateSignatureCGU: null
+      dateSignatureCGU: null,
+      dateReprise: null
     })
   }
 

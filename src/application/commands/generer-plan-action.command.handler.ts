@@ -1,10 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
+import {
+  Transaction,
+  TransactionServiceToken
+} from '../../building-blocks/transaction'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
-import { failure, Result, success } from '../../building-blocks/types/result'
+import {
+  emptySuccess,
+  failure,
+  Result,
+  success
+} from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import {
@@ -50,7 +59,9 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly planActionRepository: PlanAction.Repository,
     private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @Inject(TransactionServiceToken)
+    private readonly transactionService: Transaction.Service
   ) {
     super('GenererPlanActionCommandHandler')
   }
@@ -94,7 +105,10 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     )
 
     if (planPersiste) {
-      await this.planActionRepository.save(plan)
+      await this.transactionService.executer(async () => {
+        await this.planActionRepository.save(plan)
+        return emptySuccess()
+      })
     }
 
     return success(
