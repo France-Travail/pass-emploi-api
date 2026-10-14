@@ -98,6 +98,27 @@ describe('ArchiveJeuneService', () => {
           commentaireSuppressionSupport
         )
       })
+      it('archive le jeune avec sa population de migration', async () => {
+        // Given
+        const commentaire =
+          "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
+        jeuneRepository.get.withArgs(idJeune).resolves(jeune)
+
+        // When
+        await archiverJeuneService.archiver(
+          idJeune,
+          commentaire,
+          MotifSuppressionSupport.MIGRATION,
+          'POP_PASS_EMPLOI'
+        )
+
+        // Then
+        expect(archivageJeuneRepository.archiver).to.have.been.calledWithMatch({
+          idJeune,
+          motif: MotifSuppressionSupport.MIGRATION,
+          idPopulation: 'POP_PASS_EMPLOI'
+        })
+      })
       it('archive le jeune après la migration', async () => {
         // Given
         const commentaireSuppressionMigration =

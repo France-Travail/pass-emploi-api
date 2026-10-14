@@ -70,7 +70,8 @@ export class ArchiverJeunesMigrationCommandHandler extends CommandHandler<
         const result = await this.archiverJeuneService.archiver(
           idJeune,
           COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
-          MotifSuppressionSupport.MIGRATION
+          MotifSuppressionSupport.MIGRATION,
+          command.idPopulationQuiMigre
         )
         if (isFailure(result)) {
           echecs.push(idJeune)

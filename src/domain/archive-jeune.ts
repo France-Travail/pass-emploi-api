@@ -364,7 +364,8 @@ export namespace ArchiveJeune {
     async archiver(
       idJeune: string,
       commentaireSuppressionSupport: string,
-      motifSuppression: MotifSuppressionSupport
+      motifSuppression: MotifSuppressionSupport,
+      idPopulation?: string
     ): Promise<Result> {
       const jeune = await this.jeuneRepository.get(idJeune)
 
@@ -390,7 +391,8 @@ export namespace ArchiveJeune {
           motif: motifSuppression,
           commentaire: commentaireSuppressionSupport,
           dateArchivage: this.dateService.nowJs(),
-          dispositif: jeune.dispositif ?? undefined
+          dispositif: jeune.dispositif ?? undefined,
+          ...(idPopulation && { idPopulation })
         }
         try {
           await this.archiveJeuneRepository.archiver(metaDonneesArchive)
