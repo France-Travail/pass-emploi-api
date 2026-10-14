@@ -117,15 +117,20 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       return this.issueSansReprise(command.idInvite, inviteRelu !== undefined)
     }
 
-    await this.evenementService.creer(
-      Evenement.Code.COMPTE_INVITE_REPRIS,
-      jeune
-    )
     return emptySuccess()
   }
 
-  async monitor(): Promise<void> {
-    return
+  async monitor(
+    _utilisateur: Authentification.Utilisateur,
+    command: ReprendreCompteInviteCommand
+  ): Promise<void> {
+    const jeune = await this.jetonService.jeuneDuJeton(command.jetonConnecte)
+    if (jeune) {
+      await this.evenementService.creer(
+        Evenement.Code.COMPTE_INVITE_REPRIS,
+        jeune
+      )
+    }
   }
 
   private async reprendre(

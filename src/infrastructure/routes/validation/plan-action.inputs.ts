@@ -138,7 +138,7 @@ export class ObjectifInvitePlanPayload {
 
   @ApiProperty({ type: [ActionInvitePlanPayload] })
   @IsArray()
-  @ArrayMaxSize(100)
+  @ArrayMaxSize(300)
   @ValidateNested({ each: true })
   @Type(() => ActionInvitePlanPayload)
   actions: ActionInvitePlanPayload[]
@@ -151,7 +151,7 @@ export class PlanInvitePayload {
 
   @ApiProperty({ type: [ObjectifInvitePlanPayload] })
   @IsArray()
-  @ArrayMaxSize(20)
+  @ArrayMaxSize(80)
   @ValidateNested({ each: true })
   @Type(() => ObjectifInvitePlanPayload)
   objectives: ObjectifInvitePlanPayload[]

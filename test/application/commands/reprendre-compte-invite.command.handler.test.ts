@@ -148,10 +148,6 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(
         jeuneInviteRepository.marquerRepris
       ).to.have.been.calledOnceWithExactly(idInvite, maintenant)
-      expect(evenementService.creer).to.have.been.calledOnceWithExactly(
-        Evenement.Code.COMPTE_INVITE_REPRIS,
-        jeuneConnecte
-      )
     })
 
     it('refuse un jeton invalide', async () => {
@@ -222,7 +218,6 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       // Then
       expect(result).to.deep.equal(emptySuccess())
       expect(transactionService.executer).not.to.have.been.called()
-      expect(evenementService.creer).not.to.have.been.called()
     })
 
     it('remonte une panne technique de vérification du jeton au lieu de refuser la preuve', async () => {
@@ -247,7 +242,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         jeuneInviteRepository.marquerRepris.resolves(false)
       })
 
-      it('répond comme un rejeu sans écrire la date ni tracer la reprise', async () => {
+      it('répond comme un rejeu sans écrire la date', async () => {
         // Given
         jeuneInviteRepository.recupererPourReprise.onSecondCall().resolves({
           id: idInvite,
@@ -263,7 +258,6 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         expect(
           jeuneRepository.enregistrerPremiereUtilisationInvite
         ).not.to.have.been.called()
-        expect(evenementService.creer).not.to.have.been.called()
       })
 
       it("échoue en introuvable si l'invité a été purgé entre-temps", async () => {
@@ -279,7 +273,6 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         expect(result).to.deep.equal(
           failure(new NonTrouveError('JeuneInvite', idInvite))
         )
-        expect(evenementService.creer).not.to.have.been.called()
       })
     })
 
@@ -452,6 +445,35 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(result).to.deep.equal(emptySuccess())
       expect(planActionRepository.save).not.to.have.been.called()
       expect(referentielRepository.trouverSolutions).not.to.have.been.called()
+    })
+  })
+
+  describe('monitor', () => {
+    it('trace la reprise pour le jeune connecté', async () => {
+      // Given
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+
+      // When
+      await handler.monitor(utilisateur, command)
+
+      // Then
+      expect(evenementService.creer).to.have.been.calledOnceWithExactly(
+        Evenement.Code.COMPTE_INVITE_REPRIS,
+        jeuneConnecte
+      )
+    })
+
+    it('ne trace rien si le jeton ne désigne plus de jeune', async () => {
+      // Given
+      jetonService.jeuneDuJeton.resolves(undefined)
+
+      // When
+      await handler.monitor(utilisateur, command)
+
+      // Then
+      expect(evenementService.creer).not.to.have.been.called()
     })
   })
 })

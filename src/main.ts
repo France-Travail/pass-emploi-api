@@ -19,6 +19,7 @@ import { AppModule } from './app.module'
 import { TaskService } from './application/task.service'
 import { WorkerService } from './application/worker.service.db'
 import { useSwagger } from './infrastructure/middlewares/swagger.middleware'
+import { aplatirErreursDeValidation } from './utils/logger.helpers'
 import { rootLogger } from './utils/root-logger'
 
 async function bootstrap(): Promise<void> {
@@ -59,12 +60,7 @@ async function bootstrap(): Promise<void> {
               context: 'ValidationPipe',
               event: { action: 'validation_failed', outcome: 'failure' }
             },
-            JSON.stringify(
-              validationErrors.map(e => ({
-                property: e.property,
-                constraints: e.constraints
-              }))
-            )
+            JSON.stringify(aplatirErreursDeValidation(validationErrors))
           )
           return new BadRequestException(validationErrors)
         }

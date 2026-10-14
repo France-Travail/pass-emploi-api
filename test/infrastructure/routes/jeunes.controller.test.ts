@@ -1,4 +1,5 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { DateTime } from 'luxon'
 import { ArchiverJeuneCommandHandler } from 'src/application/commands/archiver-jeune.command.handler'
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
@@ -1049,6 +1050,33 @@ describe('JeunesController', () => {
         },
         unUtilisateurDecode()
       )
+    })
+
+    it('accepte un plan de 80 objectifs dont un de 300 actions', async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+      const uneAction = (): object => ({
+        id: randomUUID(),
+        idSolution: 'solution-1',
+        terminee: false
+      })
+      const objectives = Array.from({ length: 80 }, (_, index) => ({
+        id: randomUUID(),
+        titre: 'Objectif',
+        theme: 'EMPLOI',
+        actions: Array.from({ length: index === 0 ? 300 : 1 }, uneAction)
+      }))
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          plan: { id: randomUUID(), objectives }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
     })
 
     it('renvoie 400 sans jeton du compte connecté', async () => {

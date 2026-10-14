@@ -1,9 +1,14 @@
+import { ValidationError } from '@nestjs/common'
 import {
   NonTraitableError,
   NonTraitableReason,
   NonTrouveError
 } from '../../src/building-blocks/types/domain-error'
-import { toEcsError } from '../../src/utils/logger.helpers'
+import {
+  aplatirErreursDeValidation,
+  serializeBodyForLog,
+  toEcsError
+} from '../../src/utils/logger.helpers'
 import { expect } from './index'
 
 describe('logger.helpers', () => {
@@ -68,6 +73,78 @@ describe('logger.helpers', () => {
         type: 'Unknown',
         message: 'oops'
       })
+    })
+  })
+
+  describe('serializeBodyForLog', () => {
+    it('masque un jeton nommé en français', () => {
+      // When
+      const body = serializeBodyForLog({
+        jetonConnecte: 'eyJ.secret.jwt',
+        plan: { id: 'id-plan' }
+      })
+
+      // Then
+      expect(body).to.equal(
+        '{"jetonConnecte":"[Redacted]","plan":{"id":"id-plan"}}'
+      )
+    })
+  })
+
+  describe('aplatirErreursDeValidation', () => {
+    it('remonte chaque contrainte avec son chemin, y compris sur un nœud qui a des enfants', () => {
+      // Given
+      const erreurs: ValidationError[] = [
+        {
+          property: 'plan',
+          children: [
+            {
+              property: 'objectives',
+              constraints: {
+                arrayMaxSize: 'objectives must contain no more than 80 elements'
+              },
+              children: [
+                {
+                  property: '0',
+                  children: [
+                    {
+                      property: 'titre',
+                      constraints: { isNotEmpty: 'titre should not be empty' },
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              property: 'id',
+              constraints: { isUuid: 'id must be a UUID' },
+              children: []
+            }
+          ]
+        }
+      ]
+
+      // When
+      const aplaties = aplatirErreursDeValidation(erreurs)
+
+      // Then
+      expect(aplaties).to.deep.equal([
+        {
+          property: 'plan.objectives',
+          constraints: {
+            arrayMaxSize: 'objectives must contain no more than 80 elements'
+          }
+        },
+        {
+          property: 'plan.objectives.0.titre',
+          constraints: { isNotEmpty: 'titre should not be empty' }
+        },
+        {
+          property: 'plan.id',
+          constraints: { isUuid: 'id must be a UUID' }
+        }
+      ])
     })
   })
 })
