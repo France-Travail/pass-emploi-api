@@ -196,6 +196,29 @@ describe('ReferentielPlanActionSqlRepository', () => {
       ])
     })
 
+    it("rend les solutions demandées par identifiant dans l'ordre du référentiel, pas dans celui de la demande", async () => {
+      // Given
+      await repository.synchroniser(
+        [onisep],
+        [
+          uneSolution({ id: 'p-9' }),
+          uneSolution({ id: 'p-1' }),
+          uneSolution({ id: 'p-5' })
+        ],
+        enEcriture
+      )
+
+      // When
+      const solutions = await repository.trouverSolutions(['p-1', 'p-5', 'p-9'])
+
+      // Then
+      expect(solutions.map(solution => solution.id)).to.deep.equal([
+        'p-9',
+        'p-1',
+        'p-5'
+      ])
+    })
+
     it('ignore les solutions désactivées', async () => {
       // Given
       await repository.synchroniser(

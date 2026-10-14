@@ -77,7 +77,7 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     )
 
     const queryModel = toPlanActionQueryModel(
-      plan,
+      PlanAction.ordonner(plan, solutionsAccessibles),
       solutionsAccessibles,
       utilisateur.profil
     )
