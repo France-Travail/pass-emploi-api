@@ -98,7 +98,9 @@ export function reconcilierReferentiel(
   const uuidsVus = new Set<string>()
   let nbSolutionsMasquees = 0
 
-  for (const record of [...solutionsGrist].sort((a, b) => a.id - b.id)) {
+  // L'ordre reçu est celui des lignes affichées dans le Grist (sort=manualSort),
+  // pas celui des numéros internes : c'est l'ordre de présentation des tâches
+  for (const record of solutionsGrist) {
     // Le métier décide de ce qui est servi aux jeunes en cochant « Visible »
     if (record.fields.Visible !== true) {
       nbSolutionsMasquees++

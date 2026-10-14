@@ -108,7 +108,11 @@ describe('ReferentielPlanActionSqlRepository', () => {
     it('réactive une solution revenue dans le référentiel', async () => {
       // Given
       await repository.synchroniser([onisep], [uneSolution()], enEcriture)
-      await repository.synchroniser([onisep], [], enEcriture)
+      await repository.synchroniser(
+        [onisep],
+        [uneSolution({ id: 'p-3' })],
+        enEcriture
+      )
 
       // When
       await repository.synchroniser([onisep], [uneSolution()], enEcriture)
@@ -152,6 +156,24 @@ describe('ReferentielPlanActionSqlRepository', () => {
       expect(await ReferentielPlanActionSolutionSqlModel.count()).to.equal(3)
     })
 
+    it('refuse une synchronisation sans solution plutôt que de tout désactiver', async () => {
+      // Given
+      await repository.synchroniser(
+        [onisep],
+        [uneSolution(), uneSolution({ id: 'p-3' })],
+        enEcriture
+      )
+
+      // When
+      const promesse = repository.synchroniser([onisep], [], enEcriture)
+
+      // Then
+      await expect(promesse).to.be.rejectedWith(
+        'Synchronisation du référentiel refusée : aucune solution reçue'
+      )
+      expect(await repository.trouverSolutionsActives()).to.have.length(2)
+    })
+
     it('simule sans rien écrire en mode dryRun', async () => {
       // When
       const diff = await repository.synchroniser([onisep], [uneSolution()], {
@@ -193,6 +215,29 @@ describe('ReferentielPlanActionSqlRepository', () => {
         'p-10',
         'p-2',
         'p-9'
+      ])
+    })
+
+    it("rend les solutions demandées par identifiant dans l'ordre du référentiel, pas dans celui de la demande", async () => {
+      // Given
+      await repository.synchroniser(
+        [onisep],
+        [
+          uneSolution({ id: 'p-9' }),
+          uneSolution({ id: 'p-1' }),
+          uneSolution({ id: 'p-5' })
+        ],
+        enEcriture
+      )
+
+      // When
+      const solutions = await repository.trouverSolutions(['p-1', 'p-5', 'p-9'])
+
+      // Then
+      expect(solutions.map(solution => solution.id)).to.deep.equal([
+        'p-9',
+        'p-1',
+        'p-5'
       ])
     })
 
