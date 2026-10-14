@@ -541,11 +541,12 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       const utilisateur = recuperationUtilisateurResult.data
       if (utilisateur.type === Type.SUPPORT) return undefined
 
-      const doitMigrer =
-        await this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
+      const doitMigrer = Boolean(
+        await this.migrationService.populationDeMigrationActive({
           id: utilisateur.id,
           type: utilisateur.type
         })
+      )
       return doitMigrer
         ? Migration.reasonDeMigration(utilisateur.profil)
         : undefined

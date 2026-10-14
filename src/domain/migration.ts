@@ -28,6 +28,11 @@ export namespace Migration {
     type: Authentification.Type.JEUNE | Authentification.Type.CONSEILLER
   }
 
+  export interface MigrationActive {
+    dateActivation: DateTime
+    idPopulation: string
+  }
+
   const DISPOSITIFS_PASS_EMPLOI: Array<Profil.Dispositif | null> = [
     Profil.Dispositif.BRSA,
     Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
@@ -54,12 +59,12 @@ export namespace Migration {
       idPopulation: string
     ): Promise<BeneficiaireMigration[]>
     rebasculerOrphelins(idPopulation: string): Promise<RebasculementOrphelin[]>
-    getDateDeMigrationDuConseiller(
+    getMigrationDuConseiller(
       idConseiller: string
-    ): Promise<DateTime | undefined>
-    getDateDeMigrationDuBeneficiaire(
+    ): Promise<MigrationActive | undefined>
+    getMigrationDuBeneficiaire(
       idBeneficiaire: string
-    ): Promise<DateTime | undefined>
+    ): Promise<MigrationActive | undefined>
   }
 
   @Injectable()
@@ -70,16 +75,16 @@ export namespace Migration {
       private readonly dateService: DateService
     ) {}
 
-    async recupererDateDeMigrationSiLUtilisateurDoitMigrer(
+    async recupererMigrationDeLUtilisateur(
       utilisateur: Utilisateur
-    ): Promise<DateTime | undefined> {
+    ): Promise<MigrationActive | undefined> {
       switch (utilisateur.type) {
         case Authentification.Type.CONSEILLER:
-          return this.migrationRepository.getDateDeMigrationDuConseiller(
+          return this.migrationRepository.getMigrationDuConseiller(
             utilisateur.id
           )
         case Authentification.Type.JEUNE:
-          return this.migrationRepository.getDateDeMigrationDuBeneficiaire(
+          return this.migrationRepository.getMigrationDuBeneficiaire(
             utilisateur.id
           )
       }
@@ -101,18 +106,17 @@ export namespace Migration {
       return this.migrationRepository.rebasculerOrphelins(idPopulation)
     }
 
-    async faitPartieDeLaMigrationEtLaDateEstPassee(
+    async populationDeMigrationActive(
       utilisateur: Utilisateur
-    ): Promise<boolean> {
-      const dateDeMigration =
-        await this.recupererDateDeMigrationSiLUtilisateurDoitMigrer(utilisateur)
+    ): Promise<string | undefined> {
+      const migration = await this.recupererMigrationDeLUtilisateur(utilisateur)
+      if (!migration) return undefined
 
-      if (!dateDeMigration) return false
-
-      return DateService.isGreaterOrEqualAtTheStartOfDay(
+      const dateAtteinte = DateService.isGreaterOrEqualAtTheStartOfDay(
         this.dateService.now(),
-        dateDeMigration
+        migration.dateActivation
       )
+      return dateAtteinte ? migration.idPopulation : undefined
     }
   }
 }

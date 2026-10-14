@@ -83,35 +83,41 @@ export class MigrationSqlRepository implements Migration.Repository {
     }))
   }
 
-  async getDateDeMigrationDuConseiller(
+  async getMigrationDuConseiller(
     idConseiller: string
-  ): Promise<DateTime | undefined> {
-    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
+  ): Promise<Migration.MigrationActive | undefined> {
+    const rows = await this.sequelize.query<MigrationActiveSql>(
       `
-        SELECT MIN(d.date_activation) AS date_activation
+        SELECT d.date_activation, d.id_population
         FROM deploiement d
         ${sqlJoinConseillersConcernes('d', 'c')}
         WHERE c.id = :idConseiller
           AND d.nature = :nature
+          AND d.date_activation IS NOT NULL
+        ORDER BY d.date_activation
+        LIMIT 1
       `,
       {
         replacements: { idConseiller, nature: Deploiement.Nature.MIGRATION },
         type: QueryTypes.SELECT
       }
     )
-    return fromSqlToDateDeMigration(rows)
+    return fromSqlToMigrationActive(rows)
   }
 
-  async getDateDeMigrationDuBeneficiaire(
+  async getMigrationDuBeneficiaire(
     idBeneficiaire: string
-  ): Promise<DateTime | undefined> {
-    const rows = await this.sequelize.query<{ date_activation: Date | null }>(
+  ): Promise<Migration.MigrationActive | undefined> {
+    const rows = await this.sequelize.query<MigrationActiveSql>(
       `
-        SELECT MIN(d.date_activation) AS date_activation
+        SELECT d.date_activation, d.id_population
         FROM deploiement d
         ${sqlJoinConseillerDeReferenceDuJeune()}
         WHERE d.nature = :nature
+          AND d.date_activation IS NOT NULL
           AND ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')}
+        ORDER BY d.date_activation
+        LIMIT 1
       `,
       {
         replacements: {
@@ -121,14 +127,22 @@ export class MigrationSqlRepository implements Migration.Repository {
         type: QueryTypes.SELECT
       }
     )
-    return fromSqlToDateDeMigration(rows)
+    return fromSqlToMigrationActive(rows)
   }
 }
 
-// MIN sur un ensemble vide renvoie une ligne dont la date est nulle.
-function fromSqlToDateDeMigration(
-  rows: Array<{ date_activation: Date | null }>
-): DateTime | undefined {
-  const dateActivation = rows[0]?.date_activation
-  return dateActivation ? DateTime.fromJSDate(dateActivation) : undefined
+interface MigrationActiveSql {
+  date_activation: Date
+  id_population: string
+}
+
+function fromSqlToMigrationActive(
+  rows: MigrationActiveSql[]
+): Migration.MigrationActive | undefined {
+  const row = rows[0]
+  if (!row) return undefined
+  return {
+    dateActivation: DateTime.fromJSDate(row.date_activation),
+    idPopulation: row.id_population
+  }
 }

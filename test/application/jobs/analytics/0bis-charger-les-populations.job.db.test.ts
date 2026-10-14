@@ -740,9 +740,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
       // When
       const annoncee =
-        await migrationRepository.getDateDeMigrationDuConseiller(
-          'conseillerCite'
-        )
+        await migrationRepository.getMigrationDuConseiller('conseillerCite')
       const migrations = (
         await lignes<MembreDeploiement>(
           ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
@@ -754,7 +752,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
       // Then
       expect(migrations.map(m => m.date_activation)).to.deep.equal([
-        annoncee?.toJSDate()
+        annoncee?.dateActivation.toJSDate()
       ])
     })
 
