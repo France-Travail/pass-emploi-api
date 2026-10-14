@@ -13,9 +13,7 @@ export enum NonTraitableReason {
   UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL = 'UTILISATEUR_DEJA_ACCOMPAGNEMENT_GLOBAL',
   UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT = 'UTILISATEUR_DEJA_EQUIP_EMPLOI_RECRUT',
   BENEFICIAIRE_SANS_CONSEILLER = 'BENEFICIAIRE_SANS_CONSEILLER',
-  MIGRATION_PARCOURS_EMPLOI = 'MIGRATION_PARCOURS_EMPLOI',
-  MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI = 'MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI',
-  MIGRATION_1J1S = 'MIGRATION_1J1S'
+  MIGRATION_PARCOURS_EMPLOI = 'MIGRATION_PARCOURS_EMPLOI'
 }
 export interface DomainError {
   readonly code: string
@@ -77,17 +75,20 @@ export class NonTraitableError implements DomainError {
   readonly message: string
   readonly reason?: NonTraitableReason
   readonly email?: string
+  readonly population?: string
 
   constructor(
     entityType: string,
     id: string,
     reason?: NonTraitableReason,
-    email?: string
+    email?: string,
+    population?: string
   ) {
     this.code = NonTraitableError.CODE
     this.message = `${entityType} ${id} non traitable`
     this.reason = reason
     this.email = email
+    this.population = population
   }
 }
 

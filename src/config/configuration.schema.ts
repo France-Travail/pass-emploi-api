@@ -3,7 +3,6 @@ import * as Joi from 'joi'
 export const configurationSchema = Joi.object({
   environment: Joi.string().default('development'),
   appJeuneActif: Joi.boolean().default(false),
-  dateRenommage1j1s: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
   isWeb: Joi.boolean().required(),
   isWorker: Joi.boolean().required(),
   isInMemory: Joi.boolean(),

@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox, match, SinonSandbox } from 'sinon'
 import {
@@ -79,8 +78,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
       migrationService,
       archiverJeuneRepository,
       jeuneRepository,
-      jeuneFactory,
-      new ConfigService({})
+      jeuneFactory
     )
   })
 
@@ -201,75 +199,43 @@ describe('UpdateUtilisateurCommandHandler', () => {
               }
             })
           })
-          describe('conseiller connu qui doit migrer vers Parcours Emploi', () => {
-            it('retourne une failure avec la raison MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI pour un conseiller BRSA', async () => {
+          describe('conseiller connu qui doit migrer', () => {
+            it('retourne une failure MIGRATION_PARCOURS_EMPLOI avec la population du conseiller', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
                 type: Authentification.Type.CONSEILLER,
                 profil: unProfilFT(null)
               }
-
               const utilisateur = unUtilisateurConseiller({
                 profil: unProfilFT(Profil.Dispositif.BRSA)
               })
               authentificationRepository.getConseiller
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
-
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
                 })
-                .resolves(true)
+                .resolves('POP_PASS_EMPLOI')
 
               // When
               const result =
                 await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect(result.error).to.be.instanceOf(NonTraitableError)
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+                    utilisateur.email,
+                    'POP_PASS_EMPLOI'
+                  )
                 )
-              }
-            })
-          })
-          describe('conseiller FT sans dispositif qui doit migrer', () => {
-            it('retourne une failure avec la raison MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI', async () => {
-              // Given
-              const command: UpdateUtilisateurCommand = {
-                idUtilisateurAuth: 'nilstavernier',
-                type: Authentification.Type.CONSEILLER,
-                profil: unProfilFT(null)
-              }
-              const utilisateur = unUtilisateurConseiller({
-                profil: unProfilFT(null)
-              })
-              authentificationRepository.getConseiller
-                .withArgs(command.idUtilisateurAuth)
-                .resolves(utilisateur)
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
-                .withArgs({
-                  id: utilisateur.id,
-                  type: Authentification.Type.CONSEILLER
-                })
-                .resolves(true)
-
-              // When
-              const result =
-                await updateUtilisateurCommandHandler.execute(command)
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI
-                )
-              }
+              )
             })
           })
           describe('conseiller connu qui ne doit pas migrer vers Parcours Emploi', () => {
@@ -288,7 +254,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              migrationService.recupererDateDeMigrationSiLUtilisateurDoitMigrer
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.CONSEILLER
@@ -1093,12 +1059,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
                 })
-                .resolves(false)
+                .resolves(undefined)
 
               // When
               const result =
@@ -1136,15 +1102,15 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
                 })
-                .resolves(false)
+                .resolves(undefined)
               archiverJeuneRepository.trouverArchiveAvecMotif
                 .withArgs(utilisateur.email, MotifSuppressionSupport.MIGRATION)
-                .resolves(unProfilFT())
+                .resolves({ idPopulation: null })
 
               // When
               const result =
@@ -1182,12 +1148,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(utilisateur)
 
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
                 })
-                .resolves(true)
+                .resolves('POP_MIGRATION')
 
               // When
               const result =
@@ -1202,6 +1168,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 )
                 expect((result.error as NonTraitableError).email).to.equal(
                   utilisateur.email
+                )
+                expect((result.error as NonTraitableError).population).to.equal(
+                  'POP_MIGRATION'
                 )
               }
             })
@@ -1220,12 +1189,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs('nilstavernier')
                 .resolves(utilisateur)
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: utilisateur.id,
                   type: Authentification.Type.JEUNE
                 })
-                .resolves(true)
+                .resolves('POP_MIGRATION')
               return utilisateur
             }
 
@@ -1277,7 +1246,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
               // Then
               expect(isSuccess(result)).to.be.true()
               expect(
-                migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+                migrationService.populationDeMigrationActive
               ).not.to.have.been.called()
               expect(
                 archiverJeuneRepository.trouverArchiveAvecMotif
@@ -1290,9 +1259,9 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .withArgs('nilstavernier')
                 .resolves(undefined)
               authentificationRepository.getJeuneByEmail.resolves(undefined)
-              archiverJeuneRepository.trouverArchiveAvecMotif.resolves(
-                unProfilFT()
-              )
+              archiverJeuneRepository.trouverArchiveAvecMotif.resolves({
+                idPopulation: null
+              })
 
               // When
               const result = await updateUtilisateurCommandHandler.execute({
@@ -1320,12 +1289,12 @@ describe('UpdateUtilisateurCommandHandler', () => {
               authentificationRepository.getConseiller
                 .withArgs('nilstavernier')
                 .resolves(conseiller)
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+              migrationService.populationDeMigrationActive
                 .withArgs({
                   id: conseiller.id,
                   type: Authentification.Type.CONSEILLER
                 })
-                .resolves(true)
+                .resolves('POP_MIGRATION')
 
               // When
               const result = await updateUtilisateurCommandHandler.execute({
@@ -1343,168 +1312,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
                 )
               }
-            })
-          })
-          describe('renommage de pass emploi en 1J1S', () => {
-            const handlerAvecDateDeRenommage = (
-              dateRenommage1j1s: string
-            ): UpdateUtilisateurCommandHandler =>
-              new UpdateUtilisateurCommandHandler(
-                authentificationRepository,
-                authentificationFactory,
-                dateService,
-                mailBrevoService,
-                migrationService,
-                archiverJeuneRepository,
-                jeuneRepository,
-                jeuneFactory,
-                new ConfigService({ dateRenommage1j1s })
-              )
-            const unJeuneConnu = (profil: Profil): void => {
-              authentificationRepository.getJeuneByIdAuthentification
-                .withArgs('nilstavernier')
-                .resolves(unUtilisateurJeune({ profil }))
-            }
-            const commandPour = (
-              profil: Profil,
-              application?: string
-            ): UpdateUtilisateurCommand => ({
-              idUtilisateurAuth: 'nilstavernier',
-              type: Authentification.Type.JEUNE,
-              profil,
-              application
-            })
-
-            it("bloque avec MIGRATION_1J1S un jeune FT hors CEJ venant de l'app pass emploi une fois la date passée", async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.AIJ)
-              unJeuneConnu(profil)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-01'
-              ).execute(commandPour(profil))
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_1J1S
-                )
-              }
-            })
-
-            it('bloque avec MIGRATION_1J1S un jeune inconnu dont le profil de connexion est FT hors CEJ', async () => {
-              // Given
-              authentificationRepository.getJeuneByIdAuthentification.resolves(
-                undefined
-              )
-              authentificationRepository.getJeuneByEmail.resolves(undefined)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-01'
-              ).execute({
-                ...commandPour(unProfilFT(Profil.Dispositif.AVENIR_PRO)),
-                email: 'jeune@test.com'
-              })
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_1J1S
-                )
-              }
-            })
-
-            it('privilégie la migration vers Parcours Emploi au renommage', async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.BRSA)
-              const utilisateur = unUtilisateurJeune({ profil })
-              authentificationRepository.getJeuneByIdAuthentification
-                .withArgs('nilstavernier')
-                .resolves(utilisateur)
-              migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
-                .withArgs({
-                  id: utilisateur.id,
-                  type: Authentification.Type.JEUNE
-                })
-                .resolves(true)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-01'
-              ).execute(commandPour(profil))
-
-              // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI
-                )
-              }
-            })
-
-            it("laisse passer un jeune venant de l'app 1j1s", async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.AIJ)
-              unJeuneConnu(profil)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-01'
-              ).execute(
-                commandPour(
-                  profil,
-                  Authentification.Application.UN_JEUNE_UNE_SOLUTION
-                )
-              )
-
-              // Then
-              expect(isSuccess(result)).to.be.true()
-            })
-
-            it("laisse passer un jeune CEJ, qui vient de l'app CEJ", async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.CEJ)
-              unJeuneConnu(profil)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-01'
-              ).execute(commandPour(profil))
-
-              // Then
-              expect(isSuccess(result)).to.be.true()
-            })
-
-            it('laisse passer un jeune FT hors CEJ avant la date', async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.AIJ)
-              unJeuneConnu(profil)
-
-              // When
-              const result = await handlerAvecDateDeRenommage(
-                '2022-03-02'
-              ).execute(commandPour(profil))
-
-              // Then
-              expect(isSuccess(result)).to.be.true()
-            })
-
-            it("laisse passer un jeune FT hors CEJ quand aucune date n'est configurée", async () => {
-              // Given
-              const profil = unProfilFT(Profil.Dispositif.AIJ)
-              unJeuneConnu(profil)
-
-              // When
-              const result = await updateUtilisateurCommandHandler.execute(
-                commandPour(profil)
-              )
-
-              // Then
-              expect(isSuccess(result)).to.be.true()
             })
           })
           describe('jeune connu par son email (première connexion)', () => {
@@ -1659,7 +1466,7 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 )
               )
             })
-            it('retourne une failure avec la raison MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI si le jeune archivé pour migration était BRSA', async () => {
+            it("retourne une failure MIGRATION_PARCOURS_EMPLOI avec la population de l'archive", async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
@@ -1675,21 +1482,26 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
               archiverJeuneRepository.trouverArchiveAvecMotif
                 .withArgs('abc@test.com', MotifSuppressionSupport.MIGRATION)
-                .resolves(unProfilFT(Profil.Dispositif.BRSA))
+                .resolves({ idPopulation: 'POP_PASS_EMPLOI' })
 
               // When
               const result =
                 await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PASS_EMPLOI_PARCOURS_EMPLOI
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+                    command.email,
+                    'POP_PASS_EMPLOI'
+                  )
                 )
-              }
+              )
             })
-            it('retourne une failure avec la raison MIGRATION_PARCOURS_EMPLOI si le jeune est archivé avec le motif MIGRATION', async () => {
+            it('retourne une failure MIGRATION_PARCOURS_EMPLOI sans population pour une archive antérieure à la population', async () => {
               // Given
               const command: UpdateUtilisateurCommand = {
                 idUtilisateurAuth: 'nilstavernier',
@@ -1697,7 +1509,6 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 type: Authentification.Type.JEUNE,
                 profil: unProfilFT(Profil.Dispositif.BRSA)
               }
-
               authentificationRepository.getJeuneByIdAuthentification
                 .withArgs(command.idUtilisateurAuth)
                 .resolves(undefined)
@@ -1706,23 +1517,23 @@ describe('UpdateUtilisateurCommandHandler', () => {
                 .resolves(undefined)
               archiverJeuneRepository.trouverArchiveAvecMotif
                 .withArgs('abc@test.com', MotifSuppressionSupport.MIGRATION)
-                .resolves(unProfilFT())
+                .resolves({ idPopulation: null })
 
               // When
               const result =
                 await updateUtilisateurCommandHandler.execute(command)
 
               // Then
-              expect(isFailure(result)).to.be.true()
-              if (isFailure(result)) {
-                expect(result.error).to.be.instanceOf(NonTraitableError)
-                expect((result.error as NonTraitableError).reason).to.equal(
-                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+              expect(result).to.deep.equal(
+                failure(
+                  new NonTraitableError(
+                    'Utilisateur',
+                    command.idUtilisateurAuth,
+                    NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+                    command.email
+                  )
                 )
-                expect((result.error as NonTraitableError).email).to.equal(
-                  command.email
-                )
-              }
+              )
             })
           })
         })
