@@ -153,6 +153,7 @@ import { GenererPlanActionCommandHandler } from './application/commands/generer-
 import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
 import { ChangerStatutTachePlanActionCommandHandler } from './application/commands/changer-statut-tache-plan-action.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from './application/commands/supprimer-tache-plan-action.command.handler'
+import { ReprendreCompteInviteCommandHandler } from './application/commands/reprendre-compte-invite.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPopulationsForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-populations-for-analytics.job'
@@ -295,7 +296,8 @@ import {
 } from './domain/archive-jeune'
 import {
   Authentification,
-  AuthentificationRepositoryToken
+  AuthentificationRepositoryToken,
+  AuthentificationJetonServiceToken
 } from './domain/authentification'
 import { Campagne, CampagneRepositoryToken } from './domain/campagne'
 import { ChatRepositoryToken } from './domain/chat'
@@ -370,6 +372,7 @@ import {
 import { SuiviJobServiceToken } from './domain/suivi-job'
 import { SuperviseursRepositoryToken } from './domain/superviseur'
 import { ApiKeyAuthGuard } from './infrastructure/auth/api-key.auth-guard'
+import { JetonJeuneJwtService } from './infrastructure/auth/jeton-jeune.service'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
@@ -725,6 +728,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
       useClass: JeuneInviteSqlRepository
     },
     {
+      provide: AuthentificationJetonServiceToken,
+      useClass: JetonJeuneJwtService
+    },
+    {
       provide: JeuneInviteConfigurationApplicationRepositoryToken,
       useClass: JeuneInviteConfigurationApplicationSqlRepository
     },
@@ -843,6 +850,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     RecupererPlanActionQueryHandler,
     ChangerStatutTachePlanActionCommandHandler,
     SupprimerTachePlanActionCommandHandler,
+    ReprendreCompteInviteCommandHandler,
     GetPrenomInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,

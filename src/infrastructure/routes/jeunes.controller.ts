@@ -32,9 +32,11 @@ import { RecupererPlanActionQueryHandler } from 'src/application/queries/recuper
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
 import {
   ChangerStatutTachePlanActionPayload,
+  toPlanInvite,
   GenererPlanActionPayload
 } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import { ChangerStatutTachePlanActionCommandHandler } from 'src/application/commands/changer-statut-tache-plan-action.command.handler'
+import { ReprendreCompteInviteCommandHandler } from 'src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from 'src/application/commands/supprimer-tache-plan-action.command.handler'
 import {
   TransfererJeunesConseillerCommand,
@@ -84,6 +86,7 @@ import { handleResult } from './result.handler'
 import {
   ArchiverJeunePayload,
   MaintenantQueryParams,
+  ReprendreCompteInvitePayload,
   TransfererConseillerPayload,
   UpdateConfigurationInput,
   UpdateJeunePayload,
@@ -116,7 +119,8 @@ export class JeunesController {
     private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
     private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler,
     private changerStatutTachePlanActionCommandHandler: ChangerStatutTachePlanActionCommandHandler,
-    private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler
+    private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler,
+    private reprendreCompteInviteCommandHandler: ReprendreCompteInviteCommandHandler
   ) {}
 
   @Get(':idJeune/comptage')
@@ -542,6 +546,31 @@ export class JeunesController {
   ): Promise<PlanActionQueryModel> {
     const result = await this.recupererPlanActionQueryHandler.execute(
       { idJeune },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Post(':idInvite/reprise-invite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UserJourney('reprise_invite')
+  @ApiOperation({
+    summary: 'Rattache au compte connecté les données du compte invité',
+    description:
+      "Appelé par l'invité. Preuve : access token du compte connecté. Rejouable : 204 si l'invité est déjà repris. Le plan invité optionnel est enregistré si le jeune connecté n'en a pas déjà un."
+  })
+  async reprendreCompteInvite(
+    @Param('idInvite') idInvite: string,
+    @Body() payload: ReprendreCompteInvitePayload,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<void> {
+    const result = await this.reprendreCompteInviteCommandHandler.execute(
+      {
+        idInvite,
+        jetonConnecte: payload.jetonConnecte,
+        ...(payload.plan ? { plan: toPlanInvite(payload.plan) } : {})
+      },
       utilisateur
     )
 

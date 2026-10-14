@@ -102,6 +102,12 @@ export class JeuneDto extends Model {
   datePremiereConnexion: Date | null
 
   @Column({
+    field: 'date_premiere_utilisation_invite',
+    type: DataType.DATE
+  })
+  datePremiereUtilisationInvite: Date | null
+
+  @Column({
     field: 'date_derniere_connexion',
     type: DataType.DATE
   })

@@ -24,6 +24,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
     suiviJobService = stubInterface(sandbox)
     jeuneInviteRepository = stubInterface(sandbox)
     authentificationRepository = stubInterface(sandbox)
+    jeuneInviteRepository.recupererInvitesRepris.resolves([])
     handler = new PurgerInvitesInactifsJobHandler(
       dateService,
       suiviJobService,
@@ -286,7 +287,115 @@ describe('PurgerInvitesInactifsJobHandler', () => {
       nbEchecsDb: 0,
       pourcentageInactifs: 1,
       nombreInactifs: 1,
+      nombreRepris: 0,
       total: 100
+    })
+  })
+
+  describe('invités repris par un jeune connecté', () => {
+    const dateReference = maintenant.minus({ months: 18 }).toJSDate()
+
+    it("purge un invité repris même s'il est actif", async () => {
+      // Given
+      jeuneInviteRepository.compterTout.resolves(100)
+      jeuneInviteRepository.recupererInvitesInactifs.resolves([])
+      jeuneInviteRepository.recupererInvitesRepris.resolves([
+        { id: 'repris', idAuthentification: 'sub-repris' }
+      ])
+
+      // When
+      const suivi = await handler.handle()
+
+      // Then
+      expect(
+        authentificationRepository.supprimerCompteIdpInvite
+      ).to.have.been.calledOnceWithExactly('sub-repris')
+      expect(
+        jeuneInviteRepository.supprimerPlusieurs
+      ).to.have.been.calledOnceWithExactly(['repris'])
+      expect(suivi.succes).to.equal(true)
+      expect(
+        (suivi.resultat as { nombreRepris: number }).nombreRepris
+      ).to.equal(1)
+    })
+
+    it("ne compte pas les repris dans le pourcentage d'inactifs", async () => {
+      // Given
+      jeuneInviteRepository.compterTout.resolves(100)
+      jeuneInviteRepository.recupererInvitesInactifs.resolves(
+        Array.from({ length: 15 }, (_, i) => ({
+          id: `inactif-${i}`,
+          idAuthentification: `sub-inactif-${i}`,
+          dateReference
+        }))
+      )
+      jeuneInviteRepository.recupererInvitesRepris.resolves(
+        Array.from({ length: 10 }, (_, i) => ({
+          id: `repris-${i}`,
+          idAuthentification: `sub-repris-${i}`
+        }))
+      )
+
+      // When
+      const suivi = await handler.handle()
+
+      // Then
+      const resultat = suivi.resultat as {
+        pourcentageInactifs: number
+        nbPurges: number
+      }
+      expect(resultat.pourcentageInactifs).to.equal(15)
+      expect(resultat.nbPurges).to.equal(25)
+      expect(suivi.succes).to.equal(true)
+    })
+
+    it("purge les repris même quand le seuil d'inactifs fait abandonner la purge des inactifs", async () => {
+      // Given
+      jeuneInviteRepository.compterTout.resolves(100)
+      jeuneInviteRepository.recupererInvitesInactifs.resolves(
+        Array.from({ length: 30 }, (_, i) => ({
+          id: `inactif-${i}`,
+          idAuthentification: `sub-inactif-${i}`,
+          dateReference
+        }))
+      )
+      jeuneInviteRepository.recupererInvitesRepris.resolves([
+        { id: 'repris', idAuthentification: 'sub-repris' }
+      ])
+
+      // When
+      const suivi = await handler.handle()
+
+      // Then
+      expect(
+        authentificationRepository.supprimerCompteIdpInvite
+      ).to.have.been.calledOnceWithExactly('sub-repris')
+      expect(
+        jeuneInviteRepository.supprimerPlusieurs
+      ).to.have.been.calledOnceWithExactly(['repris'])
+      expect(suivi.nbErreurs).to.equal(1)
+    })
+
+    it("ne purge qu'une fois un invité à la fois inactif et repris", async () => {
+      // Given
+      jeuneInviteRepository.compterTout.resolves(100)
+      jeuneInviteRepository.recupererInvitesInactifs.resolves([
+        { id: 'inv1', idAuthentification: 'sub1', dateReference }
+      ])
+      jeuneInviteRepository.recupererInvitesRepris.resolves([
+        { id: 'inv1', idAuthentification: 'sub1' }
+      ])
+
+      // When
+      await handler.handle()
+
+      // Then
+      expect(
+        authentificationRepository.supprimerCompteIdpInvite
+      ).to.have.been.calledOnceWithExactly('sub1')
+      expect(
+        jeuneInviteRepository.supprimerPlusieurs
+      ).to.have.been.calledOnceWithExactly(['inv1'])
     })
   })
 })

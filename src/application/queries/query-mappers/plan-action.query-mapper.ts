@@ -57,6 +57,7 @@ function toAction(
   const categorie = categorieAnnoncee(solution, mode)
   return {
     id: tache.id,
+    idSolution: tache.idSolution,
     libelle: solution.libelle,
     type: typeSolutionVersTypeAction[solution.type],
     terminee: tache.terminee,

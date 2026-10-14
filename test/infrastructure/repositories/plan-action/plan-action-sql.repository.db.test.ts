@@ -70,7 +70,7 @@ describe('PlanActionSqlRepository', () => {
     const idService = stubClass(IdService)
     const dateService = stubClass(DateService)
 
-    planActionSqlRepository = new PlanActionSqlRepository(database.sequelize)
+    planActionSqlRepository = new PlanActionSqlRepository()
 
     const conseillerRepository = new ConseillerSqlRepository()
     await conseillerRepository.save(unConseiller())
@@ -281,6 +281,28 @@ describe('PlanActionSqlRepository', () => {
         '22222222-2222-2222-2222-222222222222'
       ])
       expect(planRendu!.objectifs[1].taches).to.have.length(1)
+    })
+  })
+
+  describe('existePourJeune', () => {
+    it('rend true quand le jeune a un plan', async () => {
+      // Given
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
+
+      // When
+      const existe = await planActionSqlRepository.existePourJeune('jeune-1')
+
+      // Then
+      expect(existe).to.equal(true)
+    })
+
+    it("rend false quand le jeune n'a pas de plan", async () => {
+      // When
+      const existe = await planActionSqlRepository.existePourJeune('jeune-1')
+
+      // Then
+      expect(existe).to.equal(false)
     })
   })
 

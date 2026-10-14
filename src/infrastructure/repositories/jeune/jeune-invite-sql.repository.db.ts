@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { DateTime } from 'luxon'
 import { Op } from 'sequelize'
 import { JeuneInvite } from '../../../domain/jeune/jeune-invite'
 import { JeuneInviteSqlModel } from '../../sequelize/models/jeune-invite.sql-model'
@@ -42,5 +43,42 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
 
   async supprimerPlusieurs(ids: string[]): Promise<void> {
     await JeuneInviteSqlModel.destroy({ where: { id: { [Op.in]: ids } } })
+  }
+
+  async recupererPourReprise(
+    id: string
+  ): Promise<JeuneInvite.PourReprise | undefined> {
+    const invite = await JeuneInviteSqlModel.findByPk(id, {
+      attributes: ['id', 'dateCreation', 'dateReprise']
+    })
+    if (!invite) return undefined
+    return {
+      id: invite.id,
+      dateCreation: DateTime.fromJSDate(invite.dateCreation),
+      ...(invite.dateReprise
+        ? { dateReprise: DateTime.fromJSDate(invite.dateReprise) }
+        : {})
+    }
+  }
+
+  // Conditionnel : deux reprises concurrentes du même invité ne peuvent pas
+  // réussir toutes les deux. false = l'invité était déjà repris (ou n'existe plus)
+  async marquerRepris(id: string, dateReprise: DateTime): Promise<boolean> {
+    const [nombreMisAJour] = await JeuneInviteSqlModel.update(
+      { dateReprise: dateReprise.toJSDate() },
+      { where: { id, dateReprise: null } }
+    )
+    return nombreMisAJour > 0
+  }
+
+  async recupererInvitesRepris(): Promise<JeuneInvite.PourPurge[]> {
+    const invites = await JeuneInviteSqlModel.findAll({
+      attributes: ['id', 'idAuthentification'],
+      where: { dateReprise: { [Op.ne]: null } }
+    })
+    return invites.map(({ id, idAuthentification }) => ({
+      id,
+      idAuthentification
+    }))
   }
 }

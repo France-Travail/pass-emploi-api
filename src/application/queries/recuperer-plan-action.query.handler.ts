@@ -69,12 +69,16 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
     const idsSolutions = plan.objectifs.flatMap(objectif =>
       objectif.taches.map(tache => tache.idSolution)
     )
-    const solutions =
+
+    const solutionsAccessibles = (
       await this.referentielRepository.trouverSolutions(idsSolutions)
+    ).filter(solution =>
+      PlanAction.estAccessible(solution, utilisateur.profil.structure)
+    )
 
     const queryModel = toPlanActionQueryModel(
       plan,
-      solutions,
+      solutionsAccessibles,
       utilisateur.profil
     )
     if (!queryModel.objectives.length) {

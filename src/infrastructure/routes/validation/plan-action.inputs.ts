@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import {
+  ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsBoolean,
@@ -10,10 +11,12 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   ValidateNested
 } from 'class-validator'
+import { PlanAction } from '../../../domain/plan-action/plan-action'
 import { Questionnaire } from '../../../domain/plan-action/questionnaire'
 
 export class CommunePayload {
@@ -97,4 +100,77 @@ export class ChangerStatutTachePlanActionPayload {
   @IsString()
   @MaxLength(1024)
   commentaire?: string
+}
+
+const THEMES_PLAN_ACTION = {
+  ...Questionnaire.Besoin,
+  ...Questionnaire.Contrainte
+}
+
+export class ActionInvitePlanPayload {
+  @ApiProperty()
+  @IsUUID()
+  id: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idSolution: string
+
+  @ApiProperty()
+  @IsBoolean()
+  terminee: boolean
+}
+
+export class ObjectifInvitePlanPayload {
+  @ApiProperty()
+  @IsUUID()
+  id: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  titre: string
+
+  @ApiProperty({ enum: Object.values(THEMES_PLAN_ACTION) })
+  @IsEnum(THEMES_PLAN_ACTION)
+  theme: Questionnaire.Besoin | Questionnaire.Contrainte
+
+  @ApiProperty({ type: [ActionInvitePlanPayload] })
+  @IsArray()
+  @ArrayMaxSize(300)
+  @ValidateNested({ each: true })
+  @Type(() => ActionInvitePlanPayload)
+  actions: ActionInvitePlanPayload[]
+}
+
+export class PlanInvitePayload {
+  @ApiProperty()
+  @IsUUID()
+  id: string
+
+  @ApiProperty({ type: [ObjectifInvitePlanPayload] })
+  @IsArray()
+  @ArrayMaxSize(80)
+  @ValidateNested({ each: true })
+  @Type(() => ObjectifInvitePlanPayload)
+  objectives: ObjectifInvitePlanPayload[]
+}
+
+export function toPlanInvite(
+  payload: PlanInvitePayload
+): PlanAction.PlanInvite {
+  return {
+    id: payload.id,
+    objectifs: payload.objectives.map(objectif => ({
+      id: objectif.id,
+      titre: objectif.titre,
+      theme: objectif.theme,
+      taches: objectif.actions.map(action => ({
+        id: action.id,
+        idSolution: action.idSolution,
+        terminee: action.terminee
+      }))
+    }))
+  }
 }

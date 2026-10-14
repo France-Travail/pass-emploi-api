@@ -50,7 +50,7 @@ describe('toPlanActionQueryModel', () => {
     }
   }
 
-  it("expose l'identifiant de la tâche, jamais celui de la solution", () => {
+  it("expose l'identifiant de la tâche et celui de la solution", () => {
     // When
     const queryModel = toPlanActionQueryModel(
       unPlan(),
@@ -60,6 +60,7 @@ describe('toPlanActionQueryModel', () => {
 
     // Then
     expect(queryModel.objectives[0].actions[0].id).to.equal('tache-1')
+    expect(queryModel.objectives[0].actions[0].idSolution).to.equal('p-2')
   })
 
   it('matérialise le libellé et le service depuis le référentiel', () => {

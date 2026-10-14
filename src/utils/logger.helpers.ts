@@ -1,3 +1,4 @@
+import { ValidationError } from '@nestjs/common'
 import { IncomingMessage } from 'node:http'
 
 const REQ_HEADERS_WHITELIST = [
@@ -93,7 +94,8 @@ const SENSITIVE_KEY_PATTERNS = [
   'bearer',
   'api_key',
   'apikey',
-  'credential'
+  'credential',
+  'jeton'
 ]
 
 export const isSensitiveKey = (key: string): boolean => {
@@ -192,6 +194,24 @@ export const serializeBodyForLog = (value: unknown): string | undefined => {
   } catch {
     return undefined
   }
+}
+
+export function aplatirErreursDeValidation(
+  erreurs: ValidationError[],
+  cheminParent?: string
+): Array<Pick<ValidationError, 'property' | 'constraints'>> {
+  return erreurs.flatMap(erreur => {
+    const chemin = cheminParent
+      ? `${cheminParent}.${erreur.property}`
+      : erreur.property
+    const contraintesDuNoeud = erreur.constraints
+      ? [{ property: chemin, constraints: erreur.constraints }]
+      : []
+    return [
+      ...contraintesDuNoeud,
+      ...aplatirErreursDeValidation(erreur.children ?? [], chemin)
+    ]
+  })
 }
 
 // Fragment ECS http.request.body.content, undefined si pas de body.

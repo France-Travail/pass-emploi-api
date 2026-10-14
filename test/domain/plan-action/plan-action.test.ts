@@ -350,7 +350,7 @@ describe('PlanAction', () => {
       expect(plan.idJeune).to.equal('jeune-1')
       expect(plan.dateCreation).to.deep.equal(maintenant)
       expect(plan.objectifs[0].taches[0].terminee).to.equal(false)
-      expect(plan.objectifs[0].taches[0].dateTerminee).to.equal(undefined)
+      expect(plan.objectifs[0].taches[0].dateTerminee).to.be.undefined()
     })
 
     it('ne retient que les solutions éligibles à la date du jour', () => {
@@ -613,6 +613,169 @@ describe('PlanAction', () => {
         terminee: false,
         dateCreation
       })
+    })
+  })
+
+  describe('depuisPlanInvite', () => {
+    const dateReprise = DateTime.fromISO('2026-10-13T14:30:00.000Z', {
+      zone: 'utc'
+    })
+
+    function unPlanInvite(
+      override: Partial<PlanAction.PlanInvite> = {}
+    ): PlanAction.PlanInvite {
+      return {
+        id: 'plan-invite-1',
+        objectifs: [
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              { id: 'tache-1', idSolution: 'solution-1', terminee: false },
+              { id: 'tache-2', idSolution: 'solution-2', terminee: true }
+            ]
+          }
+        ],
+        ...override
+      }
+    }
+
+    it('conserve les ids, titres, thèmes et états cochés avec les dates de reprise', () => {
+      // Given
+      const planInvite = unPlanInvite()
+      const idsSolutionsConnues = new Set(['solution-1', 'solution-2'])
+
+      // When
+      const plan = PlanAction.depuisPlanInvite(
+        'jeune-1',
+        planInvite,
+        idsSolutionsConnues,
+        dateReprise
+      )
+
+      // Then
+      expect(plan).to.deep.equal({
+        id: 'plan-invite-1',
+        idJeune: 'jeune-1',
+        dateCreation: dateReprise,
+        objectifs: [
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              {
+                id: 'tache-1',
+                idSolution: 'solution-1',
+                terminee: false,
+                dateCreation: dateReprise
+              },
+              {
+                id: 'tache-2',
+                idSolution: 'solution-2',
+                terminee: true,
+                dateCreation: dateReprise,
+                dateTerminee: dateReprise
+              }
+            ]
+          }
+        ]
+      })
+    })
+
+    it('écarte les tâches dont la solution a disparu du référentiel', () => {
+      // Given
+      const planInvite = unPlanInvite({
+        objectifs: [
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              { id: 'tache-1', idSolution: 'solution-connue', terminee: false },
+              { id: 'tache-2', idSolution: 'solution-inconnue', terminee: true }
+            ]
+          }
+        ]
+      })
+      const idsSolutionsConnues = new Set(['solution-connue'])
+
+      // When
+      const plan = PlanAction.depuisPlanInvite(
+        'jeune-1',
+        planInvite,
+        idsSolutionsConnues,
+        dateReprise
+      )
+
+      // Then
+      expect(plan?.objectifs[0].taches).to.deep.equal([
+        {
+          id: 'tache-1',
+          idSolution: 'solution-connue',
+          terminee: false,
+          dateCreation: dateReprise
+        }
+      ])
+    })
+
+    it('écarte un objectif dont toutes les tâches ont des solutions inconnues', () => {
+      // Given
+      const planInvite = unPlanInvite({
+        objectifs: [
+          {
+            id: 'objectif-1',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              { id: 'tache-1', idSolution: 'solution-connue', terminee: false }
+            ]
+          },
+          {
+            id: 'objectif-2',
+            titre: 'Me former',
+            theme: Questionnaire.Besoin.FORMER,
+            taches: [
+              {
+                id: 'tache-2',
+                idSolution: 'solution-inconnue',
+                terminee: false
+              }
+            ]
+          }
+        ]
+      })
+      const idsSolutionsConnues = new Set(['solution-connue'])
+
+      // When
+      const plan = PlanAction.depuisPlanInvite(
+        'jeune-1',
+        planInvite,
+        idsSolutionsConnues,
+        dateReprise
+      )
+
+      // Then
+      expect(plan?.objectifs).to.have.length(1)
+      expect(plan?.objectifs[0].id).to.equal('objectif-1')
+    })
+
+    it('retourne undefined quand toutes les solutions sont inconnues', () => {
+      // Given
+      const planInvite = unPlanInvite()
+      const idsSolutionsConnues = new Set<string>()
+
+      // When
+      const plan = PlanAction.depuisPlanInvite(
+        'jeune-1',
+        planInvite,
+        idsSolutionsConnues,
+        dateReprise
+      )
+
+      // Then
+      expect(plan).to.be.undefined()
     })
   })
 
