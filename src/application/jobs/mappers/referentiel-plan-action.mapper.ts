@@ -216,22 +216,14 @@ function construireSolution(
     return undefined
   }
 
-  const valeurEcran = texte(fields.Ecran_de_l_app)
-  const ecranApp = valeurEcran ? destinationParValeur[valeurEcran] : undefined
-  if (type === ReferentielPlanAction.TypeSolution.NAVIGATION && !ecranApp) {
-    anomalies.nbSolutionsEcartees++
-    logAnomalie(
-      valeurEcran
-        ? 'Solution Grist écartée : écran de navigation inconnu'
-        : 'Solution Grist écartée : navigation sans écran renseigné',
-      {
-        ligne_grist: record.id,
-        raison: valeurEcran ? 'ecran_inconnu' : 'navigation_sans_ecran',
-        ...optionnel('valeur', valeurEcran)
-      }
-    )
-    return undefined
-  }
+  // L'écran n'est pas encore exploité par l'app : une valeur vide ou inconnue ne bloque pas la solution, elle est importée sans écran (inconnue : comptée)
+  const ecranApp = resoudreEnum(
+    'Ecran_de_l_app',
+    fields.Ecran_de_l_app,
+    destinationParValeur,
+    record.id,
+    anomalies
+  )
 
   const nomService = texte(fields.Service)
   const service = nomService ? serviceParNom.get(nomService) : undefined
