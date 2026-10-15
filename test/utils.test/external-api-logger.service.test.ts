@@ -177,7 +177,8 @@ describe('attachExternalApiLogger', () => {
       })
       expect(obj.error).to.deep.include({
         type: 'AxiosError',
-        message: 'ENOTFOUND'
+        message: 'ENOTFOUND',
+        code: 'ENOTFOUND'
       })
     })
   })
@@ -219,7 +220,8 @@ describe('attachExternalApiLogger', () => {
       })
       expect(obj.error).to.deep.include({
         type: 'Error',
-        message: 'aborted'
+        message: 'aborted',
+        code: 'ECONNRESET'
       })
     })
   })
