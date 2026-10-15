@@ -1,6 +1,7 @@
 import {
   aAccesAuxAlternancesEtServicesCiviques,
   DISPOSITIFS_ACCOMPAGNES,
+  DISPOSITIFS_ATTRIBUABLES,
   DISPOSITIFS_FT_HORS_AVENIR_PRO,
   estBeneficiaireFTConnect,
   estPassEmploi,
@@ -244,16 +245,69 @@ describe('Règles de profil', () => {
   })
 
   describe('DISPOSITIFS_FT_HORS_AVENIR_PRO', () => {
-    it('exclut AVENIR_PRO et PACEA', () => {
+    it('exclut AVENIR_PRO et les dispositifs propres aux Missions Locales', () => {
       expect(DISPOSITIFS_FT_HORS_AVENIR_PRO.dispositifs).not.to.include(
         Profil.Dispositif.AVENIR_PRO
       )
       expect(DISPOSITIFS_FT_HORS_AVENIR_PRO.dispositifs).not.to.include(
         Profil.Dispositif.PACEA
       )
+      expect(DISPOSITIFS_FT_HORS_AVENIR_PRO.dispositifs).not.to.include(
+        Profil.Dispositif.AUTRE
+      )
       expect(DISPOSITIFS_FT_HORS_AVENIR_PRO.dispositifs).to.include(
         Profil.Dispositif.DEMANDEUR_D_EMPLOI
       )
+    })
+  })
+
+  describe('DISPOSITIFS_ATTRIBUABLES', () => {
+    it('propose CEJ, PACEA et Autre à un bénéficiaire Mission Locale', () => {
+      for (const dispositif of [
+        Profil.Dispositif.CEJ,
+        Profil.Dispositif.PACEA,
+        Profil.Dispositif.AUTRE
+      ]) {
+        expect(
+          profilEstAutorise(unProfilMilo(dispositif), DISPOSITIFS_ATTRIBUABLES)
+        ).to.equal(true)
+      }
+      expect(
+        profilEstAutorise(
+          unProfilMilo(Profil.Dispositif.BRSA),
+          DISPOSITIFS_ATTRIBUABLES
+        )
+      ).to.equal(false)
+    })
+
+    it('refuse PACEA et Autre à un bénéficiaire France Travail', () => {
+      expect(
+        profilEstAutorise(
+          unProfilFT(Profil.Dispositif.PACEA),
+          DISPOSITIFS_ATTRIBUABLES
+        )
+      ).to.equal(false)
+      expect(
+        profilEstAutorise(
+          unProfilFT(Profil.Dispositif.AUTRE),
+          DISPOSITIFS_ATTRIBUABLES
+        )
+      ).to.equal(false)
+      expect(
+        profilEstAutorise(
+          unProfilFT(Profil.Dispositif.BRSA),
+          DISPOSITIFS_ATTRIBUABLES
+        )
+      ).to.equal(true)
+    })
+
+    it('ne propose aucun dispositif au Conseil départemental', () => {
+      expect(
+        profilEstAutorise(
+          { ...unProfilCD(), dispositif: Profil.Dispositif.AUTRE },
+          DISPOSITIFS_ATTRIBUABLES
+        )
+      ).to.equal(false)
     })
   })
 

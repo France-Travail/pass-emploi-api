@@ -131,6 +131,20 @@ describe('Milo', () => {
       expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
     })
 
+    it("ne peut voir le comptage des heures en Autre alors qu'il pouvait en CEJ", () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: true
+      })
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(
+        jeune,
+        Profil.Dispositif.AUTRE
+      )
+
+      expect(jeuneAJour.dispositif).equal(Profil.Dispositif.AUTRE)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
     it('Lors du changement de dispositif de CEJ à PACEA si peutVoirLeComptageDesHeures était à faux il reste a faux', () => {
       const jeune = unJeune({
         peutVoirLeComptageDesHeures: false

@@ -1,7 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
-import { NonTrouveError } from '../../building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../building-blocks/types/domain-error'
 import {
   Result,
   emptySuccess,
@@ -21,11 +24,16 @@ import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DateTime } from 'luxon'
-import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
+import {
+  DISPOSITIFS_ACCOMPAGNES,
+  DISPOSITIFS_ATTRIBUABLES,
+  Profil,
+  profilEstAutorise
+} from '../../domain/profil'
 
 export interface ChangerDispositifJeuneCommand extends Command {
   idJeune: string
-  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
+  dispositif: Profil.DispositifMilo
   motif: ArchiveJeune.MotifSuppression
   dateFinAccompagnement: Date
 }
@@ -77,6 +85,18 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
     _utilisateur: Authentification.Utilisateur,
     jeune: Jeune
   ): Promise<Result> {
+    const dispositifAttribuable = profilEstAutorise(
+      { structure: jeune.structure, dispositif: command.dispositif },
+      DISPOSITIFS_ATTRIBUABLES
+    )
+    if (!dispositifAttribuable) {
+      return failure(
+        new MauvaiseCommandeError(
+          'Ce dispositif n’est pas proposé pour ce bénéficiaire'
+        )
+      )
+    }
+
     if (jeune.isActivated) {
       const metadonnees: ArchiveJeune.Metadonnees = {
         idJeune: jeune.id,

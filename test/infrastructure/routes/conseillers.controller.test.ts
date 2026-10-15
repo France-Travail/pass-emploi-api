@@ -431,6 +431,41 @@ describe('ConseillersController', () => {
       })
     })
 
+    describe('quand le conseiller change le dispositif', () => {
+      it('transmet le dispositif Autre', async () => {
+        // Given
+        modifierJeuneDuConseillerCommandHandler.execute.resolves(emptySuccess())
+
+        // When - Then
+        await request(app.getHttpServer())
+          .patch(`/conseillers/${conseiller.id}/jeunes/${jeune.id}`)
+          .send({ dispositif: Profil.Dispositif.AUTRE })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.OK)
+
+        expect(
+          modifierJeuneDuConseillerCommandHandler.execute
+        ).to.have.been.calledWithExactly(
+          {
+            idJeune: jeune.id,
+            idPartenaire: undefined,
+            dispositif: Profil.Dispositif.AUTRE,
+            peutVoirLeComptageDesHeures: undefined
+          },
+          unUtilisateurDecode()
+        )
+      })
+
+      it('refuse un dispositif inconnu', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .patch(`/conseillers/${conseiller.id}/jeunes/${jeune.id}`)
+          .send({ dispositif: 'INCONNU' })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+
     describe('quand la commande est en erreur', () => {
       it('renvoie le code idoine', async () => {
         // Given
@@ -937,6 +972,32 @@ describe('ConseillersController', () => {
         .expect(HttpStatus.NO_CONTENT)
     })
 
+    it('accepte le dispositif Autre', async () => {
+      // Given
+      changerDispositifJeuneCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send({ ...payload, dispositif: Profil.Dispositif.AUTRE })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        changerDispositifJeuneCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idJeune,
+          dispositif: Profil.Dispositif.AUTRE,
+          motif: payload.motif,
+          dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
+        },
+        unUtilisateurDecode()
+      )
+    })
+
     it('retourne 400 quand le payload est invalide', async () => {
       // When - Then
       await request(app.getHttpServer())
@@ -945,6 +1006,17 @@ describe('ConseillersController', () => {
         )
         .set('authorization', unHeaderAuthorization())
         .send({ dispositif: 'INVALIDE', motif: 'INVALIDE' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('retourne 400 pour un dispositif France Travail', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send({ ...payload, dispositif: Profil.Dispositif.BRSA })
         .expect(HttpStatus.BAD_REQUEST)
     })
 

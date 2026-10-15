@@ -255,6 +255,37 @@ describe('CreerJeuneMiloCommandHandler', () => {
         )
       })
 
+      it('crée un jeune en dispositif Autre sans compteur des heures', async () => {
+        // Given
+        const command: CreerJeuneMiloCommand = {
+          idPartenaire,
+          nom: 'nom',
+          prenom: 'prenom',
+          email: 'email',
+          idConseiller: 'idConseiller',
+          dispositif: Profil.Dispositif.AUTRE,
+          peutVoirLeCompteurDesHeures: false,
+          accessToken
+        }
+        miloRepository.creerJeune
+          .withArgs(command.idPartenaire)
+          .resolves(success({ idAuthentification: 'mon-sub' }))
+        miloRepository.getDossier.resolves(success(unDossierMilo()))
+
+        // When
+        const result = await creerJeuneMiloCommandHandler.handle(command)
+
+        // Then
+        expect(jeuneRepository.save).to.have.been.calledOnce()
+        const jeuneSauvegarde: Jeune = jeuneRepository.save.firstCall.args[0]
+        expect(jeuneSauvegarde.structure).to.equal(Profil.Structure.MILO)
+        expect(jeuneSauvegarde.dispositif).to.equal(Profil.Dispositif.AUTRE)
+        expect(jeuneSauvegarde.peutVoirLeComptageDesHeures).to.equal(false)
+        expect(result).to.deep.equal(
+          success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
+        )
+      })
+
       it('crée un jeune et affiche le compteur de temps', async () => {
         // Given
         const command: CreerJeuneMiloCommand = {

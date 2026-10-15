@@ -14,6 +14,7 @@ export namespace Profil {
   export enum Dispositif {
     CEJ = 'CEJ',
     PACEA = 'PACEA',
+    AUTRE = 'AUTRE',
     BRSA = 'BRSA',
     AIJ = 'AIJ',
     AVENIR_PRO = 'AVENIR_PRO',
@@ -23,6 +24,9 @@ export namespace Profil {
     DEMANDEUR_D_EMPLOI = 'DEMANDEUR_D_EMPLOI',
     ESPACE_CANDIDAT = 'ESPACE_CANDIDAT'
   }
+
+  export type DispositifMilo =
+    Dispositif.CEJ | Dispositif.PACEA | Dispositif.AUTRE
 }
 
 export interface Profil {
@@ -46,6 +50,15 @@ export const TOUT_CONSEIL_DEPARTEMENTAL: StructureEtDispositifs = {
 }
 export const TOUT_INVITE: StructureEtDispositifs = {
   structure: Profil.Structure.INVITE
+}
+
+export const DISPOSITIFS_MILO: StructureEtDispositifs = {
+  structure: Profil.Structure.MILO,
+  dispositifs: [
+    Profil.Dispositif.CEJ,
+    Profil.Dispositif.PACEA,
+    Profil.Dispositif.AUTRE
+  ]
 }
 
 export const DISPOSITIFS_FT_ACCOMPAGNES: StructureEtDispositifs = {
@@ -77,10 +90,7 @@ export const DISPOSITIFS_ACCOMPAGNES: readonly StructureEtDispositifs[] = [
 
 // Dispositifs qu'un conseiller peut attribuer à un bénéficiaire qu'il accompagne.
 export const DISPOSITIFS_ATTRIBUABLES: readonly StructureEtDispositifs[] = [
-  {
-    structure: Profil.Structure.MILO,
-    dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA]
-  },
+  DISPOSITIFS_MILO,
   DISPOSITIFS_FT_ACCOMPAGNES
 ]
 
@@ -147,7 +157,8 @@ export const DISPOSITIFS_FT_HORS_AVENIR_PRO: StructureEtDispositifs = {
   dispositifs: Object.values(Profil.Dispositif).filter(
     dispositif =>
       dispositif !== Profil.Dispositif.AVENIR_PRO &&
-      dispositif !== Profil.Dispositif.PACEA
+      dispositif !== Profil.Dispositif.PACEA &&
+      dispositif !== Profil.Dispositif.AUTRE
   )
 }
 
@@ -304,6 +315,7 @@ const MAP_DISPOSITIF_VERS_STRUCTURE_LEGACY_FT: Record<
 > = {
   [Profil.Dispositif.CEJ]: Core.Structure.POLE_EMPLOI,
   [Profil.Dispositif.PACEA]: Core.Structure.POLE_EMPLOI,
+  [Profil.Dispositif.AUTRE]: Core.Structure.POLE_EMPLOI,
   [Profil.Dispositif.BRSA]: Core.Structure.POLE_EMPLOI_BRSA,
   [Profil.Dispositif.AIJ]: Core.Structure.POLE_EMPLOI_AIJ,
   [Profil.Dispositif.AVENIR_PRO]: Core.Structure.AVENIR_PRO,

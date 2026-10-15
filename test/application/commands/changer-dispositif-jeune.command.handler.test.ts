@@ -6,7 +6,10 @@ import {
   ChangerDispositifJeuneCommand,
   ChangerDispositifJeuneCommandHandler
 } from '../../../src/application/commands/changer-dispositif-jeune.command.handler'
-import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import {
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure
@@ -149,6 +152,60 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
         ).to.have.been.calledOnceWithExactly(jeune.id)
         expect(result).to.deep.equal(emptySuccess())
       })
+    })
+
+    it('bascule un bénéficiaire Mission Locale vers le dispositif Autre sans compteur des heures', async () => {
+      // Given
+      const jeuneAvecCompteur = unJeune({
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.CEJ,
+        peutVoirLeComptageDesHeures: true
+      })
+      archiveJeuneRepository.archiverSansDonnees.resolves(emptySuccess())
+
+      // When
+      const result = await handler.handle(
+        { ...command, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur,
+        jeuneAvecCompteur
+      )
+
+      // Then
+      expect(jeuneRepository.save).to.have.been.calledOnceWithExactly({
+        ...jeuneAvecCompteur,
+        dispositif: Profil.Dispositif.AUTRE,
+        peutVoirLeComptageDesHeures: false,
+        creationDate: DateTime.fromJSDate(dateFinAccompagnement)
+      })
+      expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it('refuse un dispositif qui n’est pas proposé pour la structure du bénéficiaire', async () => {
+      // Given
+      const jeuneFT = unJeune({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.CEJ
+      })
+
+      // When
+      const result = await handler.handle(
+        { ...command, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur,
+        jeuneFT
+      )
+
+      // Then
+      expect(
+        archiveJeuneRepository.archiverSansDonnees
+      ).not.to.have.been.called()
+      expect(jeuneRepository.save).not.to.have.been.called()
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Ce dispositif n’est pas proposé pour ce bénéficiaire'
+          )
+        )
+      )
     })
 
     describe("quand le jeune n'est pas activé", () => {

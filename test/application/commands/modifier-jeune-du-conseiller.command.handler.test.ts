@@ -129,6 +129,56 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(result).to.deep.equal(emptySuccess())
       })
+      it('met à jour dispositif CEJ vers Autre et modifie peutVoirLeComptageDesHeures à false', async () => {
+        const jeune = unJeune({
+          structure: Profil.Structure.MILO,
+          dispositif: Profil.Dispositif.CEJ,
+          peutVoirLeComptageDesHeures: true
+        })
+        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
+        const command: ModifierJeuneDuConseillerCommand = {
+          idJeune: jeune.id,
+          dispositif: Profil.Dispositif.AUTRE
+        }
+
+        const result =
+          await modifierJeuneDuConseillerCommandHandler.handle(command)
+
+        const expected: Jeune = {
+          ...jeune,
+          dispositif: Profil.Dispositif.AUTRE,
+          peutVoirLeComptageDesHeures: false
+        }
+        expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledOnceWithExactly(jeune.id)
+        expect(result).to.deep.equal(emptySuccess())
+      })
+      it('refuse le dispositif Autre pour un bénéficiaire France Travail', async () => {
+        // Given
+        const jeuneFT = unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
+
+        // When
+        const result = await modifierJeuneDuConseillerCommandHandler.handle({
+          idJeune: jeuneFT.id,
+          dispositif: Profil.Dispositif.AUTRE
+        })
+
+        // Then
+        expect(jeuneRepository.save).not.to.have.been.called()
+        expect(result).to.deep.equal(
+          failure(
+            new MauvaiseCommandeError(
+              'Ce dispositif n’est pas proposé pour ce bénéficiaire'
+            )
+          )
+        )
+      })
       it('met à jour le dispositif d’un bénéficiaire France Travail', async () => {
         // Given
         const jeuneFT = unJeune({

@@ -39,7 +39,7 @@ export interface CreerJeuneMiloCommand extends Command {
   prenom: string
   email: string
   idConseiller: string
-  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
+  dispositif: Profil.DispositifMilo
   surcharge?: boolean
   peutVoirLeCompteurDesHeures: boolean
   accessToken: string
