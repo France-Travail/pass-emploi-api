@@ -80,6 +80,7 @@ const buildErrorFragment = (
     error: {
       type: err.name,
       message: err.message,
+      ...(err.code && { code: err.code }),
       ...(err.stack && { stack_trace: err.stack })
     }
   }
