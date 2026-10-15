@@ -7,6 +7,7 @@ import {
   Communication,
   CommunicationRepositoryToken
 } from '../../domain/communication'
+import { Population, PopulationRepositoryToken } from '../../domain/population'
 import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
@@ -24,6 +25,8 @@ export class GetCommunicationsConseillerQueryHandler extends QueryHandler<
   readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository,
     @Inject(CommunicationRepositoryToken)
     private readonly communicationRepository: Communication.Repository,
     private readonly dateService: DateService,
@@ -35,9 +38,13 @@ export class GetCommunicationsConseillerQueryHandler extends QueryHandler<
   async handle(
     query: GetCommunicationsConseillerQuery
   ): Promise<Result<CommunicationsConseillerQueryModel>> {
+    const idsPopulations =
+      await this.populationRepository.getIdsPopulationsDuConseiller(
+        query.idConseiller
+      )
     const messageInformatif =
       await this.communicationRepository.getMessageInformatifDuConseiller(
-        query.idConseiller,
+        idsPopulations,
         this.dateService.now()
       )
     return success(messageInformatif ? { messageInformatif } : {})

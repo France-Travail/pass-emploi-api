@@ -7,6 +7,7 @@ import {
   Fonctionnalite,
   FonctionnaliteRepositoryToken
 } from '../../domain/fonctionnalite'
+import { Population, PopulationRepositoryToken } from '../../domain/population'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
@@ -24,6 +25,8 @@ export class GetFonctionnalitesJeuneQueryHandler extends QueryHandler<
   readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository,
     @Inject(FonctionnaliteRepositoryToken)
     private readonly fonctionnaliteRepository: Fonctionnalite.Repository,
     private readonly dateService: DateService,
@@ -35,9 +38,11 @@ export class GetFonctionnalitesJeuneQueryHandler extends QueryHandler<
   async handle(
     query: GetFonctionnalitesJeuneQuery
   ): Promise<Result<FonctionnalitesJeuneQueryModel>> {
+    const idsPopulations =
+      await this.populationRepository.getIdsPopulationsDuJeune(query.idJeune)
     const fonctionnalites =
-      await this.fonctionnaliteRepository.getIdsFonctionnalitesActivesDuJeune(
-        query.idJeune,
+      await this.fonctionnaliteRepository.getIdsFonctionnalitesActives(
+        idsPopulations,
         this.dateService.now()
       )
 

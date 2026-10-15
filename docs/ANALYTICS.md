@@ -194,11 +194,11 @@ les compteurs sont ceux de `communication_envoi` à `date_calcul` (`nb_a_envoyer
 destinataires, ni compteurs.
 
 **Pourquoi c'est la vérité.** Le job ne réécrit aucune règle métier : appartenance à une
-population, destinataires d'une communication, conseillers concernés par un déploiement et
-prédicats temporels sont les fragments de
-[`sql-helpers.ts`](../src/infrastructure/repositories/sql-helpers.ts), ceux-là mêmes
-qu'utilisent `CommunicationSqlRepository` et `MigrationSqlRepository` en production. En
-particulier, les jeunes destinataires d'une notification pas encore envoyée sont calculés
+population (vues SQL `appartenance_population_{conseiller|jeune}`), les
+destinataires d'une communication et les conseillers concernés par un
+déploiement viennent du même chemin que l'app mobile et le web
+(`Population.Repository → vues`, puis repositories par ids de population). Les
+jeunes destinataires d'une notification pas encore envoyée sont calculés
 par `sqlJoinJeunesDestinataires`, la fonction qui fige la population au démarrage de
 l'envoi. Si une règle change dans un repository, la table suit au déploiement suivant. Le
 test du job le vérifie en croisant la table avec ce que ces repositories renvoient
