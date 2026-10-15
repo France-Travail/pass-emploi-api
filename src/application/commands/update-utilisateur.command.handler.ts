@@ -518,11 +518,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (isSuccess(recuperationUtilisateurResult)) {
       const utilisateur = recuperationUtilisateurResult.data
       if (utilisateur.type === Type.SUPPORT) return undefined
-      if (
-        utilisateur.type === Type.CONSEILLER &&
-        gardeLAccesAuWebMalgreLaMigration(utilisateur.profil)
-      )
-        return undefined
 
       const idPopulation =
         await this.migrationService.populationDeMigrationActive({
@@ -540,15 +535,6 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     if (!archive) return undefined
     return { idPopulation: archive.idPopulation ?? undefined }
   }
-}
-
-// Une population cible les jeunes à travers leur conseiller : celle de la migration 1J1S embarque donc les conseillers AIJ et Avenir Pro, qui doivent pourtant garder l'accès au web.
-function gardeLAccesAuWebMalgreLaMigration(profil: Profil): boolean {
-  return (
-    profil.structure === Profil.Structure.FRANCE_TRAVAIL &&
-    (profil.dispositif === Profil.Dispositif.AIJ ||
-      profil.dispositif === Profil.Dispositif.AVENIR_PRO)
-  )
 }
 
 function verifierProfilBeneficiaire(
