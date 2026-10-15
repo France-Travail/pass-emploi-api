@@ -28,6 +28,8 @@ import {
 import { EnvoyerEmailActivationCommandHandler } from '../../application/commands/milo/envoyer-email-activation.command.handler'
 import { ChangerDispositifJeuneCommandHandler } from '../../application/commands/changer-dispositif-jeune.command.handler'
 import { GetCommunicationsConseillerQueryHandler } from '../../application/queries/get-communications-conseiller.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from '../../application/queries/get-fonctionnalites-conseiller.query.handler'
+import { FonctionnalitesConseillerQueryModel } from '../../application/queries/query-models/fonctionnalites.query-model'
 import { ModifierJeuneDuConseillerCommandHandler } from '../../application/commands/modifier-jeune-du-conseiller.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from '../../application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import {
@@ -105,7 +107,8 @@ export class ConseillersController {
     private readonly sendNotificationsNouveauxMessages: SendNotificationsNouveauxMessagesCommandHandler,
     private readonly envoyerEmailActivationCommandHandler: EnvoyerEmailActivationCommandHandler,
     private readonly changerDispositifJeuneCommandHandler: ChangerDispositifJeuneCommandHandler,
-    private readonly getCommunicationsConseillerQueryHandler: GetCommunicationsConseillerQueryHandler
+    private readonly getCommunicationsConseillerQueryHandler: GetCommunicationsConseillerQueryHandler,
+    private readonly getFonctionnalitesConseillerQueryHandler: GetFonctionnalitesConseillerQueryHandler
   ) {}
 
   @ApiOperation({
@@ -248,6 +251,24 @@ export class ConseillersController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<CommunicationsConseillerQueryModel> {
     const result = await this.getCommunicationsConseillerQueryHandler.execute(
+      { idConseiller },
+      utilisateur
+    )
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère les fonctionnalités actives du conseiller',
+    description:
+      "Autorisé pour le conseiller. Ne renvoie que les fonctionnalités dont la date d'activation est atteinte."
+  })
+  @Get(':idConseiller/fonctionnalites')
+  @ApiResponse({ type: FonctionnalitesConseillerQueryModel })
+  async getFonctionnalites(
+    @Param('idConseiller') idConseiller: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<FonctionnalitesConseillerQueryModel> {
+    const result = await this.getFonctionnalitesConseillerQueryHandler.execute(
       { idConseiller },
       utilisateur
     )

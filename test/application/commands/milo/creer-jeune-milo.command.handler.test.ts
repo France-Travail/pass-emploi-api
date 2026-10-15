@@ -2,12 +2,14 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { SinonSandbox } from 'sinon'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../../../../src/application/authorizers/fonctionnalite-authorizer'
 
 import {
   CreerJeuneMiloCommand,
   CreerJeuneMiloCommandHandler
 } from '../../../../src/application/commands/milo/creer-jeune-milo.command.handler'
 import {
+  DroitsInsuffisants,
   DossierExisteDejaError,
   EmailExisteDejaMiloError,
   ErreurHttp,
@@ -15,6 +17,7 @@ import {
   NonTrouveError
 } from '../../../../src/building-blocks/types/domain-error'
 import {
+  emptySuccess,
   failure,
   isSuccess,
   success
@@ -49,6 +52,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
   let chatRepository: StubbedType<Chat.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let oidcClient: StubbedClass<OidcClient>
+  let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
   const accessToken = 'accessToken'
   const idpToken = 'idpToken'
 
@@ -69,6 +73,10 @@ describe('CreerJeuneMiloCommandHandler', () => {
       .withArgs(idPartenaire)
       .resolves(failure(new NonTrouveError('Dossier Milo', idPartenaire)))
     oidcClient = stubClass(OidcClient)
+    fonctionnaliteAuthorizer = stubClass(FonctionnaliteAuthorizer)
+    fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller.resolves(
+      emptySuccess()
+    )
     oidcClient.exchangeToken.withArgs(accessToken).resolves(idpToken)
     creerJeuneMiloCommandHandler = new CreerJeuneMiloCommandHandler(
       conseillerAuthorizer,
@@ -78,7 +86,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
       conseillerRepository,
       chatRepository,
       new Jeune.Factory(dateService, idService),
-      oidcClient
+      oidcClient,
+      fonctionnaliteAuthorizer
     )
   })
 
@@ -453,6 +462,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
       }
 
       const utilisateur = unUtilisateurConseiller()
+      conseillerAuthorizer.autoriserLeConseiller.resolves(emptySuccess())
 
       // When
       await creerJeuneMiloCommandHandler.authorize(command, utilisateur)
@@ -462,6 +472,33 @@ describe('CreerJeuneMiloCommandHandler', () => {
       expect(
         conseillerAuthorizer.autoriserLeConseiller
       ).to.have.been.calledWithExactly(command.idConseiller, utilisateur)
+    })
+
+    it('refuse le dispositif Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
+      // Given
+      const command: CreerJeuneMiloCommand = {
+        idPartenaire,
+        nom: 'nom',
+        prenom: 'prenom',
+        email: 'email',
+        idConseiller: 'idConseiller',
+        dispositif: Profil.Dispositif.AUTRE,
+        peutVoirLeCompteurDesHeures: false,
+        accessToken
+      }
+      conseillerAuthorizer.autoriserLeConseiller.resolves(emptySuccess())
+      fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller
+        .withArgs('idConseiller', Profil.Dispositif.AUTRE)
+        .resolves(failure(new DroitsInsuffisants()))
+
+      // When
+      const result = await creerJeuneMiloCommandHandler.authorize(
+        command,
+        unUtilisateurConseiller()
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
   })
 })

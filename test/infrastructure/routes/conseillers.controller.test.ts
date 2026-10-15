@@ -51,6 +51,7 @@ import { GetDemarchesConseillerQueryHandler } from '../../../src/application/que
 import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from '../../../src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetCommunicationsConseillerQueryHandler } from '../../../src/application/queries/get-communications-conseiller.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from '../../../src/application/queries/get-fonctionnalites-conseiller.query.handler'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -76,6 +77,7 @@ describe('ConseillersController', () => {
   let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
   let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
   let getCommunicationsConseillerQueryHandler: StubbedClass<GetCommunicationsConseillerQueryHandler>
+  let getFonctionnalitesConseillerQueryHandler: StubbedClass<GetFonctionnalitesConseillerQueryHandler>
 
   let app: INestApplication
 
@@ -120,6 +122,9 @@ describe('ConseillersController', () => {
     )
     getCommunicationsConseillerQueryHandler = app.get(
       GetCommunicationsConseillerQueryHandler
+    )
+    getFonctionnalitesConseillerQueryHandler = app.get(
+      GetFonctionnalitesConseillerQueryHandler
     )
   })
 
@@ -276,6 +281,27 @@ describe('ConseillersController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'get',
       '/conseillers/1/communications'
+    )
+  })
+
+  describe('GET /conseillers/:idConseiller/fonctionnalites', () => {
+    it('renvoie les fonctionnalités actives du conseiller', async () => {
+      // Given
+      getFonctionnalitesConseillerQueryHandler.execute
+        .withArgs({ idConseiller: '1' }, unUtilisateurDecode())
+        .resolves(success({ fonctionnalites: ['DISPOSITIF_AUTRE'] }))
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/conseillers/1/fonctionnalites')
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.OK)
+        .expect({ fonctionnalites: ['DISPOSITIF_AUTRE'] })
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/conseillers/1/fonctionnalites'
     )
   })
 

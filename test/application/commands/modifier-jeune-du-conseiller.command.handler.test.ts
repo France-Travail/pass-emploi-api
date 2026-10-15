@@ -1,11 +1,13 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import { ConseillerAuthorizer } from '../../../src/application/authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../../../src/application/authorizers/fonctionnalite-authorizer'
 import {
   ModifierJeuneDuConseillerCommand,
   ModifierJeuneDuConseillerCommandHandler
 } from '../../../src/application/commands/modifier-jeune-du-conseiller.command.handler'
 import {
+  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
@@ -26,6 +28,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
   let conseillerForJeuneAuthorizer: StubbedClass<ConseillerAuthorizer>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let authentificationRepository: StubbedType<Authentification.Repository>
+  let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
 
   const jeune = unJeune({ structure: Profil.Structure.FRANCE_TRAVAIL })
   const command: ModifierJeuneDuConseillerCommand = {
@@ -37,11 +40,16 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
     conseillerForJeuneAuthorizer = stubClass(ConseillerAuthorizer)
     jeuneRepository = stubInterface(createSandbox())
     authentificationRepository = stubInterface(createSandbox())
+    fonctionnaliteAuthorizer = stubClass(FonctionnaliteAuthorizer)
+    fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller.resolves(
+      emptySuccess()
+    )
     modifierJeuneDuConseillerCommandHandler =
       new ModifierJeuneDuConseillerCommandHandler(
         jeuneRepository,
         authentificationRepository,
-        conseillerForJeuneAuthorizer
+        conseillerForJeuneAuthorizer,
+        fonctionnaliteAuthorizer
       )
   })
 
@@ -65,6 +73,30 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       expect(
         conseillerForJeuneAuthorizer.autoriserConseillerPourSonJeune
       ).to.have.been.calledOnceWithExactly(command.idJeune, conseillerPE)
+    })
+
+    it('refuse le dispositif Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
+      // Given
+      const conseillerMilo = unUtilisateurConseiller()
+      const commandAutre: ModifierJeuneDuConseillerCommand = {
+        idJeune: jeune.id,
+        dispositif: Profil.Dispositif.AUTRE
+      }
+      conseillerForJeuneAuthorizer.autoriserConseillerPourSonJeune.resolves(
+        emptySuccess()
+      )
+      fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller
+        .withArgs(conseillerMilo.id, Profil.Dispositif.AUTRE)
+        .resolves(failure(new DroitsInsuffisants()))
+
+      // When
+      const result = await modifierJeuneDuConseillerCommandHandler.authorize(
+        commandAutre,
+        conseillerMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
   })
 

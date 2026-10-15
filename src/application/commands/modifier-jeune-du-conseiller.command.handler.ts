@@ -8,7 +8,8 @@ import {
 import {
   Result,
   emptySuccess,
-  failure
+  failure,
+  isFailure
 } from '../../building-blocks/types/result'
 import {
   Authentification,
@@ -22,6 +23,7 @@ import {
 } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../authorizers/fonctionnalite-authorizer'
 
 export interface ModifierJeuneDuConseillerCommand extends Command {
   idPartenaire?: string
@@ -42,7 +44,8 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
     private jeuneRepository: Jeune.Repository,
     @Inject(AuthentificationRepositoryToken)
     private authentificationRepository: Authentification.Repository,
-    private conseillerAuthorizer: ConseillerAuthorizer
+    private conseillerAuthorizer: ConseillerAuthorizer,
+    private fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
   ) {
     super('ModifierJeuneDuConseillerCommandHandler')
   }
@@ -97,9 +100,16 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
     command: ModifierJeuneDuConseillerCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
-      command.idJeune,
-      utilisateur
+    const resultConseiller =
+      await this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
+        command.idJeune,
+        utilisateur
+      )
+    if (isFailure(resultConseiller)) return resultConseiller
+
+    return this.fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller(
+      utilisateur.id,
+      command.dispositif
     )
   }
 

@@ -23,6 +23,7 @@ import { Evenement, EvenementService } from '../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../authorizers/fonctionnalite-authorizer'
 import { DateTime } from 'luxon'
 import {
   DISPOSITIFS_ACCOMPAGNES,
@@ -55,7 +56,8 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
     private readonly authentificationRepository: Authentification.Repository,
     private readonly evenementService: EvenementService,
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
-    private readonly dateService: DateService
+    private readonly dateService: DateService,
+    private readonly fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
   ) {
     super('ChangerDispositifJeuneCommandHandler')
   }
@@ -74,9 +76,16 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
     if (!jeune) {
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
-    return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
-      command.idJeune,
-      utilisateur
+    const resultConseiller =
+      await this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
+        command.idJeune,
+        utilisateur
+      )
+    if (isFailure(resultConseiller)) return resultConseiller
+
+    return this.fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller(
+      utilisateur.id,
+      command.dispositif
     )
   }
 

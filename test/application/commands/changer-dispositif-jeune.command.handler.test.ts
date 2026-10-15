@@ -2,11 +2,13 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { createSandbox } from 'sinon'
 import { ConseillerAuthorizer } from '../../../src/application/authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../../../src/application/authorizers/fonctionnalite-authorizer'
 import {
   ChangerDispositifJeuneCommand,
   ChangerDispositifJeuneCommandHandler
 } from '../../../src/application/commands/changer-dispositif-jeune.command.handler'
 import {
+  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
@@ -33,6 +35,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   let evenementService: StubbedClass<EvenementService>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let dateService: StubbedClass<DateService>
+  let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
 
   const dateFinAccompagnement = uneAutreDate()
   const utilisateur = unUtilisateurConseiller()
@@ -54,6 +57,10 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
     evenementService = stubClass(EvenementService)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     dateService = stubClass(DateService)
+    fonctionnaliteAuthorizer = stubClass(FonctionnaliteAuthorizer)
+    fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller.resolves(
+      emptySuccess()
+    )
 
     dateService.nowJs.returns(uneDate())
 
@@ -63,7 +70,8 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
       authentificationRepository,
       evenementService,
       conseillerAuthorizer,
-      dateService
+      dateService,
+      fonctionnaliteAuthorizer
     )
   })
 
@@ -81,6 +89,26 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
       expect(
         conseillerAuthorizer.autoriserConseillerPourSonJeune
       ).to.have.been.calledOnceWithExactly(command.idJeune, utilisateur)
+    })
+
+    it('refuse le dispositif Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
+      // Given
+      conseillerAuthorizer.autoriserConseillerPourSonJeune.resolves(
+        emptySuccess()
+      )
+      fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller
+        .withArgs(utilisateur.id, Profil.Dispositif.AUTRE)
+        .resolves(failure(new DroitsInsuffisants()))
+
+      // When
+      const result = await handler.authorize(
+        { ...command, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur,
+        jeune
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
 
     it("retourne une erreur quand le jeune n'existe pas", async () => {

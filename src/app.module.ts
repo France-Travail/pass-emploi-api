@@ -35,6 +35,7 @@ import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { CacheControlMiddleware } from 'src/infrastructure/middlewares/cache-control.middleware'
 import { ActionAuthorizer } from './application/authorizers/action-authorizer'
 import { ConseillerAuthorizer } from './application/authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from './application/authorizers/fonctionnalite-authorizer'
 import { ConseillerInterAgenceAuthorizer } from './application/authorizers/conseiller-inter-agence-authorizer'
 import { ConseillerInterStructureMiloAuthorizer } from './application/authorizers/conseiller-inter-structure-milo-authorizer'
 import { FavoriOffresEmploiAuthorizer } from './application/authorizers/favori-offres-emploi-authorizer'
@@ -249,6 +250,7 @@ import { GetOffresImmersionQueryHandlerV3 } from './application/queries/get-offr
 import { GetOffresServicesCiviqueQueryHandler } from './application/queries/get-offres-services-civique.query.handler'
 import { GetPreferencesJeuneQueryHandler } from './application/queries/get-preferences-jeune.query.handler.db'
 import { GetFonctionnalitesJeuneQueryHandler } from './application/queries/get-fonctionnalites-jeune.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from './application/queries/get-fonctionnalites-conseiller.query.handler'
 import { GetRecherchesQueryHandler } from './application/queries/get-recherches.query.handler.db'
 import { GetSuggestionsQueryHandler } from './application/queries/get-suggestions.query.handler.db'
 import { GetSuiviSemainePoleEmploiQueryHandler } from './application/queries/get-suivi-semaine-pole-emploi.query.handler'
@@ -795,6 +797,7 @@ export function buildQueryCommandsProviders(): Provider[] {
   return [
     ActionAuthorizer,
     ConseillerAuthorizer,
+    FonctionnaliteAuthorizer,
     FavoriOffresEmploiAuthorizer,
     FavoriOffresImmersionAuthorizer,
     RechercherMessageQueryHandler,
@@ -907,6 +910,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateJeunePreferencesCommandHandler,
     GetPreferencesJeuneQueryHandler,
     GetFonctionnalitesJeuneQueryHandler,
+    GetFonctionnalitesConseillerQueryHandler,
     GetPopulationSupportQueryHandler,
     GetCommunicationSupportQueryHandler,
     GetPopulationsSupportQueryHandler,
