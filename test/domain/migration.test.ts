@@ -29,108 +29,96 @@ describe('Migration', () => {
     service = new Migration.Service(migrationRepository, dateService)
   })
 
-  describe('recupererDateDeMigrationSiLUtilisateurDoitMigrer', () => {
-    it('interroge le conseiller du bénéficiaire pour un jeune', async () => {
+  const uneMigration = (
+    dateActivation: DateTime
+  ): Migration.MigrationActive => ({
+    dateActivation,
+    idPopulation: 'POP_PASS_EMPLOI'
+  })
+
+  describe('recupererMigrationDeLUtilisateur', () => {
+    it('interroge la migration du bénéficiaire pour un jeune', async () => {
       // Given
-      const dateDeMigration = DateTime.fromISO('2026-11-20T00:00:00.000Z')
-      migrationRepository.getDateDeMigrationDuBeneficiaire
+      const migration = uneMigration(
+        DateTime.fromISO('2026-11-20T00:00:00.000Z')
+      )
+      migrationRepository.getMigrationDuBeneficiaire
         .withArgs('id-jeune')
-        .resolves(dateDeMigration)
+        .resolves(migration)
 
       // When
-      const date =
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(unJeune)
+      const resultat = await service.recupererMigrationDeLUtilisateur(unJeune)
 
       // Then
-      expect(date).to.deep.equal(dateDeMigration)
+      expect(resultat).to.deep.equal(migration)
     })
 
     it('interroge directement le conseiller pour un conseiller', async () => {
       // Given
-      const dateDeMigration = DateTime.fromISO('2026-11-20T00:00:00.000Z')
-      migrationRepository.getDateDeMigrationDuConseiller
+      const migration = uneMigration(
+        DateTime.fromISO('2026-11-20T00:00:00.000Z')
+      )
+      migrationRepository.getMigrationDuConseiller
         .withArgs('id-conseiller')
-        .resolves(dateDeMigration)
+        .resolves(migration)
 
       // When
-      const date =
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(
-          unConseiller
-        )
+      const resultat =
+        await service.recupererMigrationDeLUtilisateur(unConseiller)
 
       // Then
-      expect(date).to.deep.equal(dateDeMigration)
+      expect(resultat).to.deep.equal(migration)
       expect(
-        migrationRepository.getDateDeMigrationDuBeneficiaire
+        migrationRepository.getMigrationDuBeneficiaire
       ).not.to.have.been.called()
-    })
-
-    it("ne renvoie rien quand aucune date n'est posée", async () => {
-      // Given
-      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(undefined)
-
-      // When
-      const date =
-        await service.recupererDateDeMigrationSiLUtilisateurDoitMigrer(unJeune)
-
-      // Then
-      expect(date).to.be.undefined()
     })
   })
 
-  describe('faitPartieDeLaMigrationEtLaDateEstPassee', () => {
-    it('est vraie quand la date de migration est passée', async () => {
+  describe('populationDeMigrationActive', () => {
+    it('renvoie la population quand la date de migration est passée', async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
-        maintenant.minus({ days: 1 })
+      migrationRepository.getMigrationDuBeneficiaire.resolves(
+        uneMigration(maintenant.minus({ days: 1 }))
       )
 
-      // When
-      const doitMigrer =
-        await service.faitPartieDeLaMigrationEtLaDateEstPassee(unJeune)
-
-      // Then
-      expect(doitMigrer).to.equal(true)
+      // When / Then
+      expect(await service.populationDeMigrationActive(unJeune)).to.equal(
+        'POP_PASS_EMPLOI'
+      )
     })
 
-    it('est vraie le jour même de la migration', async () => {
+    it('renvoie la population le jour même de la migration', async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
-        maintenant.startOf('day')
+      migrationRepository.getMigrationDuBeneficiaire.resolves(
+        uneMigration(maintenant.startOf('day'))
       )
 
-      // When
-      const doitMigrer =
-        await service.faitPartieDeLaMigrationEtLaDateEstPassee(unJeune)
-
-      // Then
-      expect(doitMigrer).to.equal(true)
+      // When / Then
+      expect(await service.populationDeMigrationActive(unJeune)).to.equal(
+        'POP_PASS_EMPLOI'
+      )
     })
 
-    it("est fausse quand la date de migration n'est pas atteinte", async () => {
+    it("ne renvoie rien quand la date de migration n'est pas atteinte", async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(
-        maintenant.plus({ days: 1 })
+      migrationRepository.getMigrationDuBeneficiaire.resolves(
+        uneMigration(maintenant.plus({ days: 1 }))
       )
 
-      // When
-      const doitMigrer =
-        await service.faitPartieDeLaMigrationEtLaDateEstPassee(unJeune)
-
-      // Then
-      expect(doitMigrer).to.equal(false)
+      // When / Then
+      expect(
+        await service.populationDeMigrationActive(unJeune)
+      ).to.be.undefined()
     })
 
-    it('est fausse sans date, même si le conseiller est dans une vague', async () => {
+    it("ne renvoie rien quand l'utilisateur n'est dans aucune migration", async () => {
       // Given
-      migrationRepository.getDateDeMigrationDuBeneficiaire.resolves(undefined)
+      migrationRepository.getMigrationDuBeneficiaire.resolves(undefined)
 
-      // When
-      const doitMigrer =
-        await service.faitPartieDeLaMigrationEtLaDateEstPassee(unJeune)
-
-      // Then
-      expect(doitMigrer).to.equal(false)
+      // When / Then
+      expect(
+        await service.populationDeMigrationActive(unJeune)
+      ).to.be.undefined()
     })
   })
 

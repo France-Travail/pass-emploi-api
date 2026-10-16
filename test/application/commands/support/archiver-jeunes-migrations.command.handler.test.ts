@@ -19,6 +19,7 @@ import { Authentification } from '../../../../src/domain/authentification'
 import { Migration } from '../../../../src/domain/migration'
 import { EvenementService } from '../../../../src/domain/evenement'
 import Service = ArchiveJeune.Service
+import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 describe('ArchiverJeunesMigrationCommandHandler', () => {
   let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
@@ -114,6 +115,12 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
 
         // Then
         expect(result).to.deep.equal(emptySuccess())
+        expect(serviceMock.archiver).to.have.been.calledWithExactly(
+          '1',
+          "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
+          MotifSuppressionSupport.MIGRATION,
+          'PHASE_A'
+        )
       })
     })
   })

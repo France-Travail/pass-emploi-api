@@ -75,17 +75,20 @@ export class NonTraitableError implements DomainError {
   readonly message: string
   readonly reason?: NonTraitableReason
   readonly email?: string
+  readonly population?: string
 
   constructor(
     entityType: string,
     id: string,
     reason?: NonTraitableReason,
-    email?: string
+    email?: string,
+    population?: string
   ) {
     this.code = NonTraitableError.CODE
     this.message = `${entityType} ${id} non traitable`
     this.reason = reason
     this.email = email
+    this.population = population
   }
 }
 

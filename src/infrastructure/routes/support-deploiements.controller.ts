@@ -639,7 +639,7 @@ Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux : les con
     summary: 'Crée un déploiement : une population, une nature, une date',
     description: `À partir de \`dateActivation\` (UTC) :
 - \`nature\` FONCTIONNALITE : \`idFonctionnalite\` requis, le drapeau apparaît dans GET /jeunes/:id/fonctionnalites pour les jeunes de la population ;
-- \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée (422 MIGRATION_PARCOURS_EMPLOI) aux jeunes et conseillers de la population. Une seule migration par population.
+- \`nature\` MIGRATION : pas de fonctionnalité, la connexion est refusée aux jeunes et conseillers de la population : 422 MIGRATION_PARCOURS_EMPLOI avec \`population\` = id de la population ; le web choisit le whitescreen d'après cette population. Une seule migration par population.
 
 Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/deploiements/:id) ou le supprimer. Rejouer sur la même population et la même fonctionnalité déplace la date au lieu de créer un doublon.`
   })

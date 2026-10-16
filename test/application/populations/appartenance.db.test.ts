@@ -472,7 +472,8 @@ describe('Appartenance à une population', () => {
       [...idsConseillersDans, ...idsConseillersHors].map(
         async idConseiller => ({
           idConseiller,
-          date: await repo.getDateDeMigrationDuConseiller(idConseiller)
+          date: (await repo.getMigrationDuConseiller(idConseiller))
+            ?.dateActivation
         })
       )
     )
@@ -506,7 +507,7 @@ describe('Appartenance à une population', () => {
     const resultatsDate = await Promise.all(
       [...idsJeunesDans, ...idsJeunesHors].map(async idJeune => ({
         idJeune,
-        date: await repo.getDateDeMigrationDuBeneficiaire(idJeune)
+        date: (await repo.getMigrationDuBeneficiaire(idJeune))?.dateActivation
       }))
     )
 

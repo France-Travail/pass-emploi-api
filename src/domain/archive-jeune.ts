@@ -275,6 +275,7 @@ export namespace ArchiveJeune {
     nomJeune: string
     structure: Profil.Structure
     dispositif?: Profil.Dispositif
+    idPopulation?: string
     idPartenaire?: string
     dateCreation: Date
     datePremiereConnexion?: Date
@@ -326,14 +327,18 @@ export namespace ArchiveJeune {
     contenuPrecedent: string
   }
 
+  export interface ArchiveMigration {
+    idPopulation: string | null
+  }
+
   export interface Repository {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
     archiverSansDonnees(metadonnees: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
-    estArchiveAvecMotif(
+    trouverArchiveAvecMotif(
       emailJeune: string,
       motif: MotifSuppression | MotifSuppressionSupport
-    ): Promise<boolean>
+    ): Promise<ArchiveMigration | undefined>
     findById(idArchive: number): Promise<boolean>
     delete(idArchive: number): Promise<void>
   }
@@ -359,7 +364,8 @@ export namespace ArchiveJeune {
     async archiver(
       idJeune: string,
       commentaireSuppressionSupport: string,
-      motifSuppression: MotifSuppressionSupport
+      motifSuppression: MotifSuppressionSupport,
+      idPopulation?: string
     ): Promise<Result> {
       const jeune = await this.jeuneRepository.get(idJeune)
 
@@ -385,7 +391,8 @@ export namespace ArchiveJeune {
           motif: motifSuppression,
           commentaire: commentaireSuppressionSupport,
           dateArchivage: this.dateService.nowJs(),
-          dispositif: jeune.dispositif ?? undefined
+          dispositif: jeune.dispositif ?? undefined,
+          ...(idPopulation && { idPopulation })
         }
         try {
           await this.archiveJeuneRepository.archiver(metaDonneesArchive)

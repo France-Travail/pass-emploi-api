@@ -116,18 +116,19 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       ? recuperationUtilisateurResult.data.email
       : commandSanitized.email
 
-    const lUtilisateurMigre = await this.lUtilisateurMigre(
+    const migrationBloquante = await this.recupererMigrationBloquante(
       commandSanitized,
       recuperationUtilisateurResult
     )
 
-    if (lUtilisateurMigre) {
+    if (migrationBloquante) {
       return failure(
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
           NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
-          emailUtilisateur
+          emailUtilisateur,
+          migrationBloquante.idPopulation
         )
       )
     }
@@ -505,42 +506,34 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     return success(queryModelFromUtilisateur(utilisateurMisAJour))
   }
 
-  private async lUtilisateurMigre(
+  private async recupererMigrationBloquante(
     command: UpdateUtilisateurCommand,
     recuperationUtilisateurResult: Result<UtilisateurQueryModel>
-  ): Promise<boolean> {
+  ): Promise<{ idPopulation?: string } | undefined> {
     const estUnJeune = command.type === Authentification.Type.JEUNE
     const vientDe1j1s =
       command.application === Authentification.Application.UN_JEUNE_UNE_SOLUTION
-    if (estUnJeune && vientDe1j1s) return false
+    if (estUnJeune && vientDe1j1s) return undefined
 
     if (isSuccess(recuperationUtilisateurResult)) {
-      return this.lUtilisateurMigreVersParcoursEmploi(
-        recuperationUtilisateurResult.data
-      )
+      const utilisateur = recuperationUtilisateurResult.data
+      if (utilisateur.type === Type.SUPPORT) return undefined
+
+      const idPopulation =
+        await this.migrationService.populationDeMigrationActive({
+          id: utilisateur.id,
+          type: utilisateur.type
+        })
+      return idPopulation ? { idPopulation } : undefined
     }
-    return this.leJeuneEstArchivePourMigration(command.email)
-  }
 
-  private async lUtilisateurMigreVersParcoursEmploi(
-    utilisateur: UtilisateurQueryModel
-  ): Promise<boolean> {
-    if (utilisateur.type === Type.SUPPORT) return false
-
-    return this.migrationService.faitPartieDeLaMigrationEtLaDateEstPassee({
-      id: utilisateur.id,
-      type: utilisateur.type
-    })
-  }
-
-  private async leJeuneEstArchivePourMigration(
-    email: string | undefined
-  ): Promise<boolean> {
-    if (!email) return false
-    return this.archiverJeuneRepository.estArchiveAvecMotif(
-      email,
+    if (!command.email) return undefined
+    const archive = await this.archiverJeuneRepository.trouverArchiveAvecMotif(
+      command.email,
       MotifSuppressionSupport.MIGRATION
     )
+    if (!archive) return undefined
+    return { idPopulation: archive.idPopulation ?? undefined }
   }
 }
 

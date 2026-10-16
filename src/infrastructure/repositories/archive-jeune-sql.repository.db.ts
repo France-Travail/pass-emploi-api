@@ -83,6 +83,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       nom: metadonnees.nomJeune,
       structure: metadonnees.structure,
       dispositif: metadonnees.dispositif ?? null,
+      idPopulation: metadonnees.idPopulation ?? null,
       idPartenaire: metadonnees.idPartenaire ?? null,
       dateCreation: metadonnees.dateCreation,
       datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
@@ -123,22 +124,24 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     return archivesSql.map(archive => archive.id)
   }
 
-  async estArchiveAvecMotif(
+  async trouverArchiveAvecMotif(
     emailJeune: string,
     motif: ArchiveJeune.MotifSuppression | ArchiveJeune.MotifSuppressionSupport
-  ): Promise<boolean> {
-    return (
-      (await ArchiveJeuneSqlModel.findOne({
-        where: {
-          email: {
-            [Op.eq]: emailJeune
-          },
-          motif: {
-            [Op.eq]: motif
-          }
+  ): Promise<ArchiveJeune.ArchiveMigration | undefined> {
+    const archiveSql = await ArchiveJeuneSqlModel.findOne({
+      attributes: ['idPopulation'],
+      where: {
+        email: {
+          [Op.eq]: emailJeune
+        },
+        motif: {
+          [Op.eq]: motif
         }
-      })) !== null
-    )
+      },
+      order: [['dateArchivage', 'DESC']]
+    })
+    if (!archiveSql) return undefined
+    return { idPopulation: archiveSql.idPopulation }
   }
 
   private async construire(
