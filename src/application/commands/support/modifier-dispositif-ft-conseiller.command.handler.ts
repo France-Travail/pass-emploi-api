@@ -17,7 +17,7 @@ import {
   Conseiller,
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
-import { Profil } from '../../../domain/profil'
+import { imposeUneReconnexion, Profil } from '../../../domain/profil'
 import { DateService } from '../../../utils/date-service'
 
 export interface ModifierDispositifFTConseillerCommand extends Command {
@@ -78,7 +78,14 @@ export class ModifierDispositifFTConseillerCommandHandler extends CommandHandler
         command.idConseiller,
         command.dispositif
       )
-    // Le dispositif voyage dans le token : les jeunes et le conseiller se reconnectent.
+    const profilAvant = {
+      structure: conseiller.structure,
+      dispositif: conseiller.dispositif
+    }
+    const profilApres = { ...profilAvant, dispositif: command.dispositif }
+    if (!imposeUneReconnexion(profilAvant, profilApres)) {
+      return emptySuccess()
+    }
     for (const idUtilisateur of [...idsJeunes, command.idConseiller]) {
       await this.authentificationRepository.deleteUtilisateurIdp(idUtilisateur)
     }

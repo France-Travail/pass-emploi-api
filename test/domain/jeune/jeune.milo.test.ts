@@ -4,6 +4,9 @@ import { Jeune } from '../../../src/domain/jeune/jeune'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { unConseiller } from '../../fixtures/conseiller.fixture'
 import { Profil } from '../../../src/domain/profil'
+import { MauvaiseCommandeError } from '../../../src/building-blocks/types/domain-error'
+import { failure, success } from '../../../src/building-blocks/types/result'
+import { uneDatetime } from '../../fixtures/date.fixture'
 
 describe('Milo', () => {
   const situationsPrevuEmploi = {
@@ -131,6 +134,20 @@ describe('Milo', () => {
       expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
     })
 
+    it("ne peut voir le comptage des heures en Autre alors qu'il pouvait en CEJ", () => {
+      const jeune = unJeune({
+        peutVoirLeComptageDesHeures: true
+      })
+
+      const jeuneAJour = Jeune.mettreAJourDispositif(
+        jeune,
+        Profil.Dispositif.AUTRE
+      )
+
+      expect(jeuneAJour.dispositif).equal(Profil.Dispositif.AUTRE)
+      expect(jeuneAJour.peutVoirLeComptageDesHeures).equal(false)
+    })
+
     it('Lors du changement de dispositif de CEJ à PACEA si peutVoirLeComptageDesHeures était à faux il reste a faux', () => {
       const jeune = unJeune({
         peutVoirLeComptageDesHeures: false
@@ -153,6 +170,84 @@ describe('Milo', () => {
       const estSuiviTemporairement = Jeune.estSuiviTemporairement(jeune)
 
       expect(estSuiviTemporairement).equal(true)
+    })
+  })
+
+  describe('changerDeDispositif', () => {
+    const dateFinAccompagnement = uneDatetime().plus({ days: 3 })
+
+    it("bascule le dispositif, retire le compteur des heures et fait repartir l'accompagnement à la date de fin", () => {
+      // Given
+      const jeune = unJeune({
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.CEJ,
+        peutVoirLeComptageDesHeures: true
+      })
+
+      // When
+      const result = JeuneMilo.changerDeDispositif(
+        jeune,
+        Profil.Dispositif.AUTRE,
+        dateFinAccompagnement
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          ...jeune,
+          dispositif: Profil.Dispositif.AUTRE,
+          peutVoirLeComptageDesHeures: false,
+          creationDate: dateFinAccompagnement
+        })
+      )
+    })
+
+    it("refuse un bénéficiaire qui n'est pas suivi par une Mission Locale", () => {
+      // Given
+      const jeune = unJeune({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.AIJ
+      })
+
+      // When
+      const result = JeuneMilo.changerDeDispositif(
+        jeune,
+        Profil.Dispositif.CEJ,
+        dateFinAccompagnement
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            "Ce bénéficiaire n'est pas suivi par une Mission Locale"
+          )
+        )
+      )
+    })
+
+    it("refuse un dispositif qui n'est pas proposé par les Missions Locales", () => {
+      // Given
+      const jeune = unJeune({
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.CEJ
+      })
+
+      // When
+      const result = JeuneMilo.changerDeDispositif(
+        jeune,
+        Profil.Dispositif.BRSA,
+        dateFinAccompagnement
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            "Ce dispositif n'est pas proposé par les Missions Locales"
+          )
+        )
+      )
     })
   })
 })

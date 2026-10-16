@@ -82,7 +82,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
           WHERE ${profilsConcernes.clause}
             AND e.type_utilisateur = 'JEUNE'
             AND j.push_notification_token IS NOT NULL
-            AND j.dispositif != :dispositifExclu
+            AND j.dispositif NOT IN (:dispositifsExclus)
           GROUP BY j.id, e.structure, j.push_notification_token
           HAVING SUM(CASE WHEN e.code IN (:codesAECreationActionsDemarches) THEN 1 ELSE 0 END) <= 3
           ORDER BY j.id ASC
@@ -102,7 +102,10 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
               Evenement.Code.ACTION_DUPLIQUEE_HORS_REFERENTIEL,
               Evenement.Code.ACTION_DUPLIQUEE_REFERENTIEL
             ],
-            dispositifExclu: Profil.Dispositif.PACEA,
+            dispositifsExclus: [
+              Profil.Dispositif.PACEA,
+              Profil.Dispositif.AUTRE
+            ],
             maxJeunes: PAGINATION_NOMBRE_DE_JEUNES_MAXIMUM,
             offset
           }

@@ -8,7 +8,8 @@ import {
 import {
   Result,
   emptySuccess,
-  failure
+  failure,
+  isFailure
 } from '../../building-blocks/types/result'
 import {
   Authentification,
@@ -17,11 +18,13 @@ import {
 import {
   DISPOSITIFS_ACCOMPAGNES,
   DISPOSITIFS_ATTRIBUABLES,
+  imposeUneReconnexion,
   Profil,
   profilEstAutorise
 } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../authorizers/fonctionnalite-authorizer'
 
 export interface ModifierJeuneDuConseillerCommand extends Command {
   idPartenaire?: string
@@ -33,7 +36,8 @@ export interface ModifierJeuneDuConseillerCommand extends Command {
 @Injectable()
 export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
   ModifierJeuneDuConseillerCommand,
-  void
+  void,
+  Jeune
 > {
   readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
@@ -42,18 +46,44 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
     private jeuneRepository: Jeune.Repository,
     @Inject(AuthentificationRepositoryToken)
     private authentificationRepository: Authentification.Repository,
-    private conseillerAuthorizer: ConseillerAuthorizer
+    private conseillerAuthorizer: ConseillerAuthorizer,
+    private fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
   ) {
     super('ModifierJeuneDuConseillerCommandHandler')
   }
 
-  async handle(command: ModifierJeuneDuConseillerCommand): Promise<Result> {
-    const jeune = await this.jeuneRepository.get(command.idJeune)
+  async getAggregate(
+    command: ModifierJeuneDuConseillerCommand
+  ): Promise<Jeune | undefined> {
+    return this.jeuneRepository.get(command.idJeune)
+  }
 
+  async authorize(
+    command: ModifierJeuneDuConseillerCommand,
+    utilisateur: Authentification.Utilisateur,
+    jeune: Jeune | undefined
+  ): Promise<Result> {
     if (!jeune) {
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
+    const resultConseiller =
+      await this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
+        command.idJeune,
+        utilisateur
+      )
+    if (isFailure(resultConseiller)) return resultConseiller
 
+    return this.fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller(
+      utilisateur.id,
+      command.dispositif
+    )
+  }
+
+  async handle(
+    command: ModifierJeuneDuConseillerCommand,
+    _utilisateur: Authentification.Utilisateur,
+    jeune: Jeune
+  ): Promise<Result> {
     let jeuneMisAJour = jeune
     const estBeneficiaireFTConnect = [
       Profil.Structure.FRANCE_TRAVAIL,
@@ -74,36 +104,47 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
           )
         )
       }
-      jeuneMisAJour = Jeune.mettreAJourDispositif(jeune, command.dispositif)
+      jeuneMisAJour = Jeune.mettreAJourDispositif(
+        jeuneMisAJour,
+        command.dispositif
+      )
     }
 
     if (command.peutVoirLeComptageDesHeures !== undefined) {
       jeuneMisAJour = Jeune.mettreAJourPeutVoirComptageDesHeures(
-        jeune,
+        jeuneMisAJour,
         command.peutVoirLeComptageDesHeures
       )
     }
     await this.jeuneRepository.save(jeuneMisAJour)
 
-    // Le dispositif est dans le token donc obliger l'user à se reconnecter
-    if (command.dispositif && command.dispositif !== jeune.dispositif) {
+    if (
+      command.dispositif &&
+      imposeUneReconnexion(jeune, {
+        structure: jeune.structure,
+        dispositif: command.dispositif
+      })
+    ) {
       await this.authentificationRepository.deleteUtilisateurIdp(jeune.id)
     }
 
     return emptySuccess()
   }
 
-  async authorize(
-    command: ModifierJeuneDuConseillerCommand,
-    utilisateur: Authentification.Utilisateur
-  ): Promise<Result> {
-    return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
-      command.idJeune,
-      utilisateur
-    )
-  }
-
   async monitor(): Promise<void> {
     return
+  }
+
+  protected labelsDuLog(
+    _result: Result,
+    command?: ModifierJeuneDuConseillerCommand,
+    jeune?: Jeune
+  ): Record<string, string> | undefined {
+    if (!command?.dispositif) return undefined
+
+    return {
+      ...(jeune?.dispositif ? { dispositif_depart: jeune.dispositif } : {}),
+      dispositif_arrivee: command.dispositif
+    }
   }
 }

@@ -35,6 +35,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
     utilisateur?: Authentification.Utilisateur
   ): Promise<Result<Data>> {
     const startNs = process.hrtime.bigint()
+    let aggregate: Aggregat | undefined
     try {
       const profilsResult = verifierProfils(this.profilsAutorises, utilisateur)
       if (isFailure(profilsResult)) {
@@ -42,7 +43,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
         return profilsResult
       }
 
-      const aggregate = await this.getAggregate(command, utilisateur)
+      aggregate = await this.getAggregate(command, utilisateur)
 
       const authorizerResult = await this.authorize(
         command,
@@ -50,7 +51,7 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
         aggregate
       )
       if (isFailure(authorizerResult)) {
-        this.logExecution(startNs, authorizerResult, command)
+        this.logExecution(startNs, authorizerResult, command, aggregate)
         return authorizerResult
       }
 
@@ -65,11 +66,11 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
           )
         })
       }
-      this.logExecution(startNs, result, command)
+      this.logExecution(startNs, result, command, aggregate)
 
       return result
     } catch (e) {
-      this.logExecution(startNs, failure(e), command)
+      this.logExecution(startNs, failure(e), command, aggregate)
       throw e
     }
   }
@@ -105,7 +106,8 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
   // Appelé aussi sur le chemin d'erreur : doit rester une lecture de champs.
   protected labelsDuLog(
     _result: Result<Data>,
-    _command?: Command
+    _command?: Command,
+    _aggregate?: Aggregat
   ): Record<string, string | string[]> | undefined {
     return undefined
   }
@@ -113,10 +115,11 @@ export abstract class CommandHandler<Command, Data, Aggregat = void> {
   private logExecution(
     startNs: bigint,
     result: Result<Data>,
-    command?: Command
+    command?: Command,
+    aggregate?: Aggregat
   ): void {
     const error = isFailure(result) ? result.error : undefined
-    const labels = this.labelsDuLog(result, command)
+    const labels = this.labelsDuLog(result, command, aggregate)
     logHandlerExecuted({
       context: this.commandName,
       startNs,
