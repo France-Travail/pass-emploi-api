@@ -1,8 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import {
-  ChangerDispositifJeuneCommand,
-  ChangerDispositifJeuneCommandHandler
-} from 'src/application/commands/changer-dispositif-jeune.command.handler'
+  ChangerDispositifJeuneMiloCommand,
+  ChangerDispositifJeuneMiloCommandHandler
+} from 'src/application/commands/milo/changer-dispositif-jeune-milo.command.handler'
 import { DeleteConseillerCommandHandler } from 'src/application/commands/conseiller/delete-conseiller.command.handler'
 import {
   ModifierConseillerCommand,
@@ -73,7 +73,7 @@ describe('ConseillersController', () => {
   let getRendezVousJeuneQueryHandler: StubbedClass<GetRendezVousJeuneQueryHandler>
   let getComptageJeunesByConseillerQueryHandler: StubbedClass<GetComptageJeunesByConseillerQueryHandler>
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
-  let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
+  let changerDispositifJeuneMiloCommandHandler: StubbedClass<ChangerDispositifJeuneMiloCommandHandler>
   let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
   let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
   let getCommunicationsConseillerQueryHandler: StubbedClass<GetCommunicationsConseillerQueryHandler>
@@ -113,8 +113,8 @@ describe('ConseillersController', () => {
     envoyerEmailActivationCommandHandler = app.get(
       EnvoyerEmailActivationCommandHandler
     )
-    changerDispositifJeuneCommandHandler = app.get(
-      ChangerDispositifJeuneCommandHandler
+    changerDispositifJeuneMiloCommandHandler = app.get(
+      ChangerDispositifJeuneMiloCommandHandler
     )
     verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
     getImpactChangementDispositifQueryHandler = app.get(
@@ -978,13 +978,13 @@ describe('ConseillersController', () => {
 
     it('change le dispositif et retourne 204', async () => {
       // Given
-      const command: ChangerDispositifJeuneCommand = {
+      const command: ChangerDispositifJeuneMiloCommand = {
         idJeune,
         dispositif: Profil.Dispositif.PACEA,
         motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
         dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
       }
-      changerDispositifJeuneCommandHandler.execute
+      changerDispositifJeuneMiloCommandHandler.execute
         .withArgs(command, unUtilisateurDecode())
         .resolves(emptySuccess())
 
@@ -1000,7 +1000,7 @@ describe('ConseillersController', () => {
 
     it('accepte le dispositif Autre', async () => {
       // Given
-      changerDispositifJeuneCommandHandler.execute.resolves(emptySuccess())
+      changerDispositifJeuneMiloCommandHandler.execute.resolves(emptySuccess())
 
       // When - Then
       await request(app.getHttpServer())
@@ -1012,7 +1012,7 @@ describe('ConseillersController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        changerDispositifJeuneCommandHandler.execute
+        changerDispositifJeuneMiloCommandHandler.execute
       ).to.have.been.calledWithExactly(
         {
           idJeune,

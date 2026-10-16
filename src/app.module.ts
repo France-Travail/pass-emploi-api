@@ -93,7 +93,7 @@ import { UpdateActualiteMiloCommandHandler } from './application/commands/milo/u
 import { DeleteActualiteMiloCommandHandler } from './application/commands/milo/delete-actualite-milo.command.handler'
 import { GetActualitesMiloConseillerQueryHandler } from './application/queries/milo/get-actualites-milo-conseiller.query.handler.db'
 import { GetActualitesMiloJeuneQueryHandler } from './application/queries/milo/get-actualites-milo-jeune.query.handler.db'
-import { ChangerDispositifJeuneCommandHandler } from './application/commands/changer-dispositif-jeune.command.handler'
+import { ChangerDispositifJeuneMiloCommandHandler } from './application/commands/milo/changer-dispositif-jeune-milo.command.handler'
 import { ModifierJeuneDuConseillerCommandHandler } from './application/commands/modifier-jeune-du-conseiller.command.handler'
 import { NotifierNouvellesImmersionsCommandHandler } from './application/commands/notifier-nouvelles-immersions.command.handler'
 import { CreateDemarcheCommandHandler } from './application/commands/pole-emploi/create-demarche.command.handler'
@@ -917,7 +917,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetFonctionnalitesSupportQueryHandler,
     GetMetadonneesFavorisJeuneQueryHandler,
     ModifierJeuneDuConseillerCommandHandler,
-    ChangerDispositifJeuneCommandHandler,
+    ChangerDispositifJeuneMiloCommandHandler,
     GetFavorisJeuneQueryHandler,
     AddCommentaireActionCommandHandler,
     GetCommentairesActionQueryHandler,

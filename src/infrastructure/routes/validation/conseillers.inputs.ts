@@ -173,7 +173,7 @@ export class DetailConseillerPayload {
   notificationsSonores?: boolean
 }
 
-export class ChangerDispositifJeunePayload {
+export class ChangerDispositifJeuneMiloPayload {
   @ApiProperty({ enum: DISPOSITIFS_MILO.dispositifs })
   @IsIn(DISPOSITIFS_MILO.dispositifs!)
   dispositif: Profil.DispositifMilo

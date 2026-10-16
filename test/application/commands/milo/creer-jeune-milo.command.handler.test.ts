@@ -264,7 +264,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
         )
       })
 
-      it('crée un jeune en dispositif Autre sans compteur des heures', async () => {
+      it("crée un jeune en dispositif Autre sans compteur des heures même si l'affichage est demandé", async () => {
         // Given
         const command: CreerJeuneMiloCommand = {
           idPartenaire,
@@ -273,7 +273,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           email: 'email',
           idConseiller: 'idConseiller',
           dispositif: Profil.Dispositif.AUTRE,
-          peutVoirLeCompteurDesHeures: false,
+          peutVoirLeCompteurDesHeures: true,
           accessToken
         }
         miloRepository.creerJeune

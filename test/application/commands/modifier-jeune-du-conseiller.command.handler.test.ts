@@ -1,5 +1,5 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
-import { createSandbox } from 'sinon'
+import { createSandbox, SinonStub, stub } from 'sinon'
 import { ConseillerAuthorizer } from '../../../src/application/authorizers/conseiller-authorizer'
 import { FonctionnaliteAuthorizer } from '../../../src/application/authorizers/fonctionnalite-authorizer'
 import {
@@ -17,6 +17,7 @@ import {
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
 import { Jeune } from '../../../src/domain/jeune/jeune'
+import { rootLogger } from '../../../src/utils/logger.module'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
@@ -31,6 +32,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
   let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
 
   const jeune = unJeune({ structure: Profil.Structure.FRANCE_TRAVAIL })
+  const utilisateur = unUtilisateurConseiller()
   const command: ModifierJeuneDuConseillerCommand = {
     idJeune: jeune.id,
     idPartenaire: 'id-nouveau'
@@ -66,7 +68,8 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       // When
       await modifierJeuneDuConseillerCommandHandler.authorize(
         command,
-        conseillerPE
+        conseillerPE,
+        jeune
       )
 
       // Then
@@ -92,23 +95,38 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       // When
       const result = await modifierJeuneDuConseillerCommandHandler.authorize(
         commandAutre,
-        conseillerMilo
+        conseillerMilo,
+        jeune
       )
 
       // Then
       expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+    })
+
+    it("retourne une erreur quand le jeune n'existe pas", async () => {
+      // When
+      const result = await modifierJeuneDuConseillerCommandHandler.authorize(
+        command,
+        unUtilisateurConseiller(),
+        undefined
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(new NonTrouveError('Jeune', command.idJeune))
+      )
     })
   })
 
   describe('handle', () => {
     describe('quand le jeune existe', () => {
       it('met à jour son id partenaire', async () => {
-        // Given
-        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
-
         // When
-        const result =
-          await modifierJeuneDuConseillerCommandHandler.handle(command)
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          command,
+          utilisateur,
+          jeune
+        )
 
         // Then
         const expected: Jeune = {
@@ -121,15 +139,17 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
       it('met à jour comptage', async () => {
         // Given
         const jeune = unJeune({ structure: Profil.Structure.MILO })
-        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
         const command: ModifierJeuneDuConseillerCommand = {
           idJeune: jeune.id,
           peutVoirLeComptageDesHeures: false
         }
 
         // When
-        const result =
-          await modifierJeuneDuConseillerCommandHandler.handle(command)
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          command,
+          utilisateur,
+          jeune
+        )
 
         // Then
         const expected: Jeune = {
@@ -144,14 +164,16 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           structure: Profil.Structure.MILO,
           dispositif: Profil.Dispositif.CEJ
         })
-        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
         const command: ModifierJeuneDuConseillerCommand = {
           idJeune: jeune.id,
           dispositif: Profil.Dispositif.PACEA
         }
 
-        const result =
-          await modifierJeuneDuConseillerCommandHandler.handle(command)
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          command,
+          utilisateur,
+          jeune
+        )
 
         const expected: Jeune = {
           ...jeune,
@@ -161,20 +183,22 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(result).to.deep.equal(emptySuccess())
       })
-      it('met à jour dispositif CEJ vers Autre et modifie peutVoirLeComptageDesHeures à false', async () => {
+      it('met à jour dispositif CEJ vers Autre, retire le compteur des heures et ne déconnecte pas le bénéficiaire', async () => {
         const jeune = unJeune({
           structure: Profil.Structure.MILO,
           dispositif: Profil.Dispositif.CEJ,
           peutVoirLeComptageDesHeures: true
         })
-        jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
         const command: ModifierJeuneDuConseillerCommand = {
           idJeune: jeune.id,
           dispositif: Profil.Dispositif.AUTRE
         }
 
-        const result =
-          await modifierJeuneDuConseillerCommandHandler.handle(command)
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          command,
+          utilisateur,
+          jeune
+        )
 
         const expected: Jeune = {
           ...jeune,
@@ -184,7 +208,7 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(
           authentificationRepository.deleteUtilisateurIdp
-        ).to.have.been.calledOnceWithExactly(jeune.id)
+        ).not.to.have.been.called()
         expect(result).to.deep.equal(emptySuccess())
       })
       it('refuse le dispositif Autre pour un bénéficiaire France Travail', async () => {
@@ -193,13 +217,13 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           structure: Profil.Structure.FRANCE_TRAVAIL,
           dispositif: Profil.Dispositif.CEJ
         })
-        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle({
-          idJeune: jeuneFT.id,
-          dispositif: Profil.Dispositif.AUTRE
-        })
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          { idJeune: jeuneFT.id, dispositif: Profil.Dispositif.AUTRE },
+          utilisateur,
+          jeuneFT
+        )
 
         // Then
         expect(jeuneRepository.save).not.to.have.been.called()
@@ -217,13 +241,13 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           structure: Profil.Structure.FRANCE_TRAVAIL,
           dispositif: Profil.Dispositif.CEJ
         })
-        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle({
-          idJeune: jeuneFT.id,
-          dispositif: Profil.Dispositif.BRSA
-        })
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          { idJeune: jeuneFT.id, dispositif: Profil.Dispositif.BRSA },
+          utilisateur,
+          jeuneFT
+        )
 
         // Then
         expect(jeuneRepository.save).to.have.been.calledWithExactly({
@@ -242,13 +266,13 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           structure: Profil.Structure.FRANCE_TRAVAIL,
           dispositif: Profil.Dispositif.CEJ
         })
-        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle({
-          idJeune: jeuneFT.id,
-          dispositif: Profil.Dispositif.CEJ
-        })
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          { idJeune: jeuneFT.id, dispositif: Profil.Dispositif.CEJ },
+          utilisateur,
+          jeuneFT
+        )
 
         // Then
         expect(
@@ -262,13 +286,13 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
           structure: Profil.Structure.FRANCE_TRAVAIL,
           dispositif: Profil.Dispositif.CEJ
         })
-        jeuneRepository.get.withArgs(jeuneFT.id).resolves(jeuneFT)
 
         // When
-        const result = await modifierJeuneDuConseillerCommandHandler.handle({
-          idJeune: jeuneFT.id,
-          dispositif: Profil.Dispositif.PACEA
-        })
+        const result = await modifierJeuneDuConseillerCommandHandler.handle(
+          { idJeune: jeuneFT.id, dispositif: Profil.Dispositif.PACEA },
+          utilisateur,
+          jeuneFT
+        )
 
         // Then
         expect(jeuneRepository.save).not.to.have.been.called()
@@ -281,21 +305,44 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         )
       })
     })
+  })
 
-    describe("quand le jeune n'existe pas", () => {
-      it('renvoie une erreur', async () => {
-        // Given
-        jeuneRepository.get.withArgs(jeune.id).resolves(undefined)
+  describe('execute — labels de handler_executed', () => {
+    let logInfo: SinonStub
 
-        // When
-        const result =
-          await modifierJeuneDuConseillerCommandHandler.handle(command)
+    beforeEach(() => {
+      logInfo = stub(rootLogger, 'info')
+      conseillerForJeuneAuthorizer.autoriserConseillerPourSonJeune.resolves(
+        emptySuccess()
+      )
+    })
 
-        // Then
-        expect(jeuneRepository.save).not.to.have.been.called()
-        expect(result).to.deep.equal(
-          failure(new NonTrouveError('Jeune', command.idJeune))
-        )
+    afterEach(() => {
+      logInfo.restore()
+    })
+
+    it("trace le dispositif de départ et celui d'arrivée", async () => {
+      // Given
+      const jeuneMilo = unJeune({
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.PACEA
+      })
+      jeuneRepository.get.withArgs(jeuneMilo.id).resolves(jeuneMilo)
+
+      // When
+      await modifierJeuneDuConseillerCommandHandler.execute(
+        { idJeune: jeuneMilo.id, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur
+      )
+
+      // Then
+      expect(logInfo).to.have.been.calledWithMatch({
+        context: 'ModifierJeuneDuConseillerCommandHandler',
+        event: { action: 'handler_executed', outcome: 'success' },
+        labels: {
+          dispositif_depart: Profil.Dispositif.PACEA,
+          dispositif_arrivee: Profil.Dispositif.AUTRE
+        }
       })
     })
   })

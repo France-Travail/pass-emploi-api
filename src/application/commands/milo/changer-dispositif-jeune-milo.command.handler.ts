@@ -1,38 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Command } from '../../building-blocks/types/command'
-import { CommandHandler } from '../../building-blocks/types/command-handler'
-import {
-  MauvaiseCommandeError,
-  NonTrouveError
-} from '../../building-blocks/types/domain-error'
+import { DateTime } from 'luxon'
+import { Command } from '../../../building-blocks/types/command'
+import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { NonTrouveError } from '../../../building-blocks/types/domain-error'
 import {
   Result,
   emptySuccess,
   failure,
   isFailure
-} from '../../building-blocks/types/result'
+} from '../../../building-blocks/types/result'
 import {
   ArchiveJeune,
   ArchiveJeuneRepositoryToken
-} from '../../domain/archive-jeune'
-import {
-  Authentification,
-  AuthentificationRepositoryToken
-} from '../../domain/authentification'
-import { Evenement, EvenementService } from '../../domain/evenement'
-import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
-import { DateService } from '../../utils/date-service'
-import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
-import { FonctionnaliteAuthorizer } from '../authorizers/fonctionnalite-authorizer'
-import { DateTime } from 'luxon'
-import {
-  DISPOSITIFS_ACCOMPAGNES,
-  DISPOSITIFS_ATTRIBUABLES,
-  Profil,
-  profilEstAutorise
-} from '../../domain/profil'
+} from '../../../domain/archive-jeune'
+import { Authentification } from '../../../domain/authentification'
+import { Evenement, EvenementService } from '../../../domain/evenement'
+import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { JeuneMilo } from '../../../domain/milo/jeune.milo'
+import { Profil, TOUT_MILO } from '../../../domain/profil'
+import { DateService } from '../../../utils/date-service'
+import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../../authorizers/fonctionnalite-authorizer'
 
-export interface ChangerDispositifJeuneCommand extends Command {
+export interface ChangerDispositifJeuneMiloCommand extends Command {
   idJeune: string
   dispositif: Profil.DispositifMilo
   motif: ArchiveJeune.MotifSuppression
@@ -40,36 +30,34 @@ export interface ChangerDispositifJeuneCommand extends Command {
 }
 
 @Injectable()
-export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
-  ChangerDispositifJeuneCommand,
+export class ChangerDispositifJeuneMiloCommandHandler extends CommandHandler<
+  ChangerDispositifJeuneMiloCommand,
   void,
   Jeune
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_MILO
 
   constructor(
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
     @Inject(ArchiveJeuneRepositoryToken)
     private readonly archiveJeuneRepository: ArchiveJeune.Repository,
-    @Inject(AuthentificationRepositoryToken)
-    private readonly authentificationRepository: Authentification.Repository,
     private readonly evenementService: EvenementService,
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     private readonly dateService: DateService,
     private readonly fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
   ) {
-    super('ChangerDispositifJeuneCommandHandler')
+    super('ChangerDispositifJeuneMiloCommandHandler')
   }
 
   async getAggregate(
-    command: ChangerDispositifJeuneCommand
+    command: ChangerDispositifJeuneMiloCommand
   ): Promise<Jeune | undefined> {
     return this.jeuneRepository.get(command.idJeune)
   }
 
   async authorize(
-    command: ChangerDispositifJeuneCommand,
+    command: ChangerDispositifJeuneMiloCommand,
     utilisateur: Authentification.Utilisateur,
     jeune: Jeune | undefined
   ): Promise<Result> {
@@ -90,21 +78,16 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
   }
 
   async handle(
-    command: ChangerDispositifJeuneCommand,
+    command: ChangerDispositifJeuneMiloCommand,
     _utilisateur: Authentification.Utilisateur,
     jeune: Jeune
   ): Promise<Result> {
-    const dispositifAttribuable = profilEstAutorise(
-      { structure: jeune.structure, dispositif: command.dispositif },
-      DISPOSITIFS_ATTRIBUABLES
+    const resultJeuneMisAJour = JeuneMilo.changerDeDispositif(
+      jeune,
+      command.dispositif,
+      DateTime.fromJSDate(command.dateFinAccompagnement)
     )
-    if (!dispositifAttribuable) {
-      return failure(
-        new MauvaiseCommandeError(
-          'Ce dispositif n’est pas proposé pour ce bénéficiaire'
-        )
-      )
-    }
+    if (isFailure(resultJeuneMisAJour)) return resultJeuneMisAJour
 
     if (jeune.isActivated) {
       const metadonnees: ArchiveJeune.Metadonnees = {
@@ -126,21 +109,14 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
       if (isFailure(resultArchive)) return resultArchive
     }
 
-    const jeuneMisAJour = Jeune.reinitialiserPourChangementDispositif(
-      jeune,
-      command.dispositif,
-      DateTime.fromJSDate(command.dateFinAccompagnement)
-    )
-    await this.jeuneRepository.save(jeuneMisAJour)
-    // Le dispositif est dans le token donc obliger l'user à se reco
-    await this.authentificationRepository.deleteUtilisateurIdp(jeune.id)
+    await this.jeuneRepository.save(resultJeuneMisAJour.data)
 
     return emptySuccess()
   }
 
   async monitor(
     utilisateur: Authentification.Utilisateur,
-    _command: ChangerDispositifJeuneCommand,
+    _command: ChangerDispositifJeuneMiloCommand,
     jeune: Jeune
   ): Promise<void> {
     const evenements = [
@@ -152,5 +128,19 @@ export class ChangerDispositifJeuneCommandHandler extends CommandHandler<
       )
     }
     await Promise.all(evenements)
+  }
+
+  protected labelsDuLog(
+    _result: Result,
+    command?: ChangerDispositifJeuneMiloCommand,
+    jeune?: Jeune
+  ): Record<string, string> | undefined {
+    if (!command) return undefined
+
+    return {
+      ...(jeune?.dispositif ? { dispositif_depart: jeune.dispositif } : {}),
+      dispositif_arrivee: command.dispositif,
+      motif_fin_accompagnement: command.motif
+    }
   }
 }

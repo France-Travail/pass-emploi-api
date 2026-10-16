@@ -344,3 +344,8 @@ export function profilVersStructureLegacy(profil: Profil): Core.Structure {
       ]
   }
 }
+
+// Le mobile ne lit `userStructure` qu'au login : changer sa valeur impose de se reconnecter.
+export function imposeUneReconnexion(avant: Profil, apres: Profil): boolean {
+  return profilVersStructureLegacy(avant) !== profilVersStructureLegacy(apres)
+}
