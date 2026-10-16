@@ -19,7 +19,8 @@ export namespace ReferentielPlanAction {
     OFFRES_SERVICE_CIVIQUE = 'OFFRES_SERVICE_CIVIQUE',
     OFFRES_EMPLOI = 'OFFRES_EMPLOI',
     ALLER_VERS = 'ALLER_VERS',
-    EVENEMENTS = 'EVENEMENTS'
+    EVENEMENTS = 'EVENEMENTS',
+    OFFRES_IMMERSIONS = 'OFFRES_IMMERSIONS'
   }
 
   export interface Service {

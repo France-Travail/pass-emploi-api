@@ -6,6 +6,15 @@ export enum TypeActionPlan {
   CONSEIL = 'CONSEIL'
 }
 
+export enum EcranAppPlan {
+  OFFRES_ALTERNANCE = 'OFFRES_ALTERNANCE',
+  OFFRES_SERVICE_CIVIQUE = 'OFFRES_SERVICE_CIVIQUE',
+  OFFRES_EMPLOI = 'OFFRES_EMPLOI',
+  ALLER_VERS = 'ALLER_VERS',
+  EVENEMENTS = 'EVENEMENTS',
+  OFFRES_IMMERSIONS = 'OFFRES_IMMERSIONS'
+}
+
 export class ActionPlanQueryModel {
   @ApiProperty()
   id: string
@@ -30,6 +39,13 @@ export class ActionPlanQueryModel {
 
   @ApiPropertyOptional()
   url?: string
+
+  @ApiPropertyOptional({
+    enum: EcranAppPlan,
+    description:
+      "Écran de l'app vers lequel mène la tâche. De nouvelles valeurs peuvent apparaître sans livraison mobile : une valeur inconnue doit être ignorée (pas de navigation), sans masquer la tâche"
+  })
+  ecranApp?: EcranAppPlan
 
   @ApiPropertyOptional()
   nomService?: string

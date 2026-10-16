@@ -78,6 +78,58 @@ describe('toPlanActionQueryModel', () => {
     expect(queryModel.objectives[0].actions[0].nomService).to.equal('ONISEP')
   })
 
+  it("expose l'écran de l'app vers lequel mène la solution", () => {
+    // Given
+    const solution: ReferentielPlanAction.Solution = {
+      ...uneSolution('p-2'),
+      type: ReferentielPlanAction.TypeSolution.NAVIGATION,
+      ecranApp: ReferentielPlanAction.Destination.OFFRES_IMMERSIONS
+    }
+
+    // When
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [solution],
+      unProfilMilo()
+    )
+
+    // Then
+    expect(queryModel.objectives[0].actions[0].ecranApp).to.equal(
+      'OFFRES_IMMERSIONS'
+    )
+  })
+
+  it("n'expose pas d'écran de l'app quand la solution n'en a pas", () => {
+    // When
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [uneSolution('p-2')],
+      unProfilMilo()
+    )
+
+    // Then
+    expect(queryModel.objectives[0].actions[0]).not.to.have.property('ecranApp')
+  })
+
+  it("n'expose pas d'écran de l'app quand celui stocké est inconnu", () => {
+    // Given
+    const solution: ReferentielPlanAction.Solution = {
+      ...uneSolution('p-2'),
+      type: ReferentielPlanAction.TypeSolution.NAVIGATION,
+      ecranApp: 'ECRAN_INCONNU' as ReferentielPlanAction.Destination
+    }
+
+    // When
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [solution],
+      unProfilMilo()
+    )
+
+    // Then
+    expect(queryModel.objectives[0].actions[0]).not.to.have.property('ecranApp')
+  })
+
   it("expose l'état terminé de la tâche", () => {
     // Given
     const plan = unPlan()
