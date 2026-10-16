@@ -1453,14 +1453,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/axios@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@nestjs/axios@npm:4.0.1"
+"@nestjs/axios@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@nestjs/axios@npm:12.0.1"
   peerDependencies:
-    "@nestjs/common": ^10.0.0 || ^11.0.0
+    "@nestjs/common": ^10.0.0 || ^11.0.0 || ^12.0.0
     axios: ^1.3.1
     rxjs: ^7.0.0
-  checksum: 10/0cc741e4fbfc39920afbb6c58050e0dbfecc8e2f7b249d879802a5b03b65df3714e828970e2bf12283d3d27e1f1ab7ca5ec62b5698dc50f105680e100a0a33f6
+  checksum: 10/3aa9aff25dfa50490b10fa600755d09c1dbaf19183d5c70622b97b7c8bf4aafa8dcb03398d2bd8f314bfa13664be7aabd5dd7a5f1174c74c23c734a416c0b9ae
   languageName: node
   linkType: hard
 
@@ -7668,7 +7668,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1141.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.1141.0"
-    "@nestjs/axios": "npm:^4.0.1"
+    "@nestjs/axios": "npm:^12.0.1"
     "@nestjs/cli": "npm:^11.0.24"
     "@nestjs/common": "npm:11.2.1"
     "@nestjs/config": "npm:4.0.4"
