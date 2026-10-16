@@ -7,7 +7,8 @@ import {
   GristServiceFieldsDto,
   GristSolutionFieldsDto
 } from 'src/infrastructure/clients/dto/grist.dto'
-import { expect } from 'test/utils'
+import { rootLogger } from 'src/utils/logger.module'
+import { expect, sinon } from 'test/utils'
 
 describe('reconcilierReferentiel', () => {
   const serviceOnisep: GristRecordDto<GristServiceFieldsDto> = {
@@ -132,19 +133,20 @@ describe('reconcilierReferentiel', () => {
     )
   })
 
-  it("mappe chacune des cinq valeurs réelles d'écran vers sa destination", () => {
+  it("mappe chacune des valeurs réelles d'écran vers sa destination", () => {
     const casDeTest: Array<[string, ReferentielPlanAction.Destination]> = [
       ['evenements', ReferentielPlanAction.Destination.EVENEMENTS],
       [
-        'offres-alternance',
+        'offres_alternance',
         ReferentielPlanAction.Destination.OFFRES_ALTERNANCE
       ],
-      ['offres-emploi', ReferentielPlanAction.Destination.OFFRES_EMPLOI],
+      ['offres_emploi', ReferentielPlanAction.Destination.OFFRES_EMPLOI],
       [
-        'offres-services-civiques',
+        'offres_services_civiques',
         ReferentielPlanAction.Destination.OFFRES_SERVICE_CIVIQUE
       ],
-      ['aller-vers', ReferentielPlanAction.Destination.ALLER_VERS]
+      ['aller_vers', ReferentielPlanAction.Destination.ALLER_VERS],
+      ['offres_immersions', ReferentielPlanAction.Destination.OFFRES_IMMERSIONS]
     ]
 
     for (const [valeurGrist, destinationAttendue] of casDeTest) {
@@ -162,6 +164,51 @@ describe('reconcilierReferentiel', () => {
       // Then
       expect(resultat.solutions[0].ecranApp).to.equal(destinationAttendue)
       expect(resultat.anomalies.nbSolutionsEcartees).to.equal(0)
+      expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
+    }
+  })
+
+  it("reconnaît encore l'écriture avec tirets des écrans", () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({
+          Type: "Écran de l'app",
+          Ecran_de_l_app: 'offres-services-civiques'
+        })
+      ]
+    )
+
+    // Then
+    expect(resultat.solutions[0].ecranApp).to.equal(
+      ReferentielPlanAction.Destination.OFFRES_SERVICE_CIVIQUE
+    )
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
+  })
+
+  it("trace la valeur d'écran telle que saisie dans le Grist quand elle est inconnue", () => {
+    // Given
+    const logInfo = sinon.stub(rootLogger, 'info')
+
+    try {
+      // When
+      reconcilierReferentiel(
+        [serviceOnisep],
+        [
+          uneSolutionGrist({
+            Type: "Écran de l'app",
+            Ecran_de_l_app: 'offres-immersion'
+          })
+        ]
+      )
+
+      // Then
+      expect(logInfo).to.have.been.calledWithMatch({
+        labels: { colonne: 'Ecran_de_l_app', valeur: 'offres-immersion' }
+      })
+    } finally {
+      logInfo.restore()
     }
   })
 
