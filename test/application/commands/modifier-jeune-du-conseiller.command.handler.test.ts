@@ -159,6 +159,32 @@ describe('ModifierJeuneDuConseillerCommandHandler', () => {
         expect(jeuneRepository.save).to.have.been.calledWithExactly(expected)
         expect(result).to.deep.equal(emptySuccess())
       })
+      it('cumule les modifications quand plusieurs champs sont envoyés ensemble', async () => {
+        // Given
+        const jeuneFT = unJeune({
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        })
+
+        // When
+        await modifierJeuneDuConseillerCommandHandler.handle(
+          {
+            idJeune: jeuneFT.id,
+            idPartenaire: 'id-nouveau',
+            dispositif: Profil.Dispositif.BRSA
+          },
+          utilisateur,
+          jeuneFT
+        )
+
+        // Then
+        expect(jeuneRepository.save).to.have.been.calledWithExactly({
+          ...jeuneFT,
+          idPartenaire: 'id-nouveau',
+          dispositif: Profil.Dispositif.BRSA,
+          peutVoirLeComptageDesHeures: false
+        })
+      })
       it('met à jour dispositif CEJ vers PACEA et modifie peutVoirLeComptageDesHeures à false ', async () => {
         const jeune = unJeune({
           structure: Profil.Structure.MILO,

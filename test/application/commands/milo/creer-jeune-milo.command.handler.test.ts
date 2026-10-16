@@ -303,7 +303,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
           prenom: 'prenom',
           email: 'email',
           idConseiller: 'idConseiller',
-          dispositif: Profil.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.CEJ,
           peutVoirLeCompteurDesHeures: true,
           accessToken
         }
@@ -345,7 +345,7 @@ describe('CreerJeuneMiloCommandHandler', () => {
             idJeune: 'DFKAL',
             fuseauHoraire: TIMEZONE_PAR_DEFAUT
           },
-          dispositif: Profil.Dispositif.PACEA,
+          dispositif: Profil.Dispositif.CEJ,
           peutVoirLeComptageDesHeures: true
         }
         expect(jeuneRepository.save).to.have.been.calledWithExactly(

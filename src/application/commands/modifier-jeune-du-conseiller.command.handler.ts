@@ -104,12 +104,15 @@ export class ModifierJeuneDuConseillerCommandHandler extends CommandHandler<
           )
         )
       }
-      jeuneMisAJour = Jeune.mettreAJourDispositif(jeune, command.dispositif)
+      jeuneMisAJour = Jeune.mettreAJourDispositif(
+        jeuneMisAJour,
+        command.dispositif
+      )
     }
 
     if (command.peutVoirLeComptageDesHeures !== undefined) {
       jeuneMisAJour = Jeune.mettreAJourPeutVoirComptageDesHeures(
-        jeune,
+        jeuneMisAJour,
         command.peutVoirLeComptageDesHeures
       )
     }
