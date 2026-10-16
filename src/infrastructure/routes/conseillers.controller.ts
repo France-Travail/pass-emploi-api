@@ -26,8 +26,10 @@ import {
   CreateListeDeDiffusionCommandHandler
 } from '../../application/commands/create-liste-de-diffusion.command.handler'
 import { EnvoyerEmailActivationCommandHandler } from '../../application/commands/milo/envoyer-email-activation.command.handler'
-import { ChangerDispositifJeuneCommandHandler } from '../../application/commands/changer-dispositif-jeune.command.handler'
+import { ChangerDispositifJeuneMiloCommandHandler } from '../../application/commands/milo/changer-dispositif-jeune-milo.command.handler'
 import { GetCommunicationsConseillerQueryHandler } from '../../application/queries/get-communications-conseiller.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from '../../application/queries/get-fonctionnalites-conseiller.query.handler'
+import { FonctionnalitesConseillerQueryModel } from '../../application/queries/query-models/fonctionnalites.query-model'
 import { ModifierJeuneDuConseillerCommandHandler } from '../../application/commands/modifier-jeune-du-conseiller.command.handler'
 import { RecupererJeunesDuConseillerCommandHandler } from '../../application/commands/recuperer-jeunes-du-conseiller.command.handler'
 import {
@@ -69,7 +71,7 @@ import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import {
-  ChangerDispositifJeunePayload,
+  ChangerDispositifJeuneMiloPayload,
   CreateListeDeDiffusionPayload,
   DetailConseillerPayload,
   EnvoyerNotificationsPayload,
@@ -104,8 +106,9 @@ export class ConseillersController {
     private readonly getRendezVousJeuneQueryHandler: GetRendezVousJeuneQueryHandler,
     private readonly sendNotificationsNouveauxMessages: SendNotificationsNouveauxMessagesCommandHandler,
     private readonly envoyerEmailActivationCommandHandler: EnvoyerEmailActivationCommandHandler,
-    private readonly changerDispositifJeuneCommandHandler: ChangerDispositifJeuneCommandHandler,
-    private readonly getCommunicationsConseillerQueryHandler: GetCommunicationsConseillerQueryHandler
+    private readonly changerDispositifJeuneMiloCommandHandler: ChangerDispositifJeuneMiloCommandHandler,
+    private readonly getCommunicationsConseillerQueryHandler: GetCommunicationsConseillerQueryHandler,
+    private readonly getFonctionnalitesConseillerQueryHandler: GetFonctionnalitesConseillerQueryHandler
   ) {}
 
   @ApiOperation({
@@ -255,6 +258,24 @@ export class ConseillersController {
   }
 
   @ApiOperation({
+    summary: 'Récupère les fonctionnalités actives du conseiller',
+    description:
+      "Autorisé pour le conseiller. Ne renvoie que les fonctionnalités dont la date d'activation est atteinte."
+  })
+  @Get(':idConseiller/fonctionnalites')
+  @ApiResponse({ type: FonctionnalitesConseillerQueryModel })
+  async getFonctionnalites(
+    @Param('idConseiller') idConseiller: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<FonctionnalitesConseillerQueryModel> {
+    const result = await this.getFonctionnalitesConseillerQueryHandler.execute(
+      { idConseiller },
+      utilisateur
+    )
+    return handleResult(result)
+  }
+
+  @ApiOperation({
     summary:
       "Permet d'ajouter l'agence, de choisir le dispositif (conseiller France Travail uniquement), ou de modifier les notifications sonores, la date de signature des CGU, ou la date de visionnage des actus d'un conseiller",
     description:
@@ -340,14 +361,14 @@ export class ConseillersController {
   })
   @Post(':idConseiller/jeunes/:idJeune/changer-dispositif')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiBody({ type: ChangerDispositifJeunePayload })
+  @ApiBody({ type: ChangerDispositifJeuneMiloPayload })
   async changerDispositifJeune(
     @Param('idConseiller') _idConseiller: string,
     @Param('idJeune') idJeune: string,
-    @Body() payload: ChangerDispositifJeunePayload,
+    @Body() payload: ChangerDispositifJeuneMiloPayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<void> {
-    const result = await this.changerDispositifJeuneCommandHandler.execute(
+    const result = await this.changerDispositifJeuneMiloCommandHandler.execute(
       {
         idJeune,
         dispositif: payload.dispositif,

@@ -5,6 +5,7 @@ import { Deploiement } from '../../domain/deploiement'
 import { Fonctionnalite } from '../../domain/fonctionnalite'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 import {
+  sqlConseillerDansPopulation,
   sqlDeploiementActif,
   sqlJeuneDansPopulation,
   sqlJoinConseillerDeReferenceDuJeune
@@ -33,6 +34,32 @@ export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
       {
         replacements: {
           idJeune: idBeneficiaire,
+          nature: Deploiement.Nature.FONCTIONNALITE,
+          maintenant: maintenant.toJSDate()
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+    return rows.map(row => row.id_fonctionnalite)
+  }
+
+  async getIdsFonctionnalitesActivesDuConseiller(
+    idConseiller: string,
+    maintenant: DateTime
+  ): Promise<string[]> {
+    const rows = await this.sequelize.query<{ id_fonctionnalite: string }>(
+      `
+        SELECT DISTINCT d.id_fonctionnalite
+        FROM deploiement d
+        JOIN conseiller c ON c.id = :idConseiller
+        WHERE d.nature = :nature
+          AND ${sqlDeploiementActif('d', ':maintenant')}
+          AND ${sqlConseillerDansPopulation('c', 'd.id_population')}
+        ORDER BY d.id_fonctionnalite
+      `,
+      {
+        replacements: {
+          idConseiller,
           nature: Deploiement.Nature.FONCTIONNALITE,
           maintenant: maintenant.toJSDate()
         },

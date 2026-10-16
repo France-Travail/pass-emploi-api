@@ -214,12 +214,28 @@ export function aplatirErreursDeValidation(
   })
 }
 
-// Fragment ECS http.request.body.content, undefined si pas de body.
-export const requestBodyFragment = (
-  req: IncomingMessage
+// Express ne pose req.route que si une route a répondu : une URL inconnue
+// (scan, route supprimée) n'a donc pas de http.route.
+const matchedRoute = (req: IncomingMessage): string | undefined => {
+  const path = (req as { route?: { path?: unknown } }).route?.path
+  return typeof path === 'string' ? path : undefined
+}
+
+const requestHttpFragment = (
+  req: IncomingMessage,
+  includeBody: boolean
 ): Record<string, unknown> | undefined => {
-  const content = serializeBodyForLog((req as { body?: unknown }).body)
-  return content ? { http: { request: { body: { content } } } } : undefined
+  const route = matchedRoute(req)
+  const content = includeBody
+    ? serializeBodyForLog((req as { body?: unknown }).body)
+    : undefined
+  if (!route && !content) return undefined
+  return {
+    http: {
+      ...(route && { route }),
+      ...(content && { request: { body: { content } } })
+    }
+  }
 }
 
 export const customLogLevel = (
@@ -240,10 +256,13 @@ export const buildCustomSuccessObject =
   ): Record<string, unknown> => {
     const outcome =
       !res.statusCode || res.statusCode >= 400 ? 'failure' : 'success'
-    const log = { ...val, event: { action: 'request_completed', outcome } }
     // body sur échec (4xx inclus) ; sur succès seulement si LOG_LEVEL=debug
     const includeBody = outcome === 'failure' || isDebugEnabled()
-    return includeBody ? { ...log, ...requestBodyFragment(req) } : log
+    return {
+      ...val,
+      event: { action: 'request_completed', outcome },
+      ...requestHttpFragment(req, includeBody)
+    }
   }
 
 export const customErrorObject = (
@@ -254,7 +273,7 @@ export const customErrorObject = (
 ): Record<string, unknown> => ({
   ...val,
   event: { action: 'request_failed', outcome: 'failure' },
-  ...requestBodyFragment(req)
+  ...requestHttpFragment(req, true)
 })
 
 export interface LogError {

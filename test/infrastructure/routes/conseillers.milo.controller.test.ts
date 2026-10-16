@@ -210,6 +210,58 @@ describe('ConseillersMiloController', () => {
       })
     })
 
+    describe('quand le conseiller choisit le dispositif', () => {
+      const payload: CreerJeuneMiloPayload = {
+        idDossier: 'idDossier',
+        nom: 'nom',
+        prenom: 'prenom',
+        email: 'email',
+        idConseiller: 'idConseiller',
+        dispositif: Profil.Dispositif.AUTRE,
+        peutVoirLeCompteurDesHeures: false
+      }
+
+      it('accepte le dispositif Autre', async () => {
+        // Given
+        creerJeuneMiloCommandHandler.execute.resolves(
+          success({ id: 'idJeune', prenom: 'prenom', nom: 'nom' })
+        )
+
+        // When - Then
+        await request(app.getHttpServer())
+          .post('/conseillers/milo/jeunes')
+          .send(payload)
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.CREATED)
+
+        expect(
+          creerJeuneMiloCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          {
+            idPartenaire: 'idDossier',
+            nom: 'nom',
+            prenom: 'prenom',
+            email: 'email',
+            idConseiller: 'idConseiller',
+            dispositif: Profil.Dispositif.AUTRE,
+            surcharge: undefined,
+            peutVoirLeCompteurDesHeures: false,
+            accessToken: 'coucou'
+          },
+          unUtilisateurDecode()
+        )
+      })
+
+      it('refuse un dispositif qui n’est pas Mission Locale', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .post('/conseillers/milo/jeunes')
+          .send({ ...payload, dispositif: Profil.Dispositif.BRSA })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+
     describe('quand le jeune est déjà chez nous', () => {
       it('renvoie 400', async () => {
         // Given

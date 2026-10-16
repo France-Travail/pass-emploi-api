@@ -101,7 +101,7 @@ describe('CreateJeunePoleEmploiCommandHandler', () => {
           fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
         dispositif: Profil.Dispositif.CEJ,
-        peutVoirLeComptageDesHeures: undefined
+        peutVoirLeComptageDesHeures: false
       }
       expect(result).to.deep.equal(success(expectedJeune))
       expect(chatRepository.initializeChatIfNotExists).to.have.been.calledWith(

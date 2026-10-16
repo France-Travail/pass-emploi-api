@@ -101,7 +101,7 @@ UTC.
 
 | Nature | Ce qui se passe | Code |
 |---|---|---|
-| `FONCTIONNALITE` | `id_fonctionnalite` apparaît dans `GET /jeunes/:id/fonctionnalites` pour tout jeune de la population. | `FonctionnaliteSqlRepository`, route existante. |
+| `FONCTIONNALITE` | `id_fonctionnalite` apparaît dans `GET /jeunes/:id/fonctionnalites` pour tout jeune de la population, et dans `GET /conseillers/:id/fonctionnalites` pour tout conseiller de la population. Les ids que l'API contrôle elle-même sont listés dans `Fonctionnalite.Id` (ex. `DISPOSITIF_AUTRE`, exigé pour poser le dispositif Autre). | `FonctionnaliteSqlRepository`, `FonctionnaliteAuthorizer`. |
 | `MIGRATION` | `PUT /auth/users/:idAuth` répond `422 MIGRATION_PARCOURS_EMPLOI` pour tout jeune et conseiller de la population. `dateDeMigration` = J le plus proche parmi ses migrations, dans `GET /conseillers/:id` et l'accueil FT. | `Migration.Service.faitPartieDeLaMigrationEtLaDateEstPassee`, existant, lit désormais les déploiements. |
 
 ## Routes
@@ -141,6 +141,7 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 | Route | Retour |
 |---|---|
 | `GET /jeunes/:id/fonctionnalites` | 200 `{ fonctionnalites: ["PLAN_D_ACTION"] }`. Ids des fonctionnalités dont un déploiement actif vise le jeune. Inchangé. |
+| `GET /conseillers/:id/fonctionnalites` | 200 `{ fonctionnalites: ["DISPOSITIF_AUTRE"] }`. Ids des fonctionnalités dont un déploiement actif vise le conseiller. |
 | `GET /conseillers/:id` et `GET /jeunes/:id/pole-emploi/accueil` | `dateDeMigration` inchangé, dérivé des déploiements `MIGRATION`. |
 | `PUT /auth/users/:idAuth` | 422 `MIGRATION_PARCOURS_EMPLOI` à partir de J d'un déploiement `MIGRATION`. Inchangé. |
 

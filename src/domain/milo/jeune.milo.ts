@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
-import { Result } from '../../building-blocks/types/result'
+import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import { failure, Result, success } from '../../building-blocks/types/result'
 import { Jeune } from '../jeune/jeune'
+import { DISPOSITIFS_MILO, estMilo, Profil } from '../profil'
 import { StructureMilo } from './structure.milo'
 
 export const JeuneMiloRepositoryToken = 'JeuneMiloRepositoryToken'
@@ -115,5 +117,31 @@ export namespace JeuneMilo {
     return situationsTriees.find(
       situation => situation.etat === EtatSituation.EN_COURS
     )
+  }
+
+  export function changerDeDispositif(
+    jeune: Jeune,
+    dispositif: Profil.Dispositif,
+    dateFinAccompagnement: DateTime
+  ): Result<Jeune> {
+    if (!estMilo(jeune.structure)) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Ce bénéficiaire n'est pas suivi par une Mission Locale"
+        )
+      )
+    }
+    if (!DISPOSITIFS_MILO.dispositifs!.includes(dispositif)) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Ce dispositif n'est pas proposé par les Missions Locales"
+        )
+      )
+    }
+
+    return success({
+      ...Jeune.mettreAJourDispositif(jeune, dispositif),
+      creationDate: dateFinAccompagnement
+    })
   }
 }
