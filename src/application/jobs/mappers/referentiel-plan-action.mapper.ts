@@ -72,11 +72,12 @@ const structuresParLibelle: Record<string, Profil.Structure[]> = {
 const destinationParValeur: Record<string, ReferentielPlanAction.Destination> =
   {
     evenements: ReferentielPlanAction.Destination.EVENEMENTS,
-    'offres-alternance': ReferentielPlanAction.Destination.OFFRES_ALTERNANCE,
-    'offres-emploi': ReferentielPlanAction.Destination.OFFRES_EMPLOI,
-    'offres-services-civiques':
+    offres_alternance: ReferentielPlanAction.Destination.OFFRES_ALTERNANCE,
+    offres_emploi: ReferentielPlanAction.Destination.OFFRES_EMPLOI,
+    offres_services_civiques:
       ReferentielPlanAction.Destination.OFFRES_SERVICE_CIVIQUE,
-    'aller-vers': ReferentielPlanAction.Destination.ALLER_VERS
+    aller_vers: ReferentielPlanAction.Destination.ALLER_VERS,
+    offres_immersions: ReferentielPlanAction.Destination.OFFRES_IMMERSIONS
   }
 
 export function reconcilierReferentiel(
@@ -218,13 +219,13 @@ function construireSolution(
     return undefined
   }
 
-  // L'écran n'est pas encore exploité par l'app : une valeur vide ou inconnue ne bloque pas la solution, elle est importée sans écran (inconnue : comptée)
   const ecranApp = resoudreEnum(
     'Ecran_de_l_app',
     fields.Ecran_de_l_app,
     destinationParValeur,
     record.id,
-    anomalies
+    anomalies,
+    valeur => valeur.replace(/-/g, '_')
   )
 
   const nomService = texte(fields.Service)
@@ -294,11 +295,12 @@ function resoudreEnum<V>(
   valeurGrist: string,
   table: Record<string, V>,
   ligneGrist: number,
-  anomalies: ReferentielPlanAction.Anomalies
+  anomalies: ReferentielPlanAction.Anomalies,
+  normaliser: (valeur: string) => string = valeur => valeur
 ): V | undefined {
   const propre = texte(valeurGrist)
   if (!propre) return undefined
-  const resolu = table[propre]
+  const resolu = table[normaliser(propre)]
   if (!resolu) {
     anomalies.nbValeursNonReconnues++
     logAnomalie('Valeur Grist non reconnue, solution conservée', {
