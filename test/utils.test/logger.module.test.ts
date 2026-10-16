@@ -92,6 +92,51 @@ describe('logger.module — pinoHttpOptions', () => {
     })
   })
 
+  describe('http.route', () => {
+    const reqAvecRoute = (body?: unknown): IncomingMessage =>
+      ({
+        route: { path: '/jeunes/:idJeune/actions' },
+        body
+      }) as unknown as IncomingMessage
+
+    it('request_completed porte la route reconnue par Express', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        reqAvecRoute(),
+        { statusCode: 200 },
+        {}
+      )
+      expect(result.http).to.deep.equal({ route: '/jeunes/:idJeune/actions' })
+    })
+    it("request_completed n'a pas de http.route quand aucune route n'a répondu", () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: 404 },
+        {}
+      )
+      expect(result.http).to.equal(undefined)
+    })
+    it('request_completed en échec garde la route et le body sous http', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        reqAvecRoute({ titre: 'x' }),
+        { statusCode: 400 },
+        {}
+      )
+      expect(result.http).to.deep.equal({
+        route: '/jeunes/:idJeune/actions',
+        request: { body: { content: '{"titre":"x"}' } }
+      })
+    })
+    it('request_failed porte la route reconnue par Express', () => {
+      const result = pinoHttpOptions.customErrorObject(
+        reqAvecRoute(),
+        {},
+        new Error('boom'),
+        {}
+      )
+      expect(result.http).to.deep.equal({ route: '/jeunes/:idJeune/actions' })
+    })
+  })
+
   describe('serializer req', () => {
     it('whitelist les headers et drop les autres', () => {
       const serialized = pinoSerializers.req({
