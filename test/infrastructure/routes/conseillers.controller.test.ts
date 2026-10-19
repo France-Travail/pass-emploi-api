@@ -1,8 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import {
-  ChangerDispositifJeuneCommand,
-  ChangerDispositifJeuneCommandHandler
-} from 'src/application/commands/changer-dispositif-jeune.command.handler'
+  ChangerDispositifJeuneMiloCommand,
+  ChangerDispositifJeuneMiloCommandHandler
+} from 'src/application/commands/milo/changer-dispositif-jeune-milo.command.handler'
 import { DeleteConseillerCommandHandler } from 'src/application/commands/conseiller/delete-conseiller.command.handler'
 import {
   ModifierConseillerCommand,
@@ -51,6 +51,7 @@ import { GetDemarchesConseillerQueryHandler } from '../../../src/application/que
 import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from '../../../src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetCommunicationsConseillerQueryHandler } from '../../../src/application/queries/get-communications-conseiller.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from '../../../src/application/queries/get-fonctionnalites-conseiller.query.handler'
 import { uneDemarcheQueryModel } from '../../fixtures/query-models/demarche.query-model.fixtures'
 import { GetComptageJeunesByConseillerQueryHandler } from '../../../src/application/queries/get-comptage-jeunes-by-conseiller.query.handler.db'
 import { uneDatetime } from '../../fixtures/date.fixture'
@@ -72,10 +73,11 @@ describe('ConseillersController', () => {
   let getRendezVousJeuneQueryHandler: StubbedClass<GetRendezVousJeuneQueryHandler>
   let getComptageJeunesByConseillerQueryHandler: StubbedClass<GetComptageJeunesByConseillerQueryHandler>
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
-  let changerDispositifJeuneCommandHandler: StubbedClass<ChangerDispositifJeuneCommandHandler>
+  let changerDispositifJeuneMiloCommandHandler: StubbedClass<ChangerDispositifJeuneMiloCommandHandler>
   let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
   let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
   let getCommunicationsConseillerQueryHandler: StubbedClass<GetCommunicationsConseillerQueryHandler>
+  let getFonctionnalitesConseillerQueryHandler: StubbedClass<GetFonctionnalitesConseillerQueryHandler>
 
   let app: INestApplication
 
@@ -111,8 +113,8 @@ describe('ConseillersController', () => {
     envoyerEmailActivationCommandHandler = app.get(
       EnvoyerEmailActivationCommandHandler
     )
-    changerDispositifJeuneCommandHandler = app.get(
-      ChangerDispositifJeuneCommandHandler
+    changerDispositifJeuneMiloCommandHandler = app.get(
+      ChangerDispositifJeuneMiloCommandHandler
     )
     verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
     getImpactChangementDispositifQueryHandler = app.get(
@@ -120,6 +122,9 @@ describe('ConseillersController', () => {
     )
     getCommunicationsConseillerQueryHandler = app.get(
       GetCommunicationsConseillerQueryHandler
+    )
+    getFonctionnalitesConseillerQueryHandler = app.get(
+      GetFonctionnalitesConseillerQueryHandler
     )
   })
 
@@ -279,6 +284,27 @@ describe('ConseillersController', () => {
     )
   })
 
+  describe('GET /conseillers/:idConseiller/fonctionnalites', () => {
+    it('renvoie les fonctionnalités actives du conseiller', async () => {
+      // Given
+      getFonctionnalitesConseillerQueryHandler.execute
+        .withArgs({ idConseiller: '1' }, unUtilisateurDecode())
+        .resolves(success({ fonctionnalites: ['DISPOSITIF_AUTRE'] }))
+
+      // When - Then
+      await request(app.getHttpServer())
+        .get('/conseillers/1/fonctionnalites')
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.OK)
+        .expect({ fonctionnalites: ['DISPOSITIF_AUTRE'] })
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/conseillers/1/fonctionnalites'
+    )
+  })
+
   describe('GET /conseillers/:idConseiller/jeunes/comptage', () => {
     it('renvoie la liste des jeunes du conseiller avec comptage', async () => {
       // Given
@@ -426,6 +452,41 @@ describe('ConseillersController', () => {
           .send({
             idPartenaire: 'le-id-part-trop-long'
           })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+
+    describe('quand le conseiller change le dispositif', () => {
+      it('transmet le dispositif Autre', async () => {
+        // Given
+        modifierJeuneDuConseillerCommandHandler.execute.resolves(emptySuccess())
+
+        // When - Then
+        await request(app.getHttpServer())
+          .patch(`/conseillers/${conseiller.id}/jeunes/${jeune.id}`)
+          .send({ dispositif: Profil.Dispositif.AUTRE })
+          .set('authorization', unHeaderAuthorization())
+          .expect(HttpStatus.OK)
+
+        expect(
+          modifierJeuneDuConseillerCommandHandler.execute
+        ).to.have.been.calledWithExactly(
+          {
+            idJeune: jeune.id,
+            idPartenaire: undefined,
+            dispositif: Profil.Dispositif.AUTRE,
+            peutVoirLeComptageDesHeures: undefined
+          },
+          unUtilisateurDecode()
+        )
+      })
+
+      it('refuse un dispositif inconnu', async () => {
+        // When - Then
+        await request(app.getHttpServer())
+          .patch(`/conseillers/${conseiller.id}/jeunes/${jeune.id}`)
+          .send({ dispositif: 'INCONNU' })
           .set('authorization', unHeaderAuthorization())
           .expect(HttpStatus.BAD_REQUEST)
       })
@@ -917,13 +978,13 @@ describe('ConseillersController', () => {
 
     it('change le dispositif et retourne 204', async () => {
       // Given
-      const command: ChangerDispositifJeuneCommand = {
+      const command: ChangerDispositifJeuneMiloCommand = {
         idJeune,
         dispositif: Profil.Dispositif.PACEA,
         motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
         dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
       }
-      changerDispositifJeuneCommandHandler.execute
+      changerDispositifJeuneMiloCommandHandler.execute
         .withArgs(command, unUtilisateurDecode())
         .resolves(emptySuccess())
 
@@ -937,6 +998,32 @@ describe('ConseillersController', () => {
         .expect(HttpStatus.NO_CONTENT)
     })
 
+    it('accepte le dispositif Autre', async () => {
+      // Given
+      changerDispositifJeuneMiloCommandHandler.execute.resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send({ ...payload, dispositif: Profil.Dispositif.AUTRE })
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        changerDispositifJeuneMiloCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idJeune,
+          dispositif: Profil.Dispositif.AUTRE,
+          motif: payload.motif,
+          dateFinAccompagnement: new Date(payload.dateFinAccompagnement)
+        },
+        unUtilisateurDecode()
+      )
+    })
+
     it('retourne 400 quand le payload est invalide', async () => {
       // When - Then
       await request(app.getHttpServer())
@@ -945,6 +1032,17 @@ describe('ConseillersController', () => {
         )
         .set('authorization', unHeaderAuthorization())
         .send({ dispositif: 'INVALIDE', motif: 'INVALIDE' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('retourne 400 pour un dispositif France Travail', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post(
+          `/conseillers/${idConseiller}/jeunes/${idJeune}/changer-dispositif`
+        )
+        .set('authorization', unHeaderAuthorization())
+        .send({ ...payload, dispositif: Profil.Dispositif.BRSA })
         .expect(HttpStatus.BAD_REQUEST)
     })
 

@@ -28,7 +28,11 @@ import {
   transformStringToArray,
   transformStringToBoolean
 } from './utils/transformers'
-import { DISPOSITIFS_FT_ACCOMPAGNES, Profil } from '../../../domain/profil'
+import {
+  DISPOSITIFS_FT_ACCOMPAGNES,
+  DISPOSITIFS_MILO,
+  Profil
+} from '../../../domain/profil'
 
 export class GetConseillersQueryParams {
   @ApiProperty()
@@ -93,10 +97,9 @@ export class CreerJeuneMiloPayload {
   @IsNotEmpty()
   idConseiller: string
 
-  @ApiProperty({ enum: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA] })
-  @IsString()
-  @IsNotEmpty()
-  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
+  @ApiProperty({ enum: DISPOSITIFS_MILO.dispositifs })
+  @IsIn(DISPOSITIFS_MILO.dispositifs!)
+  dispositif: Profil.DispositifMilo
 
   @ApiPropertyOptional()
   @IsBoolean()
@@ -170,10 +173,10 @@ export class DetailConseillerPayload {
   notificationsSonores?: boolean
 }
 
-export class ChangerDispositifJeunePayload {
-  @ApiProperty({ enum: [Profil.Dispositif.CEJ, Profil.Dispositif.PACEA] })
-  @IsIn([Profil.Dispositif.CEJ, Profil.Dispositif.PACEA])
-  dispositif: Profil.Dispositif.CEJ | Profil.Dispositif.PACEA
+export class ChangerDispositifJeuneMiloPayload {
+  @ApiProperty({ enum: DISPOSITIFS_MILO.dispositifs })
+  @IsIn(DISPOSITIFS_MILO.dispositifs!)
+  dispositif: Profil.DispositifMilo
 
   @ApiProperty({ enum: ArchiveJeune.MotifSuppression })
   @IsEnum(ArchiveJeune.MotifSuppression)

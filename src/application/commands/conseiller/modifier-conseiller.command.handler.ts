@@ -18,6 +18,7 @@ import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
 import {
   DISPOSITIFS_ACCOMPAGNES,
   estFranceTravail,
+  imposeUneReconnexion,
   Profil
 } from '../../../domain/profil'
 import {
@@ -123,12 +124,18 @@ export class ModifierConseillerCommandHandler extends CommandHandler<
           command.idConseiller,
           command.dispositif
         )
-      await this.deconnecter(idsJeunes)
+      const profilAvant = {
+        structure: conseillerActuel.structure,
+        dispositif: conseillerActuel.dispositif
+      }
+      const profilApres = { ...profilAvant, dispositif: command.dispositif }
+      if (imposeUneReconnexion(profilAvant, profilApres)) {
+        await this.deconnecter(idsJeunes)
+      }
     }
     return emptySuccess()
   }
 
-  // Le dispositif voyage dans le token : les jeunes se reconnectent, le conseiller l'est par le web.
   private async deconnecter(idsUtilisateurs: string[]): Promise<void> {
     for (const idUtilisateur of idsUtilisateurs) {
       await this.authentificationRepository.deleteUtilisateurIdp(idUtilisateur)

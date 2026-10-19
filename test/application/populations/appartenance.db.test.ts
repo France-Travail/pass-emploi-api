@@ -12,6 +12,7 @@ import { ConseillerAuthorizer } from '../../../src/application/authorizers/conse
 import { JeuneAuthorizer } from '../../../src/application/authorizers/jeune-authorizer'
 import { GetCommunicationsConseillerQueryHandler } from '../../../src/application/queries/get-communications-conseiller.query.handler'
 import { GetCommunicationsJeuneQueryHandler } from '../../../src/application/queries/get-communications-jeune.query.handler'
+import { GetFonctionnalitesConseillerQueryHandler } from '../../../src/application/queries/get-fonctionnalites-conseiller.query.handler'
 import { GetFonctionnalitesJeuneQueryHandler } from '../../../src/application/queries/get-fonctionnalites-jeune.query.handler'
 import { Communication } from '../../../src/domain/communication'
 import { Core } from '../../../src/domain/core'
@@ -367,6 +368,51 @@ describe('Appartenance à une population', () => {
       .map(r => r.idJeune)
 
     expect(jeunesTouches).to.have.members(idsJeunesDans)
+  })
+
+  it('active les fonctionnalités des conseillers dans la population', async () => {
+    const handler = new GetFonctionnalitesConseillerQueryHandler(
+      new FonctionnaliteSqlRepository(getDatabase().sequelize),
+      dateService,
+      new ConseillerAuthorizer(new ConseillerSqlRepository(), jeuneRepository)
+    )
+
+    const idsConseillersDans = [
+      'conseillerCiteParEmail',
+      'conseillerProfilFtCej',
+      'conseillerProfilCdBrsa',
+      'conseillerStructureMilo',
+      'conseillerAgenceSansRestriction',
+      'conseillerAgenceAij'
+    ]
+    const idsConseillersHors = [
+      'conseillerMiloHorsStructure',
+      'conseillerAgenceAijMaisBrsa',
+      'conseillerAgenceHors',
+      'conseillerAucunCritere'
+    ]
+
+    const resultats = await Promise.all(
+      [...idsConseillersDans, ...idsConseillersHors].map(
+        async idConseiller => ({
+          idConseiller,
+          result: await handler.execute(
+            { idConseiller },
+            unUtilisateurConseiller({ id: idConseiller })
+          )
+        })
+      )
+    )
+
+    const conseillersTouches = resultats
+      .filter(
+        r =>
+          r.result._isSuccess &&
+          r.result.data.fonctionnalites.includes('FONC_PILOTE')
+      )
+      .map(r => r.idConseiller)
+
+    expect(conseillersTouches).to.have.members(idsConseillersDans)
   })
 
   it('affiche le bandeau jeune aux jeunes dont le conseiller de référence est dans la population', async () => {

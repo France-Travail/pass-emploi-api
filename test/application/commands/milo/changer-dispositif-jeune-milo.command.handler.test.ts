@@ -1,35 +1,40 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
-import { createSandbox } from 'sinon'
-import { ConseillerAuthorizer } from '../../../src/application/authorizers/conseiller-authorizer'
+import { createSandbox, SinonStub, stub } from 'sinon'
+import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
+import { FonctionnaliteAuthorizer } from '../../../../src/application/authorizers/fonctionnalite-authorizer'
 import {
-  ChangerDispositifJeuneCommand,
-  ChangerDispositifJeuneCommandHandler
-} from '../../../src/application/commands/changer-dispositif-jeune.command.handler'
-import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+  ChangerDispositifJeuneMiloCommand,
+  ChangerDispositifJeuneMiloCommandHandler
+} from '../../../../src/application/commands/milo/changer-dispositif-jeune-milo.command.handler'
+import {
+  DroitsInsuffisants,
+  MauvaiseCommandeError,
+  NonTrouveError
+} from '../../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure
-} from '../../../src/building-blocks/types/result'
-import { ArchiveJeune } from '../../../src/domain/archive-jeune'
-import { Evenement, EvenementService } from '../../../src/domain/evenement'
-import { Authentification } from '../../../src/domain/authentification'
-import { Jeune } from '../../../src/domain/jeune/jeune'
-import { DateService } from '../../../src/utils/date-service'
-import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
-import { uneAutreDate, uneDate } from '../../fixtures/date.fixture'
-import { unJeune } from '../../fixtures/jeune.fixture'
-import { expect, StubbedClass, stubClass } from '../../utils'
-import { Profil } from '../../../src/domain/profil'
+} from '../../../../src/building-blocks/types/result'
+import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
+import { Evenement, EvenementService } from '../../../../src/domain/evenement'
+import { Jeune } from '../../../../src/domain/jeune/jeune'
+import { DateService } from '../../../../src/utils/date-service'
+import { rootLogger } from '../../../../src/utils/logger.module'
+import { unUtilisateurConseiller } from '../../../fixtures/authentification.fixture'
+import { uneAutreDate, uneDate } from '../../../fixtures/date.fixture'
+import { unJeune } from '../../../fixtures/jeune.fixture'
+import { expect, StubbedClass, stubClass } from '../../../utils'
+import { Profil, TOUT_MILO } from '../../../../src/domain/profil'
 
-describe('ChangerDispositifJeuneCommandHandler', () => {
-  let handler: ChangerDispositifJeuneCommandHandler
+describe('ChangerDispositifJeuneMiloCommandHandler', () => {
+  let handler: ChangerDispositifJeuneMiloCommandHandler
   let jeuneRepository: StubbedType<Jeune.Repository>
   let archiveJeuneRepository: StubbedType<ArchiveJeune.Repository>
-  let authentificationRepository: StubbedType<Authentification.Repository>
   let evenementService: StubbedClass<EvenementService>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let dateService: StubbedClass<DateService>
+  let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
 
   const dateFinAccompagnement = uneAutreDate()
   const utilisateur = unUtilisateurConseiller()
@@ -37,7 +42,7 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
     structure: Profil.Structure.MILO,
     dispositif: Profil.Dispositif.CEJ
   })
-  const command: ChangerDispositifJeuneCommand = {
+  const command: ChangerDispositifJeuneMiloCommand = {
     idJeune: jeune.id,
     dispositif: Profil.Dispositif.PACEA,
     motif: ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT,
@@ -47,20 +52,23 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
   beforeEach(() => {
     jeuneRepository = stubInterface(createSandbox())
     archiveJeuneRepository = stubInterface(createSandbox())
-    authentificationRepository = stubInterface(createSandbox())
     evenementService = stubClass(EvenementService)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     dateService = stubClass(DateService)
+    fonctionnaliteAuthorizer = stubClass(FonctionnaliteAuthorizer)
+    fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller.resolves(
+      emptySuccess()
+    )
 
     dateService.nowJs.returns(uneDate())
 
-    handler = new ChangerDispositifJeuneCommandHandler(
+    handler = new ChangerDispositifJeuneMiloCommandHandler(
       jeuneRepository,
       archiveJeuneRepository,
-      authentificationRepository,
       evenementService,
       conseillerAuthorizer,
-      dateService
+      dateService,
+      fonctionnaliteAuthorizer
     )
   })
 
@@ -78,6 +86,26 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
       expect(
         conseillerAuthorizer.autoriserConseillerPourSonJeune
       ).to.have.been.calledOnceWithExactly(command.idJeune, utilisateur)
+    })
+
+    it('refuse le dispositif Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
+      // Given
+      conseillerAuthorizer.autoriserConseillerPourSonJeune.resolves(
+        emptySuccess()
+      )
+      fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller
+        .withArgs(utilisateur.id, Profil.Dispositif.AUTRE)
+        .resolves(failure(new DroitsInsuffisants()))
+
+      // When
+      const result = await handler.authorize(
+        { ...command, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur,
+        jeune
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
     })
 
     it("retourne une erreur quand le jeune n'existe pas", async () => {
@@ -144,11 +172,62 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
         expect(
           jeuneRepository.reinitialiserDatePremiereConnexion
         ).not.to.have.been.called()
-        expect(
-          authentificationRepository.deleteUtilisateurIdp
-        ).to.have.been.calledOnceWithExactly(jeune.id)
         expect(result).to.deep.equal(emptySuccess())
       })
+    })
+
+    it('bascule un bénéficiaire Mission Locale vers le dispositif Autre sans compteur des heures', async () => {
+      // Given
+      const jeuneAvecCompteur = unJeune({
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.CEJ,
+        peutVoirLeComptageDesHeures: true
+      })
+      archiveJeuneRepository.archiverSansDonnees.resolves(emptySuccess())
+
+      // When
+      const result = await handler.handle(
+        { ...command, dispositif: Profil.Dispositif.AUTRE },
+        utilisateur,
+        jeuneAvecCompteur
+      )
+
+      // Then
+      expect(jeuneRepository.save).to.have.been.calledOnceWithExactly({
+        ...jeuneAvecCompteur,
+        dispositif: Profil.Dispositif.AUTRE,
+        peutVoirLeComptageDesHeures: false,
+        creationDate: DateTime.fromJSDate(dateFinAccompagnement)
+      })
+      expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it("refuse le changement pour un bénéficiaire qui n'est pas suivi par une Mission Locale", async () => {
+      // Given
+      const jeuneFT = unJeune({
+        structure: Profil.Structure.FRANCE_TRAVAIL,
+        dispositif: Profil.Dispositif.AIJ
+      })
+
+      // When
+      const result = await handler.handle(
+        { ...command, dispositif: Profil.Dispositif.CEJ },
+        utilisateur,
+        jeuneFT
+      )
+
+      // Then
+      expect(
+        archiveJeuneRepository.archiverSansDonnees
+      ).not.to.have.been.called()
+      expect(jeuneRepository.save).not.to.have.been.called()
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            "Ce bénéficiaire n'est pas suivi par une Mission Locale"
+          )
+        )
+      )
     })
 
     describe("quand le jeune n'est pas activé", () => {
@@ -223,5 +302,43 @@ describe('ChangerDispositifJeuneCommandHandler', () => {
         utilisateur
       )
     })
+  })
+
+  describe('execute — labels de handler_executed', () => {
+    let logInfo: SinonStub
+
+    beforeEach(() => {
+      logInfo = stub(rootLogger, 'info')
+      jeuneRepository.get.withArgs(jeune.id).resolves(jeune)
+      conseillerAuthorizer.autoriserConseillerPourSonJeune.resolves(
+        emptySuccess()
+      )
+      archiveJeuneRepository.archiverSansDonnees.resolves(emptySuccess())
+    })
+
+    afterEach(() => {
+      logInfo.restore()
+    })
+
+    it("trace le dispositif de départ, celui d'arrivée et le motif", async () => {
+      // When
+      await handler.execute(command, utilisateur)
+
+      // Then
+      expect(logInfo).to.have.been.calledWithMatch({
+        context: 'ChangerDispositifJeuneMiloCommandHandler',
+        event: { action: 'handler_executed', outcome: 'success' },
+        labels: {
+          dispositif_depart: Profil.Dispositif.CEJ,
+          dispositif_arrivee: Profil.Dispositif.PACEA,
+          motif_fin_accompagnement:
+            ArchiveJeune.MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT
+        }
+      })
+    })
+  })
+
+  it('est réservé aux conseillers Mission Locale', () => {
+    expect(handler.profilsAutorises).to.equal(TOUT_MILO)
   })
 })

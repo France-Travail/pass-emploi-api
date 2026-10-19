@@ -96,21 +96,6 @@ export namespace Jeune {
     }
   }
 
-  export function reinitialiserPourChangementDispositif(
-    jeune: Jeune,
-    dispositif: Profil.Dispositif,
-    dateFinAccompagnement: DateTime
-  ): Jeune {
-    const jeuneAvecNouveauDispositif = mettreAJourDispositif(jeune, dispositif)
-    return {
-      ...jeuneAvecNouveauDispositif,
-      creationDate: dateFinAccompagnement,
-      configuration: {
-        ...jeune.configuration
-      }
-    }
-  }
-
   export function mettreAJourPeutVoirComptageDesHeures(
     jeune: Jeune,
     peutVoirLeComptageDesHeures: boolean
@@ -214,7 +199,12 @@ export namespace Jeune {
           fuseauHoraire: TIMEZONE_PAR_DEFAUT
         },
         dispositif: jeuneACreer.dispositif,
-        peutVoirLeComptageDesHeures: jeuneACreer.peutVoirLeCompteurDesHeures
+        peutVoirLeComptageDesHeures: autoriseAVoirLeComptage(
+          jeuneACreer.structure,
+          jeuneACreer.dispositif
+        )
+          ? jeuneACreer.peutVoirLeCompteurDesHeures
+          : false
       }
     }
 

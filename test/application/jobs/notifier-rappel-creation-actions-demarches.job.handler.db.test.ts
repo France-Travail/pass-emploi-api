@@ -7,6 +7,7 @@ import { NotifierRappelCreationActionsDemarchesJobHandler } from '../../../src/a
 import { Authentification } from '../../../src/domain/authentification'
 import { Core } from '../../../src/domain/core'
 import { Evenement } from '../../../src/domain/evenement'
+import { Profil } from '../../../src/domain/profil'
 import { EvenementEngagementHebdoSqlModel } from '../../../src/infrastructure/sequelize/models/evenement-engagement-hebdo.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { DateService } from '../../../src/utils/date-service'
@@ -21,6 +22,8 @@ const idJeune2 = 'j2'
 const idJeune3 = 'j3'
 const idJeune4 = 'j4'
 const idJeune5 = 'j5'
+const idJeunePacea = 'j-pacea'
+const idJeuneAutre = 'j-autre'
 const maintenant = uneDatetime()
 
 describe('NotifierCreationActionsDemarchesJobHandler', () => {
@@ -86,6 +89,21 @@ describe('NotifierCreationActionsDemarchesJobHandler', () => {
         idConseiller: undefined,
         pushNotificationToken: undefined,
         structure: Core.Structure.MILO
+      }),
+      // Des AEs mais pas de création d'action, hors CEJ
+      unJeuneDto({
+        id: idJeunePacea,
+        idConseiller: undefined,
+        pushNotificationToken: 'push-pacea',
+        structure: Core.Structure.MILO,
+        dispositif: Profil.Dispositif.PACEA
+      }),
+      unJeuneDto({
+        id: idJeuneAutre,
+        idConseiller: undefined,
+        pushNotificationToken: 'push-autre',
+        structure: Core.Structure.MILO,
+        dispositif: Profil.Dispositif.AUTRE
       })
     ])
 
@@ -112,6 +130,14 @@ describe('NotifierCreationActionsDemarchesJobHandler', () => {
         code: Evenement.Code.ACTION_DETAIL
       }),
       unEvenementEngagementDto({
+        idUtilisateur: idJeunePacea,
+        code: Evenement.Code.ACTION_LISTE
+      }),
+      unEvenementEngagementDto({
+        idUtilisateur: idJeuneAutre,
+        code: Evenement.Code.ACTION_LISTE
+      }),
+      unEvenementEngagementDto({
         idUtilisateur: 'conseiller',
         typeUtilisateur: Authentification.Type.CONSEILLER,
         code: Evenement.Code.ACTION_DETAIL
@@ -120,7 +146,7 @@ describe('NotifierCreationActionsDemarchesJobHandler', () => {
   })
 
   describe('handle', () => {
-    it('notifie uniquement les jeunes ayant que des AEs hors création action/démarches', async () => {
+    it('notifie uniquement les jeunes ayant que des AEs hors création action/démarches, hors PACEA et Autre', async () => {
       // Given
       notificationService.notifierRappelCreationActionDemarche.resolves()
       const job: Planificateur.Job<Planificateur.JobRappelCreationActionsDemarches> =
