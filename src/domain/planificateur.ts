@@ -111,7 +111,8 @@ export namespace Planificateur {
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
     MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
-    MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION'
+    MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION',
+    ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION'
   }
 
   export interface JobRendezVous {
@@ -154,6 +155,13 @@ export namespace Planificateur {
   }
 
   export type JobTraiterEvenementMilo = EvenementMilo
+
+  export interface JobArchiverJeunesMigration {
+    idPopulation: string
+    idsEnEchec?: string[]
+    nbArchives?: number
+    lotsEnEchecConsecutifs?: number
+  }
 
   export interface JobNotifierNouvelleActualiteMilo {
     idStructureMilo: string

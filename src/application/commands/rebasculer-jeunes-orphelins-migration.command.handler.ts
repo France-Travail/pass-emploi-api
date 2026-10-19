@@ -7,6 +7,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Migration, MigrationRepositoryToken } from '../../domain/migration'
+import { rootLogger } from '../../utils/logger.module'
 
 export interface RebasculerJeunesOrphelinsMigrationCommand {
   idPopulationQuiMigre: string
@@ -47,22 +48,30 @@ export class RebasculerJeunesOrphelinsMigrationCommandHandler extends CommandHan
     )
     rebasculements.forEach(
       ({ idJeune, ancienIdConseiller, nouveauIdConseiller }) =>
-        this.logger.log(
-          { idJeune, ancienIdConseiller, nouveauIdConseiller },
-          'Jeune rebasculé'
+        rootLogger.info(
+          {
+            context: 'RebasculerJeunesOrphelinsMigrationCommandHandler',
+            labels: {
+              population_id: command.idPopulationQuiMigre,
+              jeune_id: idJeune,
+              ancien_conseiller_id: ancienIdConseiller,
+              nouveau_conseiller_id: nouveauIdConseiller
+            }
+          },
+          'Jeune orphelin rebasculé vers son conseiller initial'
         )
-    )
-    this.logger.log(
-      {
-        idPopulationQuiMigre: command.idPopulationQuiMigre,
-        count: rebasculements.length
-      },
-      'Rebasculement orphelins terminé'
     )
     return emptySuccess()
   }
 
   async monitor(): Promise<void> {
     return
+  }
+
+  protected labelsDuLog(
+    _result: Result,
+    command?: RebasculerJeunesOrphelinsMigrationCommand
+  ): Record<string, string | string[]> | undefined {
+    return command && { population_id: command.idPopulationQuiMigre }
   }
 }

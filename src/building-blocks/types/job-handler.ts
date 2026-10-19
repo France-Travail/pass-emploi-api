@@ -53,8 +53,6 @@ export abstract class JobHandler<TContenu = void> {
 
   abstract handle(job: Planificateur.Job<TContenu>): Promise<SuiviJob>
 
-  // Labels ECS additionnels portés par `handler_executed`, en plus de `job_type`.
-  // Appelé aussi sur le chemin d'erreur : doit rester une lecture de champs.
   protected labelsDuLog(
     _job: Planificateur.Job<TContenu>
   ): Record<string, string | string[]> | undefined {
