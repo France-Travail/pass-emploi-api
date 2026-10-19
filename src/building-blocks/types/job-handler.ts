@@ -41,19 +41,28 @@ export abstract class JobHandler<TContenu = void> {
       }
 
       if (!suiviJob.silencieux) {
-        this.logExecution(startNs, suiviJob, undefined)
+        this.logExecution(job, startNs, suiviJob, undefined)
       }
       return suiviJob
     } catch (e) {
       this.apmService.captureError(e)
-      this.logExecution(startNs, undefined, e)
+      this.logExecution(job, startNs, undefined, e)
       throw e
     }
   }
 
   abstract handle(job: Planificateur.Job<TContenu>): Promise<SuiviJob>
 
+  // Labels ECS additionnels portés par `handler_executed`, en plus de `job_type`.
+  // Appelé aussi sur le chemin d'erreur : doit rester une lecture de champs.
+  protected labelsDuLog(
+    _job: Planificateur.Job<TContenu>
+  ): Record<string, string | string[]> | undefined {
+    return undefined
+  }
+
   private logExecution(
+    job: Planificateur.Job<TContenu> | undefined,
     startNs: bigint,
     suiviJob: SuiviJob | undefined,
     error: Error | undefined
@@ -63,7 +72,12 @@ export abstract class JobHandler<TContenu = void> {
       startNs,
       error: error ?? suiviJob?.erreur,
       failed: !!suiviJob && !suiviJob.succes,
-      extra: { labels: { job_type: this.jobType } }
+      extra: {
+        labels: {
+          job_type: this.jobType,
+          ...(job && this.labelsDuLog(job))
+        }
+      }
     })
   }
 }
