@@ -160,10 +160,13 @@ export class ChangerStatutTachePlanActionCommandHandler extends CommandHandler<
       PlanAction.ModeDeclaration.AUCUNE
     if (!vientDeCocherLaTache || !leProfilDeclareUneActionOuUneDemarche) return
 
+    const [solution] = await this.referentielRepository.trouverSolutions([
+      tache.idSolution
+    ])
     await this.evenementService.creer(
       Evenement.Code.ACTION_CREEE_PLAN_ACTION,
       utilisateur,
-      tache.idSolution
+      solution?.libelle
     )
   }
 

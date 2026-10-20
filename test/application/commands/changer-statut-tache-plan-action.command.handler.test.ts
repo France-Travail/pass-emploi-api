@@ -721,7 +721,7 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
   })
 
   describe('monitor', () => {
-    it("trace la déclaration avec l'identifiant de la solution", async () => {
+    it('trace la déclaration avec le libellé de la solution', async () => {
       // When
       await handler.monitor(jeuneMilo, uneCommande(), uneTache())
 
@@ -729,7 +729,22 @@ describe('ChangerStatutTachePlanActionCommandHandler', () => {
       expect(evenementService.creer).to.have.been.calledWithExactly(
         Evenement.Code.ACTION_CREEE_PLAN_ACTION,
         jeuneMilo,
-        'p-164'
+        'Je crée mon CV'
+      )
+    })
+
+    it("trace la déclaration sans nom quand la solution n'est plus proposée", async () => {
+      // Given
+      referentielRepository.trouverSolutions.withArgs(['p-164']).resolves([])
+
+      // When
+      await handler.monitor(jeuneMilo, uneCommande(), uneTache())
+
+      // Then
+      expect(evenementService.creer).to.have.been.calledWithExactly(
+        Evenement.Code.ACTION_CREEE_PLAN_ACTION,
+        jeuneMilo,
+        undefined
       )
     })
 
