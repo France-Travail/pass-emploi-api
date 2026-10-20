@@ -158,9 +158,7 @@ export namespace Planificateur {
 
   export interface JobArchiverJeunesMigration {
     idPopulation: string
-    idsEnEchec?: string[]
-    nbArchives?: number
-    lotsEnEchecConsecutifs?: number
+    apresId?: string
   }
 
   export interface JobNotifierNouvelleActualiteMilo {

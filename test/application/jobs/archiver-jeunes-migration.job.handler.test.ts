@@ -2,7 +2,6 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
 import {
   ArchiverJeunesMigrationJobHandler,
-  LOTS_EN_ECHEC_CONSECUTIFS_MAX,
   TAILLE_LOT_ARCHIVAGE_MIGRATION
 } from '../../../src/application/jobs/archiver-jeunes-migration.job.handler'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
@@ -56,183 +55,154 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
   }
 
   function desIds(nombre: number): string[] {
-    return Array.from({ length: nombre }, (_, index) => `jeune-${index}`)
+    return Array.from(
+      { length: nombre },
+      (_, index) => `jeune-${String(index).padStart(3, '0')}`
+    )
   }
 
-  it('archive les jeunes de la population en un seul appel groupé', async () => {
-    // Given
-    migrationService.recupererIdsDesBeneficiaireAMigrer
-      .withArgs('PHASE_A')
-      .resolves(['1', '2'])
+  describe('quand le lot est plein', () => {
+    it('archive les 100 premiers ids triés et se replanifie avec apresId', async () => {
+      // Given
+      const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION + 1)
+      migrationService.recupererIdsDesBeneficiaireAMigrer
+        .withArgs('PHASE_A')
+        .resolves([...ids].reverse())
 
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A' })
-    )
+      // When
+      const suiviJob = await archiverJeunesMigrationJobHandler.handle(
+        unJob({ idPopulation: 'PHASE_A' })
+      )
 
-    // Then
-    expect(
+      // Then
+      expect(
+        archiveJeuneService.archiverEnMasse
+      ).to.have.been.calledOnceWithExactly(
+        ids.slice(0, TAILLE_LOT_ARCHIVAGE_MIGRATION),
+        "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
+        MotifSuppressionSupport.MIGRATION,
+        'PHASE_A'
+      )
+      expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith({
+        dateExecution: maintenant.toJSDate(),
+        type: Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
+        contenu: {
+          idPopulation: 'PHASE_A',
+          apresId: 'jeune-099'
+        }
+      })
+      expect(suiviJob.succes).to.be.true()
+      expect(suiviJob.resultat).to.deep.equal({
+        nbTraites: TAILLE_LOT_ARCHIVAGE_MIGRATION,
+        nbEchecs: 0,
+        termine: false
+      })
+    })
+  })
+
+  describe('quand un apresId est fourni', () => {
+    it('ne prend que les ids strictement supérieurs', async () => {
+      // Given
+      const ids = ['jeune-1', 'jeune-2', 'jeune-3']
+      migrationService.recupererIdsDesBeneficiaireAMigrer
+        .withArgs('PHASE_A')
+        .resolves(ids)
+
+      // When
+      await archiverJeunesMigrationJobHandler.handle(
+        unJob({ idPopulation: 'PHASE_A', apresId: 'jeune-1' })
+      )
+
+      // Then
+      expect(
+        archiveJeuneService.archiverEnMasse
+      ).to.have.been.calledOnceWithExactly(
+        ['jeune-2', 'jeune-3'],
+        "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
+        MotifSuppressionSupport.MIGRATION,
+        'PHASE_A'
+      )
+    })
+  })
+
+  describe('quand le lot est le dernier', () => {
+    it('ne se replanifie pas et marque le job comme terminé', async () => {
+      // Given
+      const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION - 10)
+      migrationService.recupererIdsDesBeneficiaireAMigrer
+        .withArgs('PHASE_A')
+        .resolves(ids)
+
+      // When
+      const suiviJob = await archiverJeunesMigrationJobHandler.handle(
+        unJob({ idPopulation: 'PHASE_A' })
+      )
+
+      // Then
+      expect(planificateurRepository.ajouterJob).not.to.have.been.called()
+      expect(suiviJob.resultat).to.deep.equal({
+        nbTraites: TAILLE_LOT_ARCHIVAGE_MIGRATION - 10,
+        nbEchecs: 0,
+        termine: true
+      })
+    })
+  })
+
+  describe("quand l'archivage groupé échoue", () => {
+    it('rejoue jeune par jeune et compte seulement les jeunes en erreur dans nbEchecs', async () => {
+      // Given
+      const ids = desIds(5)
+      migrationService.recupererIdsDesBeneficiaireAMigrer
+        .withArgs('PHASE_A')
+        .resolves(ids)
       archiveJeuneService.archiverEnMasse
-    ).to.have.been.calledOnceWithExactly(
-      ['1', '2'],
-      "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
-      MotifSuppressionSupport.MIGRATION,
-      'PHASE_A'
-    )
-    expect(planificateurRepository.ajouterJob).not.to.have.been.called()
-    expect(suiviJob.succes).to.be.true()
-    expect(suiviJob.resultat).to.deep.equal({
-      idPopulation: 'PHASE_A',
-      nbArchivesDuLot: 2,
-      nbEchecsDuLot: 0,
-      nbEchecsNettoyageDuLot: 0,
-      nbArchives: 2,
-      nbEchecs: 0,
-      nbRestants: 0,
-      termine: true,
-      abandonne: false,
-      idsEnEchec: []
+        .withArgs(ids)
+        .rejects(new Error('Donnée invalide'))
+      archiveJeuneService.archiverEnMasse
+        .withArgs(['jeune-000'])
+        .rejects(new Error('Donnée invalide'))
+      archiveJeuneService.archiverEnMasse
+        .withArgs(['jeune-002'])
+        .rejects(new Error('Donnée invalide'))
+
+      // When
+      const suiviJob = await archiverJeunesMigrationJobHandler.handle(
+        unJob({ idPopulation: 'PHASE_A' })
+      )
+
+      // Then
+      expect(archiveJeuneService.archiverEnMasse).to.have.callCount(1 + 5)
+      expect(suiviJob.succes).to.be.false()
+      expect(suiviJob.nbErreurs).to.equal(2)
+      expect(suiviJob.resultat).to.deep.equal({
+        nbTraites: 3,
+        nbEchecs: 2,
+        termine: true
+      })
     })
   })
 
-  it('planifie le lot suivant quand il reste des jeunes à archiver', async () => {
-    // Given
-    const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION + 1)
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(ids)
+  describe('quand tous les jeunes sont archivés avec succès', () => {
+    it('retourne succes true et nbErreurs 0', async () => {
+      // Given
+      const ids = desIds(10)
+      migrationService.recupererIdsDesBeneficiaireAMigrer
+        .withArgs('PHASE_A')
+        .resolves(ids)
 
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A', nbArchives: 10 })
-    )
+      // When
+      const suiviJob = await archiverJeunesMigrationJobHandler.handle(
+        unJob({ idPopulation: 'PHASE_A' })
+      )
 
-    // Then
-    expect(archiveJeuneService.archiverEnMasse).to.have.been.calledOnceWith(
-      ids.slice(0, TAILLE_LOT_ARCHIVAGE_MIGRATION)
-    )
-    expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith(
-      unJob({
-        idPopulation: 'PHASE_A',
-        idsEnEchec: [],
-        nbArchives: 10 + TAILLE_LOT_ARCHIVAGE_MIGRATION,
-        lotsEnEchecConsecutifs: 0
+      // Then
+      expect(suiviJob.succes).to.be.true()
+      expect(suiviJob.nbErreurs).to.equal(0)
+      expect(suiviJob.resultat).to.deep.equal({
+        nbTraites: 10,
+        nbEchecs: 0,
+        termine: true
       })
-    )
-    expect(suiviJob.resultat).to.include({ nbRestants: 1, termine: false })
-  })
-
-  it('exclut les jeunes des lots déjà en échec', async () => {
-    // Given
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves([
-      'deja-en-echec',
-      '1'
-    ])
-
-    // When
-    await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A', idsEnEchec: ['deja-en-echec'] })
-    )
-
-    // Then
-    expect(archiveJeuneService.archiverEnMasse).to.have.been.calledOnceWith([
-      '1'
-    ])
-  })
-
-  it("rejoue le lot jeune par jeune quand son archivage groupé échoue et n'écarte que les jeunes en erreur", async () => {
-    // Given
-    const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION + 1)
-    const lot = ids.slice(0, TAILLE_LOT_ARCHIVAGE_MIGRATION)
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(ids)
-    archiveJeuneService.archiverEnMasse
-      .withArgs(lot)
-      .rejects(new Error('Donnée invalide'))
-    archiveJeuneService.archiverEnMasse
-      .withArgs(['jeune-0'])
-      .rejects(new Error('Donnée invalide'))
-
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A' })
-    )
-
-    // Then
-    expect(archiveJeuneService.archiverEnMasse).to.have.callCount(
-      1 + TAILLE_LOT_ARCHIVAGE_MIGRATION
-    )
-    expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith(
-      unJob({
-        idPopulation: 'PHASE_A',
-        idsEnEchec: ['jeune-0'],
-        nbArchives: TAILLE_LOT_ARCHIVAGE_MIGRATION - 1,
-        lotsEnEchecConsecutifs: 0
-      })
-    )
-    expect(suiviJob.succes).to.be.true()
-    expect(suiviJob.nbErreurs).to.equal(1)
-  })
-
-  it("écarte les jeunes du lot qui n'ont pas été archivés", async () => {
-    // Given
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(['1', '2'])
-    archiveJeuneService.archiverEnMasse.resolves({
-      idsJeunesArchives: ['1'],
-      nbEchecsNettoyage: 0
-    })
-
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A' })
-    )
-
-    // Then
-    expect(suiviJob.resultat).to.include({ nbArchives: 1, nbEchecs: 1 })
-  })
-
-  it('compte un lot en échec quand aucun jeune ne peut être archivé', async () => {
-    // Given
-    const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION + 1)
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(ids)
-    archiveJeuneService.archiverEnMasse.rejects(new Error('Base indisponible'))
-
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({ idPopulation: 'PHASE_A' })
-    )
-
-    // Then
-    expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith(
-      unJob({
-        idPopulation: 'PHASE_A',
-        idsEnEchec: ids.slice(0, TAILLE_LOT_ARCHIVAGE_MIGRATION),
-        nbArchives: 0,
-        lotsEnEchecConsecutifs: 1
-      })
-    )
-    expect(suiviJob.succes).to.be.false()
-    expect(suiviJob.nbErreurs).to.equal(TAILLE_LOT_ARCHIVAGE_MIGRATION)
-  })
-
-  it('abandonne après trop de lots consécutifs en échec', async () => {
-    // Given
-    const ids = desIds(TAILLE_LOT_ARCHIVAGE_MIGRATION + 1)
-    migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(ids)
-    archiveJeuneService.archiverEnMasse.rejects(new Error('Base indisponible'))
-
-    // When
-    const suiviJob = await archiverJeunesMigrationJobHandler.handle(
-      unJob({
-        idPopulation: 'PHASE_A',
-        lotsEnEchecConsecutifs: LOTS_EN_ECHEC_CONSECUTIFS_MAX - 1
-      })
-    )
-
-    // Then
-    expect(planificateurRepository.ajouterJob).not.to.have.been.called()
-    expect(suiviJob.succes).to.be.false()
-    expect(suiviJob.resultat).to.include({
-      nbRestants: 1,
-      termine: false,
-      abandonne: true
     })
   })
 })

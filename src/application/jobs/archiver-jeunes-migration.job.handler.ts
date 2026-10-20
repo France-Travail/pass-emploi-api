@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { JobHandler } from '../../building-blocks/types/job-handler'
+import {
+  BilanLot,
+  JobParLotsHandler
+} from '../../building-blocks/types/job-par-lots-handler'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { Migration } from '../../domain/migration'
 import {
@@ -13,90 +16,30 @@ import { rootLogger, toEcsError } from '../../utils/logger.module'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
 
 export const TAILLE_LOT_ARCHIVAGE_MIGRATION = 100
-export const LOTS_EN_ECHEC_CONSECUTIFS_MAX = 3
 
 const COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT =
   "Pour des raisons de migration nous avons procédé à l'archivage de votre compte."
 
 @Injectable()
 @ProcessJobType(Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION)
-export class ArchiverJeunesMigrationJobHandler extends JobHandler<Planificateur.JobArchiverJeunesMigration> {
+export class ArchiverJeunesMigrationJobHandler extends JobParLotsHandler<Planificateur.JobArchiverJeunesMigration> {
+  protected readonly tailleLot = TAILLE_LOT_ARCHIVAGE_MIGRATION
+
   constructor(
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
-    private readonly dateService: DateService,
+    dateService: DateService,
     @Inject(PlanificateurRepositoryToken)
-    private readonly planificateurRepository: Planificateur.Repository,
+    planificateurRepository: Planificateur.Repository,
     private readonly migrationService: Migration.Service,
     private readonly archiveJeuneService: ArchiveJeune.Service
   ) {
-    super(Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION, suiviJobService)
-  }
-
-  async handle(
-    job: Planificateur.Job<Planificateur.JobArchiverJeunesMigration>
-  ): Promise<SuiviJob> {
-    const maintenant = this.dateService.now()
-    const { idPopulation } = job.contenu!
-    const idsDejaEnEchec = job.contenu!.idsEnEchec ?? []
-
-    const idsAArchiver = (
-      await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
-        idPopulation
-      )
-    ).filter(idJeune => !idsDejaEnEchec.includes(idJeune))
-    const lot = idsAArchiver.slice(0, TAILLE_LOT_ARCHIVAGE_MIGRATION)
-
-    const { idsArchives, nbEchecsNettoyage } = await this.archiverLeLot(
-      lot,
-      idPopulation
+    super(
+      Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
+      suiviJobService,
+      planificateurRepository,
+      dateService
     )
-    const idsNonArchives = lot.filter(id => !idsArchives.includes(id))
-    const lotEnEchec = lot.length > 0 && idsArchives.length === 0
-
-    const idsEnEchec = [...idsDejaEnEchec, ...idsNonArchives]
-    const nbArchives = (job.contenu!.nbArchives ?? 0) + idsArchives.length
-    const lotsEnEchecConsecutifs = lotEnEchec
-      ? (job.contenu!.lotsEnEchecConsecutifs ?? 0) + 1
-      : 0
-    const nbRestants = idsAArchiver.length - lot.length
-    const abandonne = lotsEnEchecConsecutifs >= LOTS_EN_ECHEC_CONSECUTIFS_MAX
-    const termine = nbRestants === 0
-
-    if (!termine && !abandonne) {
-      await this.planificateurRepository.ajouterJob<Planificateur.JobArchiverJeunesMigration>(
-        {
-          dateExecution: this.dateService.nowJs(),
-          type: Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
-          contenu: {
-            idPopulation,
-            idsEnEchec,
-            nbArchives,
-            lotsEnEchecConsecutifs
-          }
-        }
-      )
-    }
-
-    return {
-      jobType: this.jobType,
-      dateExecution: maintenant,
-      succes: !lotEnEchec,
-      resultat: {
-        idPopulation,
-        nbArchivesDuLot: idsArchives.length,
-        nbEchecsDuLot: idsNonArchives.length,
-        nbEchecsNettoyageDuLot: nbEchecsNettoyage,
-        nbArchives,
-        nbEchecs: idsEnEchec.length,
-        nbRestants,
-        termine,
-        abandonne,
-        idsEnEchec
-      },
-      nbErreurs: idsNonArchives.length + nbEchecsNettoyage,
-      tempsExecution: DateService.calculerTempsExecution(maintenant)
-    }
   }
 
   protected labelsDuLog(
@@ -105,52 +48,72 @@ export class ArchiverJeunesMigrationJobHandler extends JobHandler<Planificateur.
     return job.contenu && { population_id: job.contenu.idPopulation }
   }
 
+  protected async recupererLot(
+    contenu: Planificateur.JobArchiverJeunesMigration,
+    taille: number
+  ): Promise<string[]> {
+    const ids = await this.migrationService.recupererIdsDesBeneficiaireAMigrer(
+      contenu.idPopulation
+    )
+    return ids
+      .toSorted((a, b) => a.localeCompare(b))
+      .filter(id => !contenu.apresId || id > contenu.apresId)
+      .slice(0, taille)
+  }
+
+  protected async traiterLot(
+    contenu: Planificateur.JobArchiverJeunesMigration,
+    ids: string[]
+  ): Promise<BilanLot> {
+    const idsArchives = await this.archiverLeLot(ids, contenu.idPopulation)
+    return {
+      nbTraites: idsArchives.length,
+      nbEchecs: ids.length - idsArchives.length
+    }
+  }
+
   private async archiverLeLot(
-    lot: string[],
+    ids: string[],
     idPopulation: string
-  ): Promise<{ idsArchives: string[]; nbEchecsNettoyage: number }> {
+  ): Promise<string[]> {
     try {
-      const resultat = await this.archiver(lot, idPopulation)
-      return {
-        idsArchives: resultat.idsJeunesArchives,
-        nbEchecsNettoyage: resultat.nbEchecsNettoyage
-      }
+      return await this.archiverEnMasse(ids, idPopulation)
     } catch (e) {
       this.loguerEchecDuLot(idPopulation, e)
-      return this.archiverUnParUn(lot, idPopulation)
+      return this.archiverUnParUn(ids, idPopulation)
     }
   }
 
-  // Une seule donnée invalide fait échouer tout le lot : on le rejoue jeune par
-  // jeune pour n'écarter que les jeunes réellement en erreur.
-  private async archiverUnParUn(
-    lot: string[],
-    idPopulation: string
-  ): Promise<{ idsArchives: string[]; nbEchecsNettoyage: number }> {
-    const idsArchives: string[] = []
-    let nbEchecsNettoyage = 0
-    for (const idJeune of lot) {
-      try {
-        const resultat = await this.archiver([idJeune], idPopulation)
-        idsArchives.push(...resultat.idsJeunesArchives)
-        nbEchecsNettoyage += resultat.nbEchecsNettoyage
-      } catch (e) {
-        this.loguerEchecDuJeune(idPopulation, idJeune, e)
-      }
-    }
-    return { idsArchives, nbEchecsNettoyage }
-  }
-
-  private archiver(
+  private async archiverEnMasse(
     idsJeunes: string[],
     idPopulation: string
-  ): Promise<ArchiveJeune.ResultatArchivageEnMasse> {
-    return this.archiveJeuneService.archiverEnMasse(
+  ): Promise<string[]> {
+    const resultat = await this.archiveJeuneService.archiverEnMasse(
       idsJeunes,
       COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
       MotifSuppressionSupport.MIGRATION,
       idPopulation
     )
+    return resultat.idsJeunesArchives
+  }
+
+  private async archiverUnParUn(
+    lot: string[],
+    idPopulation: string
+  ): Promise<string[]> {
+    const idsArchives: string[] = []
+    for (const idJeune of lot) {
+      try {
+        const idsArchivesDuJeune = await this.archiverEnMasse(
+          [idJeune],
+          idPopulation
+        )
+        idsArchives.push(...idsArchivesDuJeune)
+      } catch (e) {
+        this.loguerEchecDuJeune(idPopulation, idJeune, e)
+      }
+    }
+    return idsArchives
   }
 
   private loguerEchecDuLot(idPopulation: string, error: unknown): void {

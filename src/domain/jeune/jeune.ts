@@ -138,9 +138,6 @@ export namespace Jeune {
 
     supprimer(idJeune: string): Promise<void>
 
-    // S'exécute dans la transaction de l'appelant, sans en ouvrir une. Retourne
-    // les ids effectivement supprimés : un jeune déjà supprimé par un traitement
-    // concurrent n'y figure pas.
     supprimerEnMasse(idsJeunes: string[]): Promise<string[]>
 
     transferAndSaveAll(
