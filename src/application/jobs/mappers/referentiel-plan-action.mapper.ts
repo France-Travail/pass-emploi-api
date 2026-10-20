@@ -225,7 +225,7 @@ function construireSolution(
     destinationParValeur,
     record.id,
     anomalies,
-    valeur => valeur.replace(/-/g, '_')
+    valeur => valeur.toLowerCase().replace(/-/g, '_')
   )
 
   const nomService = texte(fields.Service)

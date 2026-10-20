@@ -168,6 +168,25 @@ describe('reconcilierReferentiel', () => {
     }
   })
 
+  it('reconnaît un écran quelle que soit sa casse dans le Grist', () => {
+    // When
+    const resultat = reconcilierReferentiel(
+      [serviceOnisep],
+      [
+        uneSolutionGrist({
+          Type: "Écran de l'app",
+          Ecran_de_l_app: 'Offres-Immersions'
+        })
+      ]
+    )
+
+    // Then
+    expect(resultat.solutions[0].ecranApp).to.equal(
+      ReferentielPlanAction.Destination.OFFRES_IMMERSIONS
+    )
+    expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
+  })
+
   it("reconnaît encore l'écriture avec tirets des écrans", () => {
     // When
     const resultat = reconcilierReferentiel(
