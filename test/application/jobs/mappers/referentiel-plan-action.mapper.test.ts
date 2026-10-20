@@ -8,7 +8,7 @@ import {
   GristSolutionFieldsDto
 } from 'src/infrastructure/clients/dto/grist.dto'
 import { rootLogger } from 'src/utils/logger.module'
-import { expect, sinon } from 'test/utils'
+import { createSandbox, expect } from 'test/utils'
 
 describe('reconcilierReferentiel', () => {
   const serviceOnisep: GristRecordDto<GristServiceFieldsDto> = {
@@ -206,29 +206,53 @@ describe('reconcilierReferentiel', () => {
     expect(resultat.anomalies.nbValeursNonReconnues).to.equal(0)
   })
 
-  it("trace la valeur d'écran telle que saisie dans le Grist quand elle est inconnue", () => {
-    // Given
-    const logInfo = sinon.stub(rootLogger, 'info')
+  describe('valeur Grist inconnue', () => {
+    const sandbox = createSandbox()
 
-    try {
+    afterEach(() => {
+      sandbox.restore()
+    })
+
+    it("trace la valeur d'écran telle que saisie dans le Grist", () => {
+      // Given
+      const logInfo = sandbox.stub(rootLogger, 'info')
+
       // When
       reconcilierReferentiel(
         [serviceOnisep],
         [
           uneSolutionGrist({
             Type: "Écran de l'app",
-            Ecran_de_l_app: 'offres-immersion'
+            Ecran_de_l_app: 'Offres-Immersion'
           })
         ]
       )
 
       // Then
       expect(logInfo).to.have.been.calledWithMatch({
-        labels: { colonne: 'Ecran_de_l_app', valeur: 'offres-immersion' }
+        labels: { colonne: 'Ecran_de_l_app', valeur: 'Offres-Immersion' }
       })
-    } finally {
-      logInfo.restore()
-    }
+    })
+
+    it("ne prend pas un nom hérité d'Object pour un écran connu", () => {
+      // Given
+      sandbox.stub(rootLogger, 'info')
+
+      // When
+      const resultat = reconcilierReferentiel(
+        [serviceOnisep],
+        [
+          uneSolutionGrist({
+            Type: "Écran de l'app",
+            Ecran_de_l_app: 'Constructor'
+          })
+        ]
+      )
+
+      // Then
+      expect(resultat.solutions[0]).not.to.have.property('ecranApp')
+      expect(resultat.anomalies.nbValeursNonReconnues).to.equal(1)
+    })
   })
 
   it('importe une navigation sans écran renseigné, sans écran et sans anomalie', () => {

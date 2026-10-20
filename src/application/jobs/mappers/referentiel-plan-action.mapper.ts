@@ -300,7 +300,7 @@ function resoudreEnum<V>(
 ): V | undefined {
   const propre = texte(valeurGrist)
   if (!propre) return undefined
-  const resolu = table[normaliser(propre)]
+  const resolu = lireDansTable(table, normaliser(propre))
   if (!resolu) {
     anomalies.nbValeursNonReconnues++
     logAnomalie('Valeur Grist non reconnue, solution conservée', {
@@ -321,7 +321,7 @@ function resoudreListe<V>(
 ): V[] {
   const resolues: V[] = []
   for (const libelle of liste(valeurGrist)) {
-    const resolu = table[libelle]
+    const resolu = lireDansTable(table, libelle)
     if (resolu) {
       resolues.push(resolu)
     } else {
@@ -334,6 +334,13 @@ function resoudreListe<V>(
     }
   }
   return resolues
+}
+
+function lireDansTable<V>(
+  table: Record<string, V>,
+  cle: string
+): V | undefined {
+  return Object.hasOwn(table, cle) ? table[cle] : undefined
 }
 
 function texte(valeur: string | null | undefined): string | undefined {
