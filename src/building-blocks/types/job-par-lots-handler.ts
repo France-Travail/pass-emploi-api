@@ -13,6 +13,7 @@ export interface BilanLot {
   nbEchecs: number
 }
 
+// @todo: migrer les jobs actuels qui fonctionnent par lots sur ce handler
 export abstract class JobParLotsHandler<
   TContenu extends ContenuJobParLots
 > extends JobHandler<TContenu> {
