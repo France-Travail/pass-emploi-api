@@ -381,6 +381,13 @@ describe('NotificationFirebaseSqlRepository', () => {
           )
         )
       })
+
+      it('envoie un OUVRIR_STORE_CEJ pour un OUVRIR_STORE_CEJ', async () => {
+        await repository.send(unMessagePush(Notification.Type.OUVRIR_STORE_CEJ))
+        expect(firebaseClient.send).to.have.been.calledOnceWithExactly(
+          unMessageRepoPush(TypeNotificationRepository.OUVRIR_STORE_CEJ)
+        )
+      })
     })
   })
 })
