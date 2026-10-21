@@ -111,6 +111,25 @@ describe('toPlanActionQueryModel', () => {
     expect(queryModel.objectives[0].actions[0]).not.to.have.property('ecranApp')
   })
 
+  it("n'expose pas d'écran de l'app quand la solution n'est pas une navigation", () => {
+    // Given
+    const solution: ReferentielPlanAction.Solution = {
+      ...uneSolution('p-2'),
+      type: ReferentielPlanAction.TypeSolution.LIEN,
+      ecranApp: ReferentielPlanAction.Destination.OFFRES_IMMERSIONS
+    }
+
+    // When
+    const queryModel = toPlanActionQueryModel(
+      unPlan(),
+      [solution],
+      unProfilMilo()
+    )
+
+    // Then
+    expect(queryModel.objectives[0].actions[0]).not.to.have.property('ecranApp')
+  })
+
   it("n'expose pas d'écran de l'app quand celui stocké est inconnu", () => {
     // Given
     const solution: ReferentielPlanAction.Solution = {

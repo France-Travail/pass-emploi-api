@@ -43,7 +43,7 @@ export class ActionPlanQueryModel {
   @ApiPropertyOptional({
     enum: EcranAppPlan,
     description:
-      "Écran de l'app vers lequel mène la tâche. De nouvelles valeurs peuvent apparaître sans livraison mobile : une valeur inconnue doit être ignorée (pas de navigation), sans masquer la tâche"
+      "Écran de l'app vers lequel mène la tâche, présent uniquement quand type vaut NAVIGATION. De nouvelles valeurs peuvent apparaître sans livraison mobile : une valeur inconnue doit être ignorée (pas de navigation), sans masquer la tâche"
   })
   ecranApp?: EcranAppPlan
 

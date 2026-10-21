@@ -71,9 +71,11 @@ function toAction(
   mode: PlanAction.ModeDeclaration
 ): ActionPlanQueryModel {
   const categorie = categorieAnnoncee(solution, mode)
-  const ecranApp = solution.ecranApp
-    ? destinationVersEcranApp[solution.ecranApp]
-    : undefined
+  const ecranApp =
+    solution.type === ReferentielPlanAction.TypeSolution.NAVIGATION &&
+    solution.ecranApp
+      ? destinationVersEcranApp[solution.ecranApp]
+      : undefined
   return {
     id: tache.id,
     idSolution: tache.idSolution,
