@@ -34,7 +34,8 @@ export enum TypeNotificationRepository {
   CAMPAGNE = 'CAMPAGNE',
   NOUVELLES_FONCTIONNALITES = 'NOUVELLES_FONCTIONNALITES',
   CENTRE_DE_NOTIFS_UNIQUEMENT = 'CENTRE_DE_NOTIFS_UNIQUEMENT',
-  MIGRATION_PARCOURS_EMPLOI = 'MIGRATION_PARCOURS_EMPLOI'
+  MIGRATION_PARCOURS_EMPLOI = 'MIGRATION_PARCOURS_EMPLOI',
+  OUVRIR_STORE_CEJ = 'OUVRIR_STORE_CEJ'
 }
 
 export type NotificationRepository = {
@@ -104,6 +105,8 @@ function typeNotificationToTypeNotificationRepository(
       return TypeNotificationRepository.CENTRE_DE_NOTIFS_UNIQUEMENT
     case Notification.Type.MIGRATION_PARCOURS_EMPLOI:
       return TypeNotificationRepository.MIGRATION_PARCOURS_EMPLOI
+    case Notification.Type.OUVRIR_STORE_CEJ:
+      return TypeNotificationRepository.OUVRIR_STORE_CEJ
   }
 }
 
