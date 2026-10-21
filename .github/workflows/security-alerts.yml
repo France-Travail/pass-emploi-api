@@ -7,10 +7,12 @@ on:
 
 jobs:
   security-alerts:
-    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@2fe4024782be14ef4e0e8114ae49320e2cd05ab5
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@2a970e856364e74a02388a44e04d64cf735aa7e4
     with:
       repo-name: 'pass-emploi-api'
       elastic-url: ${{ vars.ELASTIC_URL }}
+      envoi-mattermost: ${{ vars.CVE_ENVOI_MATTERMOST != 'false' }}
+      envoi-elasticsearch: ${{ vars.CVE_ENVOI_ELASTICSEARCH != 'false' }}
     secrets:
       DEPENDABOT_ALERTS_READER: ${{ secrets.DEPENDABOT_ALERTS_READER }}
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
