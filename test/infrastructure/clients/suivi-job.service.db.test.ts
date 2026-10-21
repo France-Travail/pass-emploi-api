@@ -13,6 +13,7 @@ import { uneDatetime } from '../../fixtures/date.fixture'
 import { testConfig } from '../../utils/module-for-testing'
 import { getDatabase } from '../../utils/database-for-testing'
 import { TIME_ZONE_EUROPE_PARIS } from '../../../src/config/configuration'
+import { ConfigService } from '@nestjs/config'
 
 describe('SuiviJobService', () => {
   let service: SuiviJobService
@@ -157,6 +158,69 @@ describe('SuiviJobService', () => {
 
       // Then
       expect(scope.isDone()).to.equal(true)
+    })
+  })
+
+  describe('quand la notification Mattermost des jobs est désactivée', () => {
+    let serviceSansMattermost: SuiviJobService
+    let scope: nock.Scope
+
+    beforeEach(() => {
+      const externalApiLogger = stubClass(ExternalApiLoggerService)
+      externalApiLogger.createAxios.returns(axios.create())
+      serviceSansMattermost = new SuiviJobService(
+        new ConfigService({
+          mattermost: configService.get('mattermost'),
+          monitoring: configService.get('monitoring'),
+          features: { notifierJobsMattermost: false }
+        }),
+        externalApiLogger
+      )
+      scope = nock(configService.get('mattermost').jobWebhookUrl)
+        .post('')
+        .reply(200)
+    })
+
+    afterEach(() => {
+      nock.cleanAll()
+    })
+
+    it("n'envoie pas le résultat du job", async () => {
+      // Given
+      const suivi: SuiviJob = {
+        jobType: Planificateur.JobType.NETTOYER_LES_DONNEES,
+        succes: false,
+        dateExecution: uneDatetime(),
+        tempsExecution: 0,
+        nbErreurs: 0,
+        resultat: {},
+        erreur: { message: 'une erreur' }
+      }
+
+      // When
+      await serviceSansMattermost.notifierResultatJob(suivi)
+
+      // Then
+      expect(scope.isDone()).to.equal(false)
+    })
+
+    it("n'envoie pas le rapport des jobs", async () => {
+      // Given
+      const rapport: RapportJob24h[] = [
+        {
+          jobType: Planificateur.JobType.NETTOYER_LES_DONNEES,
+          nbExecutionsAttendues: 3,
+          nbExecutions: 2,
+          nbErreurs: 1,
+          nbEchecs: 0
+        }
+      ]
+
+      // When
+      await serviceSansMattermost.envoyerRapport(rapport)
+
+      // Then
+      expect(scope.isDone()).to.equal(false)
     })
   })
 })
