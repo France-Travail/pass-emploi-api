@@ -7,11 +7,11 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
-import { StructureMiloPopulationCommand } from './ajouter-structure-milo-population.command.handler.db'
+import { StructuresMiloPopulationCommand } from './ajouter-structure-milo-population.command.handler.db'
 
 @Injectable()
 export class SupprimerStructureMiloPopulationCommandHandler extends CommandHandler<
-  StructureMiloPopulationCommand,
+  StructuresMiloPopulationCommand,
   void
 > {
   constructor() {
@@ -26,21 +26,34 @@ export class SupprimerStructureMiloPopulationCommandHandler extends CommandHandl
     return
   }
 
-  async handle(command: StructureMiloPopulationCommand): Promise<Result> {
-    const nombreDeSuppressions = await PopulationStructureMiloSqlModel.destroy({
+  async handle(command: StructuresMiloPopulationCommand): Promise<Result> {
+    const idsUniques = Array.from(new Set(command.idStructuresMilo))
+    const structuresPresentes = await PopulationStructureMiloSqlModel.findAll({
+      attributes: ['idStructureMilo'],
       where: {
         idPopulation: command.idPopulation,
-        idStructureMilo: command.idStructureMilo
+        idStructureMilo: idsUniques
       }
     })
-    if (nombreDeSuppressions === 0) {
+    const idsPresents = new Set(
+      structuresPresentes.map(({ idStructureMilo }) => idStructureMilo)
+    )
+    const idsAbsents = idsUniques.filter(id => !idsPresents.has(id))
+    if (idsAbsents.length) {
       return failure(
         new NonTrouveError(
           'Structure MiLo de la population',
-          `${command.idPopulation}/${command.idStructureMilo}`
+          `${command.idPopulation}/${idsAbsents.join(', ')}`
         )
       )
     }
+
+    await PopulationStructureMiloSqlModel.destroy({
+      where: {
+        idPopulation: command.idPopulation,
+        idStructureMilo: idsUniques
+      }
+    })
     return emptySuccess()
   }
 }

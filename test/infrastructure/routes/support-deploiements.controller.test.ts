@@ -497,23 +497,38 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/structures-milo')
-        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructuresMilo: ['80620S00', '75056S00']
+        })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
         ajouterStructureMiloPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
-        { idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' },
+        {
+          idPopulation: 'PILOTE_1J1S',
+          idStructuresMilo: ['80620S00', '75056S00']
+        },
         Authentification.unUtilisateurSupport()
       )
     })
 
-    it('renvoie 400 sans idStructureMilo', async () => {
+    it('renvoie 400 sans idStructuresMilo', async () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/structures-milo')
         .send({ idPopulation: 'PILOTE_1J1S' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 avec une liste vide', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({ idPopulation: 'PILOTE_1J1S', idStructuresMilo: [] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -529,9 +544,16 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/structures-milo')
-        .send({ idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' })
+        .send({ idPopulation: 'PILOTE_1J1S', idStructuresMilo: ['80620S00'] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        supprimerStructureMiloPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idPopulation: 'PILOTE_1J1S', idStructuresMilo: ['80620S00'] },
+        Authentification.unUtilisateurSupport()
+      )
     })
   })
 
@@ -543,7 +565,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/agences-ft')
-        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
+        .send({ idPopulation: 'PILOTE_1J1S', idAgences: ['75056', '13055'] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
 
@@ -552,14 +574,14 @@ describe('SupportDeploiementsController', () => {
       ).to.have.been.calledWithExactly(
         {
           idPopulation: 'PILOTE_1J1S',
-          idAgence: '75056',
+          idAgences: ['75056', '13055'],
           dispositifs: undefined
         },
         Authentification.unUtilisateurSupport()
       )
     })
 
-    it("transmet les dispositifs quand ils restreignent l'agence", async () => {
+    it('transmet les dispositifs quand ils restreignent les agences', async () => {
       // Given
       ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
 
@@ -568,7 +590,7 @@ describe('SupportDeploiementsController', () => {
         .post('/support/populations/agences-ft')
         .send({
           idPopulation: 'PILOTE_1J1S',
-          idAgence: '75056',
+          idAgences: ['75056'],
           dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
         })
         .set({ 'X-API-KEY': 'api-key-support' })
@@ -579,7 +601,7 @@ describe('SupportDeploiementsController', () => {
       ).to.have.been.calledWithExactly(
         {
           idPopulation: 'PILOTE_1J1S',
-          idAgence: '75056',
+          idAgences: ['75056'],
           dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
         },
         Authentification.unUtilisateurSupport()
@@ -592,18 +614,27 @@ describe('SupportDeploiementsController', () => {
         .post('/support/populations/agences-ft')
         .send({
           idPopulation: 'PILOTE_1J1S',
-          idAgence: '75056',
+          idAgences: ['75056'],
           dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.CEJ]
         })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
 
-    it('renvoie 400 sans idAgence', async () => {
+    it('renvoie 400 sans idAgences', async () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/populations/agences-ft')
         .send({ idPopulation: 'PILOTE_1J1S' })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 avec une liste vide', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({ idPopulation: 'PILOTE_1J1S', idAgences: [] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
@@ -617,9 +648,16 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .delete('/support/populations/agences-ft')
-        .send({ idPopulation: 'PILOTE_1J1S', idAgence: '75056' })
+        .send({ idPopulation: 'PILOTE_1J1S', idAgences: ['75056'] })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        supprimerAgenceFTPopulationCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idPopulation: 'PILOTE_1J1S', idAgences: ['75056'] },
+        Authentification.unUtilisateurSupport()
+      )
     })
   })
 

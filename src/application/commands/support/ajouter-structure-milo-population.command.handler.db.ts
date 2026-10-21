@@ -14,14 +14,14 @@ import {
 import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
 import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/structure-milo.sql-model'
 
-export interface StructureMiloPopulationCommand extends Command {
+export interface StructuresMiloPopulationCommand extends Command {
   idPopulation: string
-  idStructureMilo: string
+  idStructuresMilo: string[]
 }
 
 @Injectable()
 export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler<
-  StructureMiloPopulationCommand,
+  StructuresMiloPopulationCommand,
   void
 > {
   constructor(
@@ -40,22 +40,31 @@ export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler
   }
 
   // Une structure MiLo cible ses conseillers, et leurs jeunes par leur conseiller de référence. Doublon ignoré.
-  async handle(command: StructureMiloPopulationCommand): Promise<Result> {
+  async handle(command: StructuresMiloPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
     }
-    if (!(await StructureMiloSqlModel.findByPk(command.idStructureMilo))) {
+
+    const idsUniques = Array.from(new Set(command.idStructuresMilo))
+    const structuresExistantes = await StructureMiloSqlModel.findAll({
+      attributes: ['id'],
+      where: { id: idsUniques }
+    })
+    const idsExistants = new Set(structuresExistantes.map(({ id }) => id))
+    const idsInconnus = idsUniques.filter(id => !idsExistants.has(id))
+    if (idsInconnus.length) {
       return failure(
-        new NonTrouveError('Structure MiLo', command.idStructureMilo)
+        new NonTrouveError('Structure MiLo', idsInconnus.join(', '))
       )
     }
 
-    await PopulationStructureMiloSqlModel.findOrCreate({
-      where: {
+    await PopulationStructureMiloSqlModel.bulkCreate(
+      idsUniques.map(idStructureMilo => ({
         idPopulation: command.idPopulation,
-        idStructureMilo: command.idStructureMilo
-      }
-    })
+        idStructureMilo
+      })),
+      { ignoreDuplicates: true }
+    )
     return emptySuccess()
   }
 }

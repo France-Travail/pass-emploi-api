@@ -9,14 +9,14 @@ import {
 } from '../../../building-blocks/types/result'
 import { PopulationAgenceFTSqlModel } from '../../../infrastructure/sequelize/models/population-agence-ft.sql-model'
 
-export interface SupprimerAgenceFTPopulationCommand extends Command {
+export interface SupprimerAgencesFTPopulationCommand extends Command {
   idPopulation: string
-  idAgence: string
+  idAgences: string[]
 }
 
 @Injectable()
 export class SupprimerAgenceFTPopulationCommandHandler extends CommandHandler<
-  SupprimerAgenceFTPopulationCommand,
+  SupprimerAgencesFTPopulationCommand,
   void
 > {
   constructor() {
@@ -31,19 +31,29 @@ export class SupprimerAgenceFTPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Retire l'agence de la population, quels que soient ses dispositifs.
-  async handle(command: SupprimerAgenceFTPopulationCommand): Promise<Result> {
-    const nombreDeSuppressions = await PopulationAgenceFTSqlModel.destroy({
-      where: { idPopulation: command.idPopulation, idAgence: command.idAgence }
+  // Retire les agences de la population, quels que soient leurs dispositifs.
+  async handle(command: SupprimerAgencesFTPopulationCommand): Promise<Result> {
+    const idsUniques = Array.from(new Set(command.idAgences))
+    const agencesPresentes = await PopulationAgenceFTSqlModel.findAll({
+      attributes: ['idAgence'],
+      where: { idPopulation: command.idPopulation, idAgence: idsUniques }
     })
-    if (nombreDeSuppressions === 0) {
+    const idsPresents = new Set(
+      agencesPresentes.map(({ idAgence }) => idAgence)
+    )
+    const idsAbsents = idsUniques.filter(id => !idsPresents.has(id))
+    if (idsAbsents.length) {
       return failure(
         new NonTrouveError(
           'Agence de la population',
-          `${command.idPopulation}/${command.idAgence}`
+          `${command.idPopulation}/${idsAbsents.join(', ')}`
         )
       )
     }
+
+    await PopulationAgenceFTSqlModel.destroy({
+      where: { idPopulation: command.idPopulation, idAgence: idsUniques }
+    })
     return emptySuccess()
   }
 }

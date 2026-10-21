@@ -125,10 +125,10 @@ invalide répond 400, une règle métier violée 400, une ressource inconnue 404
 | `DELETE /support/populations/conseillers` | `{ idPopulation, emailConseillers?: string[], supprimerTous?: boolean }` | 204. 400 si ni liste ni `supprimerTous`. |
 | `POST /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. Doublon ignoré. |
 | `DELETE /support/populations/profils` | `{ idPopulation, structure, dispositif? }` | 204. 404 si le profil n'existe pas. |
-| `POST /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204, doublon ignoré. 404 si population ou structure inconnue. |
-| `DELETE /support/populations/structures-milo` | `{ idPopulation, idStructureMilo }` | 204. 404 si elle n'est pas dans la population. |
-| `POST /support/populations/agences-ft` | `{ idPopulation, idAgence, dispositifs?: Dispositif[] }` | 204. Rejouer remplace la liste ; liste vide refusée. 404 si population ou agence inconnue, 400 si l'agence n'est pas France Travail. |
-| `DELETE /support/populations/agences-ft` | `{ idPopulation, idAgence }` | 204, retire l'agence avec ses dispositifs. 404 si elle n'est pas dans la population. |
+| `POST /support/populations/structures-milo` | `{ idPopulation, idStructuresMilo: string[] }` | 204, doublons ignorés. 404 si population ou une structure inconnue : rien n'est ajouté. |
+| `DELETE /support/populations/structures-milo` | `{ idPopulation, idStructuresMilo: string[] }` | 204. 404 si une structure n'est pas dans la population : rien n'est retiré. |
+| `POST /support/populations/agences-ft` | `{ idPopulation, idAgences: string[], dispositifs?: Dispositif[] }` | 204. `dispositifs` s'applique à toutes les agences ; rejouer remplace la liste ; liste vide refusée. 404 si population ou une agence inconnue, 400 si une agence n'est pas France Travail : rien n'est ajouté. |
+| `DELETE /support/populations/agences-ft` | `{ idPopulation, idAgences: string[] }` | 204, retire les agences avec leurs dispositifs. 404 si une agence n'est pas dans la population : rien n'est retiré. |
 | `POST /support/deploiements` | `{ nature, idPopulation, idFonctionnalite?, dateActivation }` | 201 `{ id }`. 400 si `FONCTIONNALITE` sans `idFonctionnalite` ou `MIGRATION` avec. Rejouer sur la même population et la même fonctionnalité déplace la date. |
 | `PUT /support/deploiements/:id` | `{ dateActivation }` | 204. Seule la date change. 404 si inconnu. |
 | `DELETE /support/deploiements/:id` | | 204. 404 si inconnu. |
