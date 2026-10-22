@@ -30,6 +30,8 @@ import {
 } from 'src/application/commands/generer-plan-action.command.handler'
 import { RecupererPlanActionQueryHandler } from 'src/application/queries/recuperer-plan-action.query.handler'
 import { PlanActionQueryModel } from 'src/application/queries/query-models/plan-action.query-model'
+import { RecupererQuestionnaireQueryHandler } from 'src/application/queries/recuperer-questionnaire.query.handler'
+import { QuestionnaireQueryModel } from 'src/application/queries/query-models/questionnaire.query-model'
 import {
   ChangerStatutTachePlanActionPayload,
   toPlanInvite,
@@ -118,6 +120,7 @@ export class JeunesController {
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
     private genererPlanActionCommandHandler: GenererPlanActionCommandHandler,
     private recupererPlanActionQueryHandler: RecupererPlanActionQueryHandler,
+    private recupererQuestionnaireQueryHandler: RecupererQuestionnaireQueryHandler,
     private changerStatutTachePlanActionCommandHandler: ChangerStatutTachePlanActionCommandHandler,
     private supprimerTachePlanActionCommandHandler: SupprimerTachePlanActionCommandHandler,
     private reprendreCompteInviteCommandHandler: ReprendreCompteInviteCommandHandler
@@ -500,7 +503,7 @@ export class JeunesController {
   }
 
   @Post(':idJeune/plan-action')
-  @UserJourney('suivi_actions')
+  @UserJourney('plan_action')
   @ApiOperation({
     summary: "Génère une suggestion de plan d'action",
     description: 'Autorisé pour un bénéficiaire, invité compris'
@@ -522,8 +525,9 @@ export class JeunesController {
         ? DateTime.fromISO(payload.dateNaissance, { setZone: true })
         : undefined,
       domaineProfessionnelVise: payload.domaine,
-      communeResidence: payload.habitation,
-      communeRecherche: payload.villeRecherche
+      communeResidence: payload.habitation ?? undefined,
+      communeRecherche: payload.villeRecherche ?? undefined,
+      rayonKm: payload.rayonKm ?? undefined
     }
     const result = await this.genererPlanActionCommandHandler.execute(
       command,
@@ -534,7 +538,7 @@ export class JeunesController {
   }
 
   @Get(':idJeune/plan-action')
-  @UserJourney('suivi_actions')
+  @UserJourney('plan_action')
   @ApiOperation({
     summary: "Récupère le dernier plan d'action généré pour un bénéficiaire",
     description: 'Autorisé pour un bénéficiaire connecté'
@@ -545,6 +549,25 @@ export class JeunesController {
     @Utilisateur() utilisateur: Authentification.Utilisateur
   ): Promise<PlanActionQueryModel> {
     const result = await this.recupererPlanActionQueryHandler.execute(
+      { idJeune },
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @Get(':idJeune/questionnaire')
+  @UserJourney('questionnaire')
+  @ApiOperation({
+    summary: "Récupère le questionnaire ayant servi à générer le plan d'action",
+    description: 'Autorisé pour un bénéficiaire connecté'
+  })
+  @ApiResponse({ type: QuestionnaireQueryModel })
+  async recupererQuestionnaire(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<QuestionnaireQueryModel> {
+    const result = await this.recupererQuestionnaireQueryHandler.execute(
       { idJeune },
       utilisateur
     )

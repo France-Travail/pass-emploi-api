@@ -152,6 +152,7 @@ import { UpdateUtilisateurInviteCommandHandler } from './application/commands/up
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
 import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
+import { RecupererQuestionnaireQueryHandler } from './application/queries/recuperer-questionnaire.query.handler'
 import { ChangerStatutTachePlanActionCommandHandler } from './application/commands/changer-statut-tache-plan-action.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from './application/commands/supprimer-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from './application/commands/reprendre-compte-invite.command.handler'
@@ -363,6 +364,7 @@ import {
   PlanActionRepositoryToken
 } from './domain/plan-action/plan-action'
 import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
+import { QuestionnaireRepositoryToken } from './domain/plan-action/questionnaire'
 import {
   PlanificateurRepositoryToken,
   PlanificateurService
@@ -402,6 +404,7 @@ import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
 import { PlanActionSqlRepository } from './infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { ReferentielPlanActionSqlRepository } from './infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db'
+import { QuestionnaireSqlRepository } from './infrastructure/repositories/plan-action/questionnaire-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -598,6 +601,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: PlanActionRepositoryToken,
       useClass: PlanActionSqlRepository
+    },
+    {
+      provide: QuestionnaireRepositoryToken,
+      useClass: QuestionnaireSqlRepository
     },
     {
       provide: TransactionServiceToken,
@@ -853,6 +860,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
     RecupererPlanActionQueryHandler,
+    RecupererQuestionnaireQueryHandler,
     ChangerStatutTachePlanActionCommandHandler,
     SupprimerTachePlanActionCommandHandler,
     ReprendreCompteInviteCommandHandler,

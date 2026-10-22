@@ -20,12 +20,16 @@ import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
-import { Questionnaire } from '../../domain/plan-action/questionnaire'
+import {
+  Questionnaire,
+  QuestionnaireRepositoryToken
+} from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
 } from '../../domain/plan-action/referentiel-plan-action'
 import { TOUT_PROFIL, estInvite, Profil } from '../../domain/profil'
+import { DateService } from '../../utils/date-service'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
@@ -41,6 +45,7 @@ export interface GenererPlanActionCommand extends Command {
   domaineProfessionnelVise?: string | null
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
+  rayonKm?: number
 }
 
 @Injectable()
@@ -57,11 +62,14 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly referentielRepository: ReferentielPlanAction.Repository,
     @Inject(PlanActionRepositoryToken)
     private readonly planActionRepository: PlanAction.Repository,
+    @Inject(QuestionnaireRepositoryToken)
+    private readonly questionnaireRepository: Questionnaire.Repository,
     private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService,
     @Inject(TransactionServiceToken)
-    private readonly transactionService: Transaction.Service
+    private readonly transactionService: Transaction.Service,
+    private readonly dateService: DateService
   ) {
     super('GenererPlanActionCommandHandler')
   }
@@ -106,6 +114,11 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
 
     if (planPersiste) {
       await this.transactionService.executer(async () => {
+        await this.questionnaireRepository.save({
+          ...questionnaire,
+          idJeune: command.idJeune,
+          dateCreation: this.dateService.now()
+        })
         await this.planActionRepository.save(plan)
         return emptySuccess()
       })
@@ -157,6 +170,10 @@ function toQuestionnaire(
       : {}),
     ...(command.communeRecherche
       ? { communeRecherche: command.communeRecherche }
-      : {})
+      : {}),
+    ...(command.domaineProfessionnelVise
+      ? { domaineProfessionnelVise: command.domaineProfessionnelVise }
+      : {}),
+    ...(command.rayonKm !== undefined ? { rayonKm: command.rayonKm } : {})
   }
 }
