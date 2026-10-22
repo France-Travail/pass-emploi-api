@@ -61,6 +61,7 @@ export class SuiviJobService
   }
 
   private async envoyerMessageMattermost(message: string): Promise<void> {
+    if (!this.configService.get('features').notifierJobsMattermost) return
     const webhookUrl = this.configService.get('mattermost.jobWebhookUrl')
 
     try {
