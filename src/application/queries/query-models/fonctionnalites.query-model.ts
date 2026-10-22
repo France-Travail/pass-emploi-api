@@ -27,7 +27,7 @@ export class FonctionnalitesSupportQueryModel {
     isArray: true,
     description:
       'Ids du référentiel, à utiliser dans POST /support/deploiements',
-    example: ['DEMARCHES_IA', 'PLAN_D_ACTION']
+    example: ['DEMARCHES_IA', 'PLAN_ACTION']
   })
   fonctionnalites: string[]
 }

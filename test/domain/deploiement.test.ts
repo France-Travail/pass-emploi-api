@@ -13,7 +13,7 @@ describe('Deploiement', () => {
       const result = Deploiement.creer({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE_1J1S',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation
       })
 
@@ -22,7 +22,7 @@ describe('Deploiement', () => {
         success({
           nature: Deploiement.Nature.FONCTIONNALITE,
           idPopulation: 'PILOTE_1J1S',
-          idFonctionnalite: 'PLAN_D_ACTION',
+          idFonctionnalite: 'PLAN_ACTION',
           dateActivation
         })
       )
@@ -70,7 +70,7 @@ describe('Deploiement', () => {
       const result = Deploiement.creer({
         nature: Deploiement.Nature.MIGRATION,
         idPopulation: 'PHASE_C',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation
       })
 

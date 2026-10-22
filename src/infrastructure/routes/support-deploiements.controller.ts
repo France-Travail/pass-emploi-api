@@ -149,7 +149,7 @@ export class SupportDeploiementsController {
   })
   @ApiBody({
     type: CreerFonctionnalitePayload,
-    examples: { planDAction: { value: { id: 'PLAN_D_ACTION' } } }
+    examples: { planAction: { value: { id: 'PLAN_ACTION' } } }
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -174,7 +174,7 @@ export class SupportDeploiementsController {
     description:
       'Refusée tant qu’un déploiement la vise : supprimer d’abord le déploiement (DELETE /support/deploiements/:id).'
   })
-  @ApiParam({ name: 'idFonctionnalite', example: 'PLAN_D_ACTION' })
+  @ApiParam({ name: 'idFonctionnalite', example: 'PLAN_ACTION' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Supprimée' })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -651,7 +651,7 @@ Renvoie l’id du déploiement, à garder pour modifier sa date (PUT /support/de
         value: {
           nature: 'FONCTIONNALITE',
           idPopulation: 'PILOTE_1J1S',
-          idFonctionnalite: 'PLAN_D_ACTION',
+          idFonctionnalite: 'PLAN_ACTION',
           dateActivation: '2026-10-13T00:00:00.000Z'
         }
       },

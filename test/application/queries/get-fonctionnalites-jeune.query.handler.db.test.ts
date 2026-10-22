@@ -60,7 +60,7 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
         structure: Core.Structure.POLE_EMPLOI_AIJ
       })
     )
-    await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+    await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
     await PopulationSqlModel.create({ id: 'PILOTE', description: null })
     await PopulationConseillerSqlModel.create({
       idPopulation: 'PILOTE',
@@ -69,7 +69,7 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
     await DeploiementSqlModel.create({
       nature: Deploiement.Nature.FONCTIONNALITE,
       idPopulation: 'PILOTE',
-      idFonctionnalite: 'PLAN_D_ACTION',
+      idFonctionnalite: 'PLAN_ACTION',
       dateActivation: hier
     })
   })
@@ -94,7 +94,7 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
     const result = await fonctionnalitesDe('jeuneCite')
 
     // Then
-    expect(result.fonctionnalites).to.deep.equal(['PLAN_D_ACTION'])
+    expect(result.fonctionnalites).to.deep.equal(['PLAN_ACTION'])
   })
 
   it("n'active pas une fonctionnalité dont la date n'est pas atteinte", async () => {
@@ -111,7 +111,7 @@ describe('GetFonctionnalitesJeuneQueryHandler (use case)', () => {
     const result = await fonctionnalitesDe('jeuneCite')
 
     // Then
-    expect(result.fonctionnalites).to.deep.equal(['PLAN_D_ACTION'])
+    expect(result.fonctionnalites).to.deep.equal(['PLAN_ACTION'])
   })
 
   it("renvoie une liste vide quand l'id jeune n'existe pas", async () => {

@@ -24,14 +24,14 @@ describe('SupprimerFonctionnaliteCommandHandler', () => {
 
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
-    await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+    await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
     handler = new SupprimerFonctionnaliteCommandHandler()
   })
 
   describe('handle', () => {
     it('supprime la fonctionnalité', async () => {
       // When
-      const result = await handler.handle({ id: 'PLAN_D_ACTION' })
+      const result = await handler.handle({ id: 'PLAN_ACTION' })
 
       // Then
       expect(result._isSuccess).to.equal(true)
@@ -44,18 +44,18 @@ describe('SupprimerFonctionnaliteCommandHandler', () => {
       await DeploiementSqlModel.create({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: new Date()
       })
 
       // When
-      const result = await handler.handle({ id: 'PLAN_D_ACTION' })
+      const result = await handler.handle({ id: 'PLAN_ACTION' })
 
       // Then
       expect(result).to.deep.equal({
         _isSuccess: false,
         error: new MauvaiseCommandeError(
-          "La fonctionnalité PLAN_D_ACTION est visée par 1 déploiement(s), les supprimer d'abord"
+          "La fonctionnalité PLAN_ACTION est visée par 1 déploiement(s), les supprimer d'abord"
         )
       })
       expect(await FonctionnaliteSqlModel.count()).to.equal(1)

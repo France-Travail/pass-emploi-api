@@ -150,7 +150,7 @@ export class CreerFonctionnalitePayload {
   @ApiProperty({
     description:
       'Identifiant de la fonctionnalité, choisi à la création. Rejouer la route avec le même id ne change rien.',
-    example: 'PLAN_D_ACTION'
+    example: 'PLAN_ACTION'
   })
   @IsString()
   @IsNotEmpty()
@@ -321,7 +321,7 @@ export class CreerDeploiementPayload {
   @ApiPropertyOptional({
     description:
       'Requis pour la nature FONCTIONNALITE, interdit pour MIGRATION, voir GET /support/fonctionnalites',
-    example: 'PLAN_D_ACTION'
+    example: 'PLAN_ACTION'
   })
   @IsOptional()
   @IsString()

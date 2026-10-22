@@ -23,21 +23,21 @@ describe('CreerFonctionnaliteCommandHandler', () => {
   describe('handle', () => {
     it('crée la fonctionnalité', async () => {
       // When
-      const result = await handler.handle({ id: 'PLAN_D_ACTION' })
+      const result = await handler.handle({ id: 'PLAN_ACTION' })
 
       // Then
       expect(result._isSuccess).to.equal(true)
       const fonctionnalite =
-        await FonctionnaliteSqlModel.findByPk('PLAN_D_ACTION')
+        await FonctionnaliteSqlModel.findByPk('PLAN_ACTION')
       expect(fonctionnalite).to.not.be.null()
     })
 
     it('ne fait rien quand la fonctionnalité existe déjà', async () => {
       // Given
-      await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+      await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
 
       // When
-      const result = await handler.handle({ id: 'PLAN_D_ACTION' })
+      const result = await handler.handle({ id: 'PLAN_ACTION' })
 
       // Then
       expect(result._isSuccess).to.equal(true)

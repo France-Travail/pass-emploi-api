@@ -143,11 +143,11 @@ describe('Populations : handlers support', () => {
 
     it('refuse tant qu’un déploiement la vise', async () => {
       // Given
-      await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+      await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
       await DeploiementSqlModel.create({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: new Date()
       })
 

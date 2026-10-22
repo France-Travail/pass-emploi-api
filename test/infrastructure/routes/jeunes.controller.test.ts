@@ -866,7 +866,7 @@ describe('JeunesController', () => {
       it('renvoie les ids des fonctionnalités actives du jeune', async () => {
         // Given
         const queryModel: FonctionnalitesJeuneQueryModel = {
-          fonctionnalites: ['PLAN_D_ACTION', 'PHASE_A']
+          fonctionnalites: ['PLAN_ACTION', 'PHASE_A']
         }
         getFonctionnalitesJeuneQueryHandler.execute
           .withArgs({ idJeune }, unUtilisateurDecode())

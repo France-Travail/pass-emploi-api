@@ -127,7 +127,7 @@ describe('SupportDeploiementsController', () => {
     it('renvoie les ids du référentiel', async () => {
       // Given
       getFonctionnalitesSupportQueryHandler.execute.resolves(
-        success({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_D_ACTION'] })
+        success({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_ACTION'] })
       )
 
       // When - Then
@@ -135,7 +135,7 @@ describe('SupportDeploiementsController', () => {
         .get('/support/fonctionnalites')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.OK)
-        .expect({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_D_ACTION'] })
+        .expect({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_ACTION'] })
     })
   })
 
@@ -154,7 +154,7 @@ describe('SupportDeploiementsController', () => {
             {
               id: 1,
               nature: Deploiement.Nature.FONCTIONNALITE,
-              idFonctionnalite: 'PLAN_D_ACTION',
+              idFonctionnalite: 'PLAN_ACTION',
               dateActivation: '2026-10-13T00:00:00.000Z'
             }
           ],
@@ -180,7 +180,7 @@ describe('SupportDeploiementsController', () => {
       // When - Then
       await request(app.getHttpServer())
         .post('/support/fonctionnalites')
-        .send({ id: 'PLAN_D_ACTION' })
+        .send({ id: 'PLAN_ACTION' })
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
     })
@@ -200,14 +200,14 @@ describe('SupportDeploiementsController', () => {
       // Given
       supprimerFonctionnaliteCommandHandler.execute
         .withArgs(
-          { id: 'PLAN_D_ACTION' },
+          { id: 'PLAN_ACTION' },
           Authentification.unUtilisateurSupport()
         )
         .resolves(emptySuccess())
 
       // When - Then
       await request(app.getHttpServer())
-        .delete('/support/fonctionnalites/PLAN_D_ACTION')
+        .delete('/support/fonctionnalites/PLAN_ACTION')
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.NO_CONTENT)
     })
@@ -634,7 +634,7 @@ describe('SupportDeploiementsController', () => {
         .send({
           nature: Deploiement.Nature.FONCTIONNALITE,
           idPopulation: 'PILOTE_1J1S',
-          idFonctionnalite: 'PLAN_D_ACTION',
+          idFonctionnalite: 'PLAN_ACTION',
           dateActivation: '2026-10-13T00:00:00.000Z'
         })
         .set({ 'X-API-KEY': 'api-key-support' })
@@ -647,7 +647,7 @@ describe('SupportDeploiementsController', () => {
         {
           nature: Deploiement.Nature.FONCTIONNALITE,
           idPopulation: 'PILOTE_1J1S',
-          idFonctionnalite: 'PLAN_D_ACTION',
+          idFonctionnalite: 'PLAN_ACTION',
           dateActivation: DateTime.fromISO('2026-10-13T00:00:00.000Z')
         },
         Authentification.unUtilisateurSupport()

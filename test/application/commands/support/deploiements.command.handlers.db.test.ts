@@ -34,7 +34,7 @@ describe('Déploiements : handlers support', () => {
   beforeEach(async () => {
     await databaseForTesting.cleanPG()
     await PopulationSqlModel.create({ id: 'PILOTE', description: null })
-    await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+    await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
     getPopulation = new GetPopulationSupportQueryHandler(
       new CommunicationSqlRepository(databaseForTesting.sequelize)
     )
@@ -50,7 +50,7 @@ describe('Déploiements : handlers support', () => {
       const result = await handler.handle({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: date
       })
 
@@ -63,7 +63,7 @@ describe('Déploiements : handlers support', () => {
         Deploiement.Nature.FONCTIONNALITE
       )
       expect(population.data.deploiements[0].idFonctionnalite).to.equal(
-        'PLAN_D_ACTION'
+        'PLAN_ACTION'
       )
       expect(population.data.deploiements[0].dateActivation).to.equal(
         date.toUTC().toISO()
@@ -96,7 +96,7 @@ describe('Déploiements : handlers support', () => {
       const premier = await handler.handle({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: date
       })
 
@@ -104,7 +104,7 @@ describe('Déploiements : handlers support', () => {
       const second = await handler.handle({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: date.plus({ days: 7 })
       })
 
@@ -151,7 +151,7 @@ describe('Déploiements : handlers support', () => {
             handler.handle({
               nature: Deploiement.Nature.FONCTIONNALITE,
               idPopulation: 'PILOTE',
-              idFonctionnalite: 'PLAN_D_ACTION',
+              idFonctionnalite: 'PLAN_ACTION',
               dateActivation
             })
         )
@@ -184,7 +184,7 @@ describe('Déploiements : handlers support', () => {
       const result = await handler.handle({
         nature: Deploiement.Nature.MIGRATION,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: date
       })
 
@@ -234,7 +234,7 @@ describe('Déploiements : handlers support', () => {
       const resultCreation = await creer.handle({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: date
       })
       if (!isSuccess(resultCreation)) throw new Error('devrait réussir')
@@ -255,7 +255,7 @@ describe('Déploiements : handlers support', () => {
         date.plus({ days: 20 }).toUTC().toISO()
       )
       expect(population.data.deploiements[0].idFonctionnalite).to.equal(
-        'PLAN_D_ACTION'
+        'PLAN_ACTION'
       )
     })
 

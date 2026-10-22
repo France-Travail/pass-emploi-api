@@ -73,7 +73,7 @@ describe('FonctionnaliteAuthorizer', () => {
       // Given
       fonctionnaliteRepository.getIdsFonctionnalitesActivesDuConseiller
         .withArgs('id-conseiller', maintenant)
-        .resolves(['PLAN_D_ACTION'])
+        .resolves(['PLAN_ACTION'])
 
       // When
       const result = await authorizer.autoriserLeDispositifPourLeConseiller(

@@ -37,7 +37,7 @@ describe('Listes support : populations et fonctionnalités', () => {
 
     it('renvoie toutes les populations, chacune avec ses cibles et ses déploiements', async () => {
       // Given
-      await FonctionnaliteSqlModel.create({ id: 'PLAN_D_ACTION' })
+      await FonctionnaliteSqlModel.create({ id: 'PLAN_ACTION' })
       await PopulationSqlModel.bulkCreate([
         { id: 'PILOTE_1J1S', description: 'Beta testeurs 1J1S' },
         { id: 'FT_CEJ', description: null }
@@ -54,7 +54,7 @@ describe('Listes support : populations et fonctionnalités', () => {
       const deploiement = await DeploiementSqlModel.create({
         nature: Deploiement.Nature.FONCTIONNALITE,
         idPopulation: 'PILOTE_1J1S',
-        idFonctionnalite: 'PLAN_D_ACTION',
+        idFonctionnalite: 'PLAN_ACTION',
         dateActivation: dateActivation.toJSDate()
       })
 
@@ -90,7 +90,7 @@ describe('Listes support : populations et fonctionnalités', () => {
               {
                 id: deploiement.id,
                 nature: Deploiement.Nature.FONCTIONNALITE,
-                idFonctionnalite: 'PLAN_D_ACTION',
+                idFonctionnalite: 'PLAN_ACTION',
                 dateActivation: '2026-10-13T00:00:00.000Z'
               }
             ],
@@ -111,7 +111,7 @@ describe('Listes support : populations et fonctionnalités', () => {
     it('renvoie les ids du référentiel triés', async () => {
       // Given
       await FonctionnaliteSqlModel.bulkCreate([
-        { id: 'PLAN_D_ACTION' },
+        { id: 'PLAN_ACTION' },
         { id: 'DEMARCHES_IA' }
       ])
 
@@ -120,7 +120,7 @@ describe('Listes support : populations et fonctionnalités', () => {
 
       // Then
       expect(result).to.deep.equal(
-        success({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_D_ACTION'] })
+        success({ fonctionnalites: ['DEMARCHES_IA', 'PLAN_ACTION'] })
       )
     })
   })
