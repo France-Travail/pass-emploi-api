@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
+import { DateTime } from 'luxon'
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -172,5 +173,30 @@ export function toPlanInvite(
         terminee: action.terminee
       }))
     }))
+  }
+}
+
+export function toReponsesQuestionnaire(
+  payload: GenererPlanActionPayload
+): Questionnaire.Reponses {
+  return {
+    situation: payload.situation,
+    besoins: payload.goals,
+    contraintes: payload.obstacles ?? [],
+    ...(payload.dateNaissance
+      ? {
+          dateNaissance: DateTime.fromISO(payload.dateNaissance, {
+            setZone: true
+          })
+        }
+      : {}),
+    ...(payload.habitation ? { communeResidence: payload.habitation } : {}),
+    ...(payload.villeRecherche
+      ? { communeRecherche: payload.villeRecherche }
+      : {}),
+    ...(payload.domaine ? { domaineProfessionnelVise: payload.domaine } : {}),
+    ...(payload.rayonKm !== undefined && payload.rayonKm !== null
+      ? { rayonKm: payload.rayonKm }
+      : {})
   }
 }

@@ -61,6 +61,8 @@ export namespace Questionnaire {
     nom: string
   }
 
+  export type Reponses = Omit<Questionnaire, 'structure'>
+
   export interface Enregistre extends Questionnaire {
     idJeune: string
     dateCreation: DateTime

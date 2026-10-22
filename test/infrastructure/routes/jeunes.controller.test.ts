@@ -1061,6 +1061,67 @@ describe('JeunesController', () => {
       )
     })
 
+    it('convertit le questionnaire HTTP en réponses du domaine', async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            situation: 'EMPLOI',
+            goals: ['ORIENTER'],
+            obstacles: ['PAS_DE_PERMIS'],
+            dateNaissance: '2005-03-14',
+            habitation: { codeInsee: '75056', nom: 'Paris' },
+            villeRecherche: null,
+            domaine: 'Informatique',
+            rayonKm: 10
+          }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idInvite: 'id-invite',
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            situation: 'EMPLOI',
+            besoins: ['ORIENTER'],
+            contraintes: ['PAS_DE_PERMIS'],
+            dateNaissance: DateTime.fromISO('2005-03-14', { setZone: true }),
+            communeResidence: { codeInsee: '75056', nom: 'Paris' },
+            domaineProfessionnelVise: 'Informatique',
+            rayonKm: 10
+          }
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('renvoie 400 si le questionnaire est invalide', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: { situation: 'EMPLOI', goals: [] }
+        })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).not.to.have.been.called()
+    })
+
     it('accepte un plan de 80 objectifs dont un de 300 actions', async () => {
       // Given
       reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
