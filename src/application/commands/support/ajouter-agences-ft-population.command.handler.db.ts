@@ -25,7 +25,7 @@ export interface AjouterAgencesFTPopulationCommand extends Command {
 }
 
 @Injectable()
-export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
+export class AjouterAgencesFTPopulationCommandHandler extends CommandHandler<
   AjouterAgencesFTPopulationCommand,
   void
 > {
@@ -33,7 +33,7 @@ export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
     @Inject(PopulationRepositoryToken)
     private readonly populationRepository: Population.Repository
   ) {
-    super('AjouterAgenceFTPopulationCommandHandler')
+    super('AjouterAgencesFTPopulationCommandHandler')
   }
 
   async authorize(): Promise<Result> {
@@ -44,7 +44,6 @@ export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Une agence FT cible ses conseillers et leurs jeunes de référence : un jeune n'a pas d'agence. Rejouer remplace la liste de dispositifs ; absente, toute l'agence est visée.
   async handle(command: AjouterAgencesFTPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))
@@ -66,7 +65,7 @@ export class AjouterAgenceFTPopulationCommandHandler extends CommandHandler<
     if (idsHorsFT.length) {
       return failure(
         new MauvaiseCommandeError(
-          `Pas des agences France Travail : ${idsHorsFT.join(', ')}`
+          `Agences hors France Travail : ${idsHorsFT.join(', ')}`
         )
       )
     }

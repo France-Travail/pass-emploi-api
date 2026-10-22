@@ -7,15 +7,15 @@ import {
   Result
 } from '../../../building-blocks/types/result'
 import { PopulationStructureMiloSqlModel } from '../../../infrastructure/sequelize/models/population-structure-milo.sql-model'
-import { StructuresMiloPopulationCommand } from './ajouter-structure-milo-population.command.handler.db'
+import { StructuresMiloPopulationCommand } from './ajouter-structures-milo-population.command.handler.db'
 
 @Injectable()
-export class SupprimerStructureMiloPopulationCommandHandler extends CommandHandler<
+export class SupprimerStructuresMiloPopulationCommandHandler extends CommandHandler<
   StructuresMiloPopulationCommand,
   void
 > {
   constructor() {
-    super('SupprimerStructureMiloPopulationCommandHandler')
+    super('SupprimerStructuresMiloPopulationCommandHandler')
   }
 
   async authorize(): Promise<Result> {

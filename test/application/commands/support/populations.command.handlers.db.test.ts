@@ -1,8 +1,8 @@
 import { before } from 'mocha'
-import { AjouterAgenceFTPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-agence-ft-population.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-agence-ft-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-agences-ft-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-agences-ft-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-structures-milo-population.command.handler.db'
 import { AjouterConseillersPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-profil-population.command.handler.db'
 import { CreerPopulationCommandHandler } from '../../../../src/application/commands/support/creer-population.command.handler.db'
@@ -310,8 +310,8 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('AjouterStructureMiloPopulationCommandHandler', () => {
-    const handler = new AjouterStructureMiloPopulationCommandHandler(
+  describe('AjouterStructuresMiloPopulationCommandHandler', () => {
+    const handler = new AjouterStructuresMiloPopulationCommandHandler(
       populationRepository
     )
 
@@ -368,14 +368,14 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('SupprimerStructureMiloPopulationCommandHandler', () => {
-    const handler = new SupprimerStructureMiloPopulationCommandHandler()
+  describe('SupprimerStructuresMiloPopulationCommandHandler', () => {
+    const handler = new SupprimerStructuresMiloPopulationCommandHandler()
 
     beforeEach(async () => {
       await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
       await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM2' }))
       await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM3' }))
-      await new AjouterStructureMiloPopulationCommandHandler(
+      await new AjouterStructuresMiloPopulationCommandHandler(
         populationRepository
       ).handle({
         idPopulation: 'PILOTE',
@@ -416,8 +416,8 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('AjouterAgenceFTPopulationCommandHandler', () => {
-    const handler = new AjouterAgenceFTPopulationCommandHandler(
+  describe('AjouterAgencesFTPopulationCommandHandler', () => {
+    const handler = new AjouterAgencesFTPopulationCommandHandler(
       populationRepository
     )
 
@@ -450,7 +450,7 @@ describe('Populations : handlers support', () => {
       const apresAjout = await getPopulation.handle({ idPopulation: 'PILOTE' })
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgences: ['AG1', 'AG2'],
+        idAgences: ['AG1'],
         dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
       })
       const apresRestriction = await getPopulation.handle({
@@ -469,7 +469,30 @@ describe('Populations : handlers support', () => {
       expect(apresAjout.data.agencesFT).to.deep.equal([
         { idAgence: 'AG1', dispositifs: undefined }
       ])
-      expect(apresRestriction.data.agencesFT).to.have.deep.members([
+      expect(apresRestriction.data.agencesFT).to.deep.equal([
+        {
+          idAgence: 'AG1',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        }
+      ])
+      expect(apresRetourATous.data.agencesFT).to.deep.equal([
+        { idAgence: 'AG1', dispositifs: undefined }
+      ])
+    })
+
+    it('applique les dispositifs à toutes les agences de la liste', async () => {
+      // When
+      const result = await handler.handle({
+        idPopulation: 'PILOTE',
+        idAgences: ['AG1', 'AG2'],
+        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+      })
+
+      // Then
+      expect(result._isSuccess).to.equal(true)
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.agencesFT).to.have.deep.members([
         {
           idAgence: 'AG1',
           dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
@@ -479,7 +502,23 @@ describe('Populations : handlers support', () => {
           dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
         }
       ])
-      expect(apresRetourATous.data.agencesFT).to.have.deep.members([
+    })
+
+    it('rejouer sur une partie des agences ne touche pas les autres', async () => {
+      // Given
+      await handler.handle({
+        idPopulation: 'PILOTE',
+        idAgences: ['AG1', 'AG2'],
+        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+      })
+
+      // When
+      await handler.handle({ idPopulation: 'PILOTE', idAgences: ['AG1'] })
+
+      // Then
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.agencesFT).to.have.deep.members([
         { idAgence: 'AG1', dispositifs: undefined },
         {
           idAgence: 'AG2',
@@ -504,7 +543,7 @@ describe('Populations : handlers support', () => {
       expect(result).to.deep.equal({
         _isSuccess: false,
         error: new MauvaiseCommandeError(
-          'Pas des agences France Travail : AG_MILO'
+          'Agences hors France Travail : AG_MILO'
         )
       })
       expect(await PopulationAgenceFTSqlModel.count()).to.equal(0)
@@ -526,9 +565,9 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('SupprimerAgenceFTPopulationCommandHandler', () => {
-    const handler = new SupprimerAgenceFTPopulationCommandHandler()
-    const ajouter = new AjouterAgenceFTPopulationCommandHandler(
+  describe('SupprimerAgencesFTPopulationCommandHandler', () => {
+    const handler = new SupprimerAgencesFTPopulationCommandHandler()
+    const ajouter = new AjouterAgencesFTPopulationCommandHandler(
       populationRepository
     )
 

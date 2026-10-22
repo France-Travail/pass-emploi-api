@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import {
+  ArrayMaxSize,
   ArrayNotEmpty,
   ArrayUnique,
   IsArray,
@@ -259,11 +260,13 @@ export class StructuresMiloPopulationPayload {
   @ApiProperty({
     type: String,
     isArray: true,
-    description: 'Ids des structures MiLo, voir la table structure_milo',
+    description:
+      'Ids des structures MiLo, voir la table structure_milo, 100 au plus',
     example: ['80620S00', '75056S00']
   })
   @IsArray()
   @ArrayNotEmpty()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   idStructuresMilo: string[]
@@ -281,11 +284,13 @@ export class AgencesFTPopulationPayload {
   @ApiProperty({
     type: String,
     isArray: true,
-    description: 'Ids des agences France Travail, voir la table agence',
+    description:
+      'Ids des agences France Travail, voir la table agence, 100 au plus',
     example: ['75056', '13055']
   })
   @IsArray()
   @ArrayNotEmpty()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   idAgences: string[]

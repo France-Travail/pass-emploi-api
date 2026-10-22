@@ -20,7 +20,7 @@ export interface StructuresMiloPopulationCommand extends Command {
 }
 
 @Injectable()
-export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler<
+export class AjouterStructuresMiloPopulationCommandHandler extends CommandHandler<
   StructuresMiloPopulationCommand,
   void
 > {
@@ -28,7 +28,7 @@ export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler
     @Inject(PopulationRepositoryToken)
     private readonly populationRepository: Population.Repository
   ) {
-    super('AjouterStructureMiloPopulationCommandHandler')
+    super('AjouterStructuresMiloPopulationCommandHandler')
   }
 
   async authorize(): Promise<Result> {
@@ -39,7 +39,6 @@ export class AjouterStructureMiloPopulationCommandHandler extends CommandHandler
     return
   }
 
-  // Une structure MiLo cible ses conseillers, et leurs jeunes par leur conseiller de référence. Doublon ignoré.
   async handle(command: StructuresMiloPopulationCommand): Promise<Result> {
     if (!(await this.populationRepository.existe(command.idPopulation))) {
       return failure(new NonTrouveError('Population', command.idPopulation))

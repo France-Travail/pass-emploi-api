@@ -15,12 +15,12 @@ export interface SupprimerAgencesFTPopulationCommand extends Command {
 }
 
 @Injectable()
-export class SupprimerAgenceFTPopulationCommandHandler extends CommandHandler<
+export class SupprimerAgencesFTPopulationCommandHandler extends CommandHandler<
   SupprimerAgencesFTPopulationCommand,
   void
 > {
   constructor() {
-    super('SupprimerAgenceFTPopulationCommandHandler')
+    super('SupprimerAgencesFTPopulationCommandHandler')
   }
 
   async authorize(): Promise<Result> {
@@ -31,7 +31,6 @@ export class SupprimerAgenceFTPopulationCommandHandler extends CommandHandler<
     return
   }
 
-  // Retire les agences de la population, quels que soient leurs dispositifs.
   async handle(command: SupprimerAgencesFTPopulationCommand): Promise<Result> {
     const idsUniques = Array.from(new Set(command.idAgences))
     const agencesPresentes = await PopulationAgenceFTSqlModel.findAll({

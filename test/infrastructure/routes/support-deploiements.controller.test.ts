@@ -2,10 +2,10 @@ import { HttpStatus, INestApplication } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import * as request from 'supertest'
 import { AjouterConseillersPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-conseillers-population.command.handler.db'
-import { AjouterAgenceFTPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-agence-ft-population.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-agence-ft-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-agences-ft-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-agences-ft-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from '../../../src/application/commands/support/supprimer-structures-milo-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../../src/application/commands/support/ajouter-profil-population.command.handler.db'
 import { CreerDeploiementCommandHandler } from '../../../src/application/commands/support/creer-deploiement.command.handler.db'
 import { CreerFonctionnaliteCommandHandler } from '../../../src/application/commands/support/creer-fonctionnalite.command.handler.db'
@@ -48,10 +48,10 @@ describe('SupportDeploiementsController', () => {
   let supprimerConseillersPopulationCommandHandler: StubbedClass<SupprimerConseillersPopulationCommandHandler>
   let ajouterProfilPopulationCommandHandler: StubbedClass<AjouterProfilPopulationCommandHandler>
   let supprimerProfilPopulationCommandHandler: StubbedClass<SupprimerProfilPopulationCommandHandler>
-  let ajouterStructureMiloPopulationCommandHandler: StubbedClass<AjouterStructureMiloPopulationCommandHandler>
-  let supprimerStructureMiloPopulationCommandHandler: StubbedClass<SupprimerStructureMiloPopulationCommandHandler>
-  let ajouterAgenceFTPopulationCommandHandler: StubbedClass<AjouterAgenceFTPopulationCommandHandler>
-  let supprimerAgenceFTPopulationCommandHandler: StubbedClass<SupprimerAgenceFTPopulationCommandHandler>
+  let ajouterStructuresMiloPopulationCommandHandler: StubbedClass<AjouterStructuresMiloPopulationCommandHandler>
+  let supprimerStructuresMiloPopulationCommandHandler: StubbedClass<SupprimerStructuresMiloPopulationCommandHandler>
+  let ajouterAgencesFTPopulationCommandHandler: StubbedClass<AjouterAgencesFTPopulationCommandHandler>
+  let supprimerAgencesFTPopulationCommandHandler: StubbedClass<SupprimerAgencesFTPopulationCommandHandler>
   let creerDeploiementCommandHandler: StubbedClass<CreerDeploiementCommandHandler>
   let modifierDateDeploiementCommandHandler: StubbedClass<ModifierDateDeploiementCommandHandler>
   let supprimerDeploiementCommandHandler: StubbedClass<SupprimerDeploiementCommandHandler>
@@ -92,17 +92,17 @@ describe('SupportDeploiementsController', () => {
     supprimerProfilPopulationCommandHandler = app.get(
       SupprimerProfilPopulationCommandHandler
     )
-    ajouterStructureMiloPopulationCommandHandler = app.get(
-      AjouterStructureMiloPopulationCommandHandler
+    ajouterStructuresMiloPopulationCommandHandler = app.get(
+      AjouterStructuresMiloPopulationCommandHandler
     )
-    supprimerStructureMiloPopulationCommandHandler = app.get(
-      SupprimerStructureMiloPopulationCommandHandler
+    supprimerStructuresMiloPopulationCommandHandler = app.get(
+      SupprimerStructuresMiloPopulationCommandHandler
     )
-    ajouterAgenceFTPopulationCommandHandler = app.get(
-      AjouterAgenceFTPopulationCommandHandler
+    ajouterAgencesFTPopulationCommandHandler = app.get(
+      AjouterAgencesFTPopulationCommandHandler
     )
-    supprimerAgenceFTPopulationCommandHandler = app.get(
-      SupprimerAgenceFTPopulationCommandHandler
+    supprimerAgencesFTPopulationCommandHandler = app.get(
+      SupprimerAgencesFTPopulationCommandHandler
     )
     creerDeploiementCommandHandler = app.get(CreerDeploiementCommandHandler)
     modifierDateDeploiementCommandHandler = app.get(
@@ -490,7 +490,7 @@ describe('SupportDeploiementsController', () => {
   describe('POST /support/populations/structures-milo', () => {
     it('renvoie 204 quand le payload est valide', async () => {
       // Given
-      ajouterStructureMiloPopulationCommandHandler.execute.resolves(
+      ajouterStructuresMiloPopulationCommandHandler.execute.resolves(
         emptySuccess()
       )
 
@@ -505,7 +505,7 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        ajouterStructureMiloPopulationCommandHandler.execute
+        ajouterStructuresMiloPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
         {
           idPopulation: 'PILOTE_1J1S',
@@ -532,12 +532,24 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
+
+    it('renvoie 400 avec plus de 100 éléments', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/structures-milo')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idStructuresMilo: Array.from({ length: 101 }, (_, i) => `ID${i}`)
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
   })
 
   describe('DELETE /support/populations/structures-milo', () => {
     it('renvoie 204 quand le payload est valide', async () => {
       // Given
-      supprimerStructureMiloPopulationCommandHandler.execute.resolves(
+      supprimerStructuresMiloPopulationCommandHandler.execute.resolves(
         emptySuccess()
       )
 
@@ -549,7 +561,7 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        supprimerStructureMiloPopulationCommandHandler.execute
+        supprimerStructuresMiloPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
         { idPopulation: 'PILOTE_1J1S', idStructuresMilo: ['80620S00'] },
         Authentification.unUtilisateurSupport()
@@ -560,7 +572,7 @@ describe('SupportDeploiementsController', () => {
   describe('POST /support/populations/agences-ft', () => {
     it('renvoie 204 quand le payload est valide', async () => {
       // Given
-      ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+      ajouterAgencesFTPopulationCommandHandler.execute.resolves(emptySuccess())
 
       // When - Then
       await request(app.getHttpServer())
@@ -570,7 +582,7 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        ajouterAgenceFTPopulationCommandHandler.execute
+        ajouterAgencesFTPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
         {
           idPopulation: 'PILOTE_1J1S',
@@ -583,7 +595,7 @@ describe('SupportDeploiementsController', () => {
 
     it('transmet les dispositifs quand ils restreignent les agences', async () => {
       // Given
-      ajouterAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+      ajouterAgencesFTPopulationCommandHandler.execute.resolves(emptySuccess())
 
       // When - Then
       await request(app.getHttpServer())
@@ -597,7 +609,7 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        ajouterAgenceFTPopulationCommandHandler.execute
+        ajouterAgencesFTPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
         {
           idPopulation: 'PILOTE_1J1S',
@@ -638,12 +650,26 @@ describe('SupportDeploiementsController', () => {
         .set({ 'X-API-KEY': 'api-key-support' })
         .expect(HttpStatus.BAD_REQUEST)
     })
+
+    it('renvoie 400 avec plus de 100 éléments', async () => {
+      // When - Then
+      await request(app.getHttpServer())
+        .post('/support/populations/agences-ft')
+        .send({
+          idPopulation: 'PILOTE_1J1S',
+          idAgences: Array.from({ length: 101 }, (_, i) => `ID${i}`)
+        })
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .expect(HttpStatus.BAD_REQUEST)
+    })
   })
 
   describe('DELETE /support/populations/agences-ft', () => {
     it('renvoie 204 quand le payload est valide', async () => {
       // Given
-      supprimerAgenceFTPopulationCommandHandler.execute.resolves(emptySuccess())
+      supprimerAgencesFTPopulationCommandHandler.execute.resolves(
+        emptySuccess()
+      )
 
       // When - Then
       await request(app.getHttpServer())
@@ -653,7 +679,7 @@ describe('SupportDeploiementsController', () => {
         .expect(HttpStatus.NO_CONTENT)
 
       expect(
-        supprimerAgenceFTPopulationCommandHandler.execute
+        supprimerAgencesFTPopulationCommandHandler.execute
       ).to.have.been.calledWithExactly(
         { idPopulation: 'PILOTE_1J1S', idAgences: ['75056'] },
         Authentification.unUtilisateurSupport()

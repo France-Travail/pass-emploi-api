@@ -23,12 +23,12 @@ import {
 } from '@nestjs/swagger'
 import { DateTime } from 'luxon'
 import { AjouterConseillersPopulationCommandHandler } from '../../application/commands/support/ajouter-conseillers-population.command.handler.db'
-import { AjouterAgenceFTPopulationCommandHandler } from '../../application/commands/support/ajouter-agence-ft-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from '../../application/commands/support/ajouter-agences-ft-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../application/commands/support/ajouter-profil-population.command.handler.db'
 import { AnnulerEnvoiCommunicationCommandHandler } from '../../application/commands/support/annuler-envoi-communication.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from '../../application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from '../../application/commands/support/supprimer-agence-ft-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from '../../application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from '../../application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from '../../application/commands/support/supprimer-agences-ft-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from '../../application/commands/support/supprimer-structures-milo-population.command.handler.db'
 import {
   CommunicationCreee,
   CreerCommunicationCommandHandler
@@ -104,10 +104,10 @@ export class SupportDeploiementsController {
     private readonly supprimerConseillersPopulationCommandHandler: SupprimerConseillersPopulationCommandHandler,
     private readonly ajouterProfilPopulationCommandHandler: AjouterProfilPopulationCommandHandler,
     private readonly supprimerProfilPopulationCommandHandler: SupprimerProfilPopulationCommandHandler,
-    private readonly ajouterStructureMiloPopulationCommandHandler: AjouterStructureMiloPopulationCommandHandler,
-    private readonly supprimerStructureMiloPopulationCommandHandler: SupprimerStructureMiloPopulationCommandHandler,
-    private readonly ajouterAgenceFTPopulationCommandHandler: AjouterAgenceFTPopulationCommandHandler,
-    private readonly supprimerAgenceFTPopulationCommandHandler: SupprimerAgenceFTPopulationCommandHandler,
+    private readonly ajouterStructuresMiloPopulationCommandHandler: AjouterStructuresMiloPopulationCommandHandler,
+    private readonly supprimerStructuresMiloPopulationCommandHandler: SupprimerStructuresMiloPopulationCommandHandler,
+    private readonly ajouterAgencesFTPopulationCommandHandler: AjouterAgencesFTPopulationCommandHandler,
+    private readonly supprimerAgencesFTPopulationCommandHandler: SupprimerAgencesFTPopulationCommandHandler,
     private readonly creerDeploiementCommandHandler: CreerDeploiementCommandHandler,
     private readonly modifierDateDeploiementCommandHandler: ModifierDateDeploiementCommandHandler,
     private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
@@ -479,7 +479,7 @@ Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
     @Body() payload: StructuresMiloPopulationPayload
   ): Promise<void> {
     const result =
-      await this.ajouterStructureMiloPopulationCommandHandler.execute(
+      await this.ajouterStructuresMiloPopulationCommandHandler.execute(
         {
           idPopulation: payload.idPopulation,
           idStructuresMilo: payload.idStructuresMilo
@@ -515,7 +515,7 @@ Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
     @Body() payload: StructuresMiloPopulationPayload
   ): Promise<void> {
     const result =
-      await this.supprimerStructureMiloPopulationCommandHandler.execute(
+      await this.supprimerStructuresMiloPopulationCommandHandler.execute(
         {
           idPopulation: payload.idPopulation,
           idStructuresMilo: payload.idStructuresMilo
@@ -567,7 +567,7 @@ Avec \`dispositifs\`, appliqués à toutes les agences de la liste, seuls les co
   async ajouterAgencesFTPopulation(
     @Body() payload: AjouterAgencesFTPopulationPayload
   ): Promise<void> {
-    const result = await this.ajouterAgenceFTPopulationCommandHandler.execute(
+    const result = await this.ajouterAgencesFTPopulationCommandHandler.execute(
       {
         idPopulation: payload.idPopulation,
         idAgences: payload.idAgences,
@@ -603,13 +603,14 @@ Avec \`dispositifs\`, appliqués à toutes les agences de la liste, seuls les co
   async supprimerAgencesFTPopulation(
     @Body() payload: AgencesFTPopulationPayload
   ): Promise<void> {
-    const result = await this.supprimerAgenceFTPopulationCommandHandler.execute(
-      {
-        idPopulation: payload.idPopulation,
-        idAgences: payload.idAgences
-      },
-      Authentification.unUtilisateurSupport()
-    )
+    const result =
+      await this.supprimerAgencesFTPopulationCommandHandler.execute(
+        {
+          idPopulation: payload.idPopulation,
+          idAgences: payload.idAgences
+        },
+        Authentification.unUtilisateurSupport()
+      )
     return handleResult(result)
   }
 
