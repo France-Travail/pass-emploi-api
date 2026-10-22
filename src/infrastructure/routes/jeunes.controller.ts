@@ -35,6 +35,7 @@ import { QuestionnaireQueryModel } from 'src/application/queries/query-models/qu
 import {
   ChangerStatutTachePlanActionPayload,
   toPlanInvite,
+  toReponsesQuestionnaire,
   GenererPlanActionPayload
 } from 'src/infrastructure/routes/validation/plan-action.inputs'
 import { ChangerStatutTachePlanActionCommandHandler } from 'src/application/commands/changer-statut-tache-plan-action.command.handler'
@@ -581,7 +582,7 @@ export class JeunesController {
   @ApiOperation({
     summary: 'Rattache au compte connecté les données du compte invité',
     description:
-      "Appelé par l'invité. Preuve : access token du compte connecté. Rejouable : 204 si l'invité est déjà repris. Le plan invité optionnel est enregistré si le jeune connecté n'en a pas déjà un."
+      "Appelé par l'invité. Preuve : access token du compte connecté. Rejouable : 204 si l'invité est déjà repris. Le plan invité optionnel est enregistré, avec le questionnaire qui l'a généré, si le jeune connecté n'en a pas déjà un."
   })
   async reprendreCompteInvite(
     @Param('idInvite') idInvite: string,
@@ -592,7 +593,10 @@ export class JeunesController {
       {
         idInvite,
         jetonConnecte: payload.jetonConnecte,
-        ...(payload.plan ? { plan: toPlanInvite(payload.plan) } : {})
+        ...(payload.plan ? { plan: toPlanInvite(payload.plan) } : {}),
+        ...(payload.questionnaire
+          ? { questionnaire: toReponsesQuestionnaire(payload.questionnaire) }
+          : {})
       },
       utilisateur
     )

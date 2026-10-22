@@ -37,6 +37,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
   let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let planActionRepository: StubbedType<PlanAction.Repository>
+  let questionnaireRepository: StubbedType<Questionnaire.Repository>
   let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
   let evenementService: StubbedClass<EvenementService>
   let dateService: StubbedClass<DateService>
@@ -67,6 +68,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       jeuneInviteRepository,
       jeuneRepository,
       planActionRepository,
+      questionnaireRepository,
       referentielRepository,
       evenementService,
       dateService,
@@ -82,6 +84,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
     jeuneInviteRepository = stubInterface(sandbox)
     jeuneRepository = stubInterface(sandbox)
     planActionRepository = stubInterface(sandbox)
+    questionnaireRepository = stubInterface(sandbox)
     referentielRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     dateService = stubClass(DateService)
@@ -361,6 +364,70 @@ describe('ReprendreCompteInviteCommandHandler', () => {
               ]
             }
           ]
+        })
+      })
+
+      describe('avec le questionnaire fourni', () => {
+        const commandAvecQuestionnaire: ReprendreCompteInviteCommand = {
+          ...commandAvecPlan,
+          questionnaire: {
+            situation: Questionnaire.Situation.EMPLOI,
+            besoins: [Questionnaire.Besoin.ORIENTER],
+            contraintes: [
+              Questionnaire.Contrainte.PAS_DE_PERMIS,
+              Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+            ],
+            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+          }
+        }
+
+        it('stocke le questionnaire du plan pour le jeune connecté, à la date du plan', async () => {
+          // Given
+          referentielRepository.trouverSolutions.resolves([
+            { id: idSolution1 } as ReferentielPlanAction.Solution
+          ])
+
+          // When
+          const result = await handler.handle(commandAvecQuestionnaire)
+
+          // Then
+          expect(result).to.deep.equal(emptySuccess())
+          expect(
+            questionnaireRepository.save
+          ).to.have.been.calledOnceWithExactly({
+            idJeune: idJeuneConnecte,
+            dateCreation: maintenant,
+            structure: jeuneConnecte.profil.structure,
+            situation: Questionnaire.Situation.EMPLOI,
+            besoins: [Questionnaire.Besoin.ORIENTER],
+            contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE],
+            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+          })
+          expect(planActionRepository.save).to.have.been.calledOnce()
+        })
+
+        it("ne stocke pas le questionnaire quand le plan ne l'est pas", async () => {
+          // Given
+          referentielRepository.trouverSolutions.resolves([])
+
+          // When
+          await handler.handle(commandAvecQuestionnaire)
+
+          // Then
+          expect(questionnaireRepository.save).not.to.have.been.called()
+        })
+
+        it('ne stocke pas le questionnaire quand le compte connecté a déjà un plan', async () => {
+          // Given
+          planActionRepository.existePourJeune
+            .withArgs(idJeuneConnecte)
+            .resolves(true)
+
+          // When
+          await handler.handle(commandAvecQuestionnaire)
+
+          // Then
+          expect(questionnaireRepository.save).not.to.have.been.called()
         })
       })
 
