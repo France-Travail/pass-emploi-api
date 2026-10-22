@@ -32,15 +32,18 @@ import {
 } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
+import { DateService } from '../../../src/utils/date-service'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
   let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
   let planActionRepository: StubbedType<PlanAction.Repository>
+  let questionnaireRepository: StubbedType<Questionnaire.Repository>
   let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
   let transactionService: StubbedType<Transaction.Service>
+  let dateService: StubbedClass<DateService>
   let handler: GenererPlanActionCommandHandler
 
   const maintenant = uneDatetime()
@@ -93,10 +96,12 @@ describe('GenererPlanActionCommandHandler', () => {
       jeuneInviteAuthorizer,
       referentielRepository,
       planActionRepository,
+      questionnaireRepository,
       planActionFactory,
       evenementService,
       configService,
-      transactionService
+      transactionService,
+      dateService
     )
   }
 
@@ -106,9 +111,12 @@ describe('GenererPlanActionCommandHandler', () => {
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     referentielRepository = stubInterface(sandbox)
     planActionRepository = stubInterface(sandbox)
+    questionnaireRepository = stubInterface(sandbox)
     planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
     transactionService = stubInterface(sandbox)
+    dateService = stubClass(DateService)
+    dateService.now.returns(maintenant)
     transactionService.executer.callsFake((operation: () => Promise<Result>) =>
       operation()
     )
@@ -252,6 +260,47 @@ describe('GenererPlanActionCommandHandler', () => {
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
     })
 
+    it('sauvegarde le questionnaire avant le plan pour un bénéficiaire accompagné', async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const dateNaissance = uneDatetime().minus({ years: 18 })
+
+      // When
+      await handler.handle(
+        {
+          ...command,
+          contraintes: [
+            Questionnaire.Contrainte.SANTE,
+            Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+          ],
+          dateNaissance,
+          communeResidence: { codeInsee: '75056', nom: 'Paris' },
+          communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
+          domaineProfessionnelVise: 'informatique',
+          rayonKm: 30
+        },
+        jeuneMilo
+      )
+
+      // Then
+      expect(questionnaireRepository.save).to.have.been.calledOnceWithExactly({
+        idJeune: command.idJeune,
+        dateCreation: maintenant,
+        structure: Profil.Structure.MILO,
+        situation: Questionnaire.Situation.LYCEE,
+        besoins: [Questionnaire.Besoin.ALTERNANCE],
+        contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE],
+        dateNaissance,
+        communeResidence: { codeInsee: '75056', nom: 'Paris' },
+        communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
+        domaineProfessionnelVise: 'informatique',
+        rayonKm: 30
+      })
+      expect(questionnaireRepository.save).to.have.been.calledBefore(
+        planActionRepository.save
+      )
+    })
+
     it("construit le plan d'un bénéficiaire accompagné à partir de son dernier plan", async () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
@@ -276,6 +325,7 @@ describe('GenererPlanActionCommandHandler', () => {
       // Then
       expect(planActionRepository.getDernierPlan).not.to.have.been.called()
       expect(planActionRepository.save).not.to.have.been.called()
+      expect(questionnaireRepository.save).not.to.have.been.called()
       expect(result).to.deep.equal(
         success({
           id: 'plan-1',

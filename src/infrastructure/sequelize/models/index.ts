@@ -48,6 +48,7 @@ import { ActualiteMiloSqlModel } from './actualite-milo.sql-model'
 import { PlanActionSqlModel } from './plan-action.sql-model'
 import { PlanActionObjectifSqlModel } from './plan-action-objectif.sql-model'
 import { PlanActionTacheSqlModel } from './plan-action-tache.sql-model'
+import { QuestionnaireSqlModel } from './questionnaire.sql-model'
 import { ReferentielPlanActionServiceSqlModel } from './referentiel-plan-action-service.sql-model'
 import { ReferentielPlanActionSolutionSqlModel } from './referentiel-plan-action-solution.sql-model'
 
@@ -94,6 +95,7 @@ export const sqlModels = [
   PlanActionSqlModel,
   PlanActionObjectifSqlModel,
   PlanActionTacheSqlModel,
+  QuestionnaireSqlModel,
   FonctionnaliteSqlModel,
   PopulationSqlModel,
   PopulationConseillerSqlModel,

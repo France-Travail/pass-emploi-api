@@ -63,6 +63,9 @@ import { unDetailJeuneQueryModel } from '../../fixtures/query-models/jeunes.quer
 import { ChangerStatutTachePlanActionCommandHandler } from '../../../src/application/commands/changer-statut-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from '../../../src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from '../../../src/application/commands/supprimer-tache-plan-action.command.handler'
+import { RecupererQuestionnaireQueryHandler } from '../../../src/application/queries/recuperer-questionnaire.query.handler'
+import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
+import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 
 describe('JeunesController', () => {
   let getDetailJeuneQueryHandler: StubbedClass<GetDetailJeuneQueryHandler>
@@ -83,6 +86,8 @@ describe('JeunesController', () => {
   let changerStatutTachePlanActionCommandHandler: StubbedClass<ChangerStatutTachePlanActionCommandHandler>
   let reprendreCompteInviteCommandHandler: StubbedClass<ReprendreCompteInviteCommandHandler>
   let supprimerTachePlanActionCommandHandler: StubbedClass<SupprimerTachePlanActionCommandHandler>
+  let recupererQuestionnaireQueryHandler: StubbedClass<RecupererQuestionnaireQueryHandler>
+  let genererPlanActionCommandHandler: StubbedClass<GenererPlanActionCommandHandler>
 
   let jwtService: StubbedClass<JwtService>
   let dateService: StubbedClass<DateService>
@@ -127,6 +132,10 @@ describe('JeunesController', () => {
     supprimerTachePlanActionCommandHandler = app.get(
       SupprimerTachePlanActionCommandHandler
     )
+    recupererQuestionnaireQueryHandler = app.get(
+      RecupererQuestionnaireQueryHandler
+    )
+    genererPlanActionCommandHandler = app.get(GenererPlanActionCommandHandler)
 
     jwtService = app.get(JwtService)
     dateService = app.get(DateService)
@@ -1275,6 +1284,112 @@ describe('JeunesController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'delete',
       `/jeunes/id-jeune/plan-action/taches/${idTache}`
+    )
+  })
+
+  describe('POST /jeunes/:idJeune/plan-action', () => {
+    const commandeSansReponsesOptionnelles = {
+      idJeune: 'id-jeune',
+      situation: Questionnaire.Situation.LYCEE,
+      besoins: [Questionnaire.Besoin.ALTERNANCE],
+      contraintes: [],
+      dateNaissance: undefined,
+      domaineProfessionnelVise: undefined,
+      communeResidence: undefined,
+      communeRecherche: undefined,
+      rayonKm: undefined
+    }
+
+    beforeEach(() => {
+      genererPlanActionCommandHandler.execute.resolves(
+        success({ id: 'plan-1', objectives: [] })
+      )
+    })
+
+    it('génère le plan sans ville de recherche ni rayon', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({ situation: 'LYCEE', goals: ['ALTERNANCE'] })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it('génère le plan quand la ville de recherche et le rayon valent null', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'LYCEE',
+          goals: ['ALTERNANCE'],
+          habitation: null,
+          villeRecherche: null,
+          rayonKm: null
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'post',
+      '/jeunes/id-jeune/plan-action'
+    )
+  })
+
+  describe('GET /jeunes/:idJeune/questionnaire', () => {
+    it('renvoie le questionnaire du jeune', async () => {
+      // Given
+      const questionnaire = {
+        situation: Questionnaire.Situation.LYCEE,
+        goals: [Questionnaire.Besoin.ALTERNANCE],
+        obstacles: []
+      }
+      recupererQuestionnaireQueryHandler.execute
+        .withArgs({ idJeune: 'id-jeune' }, unUtilisateurDecode())
+        .resolves(success(questionnaire))
+
+      // When
+      await request(app.getHttpServer())
+        .get('/jeunes/id-jeune/questionnaire')
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect(questionnaire)
+    })
+
+    it("renvoie 404 quand le jeune n'a pas de questionnaire", async () => {
+      // Given
+      recupererQuestionnaireQueryHandler.execute.resolves(
+        failure(new NonTrouveError('Questionnaire', 'id-jeune'))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .get('/jeunes/id-jeune/questionnaire')
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/jeunes/id-jeune/questionnaire'
     )
   })
 })

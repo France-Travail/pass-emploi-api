@@ -53,23 +53,23 @@ export class GenererPlanActionPayload {
   @IsOptional()
   domaine?: string | null
 
-  @ApiPropertyOptional({ type: CommunePayload })
+  @ApiPropertyOptional({ type: CommunePayload, nullable: true })
   @IsOptional()
   @ValidateNested()
   @Type(() => CommunePayload)
-  habitation?: CommunePayload
+  habitation?: CommunePayload | null
 
-  @ApiPropertyOptional({ type: CommunePayload })
+  @ApiPropertyOptional({ type: CommunePayload, nullable: true })
   @IsOptional()
   @ValidateNested()
   @Type(() => CommunePayload)
-  villeRecherche?: CommunePayload
+  villeRecherche?: CommunePayload | null
 
   // inexploité, même par le LLM
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   @IsNumber()
   @IsOptional()
-  rayonKm?: number
+  rayonKm?: number | null
 
   @ApiPropertyOptional({ enum: Questionnaire.Contrainte, isArray: true })
   @IsArray()
