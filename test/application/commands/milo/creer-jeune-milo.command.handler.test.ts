@@ -256,7 +256,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
         )
         expect(miloRepository.getDossier).to.have.been.calledOnceWithExactly(
-          idPartenaire
+          idPartenaire,
+          idpToken
         )
         expect(miloRepository.save).to.have.been.calledOnceWithExactly(
           expectedJeune,
@@ -364,7 +365,8 @@ describe('CreerJeuneMiloCommandHandler', () => {
           success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
         )
         expect(miloRepository.getDossier).to.have.been.calledOnceWithExactly(
-          idPartenaire
+          idPartenaire,
+          idpToken
         )
         expect(miloRepository.save).to.have.been.calledOnceWithExactly(
           expectedJeune,

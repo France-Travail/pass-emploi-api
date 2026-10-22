@@ -112,10 +112,11 @@ export class ConseillersMiloController {
   })
   async getDossierMilo(
     @Param('idDossier') idDossier: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
   ): Promise<DossierJeuneMiloQueryModel> {
     const result = await this.getDossierMiloJeuneQueryHandler.execute(
-      { idDossier },
+      { idDossier, accessToken },
       utilisateur
     )
 

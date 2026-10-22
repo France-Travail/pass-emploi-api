@@ -127,10 +127,13 @@ describe('JeuneMiloHttpRepository', () => {
       miloClient.getDossier.resolves(success(dossierAttendu))
 
       // When
-      const result = await miloHttpSqlRepository.getDossier('1')
+      const result = await miloHttpSqlRepository.getDossier('1', 'idpToken')
 
       // Then
-      expect(miloClient.getDossier).to.have.been.calledOnceWithExactly('1')
+      expect(miloClient.getDossier).to.have.been.calledOnceWithExactly(
+        '1',
+        'idpToken'
+      )
       expect(result).to.deep.equal(success(dossierAttendu))
     })
   })
