@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
 import { Profil } from '../profil'
 
+export const QuestionnaireRepositoryToken = 'QuestionnaireRepositoryToken'
+
 export interface Questionnaire {
   structure: Profil.Structure
   situation: Questionnaire.Situation
@@ -9,6 +11,8 @@ export interface Questionnaire {
   dateNaissance?: DateTime
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
+  domaineProfessionnelVise?: string
+  rayonKm?: number
 }
 
 export namespace Questionnaire {
@@ -55,6 +59,19 @@ export namespace Questionnaire {
   export interface Commune {
     codeInsee: string
     nom: string
+  }
+
+  export type Reponses = Omit<Questionnaire, 'structure'>
+
+  export interface Enregistre extends Questionnaire {
+    idJeune: string
+    dateCreation: DateTime
+  }
+
+  export interface Repository {
+    save(questionnaire: Enregistre): Promise<void>
+
+    get(idJeune: string): Promise<Enregistre | undefined>
   }
 
   // RIEN_NE_ME_BLOQUE est exclusif : accompagné d'une autre contrainte, il est

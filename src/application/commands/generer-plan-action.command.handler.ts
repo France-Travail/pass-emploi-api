@@ -20,7 +20,10 @@ import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
-import { Questionnaire } from '../../domain/plan-action/questionnaire'
+import {
+  Questionnaire,
+  QuestionnaireRepositoryToken
+} from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
@@ -41,6 +44,7 @@ export interface GenererPlanActionCommand extends Command {
   domaineProfessionnelVise?: string | null
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
+  rayonKm?: number
 }
 
 @Injectable()
@@ -57,6 +61,8 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly referentielRepository: ReferentielPlanAction.Repository,
     @Inject(PlanActionRepositoryToken)
     private readonly planActionRepository: PlanAction.Repository,
+    @Inject(QuestionnaireRepositoryToken)
+    private readonly questionnaireRepository: Questionnaire.Repository,
     private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService,
@@ -106,6 +112,11 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
 
     if (planPersiste) {
       await this.transactionService.executer(async () => {
+        await this.questionnaireRepository.save({
+          ...questionnaire,
+          idJeune: command.idJeune,
+          dateCreation: plan.dateCreation
+        })
         await this.planActionRepository.save(plan)
         return emptySuccess()
       })
@@ -157,6 +168,10 @@ function toQuestionnaire(
       : {}),
     ...(command.communeRecherche
       ? { communeRecherche: command.communeRecherche }
-      : {})
+      : {}),
+    ...(command.domaineProfessionnelVise
+      ? { domaineProfessionnelVise: command.domaineProfessionnelVise }
+      : {}),
+    ...(command.rayonKm !== undefined ? { rayonKm: command.rayonKm } : {})
   }
 }
