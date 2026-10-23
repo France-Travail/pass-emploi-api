@@ -195,6 +195,33 @@ describe('DesarchiverJeuneCommandHandler', () => {
       })
     })
 
+    describe("quand le nettoyage de l'archive est en attente", () => {
+      it("refuse de désarchiver tant que le nettoyage de l'archive n'est pas terminé", async () => {
+        // Given
+        const archive = await creerArchive()
+        await archive.update({ nettoyageChat: 'A_ARCHIVER' })
+
+        // When
+        const result = await handler.handle({
+          idArchive: archive.id,
+          idConseiller
+        })
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(
+            new MauvaiseCommandeError(
+              "Le nettoyage de l'archive n'est pas terminé : lancer le nettoyage de sa population puis réessayer"
+            )
+          )
+        )
+        expect(await JeuneSqlModel.findByPk(idJeune)).to.be.null()
+        expect(
+          chatRepository.initializeChatIfNotExists
+        ).not.to.have.been.called()
+      })
+    })
+
     describe('quand le jeune existe déjà en base', () => {
       it('retourne une MauvaiseCommandeError', async () => {
         // Given
