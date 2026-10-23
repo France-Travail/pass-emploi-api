@@ -9,6 +9,7 @@ import { EvenementMilo } from './milo/evenement.milo'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import Bull from 'bull'
+import { ContenuJobParLots } from '../building-blocks/types/job-par-lots-handler'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -111,7 +112,8 @@ export namespace Planificateur {
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
     MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
-    MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION'
+    MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION',
+    ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION'
   }
 
   export interface JobRendezVous {
@@ -154,6 +156,10 @@ export namespace Planificateur {
   }
 
   export type JobTraiterEvenementMilo = EvenementMilo
+
+  export interface JobArchiverJeunesMigration extends ContenuJobParLots {
+    idPopulation: string
+  }
 
   export interface JobNotifierNouvelleActualiteMilo {
     idStructureMilo: string

@@ -13,6 +13,7 @@ import {
   Migration,
   RebasculementOrphelin
 } from '../../../../src/domain/migration'
+import { rootLogger } from '../../../../src/utils/logger.module'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 
 describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
@@ -103,33 +104,26 @@ describe('RebasculerJeunesOrphelinsMigrationCommandHandler', () => {
         .withArgs('PHASE_B')
         .resolves(true)
       migrationService.rebasculerOrphelins.resolves(rebasculements)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const logStub = sandbox.stub((handler as any).logger, 'log')
+      const logInfo = sandbox.stub(rootLogger, 'info')
 
       // When
       await handler.handle(command)
 
       // Then
-      expect(logStub).to.have.been.calledWith(
-        {
-          idJeune: 'jeune-1',
-          ancienIdConseiller: 'conseiller-migrant',
-          nouveauIdConseiller: 'conseiller-initial'
-        },
-        'Jeune rebasculé'
-      )
-      expect(logStub).to.have.been.calledWith(
-        {
-          idJeune: 'jeune-2',
-          ancienIdConseiller: 'conseiller-migrant',
-          nouveauIdConseiller: 'conseiller-initial'
-        },
-        'Jeune rebasculé'
-      )
-      expect(logStub).to.have.been.calledWith(
-        { idPopulationQuiMigre: 'PHASE_B', count: 2 },
-        'Rebasculement orphelins terminé'
-      )
+      for (const idJeune of ['jeune-1', 'jeune-2']) {
+        expect(logInfo).to.have.been.calledWith(
+          {
+            context: 'RebasculerJeunesOrphelinsMigrationCommandHandler',
+            labels: {
+              population_id: 'PHASE_B',
+              jeune_id: idJeune,
+              ancien_conseiller_id: 'conseiller-migrant',
+              nouveau_conseiller_id: 'conseiller-initial'
+            }
+          },
+          'Jeune orphelin rebasculé vers son conseiller initial'
+        )
+      }
     })
   })
 })

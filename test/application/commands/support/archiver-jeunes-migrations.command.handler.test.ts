@@ -1,75 +1,43 @@
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox } from 'sinon'
-import {
-  ArchiverJeunesMigrationCommand,
-  ArchiverJeunesMigrationCommandHandler
-} from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
+import { ArchiverJeunesMigrationCommandHandler } from '../../../../src/application/commands/archiver-jeunes-migrations.command.handler'
 import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure
 } from '../../../../src/building-blocks/types/result'
-import { ArchiveJeune } from '../../../../src/domain/archive-jeune'
-import { expect, StubbedClass, stubClass } from '../../../utils'
-import { DateService } from '../../../../src/utils/date-service'
-import { Mail } from '../../../../src/domain/mail'
-import { Jeune } from '../../../../src/domain/jeune/jeune'
-import { Chat } from '../../../../src/domain/chat'
-import { Authentification } from '../../../../src/domain/authentification'
 import { Migration } from '../../../../src/domain/migration'
-import { EvenementService } from '../../../../src/domain/evenement'
-import Service = ArchiveJeune.Service
-import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+import { Planificateur } from '../../../../src/domain/planificateur'
+import { DateService } from '../../../../src/utils/date-service'
+import { expect, StubbedClass, stubClass } from '../../../utils'
 
 describe('ArchiverJeunesMigrationCommandHandler', () => {
-  let archiverJeunesMigrationSupportCommandHandler: ArchiverJeunesMigrationCommandHandler
-  let serviceMock: Service
-  let migrationService: StubbedClass<Migration.Service>
+  let archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler
   let migrationRepository: StubbedType<Migration.Repository>
-  let evenementService: StubbedClass<EvenementService>
+  let planificateurRepository: StubbedType<Planificateur.Repository>
+  let dateService: StubbedClass<DateService>
 
   const maintenant = new Date('2022-03-01T03:24:00Z')
 
   beforeEach(() => {
     const sandbox = createSandbox()
-
-    const jeuneRepositoryStub = stubInterface<Jeune.Repository>(sandbox)
-    const archiveJeuneRepositoryStub =
-      stubInterface<ArchiveJeune.Repository>(sandbox)
-    const chatRepositoryStub = stubInterface<Chat.Repository>(sandbox)
-    const authentificationRepositoryStub =
-      stubInterface<Authentification.Repository>(sandbox)
-    const dateService = stubClass(DateService)
-    const mailService = stubInterface<Mail.Service>(sandbox)
-
-    serviceMock = {
-      jeuneRepository: jeuneRepositoryStub,
-      archiveJeuneRepository: archiveJeuneRepositoryStub,
-      chatRepository: chatRepositoryStub,
-      authentificationRepository: authentificationRepositoryStub,
-      dateService: dateService.nowJs.returns(maintenant),
-      mailService: mailService,
-
-      archiver: sandbox.stub().resolves(emptySuccess())
-    } as unknown as Service
-
-    migrationService = stubClass(Migration.Service)
     migrationRepository = stubInterface<Migration.Repository>(sandbox)
-    evenementService = stubClass(EvenementService)
-    archiverJeunesMigrationSupportCommandHandler =
+    planificateurRepository = stubInterface<Planificateur.Repository>(sandbox)
+    dateService = stubClass(DateService)
+    dateService.nowJs.returns(maintenant)
+
+    archiverJeunesMigrationCommandHandler =
       new ArchiverJeunesMigrationCommandHandler(
-        evenementService,
-        migrationService,
         migrationRepository,
-        serviceMock
+        planificateurRepository,
+        dateService
       )
   })
 
   describe('authorize', () => {
-    it('autorise : le profil support est déjà garanti par profilsAutorises', async () => {
+    it("autorise : l'accès support est contrôlé par la clé API du controller", async () => {
       // When
-      const result =
-        await archiverJeunesMigrationSupportCommandHandler.authorize()
+      const result = await archiverJeunesMigrationCommandHandler.authorize()
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
@@ -84,7 +52,7 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
         .resolves(false)
 
       // When
-      const result = await archiverJeunesMigrationSupportCommandHandler.handle({
+      const result = await archiverJeunesMigrationCommandHandler.handle({
         idPopulationQuiMigre: 'PHASE_INCONNUE'
       })
 
@@ -92,35 +60,26 @@ describe('ArchiverJeunesMigrationCommandHandler', () => {
       expect(result).to.deep.equal(
         failure(new NonTrouveError('Migration', 'PHASE_INCONNUE'))
       )
-      expect(
-        migrationService.recupererIdsDesBeneficiaireAMigrer
-      ).not.to.have.been.called()
+      expect(planificateurRepository.ajouterJob).not.to.have.been.called()
     })
 
-    describe('quand le jeune existe', () => {
-      it('archive le jeune', async () => {
-        // Given
-        const command: ArchiverJeunesMigrationCommand = {
-          idPopulationQuiMigre: 'PHASE_A'
-        }
-        const idJeunes = ['1', '2', '3']
-        migrationRepository.populationConcerneeParUneMigration
-          .withArgs('PHASE_A')
-          .resolves(true)
-        migrationService.recupererIdsDesBeneficiaireAMigrer.resolves(idJeunes)
+    it("planifie le job d'archivage de la population", async () => {
+      // Given
+      migrationRepository.populationConcerneeParUneMigration
+        .withArgs('PHASE_A')
+        .resolves(true)
 
-        // When
-        const result =
-          await archiverJeunesMigrationSupportCommandHandler.handle(command)
+      // When
+      const result = await archiverJeunesMigrationCommandHandler.handle({
+        idPopulationQuiMigre: 'PHASE_A'
+      })
 
-        // Then
-        expect(result).to.deep.equal(emptySuccess())
-        expect(serviceMock.archiver).to.have.been.calledWithExactly(
-          '1',
-          "Pour des raisons de migration nous avons procédé à l'archivage de votre compte.",
-          MotifSuppressionSupport.MIGRATION,
-          'PHASE_A'
-        )
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith({
+        dateExecution: maintenant,
+        type: Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
+        contenu: { idPopulation: 'PHASE_A' }
       })
     })
   })

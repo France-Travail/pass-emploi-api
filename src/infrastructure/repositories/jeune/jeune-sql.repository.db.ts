@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
-import { Op, Sequelize } from 'sequelize'
+import { Op, QueryTypes, Sequelize } from 'sequelize'
 import { Jeune } from '../../../domain/jeune/jeune'
 import { Profil } from '../../../domain/profil'
 import { DateService } from '../../../utils/date-service'
@@ -217,42 +217,48 @@ export class JeuneSqlRepository implements Jeune.Repository {
   }
 
   async supprimer(idJeune: string): Promise<void> {
-    await this.sequelize.transaction(async transaction => {
-      const associations = await RendezVousJeuneAssociationSqlModel.findAll({
-        attributes: ['idRendezVous'],
-        where: { idJeune },
-        transaction
-      })
-      const idsRendezVous = associations.map(
-        association => association.idRendezVous
-      )
-
-      await JeuneSqlModel.destroy({ where: { id: idJeune }, transaction })
-
-      if (idsRendezVous.length) {
-        const associationsRestantes =
-          await RendezVousJeuneAssociationSqlModel.findAll({
-            attributes: ['idRendezVous'],
-            where: { idRendezVous: { [Op.in]: idsRendezVous } },
-            transaction
-          })
-        const idsRendezVousAvecParticipants = new Set(
-          associationsRestantes.map(association => association.idRendezVous)
-        )
-        const idsRendezVousOrphelins = idsRendezVous.filter(
-          idRendezVous => !idsRendezVousAvecParticipants.has(idRendezVous)
-        )
-        if (idsRendezVousOrphelins.length) {
-          await RendezVousSqlModel.destroy({
-            where: {
-              id: { [Op.in]: idsRendezVousOrphelins },
-              type: { [Op.notIn]: TYPES_ANIMATIONS_COLLECTIVES }
-            },
-            transaction
-          })
-        }
-      }
+    await this.sequelize.transaction(async () => {
+      await this.supprimerEnMasse([idJeune])
     })
+  }
+
+  async supprimerEnMasse(idsJeunes: string[]): Promise<string[]> {
+    if (!idsJeunes.length) return []
+    const associations = await RendezVousJeuneAssociationSqlModel.findAll({
+      attributes: ['idRendezVous'],
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+    const idsRendezVous = [
+      ...new Set(associations.map(association => association.idRendezVous))
+    ]
+
+    const jeunesSupprimes = await this.sequelize.query<{ id: string }>(
+      'DELETE FROM jeune WHERE id IN (:idsJeunes) RETURNING id',
+      { replacements: { idsJeunes }, type: QueryTypes.SELECT }
+    )
+
+    if (idsRendezVous.length) {
+      const associationsRestantes =
+        await RendezVousJeuneAssociationSqlModel.findAll({
+          attributes: ['idRendezVous'],
+          where: { idRendezVous: { [Op.in]: idsRendezVous } }
+        })
+      const idsRendezVousAvecParticipants = new Set(
+        associationsRestantes.map(association => association.idRendezVous)
+      )
+      const idsRendezVousOrphelins = idsRendezVous.filter(
+        idRendezVous => !idsRendezVousAvecParticipants.has(idRendezVous)
+      )
+      if (idsRendezVousOrphelins.length) {
+        await RendezVousSqlModel.destroy({
+          where: {
+            id: { [Op.in]: idsRendezVousOrphelins },
+            type: { [Op.notIn]: TYPES_ANIMATIONS_COLLECTIVES }
+          }
+        })
+      }
+    }
+    return jeunesSupprimes.map(({ id }) => id)
   }
 
   async saveAllJeuneTransferes(jeunes: Jeune[]): Promise<void> {

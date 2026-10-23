@@ -124,7 +124,7 @@ export class PurgerInvitesInactifsJobHandler extends JobHandler {
 
     for (const invite of candidats) {
       try {
-        await this.authentificationRepository.supprimerCompteIdpInvite(
+        await this.authentificationRepository.supprimerCompteIdp(
           invite.idAuthentification
         )
         idsSupprimesCoteIdp.push(invite.id)
