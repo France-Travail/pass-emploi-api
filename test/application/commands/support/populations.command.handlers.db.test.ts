@@ -1,8 +1,8 @@
 import { before } from 'mocha'
-import { AjouterAgenceFTPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-agence-ft-population.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-agence-ft-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-agences-ft-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-agences-ft-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from '../../../../src/application/commands/support/supprimer-structures-milo-population.command.handler.db'
 import { AjouterConseillersPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../../../src/application/commands/support/ajouter-profil-population.command.handler.db'
 import { CreerPopulationCommandHandler } from '../../../../src/application/commands/support/creer-population.command.handler.db'
@@ -26,6 +26,7 @@ import { CommunicationSqlRepository } from '../../../../src/infrastructure/repos
 import { AgenceSqlModel } from '../../../../src/infrastructure/sequelize/models/agence.sql-model'
 import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { PopulationAgenceFTSqlModel } from '../../../../src/infrastructure/sequelize/models/population-agence-ft.sql-model'
+import { PopulationStructureMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/population-structure-milo.sql-model'
 import { StructureMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
 import { uneAgenceDto } from '../../../fixtures/sql-models/agence.sql-model'
 import { uneStructureMiloDto } from '../../../fixtures/sql-models/structureMilo.sql-model'
@@ -309,49 +310,54 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('AjouterStructureMiloPopulationCommandHandler', () => {
-    const handler = new AjouterStructureMiloPopulationCommandHandler(
+  describe('AjouterStructuresMiloPopulationCommandHandler', () => {
+    const handler = new AjouterStructuresMiloPopulationCommandHandler(
       populationRepository
     )
 
     beforeEach(async () => {
       await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM2' }))
     })
 
-    it('ajoute une structure MiLo, sans doublon', async () => {
+    it('ajoute plusieurs structures MiLo, sans doublon', async () => {
       // When
-      await handler.handle({ idPopulation: 'PILOTE', idStructureMilo: 'SM1' })
+      await handler.handle({
+        idPopulation: 'PILOTE',
+        idStructuresMilo: ['SM1']
+      })
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1'
+        idStructuresMilo: ['SM1', 'SM2', 'SM2']
       })
 
       // Then
       expect(result._isSuccess).to.equal(true)
       const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
       if (!isSuccess(population)) throw new Error('devrait réussir')
-      expect(population.data.structuresMilo).to.deep.equal(['SM1'])
+      expect(population.data.structuresMilo).to.have.members(['SM1', 'SM2'])
     })
 
-    it("échoue quand la structure MiLo n'existe pas", async () => {
+    it("n'ajoute rien quand une des structures MiLo n'existe pas", async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idStructureMilo: 'INCONNUE'
+        idStructuresMilo: ['SM1', 'INCONNUE', 'AUTRE']
       })
 
       // Then
       expect(result).to.deep.equal({
         _isSuccess: false,
-        error: new NonTrouveError('Structure MiLo', 'INCONNUE')
+        error: new NonTrouveError('Structure MiLo', 'INCONNUE, AUTRE')
       })
+      expect(await PopulationStructureMiloSqlModel.count()).to.equal(0)
     })
 
     it("échoue quand la population n'existe pas", async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'INCONNUE',
-        idStructureMilo: 'SM1'
+        idStructuresMilo: ['SM1']
       })
 
       // Then
@@ -362,38 +368,40 @@ describe('Populations : handlers support', () => {
     })
   })
 
-  describe('SupprimerStructureMiloPopulationCommandHandler', () => {
-    const handler = new SupprimerStructureMiloPopulationCommandHandler()
+  describe('SupprimerStructuresMiloPopulationCommandHandler', () => {
+    const handler = new SupprimerStructuresMiloPopulationCommandHandler()
 
-    it('retire la structure demandée', async () => {
-      // Given
+    beforeEach(async () => {
       await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM1' }))
-      const ajouter = new AjouterStructureMiloPopulationCommandHandler(
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM2' }))
+      await StructureMiloSqlModel.create(uneStructureMiloDto({ id: 'SM3' }))
+      await new AjouterStructuresMiloPopulationCommandHandler(
         populationRepository
-      )
-      await ajouter.handle({
+      ).handle({
         idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1'
+        idStructuresMilo: ['SM1', 'SM2', 'SM3']
       })
+    })
 
+    it('retire les structures demandées', async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idStructureMilo: 'SM1'
+        idStructuresMilo: ['SM1', 'SM2']
       })
 
       // Then
       expect(result._isSuccess).to.equal(true)
       const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
       if (!isSuccess(population)) throw new Error('devrait réussir')
-      expect(population.data.structuresMilo).to.deep.equal([])
+      expect(population.data.structuresMilo).to.deep.equal(['SM3'])
     })
 
-    it("échoue quand la structure n'est pas dans la population", async () => {
+    it("ne retire rien quand une des structures n'est pas dans la population", async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idStructureMilo: 'SM2'
+        idStructuresMilo: ['SM1', 'ABSENTE']
       })
 
       // Then
@@ -401,51 +409,54 @@ describe('Populations : handlers support', () => {
         _isSuccess: false,
         error: new NonTrouveError(
           'Structure MiLo de la population',
-          'PILOTE/SM2'
+          'PILOTE/ABSENTE'
         )
       })
+      expect(await PopulationStructureMiloSqlModel.count()).to.equal(3)
     })
   })
 
-  describe('AjouterAgenceFTPopulationCommandHandler', () => {
-    const handler = new AjouterAgenceFTPopulationCommandHandler(
+  describe('AjouterAgencesFTPopulationCommandHandler', () => {
+    const handler = new AjouterAgencesFTPopulationCommandHandler(
       populationRepository
     )
 
     beforeEach(async () => {
       await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
+      await AgenceSqlModel.create(uneAgenceDto({ id: 'AG2' }))
     })
 
-    it('ajoute une agence, sans doublon', async () => {
+    it('ajoute plusieurs agences, sans doublon', async () => {
       // When
-      await handler.handle({ idPopulation: 'PILOTE', idAgence: 'AG1' })
+      await handler.handle({ idPopulation: 'PILOTE', idAgences: ['AG1'] })
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG1'
+        idAgences: ['AG1', 'AG2', 'AG2']
       })
 
       // Then
       expect(result._isSuccess).to.equal(true)
       const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
       if (!isSuccess(population)) throw new Error('devrait réussir')
-      expect(population.data.agencesFT).to.deep.equal([
-        { idAgence: 'AG1', dispositifs: undefined }
+      expect(population.data.agencesFT).to.have.deep.members([
+        { idAgence: 'AG1', dispositifs: undefined },
+        { idAgence: 'AG2', dispositifs: undefined }
       ])
     })
 
     it('remplace la liste de dispositifs en rejouant, sur une seule ligne par agence', async () => {
       // When
-      await handler.handle({ idPopulation: 'PILOTE', idAgence: 'AG1' })
+      await handler.handle({ idPopulation: 'PILOTE', idAgences: ['AG1'] })
       const apresAjout = await getPopulation.handle({ idPopulation: 'PILOTE' })
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG1',
+        idAgences: ['AG1'],
         dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
       })
       const apresRestriction = await getPopulation.handle({
         idPopulation: 'PILOTE'
       })
-      await handler.handle({ idPopulation: 'PILOTE', idAgence: 'AG1' })
+      await handler.handle({ idPopulation: 'PILOTE', idAgences: ['AG1'] })
       const apresRetourATous = await getPopulation.handle({
         idPopulation: 'PILOTE'
       })
@@ -469,7 +480,54 @@ describe('Populations : handlers support', () => {
       ])
     })
 
-    it("refuse une agence qui n'est pas France Travail", async () => {
+    it('applique les dispositifs à toutes les agences de la liste', async () => {
+      // When
+      const result = await handler.handle({
+        idPopulation: 'PILOTE',
+        idAgences: ['AG1', 'AG2'],
+        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+      })
+
+      // Then
+      expect(result._isSuccess).to.equal(true)
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.agencesFT).to.have.deep.members([
+        {
+          idAgence: 'AG1',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        },
+        {
+          idAgence: 'AG2',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        }
+      ])
+    })
+
+    it('rejouer sur une partie des agences ne touche pas les autres', async () => {
+      // Given
+      await handler.handle({
+        idPopulation: 'PILOTE',
+        idAgences: ['AG1', 'AG2'],
+        dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+      })
+
+      // When
+      await handler.handle({ idPopulation: 'PILOTE', idAgences: ['AG1'] })
+
+      // Then
+      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
+      if (!isSuccess(population)) throw new Error('devrait réussir')
+      expect(population.data.agencesFT).to.have.deep.members([
+        { idAgence: 'AG1', dispositifs: undefined },
+        {
+          idAgence: 'AG2',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        }
+      ])
+    })
+
+    it("n'ajoute rien quand une des agences n'est pas France Travail", async () => {
       // Given
       await AgenceSqlModel.create(
         uneAgenceDto({ id: 'AG_MILO', structure: Profil.Structure.MILO })
@@ -478,24 +536,24 @@ describe('Populations : handlers support', () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG_MILO'
+        idAgences: ['AG1', 'AG_MILO']
       })
 
       // Then
       expect(result).to.deep.equal({
         _isSuccess: false,
         error: new MauvaiseCommandeError(
-          "L'agence AG_MILO n'est pas une agence France Travail"
+          'Agences hors France Travail : AG_MILO'
         )
       })
       expect(await PopulationAgenceFTSqlModel.count()).to.equal(0)
     })
 
-    it("échoue quand l'agence n'existe pas", async () => {
+    it("n'ajoute rien quand une des agences n'existe pas", async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'INCONNUE'
+        idAgences: ['AG1', 'INCONNUE']
       })
 
       // Then
@@ -503,72 +561,58 @@ describe('Populations : handlers support', () => {
         _isSuccess: false,
         error: new NonTrouveError('Agence', 'INCONNUE')
       })
+      expect(await PopulationAgenceFTSqlModel.count()).to.equal(0)
     })
   })
 
-  describe('SupprimerAgenceFTPopulationCommandHandler', () => {
-    const handler = new SupprimerAgenceFTPopulationCommandHandler()
-    const ajouter = new AjouterAgenceFTPopulationCommandHandler(
+  describe('SupprimerAgencesFTPopulationCommandHandler', () => {
+    const handler = new SupprimerAgencesFTPopulationCommandHandler()
+    const ajouter = new AjouterAgencesFTPopulationCommandHandler(
       populationRepository
     )
 
     beforeEach(async () => {
       await AgenceSqlModel.create(uneAgenceDto({ id: 'AG1' }))
-    })
-
-    it("retire l'agence demandée", async () => {
-      // Given
+      await AgenceSqlModel.create(uneAgenceDto({ id: 'AG2' }))
       await ajouter.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG1'
-      })
-
-      // When
-      const result = await handler.handle({
-        idPopulation: 'PILOTE',
-        idAgence: 'AG1'
-      })
-
-      // Then
-      expect(result._isSuccess).to.equal(true)
-      const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
-      if (!isSuccess(population)) throw new Error('devrait réussir')
-      expect(population.data.agencesFT).to.deep.equal([])
-    })
-
-    it("retire l'agence avec ses dispositifs", async () => {
-      // Given
-      await ajouter.handle({
-        idPopulation: 'PILOTE',
-        idAgence: 'AG1',
+        idAgences: ['AG1', 'AG2'],
         dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
       })
+    })
 
+    it('retire les agences demandées, avec leurs dispositifs', async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG1'
+        idAgences: ['AG1']
       })
 
       // Then
       expect(result._isSuccess).to.equal(true)
       const population = await getPopulation.handle({ idPopulation: 'PILOTE' })
       if (!isSuccess(population)) throw new Error('devrait réussir')
-      expect(population.data.agencesFT).to.deep.equal([])
+      expect(population.data.agencesFT).to.deep.equal([
+        {
+          idAgence: 'AG2',
+          dispositifs: [Profil.Dispositif.CEJ, Profil.Dispositif.AIJ]
+        }
+      ])
     })
 
-    it("échoue quand l'agence n'est pas dans la population", async () => {
+    it("ne retire rien quand une des agences n'est pas dans la population", async () => {
       // When
       const result = await handler.handle({
         idPopulation: 'PILOTE',
-        idAgence: 'AG2'
+        idAgences: ['AG1', 'AG3']
       })
 
       // Then
       expect(result).to.deep.equal({
         _isSuccess: false,
-        error: new NonTrouveError('Agence de la population', 'PILOTE/AG2')
+        error: new NonTrouveError('Agence de la population', 'PILOTE/AG3')
       })
+      expect(await PopulationAgenceFTSqlModel.count()).to.equal(2)
     })
   })
 
