@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger'
 import Bull from 'bull'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
+import { NettoyerArchivesJeunesCommandHandler } from '../../application/commands/nettoyer-archives-jeunes.command.handler'
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
 import {
@@ -140,6 +141,7 @@ export class SupportController {
     @Inject(PlanificateurRepositoryToken)
     private readonly planificateurRepository: Planificateur.Repository,
     private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
+    private readonly nettoyerArchivesJeunesCommandHandler: NettoyerArchivesJeunesCommandHandler,
     private readonly rebasculerJeunesOrphelinsMigrationCommandHandler: RebasculerJeunesOrphelinsMigrationCommandHandler,
     private readonly oidcClient: OidcClient
   ) {}
@@ -563,11 +565,12 @@ Utiliser l'\`id\` retourné avec \`GET /support/job-information/:jobId\` pour ob
     description: `
 L'API support pour archiver les jeunes d'une phase de migration.
 Asynchrone : la route planifie le job ARCHIVER_JEUNES_MIGRATION, qui traite les jeunes par lots.
+  - Archivage de chaque jeune, inactifs compris
   - Suppression de la BDD de son compte utilisateur
-  - Suppression de l'authentification Keycloak
-  - Suppression du chat firebase
-  - Envoi d'un email au jeune
-  
+  - Envoi d'un email aux jeunes dont le compte est actif
+
+L'accès IdP et le chat sont traités ensuite par le nettoyage des archives : cron de nuit NETTOYER_ARCHIVES_JEUNES, ou route \`nettoyer-archives-jeunes\`.
+
 \`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
  `
   })
@@ -577,6 +580,36 @@ Asynchrone : la route planifie le job ARCHIVER_JEUNES_MIGRATION, qui traite les 
     @Param('idPopulationQuiMigre') idPopulationQuiMigre: string
   ): Promise<void> {
     const result = await this.archiverJeunesMigrationCommandHandler.execute(
+      { idPopulationQuiMigre },
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary: "Nettoie les archives des jeunes d'une phase de migration",
+    description: `
+L'API support pour nettoyer les archives des jeunes d'une phase de migration, sans attendre le cron de nuit.
+Asynchrone : la route planifie le job NETTOYER_ARCHIVES_JEUNES, restreint à la population, qui traite les archives par lots.
+  - Révocation des accès IdP via connect
+  - Versement du chat firebase dans l'archive, puis suppression du chat
+
+Rejouable : seules les étapes restant à faire sont traitées. Sans effet si une chaîne de nettoyage tourne déjà.
+
+\`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
+ `
+  })
+  @Post('nettoyer-archives-jeunes/:idPopulationQuiMigre')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async nettoyerArchivesJeunes(
+    @Param('idPopulationQuiMigre') idPopulationQuiMigre: string
+  ): Promise<void> {
+    const result = await this.nettoyerArchivesJeunesCommandHandler.execute(
       { idPopulationQuiMigre },
       Authentification.unUtilisateurSupport()
     )

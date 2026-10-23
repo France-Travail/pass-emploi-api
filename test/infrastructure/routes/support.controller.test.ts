@@ -12,6 +12,7 @@ import {
   DeleteSuperviseursCommand,
   DeleteSuperviseursCommandHandler
 } from '../../../src/application/commands/support/delete-superviseurs.command.handler'
+import { NettoyerArchivesJeunesCommandHandler } from '../../../src/application/commands/nettoyer-archives-jeunes.command.handler'
 import { FusionnerAgencesCommandHandler } from '../../../src/application/commands/support/fusionner-agences.command.handler'
 import { UpdateAgenceConseillerCommandHandler } from '../../../src/application/commands/support/update-agence-conseiller.command.handler'
 import {
@@ -47,6 +48,7 @@ describe('SupportController', () => {
   let creerSuperviseursCommandHandler: StubbedClass<CreerSuperviseursCommandHandler>
   let deleteSuperviseursCommandHandler: StubbedClass<DeleteSuperviseursCommandHandler>
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
+  let nettoyerArchivesJeunesCommandHandler: StubbedClass<NettoyerArchivesJeunesCommandHandler>
   let oidcClient: StubbedClass<OidcClient>
   let planificateurRepository: Planificateur.Repository
   let app: INestApplication
@@ -71,6 +73,9 @@ describe('SupportController', () => {
     deleteSuperviseursCommandHandler = app.get(DeleteSuperviseursCommandHandler)
     transfererJeunesConseillerCommandHandler = app.get(
       TransfererJeunesConseillerCommandHandler
+    )
+    nettoyerArchivesJeunesCommandHandler = app.get(
+      NettoyerArchivesJeunesCommandHandler
     )
     oidcClient = app.get(OidcClient)
   })
@@ -693,6 +698,50 @@ describe('SupportController', () => {
           // Then
           .expect(HttpStatus.UNAUTHORIZED)
       })
+    })
+  })
+
+  describe('POST /support/nettoyer-archives-jeunes/:idPopulationQuiMigre', () => {
+    it('renvoie 204', async () => {
+      // Given
+      nettoyerArchivesJeunesCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/nettoyer-archives-jeunes/PHASE_A')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        nettoyerArchivesJeunesCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { idPopulationQuiMigre: 'PHASE_A' },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('renvoie 404 pour une population inconnue', async () => {
+      // Given
+      nettoyerArchivesJeunesCommandHandler.execute.resolves(
+        failure(new NonTrouveError('Migration', 'PHASE_INCONNUE'))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/nettoyer-archives-jeunes/PHASE_INCONNUE')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    it('refuse sans clé SUPPORT', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/support/nettoyer-archives-jeunes/PHASE_A')
+        .set({ 'X-API-KEY': 'api-key-inconnue' })
+        // Then
+        .expect(HttpStatus.UNAUTHORIZED)
     })
   })
 
