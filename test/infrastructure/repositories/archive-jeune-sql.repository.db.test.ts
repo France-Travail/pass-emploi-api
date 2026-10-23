@@ -30,6 +30,7 @@ import {
   TransfertConseillerDto,
   TransfertConseillerSqlModel
 } from '../../../src/infrastructure/sequelize/models/transfert-conseiller.sql-model'
+import { TransactionSqlService } from '../../../src/infrastructure/sequelize/transaction-sql.service.db'
 import { AsSql } from '../../../src/infrastructure/sequelize/types'
 import { unCommentaire } from '../../fixtures/action.fixture'
 import { uneOffreEmploi } from '../../fixtures/offre-emploi.fixture'
@@ -565,6 +566,111 @@ describe('ArchiveJeuneSqlRepository', () => {
           MotifSuppressionSupport.MIGRATION
         )
       ).to.deep.equal({ idPopulation: null })
+    })
+  })
+
+  describe('construireArchives et enregistrerArchives', () => {
+    const autreJeuneDto = unJeuneDto({
+      id: 'autre-jeune',
+      email: 'autre@jeune.fr',
+      idConseiller: secondConseillerDto.id
+    })
+    const rdvPartage = unRendezVousDto({
+      id: '7d353fa0-804f-11ec-a8a3-0242ac120002',
+      titre: 'partagé'
+    })
+    const rdvDuJeune = unRendezVousDto({
+      id: '8e464fa0-804f-11ec-a8a3-0242ac120002',
+      titre: 'du jeune'
+    })
+
+    beforeEach(async () => {
+      await ConseillerSqlModel.upsert(secondConseillerDto)
+      await JeuneSqlModel.upsert(jeuneDto)
+      await JeuneSqlModel.upsert(autreJeuneDto)
+      await ActionSqlModel.creer(
+        uneActionDto({
+          id: '9f575fa0-804f-11ec-a8a3-0242ac120002',
+          idJeune: jeuneDto.id,
+          contenu: 'action du jeune'
+        })
+      )
+      await ActionSqlModel.creer(
+        uneActionDto({
+          id: 'a0686fa0-804f-11ec-a8a3-0242ac120002',
+          idJeune: autreJeuneDto.id,
+          contenu: "action de l'autre jeune"
+        })
+      )
+      await RendezVousSqlModel.create(rdvPartage)
+      await RendezVousSqlModel.create(rdvDuJeune)
+      await RendezVousJeuneAssociationSqlModel.bulkCreate([
+        { idRendezVous: rdvPartage.id, idJeune: jeuneDto.id },
+        { idRendezVous: rdvPartage.id, idJeune: autreJeuneDto.id },
+        { idRendezVous: rdvDuJeune.id, idJeune: jeuneDto.id }
+      ])
+    })
+
+    it('rattache à chaque jeune ses seules données et ignore les jeunes déjà supprimés', async () => {
+      // Given
+      const metadonnees = [jeuneDto.id, autreJeuneDto.id, 'introuvable'].map(
+        idJeune =>
+          uneArchiveJeuneMetadonnees({
+            idJeune,
+            motif: MotifSuppressionSupport.MIGRATION
+          })
+      )
+
+      // When
+      const archives =
+        await archiveJeuneSqlRepository.construireArchives(metadonnees)
+      await archiveJeuneSqlRepository.enregistrerArchives(archives)
+
+      // Then
+      const archivesSql = await ArchiveJeuneSqlModel.findAll()
+      expect(archivesSql.map(archive => archive.idJeune)).to.have.members([
+        jeuneDto.id,
+        autreJeuneDto.id
+      ])
+      const archiveDuJeune = archivesSql.find(
+        archive => archive.idJeune === jeuneDto.id
+      )!
+      const archiveDeLAutreJeune = archivesSql.find(
+        archive => archive.idJeune === autreJeuneDto.id
+      )!
+      expect(
+        archiveDuJeune.donnees!.actions.map(action => action.contenu)
+      ).to.deep.equal(['action du jeune'])
+      expect(
+        archiveDeLAutreJeune.donnees!.actions.map(action => action.contenu)
+      ).to.deep.equal(["action de l'autre jeune"])
+      expect(
+        archiveDuJeune.donnees!.rendezVous.map(rdv => rdv.titre).sort()
+      ).to.deep.equal(['du jeune', 'partagé'])
+      expect(
+        archiveDeLAutreJeune.donnees!.rendezVous.map(rdv => rdv.titre)
+      ).to.deep.equal(['partagé'])
+    })
+  })
+
+  describe('enregistrerArchives dans une transaction', () => {
+    it("s'annule avec la transaction de l'appelant", async () => {
+      // Given
+      await ConseillerSqlModel.upsert(secondConseillerDto)
+      await JeuneSqlModel.upsert(jeuneDto)
+      const archives = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+      ])
+      const transactionService = new TransactionSqlService(database.sequelize)
+
+      // When
+      await transactionService.executer(async () => {
+        await archiveJeuneSqlRepository.enregistrerArchives(archives)
+        return failure(new MauvaiseCommandeError('annulation'))
+      })
+
+      // Then
+      expect(await ArchiveJeuneSqlModel.count()).to.equal(0)
     })
   })
 

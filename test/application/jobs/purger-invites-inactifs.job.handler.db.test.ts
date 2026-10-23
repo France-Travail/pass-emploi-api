@@ -57,14 +57,14 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
     // Then
     expect(
-      authentificationRepository.supprimerCompteIdpInvite
+      authentificationRepository.supprimerCompteIdp
     ).to.have.been.calledWith('sub1')
     expect(jeuneInviteRepository.supprimerPlusieurs).to.have.been.calledWith([
       'inv1',
       'inv2'
     ])
     expect(
-      authentificationRepository.supprimerCompteIdpInvite
+      authentificationRepository.supprimerCompteIdp
         .getCall(0)
         .calledBefore(jeuneInviteRepository.supprimerPlusieurs.getCall(0))
     ).to.equal(true)
@@ -84,7 +84,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
         dateReference: maintenant.minus({ months: 18 }).toJSDate()
       }
     ])
-    authentificationRepository.supprimerCompteIdpInvite
+    authentificationRepository.supprimerCompteIdp
       .withArgs('sub1')
       .rejects(new Error('connect KO'))
 
@@ -117,7 +117,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
     // Then
     expect(
-      authentificationRepository.supprimerCompteIdpInvite
+      authentificationRepository.supprimerCompteIdp
     ).not.to.have.been.called()
     expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
     expect(suivi.succes).to.equal(false)
@@ -221,7 +221,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
         dateReference: maintenant.minus({ months: 18 }).toJSDate()
       }
     ])
-    authentificationRepository.supprimerCompteIdpInvite
+    authentificationRepository.supprimerCompteIdp
       .withArgs('sub1')
       .rejects(new Error('connect KO'))
 
@@ -308,7 +308,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
       // Then
       expect(
-        authentificationRepository.supprimerCompteIdpInvite
+        authentificationRepository.supprimerCompteIdp
       ).to.have.been.calledOnceWithExactly('sub-repris')
       expect(
         jeuneInviteRepository.supprimerPlusieurs
@@ -368,7 +368,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
       // Then
       expect(
-        authentificationRepository.supprimerCompteIdpInvite
+        authentificationRepository.supprimerCompteIdp
       ).to.have.been.calledOnceWithExactly('sub-repris')
       expect(
         jeuneInviteRepository.supprimerPlusieurs
@@ -391,7 +391,7 @@ describe('PurgerInvitesInactifsJobHandler', () => {
 
       // Then
       expect(
-        authentificationRepository.supprimerCompteIdpInvite
+        authentificationRepository.supprimerCompteIdp
       ).to.have.been.calledOnceWithExactly('sub1')
       expect(
         jeuneInviteRepository.supprimerPlusieurs

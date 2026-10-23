@@ -23,6 +23,12 @@ export class WorkerTrackingService {
     this.asyncLocalStorage.enterWith(jobTracking)
     return jobRunId
   }
+
+  remplacerJobRunId(jobRunId: string): void {
+    const jobTracking = this.asyncLocalStorage.getStore() as
+      JobTracking | undefined
+    if (jobTracking) jobTracking.jobRunId = jobRunId
+  }
 }
 
 export function getWorkerTrackingServiceInstance(): WorkerTrackingService {

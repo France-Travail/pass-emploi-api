@@ -44,6 +44,40 @@ describe('AuthentificationSqlRepository', () => {
     repository = new AuthentificationSqlOidcRepository(oidcClient)
   })
 
+  describe('recupererIdsAuthentificationDesJeunes', () => {
+    it("retourne l'identifiant d'authentification des seuls jeunes demandés", async () => {
+      // Given
+      const conseillerDto = unConseillerDto()
+      await ConseillerSqlModel.creer(conseillerDto)
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeune-1',
+          email: 'jeune-1@mail.fr',
+          idAuthentification: 'auth-1',
+          idConseiller: conseillerDto.id
+        }),
+        unJeuneDto({
+          id: 'jeune-2',
+          email: 'jeune-2@mail.fr',
+          idAuthentification: 'auth-2',
+          idConseiller: conseillerDto.id
+        })
+      ])
+
+      // When
+      const idsAuthentification =
+        await repository.recupererIdsAuthentificationDesJeunes([
+          'jeune-1',
+          'inconnu'
+        ])
+
+      // Then
+      expect(idsAuthentification).to.deep.equal(
+        new Map([['jeune-1', 'auth-1']])
+      )
+    })
+  })
+
   describe('getConseiller', () => {
     const conseillerDtoMilo = unConseillerDto({
       idAuthentification: 'id-authentification-conseiller',
