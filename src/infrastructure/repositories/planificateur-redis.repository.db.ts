@@ -168,6 +168,13 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
     return activeJobs.some(job => job.data.type === jobType)
   }
 
+  async chaineDeLotsEnCours(jobType: Planificateur.JobType): Promise<boolean> {
+    const jobs = await this.queue.getJobs(['waiting', 'active'])
+    return jobs.some(
+      job => job?.data.type === jobType && job.data.contenu?.apresId
+    )
+  }
+
   async existePlusQuUnJobActifDeCeType(
     jobType: Planificateur.JobType
   ): Promise<boolean> {

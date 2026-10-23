@@ -66,7 +66,8 @@ export function estNotifiable(suiviJob: SuiviJob): boolean {
       Planificateur.JobType.CLORE_SESSIONS,
       Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO,
       Planificateur.JobType.ENVOYER_COMMUNICATIONS,
-      Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION
+      Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
+      Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES
     ].includes(suiviJob.jobType)
   )
 }

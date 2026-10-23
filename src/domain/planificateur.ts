@@ -42,6 +42,8 @@ export namespace Planificateur {
 
     estEnCoursDeTraitement(jobType: Planificateur.JobType): Promise<boolean>
 
+    chaineDeLotsEnCours(jobType: Planificateur.JobType): Promise<boolean>
+
     existePlusQuUnJobActifDeCeType(
       jobType: Planificateur.JobType
     ): Promise<boolean>
@@ -113,7 +115,8 @@ export namespace Planificateur {
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
     MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
     MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION',
-    ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION'
+    ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION',
+    NETTOYER_ARCHIVES_JEUNES = 'NETTOYER_ARCHIVES_JEUNES'
   }
 
   export interface JobRendezVous {
@@ -159,6 +162,10 @@ export namespace Planificateur {
 
   export interface JobArchiverJeunesMigration extends ContenuJobParLots {
     idPopulation: string
+  }
+
+  export interface JobNettoyerArchivesJeunes extends ContenuJobParLots {
+    idPopulation?: string
   }
 
   export interface JobNotifierNouvelleActualiteMilo {
@@ -321,6 +328,12 @@ export const listeCronJobs: Planificateur.CronJob[] = [
     expression: '0 8 * * *',
     description:
       "Tous les jours à 8h. Mise à jour du référentiel du plan d'action depuis Grist."
+  },
+  {
+    type: Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES,
+    expression: '0 3 * * *',
+    description:
+      'Tous les jours à 3h. Révoque les accès IdP et archive puis supprime les chats des jeunes archivés en différé.'
   }
 ]
 

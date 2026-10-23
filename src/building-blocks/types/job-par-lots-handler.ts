@@ -25,8 +25,8 @@ export abstract class JobParLotsHandler<
   constructor(
     jobType: JobType,
     suiviJobService: SuiviJob.Service,
-    private readonly planificateurRepository: Planificateur.Repository,
-    private readonly dateService: DateService
+    protected readonly planificateurRepository: Planificateur.Repository,
+    protected readonly dateService: DateService
   ) {
     super(jobType, suiviJobService)
   }
