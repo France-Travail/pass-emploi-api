@@ -23,12 +23,12 @@ import {
 } from '@nestjs/swagger'
 import { DateTime } from 'luxon'
 import { AjouterConseillersPopulationCommandHandler } from '../../application/commands/support/ajouter-conseillers-population.command.handler.db'
-import { AjouterAgenceFTPopulationCommandHandler } from '../../application/commands/support/ajouter-agence-ft-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from '../../application/commands/support/ajouter-agences-ft-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from '../../application/commands/support/ajouter-profil-population.command.handler.db'
 import { AnnulerEnvoiCommunicationCommandHandler } from '../../application/commands/support/annuler-envoi-communication.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from '../../application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from '../../application/commands/support/supprimer-agence-ft-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from '../../application/commands/support/supprimer-structure-milo-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from '../../application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from '../../application/commands/support/supprimer-agences-ft-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from '../../application/commands/support/supprimer-structures-milo-population.command.handler.db'
 import {
   CommunicationCreee,
   CreerCommunicationCommandHandler
@@ -67,11 +67,11 @@ import {
   CreerDeploiementPayload,
   CreerFonctionnalitePayload,
   CreerPopulationPayload,
-  AgenceFTPopulationPayload,
-  AjouterAgenceFTPopulationPayload,
+  AgencesFTPopulationPayload,
+  AjouterAgencesFTPopulationPayload,
   ModifierDateDeploiementPayload,
   ProfilPopulationPayload,
-  StructureMiloPopulationPayload,
+  StructuresMiloPopulationPayload,
   SupprimerConseillersPopulationPayload
 } from './validation/support.inputs'
 
@@ -104,10 +104,10 @@ export class SupportDeploiementsController {
     private readonly supprimerConseillersPopulationCommandHandler: SupprimerConseillersPopulationCommandHandler,
     private readonly ajouterProfilPopulationCommandHandler: AjouterProfilPopulationCommandHandler,
     private readonly supprimerProfilPopulationCommandHandler: SupprimerProfilPopulationCommandHandler,
-    private readonly ajouterStructureMiloPopulationCommandHandler: AjouterStructureMiloPopulationCommandHandler,
-    private readonly supprimerStructureMiloPopulationCommandHandler: SupprimerStructureMiloPopulationCommandHandler,
-    private readonly ajouterAgenceFTPopulationCommandHandler: AjouterAgenceFTPopulationCommandHandler,
-    private readonly supprimerAgenceFTPopulationCommandHandler: SupprimerAgenceFTPopulationCommandHandler,
+    private readonly ajouterStructuresMiloPopulationCommandHandler: AjouterStructuresMiloPopulationCommandHandler,
+    private readonly supprimerStructuresMiloPopulationCommandHandler: SupprimerStructuresMiloPopulationCommandHandler,
+    private readonly ajouterAgencesFTPopulationCommandHandler: AjouterAgencesFTPopulationCommandHandler,
+    private readonly supprimerAgencesFTPopulationCommandHandler: SupprimerAgencesFTPopulationCommandHandler,
     private readonly creerDeploiementCommandHandler: CreerDeploiementCommandHandler,
     private readonly modifierDateDeploiementCommandHandler: ModifierDateDeploiementCommandHandler,
     private readonly supprimerDeploiementCommandHandler: SupprimerDeploiementCommandHandler,
@@ -449,37 +449,40 @@ Un conseiller MiLo n’a pas de dispositif : \`(MILO, PACEA)\` ou \`(MILO, CEJ)\
   @ReserveAuSupport
   @ApiTags('Support - Populations')
   @ApiOperation({
-    summary: 'Ajoute une structure MiLo à une population',
-    description: `Cible les conseillers rattachés à cette structure et les jeunes dont le conseiller de référence y est rattaché. Doublon ignoré.
+    summary: 'Ajoute des structures MiLo à une population',
+    description: `Cible les conseillers rattachés à ces structures et les jeunes dont le conseiller de référence y est rattaché. Les structures déjà présentes sont ignorées. Si une structure n’existe pas, rien n’est ajouté.
 
 Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
   })
   @ApiBody({
-    type: StructureMiloPopulationPayload,
+    type: StructuresMiloPopulationPayload,
     examples: {
-      missionLocale: {
-        value: { idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' }
+      missionsLocales: {
+        value: {
+          idPopulation: 'PILOTE_1J1S',
+          idStructuresMilo: ['80620S00', '75056S00']
+        }
       }
     }
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Ajoutée ou déjà présente'
+    description: 'Ajoutées ou déjà présentes'
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'La population ou la structure MiLo n’existe pas'
+    description: 'La population ou une des structures MiLo n’existe pas'
   })
   @Post('populations/structures-milo')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async ajouterStructureMiloPopulation(
-    @Body() payload: StructureMiloPopulationPayload
+  async ajouterStructuresMiloPopulation(
+    @Body() payload: StructuresMiloPopulationPayload
   ): Promise<void> {
     const result =
-      await this.ajouterStructureMiloPopulationCommandHandler.execute(
+      await this.ajouterStructuresMiloPopulationCommandHandler.execute(
         {
           idPopulation: payload.idPopulation,
-          idStructureMilo: payload.idStructureMilo
+          idStructuresMilo: payload.idStructuresMilo
         },
         Authentification.unUtilisateurSupport()
       )
@@ -489,32 +492,33 @@ Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
   @ReserveAuSupport
   @ApiTags('Support - Populations')
   @ApiOperation({
-    summary: 'Retire une structure MiLo d’une population',
-    description: 'Même corps que l’ajout.'
+    summary: 'Retire des structures MiLo d’une population',
+    description:
+      'Même corps que l’ajout. Si une des structures n’est pas dans la population, rien n’est retiré.'
   })
   @ApiBody({
-    type: StructureMiloPopulationPayload,
+    type: StructuresMiloPopulationPayload,
     examples: {
-      missionLocale: {
-        value: { idPopulation: 'PILOTE_1J1S', idStructureMilo: '80620S00' }
+      missionsLocales: {
+        value: { idPopulation: 'PILOTE_1J1S', idStructuresMilo: ['80620S00'] }
       }
     }
   })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Retirée' })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Retirées' })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'La structure MiLo n’est pas dans la population'
+    description: 'Une des structures MiLo n’est pas dans la population'
   })
   @Delete('populations/structures-milo')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerStructureMiloPopulation(
-    @Body() payload: StructureMiloPopulationPayload
+  async supprimerStructuresMiloPopulation(
+    @Body() payload: StructuresMiloPopulationPayload
   ): Promise<void> {
     const result =
-      await this.supprimerStructureMiloPopulationCommandHandler.execute(
+      await this.supprimerStructuresMiloPopulationCommandHandler.execute(
         {
           idPopulation: payload.idPopulation,
-          idStructureMilo: payload.idStructureMilo
+          idStructuresMilo: payload.idStructuresMilo
         },
         Authentification.unUtilisateurSupport()
       )
@@ -524,23 +528,23 @@ Pas de restriction par dispositif : un conseiller MiLo n’en porte pas.`
   @ReserveAuSupport
   @ApiTags('Support - Populations')
   @ApiOperation({
-    summary: 'Ajoute une agence France Travail à une population',
-    description: `Cible les conseillers rattachés à cette agence et les jeunes de référence de ces conseillers (un jeune n’a pas d’agence). Une seule ligne par agence : rejouer remplace la liste de dispositifs.
+    summary: 'Ajoute des agences France Travail à une population',
+    description: `Cible les conseillers rattachés à ces agences et les jeunes de référence de ces conseillers (un jeune n’a pas d’agence). Une seule ligne par agence : rejouer remplace la liste de dispositifs. Si une agence n’existe pas ou n’est pas France Travail, rien n’est ajouté.
 
-Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux : les conseillers CEJ ou AIJ de l’agence, et tout leur portefeuille.`
+Avec \`dispositifs\`, appliqués à toutes les agences de la liste, seuls les conseillers qui portent l’un d’eux : les conseillers CEJ ou AIJ des agences, et tout leur portefeuille.`
   })
   @ApiBody({
-    type: AjouterAgenceFTPopulationPayload,
+    type: AjouterAgencesFTPopulationPayload,
     examples: {
-      agence: {
-        summary: 'Toute l’agence',
-        value: { idPopulation: 'PILOTE_1J1S', idAgence: '75056' }
+      agences: {
+        summary: 'Toutes les agences',
+        value: { idPopulation: 'PILOTE_1J1S', idAgences: ['75056', '13055'] }
       },
-      agenceCejAij: {
-        summary: 'Seulement les dispositifs CEJ et AIJ de l’agence',
+      agencesCejAij: {
+        summary: 'Seulement les dispositifs CEJ et AIJ des agences',
         value: {
           idPopulation: 'PILOTE_1J1S',
-          idAgence: '75056',
+          idAgences: ['75056', '13055'],
           dispositifs: ['CEJ', 'AIJ']
         }
       }
@@ -548,25 +552,25 @@ Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux : les con
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Ajoutée, ou liste de dispositifs remplacée'
+    description: 'Ajoutées, ou listes de dispositifs remplacées'
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'La population ou l’agence n’existe pas'
+    description: 'La population ou une des agences n’existe pas'
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'L’agence n’est pas une agence France Travail'
+    description: 'Une des agences n’est pas une agence France Travail'
   })
   @Post('populations/agences-ft')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async ajouterAgenceFTPopulation(
-    @Body() payload: AjouterAgenceFTPopulationPayload
+  async ajouterAgencesFTPopulation(
+    @Body() payload: AjouterAgencesFTPopulationPayload
   ): Promise<void> {
-    const result = await this.ajouterAgenceFTPopulationCommandHandler.execute(
+    const result = await this.ajouterAgencesFTPopulationCommandHandler.execute(
       {
         idPopulation: payload.idPopulation,
-        idAgence: payload.idAgence,
+        idAgences: payload.idAgences,
         dispositifs: payload.dispositifs
       },
       Authentification.unUtilisateurSupport()
@@ -577,33 +581,36 @@ Avec \`dispositifs\`, seuls les conseillers qui portent l’un d’eux : les con
   @ReserveAuSupport
   @ApiTags('Support - Populations')
   @ApiOperation({
-    summary: 'Retire une agence France Travail d’une population',
+    summary: 'Retire des agences France Travail d’une population',
     description:
-      'Retire l’agence quels que soient ses dispositifs. Pour n’en retirer qu’un, rejouer l’ajout avec la liste réduite.'
+      'Retire les agences quels que soient leurs dispositifs. Si une des agences n’est pas dans la population, rien n’est retiré. Pour ne retirer qu’un dispositif, rejouer l’ajout avec la liste réduite.'
   })
   @ApiBody({
-    type: AgenceFTPopulationPayload,
+    type: AgencesFTPopulationPayload,
     examples: {
-      agence: { value: { idPopulation: 'PILOTE_1J1S', idAgence: '75056' } }
+      agences: {
+        value: { idPopulation: 'PILOTE_1J1S', idAgences: ['75056'] }
+      }
     }
   })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Retirée' })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Retirées' })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'L’agence n’est pas dans la population'
+    description: 'Une des agences n’est pas dans la population'
   })
   @Delete('populations/agences-ft')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async supprimerAgenceFTPopulation(
-    @Body() payload: AgenceFTPopulationPayload
+  async supprimerAgencesFTPopulation(
+    @Body() payload: AgencesFTPopulationPayload
   ): Promise<void> {
-    const result = await this.supprimerAgenceFTPopulationCommandHandler.execute(
-      {
-        idPopulation: payload.idPopulation,
-        idAgence: payload.idAgence
-      },
-      Authentification.unUtilisateurSupport()
-    )
+    const result =
+      await this.supprimerAgencesFTPopulationCommandHandler.execute(
+        {
+          idPopulation: payload.idPopulation,
+          idAgences: payload.idAgences
+        },
+        Authentification.unUtilisateurSupport()
+      )
     return handleResult(result)
   }
 
