@@ -1,302 +1,44 @@
-# Pass Emploi API - Contexte Technique
+# Pass Emploi API
 
-> Backend API du projet Pass Emploi
-
----
+> Backend API du projet Pass Emploi (NestJS). Versions : `package.json` et `.nvmrc`. Toujours `yarn`.
 
 @../pass-emploi-tools/docs/CONTEXTE-TRANSVERSE.md
 
 ---
 
-# Contexte Technique API
+## Vérifications après modification
 
-> Cette section contient les informations techniques spécifiques au repo pass-emploi-api.
+| Vérification | Commande                                                         |
+|--------------|------------------------------------------------------------------|
+| Typecheck    | `yarn tsc --noEmit` (`yarn build` ne typecheck pas `test/`)      |
+| Lint         | `yarn lint` / `yarn lint:fix`                                    |
+| Tests unit   | `yarn test:local:unit`                                           |
+| Tests DB     | `yarn test:local:db` (démarre les DB de test Docker)             |
+| Un fichier   | `TZ=UTC ENVIRONMENT=test yarn mocha test/chemin/fichier.test.ts` |
 
-## Stack Technique
-
-### Framework & Runtime
-
-| Technologie         | Version    | Notes                    |
-|---------------------|------------|--------------------------|
-| **NestJS**          | 11.1.9     | Framework principal      |
-| **TypeScript**      | 4.9.5      | Config stricte           |
-| **Node.js**         | 22.14.0    | Défini dans `.nvmrc`     |
-| **Package Manager** | Yarn 4.9.2 | Toujours utiliser `yarn` |
-
-### Base de données & Cache
-
-| Technologie    | Version | Usage                          |
-|----------------|---------|--------------------------------|
-| **PostgreSQL** | 14      | Base principale (avec PostGIS) |
-| **Sequelize**  | 6.37.7  | ORM (+ sequelize-typescript)   |
-| **Redis**      | 8       | Cache + Job Queue              |
-| **Bull**       | 4.16.5  | Gestion des jobs asynchrones   |
-
-### Bibliothèques principales
-
-**Authentification :**
-
-- `openid-client@5.7.1` : Client OIDC
-- `jose@5.10.0` : Manipulation JWT
-
-**HTTP & API :**
-
-- `axios@1.13.2` : Client HTTP
-- `@nestjs/swagger` : Documentation API
-- `class-validator@0.14.3` : Validation DTO
-- `class-transformer@0.5.1` : Transformation objets
-
-**Monitoring :**
-
-- `elastic-apm-node@3.52.2` : APM
-- `pino` : Logging structuré
-
-**Notifications :**
-
-- `firebase-admin@13.6.0` : Push notifications
-
-**Utilitaires :**
-
-- `luxon@3.7.2` : Manipulation dates (pas Moment.js)
-- `helmet@8.1.0` : Sécurité headers
-- `compression@1.8.1` : Compression HTTP
-
-### Testing
-
-| Outil         | Version | Usage             |
-|---------------|---------|-------------------|
-| **Mocha**     | 11.7.5  | Test runner       |
-| **Chai**      | 4.5.0   | Assertions        |
-| **Sinon**     | 21.0.0  | Mocking           |
-| **NYC**       | 17.1.0  | Coverage          |
-| **Supertest** | 7.1.4   | Tests HTTP        |
-| **Nock**      | 14.0.10 | Mock HTTP externe |
+Pas de scan sécurité local : il ne tourne qu'en CI (`security-checks.yml`). Sonar : voir `CONTEXTE-TRANSVERSE.md`.
 
 ---
 
 ## Architecture
 
-### Pattern : Clean Architecture + CQRS
+Clean Architecture + CQRS :
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Infrastructure                           │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Controllers │  │ Repositories│  │ External Clients    │  │
-│  │ (Routes)    │  │ (Sequelize) │  │ (APIs, Firebase)    │  │
-│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
-└─────────┼────────────────┼────────────────────┼─────────────┘
-          │                │                    │
-          ▼                ▼                    ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Application                              │
-│  ┌─────────────────────┐  ┌─────────────────────┐           │
-│  │ Command Handlers    │  │ Query Handlers      │           │
-│  │ (Mutations)         │  │ (Lectures)          │           │
-│  └──────────┬──────────┘  └──────────┬──────────┘           │
-│             │                        │                      │
-│             ▼                        ▼                      │
-│  ┌─────────────────────┐  ┌─────────────────────┐           │
-│  │ Authorizers         │  │ Query Models (DTOs) │           │
-│  └─────────────────────┘  └─────────────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       Domain                                │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Entities    │  │ Value Objects│  │ Domain Services    │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+- `src/domain/` : logique métier pure (entités, interfaces de repository)
+- `src/application/` : `commands/`, `queries/` (+ `query-models/` = DTOs réponse), `jobs/`, `authorizers/`, `tasks/`
+- `src/infrastructure/` : `routes/` (controllers, `validation/` = DTOs requête), `repositories/`, `clients/`,
+  `sequelize/` (`models/`, `migrations/`), `auth/`
+- `src/building-blocks/` : `types/` (`command-handler`, `query-handler`, `job-handler`, `job-par-lots-handler`,
+  `result`), `context.ts`
+- Tests : `test/`, structure miroir de `src/`
 
-### Structure des dossiers
+### Patterns
 
-```
-src/
-├── application/              # Couche applicative
-│   ├── commands/             # Handlers de mutations
-│   │   ├── action/
-│   │   ├── milo/
-│   │   ├── pole-emploi/
-│   │   └── ...
-│   ├── queries/              # Handlers de lectures
-│   │   ├── query-getters/
-│   │   ├── query-mappers/
-│   │   └── query-models/     # DTOs réponse
-│   ├── jobs/                 # Handlers de jobs asynchrones
-│   ├── authorizers/          # Logique d'autorisation
-│   └── tasks/                # Tâches one-off
-│
-├── building-blocks/          # Primitives réutilisables
-│   └── types/
-│       ├── command.ts
-│       ├── command-handler.ts
-│       ├── query-handler.ts
-│       ├── result.ts         # Success/Failure monad
-│       ├── domain-error.ts
-│       └── brand.ts          # Type branding
-│
-├── domain/                   # Logique métier pure
-│   ├── action/
-│   ├── jeune/
-│   ├── milo/
-│   ├── offre/
-│   ├── notification/
-│   ├── rendez-vous/
-│   └── ...
-│
-├── infrastructure/           # Implémentations techniques
-│   ├── auth/                 # Guards et stratégies auth
-│   ├── clients/              # Clients HTTP externes
-│   ├── repositories/         # Accès données (Sequelize)
-│   ├── sequelize/
-│   │   ├── models/           # Modèles SQL
-│   │   ├── migrations/       # Migrations DB
-│   │   └── seeders/
-│   ├── routes/               # Controllers NestJS
-│   │   └── validation/       # DTOs requête
-│   ├── middlewares/
-│   └── decorators/
-│
-├── utils/                    # Services utilitaires
-├── config/                   # Configuration centralisée
-├── fixtures/                 # Fixtures de test
-├── app.module.ts             # Module racine
-└── main.ts                   # Point d'entrée
-```
-
----
-
-## Patterns clés
-
-### 1. Command/Query Separation (CQS)
-
-**Commands** (mutations) :
-
-```typescript
-// src/application/commands/action/create-action.command.handler.ts
-export class CreateActionCommandHandler extends CommandHandler<
-  CreateActionCommand,
-  Action
-> {
-  async handle(command: CreateActionCommand): Promise<Result<Action>> {
-    // ... validation et création
-    return success(action)
-  }
-}
-```
-
-**Queries** (lectures) :
-
-```typescript
-// src/application/queries/action.query.handler.ts
-export class GetActionQueryHandler {
-  async handle(query: GetActionQuery): Promise<ActionQueryModel> {
-    // ... récupération et mapping
-  }
-}
-```
-
-### 2. Result Monad
-
-Gestion fonctionnelle des erreurs (pas d'exceptions métier) :
-
-```typescript
-import { Result, success, failure, isSuccess, isFailure } from './result'
-
-// Retourner un succès
-return success(data)
-
-// Retourner une erreur métier
-return failure(new NonTrouveError('Jeune', id))
-
-// Vérifier le résultat
-if (isSuccess(result)) {
-  return result.data
-}
-if (isFailure(result)) {
-  // Gérer l'erreur
-}
-```
-
-### 3. Authorizers
-
-Logique d'autorisation centralisée, injectée dans les handlers :
-
-```typescript
-// Vérification dans un CommandHandler
-const authorized = await this.jeuneAuthorizer.autoriserPourConseillerDuJeune(
-  jeuneId,
-  utilisateur
-)
-if (!authorized) {
-  return failure(new NonAutoriseError())
-}
-```
-
-### 4. Context (AsyncLocalStorage)
-
-Données de requête accessibles partout :
-
-```typescript
-import { Context, ContextKey } from './context'
-
-// Récupérer l'utilisateur courant
-const utilisateur = Context.get(ContextKey.UTILISATEUR)
-```
-
-### 5. Repository Pattern
-
-Abstraction de la persistance :
-
-```typescript
-// Interface (domain)
-interface JeuneRepository {
-  get(id: string): Promise<Jeune | undefined>
-
-  save(jeune: Jeune): Promise<void>
-}
-
-// Implémentation (infrastructure)
-@Injectable()
-export class JeuneSqlRepository implements JeuneRepository {
-  // ... implémentation Sequelize
-}
-```
-
----
-
-## Conventions de code
-
-### Prettier
-
-```json
-{
-  "tabWidth": 2,
-  "semi": false,
-  "singleQuote": true,
-  "trailingComma": "none",
-  "arrowParens": "avoid"
-}
-```
-
-### Guillemets dans les strings TypeScript
-
-Prettier impose `singleQuote: true`, mais les apostrophes dans le texte cassent le parsing. Règle :
-
-- String **sans apostrophe** → simples guillemets : `'Votre bénéficiaire est inscrit'`
-- String **avec apostrophe** → doubles guillemets : `"Votre bénéficiaire s'est inscrit"`
-
-S'applique partout : code source, fichiers de test, strings dans les `it()`, `describe()`, etc.
-
-### ESLint (règles importantes)
-
-- `no-console`: error → utiliser le logger NestJS
-- `no-process-env`: error → utiliser ConfigService
-- `@typescript-eslint/explicit-function-return-type`: error
-- `@typescript-eslint/no-explicit-any`: error
-- Variables inutilisées ignorées avec préfixe `_`
+- **Result** (`building-blocks/types/result.ts`) : pas d'exception métier, `success(data)` / `failure(new XxxError())`.
+- **Authorizers** : toute mutation vérifie l'autorisation via un authorizer injecté avant d'agir.
+- **Context** (AsyncLocalStorage, `building-blocks/context.ts`) : `getContextValue(ContextKey.UTILISATEUR)`.
+- **Événements métier** : `EvenementService.creer(code, utilisateur, ...)` (audit + analytics).
+- Dates : `luxon` (pas Moment.js).
 
 ### Nommage
 
@@ -304,54 +46,42 @@ S'applique partout : code source, fichiers de test, strings dans les `it()`, `de
 |------------------|---------------------------|------------------------------|
 | Command Handler  | `{Action}CommandHandler`  | `CreateActionCommandHandler` |
 | Query Handler    | `{Action}QueryHandler`    | `GetActionsQueryHandler`     |
-| Repository SQL   | `{Entité}SqlRepository`   | `JeuneSqlRepository`         |
-| Repository Redis | `{Entité}RedisRepository` | `SessionRedisRepository`     |
-| Controller       | `{Entité}Controller`      | `ActionController`           |
+| Repository       | `{Entité}SqlRepository`   | `JeuneSqlRepository`         |
 | Model Sequelize  | `{Entité}SqlModel`        | `JeuneSqlModel`              |
 | DTO réponse      | `{Entité}QueryModel`      | `ActionQueryModel`           |
 | DTO requête      | `{Action}Payload`         | `CreateActionPayload`        |
 | Fichiers DB      | `*.db.ts`                 | `jeune-sql.repository.db.ts` |
-
-### Tests
-
-- Extension : `.test.ts`
-- Tests DB : `.db.test.ts`
-- Colocalisés dans `/test` (structure miroir de `/src`)
-- Framework : Mocha + Chai + Sinon
-
-```typescript
-describe('CreateActionCommandHandler', () => {
-  let handler: CreateActionCommandHandler
-
-  beforeEach(() => {
-    // Setup
-  })
-
-  it('should create action when authorized', async () => {
-    // Test
-  })
-})
-```
-
-### Commentaires
-
-Règle transverse : voir **Conventions partagées → Commentaires** dans
-`CONTEXTE-TRANSVERSE.md` (importé en tête de ce fichier).
+| Tests            | `.test.ts` / `.db.test.ts`| Mocha + Chai + Sinon (+ Nock)|
 
 ---
 
-## Scripts disponibles
+## Conventions de code
 
-### Développement
+Prettier et ESLint font foi (`.prettierrc`, config ESLint). Points non évidents :
 
-| Commande                        | Description                                                        |
-|---------------------------------|--------------------------------------------------------------------|
-| `yarn start`                    | API sur le `.environment` tel quel (pg + redis Docker démarrés)    |
-| `yarn start:local`           | API sur la DB Docker, connect staging (`.environment.db-local`)    |
-| `yarn start:staging`            | API sur la DB staging, tunnel Scalingo ouvert automatiquement  |
-| `yarn watch[:db-local\|:staging]` | Idem avec hot reload + logs pretty                              |
-| `yarn watch:worker`             | Worker mode avec logs                                              |
-| `yarn start:debug`              | Avec debugger NestJS                                               |
+- **Guillemets** : `singleQuote` sauf si la string contient une apostrophe → doubles guillemets
+  (`"Votre bénéficiaire s'est inscrit"`). Vaut aussi pour les `it()` / `describe()`.
+- `no-console` → logger NestJS ; `no-process-env` → `ConfigService` ; variables inutilisées préfixées `_`.
+- Commentaires : voir **Conventions partagées → Commentaires** dans `CONTEXTE-TRANSVERSE.md`.
+
+---
+
+## Auth
+
+- `OidcAuthGuard` (JWT émis par pass-emploi-connect) ; utilisateur injecté via `@Utilisateur()`.
+- `ApiKeyAuthGuard` pour services internes / partenaires ; `@Public()` / `@SkipOidcAuth()` pour les routes ouvertes.
+- `Authentification.Type` : `JEUNE`, `CONSEILLER`, `SUPPORT` ; `SUPERVISEUR` est un `Role`.
+- Structures : enum `Core.Structure` (`src/domain/core.ts`).
+
+---
+
+## Exécution
+
+Modes exclusifs : `IS_WEB=true` (HTTP), `IS_WORKER=true` (jobs Bull), `TASK_NAME=xxx` (one-off).
+Post-deploy : `yarn tasks:initialiser-les-crons`.
+
+Dev local : `yarn start` (`.environment` tel quel), `yarn start:local` (DB Docker, connect staging),
+`yarn start:staging` (DB staging via tunnel Scalingo) ; variantes `yarn watch[:db-local|:staging]`.
 
 `.environment.db-local` / `.environment.staging` sont **committés et sans secret** : ils surchargent
 `ENVIRONMENT`, `DATABASE_URL`, `OIDC_ISSUER_URL` en référençant des variables nommées du vault
@@ -359,153 +89,12 @@ Règle transverse : voir **Conventions partagées → Commentaires** dans
 expansion `${…}` après chargement de tous les fichiers). En local, `ENVIRONMENT=development` est
 obligatoire : `staging` force le SSL Sequelize (`providers.ts`) que le postgres Docker refuse.
 
-### Build & Lint
-
-| Commande        | Description              |
-|-----------------|--------------------------|
-| `yarn build`    | Build TypeScript (dist/) |
-| `yarn lint`     | ESLint check             |
-| `yarn lint:fix` | ESLint auto-fix          |
-
-### Base de données
-
-| Commande                | Description                          |
-|-------------------------|--------------------------------------|
-| `yarn db`               | Démarrer PostgreSQL + Redis (Docker) |
-| `yarn db:pg`            | Démarrer PostgreSQL (Docker)         |
-| `yarn db:redis`         | Démarrer Redis (Docker)              |
-| `yarn db:test`          | Démarrer les DB de test (Docker)     |
-| `yarn db:migration`     | Exécuter migrations Sequelize        |
-| `yarn seed`             | Seed toutes les données              |
-| `yarn seed:referentiel` | Seed référentiels (communes, ROME)   |
-| `yarn psql`             | Accès psql via Docker                |
-
-### Tests
-
-| Commande               | Description               |
-|------------------------|---------------------------|
-| `yarn test`            | Full coverage (unit + db) |
-| `yarn test:local:unit` | Tests unitaires           |
-| `yarn test:local:db`   | Tests avec DB             |
-| `yarn cover:report`    | Rapport coverage          |
-
-### Tasks (one-off)
-
-| Commande                           | Description              |
-|------------------------------------|--------------------------|
-| `yarn tasks:initialiser-les-crons` | Init crons (post-deploy) |
-| `yarn tasks:nettoyer-les-donnees`  | Data cleanup             |
-| `yarn tasks:dump-analytics`        | Dump pour analytics      |
-
-### Release
-
-| Commande             | Description           |
-|----------------------|-----------------------|
-| `yarn release:patch` | Version patch (x.x.X) |
-| `yarn release:minor` | Version minor (x.X.0) |
-| `yarn release:major` | Version major (X.0.0) |
-
----
-
-## Authentification
-
-### Stratégies
-
-1. **OIDC (principal)** : Validation JWT via pass-emploi-connect
-    - Guard : `OidcAuthGuard`
-    - Décorateur : `@Utilisateur()` pour injecter l'utilisateur
-
-2. **API Key** : Pour services internes/webhooks
-    - Guard : `ApiKeyAuthGuard`
-    - Header : `Authorization: Bearer <key>`
-
-3. **Routes publiques** :
-    - Décorateur : `@Public()`
-    - Usage : health check, auth endpoints
-
-### Utilisateur courant
-
-```typescript
-// Dans un controller
-@Get()
-async
-getAction(
-  @Utilisateur()
-utilisateur: Authentification.Utilisateur
-)
-{
-  // utilisateur.id, utilisateur.type, utilisateur.structure
-}
-```
-
-Types d'utilisateurs : `JEUNE`, `CONSEILLER`, `SUPERVISEUR`
-Structures : `PASS_EMPLOI`, `MILO`, `POLE_EMPLOI`, `CONSEIL_DEPT`
-
----
-
-## Modes d'exécution
-
-L'application peut démarrer en 3 modes (mutuellement exclusifs) :
-
-| Mode       | Variable         | Usage                      |
-|------------|------------------|----------------------------|
-| **Web**    | `IS_WEB=true`    | Serveur HTTP (Controllers) |
-| **Worker** | `IS_WORKER=true` | Processing jobs (Bull)     |
-| **Task**   | `TASK_NAME=xxx`  | Script one-off             |
-
-**Important post-deploy :** Exécuter `yarn tasks:initialiser-les-crons` pour initialiser les jobs planifiés.
-
----
-
-## CI/CD
-
-### GitHub Actions
-
-**Workflow principal (`github-actions.yml`) :**
-
-- Trigger : push sur `develop`/`master`, PR
-- Services : PostgreSQL (PostGIS 14) + Redis 8
-- Jobs : Install → Lint → Test → SonarQube
-
-**Autres workflows :**
-
-- `codeql.yml` : Scan sécurité CodeQL
-- `semgrep-*.yml` : Analyse statique SAST
-
-### Déploiement (Scalingo)
-
-| Environnement | Branche   | Déclenchement |
-|---------------|-----------|---------------|
-| Staging       | `develop` | Automatique   |
-| Production    | `master`  | Automatique   |
-
----
-
-## Événements métier
-
-Le système trace les événements importants via `EvenementService` :
-
-```typescript
-await this.evenementService.creer(
-  Evenement.Code.ACTION_CREEE,
-  utilisateur,
-  { actionId: action.id }
-)
-```
-
-Utilisé pour :
-
-- Audit trail
-- Analytics (pipeline ELT)
-- Notifications
-
 ---
 
 ## Points d'attention
 
-1. **Migrations DB** : Toujours créer une migration pour les changements de schéma
-2. **Authorizers** : Vérifier les autorisations avant toute mutation
-3. **Result pattern** : Ne pas throw d'exceptions métier, utiliser `failure()`
-4. **Tests DB** : Utiliser `.db.test.ts` pour les tests nécessitant la DB
-5. **Crons** : Penser à réinitialiser après un deploy (`yarn tasks:initialiser-les-crons`)
-6. **`resolutions` (sécurité)** : Toujours noter une entrée de `resolutions` en `">=<version>"`, jamais en `"^<version>"` ni version exacte. Le `^` plafonne le major (`^7.5.6` = `>=7.5.6 <8.0.0`) et recrée la CVE le jour où le correctif passe au major suivant ; `>=` laisse l'arbre se résoudre vers n'importe quelle version sûre plus récente.
+1. **Migrations DB** : toujours une migration pour un changement de schéma.
+2. **Tests DB** : `.db.test.ts` pour tout test qui touche la base.
+3. **`resolutions` (sécurité)** : toujours `">=<version>"`, jamais `"^<version>"` ni version exacte. Le `^`
+   plafonne le major (`^7.5.6` = `>=7.5.6 <8.0.0`) et recrée la CVE le jour où le correctif passe au major
+   suivant ; `>=` laisse l'arbre se résoudre vers n'importe quelle version sûre plus récente.
