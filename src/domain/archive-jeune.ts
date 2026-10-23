@@ -348,6 +348,15 @@ export namespace ArchiveJeune {
     donnees: ArchiveJeune
   }
 
+  export interface ArchiveANettoyer {
+    id: number
+    idJeune: string
+    idAuthentification: string | null
+    idPopulation: string | null
+    nettoyageIdp: EtapeNettoyageIdp | null
+    nettoyageChat: EtapeNettoyageChat | null
+  }
+
   export interface ResultatArchivageEnMasse {
     idsJeunesArchives: string[]
     nbEchecsNettoyage: number
@@ -358,7 +367,18 @@ export namespace ArchiveJeune {
     construireArchives(
       metadonnees: ArchiveJeune.Metadonnees[]
     ): Promise<ArchiveConstruite[]>
-    enregistrerArchives(archives: ArchiveConstruite[]): Promise<void>
+    enregistrerArchives(archives: ArchiveConstruite[]): Promise<number[]>
+    idsArchivesANettoyer(criteres: {
+      taille: number
+      apresId?: number
+      idPopulation?: string
+    }): Promise<number[]>
+    recupererArchivesANettoyer(
+      idsArchives: number[]
+    ): Promise<ArchiveANettoyer[]>
+    marquerIdpRevoque(idArchive: number): Promise<void>
+    verserLesMessages(idArchive: number, messages: Message[]): Promise<void>
+    marquerChatSupprime(idArchive: number): Promise<void>
     archiverSansDonnees(metadonnees: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
     trouverArchiveAvecMotif(
