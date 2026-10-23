@@ -288,7 +288,11 @@ export namespace ArchiveJeune {
     motif: MotifSuppression | MotifSuppressionSupport
     commentaire?: string
     dateArchivage: Date
+    nettoyageDiffere?: boolean
   }
+
+  export type EtapeNettoyageIdp = 'A_REVOQUER'
+  export type EtapeNettoyageChat = 'A_ARCHIVER' | 'A_SUPPRIMER'
 
   export interface RendezVous {
     titre: string
@@ -339,6 +343,8 @@ export namespace ArchiveJeune {
   export interface ArchiveConstruite {
     metadonnees: Metadonnees
     idStructureMilo: string | null
+    idAuthentification: string | null
+    idConseiller: string | null
     donnees: ArchiveJeune
   }
 

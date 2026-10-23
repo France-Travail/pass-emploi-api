@@ -48,6 +48,8 @@ describe('ArchiveJeuneService', () => {
       dateArchivage: maintenant
     },
     idStructureMilo: null,
+    idAuthentification: null,
+    idConseiller: null,
     donnees: {
       rendezVous: [],
       actions: [],
