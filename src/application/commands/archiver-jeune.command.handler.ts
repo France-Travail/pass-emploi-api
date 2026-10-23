@@ -26,6 +26,7 @@ import {
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 import { Mail, MailServiceToken } from '../../domain/mail'
 import { DateService } from '../../utils/date-service'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 
@@ -111,11 +112,18 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
     await this.jeuneRepository.supprimer(command.idJeune)
     this.chatRepository.supprimerChat(command.idJeune)
 
-    this.mailService.envoyerEmailJeuneArchive(
-      jeune,
-      command.motif,
-      command.commentaire
-    )
+    this.mailService
+      .envoyerEmailJeuneArchive(jeune, command.motif, command.commentaire)
+      .catch(e =>
+        rootLogger.error(
+          {
+            context: 'ArchiverJeuneCommandHandler',
+            labels: { jeune_id: command.idJeune, etape: 'mail' },
+            error: toEcsError(e)
+          },
+          "Échec lors de l'envoi du mail au jeune"
+        )
+      )
 
     return emptySuccess()
   }
