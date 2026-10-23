@@ -13,6 +13,7 @@ export interface SuiviJob {
   tempsExecution: number
   erreur?: { stack?: string; message?: string }
   silencieux?: boolean
+  intermediaire?: boolean
 }
 
 export interface RapportJob24h {

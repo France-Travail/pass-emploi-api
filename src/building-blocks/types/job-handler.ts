@@ -33,10 +33,10 @@ export abstract class JobHandler<TContenu = void> {
 
       const suiviJob = await this.handle(job)
 
-      if (estJobSuivi(suiviJob.jobType)) {
+      if (!suiviJob.intermediaire && estJobSuivi(suiviJob.jobType)) {
         this.suiviJobService.save(suiviJob)
       }
-      if (estNotifiable(suiviJob)) {
+      if (!suiviJob.intermediaire && estNotifiable(suiviJob)) {
         this.suiviJobService.notifierResultatJob(suiviJob)
       }
 

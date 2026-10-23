@@ -487,7 +487,8 @@ export namespace ArchiveJeune {
               context: 'ArchiveJeune.Service',
               labels: {
                 jeune_id: idJeune,
-                authentification_id: idAuthentification
+                authentification_id: idAuthentification,
+                etape: 'idp'
               },
               error: toEcsError(e)
             },
@@ -508,7 +509,8 @@ export namespace ArchiveJeune {
           loguerEchecArchivage(
             'Échec lors de la suppression du chat du jeune',
             jeune.id,
-            e
+            e,
+            'chat'
           )
           nbEchecs++
         }
@@ -533,7 +535,8 @@ export namespace ArchiveJeune {
           loguerEchecArchivage(
             "Échec lors de l'envoi du mail au jeune",
             jeune.id,
-            e
+            e,
+            'mail'
           )
           nbEchecs++
         }
@@ -575,12 +578,13 @@ function estCompteActif(jeune: Jeune): boolean {
 function loguerEchecArchivage(
   message: string,
   idJeune: string,
-  error: unknown
+  error: unknown,
+  etape?: 'chat' | 'mail'
 ): void {
   rootLogger.error(
     {
       context: 'ArchiveJeune.Service',
-      labels: { jeune_id: idJeune },
+      labels: { jeune_id: idJeune, ...(etape && { etape }) },
       error: toEcsError(error)
     },
     message

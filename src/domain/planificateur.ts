@@ -9,6 +9,7 @@ import { EvenementMilo } from './milo/evenement.milo'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import Bull from 'bull'
+import { ContenuJobParLots } from '../building-blocks/types/job-par-lots-handler'
 
 export const PlanificateurRepositoryToken = 'PlanificateurRepositoryToken'
 
@@ -156,9 +157,8 @@ export namespace Planificateur {
 
   export type JobTraiterEvenementMilo = EvenementMilo
 
-  export interface JobArchiverJeunesMigration {
+  export interface JobArchiverJeunesMigration extends ContenuJobParLots {
     idPopulation: string
-    apresId?: string
   }
 
   export interface JobNotifierNouvelleActualiteMilo {

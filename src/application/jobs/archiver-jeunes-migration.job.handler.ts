@@ -65,55 +65,62 @@ export class ArchiverJeunesMigrationJobHandler extends JobParLotsHandler<Planifi
     contenu: Planificateur.JobArchiverJeunesMigration,
     ids: string[]
   ): Promise<BilanLot> {
-    const idsArchives = await this.archiverLeLot(ids, contenu.idPopulation)
+    const { idsJeunesArchives, nbEchecsNettoyage } = await this.archiverLeLot(
+      ids,
+      contenu.idPopulation
+    )
     return {
-      nbTraites: idsArchives.length,
-      nbEchecs: ids.length - idsArchives.length
+      nbTraites: idsJeunesArchives.length,
+      nbEchecs: ids.length - idsJeunesArchives.length,
+      nbEchecsNettoyage
     }
   }
 
   private async archiverLeLot(
     ids: string[],
     idPopulation: string
-  ): Promise<string[]> {
+  ): Promise<ArchiveJeune.ResultatArchivageEnMasse> {
     try {
-      return await this.archiverEnMasse(ids, idPopulation)
+      return await this.archiverPourLaMigration(ids, idPopulation)
     } catch (e) {
       this.loguerEchecDuLot(idPopulation, e)
-      return this.archiverUnParUn(ids, idPopulation)
+      return this.rejouerJeuneParJeune(ids, idPopulation)
     }
   }
 
-  private async archiverEnMasse(
+  private archiverPourLaMigration(
     idsJeunes: string[],
     idPopulation: string
-  ): Promise<string[]> {
-    const resultat = await this.archiveJeuneService.archiverEnMasse(
+  ): Promise<ArchiveJeune.ResultatArchivageEnMasse> {
+    return this.archiveJeuneService.archiverEnMasse(
       idsJeunes,
       COMMENTAIRE_SUPPRESSION_MIGRATION_SUPPORT,
       MotifSuppressionSupport.MIGRATION,
       idPopulation
     )
-    return resultat.idsJeunesArchives
   }
 
-  private async archiverUnParUn(
+  private async rejouerJeuneParJeune(
     lot: string[],
     idPopulation: string
-  ): Promise<string[]> {
-    const idsArchives: string[] = []
+  ): Promise<ArchiveJeune.ResultatArchivageEnMasse> {
+    const resultat: ArchiveJeune.ResultatArchivageEnMasse = {
+      idsJeunesArchives: [],
+      nbEchecsNettoyage: 0
+    }
     for (const idJeune of lot) {
       try {
-        const idsArchivesDuJeune = await this.archiverEnMasse(
+        const resultatDuJeune = await this.archiverPourLaMigration(
           [idJeune],
           idPopulation
         )
-        idsArchives.push(...idsArchivesDuJeune)
+        resultat.idsJeunesArchives.push(...resultatDuJeune.idsJeunesArchives)
+        resultat.nbEchecsNettoyage += resultatDuJeune.nbEchecsNettoyage
       } catch (e) {
         this.loguerEchecDuJeune(idPopulation, idJeune, e)
       }
     }
-    return idsArchives
+    return resultat
   }
 
   private loguerEchecDuLot(idPopulation: string, error: unknown): void {
