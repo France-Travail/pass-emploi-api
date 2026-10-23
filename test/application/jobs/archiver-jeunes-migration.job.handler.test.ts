@@ -32,7 +32,8 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
     archiveJeuneService = stubClass(ArchiveJeune.Service)
     archiveJeuneService.archiverEnMasse.callsFake(async ids => ({
       idsJeunesArchives: ids,
-      nbEchecsNettoyage: 0
+      idsArchives: [],
+      nbEchecsMail: 0
     }))
     dateService = stubClass(DateService)
     dateService.now.returns(maintenant)
@@ -102,7 +103,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
           cumul: {
             nbTraites: TAILLE_LOT_ARCHIVAGE_MIGRATION,
             nbEchecs: 0,
-            nbEchecsNettoyage: 0
+            nbEchecsMail: 0
           }
         }
       })
@@ -111,7 +112,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: TAILLE_LOT_ARCHIVAGE_MIGRATION,
         nbEchecs: 0,
-        nbEchecsNettoyage: 0,
+        nbEchecsMail: 0,
         termine: false
       })
     })
@@ -205,7 +206,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: TAILLE_LOT_ARCHIVAGE_MIGRATION - 10,
         nbEchecs: 0,
-        nbEchecsNettoyage: 0,
+        nbEchecsMail: 0,
         termine: true
       })
     })
@@ -217,14 +218,15 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
         .resolves(desIds(10))
       archiveJeuneService.archiverEnMasse.callsFake(async ids => ({
         idsJeunesArchives: ids,
-        nbEchecsNettoyage: 1
+        idsArchives: [],
+        nbEchecsMail: 1
       }))
 
       // When
       const suiviJob = await archiverJeunesMigrationJobHandler.handle(
         unJob({
           idPopulation: 'PHASE_A',
-          cumul: { nbTraites: 98, nbEchecs: 2, nbEchecsNettoyage: 3 }
+          cumul: { nbTraites: 98, nbEchecs: 2, nbEchecsMail: 3 }
         })
       )
 
@@ -234,7 +236,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: 108,
         nbEchecs: 2,
-        nbEchecsNettoyage: 4,
+        nbEchecsMail: 4,
         termine: true
       })
     })
@@ -266,7 +268,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       const suiviJob = await archiverJeunesMigrationJobHandler.handle(
         unJob({
           idPopulation: 'PHASE_A',
-          cumul: { nbTraites: 98, nbEchecs: 2, nbEchecsNettoyage: 0 }
+          cumul: { nbTraites: 98, nbEchecs: 2, nbEchecsMail: 0 }
         })
       )
 
@@ -276,8 +278,8 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
     })
   })
 
-  describe("quand le nettoyage annexe d'un jeune archivé échoue", () => {
-    it('le compte dans nbEchecsNettoyage sans le compter en échec', async () => {
+  describe("quand le mail d'un jeune archivé échoue", () => {
+    it('le compte dans nbEchecsMail sans le compter en échec', async () => {
       // Given
       const ids = desIds(5)
       migrationService.recupererIdsDesBeneficiaireAMigrer
@@ -285,7 +287,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
         .resolves(ids)
       archiveJeuneService.archiverEnMasse
         .withArgs(ids)
-        .resolves({ idsJeunesArchives: ids, nbEchecsNettoyage: 2 })
+        .resolves({ idsJeunesArchives: ids, idsArchives: [], nbEchecsMail: 2 })
 
       // When
       const suiviJob = await archiverJeunesMigrationJobHandler.handle(
@@ -297,7 +299,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: 5,
         nbEchecs: 0,
-        nbEchecsNettoyage: 2,
+        nbEchecsMail: 2,
         termine: true
       })
     })
@@ -313,7 +315,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       const suiviJob = await archiverJeunesMigrationJobHandler.handle(
         unJob({
           idPopulation: 'PHASE_A',
-          cumul: { nbTraites: 200, nbEchecs: 1, nbEchecsNettoyage: 0 }
+          cumul: { nbTraites: 200, nbEchecs: 1, nbEchecsMail: 0 }
         })
       )
 
@@ -326,14 +328,14 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: 200,
         nbEchecs: 1,
-        nbEchecsNettoyage: 0,
+        nbEchecsMail: 0,
         termine: false
       })
     })
   })
 
   describe("quand l'archivage groupé échoue", () => {
-    it('rejoue jeune par jeune, compte les jeunes en erreur dans nbEchecs et additionne les échecs de nettoyage', async () => {
+    it('rejoue jeune par jeune, compte les jeunes en erreur dans nbEchecs et additionne les échecs de mail', async () => {
       // Given
       const ids = desIds(5)
       migrationService.recupererIdsDesBeneficiaireAMigrer
@@ -348,9 +350,11 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       archiveJeuneService.archiverEnMasse
         .withArgs(['jeune-002'])
         .rejects(new Error('Donnée invalide'))
-      archiveJeuneService.archiverEnMasse
-        .withArgs(['jeune-003'])
-        .resolves({ idsJeunesArchives: ['jeune-003'], nbEchecsNettoyage: 1 })
+      archiveJeuneService.archiverEnMasse.withArgs(['jeune-003']).resolves({
+        idsJeunesArchives: ['jeune-003'],
+        idsArchives: [],
+        nbEchecsMail: 1
+      })
 
       // When
       const suiviJob = await archiverJeunesMigrationJobHandler.handle(
@@ -364,7 +368,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: 3,
         nbEchecs: 2,
-        nbEchecsNettoyage: 1,
+        nbEchecsMail: 1,
         termine: true
       })
     })
@@ -389,7 +393,7 @@ describe('ArchiverJeunesMigrationJobHandler', () => {
       expect(suiviJob.resultat).to.deep.equal({
         nbTraites: 10,
         nbEchecs: 0,
-        nbEchecsNettoyage: 0,
+        nbEchecsMail: 0,
         termine: true
       })
     })

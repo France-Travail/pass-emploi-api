@@ -65,14 +65,14 @@ export class ArchiverJeunesMigrationJobHandler extends JobParLotsHandler<Planifi
     contenu: Planificateur.JobArchiverJeunesMigration,
     ids: string[]
   ): Promise<BilanLot> {
-    const { idsJeunesArchives, nbEchecsNettoyage } = await this.archiverLeLot(
+    const { idsJeunesArchives, nbEchecsMail } = await this.archiverLeLot(
       ids,
       contenu.idPopulation
     )
     return {
       nbTraites: idsJeunesArchives.length,
       nbEchecs: ids.length - idsJeunesArchives.length,
-      nbEchecsNettoyage
+      nbEchecsMail
     }
   }
 
@@ -106,7 +106,8 @@ export class ArchiverJeunesMigrationJobHandler extends JobParLotsHandler<Planifi
   ): Promise<ArchiveJeune.ResultatArchivageEnMasse> {
     const resultat: ArchiveJeune.ResultatArchivageEnMasse = {
       idsJeunesArchives: [],
-      nbEchecsNettoyage: 0
+      idsArchives: [],
+      nbEchecsMail: 0
     }
     for (const idJeune of lot) {
       try {
@@ -115,7 +116,8 @@ export class ArchiverJeunesMigrationJobHandler extends JobParLotsHandler<Planifi
           idPopulation
         )
         resultat.idsJeunesArchives.push(...resultatDuJeune.idsJeunesArchives)
-        resultat.nbEchecsNettoyage += resultatDuJeune.nbEchecsNettoyage
+        resultat.idsArchives.push(...resultatDuJeune.idsArchives)
+        resultat.nbEchecsMail += resultatDuJeune.nbEchecsMail
       } catch (e) {
         this.loguerEchecDuJeune(idPopulation, idJeune, e)
       }
