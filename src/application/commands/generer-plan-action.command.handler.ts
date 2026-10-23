@@ -29,7 +29,6 @@ import {
   ReferentielPlanActionRepositoryToken
 } from '../../domain/plan-action/referentiel-plan-action'
 import { TOUT_PROFIL, estInvite, Profil } from '../../domain/profil'
-import { DateService } from '../../utils/date-service'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import { toPlanActionQueryModel } from '../queries/query-mappers/plan-action.query-mapper'
@@ -68,8 +67,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService,
     @Inject(TransactionServiceToken)
-    private readonly transactionService: Transaction.Service,
-    private readonly dateService: DateService
+    private readonly transactionService: Transaction.Service
   ) {
     super('GenererPlanActionCommandHandler')
   }
@@ -117,7 +115,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
         await this.questionnaireRepository.save({
           ...questionnaire,
           idJeune: command.idJeune,
-          dateCreation: this.dateService.now()
+          dateCreation: plan.dateCreation
         })
         await this.planActionRepository.save(plan)
         return emptySuccess()
