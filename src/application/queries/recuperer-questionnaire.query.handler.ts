@@ -14,6 +14,7 @@ import {
 } from '../../domain/plan-action/questionnaire'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
+import { toQuestionnaireQueryModel } from './query-mappers/questionnaire.query-mapper'
 import { QuestionnaireQueryModel } from './query-models/questionnaire.query-model'
 
 export interface RecupererQuestionnaireQuery extends Query {
@@ -61,30 +62,5 @@ export class RecupererQuestionnaireQueryHandler extends QueryHandler<
 
   async monitor(): Promise<void> {
     return
-  }
-}
-
-function toQuestionnaireQueryModel(
-  questionnaire: Questionnaire.Enregistre
-): QuestionnaireQueryModel {
-  return {
-    situation: questionnaire.situation,
-    goals: questionnaire.besoins,
-    obstacles: questionnaire.contraintes,
-    ...(questionnaire.dateNaissance
-      ? { dateNaissance: questionnaire.dateNaissance.toISODate()! }
-      : {}),
-    ...(questionnaire.communeResidence
-      ? { habitation: questionnaire.communeResidence }
-      : {}),
-    ...(questionnaire.communeRecherche
-      ? { villeRecherche: questionnaire.communeRecherche }
-      : {}),
-    ...(questionnaire.domaineProfessionnelVise
-      ? { domaine: questionnaire.domaineProfessionnelVise }
-      : {}),
-    ...(questionnaire.rayonKm !== undefined
-      ? { rayonKm: questionnaire.rayonKm }
-      : {})
   }
 }

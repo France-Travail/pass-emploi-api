@@ -53,7 +53,7 @@ export interface ReprendreCompteInviteCommand extends Command {
 }
 
 @Injectable()
-export class xReprendreCompteInviteCommandHandler extends CommandHandler<
+export class ReprendreCompteInviteCommandHandler extends CommandHandler<
   ReprendreCompteInviteCommand,
   void
 > {

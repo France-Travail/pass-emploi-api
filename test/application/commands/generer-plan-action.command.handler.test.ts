@@ -32,7 +32,6 @@ import {
 } from '../../utils'
 import { testConfig } from '../../utils/module-for-testing'
 import { unProfilInvite, unProfilMilo } from '../../fixtures/profil.fixture'
-import { DateService } from '../../../src/utils/date-service'
 
 describe('GenererPlanActionCommandHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
@@ -43,7 +42,6 @@ describe('GenererPlanActionCommandHandler', () => {
   let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
   let transactionService: StubbedType<Transaction.Service>
-  let dateService: StubbedClass<DateService>
   let handler: GenererPlanActionCommandHandler
 
   const maintenant = uneDatetime()
@@ -100,8 +98,7 @@ describe('GenererPlanActionCommandHandler', () => {
       planActionFactory,
       evenementService,
       configService,
-      transactionService,
-      dateService
+      transactionService
     )
   }
 
@@ -115,8 +112,6 @@ describe('GenererPlanActionCommandHandler', () => {
     planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
     transactionService = stubInterface(sandbox)
-    dateService = stubClass(DateService)
-    dateService.now.returns(maintenant)
     transactionService.executer.callsFake((operation: () => Promise<Result>) =>
       operation()
     )
