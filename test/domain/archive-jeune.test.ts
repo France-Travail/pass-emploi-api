@@ -5,6 +5,7 @@ import { Chat } from '../../src/domain/chat'
 import { Mail } from '../../src/domain/mail'
 import { Authentification } from 'src/domain/authentification'
 import { DateService } from 'src/utils/date-service'
+import * as sinon from 'sinon'
 import { createSandbox } from 'sinon'
 import { emptySuccess, failure } from '../../src/building-blocks/types/result'
 import {
@@ -65,6 +66,36 @@ describe('ArchiveJeuneService', () => {
     }
   }
 
+  const archiveDuJeuneInactif: ArchiveJeune.ArchiveConstruite = {
+    ...archiveDuJeuneActif,
+    metadonnees: {
+      ...archiveDuJeuneActif.metadonnees,
+      idJeune: jeuneInactif.id
+    }
+  }
+  const messages: ArchiveJeune.Message[] = [
+    {
+      contenu: 'Bonjour',
+      date: '2022-02-01T09:00:00.000Z',
+      envoyePar: 'jeune',
+      type: 'MESSAGE'
+    }
+  ]
+
+  function uneArchiveANettoyer(
+    args: Partial<ArchiveJeune.ArchiveANettoyer> = {}
+  ): ArchiveJeune.ArchiveANettoyer {
+    return {
+      id: 1,
+      idJeune: 'jeune-1',
+      idAuthentification: 'sub-1',
+      idPopulation: 'pop-1',
+      nettoyageIdp: 'A_REVOQUER',
+      nettoyageChat: 'A_ARCHIVER',
+      ...args
+    }
+  }
+
   beforeEach(() => {
     const sandbox = createSandbox()
     jeuneRepository = stubInterface(sandbox)
@@ -79,13 +110,13 @@ describe('ArchiveJeuneService', () => {
 
     jeuneRepository.findAll.resolves([jeuneActif, jeuneInactif])
     jeuneRepository.supprimerEnMasse.callsFake(async ids => ids)
-    authentificationRepository.recupererIdsAuthentificationDesJeunes.resolves(
-      new Map([
-        [jeuneActif.id, 'auth-actif'],
-        [jeuneInactif.id, 'auth-inactif']
-      ])
-    )
-    archivageJeuneRepository.construireArchives.resolves([archiveDuJeuneActif])
+    archivageJeuneRepository.construireArchives.resolves([
+      archiveDuJeuneActif,
+      archiveDuJeuneInactif
+    ])
+    archivageJeuneRepository.enregistrerArchives.resolves([11, 12])
+    archivageJeuneRepository.recupererArchivesANettoyer.resolves([])
+    mailService.envoyerEmailJeuneArchive.resolves()
 
     archiverJeuneService = new ArchiveJeune.Service(
       jeuneRepository,
@@ -101,7 +132,25 @@ describe('ArchiveJeuneService', () => {
   describe('archiverEnMasse', () => {
     const idsJeunes = [jeuneActif.id, jeuneInactif.id, 'jeune-absent']
 
-    it("ne construit d'archive que pour les comptes actifs", async () => {
+    function metadonneesAttendues(jeune: Jeune): ArchiveJeune.Metadonnees {
+      return {
+        idJeune: jeune.id,
+        email: jeune.email,
+        prenomJeune: jeune.firstName,
+        nomJeune: jeune.lastName,
+        structure: Profil.Structure.MILO,
+        dispositif: Profil.Dispositif.CEJ,
+        dateCreation: jeune.creationDate.toJSDate(),
+        datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),
+        motif,
+        commentaire,
+        dateArchivage: maintenant,
+        idPopulation: 'PHASE_A',
+        nettoyageDiffere: true
+      }
+    }
+
+    it('archive aussi les comptes inactifs', async () => {
       // When
       await archiverJeuneService.archiverEnMasse(
         idsJeunes,
@@ -111,47 +160,49 @@ describe('ArchiveJeuneService', () => {
       )
 
       // Then
-      const metadonnees: ArchiveJeune.Metadonnees = {
-        idJeune: jeuneActif.id,
-        email: jeuneActif.email,
-        prenomJeune: jeuneActif.firstName,
-        nomJeune: jeuneActif.lastName,
-        structure: Profil.Structure.MILO,
-        dispositif: Profil.Dispositif.CEJ,
-        dateCreation: jeuneActif.creationDate.toJSDate(),
-        datePremiereConnexion: jeuneActif.creationDate
-          .plus({ day: 1 })
-          .toJSDate(),
-        motif,
-        commentaire,
-        dateArchivage: maintenant,
-        idPopulation: 'PHASE_A'
-      }
       expect(jeuneRepository.findAll).to.have.been.calledOnceWithExactly(
         idsJeunes
       )
       expect(
         archivageJeuneRepository.construireArchives
-      ).to.have.been.calledOnceWithExactly([metadonnees])
+      ).to.have.been.calledOnceWithExactly([
+        metadonneesAttendues(jeuneActif),
+        metadonneesAttendues(jeuneInactif)
+      ])
     })
 
-    it('supprime les comptes IdP avant de supprimer les jeunes', async () => {
+    it("n'appelle ni l'IdP ni le chat", async () => {
       // When
       await archiverJeuneService.archiverEnMasse(idsJeunes, commentaire, motif)
 
       // Then
       expect(
         authentificationRepository.supprimerCompteIdp
-      ).to.have.been.calledWithExactly('auth-actif')
+      ).not.to.have.been.called()
+      expect(chatRepository.supprimerChat).not.to.have.been.called()
       expect(
-        authentificationRepository.supprimerCompteIdp
-      ).to.have.been.calledWithExactly('auth-inactif')
-      expect(
-        authentificationRepository.supprimerCompteIdp
-      ).to.have.been.calledBefore(jeuneRepository.supprimerEnMasse)
+        chatRepository.recupererMessagesAArchiver
+      ).not.to.have.been.called()
     })
 
     it('supprime les jeunes trouvés et enregistre leurs archives dans une même transaction', async () => {
+      // When
+      await archiverJeuneService.archiverEnMasse(idsJeunes, commentaire, motif)
+
+      // Then
+      expect(transactionService.executer).to.have.been.calledOnce()
+      expect(
+        jeuneRepository.supprimerEnMasse
+      ).to.have.been.calledOnceWithExactly([jeuneActif.id, jeuneInactif.id])
+      expect(
+        archivageJeuneRepository.enregistrerArchives
+      ).to.have.been.calledOnceWithExactly([
+        archiveDuJeuneActif,
+        archiveDuJeuneInactif
+      ])
+    })
+
+    it('renvoie les ids des archives créées', async () => {
       // When
       const resultat = await archiverJeuneService.archiverEnMasse(
         idsJeunes,
@@ -162,31 +213,31 @@ describe('ArchiveJeuneService', () => {
       // Then
       expect(resultat).to.deep.equal({
         idsJeunesArchives: [jeuneActif.id, jeuneInactif.id],
-        nbEchecsNettoyage: 0
+        idsArchives: [11, 12],
+        nbEchecsMail: 0
       })
-      expect(transactionService.executer).to.have.been.calledOnce()
-      expect(
-        jeuneRepository.supprimerEnMasse
-      ).to.have.been.calledOnceWithExactly([jeuneActif.id, jeuneInactif.id])
-      expect(
-        archivageJeuneRepository.enregistrerArchives
-      ).to.have.been.calledOnceWithExactly([archiveDuJeuneActif])
     })
 
-    it('supprime les chats et ne prévient que les comptes actifs', async () => {
+    it("n'envoie le mail qu'aux comptes actifs archivés et compte ses échecs dans nbEchecsMail", async () => {
+      // Given
+      mailService.envoyerEmailJeuneArchive.rejects(new Error('Brevo en 500'))
+
       // When
-      await archiverJeuneService.archiverEnMasse(idsJeunes, commentaire, motif)
+      const resultat = await archiverJeuneService.archiverEnMasse(
+        idsJeunes,
+        commentaire,
+        motif
+      )
 
       // Then
-      expect(chatRepository.supprimerChat).to.have.been.calledWithExactly(
-        jeuneActif.id
-      )
-      expect(chatRepository.supprimerChat).to.have.been.calledWithExactly(
-        jeuneInactif.id
-      )
       expect(
         mailService.envoyerEmailJeuneArchive
       ).to.have.been.calledOnceWithExactly(jeuneActif, motif, commentaire)
+      expect(resultat.nbEchecsMail).to.equal(1)
+      expect(resultat.idsJeunesArchives).to.deep.equal([
+        jeuneActif.id,
+        jeuneInactif.id
+      ])
     })
 
     it("n'archive ni ne prévient un jeune déjà supprimé par un traitement concurrent", async () => {
@@ -204,34 +255,11 @@ describe('ArchiveJeuneService', () => {
       expect(resultat.idsJeunesArchives).to.deep.equal([jeuneInactif.id])
       expect(
         archivageJeuneRepository.enregistrerArchives
-      ).to.have.been.calledOnceWithExactly([])
-      expect(chatRepository.supprimerChat).to.have.been.calledOnceWithExactly(
-        jeuneInactif.id
-      )
+      ).to.have.been.calledOnceWithExactly([archiveDuJeuneInactif])
       expect(mailService.envoyerEmailJeuneArchive).not.to.have.been.called()
     })
 
-    it('compte les échecs de nettoyage sans interrompre les autres jeunes', async () => {
-      // Given
-      authentificationRepository.supprimerCompteIdp
-        .withArgs('auth-actif')
-        .rejects(new Error('connect indisponible'))
-      mailService.envoyerEmailJeuneArchive.rejects(new Error('mail en panne'))
-
-      // When
-      const resultat = await archiverJeuneService.archiverEnMasse(
-        idsJeunes,
-        commentaire,
-        motif
-      )
-
-      // Then
-      expect(resultat.nbEchecsNettoyage).to.equal(2)
-      expect(jeuneRepository.supprimerEnMasse).to.have.been.calledOnce()
-      expect(chatRepository.supprimerChat).to.have.been.calledTwice()
-    })
-
-    it("ne nettoie rien quand l'enregistrement des archives échoue", async () => {
+    it("ne prévient personne quand l'enregistrement des archives échoue", async () => {
       // Given
       archivageJeuneRepository.enregistrerArchives.rejects(
         new Error('Base indisponible')
@@ -246,7 +274,6 @@ describe('ArchiveJeuneService', () => {
 
       // Then
       await expect(promesse).to.be.rejectedWith('Base indisponible')
-      expect(chatRepository.supprimerChat).not.to.have.been.called()
       expect(mailService.envoyerEmailJeuneArchive).not.to.have.been.called()
     })
 
@@ -264,16 +291,222 @@ describe('ArchiveJeuneService', () => {
       // Then
       expect(resultat).to.deep.equal({
         idsJeunesArchives: [],
-        nbEchecsNettoyage: 0
+        idsArchives: [],
+        nbEchecsMail: 0
       })
       expect(transactionService.executer).not.to.have.been.called()
     })
   })
 
+  describe('nettoyerLesArchives', () => {
+    it("révoque l'IdP, verse les messages puis supprime le chat", async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer
+        .withArgs([1])
+        .resolves([uneArchiveANettoyer()])
+      chatRepository.recupererMessagesAArchiver
+        .withArgs('jeune-1')
+        .resolves(messages)
+
+      // When
+      const bilan = await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(
+        authentificationRepository.supprimerCompteIdp
+      ).to.have.been.calledOnceWithExactly('sub-1')
+      expect(
+        archivageJeuneRepository.marquerIdpRevoque
+      ).to.have.been.calledOnceWithExactly(1)
+      expect(
+        archivageJeuneRepository.verserLesMessages
+      ).to.have.been.calledOnceWithExactly(1, messages)
+      expect(chatRepository.supprimerChat).to.have.been.calledOnceWithExactly(
+        'jeune-1'
+      )
+      expect(
+        archivageJeuneRepository.marquerChatSupprime
+      ).to.have.been.calledOnceWithExactly(1)
+      sinon.assert.callOrder(
+        chatRepository.recupererMessagesAArchiver,
+        archivageJeuneRepository.verserLesMessages,
+        chatRepository.supprimerChat,
+        archivageJeuneRepository.marquerChatSupprime
+      )
+      expect(bilan).to.deep.equal({
+        nbTraites: 1,
+        nbEchecs: 0,
+        nbEchecsIdp: 0,
+        nbEchecsChat: 0
+      })
+    })
+
+    it('ne supprime pas le chat si sa lecture échoue', async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer()
+      ])
+      chatRepository.recupererMessagesAArchiver.rejects(
+        new Error('Firestore indisponible')
+      )
+
+      // When
+      const bilan = await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(
+        archivageJeuneRepository.verserLesMessages
+      ).not.to.have.been.called()
+      expect(chatRepository.supprimerChat).not.to.have.been.called()
+      expect(bilan).to.deep.equal({
+        nbTraites: 0,
+        nbEchecs: 1,
+        nbEchecsIdp: 0,
+        nbEchecsChat: 1
+      })
+    })
+
+    it("ne relit pas un chat déjà versé dans l'archive", async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer({ nettoyageChat: 'A_SUPPRIMER' })
+      ])
+
+      // When
+      await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(
+        chatRepository.recupererMessagesAArchiver
+      ).not.to.have.been.called()
+      expect(
+        archivageJeuneRepository.verserLesMessages
+      ).not.to.have.been.called()
+      expect(chatRepository.supprimerChat).to.have.been.calledOnceWithExactly(
+        'jeune-1'
+      )
+      expect(
+        archivageJeuneRepository.marquerChatSupprime
+      ).to.have.been.calledOnceWithExactly(1)
+    })
+
+    it('nettoie le chat même si la révocation IdP échoue', async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer()
+      ])
+      authentificationRepository.supprimerCompteIdp.rejects(
+        new Error('connect indisponible')
+      )
+
+      // When
+      const bilan = await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(
+        archivageJeuneRepository.marquerIdpRevoque
+      ).not.to.have.been.called()
+      expect(chatRepository.supprimerChat).to.have.been.calledOnceWithExactly(
+        'jeune-1'
+      )
+      expect(bilan).to.deep.equal({
+        nbTraites: 0,
+        nbEchecs: 1,
+        nbEchecsIdp: 1,
+        nbEchecsChat: 0
+      })
+    })
+
+    it("n'appelle pas l'IdP quand l'étape IdP est déjà faite", async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer({ nettoyageIdp: null })
+      ])
+
+      // When
+      await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(
+        authentificationRepository.supprimerCompteIdp
+      ).not.to.have.been.called()
+      expect(
+        archivageJeuneRepository.marquerIdpRevoque
+      ).not.to.have.been.called()
+    })
+
+    it('compte une archive en échec une seule fois même si ses deux étapes échouent', async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer()
+      ])
+      authentificationRepository.supprimerCompteIdp.rejects(
+        new Error('connect indisponible')
+      )
+      chatRepository.recupererMessagesAArchiver.rejects(
+        new Error('Firestore indisponible')
+      )
+
+      // When
+      const bilan = await archiverJeuneService.nettoyerLesArchives([1])
+
+      // Then
+      expect(bilan).to.deep.equal({
+        nbTraites: 0,
+        nbEchecs: 1,
+        nbEchecsIdp: 1,
+        nbEchecsChat: 1
+      })
+    })
+
+    it('compte chaque archive parcourue soit traitée, soit en échec', async () => {
+      // Given
+      archivageJeuneRepository.recupererArchivesANettoyer.resolves([
+        uneArchiveANettoyer({
+          id: 1,
+          idJeune: 'jeune-1',
+          idAuthentification: 'sub-1'
+        }),
+        uneArchiveANettoyer({
+          id: 2,
+          idJeune: 'jeune-2',
+          idAuthentification: 'sub-2'
+        }),
+        uneArchiveANettoyer({
+          id: 3,
+          idJeune: 'jeune-3',
+          idAuthentification: 'sub-3'
+        })
+      ])
+      authentificationRepository.supprimerCompteIdp
+        .withArgs('sub-2')
+        .rejects(new Error('connect indisponible'))
+      chatRepository.supprimerChat
+        .withArgs('jeune-3')
+        .rejects(new Error('Firestore indisponible'))
+
+      // When
+      const bilan = await archiverJeuneService.nettoyerLesArchives([1, 2, 3])
+
+      // Then
+      expect(bilan).to.deep.equal({
+        nbTraites: 1,
+        nbEchecs: 2,
+        nbEchecsIdp: 1,
+        nbEchecsChat: 1
+      })
+      expect(bilan.nbTraites + bilan.nbEchecs).to.equal(3)
+    })
+  })
+
   describe('archiver', () => {
-    it('archive le jeune', async () => {
+    it("archive puis nettoie l'archive créée dans la même exécution", async () => {
       // Given
       jeuneRepository.findAll.withArgs([jeuneActif.id]).resolves([jeuneActif])
+      archivageJeuneRepository.construireArchives.resolves([
+        archiveDuJeuneActif
+      ])
+      archivageJeuneRepository.enregistrerArchives.resolves([11])
 
       // When
       const result = await archiverJeuneService.archiver(
@@ -287,6 +520,30 @@ describe('ArchiveJeuneService', () => {
       expect(
         jeuneRepository.supprimerEnMasse
       ).to.have.been.calledOnceWithExactly([jeuneActif.id])
+      expect(
+        archivageJeuneRepository.recupererArchivesANettoyer
+      ).to.have.been.calledOnceWithExactly([11])
+      expect(
+        archivageJeuneRepository.recupererArchivesANettoyer
+      ).to.have.been.calledAfter(archivageJeuneRepository.enregistrerArchives)
+    })
+
+    it("réussit même quand le nettoyage lève une erreur, l'archive restant à nettoyer", async () => {
+      // Given
+      jeuneRepository.findAll.withArgs([jeuneActif.id]).resolves([jeuneActif])
+      archivageJeuneRepository.recupererArchivesANettoyer.rejects(
+        new Error('Base indisponible')
+      )
+
+      // When
+      const result = await archiverJeuneService.archiver(
+        jeuneActif.id,
+        commentaire,
+        motif
+      )
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
     })
 
     it("retourne une erreur NonTrouveError quand le jeune n'existe pas", async () => {
@@ -324,6 +581,9 @@ describe('ArchiveJeuneService', () => {
       expect(result).to.deep.equal(
         failure(new ArchivageJeuneErreur(jeuneActif.id))
       )
+      expect(
+        archivageJeuneRepository.recupererArchivesANettoyer
+      ).not.to.have.been.called()
     })
   })
 })

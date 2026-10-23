@@ -359,7 +359,15 @@ export namespace ArchiveJeune {
 
   export interface ResultatArchivageEnMasse {
     idsJeunesArchives: string[]
-    nbEchecsNettoyage: number
+    idsArchives: number[]
+    nbEchecsMail: number
+  }
+
+  export interface BilanNettoyage {
+    nbTraites: number
+    nbEchecs: number
+    nbEchecsIdp: number
+    nbEchecsChat: number
   }
 
   export interface Repository {
@@ -429,6 +437,16 @@ export namespace ArchiveJeune {
       if (!resultat.idsJeunesArchives.length) {
         return failure(new NonTrouveError('Jeune', idJeune))
       }
+
+      try {
+        await this.nettoyerLesArchives(resultat.idsArchives)
+      } catch (e) {
+        loguerEchecArchivage(
+          "Échec lors du nettoyage de l'archive du jeune",
+          idJeune,
+          e
+        )
+      }
       return emptySuccess()
     }
 
@@ -439,115 +457,133 @@ export namespace ArchiveJeune {
       idPopulation?: string
     ): Promise<ResultatArchivageEnMasse> {
       const jeunes = await this.jeuneRepository.findAll(idsJeunes)
-      if (!jeunes.length) return { idsJeunesArchives: [], nbEchecsNettoyage: 0 }
+      if (!jeunes.length) {
+        return { idsJeunesArchives: [], idsArchives: [], nbEchecsMail: 0 }
+      }
 
       const archives = await this.archiveJeuneRepository.construireArchives(
-        jeunes
-          .filter(estCompteActif)
-          .map(jeune =>
-            this.metadonneesArchive(
-              jeune,
-              commentaireSuppressionSupport,
-              motifSuppression,
-              idPopulation
-            )
+        jeunes.map(jeune =>
+          this.metadonneesArchive(
+            jeune,
+            commentaireSuppressionSupport,
+            motifSuppression,
+            idPopulation
           )
-      )
-      const nbEchecsSuppressionIdp = await this.supprimerLesComptesIdp(jeunes)
-
-      const idsJeunesArchives = await this.supprimerEtArchiver(jeunes, archives)
-      const jeunesArchives = jeunes.filter(({ id }) =>
-        idsJeunesArchives.includes(id)
+        )
       )
 
-      const nbEchecsSuppressionChat =
-        await this.supprimerLesChats(jeunesArchives)
-      const nbEchecsEnvoiMail = await this.prevenirLesComptesActifs(
-        jeunesArchives.filter(estCompteActif),
+      const { idsJeunesArchives, idsArchives } = await this.supprimerEtArchiver(
+        jeunes,
+        archives
+      )
+      const nbEchecsMail = await this.prevenirLesComptesActifs(
+        jeunes.filter(
+          jeune => idsJeunesArchives.includes(jeune.id) && estCompteActif(jeune)
+        ),
         motifSuppression,
-        commentaireSuppressionSupport
+        commentaireSuppressionSupport,
+        idPopulation
       )
 
-      return {
-        idsJeunesArchives,
-        nbEchecsNettoyage:
-          nbEchecsSuppressionIdp + nbEchecsSuppressionChat + nbEchecsEnvoiMail
+      return { idsJeunesArchives, idsArchives, nbEchecsMail }
+    }
+
+    async nettoyerLesArchives(idsArchives: number[]): Promise<BilanNettoyage> {
+      const archives =
+        await this.archiveJeuneRepository.recupererArchivesANettoyer(
+          idsArchives
+        )
+      const bilan: BilanNettoyage = {
+        nbTraites: 0,
+        nbEchecs: 0,
+        nbEchecsIdp: 0,
+        nbEchecsChat: 0
       }
+      for (const archive of archives) {
+        const idpNettoye = await this.revoquerIdp(archive)
+        const chatNettoye = await this.archiverPuisSupprimerLeChat(archive)
+        if (!idpNettoye) bilan.nbEchecsIdp++
+        if (!chatNettoye) bilan.nbEchecsChat++
+        if (idpNettoye && chatNettoye) bilan.nbTraites++
+        else bilan.nbEchecs++
+      }
+      return bilan
     }
 
     private async supprimerEtArchiver(
       jeunes: Jeune[],
       archives: ArchiveConstruite[]
-    ): Promise<string[]> {
-      let idsJeunesSupprimes: string[] = []
+    ): Promise<{ idsJeunesArchives: string[]; idsArchives: number[] }> {
+      let idsJeunesArchives: string[] = []
+      let idsArchives: number[] = []
       await this.transactionService.executer(async () => {
-        idsJeunesSupprimes = await this.jeuneRepository.supprimerEnMasse(
+        idsJeunesArchives = await this.jeuneRepository.supprimerEnMasse(
           jeunes.map(({ id }) => id)
         )
-        await this.archiveJeuneRepository.enregistrerArchives(
+        idsArchives = await this.archiveJeuneRepository.enregistrerArchives(
           archives.filter(({ metadonnees }) =>
-            idsJeunesSupprimes.includes(metadonnees.idJeune)
+            idsJeunesArchives.includes(metadonnees.idJeune)
           )
         )
         return emptySuccess()
       })
-      return idsJeunesSupprimes
+      return { idsJeunesArchives, idsArchives }
     }
 
-    // Avant la suppression : l'idAuthentification n'est plus lisible ensuite, et
-    // la suppression IdP tolère le 404, donc un lot rejoué la refait sans risque.
-    private async supprimerLesComptesIdp(jeunes: Jeune[]): Promise<number> {
-      const idsAuthentification =
-        await this.authentificationRepository.recupererIdsAuthentificationDesJeunes(
-          jeunes.map(({ id }) => id)
-        )
-      let nbEchecs = 0
-      for (const [idJeune, idAuthentification] of idsAuthentification) {
-        try {
+    private async revoquerIdp(archive: ArchiveANettoyer): Promise<boolean> {
+      if (!archive.nettoyageIdp) return true
+      try {
+        if (archive.idAuthentification) {
           await this.authentificationRepository.supprimerCompteIdp(
-            idAuthentification
+            archive.idAuthentification
           )
-        } catch (e) {
-          rootLogger.error(
-            {
-              context: 'ArchiveJeune.Service',
-              labels: {
-                jeune_id: idJeune,
-                authentification_id: idAuthentification,
-                etape: 'idp'
-              },
-              error: toEcsError(e)
-            },
-            'Échec lors de la suppression du compte IdP du jeune'
-          )
-          nbEchecs++
         }
+        await this.archiveJeuneRepository.marquerIdpRevoque(archive.id)
+        return true
+      } catch (e) {
+        loguerEchecNettoyage(
+          'Échec lors de la suppression du compte IdP du jeune',
+          archive,
+          'idp',
+          e
+        )
+        return false
       }
-      return nbEchecs
     }
 
-    private async supprimerLesChats(jeunes: Jeune[]): Promise<number> {
-      let nbEchecs = 0
-      for (const jeune of jeunes) {
-        try {
-          await this.chatRepository.supprimerChat(jeune.id)
-        } catch (e) {
-          loguerEchecArchivage(
-            'Échec lors de la suppression du chat du jeune',
-            jeune.id,
-            e,
-            'chat'
+    private async archiverPuisSupprimerLeChat(
+      archive: ArchiveANettoyer
+    ): Promise<boolean> {
+      if (!archive.nettoyageChat) return true
+      try {
+        if (archive.nettoyageChat === 'A_ARCHIVER') {
+          const messages = await this.chatRepository.recupererMessagesAArchiver(
+            archive.idJeune
           )
-          nbEchecs++
+          await this.archiveJeuneRepository.verserLesMessages(
+            archive.id,
+            messages
+          )
         }
+        await this.chatRepository.supprimerChat(archive.idJeune)
+        await this.archiveJeuneRepository.marquerChatSupprime(archive.id)
+        return true
+      } catch (e) {
+        loguerEchecNettoyage(
+          "Échec lors de l'archivage ou de la suppression du chat du jeune",
+          archive,
+          'chat',
+          e
+        )
+        return false
       }
-      return nbEchecs
     }
 
     private async prevenirLesComptesActifs(
       jeunes: Jeune[],
       motifSuppression: MotifSuppressionSupport,
-      commentaireSuppressionSupport: string
+      commentaireSuppressionSupport: string,
+      idPopulation?: string
     ): Promise<number> {
       let nbEchecs = 0
       for (const jeune of jeunes) {
@@ -562,7 +598,8 @@ export namespace ArchiveJeune {
             "Échec lors de l'envoi du mail au jeune",
             jeune.id,
             e,
-            'mail'
+            'mail',
+            idPopulation
           )
           nbEchecs++
         }
@@ -588,7 +625,8 @@ export namespace ArchiveJeune {
         commentaire: commentaireSuppressionSupport,
         dateArchivage: this.dateService.nowJs(),
         dispositif: jeune.dispositif ?? undefined,
-        ...(idPopulation && { idPopulation })
+        ...(idPopulation && { idPopulation }),
+        nettoyageDiffere: true
       }
     }
   }
@@ -605,12 +643,41 @@ function loguerEchecArchivage(
   message: string,
   idJeune: string,
   error: unknown,
-  etape?: 'chat' | 'mail'
+  etape?: 'mail',
+  idPopulation?: string
 ): void {
   rootLogger.error(
     {
       context: 'ArchiveJeune.Service',
-      labels: { jeune_id: idJeune, ...(etape && { etape }) },
+      labels: {
+        jeune_id: idJeune,
+        ...(etape && { etape }),
+        ...(idPopulation && { population_id: idPopulation })
+      },
+      error: toEcsError(error)
+    },
+    message
+  )
+}
+
+function loguerEchecNettoyage(
+  message: string,
+  archive: ArchiveJeune.ArchiveANettoyer,
+  etape: 'idp' | 'chat',
+  error: unknown
+): void {
+  rootLogger.error(
+    {
+      context: 'ArchiveJeune.Service',
+      labels: {
+        jeune_id: archive.idJeune,
+        etape,
+        ...(archive.idPopulation && { population_id: archive.idPopulation }),
+        ...(etape === 'idp' &&
+          archive.idAuthentification && {
+            authentification_id: archive.idAuthentification
+          })
+      },
       error: toEcsError(error)
     },
     message

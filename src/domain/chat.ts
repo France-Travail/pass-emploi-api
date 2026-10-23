@@ -73,6 +73,8 @@ export namespace Chat {
   }
 
   export interface Repository {
+    recupererMessagesAArchiver(idJeune: string): Promise<ArchiveJeune.Message[]>
+
     initializeChatIfNotExists(
       jeuneId: string,
       conseillerId: string
