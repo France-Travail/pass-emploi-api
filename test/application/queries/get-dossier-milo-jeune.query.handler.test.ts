@@ -6,6 +6,8 @@ import {
   GetDossierMiloJeuneQueryHandler
 } from '../../../src/application/queries/get-dossier-milo-jeune.query.handler'
 import { JeuneMilo } from '../../../src/domain/milo/jeune.milo'
+import { Profil } from '../../../src/domain/profil'
+import { OidcClient } from '../../../src/infrastructure/clients/oidc-client.db'
 import { unUtilisateurConseiller } from '../../fixtures/authentification.fixture'
 import { unDossierMilo } from '../../fixtures/milo.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
@@ -13,6 +15,7 @@ import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 describe('GetDossierMiloJeuneQueryHandler', () => {
   let miloRepository: StubbedType<JeuneMilo.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
+  let oidcClient: StubbedClass<OidcClient>
   let getDossierMiloJeuneQueryHandler: GetDossierMiloJeuneQueryHandler
   let sandbox: SinonSandbox
 
@@ -20,10 +23,12 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
     sandbox = createSandbox()
     miloRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
+    oidcClient = stubClass(OidcClient)
 
     getDossierMiloJeuneQueryHandler = new GetDossierMiloJeuneQueryHandler(
       miloRepository,
-      conseillerAuthorizer
+      conseillerAuthorizer,
+      oidcClient
     )
   })
 
@@ -36,10 +41,16 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
       // Given
       const idDossier = '1'
       const getDossierMiloJeuneQuery: GetDossierMiloJeuneQuery = {
-        idDossier
+        idDossier,
+        accessToken: 'accessToken'
       }
 
-      miloRepository.getDossier.withArgs(idDossier).resolves(unDossierMilo())
+      oidcClient.exchangeToken
+        .withArgs('accessToken', Profil.Structure.MILO)
+        .resolves('idpToken')
+      miloRepository.getDossier
+        .withArgs(idDossier, 'idpToken')
+        .resolves(unDossierMilo())
 
       // When
       const actual = await getDossierMiloJeuneQueryHandler.handle(
@@ -57,7 +68,8 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
       const utilisateur = unUtilisateurConseiller()
 
       const query: GetDossierMiloJeuneQuery = {
-        idDossier: '1'
+        idDossier: '1',
+        accessToken: 'accessToken'
       }
 
       // When

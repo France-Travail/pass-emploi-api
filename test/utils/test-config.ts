@@ -42,6 +42,7 @@ export const testConfig = (): ConfigService => {
       apiKeyUtilisateurs: 'apiKeyUtilisateurs',
       apiKeyEnvoiEmail: 'apiKeyEnvoiEmail',
       apiKeyDossierCej: 'apiKeyDossierCej',
+      apiKeyJwtDossierCej: 'apiKeyJwtDossierCej',
       apiKeyDossier: 'apiKeyDossier',
       apiKeyJwtJeune: 'apiKeyJwtJeune',
       apiKeyJwtSessions: 'apiKeyJwtSessions',

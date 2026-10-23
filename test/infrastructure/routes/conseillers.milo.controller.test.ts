@@ -93,7 +93,10 @@ describe('ConseillersMiloController', () => {
       it('renvoie le dossier', async () => {
         // Given
         getDossierMiloJeuneQueryHandler.execute
-          .withArgs({ idDossier: '1' }, unUtilisateurDecode())
+          .withArgs(
+            { idDossier: '1', accessToken: 'coucou' },
+            unUtilisateurDecode()
+          )
           .resolves(success(unDossierMilo()))
 
         // When - Then
@@ -109,7 +112,10 @@ describe('ConseillersMiloController', () => {
       it('renvoie 404', async () => {
         // Given
         getDossierMiloJeuneQueryHandler.execute
-          .withArgs({ idDossier: '2' }, unUtilisateurDecode())
+          .withArgs(
+            { idDossier: '2', accessToken: 'coucou' },
+            unUtilisateurDecode()
+          )
           .resolves(failure(new ErreurHttp('Pas trouvé', 404)))
 
         // When - Then

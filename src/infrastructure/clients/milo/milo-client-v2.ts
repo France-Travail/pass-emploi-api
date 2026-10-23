@@ -41,6 +41,7 @@ export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
 @Injectable()
 export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyDossierCej: string
+  private readonly apiKeyJwtDossierCej: string
   private readonly apiKeyDossier: string
   private readonly apiKeyJwtJeune: string
   private readonly apiKeyJwtSessions: string
@@ -57,6 +58,8 @@ export class MiloClientV2 implements MiloClientPort {
     private readonly dateService: DateService
   ) {
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
+    this.apiKeyJwtDossierCej =
+      this.configService.get('milo').apiKeyJwtDossierCej
     this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
     this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
     this.apiKeyJwtSessions = this.configService.get('milo').apiKeyJwtSessions
@@ -71,14 +74,22 @@ export class MiloClientV2 implements MiloClientPort {
   /* ************ */
   /* API DOSSIERS */
   /* ************ */
-  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
+  async getDossier(
+    idDossier: string,
+    idpToken?: string
+  ): Promise<Result<JeuneMilo.Dossier>> {
     await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
-    const result = await this.miloClientUtils.get<DossierMiloDto>({
-      suffixUrl: `api-dossiers-cej/dossiers/${idDossier}`,
-      auth: {
-        apiKey: this.apiKeyDossierCej
-      }
-    })
+    const result = await this.miloClientUtils.get<DossierMiloDto>(
+      idpToken
+        ? {
+            suffixUrl: `api-dossiers-cej/dossiers/${idDossier}/jwt`,
+            auth: { apiKey: this.apiKeyJwtDossierCej, idpToken }
+          }
+        : {
+            suffixUrl: `api-dossiers-cej/dossiers/${idDossier}`,
+            auth: { apiKey: this.apiKeyDossierCej }
+          }
+    )
     if (isFailure(result)) {
       const erreurHttp = result.error as ErreurMiloHttp
       if (erreurHttp.statusCode === 400)

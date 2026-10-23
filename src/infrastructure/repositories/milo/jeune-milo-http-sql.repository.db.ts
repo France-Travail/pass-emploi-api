@@ -17,8 +17,11 @@ import { Profil } from '../../../domain/profil'
 export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
   constructor(private readonly miloClient: MiloClient) {}
 
-  async getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>> {
-    return this.miloClient.getDossier(idDossier)
+  async getDossier(
+    idDossier: string,
+    idpToken?: string
+  ): Promise<Result<JeuneMilo.Dossier>> {
+    return this.miloClient.getDossier(idDossier, idpToken)
   }
 
   async get(id: string): Promise<Result<JeuneMilo>> {

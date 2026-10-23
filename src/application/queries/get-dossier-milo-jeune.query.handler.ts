@@ -3,16 +3,18 @@ import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUT_MILO } from '../../domain/profil'
+import { Profil, TOUT_MILO } from '../../domain/profil'
 import {
   JeuneMilo,
   JeuneMiloRepositoryToken
 } from '../../domain/milo/jeune.milo'
+import { OidcClient } from '../../infrastructure/clients/oidc-client.db'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
 import { DossierJeuneMiloQueryModel } from './query-models/milo.query-model'
 
 export interface GetDossierMiloJeuneQuery extends Query {
   idDossier: string
+  accessToken: string
 }
 
 @Injectable()
@@ -25,7 +27,8 @@ export class GetDossierMiloJeuneQueryHandler extends QueryHandler<
   constructor(
     @Inject(JeuneMiloRepositoryToken)
     private miloRepository: JeuneMilo.Repository,
-    private readonly conseillerAuthorizer: ConseillerAuthorizer
+    private readonly conseillerAuthorizer: ConseillerAuthorizer,
+    private readonly oidcClient: OidcClient
   ) {
     super('GetDossierMiloJeuneQueryHandler')
   }
@@ -33,7 +36,11 @@ export class GetDossierMiloJeuneQueryHandler extends QueryHandler<
   async handle(
     query: GetDossierMiloJeuneQuery
   ): Promise<Result<DossierJeuneMiloQueryModel>> {
-    return this.miloRepository.getDossier(query.idDossier)
+    const idpToken = await this.oidcClient.exchangeToken(
+      query.accessToken,
+      Profil.Structure.MILO
+    )
+    return this.miloRepository.getDossier(query.idDossier, idpToken)
   }
   async authorize(
     _query: GetDossierMiloJeuneQuery,
