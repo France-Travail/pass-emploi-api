@@ -6,7 +6,7 @@ import {
   Provider,
   RequestMethod
 } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { TerminusModule } from '@nestjs/terminus'
 import { AddCandidatureOffreEmploiCommandHandler } from 'src/application/commands/add-candidature-offre-emploi.command.handler'
@@ -408,7 +408,7 @@ import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.re
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
 import { AuthentificationSqlOidcRepository } from './infrastructure/repositories/authentification-sql.repository.db'
 import { CampagneSqlRepository } from './infrastructure/repositories/campagne-sql.repository.db'
-import { ChatFirebaseRepository } from './infrastructure/repositories/chat-firebase.repository'
+import { fabriquerChatRepository } from './infrastructure/repositories/chat-mock.repository'
 import { ConseillerSqlRepository } from './infrastructure/repositories/conseiller-sql.repository.db'
 import { ListeDeDiffusionSqlRepository } from './infrastructure/repositories/conseiller/liste-de-diffusion-sql.repository.db'
 import { DemarcheHttpRepository } from './infrastructure/repositories/demarche-http.repository'
@@ -654,7 +654,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     },
     {
       provide: ChatRepositoryToken,
-      useClass: ChatFirebaseRepository
+      useFactory: fabriquerChatRepository,
+      inject: [ConfigService, FirebaseClient, ExternalApiLoggerService]
     },
     {
       provide: MailServiceToken,
