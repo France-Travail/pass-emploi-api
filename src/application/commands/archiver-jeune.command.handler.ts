@@ -110,7 +110,16 @@ export class ArchiverJeuneCommandHandler extends CommandHandler<
     }
 
     await this.jeuneRepository.supprimer(command.idJeune)
-    this.chatRepository.supprimerChat(command.idJeune)
+    this.chatRepository.supprimerChat(command.idJeune).catch(e =>
+      rootLogger.error(
+        {
+          context: 'ArchiverJeuneCommandHandler',
+          labels: { jeune_id: command.idJeune, etape: 'chat' },
+          error: toEcsError(e)
+        },
+        'Échec lors de la suppression du chat du jeune'
+      )
+    )
 
     this.mailService
       .envoyerEmailJeuneArchive(jeune, command.motif, command.commentaire)

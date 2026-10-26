@@ -42,6 +42,7 @@ describe('ArchiverJeuneCommandHandler', () => {
     jeuneRepository = stubInterface(sandbox)
     archivageJeuneRepository = stubInterface(sandbox)
     chatRepository = stubInterface(sandbox)
+    chatRepository.supprimerChat.resolves()
     authentificationRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
@@ -153,6 +154,28 @@ describe('ArchiverJeuneCommandHandler', () => {
     it("n'échoue pas quand l'envoi du mail échoue", async () => {
       // Given
       mailService.envoyerEmailJeuneArchive.rejects(new Error('Brevo en 500'))
+      const rejetsNonGeres: unknown[] = []
+      const surRejetNonGere = (raison: unknown): void => {
+        rejetsNonGeres.push(raison)
+      }
+      process.on('unhandledRejection', surRejetNonGere)
+
+      // When
+      const result = await archiverJeuneCommandHandler.handle({
+        idJeune: 'idJeune',
+        motif: ArchiveJeune.MotifSuppression.CONTRAT_ARRIVE_A_ECHEANCE
+      })
+      await new Promise(resolve => setImmediate(resolve))
+      process.off('unhandledRejection', surRejetNonGere)
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(rejetsNonGeres).to.be.empty()
+    })
+
+    it("n'échoue pas quand la suppression du chat échoue", async () => {
+      // Given
+      chatRepository.supprimerChat.rejects(new Error('Firestore indisponible'))
       const rejetsNonGeres: unknown[] = []
       const surRejetNonGere = (raison: unknown): void => {
         rejetsNonGeres.push(raison)
