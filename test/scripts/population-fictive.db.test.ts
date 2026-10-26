@@ -182,7 +182,7 @@ describe('population-fictive (base)', () => {
       )
     })
 
-    describe('avec --email-conseiller', () => {
+    describe('avec --email-conseiller (transfert temporaire)', () => {
       const emailConseiller = 'conseillere@exemple.fr'
 
       beforeEach(async () => {
@@ -195,62 +195,49 @@ describe('population-fictive (base)', () => {
         )
       })
 
-      it('rattache les jeunes à ce conseiller et le cite dans la population', async () => {
+      it('rattache les jeunes fictifs en transfert temporaire au conseiller de test', async () => {
         // When
         await semer(sequelize, chatRepository, { emailConseiller })
 
         // Then
         const jeune = await JeuneSqlModel.findByPk('demo-migr-000000')
         expect(jeune?.idConseiller).to.equal('conseillere-reelle')
-        expect(await ciblesDeLArchivage()).to.deep.equal(idsCibles)
-        expect(
-          await ConseillerSqlModel.findByPk('demo-migr-conseiller')
-        ).to.be.null()
+        expect(jeune?.idConseillerInitial).to.equal('demo-migr-conseiller')
+        expect(jeune?.structure).to.equal('FRANCE_TRAVAIL')
+        expect(jeune?.dispositif).to.equal('CEJ')
+      })
+
+      it('crée le conseiller fictif et le cite dans la population, pas le conseiller de test', async () => {
+        // When
+        await semer(sequelize, chatRepository, { emailConseiller })
+
+        // Then
+        const conseillerFictif = await ConseillerSqlModel.findByPk(
+          'demo-migr-conseiller'
+        )
+        expect(conseillerFictif).not.to.be.null()
         const citations = await PopulationConseillerSqlModel.findAll()
         expect(citations.map(c => c.emailConseiller)).to.deep.equal([
-          emailConseiller
+          'demo-migr-conseiller@example.com'
         ])
       })
 
-      it('refuse si ce conseiller suit un jeune réel, sans rien écrire', async () => {
+      it('cible uniquement les jeunes fictifs, même si le conseiller de test suit des jeunes réels', async () => {
         // Given
         await JeuneSqlModel.creer(
           unJeuneDto({ id: 'jeune-reel', idConseiller: 'conseillere-reelle' })
         )
 
         // When
-        const promesse = semer(sequelize, chatRepository, { emailConseiller })
+        await semer(sequelize, chatRepository, { emailConseiller })
 
         // Then
-        await expect(promesse).to.be.rejectedWith('jeune-reel')
-        expect(await idsJeunesEnBase()).to.deep.equal(['jeune-reel'])
-        expect(await PopulationSqlModel.count()).to.equal(0)
-        expect(
-          chatRepository.initializeChatIfNotExists
-        ).not.to.have.been.called()
-        expect(chatRepository.supprimerChat).not.to.have.been.called()
+        expect(await ciblesDeLArchivage()).to.deep.equal(idsCibles)
+        const jeuneReel = await JeuneSqlModel.findByPk('jeune-reel')
+        expect(jeuneReel).not.to.be.null()
       })
 
-      it('refuse si ce conseiller est le conseiller initial d’un jeune réel', async () => {
-        // Given
-        await ConseillerSqlModel.creer(unConseillerDto({ id: 'autre' }))
-        await JeuneSqlModel.creer(
-          unJeuneDto({
-            id: 'jeune-transfere',
-            idConseiller: 'autre',
-            idConseillerInitial: 'conseillere-reelle'
-          })
-        )
-
-        // When
-        const promesse = semer(sequelize, chatRepository, { emailConseiller })
-
-        // Then
-        await expect(promesse).to.be.rejectedWith('jeune-transfere')
-        expect(await PopulationSqlModel.count()).to.equal(0)
-      })
-
-      it('refuse si ce conseiller suit temporairement un jeune réel', async () => {
+      it('cible uniquement les jeunes fictifs, même si un jeune réel est en transfert temporaire chez le conseiller de test', async () => {
         // Given
         await ConseillerSqlModel.creer(unConseillerDto({ id: 'autre' }))
         await JeuneSqlModel.creer(
@@ -262,13 +249,14 @@ describe('population-fictive (base)', () => {
         )
 
         // When
-        const promesse = semer(sequelize, chatRepository, { emailConseiller })
+        await semer(sequelize, chatRepository, { emailConseiller })
 
         // Then
-        await expect(promesse).to.be.rejectedWith(
+        expect(await ciblesDeLArchivage()).to.deep.equal(idsCibles)
+        const jeuneReel = await JeuneSqlModel.findByPk(
           'jeune-en-transfert-temporaire'
         )
-        expect(await PopulationSqlModel.count()).to.equal(0)
+        expect(jeuneReel).not.to.be.null()
       })
 
       it('refuse un conseiller inconnu', async () => {
@@ -379,6 +367,54 @@ describe('population-fictive (base)', () => {
       ).not.to.be.null()
       expect(bilan.conseillersGardes).to.deep.equal(['demo-migr-conseiller'])
     })
+
+    it('ne supprime jamais un conseiller de test, même après semis avec --email-conseiller', async () => {
+      // Given
+      await ConseillerSqlModel.creer(
+        unConseillerDto({
+          id: 'conseillere-test',
+          email: 'test@exemple.fr',
+          structure: Core.Structure.POLE_EMPLOI
+        })
+      )
+      await semer(sequelize, chatRepository, {
+        emailConseiller: 'test@exemple.fr'
+      })
+
+      // When
+      const bilan = await nettoyer(sequelize, chatRepository)
+
+      // Then
+      expect(
+        await ConseillerSqlModel.findByPk('conseillere-test')
+      ).not.to.be.null()
+      expect(bilan.conseillersGardes).to.deep.equal([])
+    })
+
+    it('ne supprime pas les jeunes réels du conseiller de test après semis avec --email-conseiller', async () => {
+      // Given
+      await ConseillerSqlModel.creer(
+        unConseillerDto({
+          id: 'conseillere-test',
+          email: 'test@exemple.fr'
+        })
+      )
+      await JeuneSqlModel.update(
+        { idConseiller: 'conseillere-test' },
+        { where: { id: 'jeune-reel' } }
+      )
+      await semer(sequelize, chatRepository, {
+        emailConseiller: 'test@exemple.fr'
+      })
+
+      // When
+      await nettoyer(sequelize, chatRepository)
+
+      // Then
+      expect(await idsJeunesEnBase()).to.deep.equal(['jeune-reel'])
+      const jeuneReel = await JeuneSqlModel.findByPk('jeune-reel')
+      expect(jeuneReel?.idConseiller).to.equal('conseillere-test')
+    })
   })
 
   describe('etat', () => {
@@ -445,16 +481,11 @@ describe('population-fictive (base)', () => {
       expect(jeune?.archives[1].nettoyageIdp).to.equal('A_REVOQUER')
     })
 
-    it('signale un jeune réel ciblé par la population', async () => {
+    it('signale un jeune réel ciblé par la population (si manipulation manuelle)', async () => {
       // Given
-      await ConseillerSqlModel.creer(
-        unConseillerDto({ id: 'conseillere-reelle', email: 'c@exemple.fr' })
-      )
-      await semer(sequelize, chatRepository, {
-        emailConseiller: 'c@exemple.fr'
-      })
+      await semer(sequelize, chatRepository, {})
       await JeuneSqlModel.creer(
-        unJeuneDto({ id: 'jeune-reel', idConseiller: 'conseillere-reelle' })
+        unJeuneDto({ id: 'jeune-reel', idConseiller: 'demo-migr-conseiller' })
       )
 
       // When
@@ -462,6 +493,25 @@ describe('population-fictive (base)', () => {
 
       // Then
       expect(resultat.ciblesHorsPrefixe).to.deep.equal(['jeune-reel'])
+    })
+
+    it('ne signale pas un jeune réel du conseiller de test avec --email-conseiller', async () => {
+      // Given
+      await ConseillerSqlModel.creer(
+        unConseillerDto({ id: 'conseillere-test', email: 'test@exemple.fr' })
+      )
+      await JeuneSqlModel.creer(
+        unJeuneDto({ id: 'jeune-reel', idConseiller: 'conseillere-test' })
+      )
+      await semer(sequelize, chatRepository, {
+        emailConseiller: 'test@exemple.fr'
+      })
+
+      // When
+      const resultat = await etat(sequelize, chatRepository)
+
+      // Then
+      expect(resultat.ciblesHorsPrefixe).to.deep.equal([])
     })
   })
 })

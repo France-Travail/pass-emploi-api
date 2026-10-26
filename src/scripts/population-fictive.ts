@@ -157,14 +157,23 @@ export async function semer(
   const { conseiller, idsChatsASupprimer, idsCibles } =
     await sequelize.transaction(async () => {
       const { idsJeunes } = await nettoyerLaBase(sequelize)
-      const conseillerCible = options.emailConseiller
+      const conseillerFictif = await creerUnConseillerFictif(
+        sequelize,
+        CONSEILLER_FICTIF
+      )
+      const conseillerDeTest = options.emailConseiller
         ? await trouverLeConseillerReel(sequelize, options.emailConseiller)
-        : await creerUnConseillerFictif(sequelize, CONSEILLER_FICTIF)
+        : undefined
       await creerUnConseillerFictif(sequelize, CONSEILLER_TEMOIN)
-      await creerLesJeunes(sequelize, jeunes, conseillerCible)
-      await creerLaPopulation(sequelize, conseillerCible.email)
+      await creerLesJeunes(
+        sequelize,
+        jeunes,
+        conseillerFictif,
+        conseillerDeTest
+      )
+      await creerLaPopulation(sequelize, conseillerFictif.email)
       return {
-        conseiller: conseillerCible,
+        conseiller: conseillerDeTest ?? conseillerFictif,
         idsChatsASupprimer: idsJeunes,
         idsCibles: await verifierLeCiblage(sequelize, jeunes)
       }
@@ -341,25 +350,10 @@ async function trouverLeConseillerReel(
   }
   if (conseillers.length > 1) {
     throw new Error(
-      `L'email ${email} est porté par plusieurs conseillers (${conseillers.map(({ id }) => id).join(', ')}) : la population les ciblerait tous`
+      `L'email ${email} est porté par plusieurs conseillers (${conseillers.map(({ id }) => id).join(', ')})`
     )
   }
-  const [conseiller] = conseillers
-  const jeunesReels = await sequelize.query<{ id: string }>(
-    `SELECT id FROM jeune
-      WHERE (id_conseiller = :id OR id_conseiller_initial = :id)
-        AND id NOT LIKE :motif`,
-    {
-      replacements: { id: conseiller.id, motif: MOTIF_PREFIXE },
-      type: QueryTypes.SELECT
-    }
-  )
-  if (jeunesReels.length) {
-    throw new Error(
-      `Le conseiller ${email} suit des jeunes réels, que l'archivage emporterait : ${jeunesReels.map(({ id }) => id).join(', ')}`
-    )
-  }
-  return conseiller
+  return conseillers[0]
 }
 
 async function creerUnConseillerFictif(
@@ -388,14 +382,16 @@ async function creerUnConseillerFictif(
 async function creerLesJeunes(
   sequelize: Sequelize,
   jeunes: JeuneFictif[],
-  conseiller: ConseillerCible
+  conseillerFictif: ConseillerCible,
+  conseillerDeTest?: ConseillerCible
 ): Promise<void> {
   for (const jeune of jeunes) {
+    const conseillerCible = conseillerDeTest ?? conseillerFictif
     await sequelize.query(
-      `INSERT INTO jeune (id, prenom, nom, email, id_authentification, id_conseiller,
+      `INSERT INTO jeune (id, prenom, nom, email, id_authentification, id_conseiller, id_conseiller_initial,
                           structure, dispositif, date_creation,
                           date_premiere_connexion, date_derniere_connexion, date_derniere_activite)
-       VALUES (:id, :prenom, :nom, :email, :idAuthentification, :idConseiller,
+       VALUES (:id, :prenom, :nom, :email, :idAuthentification, :idConseiller, :idConseillerInitial,
                :structure, :dispositif, NOW(),
                :dateActivite, :dateActivite, :dateActivite)`,
       {
@@ -405,9 +401,17 @@ async function creerLesJeunes(
           nom: jeune.nom,
           email: jeune.email,
           idAuthentification: jeune.idAuthentification,
-          idConseiller: jeune.temoin ? CONSEILLER_TEMOIN.id : conseiller.id,
-          structure: jeune.temoin ? 'FRANCE_TRAVAIL' : conseiller.structure,
-          dispositif: jeune.temoin ? 'CEJ' : (conseiller.dispositif ?? 'CEJ'),
+          idConseiller: jeune.temoin
+            ? CONSEILLER_TEMOIN.id
+            : conseillerCible.id,
+          idConseillerInitial:
+            conseillerDeTest && !jeune.temoin ? conseillerFictif.id : null,
+          structure: jeune.temoin
+            ? 'FRANCE_TRAVAIL'
+            : conseillerCible.structure,
+          dispositif: jeune.temoin
+            ? 'CEJ'
+            : (conseillerCible.dispositif ?? 'CEJ'),
           dateActivite: jeune.actif ? new Date() : null
         }
       }
