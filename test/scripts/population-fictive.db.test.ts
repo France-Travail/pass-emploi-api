@@ -55,7 +55,7 @@ describe('population-fictive (base)', () => {
       ).getBeneficiairesAMigrerParProfilOuConseillerCite(ID_POPULATION)
     )
       .map(({ id }) => id)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
 
   const creerArchive = async (
     idJeune: string,
@@ -348,7 +348,9 @@ describe('population-fictive (base)', () => {
       await nettoyer(sequelize, chatRepository)
 
       // Then
-      const ids = chatRepository.supprimerChat.args.map(([id]) => id).sort()
+      const ids = chatRepository.supprimerChat.args
+        .map(([id]) => id)
+        .sort((a, b) => a.localeCompare(b))
       expect(ids).to.deep.equal([
         'demo-migr-000000',
         'demo-migr-000001',

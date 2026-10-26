@@ -446,7 +446,7 @@ async function verifierLeCiblage(
   const attendus = jeunes
     .filter(jeune => !jeune.temoin)
     .map(({ id }) => id)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
   if (cibles.join() !== attendus.join()) {
     throw new Error(
       `La population ciblerait ${cibles.join(', ')} au lieu de ${attendus.join(', ')} : semis annulé`
@@ -459,7 +459,7 @@ async function idsCiblesParLArchivage(sequelize: Sequelize): Promise<string[]> {
   const beneficiaires = await new MigrationSqlRepository(
     sequelize
   ).getBeneficiairesAMigrerParProfilOuConseillerCite(ID_POPULATION)
-  return beneficiaires.map(({ id }) => id).sort()
+  return beneficiaires.map(({ id }) => id).sort((a, b) => a.localeCompare(b))
 }
 
 async function idsDesJeunesFictifsEnBase(
@@ -511,7 +511,7 @@ function messagesFictifs(): ArchiveJeune.Message[] {
 }
 
 function unionTriee(...listes: string[][]): string[] {
-  return [...new Set(listes.flat())].sort()
+  return [...new Set(listes.flat())].sort((a, b) => a.localeCompare(b))
 }
 
 @Module({
