@@ -211,7 +211,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     try {
       const resultDossier = await this.miloJeuneRepository.getDossier(
         jeune.idPartenaire!,
-        idpToken
+        async () => idpToken
       )
       if (isSuccess(resultDossier)) {
         const codeStructure = resultDossier.data.codeStructure

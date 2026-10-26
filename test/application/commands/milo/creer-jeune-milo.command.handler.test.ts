@@ -255,8 +255,10 @@ describe('CreerJeuneMiloCommandHandler', () => {
         expect(result).to.deep.equal(
           success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
         )
-        expect(miloRepository.getDossier).to.have.been.calledOnceWithExactly(
-          idPartenaire,
+        expect(miloRepository.getDossier).to.have.been.calledOnceWith(
+          idPartenaire
+        )
+        expect(await miloRepository.getDossier.firstCall.args[1]()).to.equal(
           idpToken
         )
         expect(miloRepository.save).to.have.been.calledOnceWithExactly(
@@ -364,8 +366,10 @@ describe('CreerJeuneMiloCommandHandler', () => {
         expect(result).to.deep.equal(
           success({ id: 'DFKAL', prenom: 'prenom', nom: 'nom' })
         )
-        expect(miloRepository.getDossier).to.have.been.calledOnceWithExactly(
-          idPartenaire,
+        expect(miloRepository.getDossier).to.have.been.calledOnceWith(
+          idPartenaire
+        )
+        expect(await miloRepository.getDossier.firstCall.args[1]()).to.equal(
           idpToken
         )
         expect(miloRepository.save).to.have.been.calledOnceWithExactly(

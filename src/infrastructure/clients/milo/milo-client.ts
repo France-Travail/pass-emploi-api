@@ -56,9 +56,9 @@ export class MiloClient implements MiloClientPort {
 
   async getDossier(
     idDossier: string,
-    idpToken?: string
+    getIdpToken?: () => Promise<string>
   ): Promise<Result<JeuneMilo.Dossier>> {
-    return (await this.getClient()).getDossier(idDossier, idpToken)
+    return (await this.getClient()).getDossier(idDossier, getIdpToken)
   }
 
   async creerSituationDossier(

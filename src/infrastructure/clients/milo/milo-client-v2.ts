@@ -76,8 +76,9 @@ export class MiloClientV2 implements MiloClientPort {
   /* ************ */
   async getDossier(
     idDossier: string,
-    idpToken?: string
+    getIdpToken?: () => Promise<string>
   ): Promise<Result<JeuneMilo.Dossier>> {
+    const idpToken = getIdpToken && (await getIdpToken())
     await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<DossierMiloDto>(
       idpToken

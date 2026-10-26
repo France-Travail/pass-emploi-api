@@ -20,7 +20,7 @@ export interface MiloClientPort {
   /* ************ */
   getDossier(
     idDossier: string,
-    idpToken?: string
+    getIdpToken?: () => Promise<string>
   ): Promise<Result<JeuneMilo.Dossier>>
 
   creerSituationDossier(

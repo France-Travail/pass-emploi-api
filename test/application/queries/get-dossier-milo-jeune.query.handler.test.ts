@@ -19,7 +19,7 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
   let getDossierMiloJeuneQueryHandler: GetDossierMiloJeuneQueryHandler
   let sandbox: SinonSandbox
 
-  before(() => {
+  beforeEach(() => {
     sandbox = createSandbox()
     miloRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
@@ -37,21 +37,20 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
   })
 
   describe('handle', () => {
-    it('retourne le dossier', async () => {
-      // Given
-      const idDossier = '1'
-      const getDossierMiloJeuneQuery: GetDossierMiloJeuneQuery = {
-        idDossier,
-        accessToken: 'accessToken'
-      }
+    const idDossier = '1'
+    const getDossierMiloJeuneQuery: GetDossierMiloJeuneQuery = {
+      idDossier,
+      accessToken: 'accessToken'
+    }
 
+    beforeEach(() => {
       oidcClient.exchangeToken
         .withArgs('accessToken', Profil.Structure.MILO)
         .resolves('idpToken')
-      miloRepository.getDossier
-        .withArgs(idDossier, 'idpToken')
-        .resolves(unDossierMilo())
+      miloRepository.getDossier.resolves(unDossierMilo())
+    })
 
+    it("retourne le dossier sans échanger le token tant que le client ne l'a pas demandé", async () => {
       // When
       const actual = await getDossierMiloJeuneQueryHandler.handle(
         getDossierMiloJeuneQuery
@@ -59,6 +58,17 @@ describe('GetDossierMiloJeuneQueryHandler', () => {
 
       // Then
       expect(actual).to.deep.equal(unDossierMilo())
+      expect(miloRepository.getDossier).to.have.been.calledOnceWith(idDossier)
+      expect(oidcClient.exchangeToken).not.to.have.been.called()
+    })
+
+    it('fournit au client de quoi échanger le token MILO', async () => {
+      // When
+      await getDossierMiloJeuneQueryHandler.handle(getDossierMiloJeuneQuery)
+      const getIdpToken = miloRepository.getDossier.firstCall.args[1]
+
+      // Then
+      expect(await getIdpToken()).to.equal('idpToken')
     })
   })
 

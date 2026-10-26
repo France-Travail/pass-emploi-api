@@ -60,7 +60,10 @@ describe('MiloClientV2', () => {
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(200, dossierDto)
 
-      const result = await miloClient.getDossier(idDossier, 'idpToken')
+      const result = await miloClient.getDossier(
+        idDossier,
+        async () => 'idpToken'
+      )
 
       expect(scope.isDone()).to.equal(true)
       expect(isSuccess(result)).to.be.true()

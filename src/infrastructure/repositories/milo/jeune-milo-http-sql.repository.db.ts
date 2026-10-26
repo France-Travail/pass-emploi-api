@@ -19,9 +19,9 @@ export class MiloJeuneHttpSqlRepository implements JeuneMilo.Repository {
 
   async getDossier(
     idDossier: string,
-    idpToken?: string
+    getIdpToken?: () => Promise<string>
   ): Promise<Result<JeuneMilo.Dossier>> {
-    return this.miloClient.getDossier(idDossier, idpToken)
+    return this.miloClient.getDossier(idDossier, getIdpToken)
   }
 
   async get(id: string): Promise<Result<JeuneMilo>> {

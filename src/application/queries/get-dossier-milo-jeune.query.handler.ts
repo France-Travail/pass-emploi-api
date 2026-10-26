@@ -36,11 +36,9 @@ export class GetDossierMiloJeuneQueryHandler extends QueryHandler<
   async handle(
     query: GetDossierMiloJeuneQuery
   ): Promise<Result<DossierJeuneMiloQueryModel>> {
-    const idpToken = await this.oidcClient.exchangeToken(
-      query.accessToken,
-      Profil.Structure.MILO
+    return this.miloRepository.getDossier(query.idDossier, () =>
+      this.oidcClient.exchangeToken(query.accessToken, Profil.Structure.MILO)
     )
-    return this.miloRepository.getDossier(query.idDossier, idpToken)
   }
   async authorize(
     _query: GetDossierMiloJeuneQuery,
