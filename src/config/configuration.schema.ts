@@ -6,9 +6,6 @@ export const configurationSchema = Joi.object({
   isWeb: Joi.boolean().required(),
   isWorker: Joi.boolean().required(),
   isInMemory: Joi.boolean(),
-  chatMockUrl: Joi.string()
-    .uri()
-    .when('environment', { is: 'prod', then: Joi.forbidden() }),
   port: Joi.number().required(),
   database: Joi.object({
     host: Joi.string().required(),

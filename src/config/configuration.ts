@@ -24,7 +24,6 @@ export default () => {
     isWeb: process.env.IS_WEB !== 'false',
     isWorker,
     isInMemory: process.env.IS_IN_MEMORY === 'true',
-    chatMockUrl: process.env.CHAT_MOCK_URL,
     port: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
     database: {
       host,
