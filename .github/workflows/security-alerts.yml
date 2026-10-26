@@ -1,14 +1,19 @@
 name: Security Alerts
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 */3 * * *' # Toutes les 3 heures
 
 jobs:
   security-alerts:
-    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@645baca94d9825a7502bc1b143097cc8a9c6b707
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@bda5c57bd51e1019d167444d5edbb9dc47c2164f
     with:
       repo-name: 'pass-emploi-api'
+      elastic-url: ${{ vars.ELASTIC_URL }}
+      envoi-mattermost: ${{ vars.CVE_ENVOI_MATTERMOST != 'false' }}
+      envoi-elasticsearch: ${{ vars.CVE_ENVOI_ELASTICSEARCH != 'false' }}
     secrets:
       DEPENDABOT_ALERTS_READER: ${{ secrets.DEPENDABOT_ALERTS_READER }}
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+      ELASTIC_ALERTES_GITHUB_API_KEY: ${{ secrets.ELASTIC_ALERTES_GITHUB_API_KEY }}
