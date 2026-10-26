@@ -84,6 +84,7 @@
     "tasks:notifier-bonne-alternance": "IS_WEB=false TASK_NAME=NOTIFIER_BONNE_ALTERNANCE node dist/main",
     "tasks:maj-referentiel-plan-action": "IS_WEB=false TASK_NAME=MAJ_REFERENTIEL_PLAN_ACTION node dist/main",
     "seed:population-fictive": "node dist/scripts/population-fictive.js",
+    "nettoyer-archives-jeunes": "node dist/scripts/nettoyer-archives-jeunes.js",
     "simulation:cleanup:recherches-doublons": "node dist/scripts/purger-recherches-doublons.js",
     "cleanup:recherches-doublons": "node dist/scripts/purger-recherches-doublons.js --execute",
     "dump-restore-db": "scripts/analytics/0_db_dump_restore.sh 2>&1",

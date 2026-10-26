@@ -55,6 +55,22 @@ describe('NettoyerArchivesJeunesCommandHandler', () => {
       })
     })
 
+    it('planifie le nettoyage de toutes les archives sans population', async () => {
+      // When
+      const result = await nettoyerArchivesJeunesCommandHandler.handle({})
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(
+        migrationRepository.populationConcerneeParUneMigration
+      ).not.to.have.been.called()
+      expect(planificateurRepository.ajouterJob).to.have.been.calledOnceWith({
+        dateExecution: maintenant,
+        type: Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES,
+        contenu: {}
+      })
+    })
+
     it("renvoie NonTrouveError quand la population n'est visée par aucune migration", async () => {
       // Given
       migrationRepository.populationConcerneeParUneMigration
@@ -82,6 +98,13 @@ describe('NettoyerArchivesJeunesCommandHandler', () => {
           idPopulationQuiMigre: 'PHASE_A'
         })
       ).to.deep.equal({ population_id: 'PHASE_A' })
+    })
+
+    it('ne porte rien sans population', () => {
+      // When - Then
+      expect(
+        nettoyerArchivesJeunesCommandHandler['labelsDuLog'](emptySuccess(), {})
+      ).to.equal(undefined)
     })
   })
 })

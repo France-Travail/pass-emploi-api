@@ -14,7 +14,7 @@ import {
 import { DateService } from '../../utils/date-service'
 
 export interface NettoyerArchivesJeunesCommand {
-  idPopulationQuiMigre: string
+  idPopulationQuiMigre?: string
 }
 
 @Injectable()
@@ -37,21 +37,23 @@ export class NettoyerArchivesJeunesCommandHandler extends CommandHandler<
   }
 
   async handle(command: NettoyerArchivesJeunesCommand): Promise<Result> {
-    const migrationExiste =
-      await this.migrationRepository.populationConcerneeParUneMigration(
-        command.idPopulationQuiMigre
-      )
-    if (!migrationExiste) {
-      return failure(
-        new NonTrouveError('Migration', command.idPopulationQuiMigre)
-      )
+    const { idPopulationQuiMigre } = command
+    if (
+      idPopulationQuiMigre &&
+      !(await this.migrationRepository.populationConcerneeParUneMigration(
+        idPopulationQuiMigre
+      ))
+    ) {
+      return failure(new NonTrouveError('Migration', idPopulationQuiMigre))
     }
 
     await this.planificateurRepository.ajouterJob<Planificateur.JobNettoyerArchivesJeunes>(
       {
         dateExecution: this.dateService.nowJs(),
         type: Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES,
-        contenu: { idPopulation: command.idPopulationQuiMigre }
+        contenu: idPopulationQuiMigre
+          ? { idPopulation: idPopulationQuiMigre }
+          : {}
       }
     )
 
@@ -66,6 +68,8 @@ export class NettoyerArchivesJeunesCommandHandler extends CommandHandler<
     _result: Result,
     command?: NettoyerArchivesJeunesCommand
   ): Record<string, string | string[]> | undefined {
-    return command && { population_id: command.idPopulationQuiMigre }
+    return command?.idPopulationQuiMigre
+      ? { population_id: command.idPopulationQuiMigre }
+      : undefined
   }
 }
