@@ -153,6 +153,13 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         )
       )
     }
+    if (archive.nettoyageIdp || archive.nettoyageChat) {
+      return failure(
+        new MauvaiseCommandeError(
+          "Le nettoyage de l'archive n'est pas terminé : lancer le nettoyage de sa population puis réessayer"
+        )
+      )
+    }
 
     const cibleResult = command.idJeuneRecree
       ? await this.cibleFusion(command.idJeuneRecree, archive)

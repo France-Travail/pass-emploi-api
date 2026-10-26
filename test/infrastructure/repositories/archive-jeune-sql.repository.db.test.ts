@@ -381,6 +381,46 @@ describe('ArchiveJeuneSqlRepository', () => {
       // Then
       expect(archiveJeuneSql!.donnees!.messages).to.deep.equal([])
     })
+
+    describe('quand le jeune a un chat', () => {
+      const message: ArchiveJeune.Message = {
+        contenu: 'Bonjour',
+        date: '2022-07-01T09:23:00.000Z',
+        envoyePar: 'jeune',
+        type: 'MESSAGE'
+      }
+
+      afterEach(() => {
+        firebaseClient.getChatAArchiver.reset()
+        firebaseClient.getChatAArchiver.resolves([])
+      })
+
+      it('archive les messages du chat, le sub et le conseiller, sans étape de nettoyage', async () => {
+        // Given
+        firebaseClient.getChatAArchiver
+          .withArgs(jeuneDto.id)
+          .resolves([message])
+        const dateArchivage = new Date('2023-01-01T09:23:00Z')
+
+        // When
+        await archiveJeuneSqlRepository.archiver({
+          ...metadonnees,
+          dateArchivage
+        })
+
+        // Then
+        const archive = await ArchiveJeuneSqlModel.findOne({
+          where: { idJeune: jeuneDto.id, dateArchivage }
+        })
+        expect(archive!.donnees!.messages).to.deep.equal([message])
+        expect(archive!.idAuthentification).to.equal(
+          jeuneDto.idAuthentification
+        )
+        expect(archive!.idConseiller).to.equal(secondConseillerDto.id)
+        expect(archive!.nettoyageIdp).to.be.null()
+        expect(archive!.nettoyageChat).to.be.null()
+      })
+    })
   })
 
   describe('.findById(idArchive)', () => {
@@ -651,6 +691,327 @@ describe('ArchiveJeuneSqlRepository', () => {
         archiveDeLAutreJeune.donnees!.rendezVous.map(rdv => rdv.titre)
       ).to.deep.equal(['partagé'])
     })
+
+    it("renseigne l'id d'authentification et l'id du conseiller du jeune", async () => {
+      // Given
+      await JeuneSqlModel.upsert({ ...jeuneDto, idAuthentification: 'sub-1' })
+
+      // When
+      const [archive] = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+      ])
+
+      // Then
+      expect(archive.idAuthentification).to.equal('sub-1')
+      expect(archive.idConseiller).to.equal(secondConseillerDto.id)
+    })
+
+    it('ne lit pas le chat Firestore', async () => {
+      // Given
+      firebaseClient.getChatAArchiver.resetHistory()
+
+      // When
+      const [archive] = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+      ])
+
+      // Then
+      expect(firebaseClient.getChatAArchiver).not.to.have.been.called()
+      expect(archive.donnees.messages).to.deep.equal([])
+    })
+
+    it('pose les étapes de nettoyage quand le nettoyage est différé', async () => {
+      // Given
+      const archives = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({
+          idJeune: jeuneDto.id,
+          nettoyageDiffere: true
+        })
+      ])
+
+      // When
+      await archiveJeuneSqlRepository.enregistrerArchives(archives)
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(archiveSql!.idAuthentification).to.equal(
+        jeuneDto.idAuthentification
+      )
+      expect(archiveSql!.idConseiller).to.equal(secondConseillerDto.id)
+      expect(archiveSql!.nettoyageIdp).to.equal('A_REVOQUER')
+      expect(archiveSql!.nettoyageChat).to.equal('A_ARCHIVER')
+    })
+
+    it("ne pose pas d'étape IdP pour un jeune sans id d'authentification", async () => {
+      // Given
+      await database.sequelize.query(
+        `UPDATE jeune SET id_authentification = NULL WHERE id = '${autreJeuneDto.id}'`
+      )
+      const archives = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({
+          idJeune: autreJeuneDto.id,
+          nettoyageDiffere: true
+        })
+      ])
+
+      // When
+      await archiveJeuneSqlRepository.enregistrerArchives(archives)
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: autreJeuneDto.id }
+      })
+      expect(archiveSql!.idAuthentification).to.be.null()
+      expect(archiveSql!.nettoyageIdp).to.be.null()
+      expect(archiveSql!.nettoyageChat).to.equal('A_ARCHIVER')
+    })
+
+    it("ne pose aucune étape quand le nettoyage n'est pas différé", async () => {
+      // Given
+      const archives = await archiveJeuneSqlRepository.construireArchives([
+        uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+      ])
+
+      // When
+      await archiveJeuneSqlRepository.enregistrerArchives(archives)
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(archiveSql!.nettoyageIdp).to.be.null()
+      expect(archiveSql!.nettoyageChat).to.be.null()
+    })
+  })
+
+  describe('nettoyage des archives', () => {
+    const donnees: ArchiveJeune = {
+      rendezVous: [],
+      actions: [],
+      favoris: {
+        offresEmploi: [],
+        offresImmersions: [],
+        offresServiceCivique: []
+      },
+      recherches: [],
+      dernierConseiller: { nom: 'Tavernier', prenom: 'Nils' },
+      historiqueConseillers: [],
+      messages: []
+    }
+
+    async function creerArchive(
+      idJeune: string,
+      etapes: {
+        nettoyageIdp?: ArchiveJeune.EtapeNettoyageIdp | null
+        nettoyageChat?: ArchiveJeune.EtapeNettoyageChat | null
+        idPopulation?: string | null
+      }
+    ): Promise<number> {
+      const archive = await ArchiveJeuneSqlModel.create({
+        idJeune,
+        prenom: 'John',
+        nom: 'Doe',
+        motif: MotifSuppressionSupport.MIGRATION,
+        dateArchivage: new Date('2026-10-20T09:00:00Z'),
+        idAuthentification: `sub-${idJeune}`,
+        idPopulation: etapes.idPopulation ?? null,
+        nettoyageIdp: etapes.nettoyageIdp ?? null,
+        nettoyageChat: etapes.nettoyageChat ?? null,
+        donnees
+      })
+      return archive.id
+    }
+
+    describe('idsArchivesANettoyer', () => {
+      it('renvoie les archives dont une étape reste à faire, triées par id', async () => {
+        // Given
+        const idIdp = await creerArchive('j1', { nettoyageIdp: 'A_REVOQUER' })
+        const idChat = await creerArchive('j2', {
+          nettoyageChat: 'A_SUPPRIMER'
+        })
+        await creerArchive('j3', {})
+
+        // When
+        const ids = await archiveJeuneSqlRepository.idsArchivesANettoyer({
+          taille: 10
+        })
+
+        // Then
+        expect(ids).to.deep.equal([idIdp, idChat])
+      })
+
+      it('ne prend que les ids strictement supérieurs à apresId', async () => {
+        // Given
+        const id1 = await creerArchive('j1', { nettoyageChat: 'A_ARCHIVER' })
+        const id2 = await creerArchive('j2', { nettoyageChat: 'A_ARCHIVER' })
+
+        // When
+        const ids = await archiveJeuneSqlRepository.idsArchivesANettoyer({
+          taille: 10,
+          apresId: id1
+        })
+
+        // Then
+        expect(ids).to.deep.equal([id2])
+      })
+
+      it('se restreint à la population demandée', async () => {
+        // Given
+        const idDansLaPopulation = await creerArchive('j1', {
+          nettoyageChat: 'A_ARCHIVER',
+          idPopulation: 'pop-1'
+        })
+        await creerArchive('j2', {
+          nettoyageChat: 'A_ARCHIVER',
+          idPopulation: 'pop-2'
+        })
+        await creerArchive('j3', { nettoyageChat: 'A_ARCHIVER' })
+
+        // When
+        const ids = await archiveJeuneSqlRepository.idsArchivesANettoyer({
+          taille: 10,
+          idPopulation: 'pop-1'
+        })
+
+        // Then
+        expect(ids).to.deep.equal([idDansLaPopulation])
+      })
+
+      it('respecte la taille', async () => {
+        // Given
+        const id1 = await creerArchive('j1', { nettoyageChat: 'A_ARCHIVER' })
+        await creerArchive('j2', { nettoyageChat: 'A_ARCHIVER' })
+
+        // When
+        const ids = await archiveJeuneSqlRepository.idsArchivesANettoyer({
+          taille: 1
+        })
+
+        // Then
+        expect(ids).to.deep.equal([id1])
+      })
+    })
+
+    describe('recupererArchivesANettoyer', () => {
+      it('renvoie les états de nettoyage, le sub et la population', async () => {
+        // Given
+        const id = await creerArchive('j1', {
+          nettoyageIdp: 'A_REVOQUER',
+          nettoyageChat: 'A_ARCHIVER',
+          idPopulation: 'pop-1'
+        })
+        await creerArchive('j2', { nettoyageChat: 'A_ARCHIVER' })
+
+        // When
+        const archives =
+          await archiveJeuneSqlRepository.recupererArchivesANettoyer([id])
+
+        // Then
+        expect(archives).to.deep.equal([
+          {
+            id,
+            idJeune: 'j1',
+            idAuthentification: 'sub-j1',
+            idPopulation: 'pop-1',
+            nettoyageIdp: 'A_REVOQUER',
+            nettoyageChat: 'A_ARCHIVER'
+          }
+        ])
+      })
+    })
+
+    describe('verserLesMessages', () => {
+      it("verse les messages et passe le chat à supprimer sans toucher au reste de l'archive", async () => {
+        // Given
+        const id = await creerArchive('j1', {
+          nettoyageIdp: 'A_REVOQUER',
+          nettoyageChat: 'A_ARCHIVER'
+        })
+        const messages: ArchiveJeune.Message[] = [
+          {
+            contenu: 'Bonjour',
+            date: '2026-10-01T09:00:00.000Z',
+            envoyePar: 'jeune',
+            type: 'MESSAGE'
+          }
+        ]
+
+        // When
+        await archiveJeuneSqlRepository.verserLesMessages(id, messages)
+
+        // Then
+        const archive = await ArchiveJeuneSqlModel.findByPk(id)
+        expect(archive!.donnees).to.deep.equal({ ...donnees, messages })
+        expect(archive!.nettoyageChat).to.equal('A_SUPPRIMER')
+        expect(archive!.nettoyageIdp).to.equal('A_REVOQUER')
+      })
+    })
+
+    describe('marquerIdpRevoque', () => {
+      it("efface l'étape IdP sans toucher à celle du chat", async () => {
+        // Given
+        const id = await creerArchive('j1', {
+          nettoyageIdp: 'A_REVOQUER',
+          nettoyageChat: 'A_ARCHIVER'
+        })
+
+        // When
+        await archiveJeuneSqlRepository.marquerIdpRevoque(id)
+
+        // Then
+        const archive = await ArchiveJeuneSqlModel.findByPk(id)
+        expect(archive!.nettoyageIdp).to.be.null()
+        expect(archive!.nettoyageChat).to.equal('A_ARCHIVER')
+      })
+    })
+
+    describe('marquerChatSupprime', () => {
+      it("efface l'étape chat sans toucher à celle de l'IdP", async () => {
+        // Given
+        const id = await creerArchive('j1', {
+          nettoyageIdp: 'A_REVOQUER',
+          nettoyageChat: 'A_SUPPRIMER'
+        })
+
+        // When
+        await archiveJeuneSqlRepository.marquerChatSupprime(id)
+
+        // Then
+        const archive = await ArchiveJeuneSqlModel.findByPk(id)
+        expect(archive!.nettoyageChat).to.be.null()
+        expect(archive!.nettoyageIdp).to.equal('A_REVOQUER')
+      })
+    })
+
+    describe('enregistrerArchives', () => {
+      it('renvoie les ids des archives créées', async () => {
+        // Given
+        await ConseillerSqlModel.upsert(secondConseillerDto)
+        await JeuneSqlModel.upsert(jeuneDto)
+        const archives = await archiveJeuneSqlRepository.construireArchives([
+          uneArchiveJeuneMetadonnees({ idJeune: jeuneDto.id })
+        ])
+
+        // When
+        const ids =
+          await archiveJeuneSqlRepository.enregistrerArchives(archives)
+
+        // Then
+        const archivesSql = await ArchiveJeuneSqlModel.findAll()
+        expect(ids).to.deep.equal(archivesSql.map(({ id }) => id))
+        expect(ids).to.have.length(1)
+      })
+
+      it('renvoie une liste vide sans archive', async () => {
+        // When
+        const ids = await archiveJeuneSqlRepository.enregistrerArchives([])
+
+        // Then
+        expect(ids).to.deep.equal([])
+      })
+    })
   })
 
   describe('enregistrerArchives dans une transaction', () => {
@@ -752,6 +1113,27 @@ describe('ArchiveJeuneSqlRepository', () => {
         where: { idJeune: jeuneDto.id }
       })
       expect(archiveSql!.idStructureMilo).to.equal(idStructureMilo)
+    })
+
+    it("renseigne l'id d'authentification et l'id du conseiller", async () => {
+      // When
+      await archiveJeuneSqlRepository.archiverSansDonnees(
+        uneArchiveJeuneMetadonnees({
+          idJeune: jeuneDto.id,
+          motif: MotifSuppression.CHANGEMENT_ACCOMPAGNEMENT
+        })
+      )
+
+      // Then
+      const archiveSql = await ArchiveJeuneSqlModel.findOne({
+        where: { idJeune: jeuneDto.id }
+      })
+      expect(archiveSql!.idAuthentification).to.equal(
+        jeuneDto.idAuthentification
+      )
+      expect(archiveSql!.idConseiller).to.equal(secondConseillerDto.id)
+      expect(archiveSql!.nettoyageIdp).to.be.null()
+      expect(archiveSql!.nettoyageChat).to.be.null()
     })
   })
 })

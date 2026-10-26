@@ -563,11 +563,12 @@ Utiliser l'\`id\` retourné avec \`GET /support/job-information/:jobId\` pour ob
     description: `
 L'API support pour archiver les jeunes d'une phase de migration.
 Asynchrone : la route planifie le job ARCHIVER_JEUNES_MIGRATION, qui traite les jeunes par lots.
+  - Archivage de chaque jeune, inactifs compris
   - Suppression de la BDD de son compte utilisateur
-  - Suppression de l'authentification Keycloak
-  - Suppression du chat firebase
-  - Envoi d'un email au jeune
-  
+  - Envoi d'un email aux jeunes dont le compte est actif
+
+L'accès IdP et le chat sont traités ensuite par le nettoyage des archives : cron de nuit NETTOYER_ARCHIVES_JEUNES, ou \`yarn tasks:nettoyer-archives-jeunes\`.
+
 \`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
  `
   })

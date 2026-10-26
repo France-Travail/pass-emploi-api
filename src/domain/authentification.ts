@@ -123,10 +123,6 @@ export namespace Authentification {
 
     supprimerCompteIdp(idAuthentification: string): Promise<void>
 
-    recupererIdsAuthentificationDesJeunes(
-      idsJeunes: string[]
-    ): Promise<Map<string, string>>
-
     estConseillerSuperviseur(
       profil: Profil,
       email?: string | null

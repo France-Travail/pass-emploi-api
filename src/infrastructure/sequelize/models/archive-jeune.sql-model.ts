@@ -105,6 +105,30 @@ export class ArchiveJeuneDto extends Model {
   })
   dateArchivage: Date
 
+  @Column({
+    field: 'id_authentification',
+    type: DataType.STRING
+  })
+  idAuthentification: string | null
+
+  @Column({
+    field: 'id_conseiller',
+    type: DataType.STRING
+  })
+  idConseiller: string | null
+
+  @Column({
+    field: 'nettoyage_idp',
+    type: DataType.STRING
+  })
+  nettoyageIdp: ArchiveJeune.EtapeNettoyageIdp | null
+
+  @Column({
+    field: 'nettoyage_chat',
+    type: DataType.STRING
+  })
+  nettoyageChat: ArchiveJeune.EtapeNettoyageChat | null
+
   @Column({ field: 'donnees', type: DataType.JSONB })
   donnees: ArchiveJeune | null
 }

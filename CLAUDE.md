@@ -16,6 +16,10 @@
 | Tests DB     | `yarn test:local:db` (démarre les DB de test Docker)             |
 | Un fichier   | `TZ=UTC ENVIRONMENT=test yarn mocha test/chemin/fichier.test.ts` |
 
+Depuis un worktree, `yarn test:local:db` échoue : les conteneurs de test (`pgtestdb`,
+`redistestdb`) appartiennent au checkout principal. Les lancer depuis celui-ci, puis
+`TZ=UTC ENVIRONMENT=test DATABASE_URL=postgresql://test:test@localhost:56432/test REDIS_URL=redis://localhost:6767 yarn mocha 'test/**/*.db.test.ts' --exit --timeout 10000`
+
 Pas de scan sécurité local : il ne tourne qu'en CI (`security-checks.yml`). Sonar : voir `CONTEXTE-TRANSVERSE.md`.
 
 ---

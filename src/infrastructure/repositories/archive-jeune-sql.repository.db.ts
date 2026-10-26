@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Op } from 'sequelize'
+import { col, fn, Op, WhereOptions } from 'sequelize'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -38,7 +38,15 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     if (!archive) {
       return failure(new MauvaiseCommandeError('Jeune déjà supprimé'))
     }
-    await ArchiveJeuneSqlModel.creer(versLigneArchive(archive))
+    const messages = await this.firebaseClient.getChatAArchiver(
+      metadonnees.idJeune
+    )
+    await ArchiveJeuneSqlModel.creer(
+      versLigneArchive({
+        ...archive,
+        donnees: { ...archive.donnees, messages }
+      })
+    )
     return emptySuccess()
   }
 
@@ -103,10 +111,11 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       const jeuneSql = jeunesSql.find(({ id }) => id === idJeune)
       if (!jeuneSql) continue
 
-      const messages = await this.firebaseClient.getChatAArchiver(idJeune)
       archives.push({
         metadonnees: metadonneesJeune,
         idStructureMilo: jeuneSql.idStructureMilo ?? null,
+        idAuthentification: jeuneSql.idAuthentification ?? null,
+        idConseiller: jeuneSql.idConseiller ?? null,
         donnees: this.mapToArchiveJeune(
           jeuneSql,
           metadonneesJeune,
@@ -115,8 +124,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
           favorisOffreEmploi.filter(favori => favori.idJeune === idJeune),
           favorisOffreImmersion.filter(favori => favori.idJeune === idJeune),
           favorisOffreEngagement.filter(favori => favori.idJeune === idJeune),
-          recherches.filter(recherche => recherche.idJeune === idJeune),
-          messages
+          recherches.filter(recherche => recherche.idJeune === idJeune)
         )
       })
     }
@@ -125,16 +133,103 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
 
   async enregistrerArchives(
     archives: ArchiveJeune.ArchiveConstruite[]
+  ): Promise<number[]> {
+    if (!archives.length) return []
+    const archivesSql = await ArchiveJeuneSqlModel.bulkCreate(
+      archives.map(versLigneArchive)
+    )
+    return archivesSql.map(({ id }) => id)
+  }
+
+  async idsArchivesANettoyer({
+    taille,
+    apresId,
+    idPopulation
+  }: {
+    taille: number
+    apresId?: number
+    idPopulation?: string
+  }): Promise<number[]> {
+    const where: WhereOptions<ArchiveJeuneSqlModel> = {
+      [Op.or]: [
+        { nettoyageIdp: { [Op.ne]: null } },
+        { nettoyageChat: { [Op.ne]: null } }
+      ],
+      ...(apresId !== undefined && { id: { [Op.gt]: apresId } }),
+      ...(idPopulation && { idPopulation })
+    }
+    const archivesSql = await ArchiveJeuneSqlModel.findAll({
+      attributes: ['id'],
+      where,
+      order: [['id', 'ASC']],
+      limit: taille
+    })
+    return archivesSql.map(({ id }) => id)
+  }
+
+  async recupererArchivesANettoyer(
+    idsArchives: number[]
+  ): Promise<ArchiveJeune.ArchiveANettoyer[]> {
+    if (!idsArchives.length) return []
+    const archivesSql = await ArchiveJeuneSqlModel.findAll({
+      attributes: [
+        'id',
+        'idJeune',
+        'idAuthentification',
+        'idPopulation',
+        'nettoyageIdp',
+        'nettoyageChat'
+      ],
+      where: { id: { [Op.in]: idsArchives } },
+      order: [['id', 'ASC']]
+    })
+    return archivesSql.map(archiveSql => ({
+      id: archiveSql.id,
+      idJeune: archiveSql.idJeune,
+      idAuthentification: archiveSql.idAuthentification,
+      idPopulation: archiveSql.idPopulation,
+      nettoyageIdp: archiveSql.nettoyageIdp,
+      nettoyageChat: archiveSql.nettoyageChat
+    }))
+  }
+
+  async marquerIdpRevoque(idArchive: number): Promise<void> {
+    await ArchiveJeuneSqlModel.update(
+      { nettoyageIdp: null },
+      { where: { id: idArchive } }
+    )
+  }
+
+  async verserLesMessages(
+    idArchive: number,
+    messages: ArchiveJeune.Message[]
   ): Promise<void> {
-    if (!archives.length) return
-    await ArchiveJeuneSqlModel.bulkCreate(archives.map(versLigneArchive))
+    await ArchiveJeuneSqlModel.update(
+      {
+        donnees: fn(
+          'jsonb_set',
+          col('donnees'),
+          '{messages}',
+          JSON.stringify(messages)
+        ),
+        nettoyageChat: 'A_SUPPRIMER'
+      },
+      { where: { id: idArchive } }
+    )
+  }
+
+  async marquerChatSupprime(idArchive: number): Promise<void> {
+    await ArchiveJeuneSqlModel.update(
+      { nettoyageChat: null },
+      { where: { id: idArchive } }
+    )
   }
 
   async archiverSansDonnees(
     metadonnees: ArchiveJeune.Metadonnees
   ): Promise<Result> {
     const jeuneSqlModel = await JeuneSqlModel.findByPk(metadonnees.idJeune, {
-      attributes: ['idStructureMilo']
+      attributes: ['idStructureMilo', 'idAuthentification', 'idConseiller']
     })
     const donneesVides: ArchiveJeune = {
       rendezVous: [],
@@ -153,6 +248,8 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       versLigneArchive({
         metadonnees,
         idStructureMilo: jeuneSqlModel?.idStructureMilo ?? null,
+        idAuthentification: jeuneSqlModel?.idAuthentification ?? null,
+        idConseiller: jeuneSqlModel?.idConseiller ?? null,
         donnees: donneesVides
       })
     )
@@ -215,8 +312,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     favorisOffreEmploi: FavoriOffreEmploiSqlModel[],
     favorisOffreImmersion: FavoriOffreImmersionSqlModel[],
     favorisOffreEngagement: FavoriOffreEngagementSqlModel[],
-    recherches: RechercheSqlModel[],
-    messages: ArchiveJeune.Message[]
+    recherches: RechercheSqlModel[]
   ): ArchiveJeune {
     return {
       rendezVous: rdv.map(this.toRendezVousArchive),
@@ -247,7 +343,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
           },
           dateDeTransfert: transfertSql.dateTransfert
         })) ?? [],
-      messages
+      messages: []
     }
   }
 
@@ -299,6 +395,8 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
 function versLigneArchive({
   metadonnees,
   idStructureMilo,
+  idAuthentification,
+  idConseiller,
   donnees
 }: ArchiveJeune.ArchiveConstruite): AsSql<Omit<ArchiveJeuneDto, 'id'>> {
   return {
@@ -317,6 +415,11 @@ function versLigneArchive({
     commentaire: metadonnees.commentaire ?? null,
     dateArchivage: metadonnees.dateArchivage,
     idStructureMilo,
+    idAuthentification,
+    idConseiller,
+    nettoyageIdp:
+      metadonnees.nettoyageDiffere && idAuthentification ? 'A_REVOQUER' : null,
+    nettoyageChat: metadonnees.nettoyageDiffere ? 'A_ARCHIVER' : null,
     donnees
   }
 }
