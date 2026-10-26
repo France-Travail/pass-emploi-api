@@ -260,20 +260,6 @@ export class AuthentificationSqlOidcRepository
     await this.oidcClient.deleteAccountByIdAuth(idAuthentification)
   }
 
-  async recupererIdsAuthentificationDesJeunes(
-    idsJeunes: string[]
-  ): Promise<Map<string, string>> {
-    const jeunes = await JeuneSqlModel.findAll({
-      attributes: ['id', 'idAuthentification'],
-      where: { id: { [Op.in]: idsJeunes } }
-    })
-    return new Map(
-      jeunes
-        .filter(jeune => jeune.idAuthentification)
-        .map(jeune => [jeune.id, jeune.idAuthentification])
-    )
-  }
-
   async estConseillerSuperviseur(
     profil: Profil,
     email?: string | null
