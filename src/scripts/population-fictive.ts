@@ -555,7 +555,7 @@ async function main(): Promise<void> {
         )
         logger.log(`Jeunes ciblés : ${bilan.idsCibles.join(', ')}`)
         logger.log(
-          `Archiver : POST /support/archiver-jeunes-migration/${ID_POPULATION}, puis nettoyer : POST /support/nettoyer-archives-jeunes/${ID_POPULATION}`
+          `Archiver : POST /support/archiver-jeunes-migration/${ID_POPULATION}, puis nettoyer : scalingo --app pass-emploi-api-staging run yarn nettoyer-archives-jeunes ${ID_POPULATION}`
         )
         break
       }

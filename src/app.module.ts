@@ -58,7 +58,6 @@ import { AddFavoriOffreServiceCiviqueCommandHandler } from './application/comman
 import { AjouterJeuneListeDeDiffusionCommandHandler } from './application/commands/ajouter-jeune-liste-de-diffusion.command.handler'
 import { ArchiverJeuneCommandHandler } from './application/commands/archiver-jeune.command.handler'
 import { ArchiverJeunesMigrationCommandHandler } from './application/commands/archiver-jeunes-migrations.command.handler'
-import { NettoyerArchivesJeunesCommandHandler } from './application/commands/nettoyer-archives-jeunes.command.handler'
 import { CreateCampagneCommandHandler } from './application/commands/campagne/create-campagne.command.handler'
 import { CreateEvaluationCommandHandler } from './application/commands/campagne/create-evaluation.command.handler'
 import { CloreRendezVousCommandHandler } from './application/commands/clore-rendez-vous.command.handler'
@@ -908,7 +907,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     RecupererJeunesDuConseillerCommandHandler,
     ArchiverJeuneCommandHandler,
     ArchiverJeunesMigrationCommandHandler,
-    NettoyerArchivesJeunesCommandHandler,
     GetMotifsSuppressionJeuneQueryHandler,
     PlanifierExecutionCronCommandHandler,
     UpdateJeunePreferencesCommandHandler,
