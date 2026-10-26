@@ -14,9 +14,9 @@ import { PlanificateurRedisRepository } from '../infrastructure/repositories/pla
 import { databaseProviders } from '../infrastructure/sequelize/providers'
 import { DateService } from '../utils/date-service'
 
-const USAGE = `Usage : yarn nettoyer-archives-jeunes [idPopulation]
+const USAGE = `Usage : yarn tasks:nettoyer-archives-jeunes [idPopulation]
 Planifie le job NETTOYER_ARCHIVES_JEUNES sans attendre le cron de nuit : restreint à la population si elle est fournie, sur toutes les archives à nettoyer sinon.
-Staging : scalingo --app pass-emploi-api-staging run yarn nettoyer-archives-jeunes <idPopulation>`
+Staging : scalingo --app pass-emploi-api-staging run yarn tasks:nettoyer-archives-jeunes <idPopulation>`
 
 @Module({
   imports: [

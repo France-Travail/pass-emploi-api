@@ -567,7 +567,7 @@ Asynchrone : la route planifie le job ARCHIVER_JEUNES_MIGRATION, qui traite les 
   - Suppression de la BDD de son compte utilisateur
   - Envoi d'un email aux jeunes dont le compte est actif
 
-L'accès IdP et le chat sont traités ensuite par le nettoyage des archives : cron de nuit NETTOYER_ARCHIVES_JEUNES, ou \`yarn nettoyer-archives-jeunes\`.
+L'accès IdP et le chat sont traités ensuite par le nettoyage des archives : cron de nuit NETTOYER_ARCHIVES_JEUNES, ou \`yarn tasks:nettoyer-archives-jeunes\`.
 
 \`idPopulation\` est l'id d'une population visée par un déploiement de nature MIGRATION. Un id inconnu renvoie 404.
  `

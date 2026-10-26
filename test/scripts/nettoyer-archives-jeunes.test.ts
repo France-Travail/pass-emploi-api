@@ -22,7 +22,7 @@ describe('nettoyer-archives-jeunes', () => {
 
     it('refuse plus d’un argument', () => {
       expect(() => lireIdPopulation(['PHASE_A', 'PHASE_B'])).to.throw(
-        'Usage : yarn nettoyer-archives-jeunes [idPopulation]'
+        'Usage : yarn tasks:nettoyer-archives-jeunes [idPopulation]'
       )
     })
   })
