@@ -182,10 +182,11 @@ async function qualifierEnSNP(
     return actionMiloResult
   }
 
-  const qualificationResult = await actionMiloRepository.save(
-    actionMiloResult.data,
-    getIdpToken
-  )
+  const qualificationResult =
+    await actionMiloRepository.creerSituationNonProfessionnelle(
+      actionMiloResult.data,
+      getIdpToken
+    )
 
   if (isFailure(qualificationResult)) {
     return qualificationResult

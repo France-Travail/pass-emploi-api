@@ -99,14 +99,15 @@ export class QualifierActionCommandHandler extends CommandHandler<
         return actionMiloResult
       }
 
-      const qualificationResult = await this.actionMiloRepository.save(
-        actionMiloResult.data,
-        () =>
-          this.oidcClient.exchangeToken(
-            command.accessToken,
-            Profil.Structure.MILO
-          )
-      )
+      const qualificationResult =
+        await this.actionMiloRepository.creerSituationNonProfessionnelle(
+          actionMiloResult.data,
+          () =>
+            this.oidcClient.exchangeToken(
+              command.accessToken,
+              Profil.Structure.MILO
+            )
+        )
       if (isFailure(qualificationResult)) {
         return qualificationResult
       }

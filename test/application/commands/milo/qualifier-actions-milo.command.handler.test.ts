@@ -124,7 +124,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
             loginConseiller: 'j.doe'
           }
 
-          actionMiloRepository.save
+          actionMiloRepository.creerSituationNonProfessionnelle
             .withArgs(actionMilo)
             .resolves(emptySuccess())
 
@@ -150,13 +150,13 @@ describe('QualifierActionsMiloCommandHandler', () => {
           expect(actionRepository.save).to.have.been.calledWithExactly(
             actionQualifiee
           )
-          expect(actionMiloRepository.save).to.have.been.calledOnceWith(
-            actionMilo
-          )
+          expect(
+            actionMiloRepository.creerSituationNonProfessionnelle
+          ).to.have.been.calledOnceWith(actionMilo)
           expect(oidcClient.exchangeToken).not.to.have.been.called()
-          expect(await actionMiloRepository.save.firstCall.args[1]()).to.equal(
-            'idpToken'
-          )
+          expect(
+            await actionMiloRepository.creerSituationNonProfessionnelle.firstCall.args[1]()
+          ).to.equal('idpToken')
           expect(result).to.deep.equal(
             success({
               idsActionsEnErreur: []
@@ -170,7 +170,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
             uneActionTerminee({ id: 'action-2' })
           ]
           jeuneRepository.get.resolves(unJeune())
-          actionMiloRepository.save.resolves(emptySuccess())
+          actionMiloRepository.creerSituationNonProfessionnelle.resolves(
+            emptySuccess()
+          )
           const command: QualifierActionsMiloCommand = {
             estSNP: true,
             accessToken: 'accessToken',
@@ -187,7 +189,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
             actions
           )
           const [premierToken, secondToken] = await Promise.all(
-            actionMiloRepository.save.getCalls().map(appel => appel.args[1]())
+            actionMiloRepository.creerSituationNonProfessionnelle
+              .getCalls()
+              .map(appel => appel.args[1]())
           )
 
           // Then
@@ -215,7 +219,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
             .withArgs(actionQualifieeEchoue.idJeune)
             .resolves(unJeune())
 
-          actionMiloRepository.save.resolves(failure(new ErreurHttp('KO', 500)))
+          actionMiloRepository.creerSituationNonProfessionnelle.resolves(
+            failure(new ErreurHttp('KO', 500))
+          )
 
           // When
           const command: QualifierActionsMiloCommand = {
@@ -292,7 +298,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
           expect(actionRepository.save).to.have.been.calledWithExactly(
             actionQualifiee
           )
-          expect(actionMiloRepository.save).not.to.have.been.called()
+          expect(
+            actionMiloRepository.creerSituationNonProfessionnelle
+          ).not.to.have.been.called()
           expect(result).to.deep.equal(
             success({
               idsActionsEnErreur: []

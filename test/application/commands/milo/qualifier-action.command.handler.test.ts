@@ -93,7 +93,9 @@ describe('QualifierActionCommandHandler', () => {
               loginConseiller: 'j.doe'
             }
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
-            actionMiloRepository.save.resolves(emptySuccess())
+            actionMiloRepository.creerSituationNonProfessionnelle.resolves(
+              emptySuccess()
+            )
 
             // When
             const command: QualifierActionCommand = {
@@ -109,12 +111,12 @@ describe('QualifierActionCommandHandler', () => {
             expect(actionRepository.save).to.have.been.calledWithExactly(
               actionQualifiee
             )
-            expect(actionMiloRepository.save).to.have.been.calledOnceWith(
-              actionMilo
-            )
+            expect(
+              actionMiloRepository.creerSituationNonProfessionnelle
+            ).to.have.been.calledOnceWith(actionMilo)
             expect(oidcClient.exchangeToken).not.to.have.been.called()
             expect(
-              await actionMiloRepository.save.firstCall.args[1]()
+              await actionMiloRepository.creerSituationNonProfessionnelle.firstCall.args[1]()
             ).to.equal('idpToken')
             expect(result).to.deep.equal(
               success({
@@ -135,7 +137,7 @@ describe('QualifierActionCommandHandler', () => {
               dateFinReelle: uneDatetime()
             })
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
-            actionMiloRepository.save.resolves(
+            actionMiloRepository.creerSituationNonProfessionnelle.resolves(
               failure(new ErreurHttp('KO', 500))
             )
 
@@ -188,7 +190,9 @@ describe('QualifierActionCommandHandler', () => {
           expect(actionRepository.save).to.have.been.calledWithExactly(
             actionQualifiee
           )
-          expect(actionMiloRepository.save).not.to.have.been.called()
+          expect(
+            actionMiloRepository.creerSituationNonProfessionnelle
+          ).not.to.have.been.called()
           expect(result).to.deep.equal(
             success({
               code: 'NON_SNP',

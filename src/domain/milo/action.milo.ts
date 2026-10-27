@@ -13,7 +13,7 @@ export interface ActionMilo extends Action.Qualifiee {
 
 export namespace ActionMilo {
   export interface Repository {
-    save(
+    creerSituationNonProfessionnelle(
       action: ActionMilo,
       getIdpToken: () => Promise<string>
     ): Promise<Result>

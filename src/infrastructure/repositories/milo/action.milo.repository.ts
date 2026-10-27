@@ -11,7 +11,7 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
     this.logger = new Logger('ActionMiloHttpSqlRepository')
   }
 
-  async save(
+  async creerSituationNonProfessionnelle(
     action: ActionMilo,
     getIdpToken: () => Promise<string>
   ): Promise<Result> {

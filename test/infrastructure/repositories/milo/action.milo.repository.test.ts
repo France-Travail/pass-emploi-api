@@ -17,7 +17,7 @@ describe('ActionMiloHttpRepository', () => {
     repository = new ActionMiloHttpRepository(miloClient)
   })
 
-  describe('save', () => {
+  describe('creerSituationNonProfessionnelle', () => {
     it('délègue à MiloClient.creerSituationDossier', async () => {
       // Given
       const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
@@ -25,7 +25,10 @@ describe('ActionMiloHttpRepository', () => {
       const getIdpToken = async (): Promise<string> => 'idpToken'
 
       // When
-      const result = await repository.save(action, getIdpToken)
+      const result = await repository.creerSituationNonProfessionnelle(
+        action,
+        getIdpToken
+      )
 
       // Then
       expect(miloClient.creerSituationDossier).to.have.been.calledOnce()
@@ -42,7 +45,10 @@ describe('ActionMiloHttpRepository', () => {
       miloClient.creerSituationDossier.resolves(erreur)
 
       // When
-      const result = await repository.save(action, async () => 'idpToken')
+      const result = await repository.creerSituationNonProfessionnelle(
+        action,
+        async () => 'idpToken'
+      )
 
       // Then
       expect(result).to.deep.equal(erreur)
