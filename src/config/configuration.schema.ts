@@ -231,6 +231,7 @@ export const configurationSchema = Joi.object({
   version: Joi.string().required(),
   features: Joi.object({
     envoyerStatsMatomo: Joi.boolean(),
+    notifierJobsMattermost: Joi.boolean(),
     notifierRendezVousMilo: Joi.boolean(),
     recupererStructureMilo: Joi.boolean(),
     activerRecuperationChat: Joi.boolean()

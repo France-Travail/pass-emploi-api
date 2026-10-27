@@ -51,6 +51,7 @@ describe('PoleEmploiPartenaireClient', () => {
   })
 
   beforeEach(async () => {
+    nock.cleanAll()
     await getDatabase().cleanPG()
     databaseForTesting = getDatabase()
     context = stubClass(Context)
@@ -89,6 +90,12 @@ describe('PoleEmploiPartenaireClient', () => {
 
         // Then
         expect(response).to.deep.equal(successApi([]))
+        await waitFor(async () => {
+          const cache = await CacheApiPartenaireSqlModel.findOne({
+            where: { idUtilisateur: utilisateurJeunePE.id }
+          })
+          expect(cache).to.exist()
+        })
       })
     })
     describe("quand l'api est en 500", () => {

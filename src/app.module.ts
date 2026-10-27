@@ -123,10 +123,10 @@ import { SupprimerPopulationCommandHandler } from './application/commands/suppor
 import { AjouterConseillersPopulationCommandHandler } from './application/commands/support/ajouter-conseillers-population.command.handler.db'
 import { SupprimerConseillersPopulationCommandHandler } from './application/commands/support/supprimer-conseillers-population.command.handler.db'
 import { AjouterProfilPopulationCommandHandler } from './application/commands/support/ajouter-profil-population.command.handler.db'
-import { AjouterStructureMiloPopulationCommandHandler } from './application/commands/support/ajouter-structure-milo-population.command.handler.db'
-import { SupprimerStructureMiloPopulationCommandHandler } from './application/commands/support/supprimer-structure-milo-population.command.handler.db'
-import { AjouterAgenceFTPopulationCommandHandler } from './application/commands/support/ajouter-agence-ft-population.command.handler.db'
-import { SupprimerAgenceFTPopulationCommandHandler } from './application/commands/support/supprimer-agence-ft-population.command.handler.db'
+import { AjouterStructuresMiloPopulationCommandHandler } from './application/commands/support/ajouter-structures-milo-population.command.handler.db'
+import { SupprimerStructuresMiloPopulationCommandHandler } from './application/commands/support/supprimer-structures-milo-population.command.handler.db'
+import { AjouterAgencesFTPopulationCommandHandler } from './application/commands/support/ajouter-agences-ft-population.command.handler.db'
+import { SupprimerAgencesFTPopulationCommandHandler } from './application/commands/support/supprimer-agences-ft-population.command.handler.db'
 import { SupprimerProfilPopulationCommandHandler } from './application/commands/support/supprimer-profil-population.command.handler.db'
 import { CreerDeploiementCommandHandler } from './application/commands/support/creer-deploiement.command.handler.db'
 import { SupprimerDeploiementCommandHandler } from './application/commands/support/supprimer-deploiement.command.handler.db'
@@ -185,6 +185,8 @@ import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
 import { EnvoyerCommunicationsJobHandler } from './application/jobs/envoyer-communications.job.handler.db'
 import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
+import { ArchiverJeunesMigrationJobHandler } from './application/jobs/archiver-jeunes-migration.job.handler'
+import { NettoyerArchivesJeunesJobHandler } from './application/jobs/nettoyer-archives-jeunes.job.handler'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
 import { NotifierCampagneJobHandler } from './application/jobs/notifier-campagne.job.handler.db'
 import { NotifierRappelActionJobHandler } from './application/jobs/notifier-rappel-action.job.handler'
@@ -1007,10 +1009,10 @@ export function buildQueryCommandsProviders(): Provider[] {
     AjouterConseillersPopulationCommandHandler,
     SupprimerConseillersPopulationCommandHandler,
     AjouterProfilPopulationCommandHandler,
-    AjouterStructureMiloPopulationCommandHandler,
-    SupprimerStructureMiloPopulationCommandHandler,
-    AjouterAgenceFTPopulationCommandHandler,
-    SupprimerAgenceFTPopulationCommandHandler,
+    AjouterStructuresMiloPopulationCommandHandler,
+    SupprimerStructuresMiloPopulationCommandHandler,
+    AjouterAgencesFTPopulationCommandHandler,
+    SupprimerAgencesFTPopulationCommandHandler,
     SupprimerProfilPopulationCommandHandler,
     CreerDeploiementCommandHandler,
     SupprimerDeploiementCommandHandler,
@@ -1077,7 +1079,9 @@ export const JobHandlerProviders = [
   NotifierNouvelleActualiteMiloJobHandler,
   MajReferentielRomeJobHandler,
   ReconcilierAgencesFTJobHandler,
-  MajReferentielAgencesFTJobHandler
+  MajReferentielAgencesFTJobHandler,
+  ArchiverJeunesMigrationJobHandler,
+  NettoyerArchivesJeunesJobHandler
 ]
 
 @Module(buildModuleMetadata())

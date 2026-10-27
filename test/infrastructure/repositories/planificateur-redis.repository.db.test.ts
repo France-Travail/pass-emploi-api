@@ -308,6 +308,70 @@ describe('PlanificateurRedisRepository', () => {
     })
   })
 
+  describe('chaineDeLotsEnCours', () => {
+    const jobType = Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES
+
+    function unLot(
+      contenu: Planificateur.JobNettoyerArchivesJeunes,
+      type = jobType
+    ): Planificateur.Job<Planificateur.JobNettoyerArchivesJeunes> {
+      return { dateExecution: maintenant.toJSDate(), type, contenu }
+    }
+
+    it('détecte un lot de suite en attente', async () => {
+      // Given
+      await planificateurRedisRepository.ajouterJob(unLot({ apresId: '10' }))
+
+      // When - Then
+      expect(
+        await planificateurRedisRepository.chaineDeLotsEnCours(jobType)
+      ).to.equal(true)
+    })
+
+    it('détecte un lot de suite en cours de traitement', async () => {
+      // Given
+      const queue = planificateurRedisRepository.getQueue()
+      await planificateurRedisRepository.ajouterJob(
+        unLot({ apresId: '10' }),
+        'lot'
+      )
+      await queue.getNextJob()
+      expect(await (await queue.getJob('lot'))?.getState()).to.equal('active')
+
+      // When - Then
+      expect(
+        await planificateurRedisRepository.chaineDeLotsEnCours(jobType)
+      ).to.equal(true)
+    })
+
+    it("ignore le premier job d'une chaîne", async () => {
+      // Given
+      await planificateurRedisRepository.ajouterJob(
+        unLot({ idPopulation: 'PHASE_A' })
+      )
+
+      // When - Then
+      expect(
+        await planificateurRedisRepository.chaineDeLotsEnCours(jobType)
+      ).to.equal(false)
+    })
+
+    it('ignore les autres types de job', async () => {
+      // Given
+      await planificateurRedisRepository.ajouterJob(
+        unLot(
+          { apresId: '10' },
+          Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION
+        )
+      )
+
+      // When - Then
+      expect(
+        await planificateurRedisRepository.chaineDeLotsEnCours(jobType)
+      ).to.equal(false)
+    })
+  })
+
   describe('existePlusQuUnJobActifDeCeType', () => {
     describe('si le redis est accessible', () => {
       it('retourne true uniquement si + de 2 jobs de même type existent en statut active', async () => {

@@ -17,6 +17,8 @@ import {
   unFavoriOffreEngagement,
   unFavoriOffreImmersion
 } from 'test/fixtures/sql-models/favoris.sql-model'
+import { NonTrouveError } from '../../../../src/building-blocks/types/domain-error'
+import { failure } from '../../../../src/building-blocks/types/result'
 import { Core } from '../../../../src/domain/core'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { Profil } from '../../../../src/domain/profil'
@@ -24,6 +26,7 @@ import { CodeTypeRendezVous } from '../../../../src/domain/rendez-vous/rendez-vo
 import { Recherche } from '../../../../src/domain/offre/recherche/recherche'
 import { FirebaseClient } from '../../../../src/infrastructure/clients/firebase-client'
 import { JeuneSqlRepository } from '../../../../src/infrastructure/repositories/jeune/jeune-sql.repository.db'
+import { TransactionSqlService } from '../../../../src/infrastructure/sequelize/transaction-sql.service.db'
 import { RechercheSqlRepository } from '../../../../src/infrastructure/repositories/offre/recherche/recherche-sql.repository.db'
 import { ActionSqlModel } from '../../../../src/infrastructure/sequelize/models/action.sql-model'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
@@ -921,6 +924,96 @@ describe('JeuneSqlRepository', () => {
           })
         ).to.have.lengthOf(1)
       })
+    })
+  })
+
+  describe('supprimerEnMasse', () => {
+    const conseillerDto = unConseillerDto()
+    const premierJeuneDto = unJeuneDto({
+      id: 'premier-jeune',
+      email: 'premier@jeune.fr',
+      idConseiller: conseillerDto.id
+    })
+    const secondJeuneDto = unJeuneDto({
+      id: 'second-jeune',
+      email: 'second@jeune.fr',
+      idConseiller: conseillerDto.id
+    })
+    const jeuneConserveDto = unJeuneDto({
+      id: 'jeune-conserve',
+      email: 'conserve@jeune.fr',
+      idConseiller: conseillerDto.id
+    })
+    const rdvDesJeunesSupprimes = unRendezVousDto({
+      id: 'b1797fa0-804f-11ec-a8a3-0242ac120002'
+    })
+    const rdvAvecUnJeuneConserve = unRendezVousDto({
+      id: 'c28a8fa0-804f-11ec-a8a3-0242ac120002'
+    })
+
+    beforeEach(async () => {
+      await ConseillerSqlModel.creer(conseillerDto)
+      await JeuneSqlModel.bulkCreate([
+        premierJeuneDto,
+        secondJeuneDto,
+        jeuneConserveDto
+      ])
+      await RendezVousSqlModel.bulkCreate([
+        rdvDesJeunesSupprimes,
+        rdvAvecUnJeuneConserve
+      ])
+      await RendezVousJeuneAssociationSqlModel.bulkCreate([
+        { idRendezVous: rdvDesJeunesSupprimes.id, idJeune: premierJeuneDto.id },
+        { idRendezVous: rdvDesJeunesSupprimes.id, idJeune: secondJeuneDto.id },
+        {
+          idRendezVous: rdvAvecUnJeuneConserve.id,
+          idJeune: premierJeuneDto.id
+        },
+        {
+          idRendezVous: rdvAvecUnJeuneConserve.id,
+          idJeune: jeuneConserveDto.id
+        }
+      ])
+    })
+
+    it('supprime les jeunes et leurs seuls rendez-vous devenus orphelins', async () => {
+      // When
+      const idsSupprimes = await jeuneSqlRepository.supprimerEnMasse([
+        premierJeuneDto.id,
+        secondJeuneDto.id,
+        'deja-supprime'
+      ])
+
+      // Then
+      expect(idsSupprimes).to.have.members([
+        premierJeuneDto.id,
+        secondJeuneDto.id
+      ])
+      expect(
+        (await JeuneSqlModel.findAll()).map(jeune => jeune.id)
+      ).to.deep.equal([jeuneConserveDto.id])
+      expect(
+        await RendezVousSqlModel.findByPk(rdvDesJeunesSupprimes.id)
+      ).to.be.null()
+      expect(
+        await RendezVousSqlModel.findByPk(rdvAvecUnJeuneConserve.id)
+      ).not.to.be.null()
+    })
+
+    it("s'annule avec la transaction de l'appelant", async () => {
+      // Given
+      const transactionService = new TransactionSqlService(
+        databaseForTesting.sequelize
+      )
+
+      // When
+      await transactionService.executer(async () => {
+        await jeuneSqlRepository.supprimerEnMasse([premierJeuneDto.id])
+        return failure(new NonTrouveError('Archive', premierJeuneDto.id))
+      })
+
+      // Then
+      expect(await JeuneSqlModel.findByPk(premierJeuneDto.id)).not.to.be.null()
     })
   })
 

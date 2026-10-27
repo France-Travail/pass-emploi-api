@@ -150,6 +150,23 @@ describe('MailBrevoService', () => {
     })
   })
   describe('envoyerEmailJeuneArchive', () => {
+    it('rejette quand Brevo répond en erreur', async () => {
+      // Given
+      const scope = nock(config.get('brevo').url)
+        .post('/v3/smtp/email')
+        .reply(500)
+
+      // When
+      const promesse = mailBrevoService.envoyerEmailJeuneArchive(
+        unJeune(),
+        ArchiveJeune.MotifSuppressionSupport.MIGRATION
+      )
+
+      // Then
+      await expect(promesse).to.be.rejected()
+      expect(scope.isDone()).to.equal(true)
+    })
+
     it('envoie un email MILO avec les bons paramètres', async () => {
       // Given
       const jeune = unJeune()
@@ -444,6 +461,23 @@ describe('MailBrevoService', () => {
         // Then
         expect(scope.isDone()).to.equal(true)
       })
+    })
+
+    it('envoyer ne rejette pas quand Brevo répond en erreur', async () => {
+      // Given
+      const scope = nock(config.get('brevo').url)
+        .post('/v3/smtp/email')
+        .reply(500)
+
+      // When
+      const promesse = mailBrevoService.envoyer({
+        to: [{ email: 'nils.tavernier@passemploi.com', name: 'Nils' }],
+        templateId: 1
+      })
+
+      // Then
+      await expect(promesse).to.be.fulfilled()
+      expect(scope.isDone()).to.equal(true)
     })
   })
 })

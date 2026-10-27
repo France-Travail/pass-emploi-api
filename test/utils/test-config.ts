@@ -136,6 +136,7 @@ export const testConfig = (): ConfigService => {
       poleEmploi: ['api-key-consumer-pole-emploi']
     },
     features: {
+      notifierJobsMattermost: true,
       notifierRendezVousMilo: true,
       recupererStructureMilo: true
     },

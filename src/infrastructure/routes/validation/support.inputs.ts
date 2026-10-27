@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import {
+  ArrayMaxSize,
   ArrayNotEmpty,
   ArrayUnique,
   IsArray,
@@ -247,7 +248,7 @@ export class ProfilPopulationPayload {
   dispositif?: Profil.Dispositif
 }
 
-export class StructureMiloPopulationPayload {
+export class StructuresMiloPopulationPayload {
   @ApiProperty({
     description: "Identifiant d'une population existante",
     example: 'PILOTE_1J1S'
@@ -257,15 +258,21 @@ export class StructureMiloPopulationPayload {
   idPopulation: string
 
   @ApiProperty({
-    description: 'Id de la structure MiLo, voir la table structure_milo',
-    example: '80620S00'
+    type: String,
+    isArray: true,
+    description:
+      'Ids des structures MiLo, voir la table structure_milo, 100 au plus',
+    example: ['80620S00', '75056S00']
   })
-  @IsString()
-  @IsNotEmpty()
-  idStructureMilo: string
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  idStructuresMilo: string[]
 }
 
-export class AgenceFTPopulationPayload {
+export class AgencesFTPopulationPayload {
   @ApiProperty({
     description: "Identifiant d'une population existante",
     example: 'PILOTE_1J1S'
@@ -275,20 +282,26 @@ export class AgenceFTPopulationPayload {
   idPopulation: string
 
   @ApiProperty({
-    description: 'Id de l’agence France Travail, voir la table agence',
-    example: '75056'
+    type: String,
+    isArray: true,
+    description:
+      'Ids des agences France Travail, voir la table agence, 100 au plus',
+    example: ['75056', '13055']
   })
-  @IsString()
-  @IsNotEmpty()
-  idAgence: string
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  idAgences: string[]
 }
 
-export class AjouterAgenceFTPopulationPayload extends AgenceFTPopulationPayload {
+export class AjouterAgencesFTPopulationPayload extends AgencesFTPopulationPayload {
   @ApiPropertyOptional({
     enum: Profil.Dispositif,
     isArray: true,
     description:
-      'Restreint la cible aux conseillers qui portent l’un de ces dispositifs, et à leurs jeunes. Absent = toute l’agence.',
+      'Restreint la cible aux conseillers qui portent l’un de ces dispositifs, et à leurs jeunes. S’applique à toutes les agences de la liste. Absent = toute l’agence.',
     example: ['CEJ', 'AIJ']
   })
   @IsOptional()

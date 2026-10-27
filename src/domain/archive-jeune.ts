@@ -3,7 +3,11 @@ import { Jeune, JeuneRepositoryToken } from './jeune/jeune'
 import { Offre } from './offre/offre'
 import { Recherche } from './offre/recherche/recherche'
 import { CodeTypeRendezVous } from './rendez-vous/rendez-vous'
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import {
+  Transaction,
+  TransactionServiceToken
+} from '../building-blocks/transaction'
 import {
   ArchivageJeuneErreur,
   NonTrouveError
@@ -14,6 +18,7 @@ import {
   AuthentificationRepositoryToken
 } from './authentification'
 import { DateService } from '../utils/date-service'
+import { rootLogger, toEcsError } from '../utils/logger.module'
 import { Mail, MailServiceToken } from './mail'
 import {
   Profil,
@@ -283,7 +288,11 @@ export namespace ArchiveJeune {
     motif: MotifSuppression | MotifSuppressionSupport
     commentaire?: string
     dateArchivage: Date
+    nettoyageDiffere?: boolean
   }
+
+  export type EtapeNettoyageIdp = 'A_REVOQUER'
+  export type EtapeNettoyageChat = 'A_ARCHIVER' | 'A_SUPPRIMER'
 
   export interface RendezVous {
     titre: string
@@ -331,8 +340,53 @@ export namespace ArchiveJeune {
     idPopulation: string | null
   }
 
+  export interface ArchiveConstruite {
+    metadonnees: Metadonnees
+    idStructureMilo: string | null
+    idAuthentification: string | null
+    idConseiller: string | null
+    donnees: ArchiveJeune
+  }
+
+  export interface ArchiveANettoyer {
+    id: number
+    idJeune: string
+    idAuthentification: string | null
+    idPopulation: string | null
+    nettoyageIdp: EtapeNettoyageIdp | null
+    nettoyageChat: EtapeNettoyageChat | null
+  }
+
+  export interface ResultatArchivageEnMasse {
+    idsJeunesArchives: string[]
+    idsArchives: number[]
+    nbEchecsMail: number
+  }
+
+  export interface BilanNettoyage {
+    nbTraites: number
+    nbEchecs: number
+    nbEchecsIdp: number
+    nbEchecsChat: number
+  }
+
   export interface Repository {
     archiver(metadonnes: ArchiveJeune.Metadonnees): Promise<Result>
+    construireArchives(
+      metadonnees: ArchiveJeune.Metadonnees[]
+    ): Promise<ArchiveConstruite[]>
+    enregistrerArchives(archives: ArchiveConstruite[]): Promise<number[]>
+    idsArchivesANettoyer(criteres: {
+      taille: number
+      apresId?: number
+      idPopulation?: string
+    }): Promise<number[]>
+    recupererArchivesANettoyer(
+      idsArchives: number[]
+    ): Promise<ArchiveANettoyer[]>
+    marquerIdpRevoque(idArchive: number): Promise<void>
+    verserLesMessages(idArchive: number, messages: Message[]): Promise<void>
+    marquerChatSupprime(idArchive: number): Promise<void>
     archiverSansDonnees(metadonnees: ArchiveJeune.Metadonnees): Promise<Result>
     getIdsArchivesBefore(date: Date): Promise<number[]>
     trouverArchiveAvecMotif(
@@ -345,8 +399,6 @@ export namespace ArchiveJeune {
 
   @Injectable()
   export class Service {
-    private readonly logger = new Logger('ArchiveJeune.Service')
-
     constructor(
       @Inject(JeuneRepositoryToken)
       private readonly jeuneRepository: Jeune.Repository,
@@ -358,7 +410,9 @@ export namespace ArchiveJeune {
       private readonly authentificationRepository: Authentification.Repository,
       private readonly dateService: DateService,
       @Inject(MailServiceToken)
-      private readonly mailService: Mail.Service
+      private readonly mailService: Mail.Service,
+      @Inject(TransactionServiceToken)
+      private readonly transactionService: Transaction.Service
     ) {}
 
     async archiver(
@@ -367,58 +421,172 @@ export namespace ArchiveJeune {
       motifSuppression: MotifSuppressionSupport,
       idPopulation?: string
     ): Promise<Result> {
-      const jeune = await this.jeuneRepository.get(idJeune)
+      let resultat: ResultatArchivageEnMasse
+      try {
+        resultat = await this.archiverEnMasse(
+          [idJeune],
+          commentaireSuppressionSupport,
+          motifSuppression,
+          idPopulation
+        )
+      } catch (e) {
+        loguerEchecArchivage("Échec lors de l'archivage du jeune", idJeune, e)
+        return failure(new ArchivageJeuneErreur(idJeune))
+      }
 
-      if (!jeune) {
+      if (!resultat.idsJeunesArchives.length) {
         return failure(new NonTrouveError('Jeune', idJeune))
       }
 
-      const estCompteActif =
-        Boolean(jeune.configuration.dateDerniereActivite) &&
-        Boolean(jeune.dateDerniereConnexion)
-
-      await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
-
-      if (estCompteActif) {
-        const metaDonneesArchive: ArchiveJeune.Metadonnees = {
-          idJeune: idJeune,
-          email: jeune.email,
-          prenomJeune: jeune.firstName,
-          nomJeune: jeune.lastName,
-          structure: jeune.structure,
-          dateCreation: jeune.creationDate.toJSDate(),
-          datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
-          motif: motifSuppression,
-          commentaire: commentaireSuppressionSupport,
-          dateArchivage: this.dateService.nowJs(),
-          dispositif: jeune.dispositif ?? undefined,
-          ...(idPopulation && { idPopulation })
-        }
-        try {
-          await this.archiveJeuneRepository.archiver(metaDonneesArchive)
-        } catch (e) {
-          this.logger.warn(`̀Echec lors de l'archivage du jeune ${jeune.id}`, e)
-          return failure(new ArchivageJeuneErreur(jeune.id))
-        }
-      }
-
       try {
-        await this.jeuneRepository.supprimer(idJeune)
+        await this.nettoyerLesArchives(resultat.idsArchives)
       } catch (e) {
-        this.logger.warn(`̀Echec lors de la suppression du jeune ${jeune.id}`, e)
-        return failure(new ArchivageJeuneErreur(jeune.id))
-      }
-
-      try {
-        await this.chatRepository.supprimerChat(idJeune)
-      } catch (e) {
-        this.logger.warn(
-          `̀Echec lors de la suppression du chat du jeune ${jeune.id}`,
+        loguerEchecArchivage(
+          "Échec lors du nettoyage de l'archive du jeune",
+          idJeune,
           e
         )
       }
+      return emptySuccess()
+    }
 
-      if (estCompteActif) {
+    async archiverEnMasse(
+      idsJeunes: string[],
+      commentaireSuppressionSupport: string,
+      motifSuppression: MotifSuppressionSupport,
+      idPopulation?: string
+    ): Promise<ResultatArchivageEnMasse> {
+      const jeunes = await this.jeuneRepository.findAll(idsJeunes)
+      if (!jeunes.length) {
+        return { idsJeunesArchives: [], idsArchives: [], nbEchecsMail: 0 }
+      }
+
+      const archives = await this.archiveJeuneRepository.construireArchives(
+        jeunes.map(jeune =>
+          this.metadonneesArchive(
+            jeune,
+            commentaireSuppressionSupport,
+            motifSuppression,
+            idPopulation
+          )
+        )
+      )
+
+      const { idsJeunesArchives, idsArchives } = await this.supprimerEtArchiver(
+        jeunes,
+        archives
+      )
+      const nbEchecsMail = await this.prevenirLesComptesActifs(
+        jeunes.filter(
+          jeune => idsJeunesArchives.includes(jeune.id) && estCompteActif(jeune)
+        ),
+        motifSuppression,
+        commentaireSuppressionSupport,
+        idPopulation
+      )
+
+      return { idsJeunesArchives, idsArchives, nbEchecsMail }
+    }
+
+    async nettoyerLesArchives(idsArchives: number[]): Promise<BilanNettoyage> {
+      const archives =
+        await this.archiveJeuneRepository.recupererArchivesANettoyer(
+          idsArchives
+        )
+      const bilan: BilanNettoyage = {
+        nbTraites: 0,
+        nbEchecs: 0,
+        nbEchecsIdp: 0,
+        nbEchecsChat: 0
+      }
+      for (const archive of archives) {
+        const idpNettoye = await this.revoquerIdp(archive)
+        const chatNettoye = await this.archiverPuisSupprimerLeChat(archive)
+        if (!idpNettoye) bilan.nbEchecsIdp++
+        if (!chatNettoye) bilan.nbEchecsChat++
+        if (idpNettoye && chatNettoye) bilan.nbTraites++
+        else bilan.nbEchecs++
+      }
+      return bilan
+    }
+
+    private async supprimerEtArchiver(
+      jeunes: Jeune[],
+      archives: ArchiveConstruite[]
+    ): Promise<{ idsJeunesArchives: string[]; idsArchives: number[] }> {
+      let idsJeunesArchives: string[] = []
+      let idsArchives: number[] = []
+      await this.transactionService.executer(async () => {
+        idsJeunesArchives = await this.jeuneRepository.supprimerEnMasse(
+          jeunes.map(({ id }) => id)
+        )
+        idsArchives = await this.archiveJeuneRepository.enregistrerArchives(
+          archives.filter(({ metadonnees }) =>
+            idsJeunesArchives.includes(metadonnees.idJeune)
+          )
+        )
+        return emptySuccess()
+      })
+      return { idsJeunesArchives, idsArchives }
+    }
+
+    private async revoquerIdp(archive: ArchiveANettoyer): Promise<boolean> {
+      if (!archive.nettoyageIdp) return true
+      try {
+        if (archive.idAuthentification) {
+          await this.authentificationRepository.supprimerCompteIdp(
+            archive.idAuthentification
+          )
+        }
+        await this.archiveJeuneRepository.marquerIdpRevoque(archive.id)
+        return true
+      } catch (e) {
+        loguerEchecNettoyage(
+          'Échec lors de la suppression du compte IdP du jeune',
+          archive,
+          'idp',
+          e
+        )
+        return false
+      }
+    }
+
+    private async archiverPuisSupprimerLeChat(
+      archive: ArchiveANettoyer
+    ): Promise<boolean> {
+      if (!archive.nettoyageChat) return true
+      try {
+        if (archive.nettoyageChat === 'A_ARCHIVER') {
+          const messages = await this.chatRepository.recupererMessagesAArchiver(
+            archive.idJeune
+          )
+          await this.archiveJeuneRepository.verserLesMessages(
+            archive.id,
+            messages
+          )
+        }
+        await this.chatRepository.supprimerChat(archive.idJeune)
+        await this.archiveJeuneRepository.marquerChatSupprime(archive.id)
+        return true
+      } catch (e) {
+        loguerEchecNettoyage(
+          "Échec lors de l'archivage ou de la suppression du chat du jeune",
+          archive,
+          'chat',
+          e
+        )
+        return false
+      }
+    }
+
+    private async prevenirLesComptesActifs(
+      jeunes: Jeune[],
+      motifSuppression: MotifSuppressionSupport,
+      commentaireSuppressionSupport: string,
+      idPopulation?: string
+    ): Promise<number> {
+      let nbEchecs = 0
+      for (const jeune of jeunes) {
         try {
           await this.mailService.envoyerEmailJeuneArchive(
             jeune,
@@ -426,14 +594,92 @@ export namespace ArchiveJeune {
             commentaireSuppressionSupport
           )
         } catch (e) {
-          this.logger.warn(
-            `̀Echec lors de l'envoi du mail au jeune ${jeune.id}`,
-            e
+          loguerEchecArchivage(
+            "Échec lors de l'envoi du mail au jeune",
+            jeune.id,
+            e,
+            'mail',
+            idPopulation
           )
+          nbEchecs++
         }
       }
+      return nbEchecs
+    }
 
-      return emptySuccess()
+    private metadonneesArchive(
+      jeune: Jeune,
+      commentaireSuppressionSupport: string,
+      motifSuppression: MotifSuppressionSupport,
+      idPopulation?: string
+    ): Metadonnees {
+      return {
+        idJeune: jeune.id,
+        email: jeune.email,
+        prenomJeune: jeune.firstName,
+        nomJeune: jeune.lastName,
+        structure: jeune.structure,
+        dateCreation: jeune.creationDate.toJSDate(),
+        datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+        motif: motifSuppression,
+        commentaire: commentaireSuppressionSupport,
+        dateArchivage: this.dateService.nowJs(),
+        dispositif: jeune.dispositif ?? undefined,
+        ...(idPopulation && { idPopulation }),
+        nettoyageDiffere: true
+      }
     }
   }
+}
+
+function estCompteActif(jeune: Jeune): boolean {
+  return (
+    Boolean(jeune.configuration.dateDerniereActivite) &&
+    Boolean(jeune.dateDerniereConnexion)
+  )
+}
+
+function loguerEchecArchivage(
+  message: string,
+  idJeune: string,
+  error: unknown,
+  etape?: 'mail',
+  idPopulation?: string
+): void {
+  rootLogger.error(
+    {
+      context: 'ArchiveJeune.Service',
+      labels: {
+        jeune_id: idJeune,
+        ...(etape && { etape }),
+        ...(idPopulation && { population_id: idPopulation })
+      },
+      error: toEcsError(error)
+    },
+    message
+  )
+}
+
+function loguerEchecNettoyage(
+  message: string,
+  archive: ArchiveJeune.ArchiveANettoyer,
+  etape: 'idp' | 'chat',
+  error: unknown
+): void {
+  rootLogger.error(
+    {
+      context: 'ArchiveJeune.Service',
+      labels: {
+        jeune_id: archive.idJeune,
+        etape,
+        ...(archive.idPopulation && { population_id: archive.idPopulation }),
+        ...(etape === 'idp' &&
+          archive.idAuthentification && {
+            authentification_id: archive.idAuthentification
+          })
+      },
+      error: toEcsError(error)
+    },
+    message
+  )
 }

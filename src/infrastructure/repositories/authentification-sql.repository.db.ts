@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { isAxiosError } from 'axios'
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException
+} from '@nestjs/common'
 import { Op } from 'sequelize'
 import {
   ConseillerInactifError,
@@ -23,6 +29,7 @@ import {
   fromJeuneInviteSqlToUtilisateur,
   fromJeuneSqlToUtilisateur
 } from './mappers/authentification.mappers'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 
 @Injectable()
 export class AuthentificationSqlOidcRepository
@@ -238,11 +245,18 @@ export class AuthentificationSqlOidcRepository
       await this.oidcClient.deleteAccount(idUserCEJ)
       this.logger.debug(`Utilisateur ${idUserCEJ} supprimé de OIDC SSO`)
     } catch (e) {
-      this.logger.warn(`Echec suppression compte OIDC ${idUserCEJ}`, e)
+      rootLogger[estCompteIdpIntrouvable(e) ? 'info' : 'error'](
+        {
+          context: 'AuthentificationSqlOidcRepository',
+          labels: { utilisateur_id: idUserCEJ },
+          error: toEcsError(e)
+        },
+        'Échec de la suppression du compte OIDC'
+      )
     }
   }
 
-  async supprimerCompteIdpInvite(idAuthentification: string): Promise<void> {
+  async supprimerCompteIdp(idAuthentification: string): Promise<void> {
     await this.oidcClient.deleteAccountByIdAuth(idAuthentification)
   }
 
@@ -294,4 +308,11 @@ export class AuthentificationSqlOidcRepository
       throw e
     }
   }
+}
+
+function estCompteIdpIntrouvable(error: unknown): boolean {
+  return (
+    error instanceof NotFoundException ||
+    (isAxiosError(error) && error.response?.status === 404)
+  )
 }

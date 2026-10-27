@@ -81,6 +81,10 @@ export class ChatFirebaseRepository implements Chat.Repository {
     return this.firebaseClient.getNombreDeConversationsNonLues(conseillerId)
   }
 
+  recupererMessagesAArchiver(idJeune: string): Promise<ArchiveJeune.Message[]> {
+    return this.firebaseClient.getChatAArchiver(idJeune)
+  }
+
   supprimerChat(idJeune: string): Promise<void> {
     return this.firebaseClient.supprimerChat(idJeune)
   }

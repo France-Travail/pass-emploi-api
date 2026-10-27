@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common'
-import { Op } from 'sequelize'
+import { col, fn, Op, WhereOptions } from 'sequelize'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
-  isFailure,
-  Result,
-  success
+  Result
 } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { ArchiveJeune } from '../../domain/archive-jeune'
 import { FirebaseClient } from '../clients/firebase-client'
 import { ActionSqlModel } from '../sequelize/models/action.sql-model'
-import { ArchiveJeuneSqlModel } from '../sequelize/models/archive-jeune.sql-model'
+import {
+  ArchiveJeuneDto,
+  ArchiveJeuneSqlModel
+} from '../sequelize/models/archive-jeune.sql-model'
 import { CommentaireSqlModel } from '../sequelize/models/commentaire.sql-model'
 import { ConseillerSqlModel } from '../sequelize/models/conseiller.sql-model'
 import { FavoriOffreEmploiSqlModel } from '../sequelize/models/favori-offre-emploi.sql-model'
@@ -22,6 +23,7 @@ import { JeuneSqlModel } from '../sequelize/models/jeune.sql-model'
 import { RechercheSqlModel } from '../sequelize/models/recherche.sql-model'
 import { RendezVousSqlModel } from '../sequelize/models/rendez-vous.sql-model'
 import { TransfertConseillerSqlModel } from '../sequelize/models/transfert-conseiller.sql-model'
+import { AsSql } from '../sequelize/types'
 import { toFavoriOffreEmploi } from './mappers/offres-emploi.mappers'
 import { fromSqlToFavorisOffreImmersion } from './mappers/offres-immersion.mappers'
 import { fromSqlToRecherche } from './mappers/recherches.mappers'
@@ -32,23 +34,202 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
   constructor(private firebaseClient: FirebaseClient) {}
 
   async archiver(metadonnees: ArchiveJeune.Metadonnees): Promise<Result> {
-    const archiveResult = await this.construire(metadonnees)
-    if (isFailure(archiveResult)) return archiveResult
-
-    await this.creerLigne(
-      metadonnees,
-      archiveResult.data.idStructureMilo,
-      archiveResult.data.donnees
+    const [archive] = await this.construireArchives([metadonnees])
+    if (!archive) {
+      return failure(new MauvaiseCommandeError('Jeune déjà supprimé'))
+    }
+    const messages = await this.firebaseClient.getChatAArchiver(
+      metadonnees.idJeune
     )
-
+    await ArchiveJeuneSqlModel.creer(
+      versLigneArchive({
+        ...archive,
+        donnees: { ...archive.donnees, messages }
+      })
+    )
     return emptySuccess()
+  }
+
+  async construireArchives(
+    metadonnees: ArchiveJeune.Metadonnees[]
+  ): Promise<ArchiveJeune.ArchiveConstruite[]> {
+    if (!metadonnees.length) return []
+    const idsJeunes = metadonnees.map(({ idJeune }) => idJeune)
+
+    const jeunesSql = await JeuneSqlModel.findAll({
+      where: { id: { [Op.in]: idsJeunes } },
+      include: [
+        ConseillerSqlModel,
+        {
+          model: TransfertConseillerSqlModel,
+          include: [
+            {
+              as: 'conseillerSource',
+              model: ConseillerSqlModel
+            },
+            {
+              as: 'conseillerCible',
+              model: ConseillerSqlModel
+            }
+          ]
+        }
+      ]
+    })
+    const rdvs = await RendezVousSqlModel.findAll({
+      include: [
+        {
+          model: JeuneSqlModel,
+          where: { id: { [Op.in]: idsJeunes } },
+          include: [ConseillerSqlModel]
+        }
+      ]
+    })
+    const actions = await ActionSqlModel.findAll({
+      include: [
+        {
+          model: CommentaireSqlModel
+        }
+      ],
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+    const favorisOffreEmploi = await FavoriOffreEmploiSqlModel.findAll({
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+    const favorisOffreImmersion = await FavoriOffreImmersionSqlModel.findAll({
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+    const favorisOffreEngagement = await FavoriOffreEngagementSqlModel.findAll({
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+    const recherches = await RechercheSqlModel.findAll({
+      where: { idJeune: { [Op.in]: idsJeunes } }
+    })
+
+    const archives: ArchiveJeune.ArchiveConstruite[] = []
+    for (const metadonneesJeune of metadonnees) {
+      const idJeune = metadonneesJeune.idJeune
+      const jeuneSql = jeunesSql.find(({ id }) => id === idJeune)
+      if (!jeuneSql) continue
+
+      archives.push({
+        metadonnees: metadonneesJeune,
+        idStructureMilo: jeuneSql.idStructureMilo ?? null,
+        idAuthentification: jeuneSql.idAuthentification ?? null,
+        idConseiller: jeuneSql.idConseiller ?? null,
+        donnees: this.mapToArchiveJeune(
+          jeuneSql,
+          metadonneesJeune,
+          rdvs.filter(rdv => rdv.jeunes.some(({ id }) => id === idJeune)),
+          actions.filter(action => action.idJeune === idJeune),
+          favorisOffreEmploi.filter(favori => favori.idJeune === idJeune),
+          favorisOffreImmersion.filter(favori => favori.idJeune === idJeune),
+          favorisOffreEngagement.filter(favori => favori.idJeune === idJeune),
+          recherches.filter(recherche => recherche.idJeune === idJeune)
+        )
+      })
+    }
+    return archives
+  }
+
+  async enregistrerArchives(
+    archives: ArchiveJeune.ArchiveConstruite[]
+  ): Promise<number[]> {
+    if (!archives.length) return []
+    const archivesSql = await ArchiveJeuneSqlModel.bulkCreate(
+      archives.map(versLigneArchive)
+    )
+    return archivesSql.map(({ id }) => id)
+  }
+
+  async idsArchivesANettoyer({
+    taille,
+    apresId,
+    idPopulation
+  }: {
+    taille: number
+    apresId?: number
+    idPopulation?: string
+  }): Promise<number[]> {
+    const where: WhereOptions<ArchiveJeuneSqlModel> = {
+      [Op.or]: [
+        { nettoyageIdp: { [Op.ne]: null } },
+        { nettoyageChat: { [Op.ne]: null } }
+      ],
+      ...(apresId !== undefined && { id: { [Op.gt]: apresId } }),
+      ...(idPopulation && { idPopulation })
+    }
+    const archivesSql = await ArchiveJeuneSqlModel.findAll({
+      attributes: ['id'],
+      where,
+      order: [['id', 'ASC']],
+      limit: taille
+    })
+    return archivesSql.map(({ id }) => id)
+  }
+
+  async recupererArchivesANettoyer(
+    idsArchives: number[]
+  ): Promise<ArchiveJeune.ArchiveANettoyer[]> {
+    if (!idsArchives.length) return []
+    const archivesSql = await ArchiveJeuneSqlModel.findAll({
+      attributes: [
+        'id',
+        'idJeune',
+        'idAuthentification',
+        'idPopulation',
+        'nettoyageIdp',
+        'nettoyageChat'
+      ],
+      where: { id: { [Op.in]: idsArchives } },
+      order: [['id', 'ASC']]
+    })
+    return archivesSql.map(archiveSql => ({
+      id: archiveSql.id,
+      idJeune: archiveSql.idJeune,
+      idAuthentification: archiveSql.idAuthentification,
+      idPopulation: archiveSql.idPopulation,
+      nettoyageIdp: archiveSql.nettoyageIdp,
+      nettoyageChat: archiveSql.nettoyageChat
+    }))
+  }
+
+  async marquerIdpRevoque(idArchive: number): Promise<void> {
+    await ArchiveJeuneSqlModel.update(
+      { nettoyageIdp: null },
+      { where: { id: idArchive } }
+    )
+  }
+
+  async verserLesMessages(
+    idArchive: number,
+    messages: ArchiveJeune.Message[]
+  ): Promise<void> {
+    await ArchiveJeuneSqlModel.update(
+      {
+        donnees: fn(
+          'jsonb_set',
+          col('donnees'),
+          '{messages}',
+          JSON.stringify(messages)
+        ),
+        nettoyageChat: 'A_SUPPRIMER'
+      },
+      { where: { id: idArchive } }
+    )
+  }
+
+  async marquerChatSupprime(idArchive: number): Promise<void> {
+    await ArchiveJeuneSqlModel.update(
+      { nettoyageChat: null },
+      { where: { id: idArchive } }
+    )
   }
 
   async archiverSansDonnees(
     metadonnees: ArchiveJeune.Metadonnees
   ): Promise<Result> {
     const jeuneSqlModel = await JeuneSqlModel.findByPk(metadonnees.idJeune, {
-      attributes: ['idStructureMilo']
+      attributes: ['idStructureMilo', 'idAuthentification', 'idConseiller']
     })
     const donneesVides: ArchiveJeune = {
       rendezVous: [],
@@ -63,37 +244,16 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
       historiqueConseillers: [],
       messages: []
     }
-    await this.creerLigne(
-      metadonnees,
-      jeuneSqlModel?.idStructureMilo ?? null,
-      donneesVides
+    await ArchiveJeuneSqlModel.creer(
+      versLigneArchive({
+        metadonnees,
+        idStructureMilo: jeuneSqlModel?.idStructureMilo ?? null,
+        idAuthentification: jeuneSqlModel?.idAuthentification ?? null,
+        idConseiller: jeuneSqlModel?.idConseiller ?? null,
+        donnees: donneesVides
+      })
     )
     return emptySuccess()
-  }
-
-  private async creerLigne(
-    metadonnees: ArchiveJeune.Metadonnees,
-    idStructureMilo: string | null,
-    donnees: ArchiveJeune
-  ): Promise<void> {
-    await ArchiveJeuneSqlModel.creer({
-      idJeune: metadonnees.idJeune,
-      email: metadonnees.email ?? null,
-      prenom: metadonnees.prenomJeune,
-      nom: metadonnees.nomJeune,
-      structure: metadonnees.structure,
-      dispositif: metadonnees.dispositif ?? null,
-      idPopulation: metadonnees.idPopulation ?? null,
-      idPartenaire: metadonnees.idPartenaire ?? null,
-      dateCreation: metadonnees.dateCreation,
-      datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
-      dateFinAccompagnement: metadonnees.dateFinAccompagnement ?? null,
-      motif: metadonnees.motif,
-      commentaire: metadonnees.commentaire ?? null,
-      dateArchivage: metadonnees.dateArchivage,
-      idStructureMilo: idStructureMilo ?? null,
-      donnees: donnees
-    })
   }
 
   async findById(idArchive: number): Promise<boolean> {
@@ -144,83 +304,6 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     return { idPopulation: archiveSql.idPopulation }
   }
 
-  private async construire(
-    metadonnes: ArchiveJeune.Metadonnees
-  ): Promise<
-    Result<{ donnees: ArchiveJeune; idStructureMilo: string | null }>
-  > {
-    const idJeune = metadonnes.idJeune
-
-    const messages = await this.firebaseClient.getChatAArchiver(idJeune)
-    const jeuneSqlModel = await JeuneSqlModel.findByPk(idJeune, {
-      include: [
-        ConseillerSqlModel,
-        {
-          model: TransfertConseillerSqlModel,
-          include: [
-            {
-              as: 'conseillerSource',
-              model: ConseillerSqlModel
-            },
-            {
-              as: 'conseillerCible',
-              model: ConseillerSqlModel
-            }
-          ]
-        }
-      ]
-    })
-
-    if (!jeuneSqlModel) {
-      return failure(new MauvaiseCommandeError('Jeune déjà supprimé'))
-    }
-
-    const rdv = await RendezVousSqlModel.findAll({
-      include: [
-        {
-          model: JeuneSqlModel,
-          where: { id: idJeune },
-          include: [ConseillerSqlModel]
-        }
-      ]
-    })
-    const actions = await ActionSqlModel.findAll({
-      include: [
-        {
-          model: CommentaireSqlModel
-        }
-      ],
-      where: { idJeune }
-    })
-    const favorisOffreEmploi = await FavoriOffreEmploiSqlModel.findAll({
-      where: { idJeune }
-    })
-    const favorisOffreImmersion = await FavoriOffreImmersionSqlModel.findAll({
-      where: { idJeune }
-    })
-    const favorisOffreEngagement = await FavoriOffreEngagementSqlModel.findAll({
-      where: { idJeune }
-    })
-    const recherches = await RechercheSqlModel.findAll({
-      where: { idJeune }
-    })
-
-    return success({
-      donnees: this.mapToArchiveJeune(
-        jeuneSqlModel,
-        metadonnes,
-        rdv,
-        actions,
-        favorisOffreEmploi,
-        favorisOffreImmersion,
-        favorisOffreEngagement,
-        recherches,
-        messages
-      ),
-      idStructureMilo: jeuneSqlModel.idStructureMilo ?? null
-    })
-  }
-
   private mapToArchiveJeune(
     jeuneSqlModel: JeuneSqlModel,
     metadonnes: ArchiveJeune.Metadonnees,
@@ -229,8 +312,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     favorisOffreEmploi: FavoriOffreEmploiSqlModel[],
     favorisOffreImmersion: FavoriOffreImmersionSqlModel[],
     favorisOffreEngagement: FavoriOffreEngagementSqlModel[],
-    recherches: RechercheSqlModel[],
-    messages: ArchiveJeune.Message[]
+    recherches: RechercheSqlModel[]
   ): ArchiveJeune {
     return {
       rendezVous: rdv.map(this.toRendezVousArchive),
@@ -261,7 +343,7 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
           },
           dateDeTransfert: transfertSql.dateTransfert
         })) ?? [],
-      messages
+      messages: []
     }
   }
 
@@ -307,5 +389,37 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
         }
       })
     }))
+  }
+}
+
+function versLigneArchive({
+  metadonnees,
+  idStructureMilo,
+  idAuthentification,
+  idConseiller,
+  donnees
+}: ArchiveJeune.ArchiveConstruite): AsSql<Omit<ArchiveJeuneDto, 'id'>> {
+  return {
+    idJeune: metadonnees.idJeune,
+    email: metadonnees.email ?? null,
+    prenom: metadonnees.prenomJeune,
+    nom: metadonnees.nomJeune,
+    structure: metadonnees.structure,
+    dispositif: metadonnees.dispositif ?? null,
+    idPopulation: metadonnees.idPopulation ?? null,
+    idPartenaire: metadonnees.idPartenaire ?? null,
+    dateCreation: metadonnees.dateCreation,
+    datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
+    dateFinAccompagnement: metadonnees.dateFinAccompagnement ?? null,
+    motif: metadonnees.motif,
+    commentaire: metadonnees.commentaire ?? null,
+    dateArchivage: metadonnees.dateArchivage,
+    idStructureMilo,
+    idAuthentification,
+    idConseiller,
+    nettoyageIdp:
+      metadonnees.nettoyageDiffere && idAuthentification ? 'A_REVOQUER' : null,
+    nettoyageChat: metadonnees.nettoyageDiffere ? 'A_ARCHIVER' : null,
+    donnees
   }
 }

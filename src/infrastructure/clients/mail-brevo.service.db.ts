@@ -60,16 +60,20 @@ export class MailBrevoService
 
   async envoyer(data: MailDataDto): Promise<void> {
     try {
-      await this.axios.post(`${this.brevoUrl}/v3/smtp/email`, data, {
-        headers: {
-          'api-key': `${this.apiKey}`,
-          accept: 'application/json',
-          'content-type': 'application/json'
-        }
-      })
+      await this.envoyerOuEchouer(data)
     } catch (_e) {
       // erreur déjà loguée par l'intercepteur external-api-logger
     }
+  }
+
+  private async envoyerOuEchouer(data: MailDataDto): Promise<void> {
+    await this.axios.post(`${this.brevoUrl}/v3/smtp/email`, data, {
+      headers: {
+        'api-key': `${this.apiKey}`,
+        accept: 'application/json',
+        'content-type': 'application/json'
+      }
+    })
   }
 
   async envoyerMailConversationsNonLues(
@@ -191,7 +195,7 @@ export class MailBrevoService
         commentaireMotif: commentaire
       }
     }
-    await this.envoyer(mailDataDto)
+    await this.envoyerOuEchouer(mailDataDto)
   }
 
   async mettreAJourMailingList(

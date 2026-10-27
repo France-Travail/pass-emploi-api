@@ -138,6 +138,8 @@ export namespace Jeune {
 
     supprimer(idJeune: string): Promise<void>
 
+    supprimerEnMasse(idsJeunes: string[]): Promise<string[]>
+
     transferAndSaveAll(
       jeunes: Jeune[],
       idConseillerCible: string,

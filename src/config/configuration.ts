@@ -298,6 +298,8 @@ export default () => {
     version: process.env.npm_package_version ?? '0.0.0',
     features: {
       envoyerStatsMatomo: process.env.FEATURE_ENVOYER_STATS_MATOMO === 'true',
+      notifierJobsMattermost:
+        process.env.FEATURE_NOTIFIER_JOBS_MATTERMOST === 'true',
       notifierRendezVousMilo: process.env.FEATURE_NOTIFIER_RDV_MILO === 'true',
       recupererStructureMilo:
         process.env.FEATURE_RECUPERER_STRUCTURE_MILO === 'true',

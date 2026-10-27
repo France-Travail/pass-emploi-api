@@ -13,6 +13,7 @@ export interface SuiviJob {
   tempsExecution: number
   erreur?: { stack?: string; message?: string }
   silencieux?: boolean
+  intermediaire?: boolean
 }
 
 export interface RapportJob24h {
@@ -64,7 +65,9 @@ export function estNotifiable(suiviJob: SuiviJob): boolean {
       Planificateur.JobType.RECUPERER_ANALYSE_ANTIVIRUS,
       Planificateur.JobType.CLORE_SESSIONS,
       Planificateur.JobType.NOTIFIER_NOUVELLE_ACTUALITE_MILO,
-      Planificateur.JobType.ENVOYER_COMMUNICATIONS
+      Planificateur.JobType.ENVOYER_COMMUNICATIONS,
+      Planificateur.JobType.ARCHIVER_JEUNES_MIGRATION,
+      Planificateur.JobType.NETTOYER_ARCHIVES_JEUNES
     ].includes(suiviJob.jobType)
   )
 }

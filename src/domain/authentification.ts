@@ -121,7 +121,7 @@ export namespace Authentification {
 
     deleteUtilisateurIdp(idUserCEJ: string): Promise<void>
 
-    supprimerCompteIdpInvite(idAuthentification: string): Promise<void>
+    supprimerCompteIdp(idAuthentification: string): Promise<void>
 
     estConseillerSuperviseur(
       profil: Profil,
