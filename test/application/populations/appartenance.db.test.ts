@@ -4,7 +4,6 @@ import { QueryTypes } from 'sequelize'
 import {
   ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
   ANALYTICS_COMMUNICATIONS_TABLE_NAME,
-  ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
   ANALYTICS_POPULATION_MEMBRES_TABLE_NAME,
   ChargerLesPopulationsJobHandler
 } from '../../../src/application/jobs/analytics/0bis-charger-les-populations.job'
@@ -338,7 +337,6 @@ describe('Appartenance à une population', () => {
       DROP TABLE IF EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATIONS_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
-      DROP TABLE IF EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
     `)
   })
 
@@ -637,7 +635,7 @@ describe('Appartenance à une population', () => {
     expect(idsJeunesFiges).to.have.members(idsJeunesDans)
   })
 
-  it('remplit les tables analytics avec les membres des populations, déploiements et communications', async () => {
+  it('remplit les tables analytics avec les membres des populations et les destinataires des communications', async () => {
     const handler = new ChargerLesPopulationsJobHandler(
       suiviJobService,
       dateService
@@ -688,18 +686,6 @@ describe('Appartenance à une population', () => {
         "id_population = 'PILOTE' AND type_utilisateur = 'JEUNE'"
       )
     ).to.have.members(jeunesDans)
-    expect(
-      await lire(
-        ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-        "id_population = 'PILOTE' AND type_utilisateur = 'CONSEILLER'"
-      )
-    ).to.have.members([...conseillersDans, ...conseillersDans])
-    expect(
-      await lire(
-        ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-        "id_population = 'PILOTE' AND type_utilisateur = 'JEUNE'"
-      )
-    ).to.have.members([...jeunesDans, ...jeunesDans])
     expect(
       await lire(
         ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,

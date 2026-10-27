@@ -5,13 +5,6 @@ import { Deploiement } from '../../domain/deploiement'
 import { Fonctionnalite } from '../../domain/fonctionnalite'
 import { SequelizeInjectionToken } from '../sequelize/providers'
 
-export function sqlDeploiementActif(
-  aliasDep: string,
-  maintenant: string
-): string {
-  return `${aliasDep}.date_activation <= ${maintenant}`
-}
-
 @Injectable()
 export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
   constructor(
@@ -30,7 +23,7 @@ export class FonctionnaliteSqlRepository implements Fonctionnalite.Repository {
         FROM deploiement
         WHERE nature = :nature
           AND id_population IN (:idsPopulations)
-          AND ${sqlDeploiementActif('deploiement', ':maintenant')}
+          AND date_activation <= :maintenant
         ORDER BY id_fonctionnalite
       `,
       {
