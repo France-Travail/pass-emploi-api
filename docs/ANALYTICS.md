@@ -164,7 +164,7 @@ dans une transaction, `date_calcul` identique sur toutes les lignes) :
 | `analytics_population_membres` | (population, conseiller ou jeune) | `email_conseiller_reference`, `type_conseiller_reference` (`ACTUEL` / `INITIAL` si transfert temporaire) | — |
 | `analytics_communications` | communication | `destinataire`, `type`, `push`, `type_notification`, `titre`, `contenu`, `cta_label`, `date_debut`, `date_fin`, `statut_envoi`, `envoi_termine_le`, `nb_destinataires`, `nb_a_envoyer`, `nb_en_cours`, `nb_envoyees`, `nb_erreurs`, `nb_tokens_invalides` | comme ci-dessous |
 | `analytics_communication_destinataires` | (communication, conseiller ou jeune destinataire) | `destinataire`, `type`, `titre`, `contenu`, `date_debut`, `date_fin`, `statut_envoi` et `date_traitement_envoi` (statut et date de l'envoi au jeune) | `PASSEE` / `EN_COURS` / `PREVUE` — une `NOTIFICATION` (sans `date_fin`) est `PASSEE` dès sa `date_debut` |
-| `analytics_deploiement_membres` | (déploiement, conseiller concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
+| `analytics_deploiement_membres` | (déploiement, conseiller ou jeune concerné) | `nature`, `id_fonctionnalite`, `date_activation` | `PREVU` / `ACTIF` |
 
 Toutes portent l'identité de l'utilisateur (`email`, `nom`, `prenom`), son profil (`structure`,
 `dispositif`) et son lieu d'accompagnement (`id_agence` / `agence` : id et nom de la

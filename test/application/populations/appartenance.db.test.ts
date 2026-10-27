@@ -650,9 +650,15 @@ describe('Appartenance à une population', () => {
     expect(
       await lire(
         ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-        "id_population = 'PILOTE'"
+        "id_population = 'PILOTE' AND type_utilisateur = 'CONSEILLER'"
       )
     ).to.have.members([...conseillersDans, ...conseillersDans])
+    expect(
+      await lire(
+        ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+        "id_population = 'PILOTE' AND type_utilisateur = 'JEUNE'"
+      )
+    ).to.have.members([...jeunesDans, ...jeunesDans])
     expect(
       await lire(
         ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
