@@ -52,7 +52,8 @@ export const configurationSchema = Joi.object({
     emailsConseillersV2: Joi.array().items(Joi.string()), // todo: supprimer après migration API MiLo
     apiV2Enabled: Joi.boolean().default(false),
     apiKeyDossierCej: Joi.string().required(),
-    apiKeyDossier: Joi.string().required(),
+    apiKeyJwtDossierCej: Joi.string().required(),
+    apiKeyJwtDossier: Joi.string().required(),
     apiKeyJwtJeune: Joi.string().required(),
     apiKeyJwtSessions: Joi.string().required(),
     apiKeySessions: Joi.string().required(),

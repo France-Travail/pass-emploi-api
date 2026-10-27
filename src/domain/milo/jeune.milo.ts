@@ -54,7 +54,10 @@ export namespace JeuneMilo {
 
   export interface Repository {
     get(id: string): Promise<Result<JeuneMilo>>
-    getDossier(id: string): Promise<Result<Dossier>>
+    getDossier(
+      id: string,
+      getIdpToken?: () => Promise<string>
+    ): Promise<Result<Dossier>>
     getByIdDossier(
       idDossier: string,
       options?: { includeConseiller: boolean }
