@@ -125,12 +125,16 @@ describe('JeuneMiloHttpRepository', () => {
         codeStructure: '65440S00'
       }
       miloClient.getDossier.resolves(success(dossierAttendu))
+      const getIdpToken = async (): Promise<string> => 'idpToken'
 
       // When
-      const result = await miloHttpSqlRepository.getDossier('1')
+      const result = await miloHttpSqlRepository.getDossier('1', getIdpToken)
 
       // Then
-      expect(miloClient.getDossier).to.have.been.calledOnceWithExactly('1')
+      expect(miloClient.getDossier).to.have.been.calledOnceWithExactly(
+        '1',
+        getIdpToken
+      )
       expect(result).to.deep.equal(success(dossierAttendu))
     })
   })

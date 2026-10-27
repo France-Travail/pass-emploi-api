@@ -27,6 +27,8 @@ import { unJeune } from '../../../fixtures/jeune.fixture'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { uneDatetime } from '../../../fixtures/date.fixture'
 import { ActionMilo } from '../../../../src/domain/milo/action.milo'
+import { Profil } from '../../../../src/domain/profil'
+import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
 
 describe('QualifierActionCommandHandler', () => {
   let actionRepository: StubbedType<Action.Repository>
@@ -34,6 +36,7 @@ describe('QualifierActionCommandHandler', () => {
   let actionAuthorizer: StubbedClass<ActionAuthorizer>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let evenementService: StubbedClass<EvenementService>
+  let oidcClient: StubbedClass<OidcClient>
   let qualifierActionCommandHandler: QualifierActionCommandHandler
 
   const idAction = '35399853-f224-4910-8d02-44fb1ac85606'
@@ -46,6 +49,10 @@ describe('QualifierActionCommandHandler', () => {
     actionAuthorizer = stubClass(ActionAuthorizer)
     jeuneRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
+    oidcClient = stubClass(OidcClient)
+    oidcClient.exchangeToken
+      .withArgs('accessToken', Profil.Structure.MILO)
+      .resolves('idpToken')
 
     jeuneRepository.get
       .withArgs('ABCDE')
@@ -56,7 +63,8 @@ describe('QualifierActionCommandHandler', () => {
       actionMiloRepository,
       actionAuthorizer,
       jeuneRepository,
-      evenementService
+      evenementService,
+      oidcClient
     )
   })
 
@@ -85,12 +93,15 @@ describe('QualifierActionCommandHandler', () => {
               loginConseiller: 'j.doe'
             }
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
-            actionMiloRepository.save.resolves(emptySuccess())
+            actionMiloRepository.creerSituationNonProfessionnelle.resolves(
+              emptySuccess()
+            )
 
             // When
             const command: QualifierActionCommand = {
               idAction: idAction,
               utilisateur: utilisateurConseiller,
+              accessToken: 'accessToken',
               codeQualification: Action.Qualification.Code.SANTE,
               commentaireQualification: commentaireQualification
             }
@@ -100,9 +111,13 @@ describe('QualifierActionCommandHandler', () => {
             expect(actionRepository.save).to.have.been.calledWithExactly(
               actionQualifiee
             )
-            expect(actionMiloRepository.save).to.have.been.calledWithExactly(
-              actionMilo
-            )
+            expect(
+              actionMiloRepository.creerSituationNonProfessionnelle
+            ).to.have.been.calledOnceWith(actionMilo)
+            expect(oidcClient.exchangeToken).not.to.have.been.called()
+            expect(
+              await actionMiloRepository.creerSituationNonProfessionnelle.firstCall.args[1]()
+            ).to.equal('idpToken')
             expect(result).to.deep.equal(
               success({
                 code: 'SANTE',
@@ -122,7 +137,7 @@ describe('QualifierActionCommandHandler', () => {
               dateFinReelle: uneDatetime()
             })
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
-            actionMiloRepository.save.resolves(
+            actionMiloRepository.creerSituationNonProfessionnelle.resolves(
               failure(new ErreurHttp('KO', 500))
             )
 
@@ -130,6 +145,7 @@ describe('QualifierActionCommandHandler', () => {
             const command: QualifierActionCommand = {
               idAction: idAction,
               utilisateur: utilisateurConseiller,
+              accessToken: 'accessToken',
               codeQualification: Action.Qualification.Code.SANTE,
               commentaireQualification: 'Un commentaire'
             }
@@ -164,6 +180,7 @@ describe('QualifierActionCommandHandler', () => {
           const command: QualifierActionCommand = {
             idAction: idAction,
             utilisateur: utilisateurConseiller,
+            accessToken: 'accessToken',
             codeQualification: Action.Qualification.Code.NON_SNP,
             commentaireQualification: 'Un commentaire'
           }
@@ -173,7 +190,9 @@ describe('QualifierActionCommandHandler', () => {
           expect(actionRepository.save).to.have.been.calledWithExactly(
             actionQualifiee
           )
-          expect(actionMiloRepository.save).not.to.have.been.called()
+          expect(
+            actionMiloRepository.creerSituationNonProfessionnelle
+          ).not.to.have.been.called()
           expect(result).to.deep.equal(
             success({
               code: 'NON_SNP',
@@ -196,6 +215,7 @@ describe('QualifierActionCommandHandler', () => {
         const command: QualifierActionCommand = {
           idAction: idAction,
           utilisateur: utilisateurConseiller,
+          accessToken: 'accessToken',
           codeQualification: Action.Qualification.Code.SANTE,
           commentaireQualification: 'Un commentaire'
         }
@@ -217,6 +237,7 @@ describe('QualifierActionCommandHandler', () => {
         const result = await qualifierActionCommandHandler.handle({
           idAction,
           utilisateur: utilisateurConseiller,
+          accessToken: 'accessToken',
           codeQualification: Action.Qualification.Code.CITOYENNETE,
           commentaireQualification: 'Un commentaire'
         })
@@ -235,6 +256,7 @@ describe('QualifierActionCommandHandler', () => {
       const command: QualifierActionCommand = {
         idAction: 'idAction',
         utilisateur: utilisateurConseiller,
+        accessToken: 'accessToken',
         codeQualification: Action.Qualification.Code.SANTE,
         commentaireQualification: 'Un commentaire'
       }
@@ -256,6 +278,7 @@ describe('QualifierActionCommandHandler', () => {
       const command: QualifierActionCommand = {
         idAction: 'idAction',
         utilisateur,
+        accessToken: 'accessToken',
         codeQualification: Action.Qualification.Code.SANTE,
         commentaireQualification: 'Un commentaire'
       }
@@ -279,6 +302,7 @@ describe('QualifierActionCommandHandler', () => {
       const command: QualifierActionCommand = {
         idAction: idAction,
         utilisateur: utilisateurConseiller,
+        accessToken: 'accessToken',
         codeQualification: Action.Qualification.Code.SANTE,
         commentaireQualification: 'Un commentaire'
       }
@@ -297,6 +321,7 @@ describe('QualifierActionCommandHandler', () => {
       const command: QualifierActionCommand = {
         idAction: idAction,
         utilisateur: utilisateurConseiller,
+        accessToken: 'accessToken',
         codeQualification: Action.Qualification.Code.NON_SNP,
         commentaireQualification: 'Un commentaire'
       }

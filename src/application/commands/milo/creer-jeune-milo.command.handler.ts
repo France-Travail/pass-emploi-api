@@ -148,7 +148,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       id: nouveauJeune.id,
       idAuthentification: result.data.idAuthentification
     }
-    this.recupererStructure(nouveauJeune)
+    this.recupererStructure(nouveauJeune, idpToken)
     await this.authentificationRepository.updateJeune(utilisateur)
     await this.chatRepository.initializeChatIfNotExists(
       nouveauJeune.id,
@@ -204,10 +204,14 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     return nouveauJeune
   }
 
-  private async recupererStructure(jeune: Jeune): Promise<void> {
+  private async recupererStructure(
+    jeune: Jeune,
+    idpToken: string
+  ): Promise<void> {
     try {
       const resultDossier = await this.miloJeuneRepository.getDossier(
-        jeune.idPartenaire!
+        jeune.idPartenaire!,
+        async () => idpToken
       )
       if (isSuccess(resultDossier)) {
         const codeStructure = resultDossier.data.codeStructure

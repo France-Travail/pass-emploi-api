@@ -83,7 +83,8 @@ export default () => {
         : [], // todo: supprimer après migration API MiLo
       apiV2Enabled: process.env.MILO_V2_ENABLED === 'true',
       apiKeyDossierCej: process.env.MILO_V2_DOSSIER_CEJ_API_KEY,
-      apiKeyDossier: process.env.MILO_V2_DOSSIER_API_KEY,
+      apiKeyJwtDossierCej: process.env.MILO_V2_DOSSIER_CEJ_JWT_API_KEY,
+      apiKeyJwtDossier: process.env.MILO_V2_DOSSIER_JWT_API_KEY,
       apiKeyJwtJeune: process.env.MILO_V2_JEUNE_JWT_API_KEY,
       apiKeyJwtSessions: process.env.MILO_V2_SESSIONS_JWT_API_KEY,
       apiKeySessions: process.env.MILO_V2_SESSIONS_API_KEY,
