@@ -80,6 +80,11 @@ export namespace Chat {
       conseillerId: string
     ): Promise<void>
 
+    transfererChat(
+      idConseillerCible: string,
+      idsJeunes: string[]
+    ): Promise<void>
+
     restaurerMessagesIndividuels(
       idJeune: string,
       idConseiller: string,

@@ -85,6 +85,13 @@ export class ChatFirebaseRepository implements Chat.Repository {
     return this.firebaseClient.getChatAArchiver(idJeune)
   }
 
+  transfererChat(
+    idConseillerCible: string,
+    idsJeunes: string[]
+  ): Promise<void> {
+    return this.firebaseClient.transfererChat(idConseillerCible, idsJeunes)
+  }
+
   supprimerChat(idJeune: string): Promise<void> {
     return this.firebaseClient.supprimerChat(idJeune)
   }

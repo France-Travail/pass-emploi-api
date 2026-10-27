@@ -58,6 +58,12 @@ import {
   getDatabase
 } from '../../../utils/database-for-testing'
 import { StructureMiloSqlModel } from '../../../../src/infrastructure/sequelize/models/structure-milo.sql-model'
+import { PlanActionSqlRepository } from '../../../../src/infrastructure/repositories/plan-action/plan-action-sql.repository.db'
+import { PlanActionSqlModel } from '../../../../src/infrastructure/sequelize/models/plan-action.sql-model'
+import { PlanActionObjectifSqlModel } from '../../../../src/infrastructure/sequelize/models/plan-action-objectif.sql-model'
+import { PlanActionTacheSqlModel } from '../../../../src/infrastructure/sequelize/models/plan-action-tache.sql-model'
+import { ReferentielPlanActionSolutionSqlModel } from '../../../../src/infrastructure/sequelize/models/referentiel-plan-action-solution.sql-model'
+import { Questionnaire } from '../../../../src/domain/plan-action/questionnaire'
 import { uneStructureMiloDto } from '../../../fixtures/sql-models/structureMilo.sql-model'
 import { EvenementEngagementHebdoSqlModel } from '../../../../src/infrastructure/sequelize/models/evenement-engagement-hebdo.sql-model'
 
@@ -998,6 +1004,51 @@ describe('JeuneSqlRepository', () => {
       expect(
         await RendezVousSqlModel.findByPk(rdvAvecUnJeuneConserve.id)
       ).not.to.be.null()
+    })
+
+    it("supprime le plan d'action des jeunes avec ses objectifs et ses tâches", async () => {
+      // Given
+      await ReferentielPlanActionSolutionSqlModel.create({
+        id: 'p-2',
+        type: 'LIEN',
+        libelle: 'Je consulte des sites',
+        situations: [],
+        authentifications: [],
+        territoires: [],
+        active: true,
+        dateMaj: uneDatetime().toJSDate()
+      })
+      await new PlanActionSqlRepository().save({
+        id: '11111111-1111-4111-8111-111111111111',
+        idJeune: premierJeuneDto.id,
+        dateCreation: uneDatetime(),
+        objectifs: [
+          {
+            id: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+            titre: 'Trouver une alternance',
+            theme: Questionnaire.Besoin.ALTERNANCE,
+            taches: [
+              {
+                id: 'bbbbbbbb-1111-4111-8111-bbbbbbbbbbbb',
+                idSolution: 'p-2',
+                terminee: false,
+                dateCreation: uneDatetime()
+              }
+            ]
+          }
+        ]
+      })
+
+      // When
+      const idsSupprimes = await jeuneSqlRepository.supprimerEnMasse([
+        premierJeuneDto.id
+      ])
+
+      // Then
+      expect(idsSupprimes).to.deep.equal([premierJeuneDto.id])
+      expect(await PlanActionSqlModel.count()).to.equal(0)
+      expect(await PlanActionObjectifSqlModel.count()).to.equal(0)
+      expect(await PlanActionTacheSqlModel.count()).to.equal(0)
     })
 
     it("s'annule avec la transaction de l'appelant", async () => {

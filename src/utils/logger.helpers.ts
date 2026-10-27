@@ -1,5 +1,6 @@
 import { ValidationError } from '@nestjs/common'
 import { IncomingMessage } from 'node:http'
+import { DatabaseError } from 'sequelize'
 
 const REQ_HEADERS_WHITELIST = [
   'user-agent',
@@ -270,10 +271,20 @@ export function buildError(message: string, error: Error): LogError {
 }
 
 // Conversion d'une erreur vers le format ECS error.{type,message,stack_trace}.
-// Gère quatre shapes : Error JS (handlers job/exception), DomainError
-// (Result.failure code/message[,reason]), SuiviJob.erreur ({ message, stack }
-// sans classe), valeur inconnue.
+// Gère cinq shapes : erreur Sequelize (détail et code Postgres, sans sql ni
+// parameters qui portent les données de la requête), Error JS (handlers
+// job/exception), DomainError (Result.failure code/message[,reason]),
+// SuiviJob.erreur ({ message, stack } sans classe), valeur inconnue.
 export function toEcsError(error: unknown): Record<string, unknown> {
+  if (error instanceof DatabaseError) {
+    const { code, detail } = error.parent as { code?: string; detail?: string }
+    return {
+      type: error.name,
+      message: detail ? `${error.message} : ${detail}` : error.message,
+      ...(code && { code }),
+      ...(error.stack && { stack_trace: error.stack })
+    }
+  }
   if (error instanceof Error) {
     return {
       type: error.name,
