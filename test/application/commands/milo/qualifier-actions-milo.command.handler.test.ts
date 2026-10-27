@@ -18,6 +18,8 @@ import { Action } from '../../../../src/domain/action/action'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { Jeune } from '../../../../src/domain/jeune/jeune'
 import { ActionMilo } from '../../../../src/domain/milo/action.milo'
+import { Profil } from '../../../../src/domain/profil'
+import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
 import { uneAction, uneActionTerminee } from '../../../fixtures/action.fixture'
 import {
   unUtilisateurConseiller,
@@ -33,6 +35,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let jeuneRepository: StubbedType<Jeune.Repository>
   let evenementService: StubbedClass<EvenementService>
+  let oidcClient: StubbedClass<OidcClient>
   let qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler
 
   const idAction = '35399853-f224-4910-8d02-44fb1ac85606'
@@ -45,6 +48,10 @@ describe('QualifierActionsMiloCommandHandler', () => {
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     jeuneRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
+    oidcClient = stubClass(OidcClient)
+    oidcClient.exchangeToken
+      .withArgs('accessToken', Profil.Structure.MILO)
+      .resolves('idpToken')
 
     jeuneRepository.get
       .withArgs('ABCDE')
@@ -55,7 +62,8 @@ describe('QualifierActionsMiloCommandHandler', () => {
       actionMiloRepository,
       conseillerAuthorizer,
       jeuneRepository,
-      evenementService
+      evenementService,
+      oidcClient
     )
   })
 
@@ -67,6 +75,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
     it('retourne uniquement les actions existantes', async () => {
       const command: QualifierActionsMiloCommand = {
         estSNP: true,
+        accessToken: 'accessToken',
         qualifications: [
           {
             idAction: idActionInexistante,
@@ -122,6 +131,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
           // When
           const command: QualifierActionsMiloCommand = {
             estSNP: true,
+            accessToken: 'accessToken',
             qualifications: [
               {
                 idAction,
@@ -140,14 +150,50 @@ describe('QualifierActionsMiloCommandHandler', () => {
           expect(actionRepository.save).to.have.been.calledWithExactly(
             actionQualifiee
           )
-          expect(actionMiloRepository.save).to.have.been.calledWithExactly(
+          expect(actionMiloRepository.save).to.have.been.calledOnceWith(
             actionMilo
+          )
+          expect(oidcClient.exchangeToken).not.to.have.been.called()
+          expect(await actionMiloRepository.save.firstCall.args[1]()).to.equal(
+            'idpToken'
           )
           expect(result).to.deep.equal(
             success({
               idsActionsEnErreur: []
             })
           )
+        })
+        it('échange le token MILO une seule fois pour toutes les SNP', async () => {
+          // Given
+          const actions = [
+            uneActionTerminee({ id: 'action-1' }),
+            uneActionTerminee({ id: 'action-2' })
+          ]
+          jeuneRepository.get.resolves(unJeune())
+          actionMiloRepository.save.resolves(emptySuccess())
+          const command: QualifierActionsMiloCommand = {
+            estSNP: true,
+            accessToken: 'accessToken',
+            qualifications: actions.map(action => ({
+              idAction: action.id,
+              codeQualification: Action.Qualification.Code.SANTE
+            }))
+          }
+
+          // When
+          await qualifierActionsMiloCommandHandler.handle(
+            command,
+            utilisateur,
+            actions
+          )
+          const [premierToken, secondToken] = await Promise.all(
+            actionMiloRepository.save.getCalls().map(appel => appel.args[1]())
+          )
+
+          // Then
+          expect(premierToken).to.equal('idpToken')
+          expect(secondToken).to.equal('idpToken')
+          expect(oidcClient.exchangeToken).to.have.been.calledOnce()
         })
         it("ne sauvegarde pas l'action quand la SNP échoue", async () => {
           // Given
@@ -174,6 +220,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
           // When
           const command: QualifierActionsMiloCommand = {
             estSNP: true,
+            accessToken: 'accessToken',
             qualifications: [
               {
                 idAction: idActionQuiEchoue,
@@ -227,6 +274,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
           // When
           const command: QualifierActionsMiloCommand = {
             estSNP: false,
+            accessToken: 'accessToken',
             qualifications: [
               {
                 idAction,
@@ -263,6 +311,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
         // When
         const command: QualifierActionsMiloCommand = {
           estSNP: true,
+          accessToken: 'accessToken',
           qualifications: [
             {
               idAction,
@@ -291,6 +340,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
         // Given
         const command: QualifierActionsMiloCommand = {
           estSNP: true,
+          accessToken: 'accessToken',
           qualifications: [
             {
               idAction: 'inconnu',
@@ -319,6 +369,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
         // Given
         const command: QualifierActionsMiloCommand = {
           estSNP: true,
+          accessToken: 'accessToken',
           qualifications: [
             {
               idAction: 'inconnu',
@@ -359,6 +410,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
       // Given
       const command: QualifierActionsMiloCommand = {
         estSNP: true,
+        accessToken: 'accessToken',
         qualifications: [
           {
             idAction: 'inconnu',
@@ -388,6 +440,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
       const utilisateur = unUtilisateurDecode()
       const command: QualifierActionsMiloCommand = {
         estSNP: true,
+        accessToken: 'accessToken',
         qualifications: []
       }
       // When
@@ -404,6 +457,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
       const utilisateur = unUtilisateurDecode()
       const command: QualifierActionsMiloCommand = {
         estSNP: false,
+        accessToken: 'accessToken',
         qualifications: []
       }
       // When

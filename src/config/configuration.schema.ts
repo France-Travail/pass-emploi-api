@@ -53,7 +53,7 @@ export const configurationSchema = Joi.object({
     apiV2Enabled: Joi.boolean().default(false),
     apiKeyDossierCej: Joi.string().required(),
     apiKeyJwtDossierCej: Joi.string().required(),
-    apiKeyDossier: Joi.string().required(),
+    apiKeyJwtDossier: Joi.string().required(),
     apiKeyJwtJeune: Joi.string().required(),
     apiKeyJwtSessions: Joi.string().required(),
     apiKeySessions: Joi.string().required(),

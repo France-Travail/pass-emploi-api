@@ -84,4 +84,31 @@ describe('MiloClientV2', () => {
       expect(isSuccess(result)).to.be.true()
     })
   })
+
+  describe('creerSituationDossier', () => {
+    it('appelle la route JWT avec la clé API et le token', async () => {
+      const body = {
+        dateDebut: '2024-06-01',
+        dateFinReelle: '2024-06-02',
+        commentaire: 'Informations complémentaires',
+        mesure: 'PROJET_PROFESSIONNEL',
+        loginConseiller: 'j.doe'
+      }
+      const scope = nock(MILO_BASE_URL)
+        .post('/api-dossiers/dossiers/123456/JWT/situation', body)
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyJwtDossier')
+        .matchHeader('Authorization', 'Bearer idpToken')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(201)
+
+      const result = await miloClient.creerSituationDossier(
+        '123456',
+        body,
+        async () => 'idpToken'
+      )
+
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+  })
 })

@@ -331,7 +331,8 @@ export class ConseillersMiloController {
   @UserJourney('qualification_actions')
   async qualifierActions(
     @Body() qualifierActionsMiloPayload: QualifierActionsMiloPayload,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
   ): Promise<QualificationActionsMiloQueryModel> {
     const command: QualifierActionsMiloCommand = {
       estSNP: qualifierActionsMiloPayload.estSNP,
@@ -342,7 +343,8 @@ export class ConseillersMiloController {
             codeQualification: qualifierActionPayload.codeQualification
           }
         }
-      )
+      ),
+      accessToken
     }
 
     const result = await this.qualifierActionsMiloCommandHandler.execute(

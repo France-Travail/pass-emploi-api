@@ -55,7 +55,7 @@ import { Result } from '../../building-blocks/types/result'
 import { Action } from '../../domain/action/action'
 import { Authentification } from '../../domain/authentification'
 import { DateService } from '../../utils/date-service'
-import { Utilisateur } from '../decorators/authenticated.decorator'
+import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import {
   AddCommentaireActionPayload,
@@ -213,7 +213,8 @@ export class ActionsController {
   async qualifierAction(
     @Param('idAction', new ParseUUIDPipe()) idAction: string,
     @Body() qualifierActionPayload: QualifierActionPayload,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @AccessToken() accessToken: string
   ): Promise<QualificationActionQueryModel> {
     const dateDebut = qualifierActionPayload.dateDebut
       ? DateTime.fromISO(qualifierActionPayload.dateDebut, {
@@ -232,7 +233,8 @@ export class ActionsController {
       commentaireQualification: qualifierActionPayload.commentaireQualification,
       dateDebut,
       dateFinReelle,
-      utilisateur
+      utilisateur,
+      accessToken
     }
 
     const result = await this.qualifierActionCommandHandler.execute(

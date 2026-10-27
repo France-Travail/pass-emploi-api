@@ -17,11 +17,12 @@ import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
 import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
-import { TOUT_PROFIL } from '../../../domain/profil'
+import { Profil, TOUT_PROFIL } from '../../../domain/profil'
 import {
   ActionMilo,
   ActionMiloRepositoryToken
 } from '../../../domain/milo/action.milo'
+import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 import { ActionAuthorizer } from '../../authorizers/action-authorizer'
 import { QualificationActionQueryModel } from '../../queries/query-models/actions.query-model'
 
@@ -32,6 +33,7 @@ export interface QualifierActionCommand extends Command {
   commentaireQualification?: string
   dateDebut?: DateTime
   dateFinReelle?: DateTime
+  accessToken: string
 }
 
 @Injectable()
@@ -49,7 +51,8 @@ export class QualifierActionCommandHandler extends CommandHandler<
     private readonly actionAuthorizer: ActionAuthorizer,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
-    private readonly evenementService: EvenementService
+    private readonly evenementService: EvenementService,
+    private readonly oidcClient: OidcClient
   ) {
     super('QualifierActionCommandHandler')
   }
@@ -97,7 +100,12 @@ export class QualifierActionCommandHandler extends CommandHandler<
       }
 
       const qualificationResult = await this.actionMiloRepository.save(
-        actionMiloResult.data
+        actionMiloResult.data,
+        () =>
+          this.oidcClient.exchangeToken(
+            command.accessToken,
+            Profil.Structure.MILO
+          )
       )
       if (isFailure(qualificationResult)) {
         return qualificationResult

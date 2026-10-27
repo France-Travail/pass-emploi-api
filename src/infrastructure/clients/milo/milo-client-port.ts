@@ -31,7 +31,8 @@ export interface MiloClientPort {
       commentaire: string | undefined
       mesure: string
       loginConseiller: string
-    }
+    },
+    getIdpToken: () => Promise<string>
   ): Promise<Result>
 
   /* ********* */

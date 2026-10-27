@@ -42,7 +42,7 @@ export const TAILLE_PAGE_MAX_APIS_MILO: number = 150
 export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyDossierCej: string
   private readonly apiKeyJwtDossierCej: string
-  private readonly apiKeyDossier: string
+  private readonly apiKeyJwtDossier: string
   private readonly apiKeyJwtJeune: string
   private readonly apiKeyJwtSessions: string
   private readonly apiKeySessions: string
@@ -60,7 +60,7 @@ export class MiloClientV2 implements MiloClientPort {
     this.apiKeyDossierCej = this.configService.get('milo').apiKeyDossierCej
     this.apiKeyJwtDossierCej =
       this.configService.get('milo').apiKeyJwtDossierCej
-    this.apiKeyDossier = this.configService.get('milo').apiKeyDossier
+    this.apiKeyJwtDossier = this.configService.get('milo').apiKeyJwtDossier
     this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
     this.apiKeyJwtSessions = this.configService.get('milo').apiKeyJwtSessions
     this.apiKeySessions = this.configService.get('milo').apiKeySessions
@@ -138,13 +138,15 @@ export class MiloClientV2 implements MiloClientPort {
       commentaire: string | undefined
       mesure: string
       loginConseiller: string
-    }
+    },
+    getIdpToken: () => Promise<string>
   ): Promise<Result> {
+    const idpToken = await getIdpToken()
     await this.rateLimiterService.dossierMiloRateLimiter.attendreLaProchaineDisponibilite()
     return await this.miloClientUtils.post({
-      suffixUrl: `api-dossiers/dossiers/${idDossier}/situation`,
+      suffixUrl: `api-dossiers/dossiers/${idDossier}/JWT/situation`,
       payload: body,
-      auth: { apiKey: this.apiKeyDossier }
+      auth: { apiKey: this.apiKeyJwtDossier, idpToken }
     })
   }
 

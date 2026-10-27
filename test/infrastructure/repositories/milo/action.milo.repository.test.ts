@@ -22,12 +22,16 @@ describe('ActionMiloHttpRepository', () => {
       // Given
       const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
       miloClient.creerSituationDossier.resolves(emptySuccess())
+      const getIdpToken = async (): Promise<string> => 'idpToken'
 
       // When
-      const result = await repository.save(action)
+      const result = await repository.save(action, getIdpToken)
 
       // Then
       expect(miloClient.creerSituationDossier).to.have.been.calledOnce()
+      expect(miloClient.creerSituationDossier.firstCall.args[2]).to.equal(
+        getIdpToken
+      )
       expect(result).to.deep.equal(emptySuccess())
     })
 
@@ -38,7 +42,7 @@ describe('ActionMiloHttpRepository', () => {
       miloClient.creerSituationDossier.resolves(erreur)
 
       // When
-      const result = await repository.save(action)
+      const result = await repository.save(action, async () => 'idpToken')
 
       // Then
       expect(result).to.deep.equal(erreur)

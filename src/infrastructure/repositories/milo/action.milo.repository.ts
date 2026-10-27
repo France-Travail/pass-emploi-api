@@ -11,7 +11,10 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
     this.logger = new Logger('ActionMiloHttpSqlRepository')
   }
 
-  async save(action: ActionMilo): Promise<Result> {
+  async save(
+    action: ActionMilo,
+    getIdpToken: () => Promise<string>
+  ): Promise<Result> {
     const body = {
       dateDebut: action.dateDebut.toFormat('yyyy-MM-dd'),
       dateFinReelle: action.dateFinReelle.toFormat('yyyy-MM-dd'),
@@ -22,7 +25,8 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
 
     const result = await this.miloClient.creerSituationDossier(
       action.idDossier,
-      body
+      body,
+      getIdpToken
     )
     if (isFailure(result)) {
       return result

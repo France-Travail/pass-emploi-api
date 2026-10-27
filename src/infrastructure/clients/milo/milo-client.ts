@@ -69,9 +69,14 @@ export class MiloClient implements MiloClientPort {
       commentaire: string | undefined
       mesure: string
       loginConseiller: string
-    }
+    },
+    getIdpToken: () => Promise<string>
   ): Promise<Result> {
-    return (await this.getClient()).creerSituationDossier(idDossier, body)
+    return (await this.getClient()).creerSituationDossier(
+      idDossier,
+      body,
+      getIdpToken
+    )
   }
 
   /* ********* */

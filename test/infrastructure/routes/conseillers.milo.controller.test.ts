@@ -625,6 +625,7 @@ describe('ConseillersMiloController', () => {
 
       const command: QualifierActionsMiloCommand = {
         estSNP: true,
+        accessToken: 'coucou',
         qualifications: [
           {
             idAction: '13c11b33-751c-4e1b-a49d-1b5a473ba159',
@@ -671,6 +672,7 @@ describe('ConseillersMiloController', () => {
 
       const command: QualifierActionsMiloCommand = {
         estSNP: false,
+        accessToken: 'coucou',
         qualifications: [
           {
             idAction: '13c11b33-751c-4e1b-a49d-1b5a473ba159',

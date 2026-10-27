@@ -13,7 +13,10 @@ export interface ActionMilo extends Action.Qualifiee {
 
 export namespace ActionMilo {
   export interface Repository {
-    save(action: ActionMilo): Promise<Result>
+    save(
+      action: ActionMilo,
+      getIdpToken: () => Promise<string>
+    ): Promise<Result>
   }
 
   export function creer(
