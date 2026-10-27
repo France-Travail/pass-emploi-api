@@ -1,4 +1,5 @@
 import { ValidationError } from '@nestjs/common'
+import { ForeignKeyConstraintError } from 'sequelize'
 import {
   NonTraitableError,
   NonTraitableReason,
@@ -21,6 +22,34 @@ describe('logger.helpers', () => {
       expect(result.type).to.equal('TypeError')
       expect(result.message).to.equal('boom')
       expect(result.stack_trace).to.be.a('string')
+    })
+
+    it('porte le code et le détail Postgres d’une erreur Sequelize, sans la requête', () => {
+      // Given
+      const erreurPostgres = Object.assign(
+        new Error(
+          'update or delete on table "jeune" violates foreign key constraint "plan_action_id_jeune_fkey" on table "plan_action"'
+        ),
+        {
+          code: '23503',
+          detail:
+            'Key (id)=(id-jeune) is still referenced from table "plan_action".',
+          sql: "DELETE FROM jeune WHERE id IN ('id-jeune') RETURNING id"
+        }
+      )
+
+      // When
+      const result = toEcsError(
+        new ForeignKeyConstraintError({ parent: erreurPostgres })
+      )
+
+      // Then
+      expect(result.type).to.equal('SequelizeForeignKeyConstraintError')
+      expect(result.code).to.equal('23503')
+      expect(result.message).to.equal(
+        'update or delete on table "jeune" violates foreign key constraint "plan_action_id_jeune_fkey" on table "plan_action" : Key (id)=(id-jeune) is still referenced from table "plan_action".'
+      )
+      expect(JSON.stringify(result)).not.to.contain('DELETE FROM')
     })
 
     it('convertit un DomainError sans reason', () => {
