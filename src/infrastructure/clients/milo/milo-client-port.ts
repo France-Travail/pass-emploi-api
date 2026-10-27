@@ -18,7 +18,10 @@ export interface MiloClientPort {
   /* ************ */
   /* API DOSSIERS */
   /* ************ */
-  getDossier(idDossier: string): Promise<Result<JeuneMilo.Dossier>>
+  getDossier(
+    idDossier: string,
+    getIdpToken?: () => Promise<string>
+  ): Promise<Result<JeuneMilo.Dossier>>
 
   creerSituationDossier(
     idDossier: string,
@@ -28,7 +31,8 @@ export interface MiloClientPort {
       commentaire: string | undefined
       mesure: string
       loginConseiller: string
-    }
+    },
+    getIdpToken: () => Promise<string>
   ): Promise<Result>
 
   /* ********* */

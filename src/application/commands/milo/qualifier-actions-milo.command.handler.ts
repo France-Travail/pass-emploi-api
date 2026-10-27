@@ -13,7 +13,7 @@ import {
   isFailure,
   success
 } from '../../../building-blocks/types/result'
-import { TOUT_MILO } from '../../../domain/profil'
+import { Profil, TOUT_MILO } from '../../../domain/profil'
 import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
@@ -23,6 +23,7 @@ import {
   ActionMilo,
   ActionMiloRepositoryToken
 } from '../../../domain/milo/action.milo'
+import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 
 export class QualificationActionsMiloQueryModel {
@@ -36,6 +37,7 @@ export interface QualifierActionsMiloCommand extends Command {
     idAction: string
     codeQualification: Qualification.Code
   }>
+  accessToken: string
 }
 
 @Injectable()
@@ -54,7 +56,8 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
-    private readonly evenementService: EvenementService
+    private readonly evenementService: EvenementService,
+    private readonly oidcClient: OidcClient
   ) {
     super('QualifierActionsMiloCommandHandler')
   }
@@ -72,6 +75,12 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
     actions: Action[]
   ): Promise<Result<QualificationActionsMiloQueryModel>> {
     const idsActionsEnErreur: string[] = []
+    let idpToken: Promise<string> | undefined
+    const getIdpToken = (): Promise<string> =>
+      (idpToken ??= this.oidcClient.exchangeToken(
+        command.accessToken,
+        Profil.Structure.MILO
+      ))
 
     const resultValidationCategories = validaterCategories(command)
     if (isFailure(resultValidationCategories)) {
@@ -107,7 +116,8 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
           actionQualifiee,
           utilisateur,
           this.actionMiloRepository,
-          this.jeuneRepository
+          this.jeuneRepository,
+          getIdpToken
         )
         if (isFailure(resultQualificationEnSNP)) {
           idsActionsEnErreur.push(qualification.idAction)
@@ -158,7 +168,8 @@ async function qualifierEnSNP(
   actionQualifiee: Action.Qualifiee,
   utilisateur: Authentification.Utilisateur,
   actionMiloRepository: ActionMilo.Repository,
-  jeuneRepository: Jeune.Repository
+  jeuneRepository: Jeune.Repository,
+  getIdpToken: () => Promise<string>
 ): Promise<Result> {
   const jeune = await jeuneRepository.get(actionQualifiee.idJeune)
   if (!jeune) {
@@ -171,9 +182,11 @@ async function qualifierEnSNP(
     return actionMiloResult
   }
 
-  const qualificationResult = await actionMiloRepository.save(
-    actionMiloResult.data
-  )
+  const qualificationResult =
+    await actionMiloRepository.creerSituationNonProfessionnelle(
+      actionMiloResult.data,
+      getIdpToken
+    )
 
   if (isFailure(qualificationResult)) {
     return qualificationResult

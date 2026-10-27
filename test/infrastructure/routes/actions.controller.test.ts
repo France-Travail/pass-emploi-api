@@ -815,6 +815,7 @@ describe('ActionsController', () => {
       const command: QualifierActionCommand = {
         idAction: '13c11b33-751c-4e1b-a49d-1b5a473ba159',
         utilisateur,
+        accessToken: 'coucou',
         dateDebut: uneDatetimeAvecOffset(),
         dateFinReelle: uneDatetimeAvecOffset(),
         commentaireQualification: 'Un commentaire valide',
@@ -857,6 +858,7 @@ describe('ActionsController', () => {
       const command: QualifierActionCommand = {
         idAction: '13c11b33-751c-4e1b-a49d-1b5a473ba159',
         utilisateur,
+        accessToken: 'coucou',
         dateDebut: undefined,
         dateFinReelle: undefined,
         commentaireQualification: 'un commentaire valide',
@@ -884,6 +886,7 @@ describe('ActionsController', () => {
       const command: QualifierActionCommand = {
         idAction: '13c11b33-751c-4e1b-a49d-1b5a473ba159',
         utilisateur,
+        accessToken: 'coucou',
         dateDebut: uneDatetimeAvecOffset(),
         dateFinReelle: uneDatetimeAvecOffset(),
         commentaireQualification:
