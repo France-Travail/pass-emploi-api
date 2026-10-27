@@ -151,6 +151,9 @@ describe('DesarchiverJeuneCommandHandler', () => {
       idJeune: string
       email: string | null
       donnees: ArchiveJeune | null
+      idAuthentification: string | null
+      nettoyageIdp: ArchiveJeune.EtapeNettoyageIdp | null
+      nettoyageChat: ArchiveJeune.EtapeNettoyageChat | null
     }> = {}
   ): Promise<ArchiveJeuneSqlModel> {
     return ArchiveJeuneSqlModel.create({
@@ -168,7 +171,10 @@ describe('DesarchiverJeuneCommandHandler', () => {
       dateFinAccompagnement: null,
       email: args.email !== undefined ? args.email : 'john.doe@plop.io',
       dateArchivage: new Date('2023-06-01T08:00:00.000Z'),
-      donnees: args.donnees !== undefined ? args.donnees : donnees
+      donnees: args.donnees !== undefined ? args.donnees : donnees,
+      idAuthentification: args.idAuthentification ?? 'id-auth-archive',
+      nettoyageIdp: args.nettoyageIdp ?? null,
+      nettoyageChat: args.nettoyageChat ?? null
     })
   }
 
@@ -196,29 +202,169 @@ describe('DesarchiverJeuneCommandHandler', () => {
     })
 
     describe("quand le nettoyage de l'archive est en attente", () => {
-      it("refuse de désarchiver tant que le nettoyage de l'archive n'est pas terminé", async () => {
-        // Given
-        const archive = await creerArchive()
-        await archive.update({ nettoyageChat: 'A_ARCHIVER' })
+      const messagesDuChatConserve: ArchiveJeune.Message[] = [
+        {
+          contenu: 'toujours dans Firebase',
+          date: '2023-05-20T10:00:00.000Z',
+          envoyePar: 'CONSEILLER',
+          type: 'MESSAGE'
+        }
+      ]
 
-        // When
-        const result = await handler.handle({
-          idArchive: archive.id,
-          idConseiller
+      describe('en recréation', () => {
+        it('conserve le chat non archivé en le rattachant au conseiller, sans rien restaurer', async () => {
+          // Given
+          const archive = await creerArchive({ nettoyageChat: 'A_ARCHIVER' })
+
+          // When
+          const result = await handler.handle({
+            idArchive: archive.id,
+            idConseiller
+          })
+
+          // Then
+          expect(
+            chatRepository.transfererChat
+          ).to.have.been.calledOnceWithExactly(idConseiller, [idJeune])
+          expect(
+            chatRepository.initializeChatIfNotExists
+          ).to.have.been.calledOnceWithExactly(idJeune, idConseiller)
+          expect(chatRepository.supprimerChat).not.to.have.been.called()
+          expect(
+            chatRepository.restaurerMessagesIndividuels
+          ).not.to.have.been.called()
+          expect(isSuccess(result) && result.data.messagesRestaures).to.equal(0)
         })
 
-        // Then
-        expect(result).to.deep.equal(
-          failure(
-            new MauvaiseCommandeError(
-              "Le nettoyage de l'archive n'est pas terminé : lancer le nettoyage de sa population puis réessayer"
-            )
+        it("termine la suppression d'un chat déjà archivé puis le restaure depuis l'archive", async () => {
+          // Given
+          const archive = await creerArchive({ nettoyageChat: 'A_SUPPRIMER' })
+
+          // When
+          const result = await handler.handle({
+            idArchive: archive.id,
+            idConseiller
+          })
+
+          // Then
+          expect(
+            chatRepository.supprimerChat
+          ).to.have.been.calledOnceWithExactly(idJeune)
+          expect(chatRepository.supprimerChat).to.have.been.calledBefore(
+            chatRepository.restaurerMessagesIndividuels
           )
-        )
-        expect(await JeuneSqlModel.findByPk(idJeune)).to.be.null()
-        expect(
-          chatRepository.initializeChatIfNotExists
-        ).not.to.have.been.called()
+          expect(
+            chatRepository.restaurerMessagesIndividuels
+          ).to.have.been.calledOnceWithExactly(
+            idJeune,
+            idConseiller,
+            donnees.messages
+          )
+          expect(isSuccess(result) && result.data.messagesRestaures).to.equal(1)
+        })
+
+        it('annule le nettoyage restant pour ne pas toucher au jeune restauré', async () => {
+          // Given
+          const archive = await creerArchive({
+            nettoyageIdp: 'A_REVOQUER',
+            nettoyageChat: 'A_ARCHIVER'
+          })
+
+          // When
+          await handler.handle({ idArchive: archive.id, idConseiller })
+
+          // Then
+          const archiveApres = await ArchiveJeuneSqlModel.findByPk(archive.id)
+          expect(archiveApres?.nettoyageIdp).to.be.null()
+          expect(archiveApres?.nettoyageChat).to.be.null()
+        })
+
+        it("reprend le compte IDP s'il n'a pas encore été révoqué", async () => {
+          // Given
+          const archive = await creerArchive({ nettoyageIdp: 'A_REVOQUER' })
+
+          // When
+          await handler.handle({ idArchive: archive.id, idConseiller })
+
+          // Then
+          const jeune = await JeuneSqlModel.findByPk(idJeune)
+          expect(jeune?.idAuthentification).to.equal('id-auth-archive')
+        })
+      })
+
+      describe('en fusion', () => {
+        const idJeuneRecree = 'jeune-recree'
+
+        beforeEach(async () => {
+          await JeuneSqlModel.creer(
+            unJeuneDto({
+              id: idJeuneRecree,
+              idConseiller,
+              structure: Core.Structure.MILO
+            })
+          )
+        })
+
+        it('reprend les messages du chat non archivé depuis Firebase', async () => {
+          // Given
+          const archive = await creerArchive({ nettoyageChat: 'A_ARCHIVER' })
+          chatRepository.recupererMessagesAArchiver
+            .withArgs(idJeune)
+            .resolves(messagesDuChatConserve)
+
+          // When
+          const result = await handler.handle({
+            idArchive: archive.id,
+            idJeuneRecree
+          })
+
+          // Then
+          expect(
+            chatRepository.restaurerMessagesIndividuels
+          ).to.have.been.calledOnceWithExactly(
+            idJeuneRecree,
+            idConseiller,
+            messagesDuChatConserve
+          )
+          expect(chatRepository.supprimerChat).not.to.have.been.called()
+          expect(isSuccess(result) && result.data.messagesRestaures).to.equal(1)
+        })
+
+        it("restaure depuis l'archive un chat déjà archivé", async () => {
+          // Given
+          const archive = await creerArchive({ nettoyageChat: 'A_SUPPRIMER' })
+
+          // When
+          await handler.handle({ idArchive: archive.id, idJeuneRecree })
+
+          // Then
+          expect(
+            chatRepository.recupererMessagesAArchiver
+          ).not.to.have.been.called()
+          expect(
+            chatRepository.restaurerMessagesIndividuels
+          ).to.have.been.calledOnceWithExactly(
+            idJeuneRecree,
+            idConseiller,
+            donnees.messages
+          )
+        })
+
+        it("laisse le nettoyage de l'ancien compte au cron", async () => {
+          // Given
+          const archive = await creerArchive({
+            nettoyageIdp: 'A_REVOQUER',
+            nettoyageChat: 'A_ARCHIVER'
+          })
+
+          // When
+          await handler.handle({ idArchive: archive.id, idJeuneRecree })
+
+          // Then
+          const archiveApres = await ArchiveJeuneSqlModel.findByPk(archive.id)
+          expect(archiveApres?.nettoyageIdp).to.equal('A_REVOQUER')
+          expect(archiveApres?.nettoyageChat).to.equal('A_ARCHIVER')
+        })
       })
     })
 

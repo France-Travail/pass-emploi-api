@@ -110,7 +110,7 @@ export class DesarchivageJeuneQueryModel {
 
   @ApiProperty({
     description:
-      "Messages du chat réinjectés dans Firebase (texte et historique d'édition uniquement : pièces jointes, offres liées et statuts de lecture perdus). 0 si la restauration du chat a échoué (voir les logs)."
+      "Messages du chat réinjectés dans Firebase (texte et historique d'édition uniquement : pièces jointes, offres liées et statuts de lecture perdus). 0 si la restauration du chat a échoué (voir les logs), ou si le chat d'origine, pas encore nettoyé, a été conservé tel quel."
   })
   messagesRestaures: number
 }
@@ -153,14 +153,6 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         )
       )
     }
-    if (archive.nettoyageIdp || archive.nettoyageChat) {
-      return failure(
-        new MauvaiseCommandeError(
-          "Le nettoyage de l'archive n'est pas terminé : lancer le nettoyage de sa population puis réessayer"
-        )
-      )
-    }
-
     const cibleResult = command.idJeuneRecree
       ? await this.cibleFusion(command.idJeuneRecree, archive)
       : await this.cibleRecreation(command, archive)
@@ -195,6 +187,11 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     await this.sequelize.transaction(async transaction => {
       if (jeuneACreer) {
         await JeuneSqlModel.create(jeuneACreer, { transaction })
+        // Le jeune recréé reprend l'id de l'archive : un nettoyage resté en attente supprimerait son chat et révoquerait son compte
+        await ArchiveJeuneSqlModel.update(
+          { nettoyageIdp: null, nettoyageChat: null },
+          { where: { id: archive.id }, transaction }
+        )
       }
 
       if (!donnees) {
@@ -308,18 +305,12 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
 
     let messagesRestaures = 0
     try {
-      await this.chatRepository.initializeChatIfNotExists(
+      messagesRestaures = await this.restaurerLeChat(
+        archive,
         idJeune,
-        conseiller.id
+        conseiller.id,
+        Boolean(jeuneACreer)
       )
-      if (donnees?.messages?.length) {
-        await this.chatRepository.restaurerMessagesIndividuels(
-          idJeune,
-          conseiller.id,
-          donnees.messages
-        )
-        messagesRestaures = donnees.messages.length
-      }
     } catch (e) {
       this.logger.warn(
         `Echec de la restauration du chat du jeune ${idJeune}`,
@@ -341,6 +332,38 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       recherchesRestaurees: donnees?.recherches.length ?? 0,
       messagesRestaures
     })
+  }
+
+  private async restaurerLeChat(
+    archive: ArchiveJeuneSqlModel,
+    idJeune: string,
+    idConseiller: string,
+    recreation: boolean
+  ): Promise<number> {
+    if (recreation && archive.nettoyageChat === 'A_ARCHIVER') {
+      // initializeChatIfNotExists cherche le couple jeune/conseiller : sans transfert, il créerait un second chat à côté de celui conservé
+      await this.chatRepository.transfererChat(idConseiller, [idJeune])
+      await this.chatRepository.initializeChatIfNotExists(idJeune, idConseiller)
+      return 0
+    }
+    if (recreation && archive.nettoyageChat === 'A_SUPPRIMER') {
+      // Une suppression interrompue a pu amputer le chat : on la termine et on restaure depuis l'archive, qui a déjà les messages
+      await this.chatRepository.supprimerChat(idJeune)
+    }
+
+    const messages =
+      archive.nettoyageChat === 'A_ARCHIVER'
+        ? await this.chatRepository.recupererMessagesAArchiver(archive.idJeune)
+        : (archive.donnees?.messages ?? [])
+    await this.chatRepository.initializeChatIfNotExists(idJeune, idConseiller)
+    if (messages.length) {
+      await this.chatRepository.restaurerMessagesIndividuels(
+        idJeune,
+        idConseiller,
+        messages
+      )
+    }
+    return messages.length
   }
 
   // En fusion, le conseiller a pu re-saisir des actions et rendez-vous perdus : on ne recrée pas ceux que le compte cible porte déjà
@@ -500,8 +523,10 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       dateDerniereConnexion: null,
       dateFinCEJ: null,
       dateSignatureCGU: null,
-      // idAuthentification null : le compte IDP a été supprimé, il sera réassocié par email à la prochaine connexion
-      idAuthentification: null as unknown as string,
+      // Compte IDP pas encore révoqué : on le reprend. Sinon null, réassocié par email à la prochaine connexion
+      idAuthentification: (archive.nettoyageIdp === 'A_REVOQUER'
+        ? archive.idAuthentification
+        : null) as unknown as string,
       pushNotificationToken: null,
       dateDerniereActivite: null,
       appVersion: null,
