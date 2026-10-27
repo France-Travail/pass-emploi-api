@@ -187,7 +187,6 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     await this.sequelize.transaction(async transaction => {
       if (jeuneACreer) {
         await JeuneSqlModel.create(jeuneACreer, { transaction })
-        // Le jeune recréé reprend l'id de l'archive : un nettoyage resté en attente supprimerait son chat et révoquerait son compte
         await ArchiveJeuneSqlModel.update(
           { nettoyageIdp: null, nettoyageChat: null },
           { where: { id: archive.id }, transaction }
@@ -341,13 +340,11 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     recreation: boolean
   ): Promise<number> {
     if (recreation && archive.nettoyageChat === 'A_ARCHIVER') {
-      // initializeChatIfNotExists cherche le couple jeune/conseiller : sans transfert, il créerait un second chat à côté de celui conservé
       await this.chatRepository.transfererChat(idConseiller, [idJeune])
       await this.chatRepository.initializeChatIfNotExists(idJeune, idConseiller)
       return 0
     }
     if (recreation && archive.nettoyageChat === 'A_SUPPRIMER') {
-      // Une suppression interrompue a pu amputer le chat : on la termine et on restaure depuis l'archive, qui a déjà les messages
       await this.chatRepository.supprimerChat(idJeune)
     }
 
