@@ -7,6 +7,7 @@ import {
   Fonctionnalite,
   FonctionnaliteRepositoryToken
 } from '../../domain/fonctionnalite'
+import { Population, PopulationRepositoryToken } from '../../domain/population'
 import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
@@ -24,6 +25,8 @@ export class GetFonctionnalitesConseillerQueryHandler extends QueryHandler<
   readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
 
   constructor(
+    @Inject(PopulationRepositoryToken)
+    private readonly populationRepository: Population.Repository,
     @Inject(FonctionnaliteRepositoryToken)
     private readonly fonctionnaliteRepository: Fonctionnalite.Repository,
     private readonly dateService: DateService,
@@ -35,9 +38,13 @@ export class GetFonctionnalitesConseillerQueryHandler extends QueryHandler<
   async handle(
     query: GetFonctionnalitesConseillerQuery
   ): Promise<Result<FonctionnalitesConseillerQueryModel>> {
+    const idsPopulations =
+      await this.populationRepository.getIdsPopulationsDuConseiller(
+        query.idConseiller
+      )
     const fonctionnalites =
-      await this.fonctionnaliteRepository.getIdsFonctionnalitesActivesDuConseiller(
-        query.idConseiller,
+      await this.fonctionnaliteRepository.getIdsFonctionnalitesActives(
+        idsPopulations,
         this.dateService.now()
       )
 

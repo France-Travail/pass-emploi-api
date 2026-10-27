@@ -10,10 +10,12 @@ import { Core } from '../../../src/domain/core'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { CommunicationSqlRepository } from '../../../src/infrastructure/repositories/communication.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { CommunicationSqlModel } from '../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { JeuneSqlModel } from '../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { PopulationConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
+import { PopulationProfilSqlModel } from '../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../src/infrastructure/sequelize/models/population.sql-model'
 import { DateService } from '../../../src/utils/date-service'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -40,6 +42,7 @@ describe('GetCommunicationsJeuneQueryHandler (use case)', () => {
     jeuneRepository = stubInterface(createSandbox())
     jeuneRepository.existe.resolves(true)
     handler = new GetCommunicationsJeuneQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new CommunicationSqlRepository(getDatabase().sequelize),
       dateService,
       new JeuneAuthorizer(jeuneRepository)
@@ -135,6 +138,40 @@ describe('GetCommunicationsJeuneQueryHandler (use case)', () => {
     expect(message.messageInformatif).to.deep.include({
       titre: 'Votre application évolue',
       contenu: 'Contenu'
+    })
+  })
+
+  it('affiche au jeune sans conseiller dont le profil est ciblé la communication qui lui est destinée', async () => {
+    // Given
+    await JeuneSqlModel.create(
+      unJeuneDto({
+        id: 'jeuneSansConseiller',
+        idConseiller: undefined,
+        structure: Core.Structure.FT_ESPACE_CANDIDAT
+      })
+    )
+    await PopulationSqlModel.create({
+      id: 'ESPACE_CANDIDAT',
+      description: null
+    })
+    await PopulationProfilSqlModel.create({
+      idPopulation: 'ESPACE_CANDIDAT',
+      structure: Profil.Structure.FRANCE_TRAVAIL,
+      dispositif: Profil.Dispositif.ESPACE_CANDIDAT
+    })
+    await CommunicationSqlModel.create(
+      uneCommunicationJeune({
+        titre: 'Pour l’Espace candidat',
+        idPopulation: 'ESPACE_CANDIDAT'
+      })
+    )
+
+    // When
+    const message = await communicationsDe('jeuneSansConseiller')
+
+    // Then
+    expect(message.messageInformatif).to.deep.include({
+      titre: 'Pour l’Espace candidat'
     })
   })
 

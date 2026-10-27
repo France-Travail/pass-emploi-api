@@ -6,16 +6,7 @@ import { Communication } from '../../../domain/communication'
 import { CommunicationEnvoi } from '../../../domain/communication-envoi'
 import { Planificateur, ProcessJobType } from '../../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../../domain/suivi-job'
-import {
-  sqlCommunicationEnCours,
-  sqlConseillerDansPopulation,
-  sqlDeploiementActif,
-  sqlJeuneDansPopulation,
-  sqlJeuneDestinataire,
-  sqlJoinConseillerDeReference,
-  sqlJoinConseillersConcernes,
-  sqlJoinConseillersDestinataires
-} from '../../../infrastructure/repositories/sql-helpers'
+import { sqlCommunicationEnCours } from '../../../infrastructure/repositories/communication.repository.db'
 import { createSequelizeForAnalytics } from '../../../infrastructure/sequelize/connector-analytics'
 import { DateService } from '../../../utils/date-service'
 import { rootLogger, toEcsError } from '../../../utils/logger.module'
@@ -25,8 +16,6 @@ export const ANALYTICS_POPULATION_MEMBRES_TABLE_NAME =
 export const ANALYTICS_COMMUNICATIONS_TABLE_NAME = 'analytics_communications'
 export const ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME =
   'analytics_communication_destinataires'
-export const ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME =
-  'analytics_deploiement_membres'
 
 interface Volumetrie {
   nbPopulations: number
@@ -34,7 +23,6 @@ interface Volumetrie {
   nbConseillers: number
   nbJeunes: number
   nbDestinatairesCommunications: number
-  nbMembresDeploiements: number
 }
 
 interface Ecriture {
@@ -62,16 +50,17 @@ const JOIN_LIEU_CONSEILLER = `
 /**
  * Analytics pipeline — step 0bis (quotidien, en parallèle du job 1).
  * Matérialise ce que les fonctionnalités calculent pour un utilisateur, de
- * façon exhaustive. L'appartenance et les règles « en cours » / « actif »
- * viennent de sql-helpers (les mêmes que les repositories) ; seuls le statut
- * affiché d'une communication et le lieu d'accompagnement sont propres à ce
- * job. Une fois l'envoi démarré, les destinataires sont ceux figés dans
- * communication_envoi. Les statuts sont figés à date_calcul.
+ * façon exhaustive. L'appartenance vient des vues SQL
+ * appartenance_population_{conseiller|jeune}, et la règle « en cours » de
+ * communication.repository.db.ts ;
+ * seuls le statut affiché d'une communication et le lieu d'accompagnement sont
+ * propres à ce job. Une fois l'envoi démarré, les destinataires sont ceux
+ * figés dans communication_envoi. Les statuts sont figés à date_calcul.
  * @see docs/ANALYTICS.md#0bis-charger-les-populationsjobts
  * @analytics.trigger ajouterJob depuis DUMP_ANALYTICS, ou TASK_NAME=CHARGER_POPULATIONS_ANALYTICS
  * @analytics.after DUMP_ANALYTICS
- * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, communication, communication_envoi, deploiement, conseiller, jeune
- * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires, analytics_deploiement_membres
+ * @analytics.tables_in population, population_conseiller, population_profil, population_structure_milo, population_agence_ft, appartenance_population_conseiller, appartenance_population_jeune, communication, communication_envoi, conseiller, jeune
+ * @analytics.tables_out analytics_population_membres, analytics_communications, analytics_communication_destinataires
  */
 @Injectable()
 @ProcessJobType(Planificateur.JobType.CHARGER_POPULATIONS_ANALYTICS)
@@ -116,11 +105,7 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
           ),
           nbConseillers,
           nbJeunes,
-          nbDestinatairesCommunications,
-          nbMembresDeploiements: await this.ecrireLesMembresDesDeploiements(
-            connexion,
-            ecriture
-          )
+          nbDestinatairesCommunications
         }
       })
       await connexion.close()
@@ -208,20 +193,8 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       CREATE INDEX IF NOT EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}_id_communication_index
         ON ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME} (id_communication);
 
-      CREATE TABLE IF NOT EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
-      (
-        id_deploiement    varchar NOT NULL,
-        id_population     varchar NOT NULL,
-        nature            varchar NOT NULL,
-        id_fonctionnalite varchar,
-        date_activation   timestamptz NOT NULL,
-        statut            varchar NOT NULL,
-        type_utilisateur  varchar NOT NULL,
-        ${COLONNES_UTILISATEUR},
-        date_calcul       timestamptz NOT NULL
-      );
-      CREATE INDEX IF NOT EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}_id_deploiement_index
-        ON ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME} (id_deploiement);
+      -- TODO: retirer ce DROP une fois passé en prod (un run suffit à supprimer la table).
+      DROP TABLE IF EXISTS analytics_deploiement_membres;
 
       -- CREATE TABLE IF NOT EXISTS n'ajoute pas de colonne à une table déjà créée par un run
       -- précédent : toute colonne ajoutée après la création initiale doit aussi passer ici.
@@ -230,8 +203,6 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
       ALTER TABLE ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
         ADD COLUMN IF NOT EXISTS id_agence varchar;
       ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
-        ADD COLUMN IF NOT EXISTS id_agence varchar;
-      ALTER TABLE ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
         ADD COLUMN IF NOT EXISTS id_agence varchar;
       ALTER TABLE ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME}
         ALTER COLUMN date_fin DROP NOT NULL;
@@ -251,7 +222,6 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         DELETE FROM ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
         DELETE FROM ${ANALYTICS_COMMUNICATIONS_TABLE_NAME};
         DELETE FROM ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
-        DELETE FROM ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
       `,
       { transaction }
     )
@@ -277,10 +247,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT p.id, 'CONSEILLER', ${SELECT_CONSEILLER},
+        SELECT apc.id_population, 'CONSEILLER', ${SELECT_CONSEILLER},
                NULL, NULL, :dateCalcul
-        FROM population p
-        JOIN conseiller c ON ${sqlConseillerDansPopulation('c', 'p.id')}
+        FROM appartenance_population_conseiller apc
+        JOIN conseiller c ON c.id = apc.id_conseiller
         ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
@@ -297,18 +267,17 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         INSERT INTO ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME}
           (id_population, type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence,
            email_conseiller_reference, type_conseiller_reference, date_calcul)
-        SELECT p.id, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+        SELECT apj.id_population, 'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
                COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                c.email,
                CASE WHEN c.id IS NULL THEN NULL WHEN j.id_conseiller_initial IS NULL THEN 'ACTUEL' ELSE 'INITIAL' END,
                :dateCalcul
-        FROM population p
-        CROSS JOIN jeune j
-        ${sqlJoinConseillerDeReference('j', 'c')}
+        FROM appartenance_population_jeune apj
+        JOIN jeune j ON j.id = apj.id_jeune
+        LEFT JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
-        ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlJeuneDansPopulation('j', 'c', 'p.id')};
+        ${JOIN_LIEU_CONSEILLER};
       `,
       { replacements: { dateCalcul }, transaction }
     )
@@ -351,8 +320,10 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                ${sqlStatutCommunication('co')},
                'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant
         FROM communication co
-        ${sqlJoinConseillersDestinataires('co', 'c')}
-        ${JOIN_LIEU_CONSEILLER};
+        JOIN appartenance_population_conseiller apc ON apc.id_population = co.id_population
+        JOIN conseiller c ON c.id = apc.id_conseiller
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE co.destinataire = '${Communication.Destinataire.CONSEILLER}';
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
@@ -376,15 +347,14 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
                COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
                :maintenant
         FROM communication co
-        JOIN jeune j ON co.destinataire = '${Communication.Destinataire.JEUNE}'
-        ${sqlJoinConseillerDeReference('j', 'c')}
+        JOIN appartenance_population_jeune apj ON apj.id_population = co.id_population
+        JOIN jeune j ON j.id = apj.id_jeune
+        LEFT JOIN conseiller c ON c.id = COALESCE(j.id_conseiller_initial, j.id_conseiller)
         LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
         ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlEnvoiNonDemarre('co')}
-          AND ${sqlJeuneDestinataire('j', 'c', {
-            idPopulation: 'co.id_population',
-            push: 'co.push'
-          })};
+        WHERE co.destinataire = '${Communication.Destinataire.JEUNE}'
+          AND ${sqlEnvoiNonDemarre('co')}
+          AND (co.push IS NOT TRUE OR j.push_notification_token IS NOT NULL);
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
@@ -463,64 +433,6 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
           FROM communication_envoi
           GROUP BY id_communication
         ) e ON e.id_communication = co.id;
-      `,
-      { replacements: { maintenant: dateCalcul }, transaction }
-    )
-    return nbLignes as number
-  }
-
-  private async ecrireLesMembresDesDeploiements(
-    connexion: Sequelize,
-    ecriture: Ecriture
-  ): Promise<number> {
-    return (
-      (await this.ecrireLesConseillersDesDeploiements(connexion, ecriture)) +
-      (await this.ecrireLesJeunesDesDeploiements(connexion, ecriture))
-    )
-  }
-
-  private async ecrireLesConseillersDesDeploiements(
-    connexion: Sequelize,
-    { dateCalcul, transaction }: Ecriture
-  ): Promise<number> {
-    const [, nbLignes] = await connexion.query(
-      `
-        INSERT INTO ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
-          (id_deploiement, id_population, nature, id_fonctionnalite, date_activation, statut,
-           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
-        SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
-               CASE WHEN ${sqlDeploiementActif('d', ':maintenant')} THEN 'ACTIF' ELSE 'PREVU' END,
-               'CONSEILLER', ${SELECT_CONSEILLER}, :maintenant
-        FROM deploiement d
-        ${sqlJoinConseillersConcernes('d', 'c')}
-        ${JOIN_LIEU_CONSEILLER};
-      `,
-      { replacements: { maintenant: dateCalcul }, transaction }
-    )
-    return nbLignes as number
-  }
-
-  private async ecrireLesJeunesDesDeploiements(
-    connexion: Sequelize,
-    { dateCalcul, transaction }: Ecriture
-  ): Promise<number> {
-    const [, nbLignes] = await connexion.query(
-      `
-        INSERT INTO ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
-          (id_deploiement, id_population, nature, id_fonctionnalite, date_activation, statut,
-           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
-        SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
-               CASE WHEN ${sqlDeploiementActif('d', ':maintenant')} THEN 'ACTIF' ELSE 'PREVU' END,
-               'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
-               COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
-               COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
-               :maintenant
-        FROM deploiement d
-        CROSS JOIN jeune j
-        ${sqlJoinConseillerDeReference('j', 'c')}
-        LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
-        ${JOIN_LIEU_CONSEILLER}
-        WHERE ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')};
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )

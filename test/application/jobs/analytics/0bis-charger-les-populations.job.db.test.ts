@@ -4,14 +4,12 @@ import { QueryTypes } from 'sequelize'
 import {
   ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME,
   ANALYTICS_COMMUNICATIONS_TABLE_NAME,
-  ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
   ANALYTICS_POPULATION_MEMBRES_TABLE_NAME,
   ChargerLesPopulationsJobHandler
 } from '../../../../src/application/jobs/analytics/0bis-charger-les-populations.job'
 import { Communication } from '../../../../src/domain/communication'
 import { CommunicationEnvoi } from '../../../../src/domain/communication-envoi'
 import { Core } from '../../../../src/domain/core'
-import { Deploiement } from '../../../../src/domain/deploiement'
 import { Planificateur } from '../../../../src/domain/planificateur'
 import { Profil } from '../../../../src/domain/profil'
 import { SuiviJob } from '../../../../src/domain/suivi-job'
@@ -19,11 +17,9 @@ import { AgenceSqlModel } from '../../../../src/infrastructure/sequelize/models/
 import { CommunicationEnvoiSqlModel } from '../../../../src/infrastructure/sequelize/models/communication-envoi.sql-model'
 import { CommunicationSqlModel } from '../../../../src/infrastructure/sequelize/models/communication.sql-model'
 import { ConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/conseiller.sql-model'
-import { DeploiementSqlModel } from '../../../../src/infrastructure/sequelize/models/deploiement.sql-model'
-import { FonctionnaliteSqlModel } from '../../../../src/infrastructure/sequelize/models/fonctionnalite.sql-model'
 import { JeuneSqlModel } from '../../../../src/infrastructure/sequelize/models/jeune.sql-model'
 import { CommunicationSqlRepository } from '../../../../src/infrastructure/repositories/communication.repository.db'
-import { MigrationSqlRepository } from '../../../../src/infrastructure/repositories/migration.repository.db'
+import { PopulationSqlRepository } from '../../../../src/infrastructure/repositories/population.repository.db'
 import { PopulationConseillerSqlModel } from '../../../../src/infrastructure/sequelize/models/population-conseiller.sql-model'
 import { PopulationProfilSqlModel } from '../../../../src/infrastructure/sequelize/models/population-profil.sql-model'
 import { PopulationSqlModel } from '../../../../src/infrastructure/sequelize/models/population.sql-model'
@@ -82,15 +78,6 @@ interface CommunicationAnalytics {
   nb_erreurs: number | null
   nb_tokens_invalides: number | null
   date_calcul: Date
-}
-
-interface MembreDeploiement extends Utilisateur {
-  id_deploiement: string
-  id_population: string
-  nature: string
-  id_fonctionnalite: string | null
-  date_activation: Date
-  statut: string
 }
 
 describe('ChargerLesPopulationsJobHandler', () => {
@@ -309,30 +296,6 @@ describe('ChargerLesPopulationsJobHandler', () => {
         dateTraitement: null
       }
     ])
-    await FonctionnaliteSqlModel.create({ id: 'DEMARCHES_IA' })
-    await DeploiementSqlModel.bulkCreate([
-      {
-        id: 10,
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'PILOTE',
-        idFonctionnalite: null,
-        dateActivation: dansUneSemaine
-      },
-      {
-        id: 11,
-        nature: Deploiement.Nature.FONCTIONNALITE,
-        idPopulation: 'PILOTE',
-        idFonctionnalite: 'DEMARCHES_IA',
-        dateActivation: hier
-      },
-      {
-        id: 12,
-        nature: Deploiement.Nature.MIGRATION,
-        idPopulation: 'VIDE',
-        idFonctionnalite: null,
-        dateActivation: dansUneSemaine
-      }
-    ])
   })
 
   after(async () => {
@@ -340,7 +303,6 @@ describe('ChargerLesPopulationsJobHandler', () => {
       DROP TABLE IF EXISTS ${ANALYTICS_POPULATION_MEMBRES_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATIONS_TABLE_NAME};
       DROP TABLE IF EXISTS ${ANALYTICS_COMMUNICATION_DESTINATAIRES_TABLE_NAME};
-      DROP TABLE IF EXISTS ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME};
     `)
   })
 
@@ -412,8 +374,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbCommunications: 11,
         nbConseillers: 2,
         nbJeunes: 5,
-        nbDestinatairesCommunications: 26,
-        nbMembresDeploiements: 14
+        nbDestinatairesCommunications: 26
       })
     })
 
@@ -676,86 +637,6 @@ describe('ChargerLesPopulationsJobHandler', () => {
       ])
     })
 
-    it('liste les conseillers concernés par chaque déploiement, avec son statut figé à date_calcul', async () => {
-      // Then
-      const membres = (
-        await lignes<MembreDeploiement>(
-          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-          'id_deploiement, id_utilisateur'
-        )
-      ).filter(m => m.type_utilisateur === 'CONSEILLER')
-      expect(
-        membres.map(m => [
-          m.id_deploiement,
-          m.nature,
-          m.id_fonctionnalite,
-          m.statut,
-          m.id_utilisateur
-        ])
-      ).to.deep.equal([
-        ['10', 'MIGRATION', null, 'PREVU', 'conseillerCite'],
-        ['10', 'MIGRATION', null, 'PREVU', 'conseillerFtCej'],
-        ['11', 'FONCTIONNALITE', 'DEMARCHES_IA', 'ACTIF', 'conseillerCite'],
-        ['11', 'FONCTIONNALITE', 'DEMARCHES_IA', 'ACTIF', 'conseillerFtCej']
-      ])
-      expect(membres[0]).to.deep.include({
-        id_population: 'PILOTE',
-        date_activation: dansUneSemaine,
-        type_utilisateur: 'CONSEILLER',
-        email: 'cite@milo.fr',
-        agence: 'ML Aubenas',
-        date_calcul: maintenant.toJSDate()
-      })
-    })
-
-    it('liste les jeunes concernés par chaque déploiement, comme la fonctionnalité les calcule', async () => {
-      // Then
-      const membres = (
-        await lignes<MembreDeploiement>(
-          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-          'id_deploiement, id_utilisateur'
-        )
-      ).filter(m => m.type_utilisateur === 'JEUNE')
-      expect(
-        membres.map(m => [m.id_deploiement, m.statut, m.id_utilisateur])
-      ).to.deep.equal([
-        ['10', 'PREVU', 'jeuneBrsaChezCej'],
-        ['10', 'PREVU', 'jeuneCite'],
-        ['10', 'PREVU', 'jeuneFtCej'],
-        ['10', 'PREVU', 'jeuneSansConseiller'],
-        ['10', 'PREVU', 'jeuneTransfere'],
-        ['11', 'ACTIF', 'jeuneBrsaChezCej'],
-        ['11', 'ACTIF', 'jeuneCite'],
-        ['11', 'ACTIF', 'jeuneFtCej'],
-        ['11', 'ACTIF', 'jeuneSansConseiller'],
-        ['11', 'ACTIF', 'jeuneTransfere']
-      ])
-    })
-
-    it('montre pour un jeune la date de migration que la fonctionnalité lui annonce', async () => {
-      // Given
-      const migrationRepository = new MigrationSqlRepository(
-        getDatabase().sequelize
-      )
-
-      // When
-      const annoncee =
-        await migrationRepository.getMigrationDuBeneficiaire('jeuneTransfere')
-      const migrations = (
-        await lignes<MembreDeploiement>(
-          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-          'id_deploiement'
-        )
-      ).filter(
-        m => m.id_utilisateur === 'jeuneTransfere' && m.nature === 'MIGRATION'
-      )
-
-      // Then
-      expect(migrations.map(m => m.date_activation)).to.deep.equal([
-        annoncee?.dateActivation.toJSDate()
-      ])
-    })
-
     it('montre pour un conseiller les communications en cours, dont celle que la fonctionnalité lui affiche', async () => {
       // Given
       const communicationRepository = new CommunicationSqlRepository(
@@ -763,9 +644,16 @@ describe('ChargerLesPopulationsJobHandler', () => {
       )
 
       // When
+      const populationRepository = new PopulationSqlRepository(
+        getDatabase().sequelize
+      )
+      const idsPopulations =
+        await populationRepository.getIdsPopulationsDuConseiller(
+          'conseillerCite'
+        )
       const affichee =
         await communicationRepository.getMessageInformatifDuConseiller(
-          'conseillerCite',
+          idsPopulations,
           maintenant
         )
       const enCours = (
@@ -780,30 +668,6 @@ describe('ChargerLesPopulationsJobHandler', () => {
       // Then : la fonctionnalité n'affiche que la plus urgente des EN_COURS
       expect(enCours.map(d => d.id_communication)).to.deep.equal(['2', '6'])
       expect(affichee?.id).to.equal(2)
-    })
-
-    it('montre pour un conseiller la date de migration que la fonctionnalité lui annonce', async () => {
-      // Given
-      const migrationRepository = new MigrationSqlRepository(
-        getDatabase().sequelize
-      )
-
-      // When
-      const annoncee =
-        await migrationRepository.getMigrationDuConseiller('conseillerCite')
-      const migrations = (
-        await lignes<MembreDeploiement>(
-          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-          'id_deploiement'
-        )
-      ).filter(
-        m => m.id_utilisateur === 'conseillerCite' && m.nature === 'MIGRATION'
-      )
-
-      // Then
-      expect(migrations.map(m => m.date_activation)).to.deep.equal([
-        annoncee?.dateActivation.toJSDate()
-      ])
     })
 
     it("compte pour une notification pas encore envoyée autant de jeunes destinataires que l'envoi en figera", async () => {
