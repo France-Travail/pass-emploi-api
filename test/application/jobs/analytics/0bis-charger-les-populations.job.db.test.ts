@@ -413,7 +413,7 @@ describe('ChargerLesPopulationsJobHandler', () => {
         nbConseillers: 2,
         nbJeunes: 5,
         nbDestinatairesCommunications: 26,
-        nbMembresDeploiements: 4
+        nbMembresDeploiements: 14
       })
     })
 
@@ -678,10 +678,12 @@ describe('ChargerLesPopulationsJobHandler', () => {
 
     it('liste les conseillers concernés par chaque déploiement, avec son statut figé à date_calcul', async () => {
       // Then
-      const membres = await lignes<MembreDeploiement>(
-        ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
-        'id_deploiement, id_utilisateur'
-      )
+      const membres = (
+        await lignes<MembreDeploiement>(
+          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+          'id_deploiement, id_utilisateur'
+        )
+      ).filter(m => m.type_utilisateur === 'CONSEILLER')
       expect(
         membres.map(m => [
           m.id_deploiement,
@@ -704,6 +706,54 @@ describe('ChargerLesPopulationsJobHandler', () => {
         agence: 'ML Aubenas',
         date_calcul: maintenant.toJSDate()
       })
+    })
+
+    it('liste les jeunes concernés par chaque déploiement, comme la fonctionnalité les calcule', async () => {
+      // Then
+      const membres = (
+        await lignes<MembreDeploiement>(
+          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+          'id_deploiement, id_utilisateur'
+        )
+      ).filter(m => m.type_utilisateur === 'JEUNE')
+      expect(
+        membres.map(m => [m.id_deploiement, m.statut, m.id_utilisateur])
+      ).to.deep.equal([
+        ['10', 'PREVU', 'jeuneBrsaChezCej'],
+        ['10', 'PREVU', 'jeuneCite'],
+        ['10', 'PREVU', 'jeuneFtCej'],
+        ['10', 'PREVU', 'jeuneSansConseiller'],
+        ['10', 'PREVU', 'jeuneTransfere'],
+        ['11', 'ACTIF', 'jeuneBrsaChezCej'],
+        ['11', 'ACTIF', 'jeuneCite'],
+        ['11', 'ACTIF', 'jeuneFtCej'],
+        ['11', 'ACTIF', 'jeuneSansConseiller'],
+        ['11', 'ACTIF', 'jeuneTransfere']
+      ])
+    })
+
+    it('montre pour un jeune la date de migration que la fonctionnalité lui annonce', async () => {
+      // Given
+      const migrationRepository = new MigrationSqlRepository(
+        getDatabase().sequelize
+      )
+
+      // When
+      const annoncee =
+        await migrationRepository.getMigrationDuBeneficiaire('jeuneTransfere')
+      const migrations = (
+        await lignes<MembreDeploiement>(
+          ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME,
+          'id_deploiement'
+        )
+      ).filter(
+        m => m.id_utilisateur === 'jeuneTransfere' && m.nature === 'MIGRATION'
+      )
+
+      // Then
+      expect(migrations.map(m => m.date_activation)).to.deep.equal([
+        annoncee?.dateActivation.toJSDate()
+      ])
     })
 
     it('montre pour un conseiller les communications en cours, dont celle que la fonctionnalité lui affiche', async () => {

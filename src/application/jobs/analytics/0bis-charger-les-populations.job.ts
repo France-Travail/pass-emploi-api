@@ -471,6 +471,16 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
 
   private async ecrireLesMembresDesDeploiements(
     connexion: Sequelize,
+    ecriture: Ecriture
+  ): Promise<number> {
+    return (
+      (await this.ecrireLesConseillersDesDeploiements(connexion, ecriture)) +
+      (await this.ecrireLesJeunesDesDeploiements(connexion, ecriture))
+    )
+  }
+
+  private async ecrireLesConseillersDesDeploiements(
+    connexion: Sequelize,
     { dateCalcul, transaction }: Ecriture
   ): Promise<number> {
     const [, nbLignes] = await connexion.query(
@@ -484,6 +494,33 @@ export class ChargerLesPopulationsJobHandler extends JobHandler {
         FROM deploiement d
         ${sqlJoinConseillersConcernes('d', 'c')}
         ${JOIN_LIEU_CONSEILLER};
+      `,
+      { replacements: { maintenant: dateCalcul }, transaction }
+    )
+    return nbLignes as number
+  }
+
+  private async ecrireLesJeunesDesDeploiements(
+    connexion: Sequelize,
+    { dateCalcul, transaction }: Ecriture
+  ): Promise<number> {
+    const [, nbLignes] = await connexion.query(
+      `
+        INSERT INTO ${ANALYTICS_DEPLOIEMENT_MEMBRES_TABLE_NAME}
+          (id_deploiement, id_population, nature, id_fonctionnalite, date_activation, statut,
+           type_utilisateur, id_utilisateur, email, nom, prenom, structure, dispositif, id_agence, agence, date_calcul)
+        SELECT d.id, d.id_population, d.nature, d.id_fonctionnalite, d.date_activation,
+               CASE WHEN ${sqlDeploiementActif('d', ':maintenant')} THEN 'ACTIF' ELSE 'PREVU' END,
+               'JEUNE', j.id, j.email, j.nom, j.prenom, j.structure, j.dispositif,
+               COALESCE(j.id_structure_milo, c.id_structure_milo, c.id_agence),
+               COALESCE(smj.nom_officiel, sm.nom_officiel, a.nom_agence),
+               :maintenant
+        FROM deploiement d
+        CROSS JOIN jeune j
+        ${sqlJoinConseillerDeReference('j', 'c')}
+        LEFT JOIN structure_milo smj ON smj.id = j.id_structure_milo
+        ${JOIN_LIEU_CONSEILLER}
+        WHERE ${sqlJeuneDansPopulation('j', 'c', 'd.id_population')};
       `,
       { replacements: { maintenant: dateCalcul }, transaction }
     )
