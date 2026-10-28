@@ -4,6 +4,7 @@ import { Profil } from '../profil'
 export interface Questionnaire {
   structure: Profil.Structure
   situation: Questionnaire.Situation
+  precisionSituation?: string
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
   dateNaissance?: DateTime

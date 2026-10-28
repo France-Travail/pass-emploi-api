@@ -269,7 +269,8 @@ describe('GenererPlanActionCommandHandler', () => {
           communeResidence: { codeInsee: '75056', nom: 'Paris' },
           communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
           domaineProfessionnelVise: 'informatique',
-          rayonKm: 30
+          rayonKm: 30,
+          precisionSituation: 'en service civique'
         },
         jeuneMilo
       )
@@ -284,7 +285,8 @@ describe('GenererPlanActionCommandHandler', () => {
         communeResidence: { codeInsee: '75056', nom: 'Paris' },
         communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
         domaineProfessionnelVise: 'informatique',
-        rayonKm: 30
+        rayonKm: 30,
+        precisionSituation: 'en service civique'
       })
     })
 

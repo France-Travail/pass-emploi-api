@@ -18,6 +18,7 @@ describe('toQuestionnaireQueryModel', () => {
     // Given
     const questionnaire: Questionnaire = {
       ...unQuestionnaire(),
+      precisionSituation: 'en service civique',
       dateNaissance: DateTime.fromISO('2005-03-14'),
       communeResidence: { codeInsee: '75056', nom: 'Paris' },
       communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
@@ -31,6 +32,7 @@ describe('toQuestionnaireQueryModel', () => {
     // Then
     expect(queryModel).to.deep.equal({
       situation: Questionnaire.Situation.LYCEE,
+      precisionAutre: 'en service civique',
       goals: [Questionnaire.Besoin.ALTERNANCE],
       obstacles: [Questionnaire.Contrainte.PAS_DE_PERMIS],
       dateNaissance: '2005-03-14',

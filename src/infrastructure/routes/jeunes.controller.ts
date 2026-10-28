@@ -518,6 +518,7 @@ export class JeunesController {
     const command: GenererPlanActionCommand = {
       idJeune,
       situation: payload.situation,
+      precisionSituation: payload.precisionAutre,
       besoins: payload.goals,
       contraintes: payload.obstacles ?? [],
       // setZone conserve le décalage écrit dans la chaîne, pour que la date

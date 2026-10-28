@@ -8,6 +8,9 @@ export function toQuestionnaireQueryModel(
 
   return {
     situation: questionnaire.situation,
+    ...(questionnaire.precisionSituation
+      ? { precisionAutre: questionnaire.precisionSituation }
+      : {}),
     goals: questionnaire.besoins,
     obstacles: questionnaire.contraintes,
     ...(dateNaissance ? { dateNaissance } : {}),

@@ -13,6 +13,7 @@ import {
 const COLONNES_QUESTIONNAIRE = [
   'structure',
   'situation',
+  'precisionSituation',
   'besoins',
   'contraintes',
   'dateNaissance',
@@ -183,6 +184,7 @@ function toQuestionnaireSql(
   return {
     structure: questionnaire.structure,
     situation: questionnaire.situation,
+    precisionSituation: questionnaire.precisionSituation ?? null,
     besoins: questionnaire.besoins,
     contraintes: questionnaire.contraintes,
     dateNaissance: questionnaire.dateNaissance?.toISODate() ?? null,
@@ -212,6 +214,9 @@ function toQuestionnaire(
   return {
     structure: planSql.structure as Profil.Structure,
     situation: planSql.situation as Questionnaire.Situation,
+    ...(planSql.precisionSituation
+      ? { precisionSituation: planSql.precisionSituation }
+      : {}),
     besoins: planSql.besoins as Questionnaire.Besoin[],
     contraintes: planSql.contraintes as Questionnaire.Contrainte[],
     ...(planSql.dateNaissance

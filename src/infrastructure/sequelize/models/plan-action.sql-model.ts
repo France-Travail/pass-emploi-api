@@ -32,6 +32,9 @@ export class PlanActionDto extends Model {
   @Column({ field: 'situation', type: DataType.STRING })
   situation: string | null
 
+  @Column({ field: 'precision_situation', type: DataType.TEXT })
+  precisionSituation: string | null
+
   @Column({ field: 'besoins', type: DataType.ARRAY(DataType.STRING) })
   besoins: string[] | null
 

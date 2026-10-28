@@ -42,6 +42,11 @@ export class GenererPlanActionPayload {
   @IsEnum(Questionnaire.Situation)
   situation: Questionnaire.Situation
 
+  @ApiPropertyOptional({ nullable: true })
+  @IsString()
+  @IsOptional()
+  precisionAutre?: string | null
+
   @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
   @IsArray()
   @ArrayMinSize(1)
@@ -181,6 +186,9 @@ export function toReponsesQuestionnaire(
 ): Questionnaire.Reponses {
   return {
     situation: payload.situation,
+    ...(payload.precisionAutre
+      ? { precisionSituation: payload.precisionAutre }
+      : {}),
     besoins: payload.goals,
     contraintes: payload.obstacles ?? [],
     ...(payload.dateNaissance

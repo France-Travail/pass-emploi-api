@@ -247,6 +247,7 @@ describe('PlanActionSqlRepository', () => {
       await planActionSqlRepository.save(
         unPlan({
           questionnaire: unQuestionnaire({
+            precisionSituation: 'en service civique',
             dateNaissance: DateTime.fromISO('2008-03-15T00:00:00.000+02:00', {
               setZone: true
             }),
@@ -269,6 +270,7 @@ describe('PlanActionSqlRepository', () => {
       expect(reste).to.deep.equal({
         structure: Profil.Structure.MILO,
         situation: Questionnaire.Situation.LYCEE,
+        precisionSituation: 'en service civique',
         besoins: [Questionnaire.Besoin.ALTERNANCE, Questionnaire.Besoin.EMPLOI],
         contraintes: [Questionnaire.Contrainte.SANTE],
         communeResidence: { codeInsee: '75056', nom: 'Paris' },
@@ -286,6 +288,7 @@ describe('PlanActionSqlRepository', () => {
 
       // Then
       const planSql = await PlanActionSqlModel.findByPk(unPlan().id)
+      expect(planSql!.precisionSituation).to.be.null()
       expect(planSql!.dateNaissance).to.be.null()
       expect(planSql!.codeInseeCommuneResidence).to.be.null()
       expect(planSql!.nomCommuneResidence).to.be.null()
@@ -306,6 +309,7 @@ describe('PlanActionSqlRepository', () => {
 
       // Then
       expect(plan!.questionnaire).not.to.have.any.keys(
+        'precisionSituation',
         'dateNaissance',
         'communeResidence',
         'communeRecherche',

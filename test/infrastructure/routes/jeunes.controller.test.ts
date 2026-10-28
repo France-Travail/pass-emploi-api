@@ -1072,7 +1072,8 @@ describe('JeunesController', () => {
         .send({
           jetonConnecte: 'jeton-connecte',
           questionnaire: {
-            situation: 'EMPLOI',
+            situation: 'AUTRE',
+            precisionAutre: 'En service civique',
             goals: ['ORIENTER'],
             obstacles: ['PAS_DE_PERMIS'],
             dateNaissance: '2005-03-14',
@@ -1092,7 +1093,8 @@ describe('JeunesController', () => {
           idInvite: 'id-invite',
           jetonConnecte: 'jeton-connecte',
           questionnaire: {
-            situation: 'EMPLOI',
+            situation: 'AUTRE',
+            precisionSituation: 'En service civique',
             besoins: ['ORIENTER'],
             contraintes: ['PAS_DE_PERMIS'],
             dateNaissance: DateTime.fromISO('2005-03-14', { setZone: true }),
@@ -1352,6 +1354,7 @@ describe('JeunesController', () => {
     const commandeSansReponsesOptionnelles = {
       idJeune: 'id-jeune',
       situation: Questionnaire.Situation.LYCEE,
+      precisionSituation: undefined,
       besoins: [Questionnaire.Besoin.ALTERNANCE],
       contraintes: [],
       dateNaissance: undefined,
@@ -1403,6 +1406,31 @@ describe('JeunesController', () => {
         genererPlanActionCommandHandler.execute
       ).to.have.been.calledWithExactly(
         commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it('transmet la précision de la situation autre', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'AUTRE',
+          precisionAutre: 'En service civique',
+          goals: ['ALTERNANCE']
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          ...commandeSansReponsesOptionnelles,
+          situation: Questionnaire.Situation.AUTRE,
+          precisionSituation: 'En service civique'
+        },
         unUtilisateurDecode()
       )
     })

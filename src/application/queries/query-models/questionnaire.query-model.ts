@@ -13,6 +13,9 @@ export class QuestionnaireQueryModel {
   @ApiProperty({ enum: Questionnaire.Situation })
   situation: Questionnaire.Situation
 
+  @ApiPropertyOptional()
+  precisionAutre?: string
+
   @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
   goals: Questionnaire.Besoin[]
 
