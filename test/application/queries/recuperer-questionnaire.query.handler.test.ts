@@ -104,6 +104,32 @@ describe('RecupererQuestionnaireQueryHandler', () => {
       )
     })
 
+    it('renvoie la précision de la situation autre', async () => {
+      // Given
+      planActionRepository.getQuestionnaireDuDernierPlan
+        .withArgs(query.idJeune)
+        .resolves({
+          structure: Profil.Structure.MILO,
+          situation: Questionnaire.Situation.AUTRE,
+          precisionSituation: 'En service civique',
+          besoins: [Questionnaire.Besoin.ENGAGER],
+          contraintes: []
+        })
+
+      // When
+      const result = await handler.handle(query)
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          situation: Questionnaire.Situation.AUTRE,
+          precisionAutre: 'En service civique',
+          goals: [Questionnaire.Besoin.ENGAGER],
+          obstacles: []
+        })
+      )
+    })
+
     it("omet les réponses optionnelles que le jeune n'a pas données", async () => {
       // Given
       planActionRepository.getQuestionnaireDuDernierPlan
