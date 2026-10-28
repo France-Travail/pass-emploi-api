@@ -163,7 +163,7 @@ export class MiloClientV2 implements MiloClientPort {
     let response
     response = surcharge
       ? await this.miloClientUtils.put<string>({
-          suffixUrl: `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
+          suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
           auth: { apiKey: this.apiKeyJwtJeune, idpToken },
           accept: 'application/json, text/plain',
           contentType: 'application/json'

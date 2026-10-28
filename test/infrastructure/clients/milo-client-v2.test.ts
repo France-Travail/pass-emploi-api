@@ -111,4 +111,46 @@ describe('MiloClientV2', () => {
       expect(isSuccess(result)).to.be.true()
     })
   })
+
+  describe('creerJeune', () => {
+    it('crée le compte jeune en POST avec la clé JWT et le token', async () => {
+      const scope = nock(MILO_BASE_URL)
+        .post('/api-jeune/compte-jeune/123456')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyJwtJeune')
+        .matchHeader('Authorization', 'Bearer idpToken')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, 'idAuthentification')
+
+      const result = await miloClient.creerJeune('123456', 'idpToken')
+
+      expect(scope.isDone()).to.equal(true)
+      expect(result).to.deep.equal({
+        _isSuccess: true,
+        data: {
+          idAuthentification: 'idAuthentification',
+          existeDejaChezMilo: false
+        }
+      })
+    })
+
+    it('surcharge le compte jeune en PUT sans body avec la clé JWT et le token', async () => {
+      const scope = nock(MILO_BASE_URL)
+        .put('/api-jeune/sue/compte-jeune/123456')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyJwtJeune')
+        .matchHeader('Authorization', 'Bearer idpToken')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, 'idAuthentification')
+
+      const result = await miloClient.creerJeune('123456', 'idpToken', true)
+
+      expect(scope.isDone()).to.equal(true)
+      expect(result).to.deep.equal({
+        _isSuccess: true,
+        data: {
+          idAuthentification: 'idAuthentification',
+          existeDejaChezMilo: false
+        }
+      })
+    })
+  })
 })
