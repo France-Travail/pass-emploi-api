@@ -33,10 +33,7 @@ import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
-import {
-  Questionnaire,
-  QuestionnaireRepositoryToken
-} from '../../domain/plan-action/questionnaire'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
@@ -69,8 +66,6 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     private readonly jeuneRepository: Jeune.Repository,
     @Inject(PlanActionRepositoryToken)
     private readonly planActionRepository: PlanAction.Repository,
-    @Inject(QuestionnaireRepositoryToken)
-    private readonly questionnaireRepository: Questionnaire.Repository,
     @Inject(ReferentielPlanActionRepositoryToken)
     private readonly referentielRepository: ReferentielPlanAction.Repository,
     private readonly evenementService: EvenementService,
@@ -181,23 +176,20 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     )
     const solutionsConnues =
       await this.referentielRepository.trouverSolutions(idsSolutions)
+    const questionnaire = reponses && {
+      ...reponses,
+      contraintes: Questionnaire.calculerContraintes(reponses.contraintes),
+      structure: jeuneConnecte.profil.structure
+    }
     const plan = PlanAction.depuisPlanInvite(
       idJeune,
       planInvite,
+      questionnaire,
       new Set(solutionsConnues.map(solution => solution.id)),
       maintenant
     )
     if (!plan) return
 
-    if (reponses) {
-      await this.questionnaireRepository.save({
-        ...reponses,
-        contraintes: Questionnaire.calculerContraintes(reponses.contraintes),
-        structure: jeuneConnecte.profil.structure,
-        idJeune,
-        dateCreation: plan.dateCreation
-      })
-    }
     await this.planActionRepository.save(plan)
   }
 

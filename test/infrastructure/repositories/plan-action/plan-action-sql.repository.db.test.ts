@@ -1,5 +1,7 @@
+import { DateTime } from 'luxon'
 import { PlanAction } from 'src/domain/plan-action/plan-action'
 import { Questionnaire } from 'src/domain/plan-action/questionnaire'
+import { Profil } from 'src/domain/profil'
 import { FirebaseClient } from 'src/infrastructure/clients/firebase-client'
 import { ConseillerSqlRepository } from 'src/infrastructure/repositories/conseiller-sql.repository.db'
 import { JeuneSqlRepository } from 'src/infrastructure/repositories/jeune/jeune-sql.repository.db'
@@ -61,6 +63,18 @@ describe('PlanActionSqlRepository', () => {
           ]
         }
       ],
+      ...override
+    }
+  }
+
+  function unQuestionnaire(
+    override: Partial<Questionnaire> = {}
+  ): Questionnaire {
+    return {
+      structure: Profil.Structure.MILO,
+      situation: Questionnaire.Situation.LYCEE,
+      besoins: [Questionnaire.Besoin.ALTERNANCE, Questionnaire.Besoin.EMPLOI],
+      contraintes: [Questionnaire.Contrainte.SANTE],
       ...override
     }
   }
@@ -220,6 +234,198 @@ describe('PlanActionSqlRepository', () => {
 
       // Then
       expect(plan).to.equal(undefined)
+    })
+  })
+
+  describe('questionnaire', () => {
+    beforeEach(async () => {
+      await insererSolution('p-2')
+    })
+
+    it('relit toutes les réponses du questionnaire sauvegardé avec le plan', async () => {
+      // Given
+      await planActionSqlRepository.save(
+        unPlan({
+          questionnaire: unQuestionnaire({
+            dateNaissance: DateTime.fromISO('2008-03-15T00:00:00.000+02:00', {
+              setZone: true
+            }),
+            communeResidence: { codeInsee: '75056', nom: 'Paris' },
+            communeRecherche: { codeInsee: '2A004', nom: 'Ajaccio' },
+            domaineProfessionnelVise: 'informatique',
+            rayonKm: 30
+          })
+        })
+      )
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan!.questionnaire!.dateNaissance!.toISODate()).to.equal(
+        '2008-03-15'
+      )
+      const { dateNaissance: _dateNaissance, ...reste } = plan!.questionnaire!
+      expect(reste).to.deep.equal({
+        structure: Profil.Structure.MILO,
+        situation: Questionnaire.Situation.LYCEE,
+        besoins: [Questionnaire.Besoin.ALTERNANCE, Questionnaire.Besoin.EMPLOI],
+        contraintes: [Questionnaire.Contrainte.SANTE],
+        communeResidence: { codeInsee: '75056', nom: 'Paris' },
+        communeRecherche: { codeInsee: '2A004', nom: 'Ajaccio' },
+        domaineProfessionnelVise: 'informatique',
+        rayonKm: 30
+      })
+    })
+
+    it('sauvegarde à null les réponses optionnelles absentes', async () => {
+      // When
+      await planActionSqlRepository.save(
+        unPlan({ questionnaire: unQuestionnaire() })
+      )
+
+      // Then
+      const planSql = await PlanActionSqlModel.findByPk(unPlan().id)
+      expect(planSql!.dateNaissance).to.be.null()
+      expect(planSql!.codeInseeCommuneResidence).to.be.null()
+      expect(planSql!.nomCommuneResidence).to.be.null()
+      expect(planSql!.codeInseeCommuneRecherche).to.be.null()
+      expect(planSql!.nomCommuneRecherche).to.be.null()
+      expect(planSql!.domaineProfessionnelVise).to.be.null()
+      expect(planSql!.rayonKm).to.be.null()
+    })
+
+    it("n'invente pas les réponses optionnelles absentes", async () => {
+      // Given
+      await planActionSqlRepository.save(
+        unPlan({ questionnaire: unQuestionnaire() })
+      )
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan!.questionnaire).not.to.have.any.keys(
+        'dateNaissance',
+        'communeResidence',
+        'communeRecherche',
+        'domaineProfessionnelVise',
+        'rayonKm'
+      )
+    })
+
+    it('rend le questionnaire du plan le plus récent', async () => {
+      // Given
+      await planActionSqlRepository.save(
+        unPlan({
+          id: '22222222-2222-4222-8222-222222222222',
+          dateCreation: maintenant.minus({ days: 1 }),
+          objectifs: [],
+          questionnaire: unQuestionnaire({
+            besoins: [Questionnaire.Besoin.FORMER]
+          })
+        })
+      )
+      await planActionSqlRepository.save(
+        unPlan({ questionnaire: unQuestionnaire() })
+      )
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan!.questionnaire!.besoins).to.deep.equal([
+        Questionnaire.Besoin.ALTERNANCE,
+        Questionnaire.Besoin.EMPLOI
+      ])
+    })
+
+    it('rend un plan sans questionnaire quand il a été généré avant sa sauvegarde', async () => {
+      // Given
+      await planActionSqlRepository.save(unPlan())
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      expect(plan).not.to.have.property('questionnaire')
+    })
+  })
+
+  describe('getQuestionnaireDuDernierPlan', () => {
+    beforeEach(async () => {
+      await insererSolution('p-2')
+    })
+
+    it('rend le questionnaire du plan le plus récent', async () => {
+      // Given
+      await planActionSqlRepository.save(
+        unPlan({
+          id: '22222222-2222-4222-8222-222222222222',
+          dateCreation: maintenant.minus({ days: 1 }),
+          objectifs: [],
+          questionnaire: unQuestionnaire({
+            besoins: [Questionnaire.Besoin.FORMER]
+          })
+        })
+      )
+      await planActionSqlRepository.save(
+        unPlan({
+          questionnaire: unQuestionnaire({
+            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+          })
+        })
+      )
+
+      // When
+      const questionnaire =
+        await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')
+
+      // Then
+      expect(questionnaire).to.deep.equal(
+        unQuestionnaire({
+          communeResidence: { codeInsee: '75056', nom: 'Paris' }
+        })
+      )
+    })
+
+    it('rend undefined quand le dernier plan a été généré sans questionnaire', async () => {
+      // Given
+      await planActionSqlRepository.save(unPlan())
+
+      // When
+      const questionnaire =
+        await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')
+
+      // Then
+      expect(questionnaire).to.be.undefined()
+    })
+
+    it("rend undefined quand le jeune n'a pas de plan", async () => {
+      // When
+      const questionnaire =
+        await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')
+
+      // Then
+      expect(questionnaire).to.be.undefined()
+    })
+  })
+
+  describe('contrainte questionnaire complet', () => {
+    it('refuse un plan dont le questionnaire est partiellement renseigné', async () => {
+      // When
+      const promesse = PlanActionSqlModel.create({
+        id: unPlan().id,
+        idJeune: 'jeune-1',
+        dateCreation: maintenant.toJSDate(),
+        dateMaj: maintenant.toJSDate(),
+        situation: Questionnaire.Situation.LYCEE
+      })
+
+      // Then
+      await expect(promesse).to.be.rejectedWith(
+        'plan_action_questionnaire_complet'
+      )
     })
   })
 

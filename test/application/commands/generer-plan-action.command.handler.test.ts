@@ -38,7 +38,6 @@ describe('GenererPlanActionCommandHandler', () => {
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
   let referentielRepository: StubbedType<ReferentielPlanAction.Repository>
   let planActionRepository: StubbedType<PlanAction.Repository>
-  let questionnaireRepository: StubbedType<Questionnaire.Repository>
   let planActionFactory: StubbedClass<PlanAction.Factory>
   let evenementService: StubbedClass<EvenementService>
   let transactionService: StubbedType<Transaction.Service>
@@ -94,7 +93,6 @@ describe('GenererPlanActionCommandHandler', () => {
       jeuneInviteAuthorizer,
       referentielRepository,
       planActionRepository,
-      questionnaireRepository,
       planActionFactory,
       evenementService,
       configService,
@@ -108,7 +106,6 @@ describe('GenererPlanActionCommandHandler', () => {
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     referentielRepository = stubInterface(sandbox)
     planActionRepository = stubInterface(sandbox)
-    questionnaireRepository = stubInterface(sandbox)
     planActionFactory = stubClass(PlanAction.Factory)
     evenementService = stubClass(EvenementService)
     transactionService = stubInterface(sandbox)
@@ -255,7 +252,7 @@ describe('GenererPlanActionCommandHandler', () => {
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
     })
 
-    it('sauvegarde le questionnaire avant le plan pour un bénéficiaire accompagné', async () => {
+    it('construit le plan avec toutes les réponses du questionnaire', async () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
       const dateNaissance = uneDatetime().minus({ years: 18 })
@@ -278,9 +275,7 @@ describe('GenererPlanActionCommandHandler', () => {
       )
 
       // Then
-      expect(questionnaireRepository.save).to.have.been.calledOnceWithExactly({
-        idJeune: command.idJeune,
-        dateCreation: maintenant,
+      expect(planActionFactory.creer.firstCall.args[1]).to.deep.equal({
         structure: Profil.Structure.MILO,
         situation: Questionnaire.Situation.LYCEE,
         besoins: [Questionnaire.Besoin.ALTERNANCE],
@@ -291,9 +286,6 @@ describe('GenererPlanActionCommandHandler', () => {
         domaineProfessionnelVise: 'informatique',
         rayonKm: 30
       })
-      expect(questionnaireRepository.save).to.have.been.calledBefore(
-        planActionRepository.save
-      )
     })
 
     it("construit le plan d'un bénéficiaire accompagné à partir de son dernier plan", async () => {
@@ -320,7 +312,6 @@ describe('GenererPlanActionCommandHandler', () => {
       // Then
       expect(planActionRepository.getDernierPlan).not.to.have.been.called()
       expect(planActionRepository.save).not.to.have.been.called()
-      expect(questionnaireRepository.save).not.to.have.been.called()
       expect(result).to.deep.equal(
         success({
           id: 'plan-1',

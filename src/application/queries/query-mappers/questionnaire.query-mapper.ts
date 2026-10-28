@@ -2,7 +2,7 @@ import { Questionnaire } from '../../../domain/plan-action/questionnaire'
 import { QuestionnaireQueryModel } from '../query-models/questionnaire.query-model'
 
 export function toQuestionnaireQueryModel(
-  questionnaire: Questionnaire.Enregistre
+  questionnaire: Questionnaire
 ): QuestionnaireQueryModel {
   const dateNaissance = questionnaire.dateNaissance?.toISODate()
 

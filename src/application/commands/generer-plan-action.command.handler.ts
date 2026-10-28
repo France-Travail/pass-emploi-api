@@ -20,10 +20,7 @@ import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
-import {
-  Questionnaire,
-  QuestionnaireRepositoryToken
-} from '../../domain/plan-action/questionnaire'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
@@ -61,8 +58,6 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     private readonly referentielRepository: ReferentielPlanAction.Repository,
     @Inject(PlanActionRepositoryToken)
     private readonly planActionRepository: PlanAction.Repository,
-    @Inject(QuestionnaireRepositoryToken)
-    private readonly questionnaireRepository: Questionnaire.Repository,
     private readonly planActionFactory: PlanAction.Factory,
     private readonly evenementService: EvenementService,
     private readonly configService: ConfigService,
@@ -112,11 +107,6 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
 
     if (planPersiste) {
       await this.transactionService.executer(async () => {
-        await this.questionnaireRepository.save({
-          ...questionnaire,
-          idJeune: command.idJeune,
-          dateCreation: plan.dateCreation
-        })
         await this.planActionRepository.save(plan)
         return emptySuccess()
       })

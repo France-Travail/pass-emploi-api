@@ -12,6 +12,7 @@ import {
   DroitsInsuffisants,
   NonTrouveError
 } from '../../../src/building-blocks/types/domain-error'
+import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { TOUT_PROFIL_SAUF_INVITE, Profil } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
@@ -20,7 +21,7 @@ import { testConfig } from '../../utils/module-for-testing'
 
 describe('RecupererQuestionnaireQueryHandler', () => {
   let jeuneAuthorizer: StubbedClass<JeuneAuthorizer>
-  let questionnaireRepository: StubbedType<Questionnaire.Repository>
+  let planActionRepository: StubbedType<PlanAction.Repository>
   let handler: RecupererQuestionnaireQueryHandler
 
   const utilisateur = unUtilisateurJeune()
@@ -29,10 +30,10 @@ describe('RecupererQuestionnaireQueryHandler', () => {
   beforeEach(() => {
     const sandbox = createSandbox()
     jeuneAuthorizer = stubClass(JeuneAuthorizer)
-    questionnaireRepository = stubInterface(sandbox)
+    planActionRepository = stubInterface(sandbox)
     handler = new RecupererQuestionnaireQueryHandler(
       jeuneAuthorizer,
-      questionnaireRepository,
+      planActionRepository,
       testConfig()
     )
   })
@@ -42,7 +43,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
       // Given
       const handlerDesactive = new RecupererQuestionnaireQueryHandler(
         jeuneAuthorizer,
-        questionnaireRepository,
+        planActionRepository,
         new ConfigService({ appJeuneActif: false })
       )
 
@@ -71,21 +72,19 @@ describe('RecupererQuestionnaireQueryHandler', () => {
   describe('handle', () => {
     it('renvoie le questionnaire dans le vocabulaire du contrat mobile', async () => {
       // Given
-      questionnaireRepository.get.withArgs(query.idJeune).resolves({
-        idJeune: query.idJeune,
-        dateCreation: DateTime.fromISO('2026-10-22T10:00:00.000Z', {
-          zone: 'utc'
-        }),
-        structure: Profil.Structure.MILO,
-        situation: Questionnaire.Situation.LYCEE,
-        besoins: [Questionnaire.Besoin.ALTERNANCE],
-        contraintes: [Questionnaire.Contrainte.SANTE],
-        dateNaissance: DateTime.fromISO('2008-03-15'),
-        communeResidence: { codeInsee: '75056', nom: 'Paris' },
-        communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
-        domaineProfessionnelVise: 'informatique',
-        rayonKm: 30
-      })
+      planActionRepository.getQuestionnaireDuDernierPlan
+        .withArgs(query.idJeune)
+        .resolves({
+          structure: Profil.Structure.MILO,
+          situation: Questionnaire.Situation.LYCEE,
+          besoins: [Questionnaire.Besoin.ALTERNANCE],
+          contraintes: [Questionnaire.Contrainte.SANTE],
+          dateNaissance: DateTime.fromISO('2008-03-15'),
+          communeResidence: { codeInsee: '75056', nom: 'Paris' },
+          communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
+          domaineProfessionnelVise: 'informatique',
+          rayonKm: 30
+        })
 
       // When
       const result = await handler.handle(query)
@@ -107,16 +106,14 @@ describe('RecupererQuestionnaireQueryHandler', () => {
 
     it("omet les réponses optionnelles que le jeune n'a pas données", async () => {
       // Given
-      questionnaireRepository.get.withArgs(query.idJeune).resolves({
-        idJeune: query.idJeune,
-        dateCreation: DateTime.fromISO('2026-10-22T10:00:00.000Z', {
-          zone: 'utc'
-        }),
-        structure: Profil.Structure.MILO,
-        situation: Questionnaire.Situation.EMPLOI,
-        besoins: [Questionnaire.Besoin.EMPLOI],
-        contraintes: []
-      })
+      planActionRepository.getQuestionnaireDuDernierPlan
+        .withArgs(query.idJeune)
+        .resolves({
+          structure: Profil.Structure.MILO,
+          situation: Questionnaire.Situation.EMPLOI,
+          besoins: [Questionnaire.Besoin.EMPLOI],
+          contraintes: []
+        })
 
       // When
       const result = await handler.handle(query)
@@ -133,7 +130,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
 
     it("renvoie une erreur NonTrouve quand le jeune n'a pas de questionnaire", async () => {
       // Given
-      questionnaireRepository.get.resolves(undefined)
+      planActionRepository.getQuestionnaireDuDernierPlan.resolves(undefined)
 
       // When
       const result = await handler.handle(query)

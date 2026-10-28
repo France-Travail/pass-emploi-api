@@ -9,9 +9,9 @@ import {
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import {
-  Questionnaire,
-  QuestionnaireRepositoryToken
-} from '../../domain/plan-action/questionnaire'
+  PlanAction,
+  PlanActionRepositoryToken
+} from '../../domain/plan-action/plan-action'
 import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { toQuestionnaireQueryModel } from './query-mappers/questionnaire.query-mapper'
@@ -30,8 +30,8 @@ export class RecupererQuestionnaireQueryHandler extends QueryHandler<
 
   constructor(
     private readonly jeuneAuthorizer: JeuneAuthorizer,
-    @Inject(QuestionnaireRepositoryToken)
-    private readonly questionnaireRepository: Questionnaire.Repository,
+    @Inject(PlanActionRepositoryToken)
+    private readonly planActionRepository: PlanAction.Repository,
     private readonly configService: ConfigService
   ) {
     super('RecupererQuestionnaireQueryHandler')
@@ -51,7 +51,10 @@ export class RecupererQuestionnaireQueryHandler extends QueryHandler<
   async handle(
     query: RecupererQuestionnaireQuery
   ): Promise<Result<QuestionnaireQueryModel>> {
-    const questionnaire = await this.questionnaireRepository.get(query.idJeune)
+    const questionnaire =
+      await this.planActionRepository.getQuestionnaireDuDernierPlan(
+        query.idJeune
+      )
 
     if (!questionnaire) {
       return failure(new NonTrouveError('Questionnaire', query.idJeune))

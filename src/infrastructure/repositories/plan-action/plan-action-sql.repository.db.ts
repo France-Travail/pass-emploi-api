@@ -2,9 +2,27 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { PlanAction } from '../../../domain/plan-action/plan-action'
 import { Questionnaire } from '../../../domain/plan-action/questionnaire'
+import { Profil } from '../../../domain/profil'
 import { PlanActionObjectifSqlModel } from '../../sequelize/models/plan-action-objectif.sql-model'
 import { PlanActionTacheSqlModel } from '../../sequelize/models/plan-action-tache.sql-model'
-import { PlanActionSqlModel } from '../../sequelize/models/plan-action.sql-model'
+import {
+  PlanActionDto,
+  PlanActionSqlModel
+} from '../../sequelize/models/plan-action.sql-model'
+
+const COLONNES_QUESTIONNAIRE = [
+  'structure',
+  'situation',
+  'besoins',
+  'contraintes',
+  'dateNaissance',
+  'codeInseeCommuneResidence',
+  'nomCommuneResidence',
+  'codeInseeCommuneRecherche',
+  'nomCommuneRecherche',
+  'domaineProfessionnelVise',
+  'rayonKm'
+] as const
 
 @Injectable()
 export class PlanActionSqlRepository implements PlanAction.Repository {
@@ -15,7 +33,8 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
       id: plan.id,
       idJeune: plan.idJeune,
       dateCreation: plan.dateCreation.toJSDate(),
-      dateMaj: plan.dateCreation.toJSDate()
+      dateMaj: plan.dateCreation.toJSDate(),
+      ...toQuestionnaireSql(plan.questionnaire)
     })
 
     await PlanActionObjectifSqlModel.bulkCreate(
@@ -57,6 +76,7 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
     })
     if (!planSql) return undefined
 
+    const questionnaire = toQuestionnaire(planSql)
     return {
       id: planSql.id,
       idJeune: planSql.idJeune,
@@ -67,8 +87,22 @@ export class PlanActionSqlRepository implements PlanAction.Repository {
         theme: objectifSql.theme as
           Questionnaire.Besoin | Questionnaire.Contrainte,
         taches: objectifSql.taches.map(toTache)
-      }))
+      })),
+      ...(questionnaire ? { questionnaire } : {})
     }
+  }
+
+  async getQuestionnaireDuDernierPlan(
+    idJeune: string
+  ): Promise<Questionnaire | undefined> {
+    const planSql = await PlanActionSqlModel.findOne({
+      where: { idJeune },
+      order: [['dateCreation', 'DESC']],
+      attributes: [...COLONNES_QUESTIONNAIRE]
+    })
+    if (!planSql) return undefined
+
+    return toQuestionnaire(planSql)
   }
 
   async existePourJeune(idJeune: string): Promise<boolean> {
@@ -138,5 +172,70 @@ function toTache(tacheSql: PlanActionTacheSqlModel): PlanAction.Tache {
     ...(tacheSql.dateSuppression
       ? { dateSuppression: DateTime.fromJSDate(tacheSql.dateSuppression) }
       : {})
+  }
+}
+
+function toQuestionnaireSql(
+  questionnaire: Questionnaire | undefined
+): Partial<PlanActionDto> {
+  if (!questionnaire) return {}
+
+  return {
+    structure: questionnaire.structure,
+    situation: questionnaire.situation,
+    besoins: questionnaire.besoins,
+    contraintes: questionnaire.contraintes,
+    dateNaissance: questionnaire.dateNaissance?.toISODate() ?? null,
+    codeInseeCommuneResidence:
+      questionnaire.communeResidence?.codeInsee ?? null,
+    nomCommuneResidence: questionnaire.communeResidence?.nom ?? null,
+    codeInseeCommuneRecherche:
+      questionnaire.communeRecherche?.codeInsee ?? null,
+    nomCommuneRecherche: questionnaire.communeRecherche?.nom ?? null,
+    domaineProfessionnelVise: questionnaire.domaineProfessionnelVise ?? null,
+    rayonKm: questionnaire.rayonKm ?? null
+  }
+}
+
+function toQuestionnaire(
+  planSql: PlanActionSqlModel
+): Questionnaire | undefined {
+  if (
+    !planSql.structure ||
+    !planSql.situation ||
+    !planSql.besoins ||
+    !planSql.contraintes
+  ) {
+    return undefined
+  }
+
+  return {
+    structure: planSql.structure as Profil.Structure,
+    situation: planSql.situation as Questionnaire.Situation,
+    besoins: planSql.besoins as Questionnaire.Besoin[],
+    contraintes: planSql.contraintes as Questionnaire.Contrainte[],
+    ...(planSql.dateNaissance
+      ? { dateNaissance: DateTime.fromISO(planSql.dateNaissance) }
+      : {}),
+    ...(planSql.codeInseeCommuneResidence && planSql.nomCommuneResidence
+      ? {
+          communeResidence: {
+            codeInsee: planSql.codeInseeCommuneResidence,
+            nom: planSql.nomCommuneResidence
+          }
+        }
+      : {}),
+    ...(planSql.codeInseeCommuneRecherche && planSql.nomCommuneRecherche
+      ? {
+          communeRecherche: {
+            codeInsee: planSql.codeInseeCommuneRecherche,
+            nom: planSql.nomCommuneRecherche
+          }
+        }
+      : {}),
+    ...(planSql.domaineProfessionnelVise
+      ? { domaineProfessionnelVise: planSql.domaineProfessionnelVise }
+      : {}),
+    ...(planSql.rayonKm !== null ? { rayonKm: planSql.rayonKm } : {})
   }
 }

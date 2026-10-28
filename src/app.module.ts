@@ -364,7 +364,6 @@ import {
   PlanActionRepositoryToken
 } from './domain/plan-action/plan-action'
 import { ReferentielPlanActionRepositoryToken } from './domain/plan-action/referentiel-plan-action'
-import { QuestionnaireRepositoryToken } from './domain/plan-action/questionnaire'
 import {
   PlanificateurRepositoryToken,
   PlanificateurService
@@ -404,7 +403,6 @@ import { SuiviJobService } from './infrastructure/clients/suivi-job.service.db'
 import { ActionSqlRepository } from './infrastructure/repositories/action/action-sql.repository.db'
 import { PlanActionSqlRepository } from './infrastructure/repositories/plan-action/plan-action-sql.repository.db'
 import { ReferentielPlanActionSqlRepository } from './infrastructure/repositories/plan-action/referentiel-plan-action-sql.repository.db'
-import { QuestionnaireSqlRepository } from './infrastructure/repositories/plan-action/questionnaire-sql.repository.db'
 import { CommentaireActionSqlRepositoryDb } from './infrastructure/repositories/action/commentaire-action-sql.repository.db'
 import { AgenceSqlRepository } from './infrastructure/repositories/agence-sql.repository.db'
 import { ArchiveJeuneSqlRepository } from './infrastructure/repositories/archive-jeune-sql.repository.db'
@@ -601,10 +599,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: PlanActionRepositoryToken,
       useClass: PlanActionSqlRepository
-    },
-    {
-      provide: QuestionnaireRepositoryToken,
-      useClass: QuestionnaireSqlRepository
     },
     {
       provide: TransactionServiceToken,
