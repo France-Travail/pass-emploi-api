@@ -17,7 +17,10 @@ import {
 } from 'class-validator'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
 import { RendezVous } from '../../../domain/rendez-vous/rendez-vous'
-import { PlanInvitePayload } from './plan-action.inputs'
+import {
+  GenererPlanActionPayload,
+  PlanInvitePayload
+} from './plan-action.inputs'
 
 export class GetRendezVousJeuneQueryParams {
   @IsOptional()
@@ -145,4 +148,13 @@ export class ReprendreCompteInvitePayload {
   @ValidateNested()
   @Type(() => PlanInvitePayload)
   plan?: PlanInvitePayload
+
+  @ApiPropertyOptional({
+    type: GenererPlanActionPayload,
+    description: 'Questionnaire ayant servi à générer le plan invité'
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GenererPlanActionPayload)
+  questionnaire?: GenererPlanActionPayload
 }

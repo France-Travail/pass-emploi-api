@@ -33,6 +33,7 @@ import {
   PlanAction,
   PlanActionRepositoryToken
 } from '../../domain/plan-action/plan-action'
+import { Questionnaire } from '../../domain/plan-action/questionnaire'
 import {
   ReferentielPlanAction,
   ReferentielPlanActionRepositoryToken
@@ -45,6 +46,7 @@ export interface ReprendreCompteInviteCommand extends Command {
   idInvite: string
   jetonConnecte: string
   plan?: PlanAction.PlanInvite
+  questionnaire?: Questionnaire.Reponses
 }
 
 @Injectable()
@@ -107,7 +109,7 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     }
 
     const reprise = await this.transactionService.executer(() =>
-      this.reprendre(invite, jeune.id, command)
+      this.reprendre(invite, jeune, command)
     )
 
     if (isSuccess(reprise) && !reprise.data) {
@@ -135,7 +137,7 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
 
   private async reprendre(
     invite: JeuneInvite.PourReprise,
-    idJeuneConnecte: string,
+    jeuneConnecte: Authentification.Utilisateur,
     command: ReprendreCompteInviteCommand
   ): Promise<Result<boolean>> {
     const maintenant = this.dateService.now()
@@ -146,20 +148,27 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     if (!marque) return success(false)
 
     await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
-      idJeuneConnecte,
+      jeuneConnecte.id,
       invite.dateCreation
     )
     if (command.plan) {
-      await this.enregistrerPlan(idJeuneConnecte, command.plan, maintenant)
+      await this.enregistrerPlan(
+        jeuneConnecte,
+        command.plan,
+        command.questionnaire,
+        maintenant
+      )
     }
     return success(true)
   }
 
   private async enregistrerPlan(
-    idJeune: string,
+    jeuneConnecte: Authentification.Utilisateur,
     planInvite: PlanAction.PlanInvite,
+    reponses: Questionnaire.Reponses | undefined,
     maintenant: DateTime
   ): Promise<void> {
+    const idJeune = jeuneConnecte.id
     if (await this.planActionRepository.existePourJeune(idJeune)) return
 
     const idsSolutions = planInvite.objectifs.flatMap(objectif =>
@@ -167,13 +176,21 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     )
     const solutionsConnues =
       await this.referentielRepository.trouverSolutions(idsSolutions)
+    const questionnaire = reponses && {
+      ...reponses,
+      contraintes: Questionnaire.calculerContraintes(reponses.contraintes),
+      structure: jeuneConnecte.profil.structure
+    }
     const plan = PlanAction.depuisPlanInvite(
       idJeune,
       planInvite,
+      questionnaire,
       new Set(solutionsConnues.map(solution => solution.id)),
       maintenant
     )
-    if (plan) await this.planActionRepository.save(plan)
+    if (!plan) return
+
+    await this.planActionRepository.save(plan)
   }
 
   private issueSansReprise(idInvite: string, inviteExiste: boolean): Result {
