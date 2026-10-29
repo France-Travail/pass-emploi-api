@@ -38,8 +38,8 @@ export interface GenererPlanActionCommand extends Command {
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
   dateNaissance?: DateTime
-  // Exploitable seulement par une génération LLM, tracé en attendant
   domaineProfessionnelVise?: string | null
+  domaineProfessionnelInconnu: boolean
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
   rayonKm?: number
@@ -137,6 +137,7 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
       ...(command.domaineProfessionnelVise
         ? { plan_action_domain: command.domaineProfessionnelVise }
         : {}),
+      plan_action_unknown_domain: String(command.domaineProfessionnelInconnu),
       ...(command.contraintes.length
         ? { plan_action_obstacles: command.contraintes }
         : {})
@@ -166,6 +167,7 @@ function toQuestionnaire(
     ...(command.domaineProfessionnelVise
       ? { domaineProfessionnelVise: command.domaineProfessionnelVise }
       : {}),
+    domaineProfessionnelInconnu: command.domaineProfessionnelInconnu,
     ...(command.rayonKm !== undefined ? { rayonKm: command.rayonKm } : {})
   }
 }

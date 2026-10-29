@@ -527,6 +527,7 @@ export class JeunesController {
         ? DateTime.fromISO(payload.dateNaissance, { setZone: true })
         : undefined,
       domaineProfessionnelVise: payload.domaine,
+      domaineProfessionnelInconnu: payload.domaineInconnu,
       communeResidence: payload.habitation ?? undefined,
       communeRecherche: payload.villeRecherche ?? undefined,
       rayonKm: payload.rayonKm ?? undefined

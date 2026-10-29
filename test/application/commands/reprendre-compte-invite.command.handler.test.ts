@@ -374,7 +374,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
               Questionnaire.Contrainte.PAS_DE_PERMIS,
               Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
             ],
-            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+            communeResidence: { codeInsee: '75056', nom: 'Paris' },
+            domaineProfessionnelInconnu: true
           }
         }
 
@@ -396,7 +397,8 @@ describe('ReprendreCompteInviteCommandHandler', () => {
             situation: Questionnaire.Situation.EMPLOI,
             besoins: [Questionnaire.Besoin.ORIENTER],
             contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE],
-            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+            communeResidence: { codeInsee: '75056', nom: 'Paris' },
+            domaineProfessionnelInconnu: true
           })
         })
       })

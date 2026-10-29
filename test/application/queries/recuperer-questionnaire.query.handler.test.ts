@@ -83,6 +83,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
           communeResidence: { codeInsee: '75056', nom: 'Paris' },
           communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
           domaineProfessionnelVise: 'informatique',
+          domaineProfessionnelInconnu: false,
           rayonKm: 30
         })
 
@@ -99,6 +100,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
           habitation: { codeInsee: '75056', nom: 'Paris' },
           villeRecherche: { codeInsee: '69123', nom: 'Lyon' },
           domaine: 'informatique',
+          domaineInconnu: false,
           rayonKm: 30
         })
       )
@@ -113,7 +115,8 @@ describe('RecupererQuestionnaireQueryHandler', () => {
           situation: Questionnaire.Situation.AUTRE,
           precisionSituation: 'En service civique',
           besoins: [Questionnaire.Besoin.ENGAGER],
-          contraintes: []
+          contraintes: [],
+          domaineProfessionnelInconnu: false
         })
 
       // When
@@ -125,7 +128,8 @@ describe('RecupererQuestionnaireQueryHandler', () => {
           situation: Questionnaire.Situation.AUTRE,
           precisionAutre: 'En service civique',
           goals: [Questionnaire.Besoin.ENGAGER],
-          obstacles: []
+          obstacles: [],
+          domaineInconnu: false
         })
       )
     })
@@ -138,7 +142,8 @@ describe('RecupererQuestionnaireQueryHandler', () => {
           structure: Profil.Structure.MILO,
           situation: Questionnaire.Situation.EMPLOI,
           besoins: [Questionnaire.Besoin.EMPLOI],
-          contraintes: []
+          contraintes: [],
+          domaineProfessionnelInconnu: false
         })
 
       // When
@@ -149,7 +154,8 @@ describe('RecupererQuestionnaireQueryHandler', () => {
         success({
           situation: Questionnaire.Situation.EMPLOI,
           goals: [Questionnaire.Besoin.EMPLOI],
-          obstacles: []
+          obstacles: [],
+          domaineInconnu: false
         })
       )
     })

@@ -22,6 +22,7 @@ const COLONNES_QUESTIONNAIRE = [
   'codeInseeCommuneRecherche',
   'nomCommuneRecherche',
   'domaineProfessionnelVise',
+  'domaineProfessionnelInconnu',
   'rayonKm'
 ] as const
 
@@ -195,6 +196,7 @@ function toQuestionnaireSql(
       questionnaire.communeRecherche?.codeInsee ?? null,
     nomCommuneRecherche: questionnaire.communeRecherche?.nom ?? null,
     domaineProfessionnelVise: questionnaire.domaineProfessionnelVise ?? null,
+    domaineProfessionnelInconnu: questionnaire.domaineProfessionnelInconnu,
     rayonKm: questionnaire.rayonKm ?? null
   }
 }
@@ -206,7 +208,8 @@ function toQuestionnaire(
     !planSql.structure ||
     !planSql.situation ||
     !planSql.besoins ||
-    !planSql.contraintes
+    !planSql.contraintes ||
+    planSql.domaineProfessionnelInconnu === null
   ) {
     return undefined
   }
@@ -241,6 +244,7 @@ function toQuestionnaire(
     ...(planSql.domaineProfessionnelVise
       ? { domaineProfessionnelVise: planSql.domaineProfessionnelVise }
       : {}),
+    domaineProfessionnelInconnu: planSql.domaineProfessionnelInconnu,
     ...(planSql.rayonKm !== null ? { rayonKm: planSql.rayonKm } : {})
   }
 }

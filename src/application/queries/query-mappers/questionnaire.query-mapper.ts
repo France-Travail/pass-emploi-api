@@ -23,6 +23,7 @@ export function toQuestionnaireQueryModel(
     ...(questionnaire.domaineProfessionnelVise
       ? { domaine: questionnaire.domaineProfessionnelVise }
       : {}),
+    domaineInconnu: questionnaire.domaineProfessionnelInconnu,
     ...(questionnaire.rayonKm !== undefined
       ? { rayonKm: questionnaire.rayonKm }
       : {})

@@ -75,6 +75,7 @@ describe('PlanActionSqlRepository', () => {
       situation: Questionnaire.Situation.LYCEE,
       besoins: [Questionnaire.Besoin.ALTERNANCE, Questionnaire.Besoin.EMPLOI],
       contraintes: [Questionnaire.Contrainte.SANTE],
+      domaineProfessionnelInconnu: false,
       ...override
     }
   }
@@ -254,6 +255,7 @@ describe('PlanActionSqlRepository', () => {
             communeResidence: { codeInsee: '75056', nom: 'Paris' },
             communeRecherche: { codeInsee: '2A004', nom: 'Ajaccio' },
             domaineProfessionnelVise: 'informatique',
+            domaineProfessionnelInconnu: true,
             rayonKm: 30
           })
         })
@@ -276,6 +278,7 @@ describe('PlanActionSqlRepository', () => {
         communeResidence: { codeInsee: '75056', nom: 'Paris' },
         communeRecherche: { codeInsee: '2A004', nom: 'Ajaccio' },
         domaineProfessionnelVise: 'informatique',
+        domaineProfessionnelInconnu: true,
         rayonKm: 30
       })
     })
@@ -406,6 +409,24 @@ describe('PlanActionSqlRepository', () => {
     })
 
     it("rend undefined quand le jeune n'a pas de plan", async () => {
+      // When
+      const questionnaire =
+        await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')
+
+      // Then
+      expect(questionnaire).to.be.undefined()
+    })
+
+    it('rend undefined quand le questionnaire ne dit pas si le domaine est inconnu', async () => {
+      // Given
+      await planActionSqlRepository.save(
+        unPlan({ questionnaire: unQuestionnaire() })
+      )
+      await PlanActionSqlModel.update(
+        { domaineProfessionnelInconnu: null },
+        { where: { id: unPlan().id } }
+      )
+
       // When
       const questionnaire =
         await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')

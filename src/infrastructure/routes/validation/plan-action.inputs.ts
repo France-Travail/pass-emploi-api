@@ -59,6 +59,10 @@ export class GenererPlanActionPayload {
   @IsOptional()
   domaine?: string | null
 
+  @ApiProperty()
+  @IsBoolean()
+  domaineInconnu: boolean
+
   @ApiPropertyOptional({ type: CommunePayload, nullable: true })
   @IsOptional()
   @ValidateNested()
@@ -203,6 +207,7 @@ export function toReponsesQuestionnaire(
       ? { communeRecherche: payload.villeRecherche }
       : {}),
     ...(payload.domaine ? { domaineProfessionnelVise: payload.domaine } : {}),
+    domaineProfessionnelInconnu: payload.domaineInconnu,
     ...(payload.rayonKm !== undefined && payload.rayonKm !== null
       ? { rayonKm: payload.rayonKm }
       : {})
