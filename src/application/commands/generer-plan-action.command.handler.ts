@@ -34,6 +34,7 @@ import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-
 export interface GenererPlanActionCommand extends Command {
   idJeune: string
   situation: Questionnaire.Situation
+  precisionSituation?: string | null
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
   dateNaissance?: DateTime
@@ -41,6 +42,7 @@ export interface GenererPlanActionCommand extends Command {
   domaineProfessionnelVise?: string | null
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
+  rayonKm?: number
 }
 
 @Injectable()
@@ -149,6 +151,9 @@ function toQuestionnaire(
   return {
     structure,
     situation: command.situation,
+    ...(command.precisionSituation
+      ? { precisionSituation: command.precisionSituation }
+      : {}),
     besoins: command.besoins,
     contraintes: Questionnaire.calculerContraintes(command.contraintes),
     ...(command.dateNaissance ? { dateNaissance: command.dateNaissance } : {}),
@@ -157,6 +162,10 @@ function toQuestionnaire(
       : {}),
     ...(command.communeRecherche
       ? { communeRecherche: command.communeRecherche }
-      : {})
+      : {}),
+    ...(command.domaineProfessionnelVise
+      ? { domaineProfessionnelVise: command.domaineProfessionnelVise }
+      : {}),
+    ...(command.rayonKm !== undefined ? { rayonKm: command.rayonKm } : {})
   }
 }
