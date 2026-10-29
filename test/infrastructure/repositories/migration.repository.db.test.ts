@@ -130,43 +130,64 @@ describe('MigrationSqlRepository', () => {
         { id: 'jeuneTransfere' }
       ])
     })
+
+    it('renvoie les jeunes sans conseiller dont le profil est ciblé, pas ceux dont seul le profil correspond', async () => {
+      // Given
+      await JeuneSqlModel.bulkCreate([
+        unJeuneDto({
+          id: 'jeuneBrsaSansConseiller',
+          idConseiller: undefined,
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        }),
+        unJeuneDto({
+          id: 'jeuneBrsaChezMilo',
+          idConseiller: 'conseillerHorsMigration',
+          structure: Core.Structure.POLE_EMPLOI_BRSA
+        })
+      ])
+
+      // When
+      const beneficiaires =
+        await repo.getBeneficiairesAMigrerParProfilOuConseillerCite('PHASE_B')
+
+      // Then
+      expect(beneficiaires).to.have.deep.members([
+        { id: 'jeuneBrsa' },
+        { id: 'jeuneBrsaSansConseiller' }
+      ])
+    })
   })
 
-  describe('getMigrationDuConseiller', () => {
-    it('renvoie la date et la population de la migration qui vise le conseiller', async () => {
+  describe('getMigration', () => {
+    it('renvoie la date et la population du déploiement de migration', async () => {
       // When
-      const migration = await repo.getMigrationDuConseiller('conseillerPhaseA')
+      const migration = await repo.getMigration(['PHASE_A'])
 
       // Then
       expect(migration?.dateActivation.toISO()).to.equal(DATE_PHASE_A.toISO())
       expect(migration?.idPopulation).to.equal('PHASE_A')
     })
 
-    it('ne renvoie rien quand aucune migration ne vise le conseiller', async () => {
+    it('renvoie la migration la plus proche parmi les populations', async () => {
       // When
-      const migration = await repo.getMigrationDuConseiller(
-        'conseillerHorsMigration'
-      )
+      const migration = await repo.getMigration(['PHASE_B', 'PHASE_A'])
+
+      // Then
+      expect(migration?.dateActivation.toISO()).to.equal(DATE_PHASE_A.toISO())
+      expect(migration?.idPopulation).to.equal('PHASE_A')
+    })
+
+    it("ne renvoie rien quand aucune population n'a de migration", async () => {
+      // When
+      const migration = await repo.getMigration(['SANS_DEPLOIEMENT'])
 
       // Then
       expect(migration).to.be.undefined()
     })
-  })
 
-  describe('getMigrationDuBeneficiaire', () => {
-    it('renvoie la date et la population de la migration du conseiller du jeune', async () => {
+    it('ne renvoie rien sans population', async () => {
       // When
-      const migration = await repo.getMigrationDuBeneficiaire('jeunePhaseA')
-
-      // Then
-      expect(migration?.dateActivation.toISO()).to.equal(DATE_PHASE_A.toISO())
-      expect(migration?.idPopulation).to.equal('PHASE_A')
-    })
-
-    it('ne renvoie rien quand le conseiller du jeune ne bascule pas', async () => {
-      // When
-      const migration =
-        await repo.getMigrationDuBeneficiaire('jeuneHorsMigration')
+      const migration = await repo.getMigration([])
 
       // Then
       expect(migration).to.be.undefined()

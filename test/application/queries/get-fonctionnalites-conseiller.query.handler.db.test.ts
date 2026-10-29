@@ -8,6 +8,7 @@ import { Deploiement } from '../../../src/domain/deploiement'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import { DISPOSITIFS_ACCOMPAGNES } from '../../../src/domain/profil'
 import { FonctionnaliteSqlRepository } from '../../../src/infrastructure/repositories/fonctionnalite.repository.db'
+import { PopulationSqlRepository } from '../../../src/infrastructure/repositories/population.repository.db'
 import { ConseillerSqlRepository } from '../../../src/infrastructure/repositories/conseiller-sql.repository.db'
 import { ConseillerSqlModel } from '../../../src/infrastructure/sequelize/models/conseiller.sql-model'
 import { DeploiementSqlModel } from '../../../src/infrastructure/sequelize/models/deploiement.sql-model'
@@ -35,6 +36,7 @@ describe('GetFonctionnalitesConseillerQueryHandler (use case)', () => {
     dateService.now.returns(maintenant)
     jeuneRepository = stubInterface(createSandbox())
     handler = new GetFonctionnalitesConseillerQueryHandler(
+      new PopulationSqlRepository(getDatabase().sequelize),
       new FonctionnaliteSqlRepository(getDatabase().sequelize),
       dateService,
       new ConseillerAuthorizer(new ConseillerSqlRepository(), jeuneRepository)

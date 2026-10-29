@@ -7,6 +7,7 @@ import {
   failure
 } from '../../../src/building-blocks/types/result'
 import { Fonctionnalite } from '../../../src/domain/fonctionnalite'
+import { Population } from '../../../src/domain/population'
 import { Profil } from '../../../src/domain/profil'
 import { DateService } from '../../../src/utils/date-service'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
@@ -14,14 +15,21 @@ import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 describe('FonctionnaliteAuthorizer', () => {
   const maintenant = DateTime.fromISO('2026-10-16T12:00:00.000Z')
   let authorizer: FonctionnaliteAuthorizer
+  let populationRepository: StubbedType<Population.Repository>
   let fonctionnaliteRepository: StubbedType<Fonctionnalite.Repository>
   let dateService: StubbedClass<DateService>
 
   beforeEach(() => {
-    fonctionnaliteRepository = stubInterface(createSandbox())
+    const sandbox = createSandbox()
+    populationRepository = stubInterface(sandbox)
+    populationRepository.getIdsPopulationsDuConseiller
+      .withArgs('id-conseiller')
+      .resolves(['pop1'])
+    fonctionnaliteRepository = stubInterface(sandbox)
     dateService = stubClass(DateService)
     dateService.now.returns(maintenant)
     authorizer = new FonctionnaliteAuthorizer(
+      populationRepository,
       fonctionnaliteRepository,
       dateService
     )
@@ -38,7 +46,7 @@ describe('FonctionnaliteAuthorizer', () => {
       // Then
       expect(result).to.deep.equal(emptySuccess())
       expect(
-        fonctionnaliteRepository.getIdsFonctionnalitesActivesDuConseiller
+        fonctionnaliteRepository.getIdsFonctionnalitesActives
       ).not.to.have.been.called()
     })
 
@@ -55,8 +63,8 @@ describe('FonctionnaliteAuthorizer', () => {
 
     it('autorise Autre quand la fonctionnalité est active pour le conseiller', async () => {
       // Given
-      fonctionnaliteRepository.getIdsFonctionnalitesActivesDuConseiller
-        .withArgs('id-conseiller', maintenant)
+      fonctionnaliteRepository.getIdsFonctionnalitesActives
+        .withArgs(['pop1'], maintenant)
         .resolves([Fonctionnalite.Id.DISPOSITIF_AUTRE])
 
       // When
@@ -71,8 +79,8 @@ describe('FonctionnaliteAuthorizer', () => {
 
     it('refuse Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
       // Given
-      fonctionnaliteRepository.getIdsFonctionnalitesActivesDuConseiller
-        .withArgs('id-conseiller', maintenant)
+      fonctionnaliteRepository.getIdsFonctionnalitesActives
+        .withArgs(['pop1'], maintenant)
         .resolves(['PLAN_ACTION'])
 
       // When
