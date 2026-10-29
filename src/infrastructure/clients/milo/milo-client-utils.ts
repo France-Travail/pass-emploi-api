@@ -67,7 +67,6 @@ interface MiloRequest {
   auth: Auth
   params?: URLSearchParams
   payload?: Payload | string
-  operateur?: string
   contentType?: string
   accept?: string
 }
@@ -91,15 +90,13 @@ export class MiloClientUtils extends ExternalApiClient {
     auth,
     params,
     contentType,
-    accept,
-    operateur // todo: supprimer après migration
+    accept
   }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
     const headers = this.generateHeaders({
       auth,
       contentType,
-      accept,
-      operateur // todo: supprimer après migration
+      accept
     })
 
     try {
@@ -124,16 +121,14 @@ export class MiloClientUtils extends ExternalApiClient {
     auth,
     payload,
     contentType,
-    accept,
-    operateur // todo: supprimer après migration
+    accept
   }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
     const headers = this.generateHeaders({
       auth,
       payload,
       contentType,
-      accept,
-      operateur // todo: supprimer après migration
+      accept
     })
 
     try {
@@ -154,16 +149,14 @@ export class MiloClientUtils extends ExternalApiClient {
     auth,
     payload,
     contentType,
-    accept,
-    operateur // todo: supprimer après migration
+    accept
   }: MiloRequest): Promise<Result<T>> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
     const headers = this.generateHeaders({
       auth,
       payload,
       contentType,
-      accept,
-      operateur // todo: supprimer après migration
+      accept
     })
 
     try {
@@ -183,15 +176,13 @@ export class MiloClientUtils extends ExternalApiClient {
     suffixUrl,
     auth,
     contentType,
-    accept,
-    operateur // todo: supprimer après migration
+    accept
   }: MiloRequest): Promise<Result> {
     const fullUrl = `${this.apiUrl}/${suffixUrl}`
     const headers = this.generateHeaders({
       auth,
       contentType,
-      accept,
-      operateur // todo: supprimer après migration
+      accept
     })
 
     try {
@@ -234,18 +225,16 @@ export class MiloClientUtils extends ExternalApiClient {
     auth,
     payload,
     contentType,
-    accept,
-    operateur
+    accept
   }: {
     auth: Auth
     payload?: Payload | string
     contentType?: string
     accept?: string
-    operateur?: string
   }): Record<string, string> {
     const headers: Record<string, string> = {
       'X-Gravitee-Api-Key': auth.apiKey,
-      operateur: operateur || OPERATEUR_CEJ
+      operateur: OPERATEUR_CEJ
     }
 
     if (payload !== undefined) {

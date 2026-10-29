@@ -153,4 +153,38 @@ describe('MiloClientV2', () => {
       })
     })
   })
+
+  describe('getInstanceSession', () => {
+    it('appelle la route operateurs avec la clé API seule', async () => {
+      const scope = nock(MILO_BASE_URL, {
+        badheaders: ['Authorization']
+      })
+        .get('/operateurs/dossiers/1234/sessions/5678')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyDetailRendezVous')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, { id: '5678' })
+
+      const result = await miloClient.getInstanceSession('5678', '1234')
+
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+  })
+
+  describe('getRendezVous', () => {
+    it('appelle la route operateurs avec la clé API seule', async () => {
+      const scope = nock(MILO_BASE_URL, {
+        badheaders: ['Authorization']
+      })
+        .get('/operateurs/dossiers/1234/rdv/5678')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyDetailRendezVous')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
+        .reply(200, { id: 5678 })
+
+      const result = await miloClient.getRendezVous('1234', '5678')
+
+      expect(scope.isDone()).to.equal(true)
+      expect(isSuccess(result)).to.be.true()
+    })
+  })
 })

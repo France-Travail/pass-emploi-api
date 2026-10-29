@@ -1222,7 +1222,7 @@ describe('MiloClientV1', () => {
           'X-Gravitee-Api-Key',
           configService.get('milo').apiKeyDetailRendezVous
         )
-        .matchHeader('operateur', 'applicationcej')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(200, {
           id: 'id-instance',
           idSession: 'id-session',
@@ -1304,7 +1304,7 @@ describe('MiloClientV1', () => {
           'X-Gravitee-Api-Key',
           configService.get('milo').apiKeyDetailRendezVous
         )
-        .matchHeader('operateur', 'applicationcej')
+        .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(200, {
           id: 5678,
           dateHeureDebut: '2020-10-06 10:00:00',
