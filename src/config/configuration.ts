@@ -78,12 +78,17 @@ export default () => {
         ? JSON.parse(process.env.MILO_V2_EMAILS_CONSEILLERS)
         : [],
       apiV2Enabled: process.env.MILO_V2_ENABLED === 'true',
+      apiV2PourTousLesUtilisateurs:
+        process.env.MILO_V2_POUR_TOUS_LES_UTILISATEURS === 'true',
+      apiV2PourTousLesJobs: process.env.MILO_V2_POUR_TOUS_LES_JOBS === 'true',
       apiKeyDossierCej: process.env.MILO_V2_DOSSIER_CEJ_API_KEY,
       apiKeyJwtDossierCej: process.env.MILO_V2_DOSSIER_CEJ_JWT_API_KEY,
       apiKeyJwtDossier: process.env.MILO_V2_DOSSIER_JWT_API_KEY,
       apiKeyJwtJeune: process.env.MILO_V2_JEUNE_JWT_API_KEY,
       apiKeyJwtSessions: process.env.MILO_V2_SESSIONS_JWT_API_KEY,
+      apiKeySessions: process.env.MILO_V2_SESSIONS_API_KEY,
       apiKeyJwtUtilisateurs: process.env.MILO_V2_UTILISATEURS_JWT_API_KEY,
+      apiKeyRdv: process.env.MILO_V2_RDV_API_KEY,
       apiKeyEvents: process.env.MILO_V2_EVENTS_API_KEY
     },
     immersion: {

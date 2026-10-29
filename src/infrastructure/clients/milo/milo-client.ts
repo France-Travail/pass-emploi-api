@@ -35,6 +35,8 @@ import { QueryTypes, Sequelize } from 'sequelize'
 @Injectable()
 export class MiloClient implements MiloClientPort {
   private readonly apiV2Enabled: boolean
+  private readonly apiV2PourTousLesUtilisateurs: boolean
+  private readonly apiV2PourTousLesJobs: boolean
   private readonly emailsConseillersV2: string[]
 
   constructor(
@@ -46,6 +48,10 @@ export class MiloClient implements MiloClientPort {
     private readonly cacheApiPartenaire: CacheApiPartenaireService
   ) {
     this.apiV2Enabled = this.configService.get('milo').apiV2Enabled
+    this.apiV2PourTousLesUtilisateurs =
+      this.configService.get('milo').apiV2PourTousLesUtilisateurs
+    this.apiV2PourTousLesJobs =
+      this.configService.get('milo').apiV2PourTousLesJobs
     this.emailsConseillersV2 =
       this.configService.get('milo').emailsConseillersV2
   }
@@ -301,13 +307,18 @@ export class MiloClient implements MiloClientPort {
   }
 
   private async getClient(): Promise<MiloClientPort> {
-    let useV2 = this.apiV2Enabled && this.emailsConseillersV2?.length > 0
-
     const utilisateur = this.context.get<Authentification.Utilisateur>(
       ContextKey.UTILISATEUR
     )
+    // Sans utilisateur dans le contexte : jobs et tâches
+    if (!utilisateur) {
+      return this.apiV2PourTousLesJobs ? this.miloClientV2 : this.miloClientV1
+    }
+    if (this.apiV2PourTousLesUtilisateurs) return this.miloClientV2
 
-    if (useV2 && utilisateur) {
+    let useV2 = this.apiV2Enabled && this.emailsConseillersV2?.length > 0
+
+    if (useV2) {
       useV2 =
         this.estUnConseillerBetaTesteur(utilisateur) ||
         (await this.estUnJeuneBetaTesteur(utilisateur))

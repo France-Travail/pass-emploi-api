@@ -155,12 +155,12 @@ describe('MiloClientV2', () => {
   })
 
   describe('getInstanceSession', () => {
-    it('appelle la route operateurs avec la clé API seule', async () => {
+    it('appelle la route api-sessions avec la clé API seule', async () => {
       const scope = nock(MILO_BASE_URL, {
         badheaders: ['Authorization']
       })
-        .get('/operateurs/dossiers/1234/sessions/5678')
-        .matchHeader('X-Gravitee-Api-Key', 'apiKeyDetailRendezVous')
+        .get('/api-sessions/dossiers/1234/sessions/5678')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeySessions')
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(200, { id: '5678' })
 
@@ -172,12 +172,12 @@ describe('MiloClientV2', () => {
   })
 
   describe('getRendezVous', () => {
-    it('appelle la route operateurs avec la clé API seule', async () => {
+    it('appelle la route api-rdv avec la clé API seule', async () => {
       const scope = nock(MILO_BASE_URL, {
         badheaders: ['Authorization']
       })
-        .get('/operateurs/dossiers/1234/rdv/5678')
-        .matchHeader('X-Gravitee-Api-Key', 'apiKeyDetailRendezVous')
+        .get('/api-rdv/dossiers/1234/rdv/5678')
+        .matchHeader('X-Gravitee-Api-Key', 'apiKeyRdv')
         .matchHeader('operateur', 'APPLICATION_CEJ')
         .reply(200, { id: 5678 })
 

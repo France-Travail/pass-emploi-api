@@ -49,12 +49,22 @@ export const configurationSchema = Joi.object({
     apiKeyEnvoiEmail: Joi.string().required(),
     emailsConseillersV2: Joi.array().items(Joi.string()),
     apiV2Enabled: Joi.boolean().default(false),
+    apiV2PourTousLesUtilisateurs: Joi.boolean()
+      .default(false)
+      .description(
+        'force la V2 pour tous les utilisateurs, prioritaire sur les bêta-testeurs'
+      ),
+    apiV2PourTousLesJobs: Joi.boolean()
+      .default(false)
+      .description('force la V2 pour les jobs et les tâches'),
     apiKeyDossierCej: Joi.string().required(),
     apiKeyJwtDossierCej: Joi.string().required(),
     apiKeyJwtDossier: Joi.string().required(),
     apiKeyJwtJeune: Joi.string().required(),
     apiKeyJwtSessions: Joi.string().required(),
+    apiKeySessions: Joi.string().required(),
     apiKeyJwtUtilisateurs: Joi.string().required(),
+    apiKeyRdv: Joi.string().required(),
     apiKeyEvents: Joi.string().required()
   }),
   immersion: {
