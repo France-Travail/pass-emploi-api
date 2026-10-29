@@ -31,11 +31,8 @@ export const testConfig = (): ConfigService => {
       apiKeyDossierV1: 'apiKeyDossierV1',
       apiKeyCreerJeune: 'apiKeyCreerJeune',
       apiKeyDetailRendezVous: 'apiKeyDetailRendezVous',
-      apiKeyInstanceSessionLecture: 'apiKeyInstanceSessionLecture',
       apiKeyInstanceSessionEcritureConseiller:
         'apiKeyInstanceSessionEcritureConseiller',
-      apiKeyInstanceSessionAnnulationJeune:
-        'apiKeyInstanceSessionAnnulationJeune',
       apiKeySessionDetailConseiller: 'apiKeySessionDetailConseiller',
       apiKeySessionsDetailEtListeJeune: 'apiKeySessionsDetailEtListeJeune',
       apiKeySessionsListeConseiller: 'apiKeySessionsListeConseiller',
@@ -46,9 +43,7 @@ export const testConfig = (): ConfigService => {
       apiKeyJwtDossier: 'apiKeyJwtDossier',
       apiKeyJwtJeune: 'apiKeyJwtJeune',
       apiKeyJwtSessions: 'apiKeyJwtSessions',
-      apiKeySessions: 'apiKeySessions',
       apiKeyJwtUtilisateurs: 'apiKeyJwtUtilisateurs',
-      apiKeyRdv: 'apiKeyRdv',
       apiKeyEvents: 'apiKeyEvents'
     },
     redis: {

@@ -434,8 +434,7 @@ export class MiloClientV1 implements MiloClientPort {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<InstanceSessionMiloDto>({
       suffixUrl: `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
-      auth: { apiKey: this.apiKeyDetailRendezVous },
-      operateur: 'applicationcej'
+      auth: { apiKey: this.apiKeyDetailRendezVous }
     })
     if (
       isFailure(result) &&
@@ -543,8 +542,7 @@ export class MiloClientV1 implements MiloClientPort {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<RendezVousMiloDto>({
       suffixUrl: `operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`,
-      auth: { apiKey: this.apiKeyDetailRendezVous },
-      operateur: 'applicationcej'
+      auth: { apiKey: this.apiKeyDetailRendezVous }
     })
     if (
       isFailure(result) &&

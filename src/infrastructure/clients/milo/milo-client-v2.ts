@@ -45,9 +45,8 @@ export class MiloClientV2 implements MiloClientPort {
   private readonly apiKeyJwtDossier: string
   private readonly apiKeyJwtJeune: string
   private readonly apiKeyJwtSessions: string
-  private readonly apiKeySessions: string
   private readonly apiKeyJwtUtilisateurs: string
-  private readonly apiKeyRdv: string
+  private readonly apiKeyDetailRendezVous: string
   private readonly apiKeyEnvoiEmail: string
   private readonly apiKeyEvents: string
 
@@ -63,10 +62,10 @@ export class MiloClientV2 implements MiloClientPort {
     this.apiKeyJwtDossier = this.configService.get('milo').apiKeyJwtDossier
     this.apiKeyJwtJeune = this.configService.get('milo').apiKeyJwtJeune
     this.apiKeyJwtSessions = this.configService.get('milo').apiKeyJwtSessions
-    this.apiKeySessions = this.configService.get('milo').apiKeySessions
     this.apiKeyJwtUtilisateurs =
       this.configService.get('milo').apiKeyJwtUtilisateurs
-    this.apiKeyRdv = this.configService.get('milo').apiKeyRdv
+    this.apiKeyDetailRendezVous =
+      this.configService.get('milo').apiKeyDetailRendezVous
     this.apiKeyEnvoiEmail = this.configService.get('milo').apiKeyEnvoiEmail
     this.apiKeyEvents = this.configService.get('milo').apiKeyEvents
   }
@@ -163,7 +162,7 @@ export class MiloClientV2 implements MiloClientPort {
     let response
     response = surcharge
       ? await this.miloClientUtils.put<string>({
-          suffixUrl: `api-jeune/sue/compte-jeune/surcharge/${idDossier}`,
+          suffixUrl: `api-jeune/sue/compte-jeune/${idDossier}`,
           auth: { apiKey: this.apiKeyJwtJeune, idpToken },
           accept: 'application/json, text/plain',
           contentType: 'application/json'
@@ -432,8 +431,8 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<InstanceSessionMiloDto>> {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<InstanceSessionMiloDto>({
-      suffixUrl: `api-sessions/dossiers/${idDossier}/sessions/${idInstance}`,
-      auth: { apiKey: this.apiKeySessions }
+      suffixUrl: `operateurs/dossiers/${idDossier}/sessions/${idInstance}`,
+      auth: { apiKey: this.apiKeyDetailRendezVous }
     })
     if (
       isFailure(result) &&
@@ -541,8 +540,8 @@ export class MiloClientV2 implements MiloClientPort {
   ): Promise<Result<RendezVousMiloDto>> {
     await this.rateLimiterService.dossierSessionRDVMiloRateLimiter.attendreLaProchaineDisponibilite()
     const result = await this.miloClientUtils.get<RendezVousMiloDto>({
-      suffixUrl: `api-rdv/dossiers/${idDossier}/rdv/${idRendezVous}`,
-      auth: { apiKey: this.apiKeyRdv }
+      suffixUrl: `operateurs/dossiers/${idDossier}/rdv/${idRendezVous}`,
+      auth: { apiKey: this.apiKeyDetailRendezVous }
     })
     if (
       isFailure(result) &&
