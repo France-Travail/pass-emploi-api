@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common'
 import * as APM from 'elastic-apm-node'
 import { DateTime } from 'luxon'
+import { col, Op } from 'sequelize'
 import { Result, isFailure } from '../../building-blocks/types/result'
 import { StructureConseillerMiloDto } from '../../infrastructure/clients/dto/milo.dto'
 import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
@@ -77,23 +78,9 @@ export namespace ConseillerMilo {
           return
         }
 
-        const dateDerniereConnexion = DateService.fromJSDateToDateTime(
-          conseillerSql.dateDerniereConnexion
-        )
-        const dateVerificationStructureMilo = DateService.fromJSDateToDateTime(
-          conseillerSql.dateVerificationStructureMilo
-        )
-        const ilYa30s = maintenant.minus({ seconds: 30 })
-        const ilYa24h = maintenant.minus({ hours: 24 })
-
-        const moinsDe30sPasseesDepuisConnexion = dateDerniereConnexion
-          ? dateDerniereConnexion > ilYa30s
-          : true
-        const passees24hDepuisVerification = dateVerificationStructureMilo
-          ? dateVerificationStructureMilo < ilYa24h
-          : true
-
-        if (moinsDe30sPasseesDepuisConnexion || passees24hDepuisVerification) {
+        if (
+          await this.reserverVerificationStructure(idConseiller, maintenant)
+        ) {
           const idpToken = await this.oidcClient.exchangeToken(
             accessToken,
             Profil.Structure.MILO
@@ -150,6 +137,34 @@ export namespace ConseillerMilo {
           throw e
         }
       }
+    }
+
+    private async reserverVerificationStructure(
+      idConseiller: string,
+      maintenant: DateTime
+    ): Promise<boolean> {
+      const [nombreReserve] = await ConseillerSqlModel.update(
+        { dateVerificationStructureMilo: maintenant.toJSDate() },
+        {
+          where: {
+            id: idConseiller,
+            [Op.or]: [
+              { dateVerificationStructureMilo: null },
+              {
+                dateVerificationStructureMilo: {
+                  [Op.lt]: col('date_derniere_connexion')
+                }
+              },
+              {
+                dateVerificationStructureMilo: {
+                  [Op.lt]: maintenant.minus({ hours: 24 }).toJSDate()
+                }
+              }
+            ]
+          }
+        }
+      )
+      return nombreReserve === 1
     }
 
     private async ajouterLaNouvelleStructureSiInfosSuffisantes(
