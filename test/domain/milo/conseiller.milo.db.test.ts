@@ -165,6 +165,77 @@ describe('Conseiller.Milo', () => {
           // Then
           expect(conseillerMiloRepository.save).not.to.have.been.called()
         })
+        it("n'appelle pas Milo quand la structure a déjà été vérifiée depuis la dernière connexion", async () => {
+          // Given
+          await ConseillerSqlModel.create(
+            unConseillerDto({
+              id: idConseiller,
+              structure: Core.Structure.MILO,
+              dateDerniereConnexion: maintenant
+                .minus({ seconds: 10 })
+                .toJSDate(),
+              dateVerificationStructureMilo: maintenant
+                .minus({ seconds: 5 })
+                .toJSDate()
+            })
+          )
+
+          // When
+          await conseillerMiloService.recupererEtMettreAJourStructure(
+            idConseiller,
+            token
+          )
+
+          // Then
+          expect(miloClient.getStructureConseiller).not.to.have.been.called()
+          expect(conseillerMiloRepository.save).not.to.have.been.called()
+        })
+        it("n'appelle Milo qu'une fois pour des requêtes concurrentes après une connexion", async () => {
+          // Given
+          const idStructureMilo = '10'
+          await StructureMiloSqlModel.create({
+            id: idStructureMilo,
+            nomOfficiel: 'test',
+            timezone: 'Europe/Paris'
+          })
+          await ConseillerSqlModel.create(
+            unConseillerDto({
+              id: idConseiller,
+              structure: Core.Structure.MILO,
+              idStructureMilo,
+              dateDerniereConnexion: maintenant.toJSDate(),
+              dateVerificationStructureMilo: maintenant
+                .minus({ hours: 2 })
+                .toJSDate()
+            })
+          )
+          oidcClient.exchangeToken.withArgs(token).resolves(idpToken)
+          miloClient.getStructureConseiller
+            .withArgs(idpToken)
+            .resolves(
+              success(uneStructureConseillerMiloDto({ code: idStructureMilo }))
+            )
+
+          // When
+          await Promise.all([
+            conseillerMiloService.recupererEtMettreAJourStructure(
+              idConseiller,
+              token
+            ),
+            conseillerMiloService.recupererEtMettreAJourStructure(
+              idConseiller,
+              token
+            ),
+            conseillerMiloService.recupererEtMettreAJourStructure(
+              idConseiller,
+              token
+            )
+          ])
+
+          // Then
+          expect(miloClient.getStructureConseiller).to.have.been.calledOnce()
+          expect(conseillerMiloRepository.save).to.have.been.calledOnce()
+        })
       })
       describe('cas de mise à jour', () => {
         it('met à jour date vérification quand la structure Milo est inchangée', async () => {
@@ -312,7 +383,7 @@ describe('Conseiller.Milo', () => {
             conseillerMiloRepository.save
           ).to.have.been.calledOnceWithExactly(conseillerMiloAvecStructure)
         })
-        it('met à jour date quand date connexion valide et verification valide', async () => {
+        it("met à jour quand la structure n'a pas été vérifiée depuis la dernière connexion", async () => {
           // Given
           const idStructureMilo = '10'
           await StructureMiloSqlModel.create({
@@ -325,8 +396,12 @@ describe('Conseiller.Milo', () => {
               id: idConseiller,
               structure: Core.Structure.MILO,
               idStructureMilo,
-              dateDerniereConnexion: maintenant.toJSDate(),
-              dateVerificationStructureMilo: maintenant.toJSDate()
+              dateDerniereConnexion: maintenant
+                .minus({ minutes: 5 })
+                .toJSDate(),
+              dateVerificationStructureMilo: maintenant
+                .minus({ hours: 2 })
+                .toJSDate()
             })
           )
 
