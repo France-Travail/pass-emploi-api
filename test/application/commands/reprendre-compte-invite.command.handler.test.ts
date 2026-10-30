@@ -364,6 +364,43 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         })
       })
 
+      describe('avec le questionnaire fourni', () => {
+        const commandAvecQuestionnaire: ReprendreCompteInviteCommand = {
+          ...commandAvecPlan,
+          questionnaire: {
+            situation: Questionnaire.Situation.EMPLOI,
+            besoins: [Questionnaire.Besoin.ORIENTER],
+            contraintes: [
+              Questionnaire.Contrainte.PAS_DE_PERMIS,
+              Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
+            ],
+            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+          }
+        }
+
+        it('stocke le plan avec son questionnaire, rattaché au profil du jeune connecté', async () => {
+          // Given
+          referentielRepository.trouverSolutions.resolves([
+            { id: idSolution1 } as ReferentielPlanAction.Solution
+          ])
+
+          // When
+          const result = await handler.handle(commandAvecQuestionnaire)
+
+          // Then
+          expect(result).to.deep.equal(emptySuccess())
+          expect(
+            planActionRepository.save.firstCall.args[0].questionnaire
+          ).to.deep.equal({
+            structure: jeuneConnecte.profil.structure,
+            situation: Questionnaire.Situation.EMPLOI,
+            besoins: [Questionnaire.Besoin.ORIENTER],
+            contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE],
+            communeResidence: { codeInsee: '75056', nom: 'Paris' }
+          })
+        })
+      })
+
       it('ne stocke pas le plan quand toutes les solutions sont inconnues', async () => {
         // Given
         referentielRepository.trouverSolutions.resolves([])

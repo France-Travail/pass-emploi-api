@@ -500,6 +500,17 @@ describe('PlanAction', () => {
       expect(plan.objectifs[0].taches[0].idSolution).to.equal('p-2')
     })
 
+    it('rattache au plan le questionnaire qui le génère', () => {
+      // Given
+      const questionnaire = unQuestionnaire()
+
+      // When
+      const plan = factory.creer('jeune-1', questionnaire, [uneSolution()])
+
+      // Then
+      expect(plan.questionnaire).to.deep.equal(questionnaire)
+    })
+
     it('pose le jeune, la date de création et des tâches non terminées', () => {
       // When
       const plan = factory.creer('jeune-1', unQuestionnaire(), [uneSolution()])
@@ -808,6 +819,7 @@ describe('PlanAction', () => {
       const plan = PlanAction.depuisPlanInvite(
         'jeune-1',
         planInvite,
+        undefined,
         idsSolutionsConnues,
         dateReprise
       )
@@ -842,6 +854,23 @@ describe('PlanAction', () => {
       })
     })
 
+    it("rattache au plan le questionnaire qui l'a généré", () => {
+      // Given
+      const questionnaire = unQuestionnaire()
+
+      // When
+      const plan = PlanAction.depuisPlanInvite(
+        'jeune-1',
+        unPlanInvite(),
+        questionnaire,
+        new Set(['solution-1', 'solution-2']),
+        dateReprise
+      )
+
+      // Then
+      expect(plan?.questionnaire).to.deep.equal(questionnaire)
+    })
+
     it('écarte les tâches dont la solution a disparu du référentiel', () => {
       // Given
       const planInvite = unPlanInvite({
@@ -863,6 +892,7 @@ describe('PlanAction', () => {
       const plan = PlanAction.depuisPlanInvite(
         'jeune-1',
         planInvite,
+        undefined,
         idsSolutionsConnues,
         dateReprise
       )
@@ -910,6 +940,7 @@ describe('PlanAction', () => {
       const plan = PlanAction.depuisPlanInvite(
         'jeune-1',
         planInvite,
+        undefined,
         idsSolutionsConnues,
         dateReprise
       )
@@ -928,6 +959,7 @@ describe('PlanAction', () => {
       const plan = PlanAction.depuisPlanInvite(
         'jeune-1',
         planInvite,
+        undefined,
         idsSolutionsConnues,
         dateReprise
       )
