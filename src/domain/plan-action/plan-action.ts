@@ -15,7 +15,6 @@ export interface PlanAction {
   idJeune: string
   dateCreation: DateTime
   objectifs: PlanAction.Objectif[]
-  questionnaire?: Questionnaire
 }
 
 export namespace PlanAction {
@@ -53,10 +52,6 @@ export namespace PlanAction {
 
     getDernierPlan(idJeune: string): Promise<PlanAction | undefined>
 
-    getQuestionnaireDuDernierPlan(
-      idJeune: string
-    ): Promise<Questionnaire | undefined>
-
     existePourJeune(idJeune: string): Promise<boolean>
 
     getTache(idJeune: string, idTache: string): Promise<Tache | undefined>
@@ -82,7 +77,6 @@ export namespace PlanAction {
   export function depuisPlanInvite(
     idJeune: string,
     planInvite: PlanInvite,
-    questionnaire: Questionnaire | undefined,
     idsSolutionsConnues: Set<string>,
     maintenant: DateTime
   ): PlanAction | undefined {
@@ -114,8 +108,7 @@ export namespace PlanAction {
       id: planInvite.id,
       idJeune,
       dateCreation: maintenant,
-      objectifs: objectifsFiltre,
-      ...(questionnaire ? { questionnaire } : {})
+      objectifs: objectifsFiltre
     }
   }
 
@@ -367,7 +360,7 @@ export namespace PlanAction {
           }
         })
 
-      return { id, idJeune, dateCreation: maintenant, objectifs, questionnaire }
+      return { id, idJeune, dateCreation: maintenant, objectifs }
     }
   }
 }

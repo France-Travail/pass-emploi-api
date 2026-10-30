@@ -152,7 +152,6 @@ import { UpdateUtilisateurInviteCommandHandler } from './application/commands/up
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
 import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
-import { RecupererQuestionnaireQueryHandler } from './application/queries/recuperer-questionnaire.query.handler'
 import { ChangerStatutTachePlanActionCommandHandler } from './application/commands/changer-statut-tache-plan-action.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from './application/commands/supprimer-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from './application/commands/reprendre-compte-invite.command.handler'
@@ -854,7 +853,6 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdatePrenomInviteCommandHandler,
     GenererPlanActionCommandHandler,
     RecupererPlanActionQueryHandler,
-    RecupererQuestionnaireQueryHandler,
     ChangerStatutTachePlanActionCommandHandler,
     SupprimerTachePlanActionCommandHandler,
     ReprendreCompteInviteCommandHandler,

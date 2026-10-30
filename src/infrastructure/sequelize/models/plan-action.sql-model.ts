@@ -25,42 +25,6 @@ export class PlanActionDto extends Model {
 
   @Column({ field: 'date_maj', type: DataType.DATE })
   dateMaj: Date
-
-  @Column({ field: 'structure', type: DataType.STRING })
-  structure: string | null
-
-  @Column({ field: 'situation', type: DataType.STRING })
-  situation: string | null
-
-  @Column({ field: 'precision_situation', type: DataType.TEXT })
-  precisionSituation: string | null
-
-  @Column({ field: 'besoins', type: DataType.ARRAY(DataType.STRING) })
-  besoins: string[] | null
-
-  @Column({ field: 'contraintes', type: DataType.ARRAY(DataType.STRING) })
-  contraintes: string[] | null
-
-  @Column({ field: 'date_naissance', type: DataType.DATEONLY })
-  dateNaissance: string | null
-
-  @Column({ field: 'code_insee_commune_residence', type: DataType.STRING })
-  codeInseeCommuneResidence: string | null
-
-  @Column({ field: 'nom_commune_residence', type: DataType.STRING })
-  nomCommuneResidence: string | null
-
-  @Column({ field: 'code_insee_commune_recherche', type: DataType.STRING })
-  codeInseeCommuneRecherche: string | null
-
-  @Column({ field: 'nom_commune_recherche', type: DataType.STRING })
-  nomCommuneRecherche: string | null
-
-  @Column({ field: 'domaine_professionnel_vise', type: DataType.TEXT })
-  domaineProfessionnelVise: string | null
-
-  @Column({ field: 'rayon_km', type: DataType.FLOAT })
-  rayonKm: number | null
 }
 
 @Table({ timestamps: false, tableName: 'plan_action' })

@@ -4,14 +4,11 @@ import { Profil } from '../profil'
 export interface Questionnaire {
   structure: Profil.Structure
   situation: Questionnaire.Situation
-  precisionSituation?: string
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
   dateNaissance?: DateTime
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
-  domaineProfessionnelVise?: string
-  rayonKm?: number
 }
 
 export namespace Questionnaire {
@@ -59,8 +56,6 @@ export namespace Questionnaire {
     codeInsee: string
     nom: string
   }
-
-  export type Reponses = Omit<Questionnaire, 'structure'>
 
   // RIEN_NE_ME_BLOQUE est exclusif : accompagné d'une autre contrainte, il est
   // réduit au seul RIEN_NE_ME_BLOQUE
