@@ -59,6 +59,9 @@ export class PlanActionDto extends Model {
   @Column({ field: 'domaine_professionnel_vise', type: DataType.TEXT })
   domaineProfessionnelVise: string | null
 
+  @Column({ field: 'domaine_professionnel_inconnu', type: DataType.BOOLEAN })
+  domaineProfessionnelInconnu: boolean | null
+
   @Column({ field: 'rayon_km', type: DataType.FLOAT })
   rayonKm: number | null
 }

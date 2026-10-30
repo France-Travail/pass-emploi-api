@@ -39,6 +39,7 @@ function unQuestionnaire(args: Partial<Questionnaire> = {}): Questionnaire {
     situation: Questionnaire.Situation.LYCEE,
     besoins: [Questionnaire.Besoin.ALTERNANCE],
     contraintes: [],
+    domaineProfessionnelInconnu: false,
     ...args
   }
 }

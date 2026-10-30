@@ -34,6 +34,9 @@ export class QuestionnaireQueryModel {
   @ApiPropertyOptional()
   domaine?: string
 
+  @ApiProperty()
+  domaineInconnu: boolean
+
   @ApiPropertyOptional()
   rayonKm?: number
 }

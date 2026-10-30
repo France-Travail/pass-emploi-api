@@ -11,6 +11,7 @@ export interface Questionnaire {
   communeResidence?: Questionnaire.Commune
   communeRecherche?: Questionnaire.Commune
   domaineProfessionnelVise?: string
+  domaineProfessionnelInconnu: boolean
   rayonKm?: number
 }
 

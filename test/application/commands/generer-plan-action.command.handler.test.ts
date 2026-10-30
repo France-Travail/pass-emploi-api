@@ -116,7 +116,8 @@ describe('GenererPlanActionCommandHandler', () => {
       idJeune: utilisateur.id,
       situation: Questionnaire.Situation.LYCEE,
       besoins: [Questionnaire.Besoin.ALTERNANCE],
-      contraintes: []
+      contraintes: [],
+      domaineProfessionnelInconnu: false
     }
 
     referentielRepository.trouverSolutionsActives.resolves([uneSolution()])
@@ -193,7 +194,8 @@ describe('GenererPlanActionCommandHandler', () => {
           structure: Profil.Structure.INVITE,
           situation: Questionnaire.Situation.LYCEE,
           besoins: [Questionnaire.Besoin.ALTERNANCE],
-          contraintes: []
+          contraintes: [],
+          domaineProfessionnelInconnu: false
         },
         [uneSolution()],
         undefined
@@ -269,6 +271,7 @@ describe('GenererPlanActionCommandHandler', () => {
           communeResidence: { codeInsee: '75056', nom: 'Paris' },
           communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
           domaineProfessionnelVise: 'informatique',
+          domaineProfessionnelInconnu: true,
           rayonKm: 30,
           precisionSituation: 'en service civique'
         },
@@ -285,6 +288,7 @@ describe('GenererPlanActionCommandHandler', () => {
         communeResidence: { codeInsee: '75056', nom: 'Paris' },
         communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
         domaineProfessionnelVise: 'informatique',
+        domaineProfessionnelInconnu: true,
         rayonKm: 30,
         precisionSituation: 'en service civique'
       })
@@ -399,7 +403,8 @@ describe('GenererPlanActionCommandHandler', () => {
           plan_action_situation: Questionnaire.Situation.LYCEE,
           plan_action_goals: [Questionnaire.Besoin.ALTERNANCE],
           plan_action_obstacles: [Questionnaire.Contrainte.SANTE],
-          plan_action_domain: 'informatique'
+          plan_action_domain: 'informatique',
+          plan_action_unknown_domain: 'false'
         }
       })
     })

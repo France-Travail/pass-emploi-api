@@ -1080,6 +1080,7 @@ describe('JeunesController', () => {
             habitation: { codeInsee: '75056', nom: 'Paris' },
             villeRecherche: null,
             domaine: 'Informatique',
+            domaineInconnu: true,
             rayonKm: 10
           }
         })
@@ -1100,6 +1101,7 @@ describe('JeunesController', () => {
             dateNaissance: DateTime.fromISO('2005-03-14', { setZone: true }),
             communeResidence: { codeInsee: '75056', nom: 'Paris' },
             domaineProfessionnelVise: 'Informatique',
+            domaineProfessionnelInconnu: true,
             rayonKm: 10
           }
         },
@@ -1359,6 +1361,7 @@ describe('JeunesController', () => {
       contraintes: [],
       dateNaissance: undefined,
       domaineProfessionnelVise: undefined,
+      domaineProfessionnelInconnu: false,
       communeResidence: undefined,
       communeRecherche: undefined,
       rayonKm: undefined
@@ -1375,7 +1378,11 @@ describe('JeunesController', () => {
       await request(app.getHttpServer())
         .post('/jeunes/id-jeune/plan-action')
         .set('authorization', unHeaderAuthorization())
-        .send({ situation: 'LYCEE', goals: ['ALTERNANCE'] })
+        .send({
+          situation: 'LYCEE',
+          goals: ['ALTERNANCE'],
+          domaineInconnu: false
+        })
         // Then
         .expect(HttpStatus.CREATED)
 
@@ -1395,6 +1402,7 @@ describe('JeunesController', () => {
         .send({
           situation: 'LYCEE',
           goals: ['ALTERNANCE'],
+          domaineInconnu: false,
           habitation: null,
           villeRecherche: null,
           rayonKm: null
@@ -1418,7 +1426,8 @@ describe('JeunesController', () => {
         .send({
           situation: 'AUTRE',
           precisionAutre: 'En service civique',
-          goals: ['ALTERNANCE']
+          goals: ['ALTERNANCE'],
+          domaineInconnu: false
         })
         // Then
         .expect(HttpStatus.CREATED)
@@ -1435,6 +1444,42 @@ describe('JeunesController', () => {
       )
     })
 
+    it('transmet que le jeune ne connaît pas son domaine', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'LYCEE',
+          goals: ['ALTERNANCE'],
+          domaineInconnu: true
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          ...commandeSansReponsesOptionnelles,
+          domaineProfessionnelInconnu: true
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('renvoie 400 quand le jeune ne dit pas si son domaine est inconnu', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({ situation: 'LYCEE', goals: ['ALTERNANCE'] })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(genererPlanActionCommandHandler.execute).not.to.have.been.called()
+    })
+
     ensureUserAuthenticationFailsIfInvalid(
       'post',
       '/jeunes/id-jeune/plan-action'
@@ -1447,7 +1492,8 @@ describe('JeunesController', () => {
       const questionnaire = {
         situation: Questionnaire.Situation.LYCEE,
         goals: [Questionnaire.Besoin.ALTERNANCE],
-        obstacles: []
+        obstacles: [],
+        domaineInconnu: false
       }
       recupererQuestionnaireQueryHandler.execute
         .withArgs({ idJeune: 'id-jeune' }, unUtilisateurDecode())
