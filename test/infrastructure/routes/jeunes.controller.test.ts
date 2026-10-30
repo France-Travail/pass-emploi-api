@@ -63,6 +63,9 @@ import { unDetailJeuneQueryModel } from '../../fixtures/query-models/jeunes.quer
 import { ChangerStatutTachePlanActionCommandHandler } from '../../../src/application/commands/changer-statut-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from '../../../src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from '../../../src/application/commands/supprimer-tache-plan-action.command.handler'
+import { RecupererQuestionnaireQueryHandler } from '../../../src/application/queries/recuperer-questionnaire.query.handler'
+import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
+import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 
 describe('JeunesController', () => {
   let getDetailJeuneQueryHandler: StubbedClass<GetDetailJeuneQueryHandler>
@@ -83,6 +86,8 @@ describe('JeunesController', () => {
   let changerStatutTachePlanActionCommandHandler: StubbedClass<ChangerStatutTachePlanActionCommandHandler>
   let reprendreCompteInviteCommandHandler: StubbedClass<ReprendreCompteInviteCommandHandler>
   let supprimerTachePlanActionCommandHandler: StubbedClass<SupprimerTachePlanActionCommandHandler>
+  let recupererQuestionnaireQueryHandler: StubbedClass<RecupererQuestionnaireQueryHandler>
+  let genererPlanActionCommandHandler: StubbedClass<GenererPlanActionCommandHandler>
 
   let jwtService: StubbedClass<JwtService>
   let dateService: StubbedClass<DateService>
@@ -127,6 +132,10 @@ describe('JeunesController', () => {
     supprimerTachePlanActionCommandHandler = app.get(
       SupprimerTachePlanActionCommandHandler
     )
+    recupererQuestionnaireQueryHandler = app.get(
+      RecupererQuestionnaireQueryHandler
+    )
+    genererPlanActionCommandHandler = app.get(GenererPlanActionCommandHandler)
 
     jwtService = app.get(JwtService)
     dateService = app.get(DateService)
@@ -1052,6 +1061,69 @@ describe('JeunesController', () => {
       )
     })
 
+    it('convertit le questionnaire HTTP en réponses du domaine', async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            situation: 'AUTRE',
+            precisionAutre: 'En service civique',
+            goals: ['ORIENTER'],
+            obstacles: ['PAS_DE_PERMIS'],
+            dateNaissance: '2005-03-14',
+            habitation: { codeInsee: '75056', nom: 'Paris' },
+            villeRecherche: null,
+            domaine: 'Informatique',
+            rayonKm: 10
+          }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idInvite: 'id-invite',
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            situation: 'AUTRE',
+            precisionSituation: 'En service civique',
+            besoins: ['ORIENTER'],
+            contraintes: ['PAS_DE_PERMIS'],
+            dateNaissance: DateTime.fromISO('2005-03-14', { setZone: true }),
+            communeResidence: { codeInsee: '75056', nom: 'Paris' },
+            domaineProfessionnelVise: 'Informatique',
+            rayonKm: 10
+          }
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('renvoie 400 si le questionnaire est invalide', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: { situation: 'EMPLOI', goals: [] }
+        })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).not.to.have.been.called()
+    })
+
     it('accepte un plan de 80 objectifs dont un de 300 actions', async () => {
       // Given
       reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
@@ -1275,6 +1347,138 @@ describe('JeunesController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'delete',
       `/jeunes/id-jeune/plan-action/taches/${idTache}`
+    )
+  })
+
+  describe('POST /jeunes/:idJeune/plan-action', () => {
+    const commandeSansReponsesOptionnelles = {
+      idJeune: 'id-jeune',
+      situation: Questionnaire.Situation.LYCEE,
+      precisionSituation: undefined,
+      besoins: [Questionnaire.Besoin.ALTERNANCE],
+      contraintes: [],
+      dateNaissance: undefined,
+      domaineProfessionnelVise: undefined,
+      communeResidence: undefined,
+      communeRecherche: undefined,
+      rayonKm: undefined
+    }
+
+    beforeEach(() => {
+      genererPlanActionCommandHandler.execute.resolves(
+        success({ id: 'plan-1', objectives: [] })
+      )
+    })
+
+    it('génère le plan sans ville de recherche ni rayon', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({ situation: 'LYCEE', goals: ['ALTERNANCE'] })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it('génère le plan quand la ville de recherche et le rayon valent null', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'LYCEE',
+          goals: ['ALTERNANCE'],
+          habitation: null,
+          villeRecherche: null,
+          rayonKm: null
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it('transmet la précision de la situation autre', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'AUTRE',
+          precisionAutre: 'En service civique',
+          goals: ['ALTERNANCE']
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          ...commandeSansReponsesOptionnelles,
+          situation: Questionnaire.Situation.AUTRE,
+          precisionSituation: 'En service civique'
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'post',
+      '/jeunes/id-jeune/plan-action'
+    )
+  })
+
+  describe('GET /jeunes/:idJeune/questionnaire', () => {
+    it('renvoie le questionnaire du jeune', async () => {
+      // Given
+      const questionnaire = {
+        situation: Questionnaire.Situation.LYCEE,
+        goals: [Questionnaire.Besoin.ALTERNANCE],
+        obstacles: []
+      }
+      recupererQuestionnaireQueryHandler.execute
+        .withArgs({ idJeune: 'id-jeune' }, unUtilisateurDecode())
+        .resolves(success(questionnaire))
+
+      // When
+      await request(app.getHttpServer())
+        .get('/jeunes/id-jeune/questionnaire')
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect(questionnaire)
+    })
+
+    it("renvoie 404 quand le jeune n'a pas de questionnaire", async () => {
+      // Given
+      recupererQuestionnaireQueryHandler.execute.resolves(
+        failure(new NonTrouveError('Questionnaire', 'id-jeune'))
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .get('/jeunes/id-jeune/questionnaire')
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/jeunes/id-jeune/questionnaire'
     )
   })
 })
