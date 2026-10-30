@@ -227,6 +227,22 @@ export class PoleEmploiClient extends ExternalApiClient {
     }
   }
 
+  async getReferentielRome(
+    chemin: string,
+    champs?: string
+  ): Promise<Result<unknown>> {
+    try {
+      const result = await this.getWithRetry<unknown>(
+        `rome-metiers/v1/metiers/${chemin}`,
+        champs ? new URLSearchParams({ champs }) : undefined
+      )
+      if (isFailure(result)) return result
+      return success(result.data.data)
+    } catch (e) {
+      return handleAxiosError(e, 'La récupération du référentiel ROME a échoué')
+    }
+  }
+
   async getAgencesFT(): Promise<Result<AgenceFTDto[]>> {
     try {
       const result = await this.getWithRetry<AgenceFTDto[]>(

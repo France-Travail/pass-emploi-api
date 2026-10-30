@@ -246,6 +246,7 @@ import { GetJeunesEtablissementV2QueryHandler } from './application/queries/get-
 import { GetJeunesIdentitesQueryHandler } from './application/queries/get-jeunes-identites.query.handler.db'
 import { GetListesDeDiffusionDuConseillerQueryHandler } from './application/queries/get-listes-de-diffusion-du-conseiller.query.handler.db'
 import { GetMetiersRomeQueryHandler } from './application/queries/get-metiers-rome.query.handler.db'
+import { GetReferentielRomePocOrientationQueryHandler } from './application/queries/get-referentiel-rome-poc-orientation.query.handler'
 import { GetMotifsSuppressionJeuneQueryHandler } from './application/queries/get-motifs-suppression-jeune.query.handler'
 import { GetNotificationsJeuneQueryHandler } from './application/queries/get-notifications-jeune.query.handler.db'
 import { GetOffresEmploiQueryHandler } from './application/queries/get-offres-emploi.query.handler'
@@ -463,6 +464,7 @@ import { ListesDeDiffusionController } from './infrastructure/routes/listes-de-d
 import { MessagesController } from './infrastructure/routes/messages.controller'
 import { OffresEmploiController } from './infrastructure/routes/offres-emploi.controller'
 import { OffresImmersionController } from './infrastructure/routes/offres-immersion.controller'
+import { PocOrientationController } from './infrastructure/routes/poc-orientation.controller'
 import { RecherchesConseillersController } from './infrastructure/routes/recherches-conseillers.controller'
 import { RecherchesJeunesController } from './infrastructure/routes/recherches-jeunes.controller'
 import { ReferentielsController } from './infrastructure/routes/referentiels.controller'
@@ -527,6 +529,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     FilesController,
     // Referentiels
     ReferentielsController,
+    PocOrientationController,
     // Campagnes
     CampagnesController,
     // Autre
@@ -939,6 +942,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     RefuserSuggestionCommandHandler,
     CreateRechercheFromSuggestionCommandHandler,
     GetMetiersRomeQueryHandler,
+    GetReferentielRomePocOrientationQueryHandler,
     CreateSuggestionConseillerOffreEmploiCommandHandler,
     CreateSuggestionConseillerServiceCiviqueCommandHandler,
     CreateSuggestionConseillerImmersionCommandHandler,
