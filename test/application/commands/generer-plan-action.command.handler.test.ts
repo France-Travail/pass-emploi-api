@@ -252,44 +252,6 @@ describe('GenererPlanActionCommandHandler', () => {
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
     })
 
-    it('construit le plan avec toutes les réponses du questionnaire', async () => {
-      // Given
-      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
-      const dateNaissance = uneDatetime().minus({ years: 18 })
-
-      // When
-      await handler.handle(
-        {
-          ...command,
-          contraintes: [
-            Questionnaire.Contrainte.SANTE,
-            Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE
-          ],
-          dateNaissance,
-          communeResidence: { codeInsee: '75056', nom: 'Paris' },
-          communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
-          domaineProfessionnelVise: 'informatique',
-          rayonKm: 30,
-          precisionSituation: 'en service civique'
-        },
-        jeuneMilo
-      )
-
-      // Then
-      expect(planActionFactory.creer.firstCall.args[1]).to.deep.equal({
-        structure: Profil.Structure.MILO,
-        situation: Questionnaire.Situation.LYCEE,
-        besoins: [Questionnaire.Besoin.ALTERNANCE],
-        contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE],
-        dateNaissance,
-        communeResidence: { codeInsee: '75056', nom: 'Paris' },
-        communeRecherche: { codeInsee: '69123', nom: 'Lyon' },
-        domaineProfessionnelVise: 'informatique',
-        rayonKm: 30,
-        precisionSituation: 'en service civique'
-      })
-    })
-
     it("construit le plan d'un bénéficiaire accompagné à partir de son dernier plan", async () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })

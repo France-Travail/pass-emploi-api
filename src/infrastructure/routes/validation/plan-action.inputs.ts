@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
-import { DateTime } from 'luxon'
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -42,11 +41,6 @@ export class GenererPlanActionPayload {
   @IsEnum(Questionnaire.Situation)
   situation: Questionnaire.Situation
 
-  @ApiPropertyOptional({ nullable: true })
-  @IsString()
-  @IsOptional()
-  precisionAutre?: string | null
-
   @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
   @IsArray()
   @ArrayMinSize(1)
@@ -59,23 +53,23 @@ export class GenererPlanActionPayload {
   @IsOptional()
   domaine?: string | null
 
-  @ApiPropertyOptional({ type: CommunePayload, nullable: true })
+  @ApiPropertyOptional({ type: CommunePayload })
   @IsOptional()
   @ValidateNested()
   @Type(() => CommunePayload)
-  habitation?: CommunePayload | null
+  habitation?: CommunePayload
 
-  @ApiPropertyOptional({ type: CommunePayload, nullable: true })
+  @ApiPropertyOptional({ type: CommunePayload })
   @IsOptional()
   @ValidateNested()
   @Type(() => CommunePayload)
-  villeRecherche?: CommunePayload | null
+  villeRecherche?: CommunePayload
 
   // inexploité, même par le LLM
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
-  rayonKm?: number | null
+  rayonKm?: number
 
   @ApiPropertyOptional({ enum: Questionnaire.Contrainte, isArray: true })
   @IsArray()
@@ -178,33 +172,5 @@ export function toPlanInvite(
         terminee: action.terminee
       }))
     }))
-  }
-}
-
-export function toReponsesQuestionnaire(
-  payload: GenererPlanActionPayload
-): Questionnaire.Reponses {
-  return {
-    situation: payload.situation,
-    ...(payload.precisionAutre
-      ? { precisionSituation: payload.precisionAutre }
-      : {}),
-    besoins: payload.goals,
-    contraintes: payload.obstacles ?? [],
-    ...(payload.dateNaissance
-      ? {
-          dateNaissance: DateTime.fromISO(payload.dateNaissance, {
-            setZone: true
-          })
-        }
-      : {}),
-    ...(payload.habitation ? { communeResidence: payload.habitation } : {}),
-    ...(payload.villeRecherche
-      ? { communeRecherche: payload.villeRecherche }
-      : {}),
-    ...(payload.domaine ? { domaineProfessionnelVise: payload.domaine } : {}),
-    ...(payload.rayonKm !== undefined && payload.rayonKm !== null
-      ? { rayonKm: payload.rayonKm }
-      : {})
   }
 }
