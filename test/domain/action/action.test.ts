@@ -4,7 +4,8 @@ import {
   failure,
   isFailure,
   isSuccess,
-  success
+  success,
+  Success
 } from '../../../src/building-blocks/types/result'
 import {
   Action,
@@ -844,6 +845,50 @@ describe('Action', () => {
         }
       }
       expect(result).to.be.deep.equal(success(expectedAction))
+    })
+
+    it('tronque le commentaire par défaut à 255 octets UTF-8 sans couper de caractère', () => {
+      // Given
+      const actionTerminee: Action = uneActionTerminee({
+        contenu: 'é'.repeat(200),
+        description: 'à'.repeat(200)
+      })
+
+      // When
+      const result = Action.qualifier(
+        actionTerminee,
+        Action.Qualification.Code.SANTE,
+        undefined,
+        undefined,
+        dateFinReelle
+      )
+
+      // Then
+      const commentaire = (result as Success<Action.Qualifiee>).data
+        .qualification.commentaire!
+      expect(commentaire).to.equal('é'.repeat(127))
+      expect(Buffer.byteLength(commentaire, 'utf8')).to.equal(254)
+    })
+
+    it('tronque le commentaire renseigné à 255 octets UTF-8 sans couper de caractère', () => {
+      // Given
+      const actionTerminee: Action = uneActionTerminee()
+      const commentaireQualification = 'a'.repeat(250) + '’'.repeat(5)
+
+      // When
+      const result = Action.qualifier(
+        actionTerminee,
+        Action.Qualification.Code.SANTE,
+        commentaireQualification,
+        undefined,
+        dateFinReelle
+      )
+
+      // Then
+      const commentaire = (result as Success<Action.Qualifiee>).data
+        .qualification.commentaire!
+      expect(commentaire).to.equal('a'.repeat(250) + '’')
+      expect(Buffer.byteLength(commentaire, 'utf8')).to.equal(253)
     })
   })
 })

@@ -84,8 +84,27 @@ export namespace Qualification {
       return undefined
     }
     if (!commentaireQualification) {
-      return [action.contenu, action.description].join(' - ').slice(0, 255)
+      return tronquerEnOctets(
+        [action.contenu, action.description].join(' - '),
+        TAILLE_MAX_COMMENTAIRE_EN_OCTETS
+      )
     }
-    return commentaireQualification
+    return tronquerEnOctets(
+      commentaireQualification,
+      TAILLE_MAX_COMMENTAIRE_EN_OCTETS
+    )
   }
+}
+
+const TAILLE_MAX_COMMENTAIRE_EN_OCTETS = 255
+
+function tronquerEnOctets(texte: string, tailleMaxEnOctets: number): string {
+  let tailleEnOctets = 0
+  let texteTronque = ''
+  for (const caractere of texte) {
+    tailleEnOctets += Buffer.byteLength(caractere, 'utf8')
+    if (tailleEnOctets > tailleMaxEnOctets) break
+    texteTronque += caractere
+  }
+  return texteTronque
 }
