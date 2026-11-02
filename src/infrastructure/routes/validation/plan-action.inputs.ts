@@ -59,9 +59,10 @@ export class GenererPlanActionPayload {
   @IsOptional()
   domaine?: string | null
 
-  @ApiProperty()
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
   @IsBoolean()
-  domaineInconnu: boolean
+  domaineInconnu: boolean = false
 
   @ApiPropertyOptional({ type: CommunePayload, nullable: true })
   @IsOptional()

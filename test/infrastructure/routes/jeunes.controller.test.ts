@@ -1109,6 +1109,38 @@ describe('JeunesController', () => {
       )
     })
 
+    it("considère le domaine connu quand le questionnaire n'envoie pas domaineInconnu", async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: { situation: 'LYCEE', goals: ['ALTERNANCE'] }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idInvite: 'id-invite',
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            situation: 'LYCEE',
+            besoins: ['ALTERNANCE'],
+            contraintes: [],
+            domaineProfessionnelInconnu: false
+          }
+        },
+        unUtilisateurDecode()
+      )
+    })
+
     it('renvoie 400 si le questionnaire est invalide', async () => {
       // When
       await request(app.getHttpServer())
@@ -1468,12 +1500,33 @@ describe('JeunesController', () => {
       )
     })
 
-    it('renvoie 400 quand le jeune ne dit pas si son domaine est inconnu', async () => {
+    it("considère le domaine connu quand l'app n'envoie pas domaineInconnu", async () => {
       // When
       await request(app.getHttpServer())
         .post('/jeunes/id-jeune/plan-action')
         .set('authorization', unHeaderAuthorization())
         .send({ situation: 'LYCEE', goals: ['ALTERNANCE'] })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it("renvoie 400 quand domaineInconnu n'est pas un booléen", async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'LYCEE',
+          goals: ['ALTERNANCE'],
+          domaineInconnu: 'oui'
+        })
         // Then
         .expect(HttpStatus.BAD_REQUEST)
 
