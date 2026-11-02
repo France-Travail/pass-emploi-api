@@ -147,3 +147,24 @@ updates:
         update-types:
           - patch
           - minor
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: daily
+      time: '07:00'
+      timezone: Europe/Paris
+    commit-message:
+      prefix: 'chore(docker):'
+    # Images qui doublent les addons Scalingo : leur version suit la prod via l'inventaire du lot 3
+    ignore:
+      - dependency-name: 'postgis/postgis'
+      - dependency-name: 'redis'
+    cooldown:
+      default-days: 3
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - patch
+          - minor
