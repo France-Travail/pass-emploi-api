@@ -183,6 +183,89 @@ describe('attachExternalApiLogger', () => {
     })
   })
 
+  describe('claims du Bearer JWT', () => {
+    const encode = (value: unknown): string =>
+      Buffer.from(JSON.stringify(value)).toString('base64url')
+    const jwt = (payload: unknown): string =>
+      `${encode({ alg: 'RS256' })}.${encode(payload)}.signature`
+
+    const appeler = async (
+      status: number,
+      authorization?: string
+    ): Promise<Record<string, unknown>> => {
+      const instance = axios.create()
+      instance.defaults.adapter = (config): Promise<AxiosResponse> =>
+        Promise.resolve({
+          status,
+          statusText: '',
+          data: undefined,
+          headers: {},
+          config
+        })
+      attachExternalApiLogger(instance, emit, () => false)
+
+      await instance.get('https://api.i-milo.fr/api-sessions/sessions', {
+        headers: authorization ? { Authorization: authorization } : {}
+      })
+
+      return emit.firstCall.args[1]
+    }
+
+    it('logge iss, azp, exp, iat et la présence de preferred_username sur échec, jamais le token', async () => {
+      // Given
+      const token = jwt({
+        iss: 'https://sso.i-milo.fr/realms/sim',
+        azp: 'pass-emploi',
+        exp: 1793369431,
+        iat: 1793369131,
+        preferred_username: 'jeune.milo',
+        sub: 'id-sub'
+      })
+
+      // When
+      const obj = await appeler(400, `Bearer ${token}`)
+
+      // Then
+      expect(obj.jwt).to.deep.equal({
+        iss: 'https://sso.i-milo.fr/realms/sim',
+        azp: 'pass-emploi',
+        exp: '2026-10-30T14:10:31.000Z',
+        iat: '2026-10-30T14:05:31.000Z',
+        has_preferred_username: true
+      })
+      expect(JSON.stringify(obj)).not.to.include(token)
+      expect(JSON.stringify(obj)).not.to.include('jeune.milo')
+    })
+
+    it("n'ajoute rien sur succès", async () => {
+      // When
+      const obj = await appeler(200, `Bearer ${jwt({ iss: 'idp' })}`)
+
+      // Then
+      expect(obj.jwt).to.equal(undefined)
+    })
+
+    const headersInexploitables: Array<[string, string | undefined]> = [
+      ['absent', undefined],
+      ['Basic', 'Basic dXNlcjpwYXNz'],
+      ['Bearer opaque', 'Bearer abc123'],
+      ['payload non base64 JSON', 'Bearer a.%%%.c'],
+      ['payload JSON non objet', `Bearer ${jwt(42)}`],
+      ['Bearer sans token', 'Bearer'],
+      ['exp hors plage', `Bearer ${jwt({ exp: 1e20 })}`]
+    ]
+    headersInexploitables.forEach(([cas, authorization]) => {
+      it(`ne plante pas et n'ajoute pas de claims (${cas})`, async () => {
+        // When
+        const obj = await appeler(400, authorization)
+
+        // Then
+        expect(obj.event).to.deep.include({ outcome: 'failure' })
+        expect(obj.jwt).to.equal(undefined)
+      })
+    })
+  })
+
   describe('appel sortant transport failure sur status 200', () => {
     it('emit error/failure quand axios rejette malgré un status < 400 (body tronqué)', async () => {
       const instance = axios.create()

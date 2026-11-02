@@ -1,5 +1,14 @@
-import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
-import { isSensitiveKey, serializeBodyForLog } from './logger.helpers'
+import {
+  AxiosError,
+  AxiosHeaders,
+  AxiosInstance,
+  InternalAxiosRequestConfig
+} from 'axios'
+import {
+  isPlainObject,
+  isSensitiveKey,
+  serializeBodyForLog
+} from './logger.helpers'
 
 interface AxiosMetadata {
   startTimeNs: bigint
@@ -86,6 +95,51 @@ const buildErrorFragment = (
   }
 }
 
+const asString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value !== '' ? value : undefined
+
+const asIsoDate = (secondes: unknown): string | undefined =>
+  typeof secondes === 'number'
+    ? new Date(secondes * 1000).toISOString()
+    : undefined
+
+// Seuls quelques claims sont extraits : sans signature, rien de rejouable.
+// Ne doit jamais lever, sinon l'intercepteur transformerait l'appel en échec.
+function buildJwtFragment(
+  config: ConfigWithMetadata | undefined
+): Record<string, unknown> | undefined {
+  try {
+    const authorization = AxiosHeaders.from(config?.headers).get(
+      'authorization'
+    )
+    if (typeof authorization !== 'string') return undefined
+
+    const [scheme, token] = authorization.split(' ')
+    const parts = token?.split('.') ?? []
+    if (scheme.toLowerCase() !== 'bearer' || parts.length !== 3) {
+      return undefined
+    }
+
+    const claims: unknown = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf8')
+    )
+    if (!isPlainObject(claims)) return undefined
+
+    const { iss, azp, exp, iat, preferred_username } = claims
+    return {
+      jwt: {
+        iss: asString(iss),
+        azp: asString(azp),
+        exp: asIsoDate(exp),
+        iat: asIsoDate(iat),
+        has_preferred_username: asString(preferred_username) !== undefined
+      }
+    }
+  } catch {
+    return undefined
+  }
+}
+
 export function logCall(
   emit: Emit,
   isDebugEnabled: () => boolean,
@@ -132,7 +186,8 @@ export function logCall(
       ...(domain && { domain }),
       ...(query && { query })
     },
-    ...buildErrorFragment(err)
+    ...buildErrorFragment(err),
+    ...(isFailure && buildJwtFragment(config))
   }
 
   // panne de transport : axios rejette alors que le status n'est pas un refus
