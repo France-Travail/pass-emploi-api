@@ -203,7 +203,6 @@
     "fast-xml-parser": ">=5.7.0",
     "protobufjs": ">=7.6.5 <8",
     "ip-address": ">=10.1.1",
-    "body-parser": ">=2.3.0",
     "@tootallnate/once": ">=2.0.1 <3",
     "fast-xml-builder": ">=1.1.7",
     "picomatch": ">=4.0.3",
@@ -225,5 +224,12 @@
   "lint-staged": {
     "*.ts": "yarn lint:fix"
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "comments": {
+    "cvesAcceptees": {
+      "uuid": "GHSA-w5hq-g745-h8pq (moderate) - Risque accepté, non atteignable ici. Corrigé dans uuid 11.1.1 uniquement : bull demande ^8 et gaxios ^9, aucun bump ne corrige. L'avis ne concerne que v3/v5/v6 avec un argument buf : bull, sequelize et gaxios n'appellent que v1/v4. À revoir quand bull et gaxios accepteront uuid >= 11.1.1.",
+      "glob": "GHSA-3g3m-2fjr-6pw4 (moderate) - Risque accepté, non atteignable ici. Corrigé dans glob 14.0.2 uniquement : rimraf 6.1.3 (dernière version) demande ^13 et js-beautify (via sequelize-cli) ^10. L'avis contourne un AbortSignal, que rien n'utilise à l'exécution. À revoir quand rimraf et js-beautify accepteront glob >= 14.0.2.",
+      "minimatch": "GHSA-g3hv-75wg-m249 (moderate) - Risque accepté, non atteignable ici. Corrigé dans minimatch 11.0.1 uniquement, une majeure que la résolution existante >=9.0.5 imposerait à des consommateurs ^3, ^9 et ^10 sans tests. Les patterns sont écrits en dur dans le code, jamais fournis par un utilisateur. À revoir quand les consommateurs accepteront minimatch >= 11.0.1."
+    }
+  }
 }
