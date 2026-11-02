@@ -6,7 +6,7 @@ volumes:
 
 services:
   apidb:
-    image: postgis/postgis:14-3.2-alpine
+    image: postgis/postgis:15-3.6-alpine
     container_name: apidb
     ports:
       - "55432:5432"
@@ -18,7 +18,7 @@ services:
       - api-db-data:/var/lib/postgresql
 
   analyticsdb:
-    image: postgis/postgis:14-3.2-alpine
+    image: postgis/postgis:15-3.6-alpine
     container_name: analyticsdb
     ports:
       - "55433:5432"
@@ -30,15 +30,15 @@ services:
       - analytics-db-data:/var/lib/postgresql
 
   redisdb:
-    image: redis:8-alpine
+    image: redis:7.2-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis-db-data:/data
     command: ['redis-server', '--appendonly yes']
-      
+
   pgtestdb:
-    image: postgis/postgis:14-3.2-alpine
+    image: postgis/postgis:15-3.6-alpine
     container_name: pgtestdb
     ports:
       - "56432:5432"
@@ -49,14 +49,14 @@ services:
 
   redistestdb:
     container_name: redistestdb
-    image: redis:8-alpine
+    image: redis:7.2-alpine
     ports:
       - "6767:6379"
 
   redis-commander:
     container_name: redis-commander
     hostname: redis-commander
-    image: rediscommander/redis-commander:latest
+    image: rediscommander/redis-commander:redis-commander-210
     restart: always
     environment:
       - REDIS_HOSTS=local:redisdb:6379
