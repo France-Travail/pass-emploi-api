@@ -416,23 +416,31 @@ describe('PlanActionSqlRepository', () => {
       // Then
       expect(questionnaire).to.be.undefined()
     })
+  })
 
-    it('rend undefined quand le questionnaire ne dit pas si le domaine est inconnu', async () => {
+  describe('domaine professionnel inconnu', () => {
+    it("vaut false par défaut quand le plan n'a pas de questionnaire", async () => {
       // Given
-      await planActionSqlRepository.save(
-        unPlan({ questionnaire: unQuestionnaire() })
-      )
-      await PlanActionSqlModel.update(
-        { domaineProfessionnelInconnu: null },
-        { where: { id: unPlan().id } }
-      )
+      await insererSolution('p-2')
+      await planActionSqlRepository.save(unPlan())
 
       // When
-      const questionnaire =
-        await planActionSqlRepository.getQuestionnaireDuDernierPlan('jeune-1')
+      const planSql = await PlanActionSqlModel.findByPk(unPlan().id)
 
       // Then
-      expect(questionnaire).to.be.undefined()
+      expect(planSql?.domaineProfessionnelInconnu).to.equal(false)
+    })
+
+    it('refuse null', async () => {
+      // When
+      const promesse = database.sequelize.query(
+        `INSERT INTO plan_action (id, id_jeune, date_creation, date_maj, domaine_professionnel_inconnu)
+         VALUES (:id, 'jeune-1', NOW(), NOW(), NULL)`,
+        { replacements: { id: unPlan().id } }
+      )
+
+      // Then
+      await expect(promesse).to.be.rejectedWith('domaine_professionnel_inconnu')
     })
   })
 

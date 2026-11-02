@@ -208,8 +208,7 @@ function toQuestionnaire(
     !planSql.structure ||
     !planSql.situation ||
     !planSql.besoins ||
-    !planSql.contraintes ||
-    planSql.domaineProfessionnelInconnu === null
+    !planSql.contraintes
   ) {
     return undefined
   }
