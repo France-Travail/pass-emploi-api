@@ -9,24 +9,36 @@ import {
   GetUtilisateurQuery,
   GetUtilisateurQueryHandler
 } from '../../../src/application/queries/get-utilisateur.query.handler'
-import { failure, success } from '../../../src/building-blocks/types/result'
-import { createSandbox, expect } from '../../utils'
+import {
+  failure,
+  isFailure,
+  success
+} from '../../../src/building-blocks/types/result'
+import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
 import { queryModelFromUtilisateur } from '../../../src/application/queries/query-models/authentification.query-model'
-import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import {
+  NonTraitableError,
+  NonTraitableReason,
+  NonTrouveError
+} from '../../../src/building-blocks/types/domain-error'
+import { Migration } from '../../../src/domain/migration'
 import { Profil } from '../../../src/domain/profil'
 import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('GetUtilisateurQueryHandler', () => {
   let authentificationRepository: StubbedType<Authentification.Repository>
+  let migrationService: StubbedClass<Migration.Service>
   let getUtilisateurQueryHandler: GetUtilisateurQueryHandler
   let sandbox: SinonSandbox
 
-  before(() => {
+  beforeEach(() => {
     sandbox = createSandbox()
     authentificationRepository = stubInterface(sandbox)
+    migrationService = stubClass(Migration.Service)
 
     getUtilisateurQueryHandler = new GetUtilisateurQueryHandler(
-      authentificationRepository
+      authentificationRepository,
+      migrationService
     )
   })
 
@@ -160,6 +172,104 @@ describe('GetUtilisateurQueryHandler', () => {
       expect(result).to.deep.equal(
         failure(new NonTrouveError('Utilisateur', query.idAuthentification))
       )
+    })
+
+    describe('jeune concerné par la migration Parcours Emploi (relecture au refresh)', () => {
+      const queryPour = (application?: string): GetUtilisateurQuery => ({
+        idAuthentification: 'test-sub',
+        typeUtilisateur: Authentification.Type.JEUNE,
+        profil: unProfilFT(),
+        application
+      })
+      const unJeuneQuiDoitMigrer = (): Authentification.Utilisateur => {
+        const jeune = unUtilisateurJeune({ profil: unProfilFT() })
+        authentificationRepository.getJeuneByStructureEtDispositifs
+          .withArgs('test-sub', { structure: Profil.Structure.FRANCE_TRAVAIL })
+          .returns(jeune)
+        migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+          .withArgs({ id: jeune.id, type: Authentification.Type.JEUNE })
+          .resolves(true)
+        return jeune
+      }
+
+      it('refuse le jeune migré avec MIGRATION_PARCOURS_EMPLOI pour pass-emploi', async () => {
+        // Given
+        const jeune = unJeuneQuiDoitMigrer()
+
+        // When
+        const result = await getUtilisateurQueryHandler.handle(
+          queryPour(Authentification.Application.PASS_EMPLOI)
+        )
+
+        // Then
+        expect(result).to.deep.equal(
+          failure(
+            new NonTraitableError(
+              'Utilisateur',
+              'test-sub',
+              NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+              jeune.email
+            )
+          )
+        )
+      })
+
+      it('refuse le jeune migré quand l’application est absente', async () => {
+        // Given
+        unJeuneQuiDoitMigrer()
+
+        // When
+        const result = await getUtilisateurQueryHandler.handle(
+          queryPour(undefined)
+        )
+
+        // Then
+        expect(isFailure(result)).to.be.true()
+        if (isFailure(result)) {
+          expect((result.error as NonTraitableError).reason).to.equal(
+            NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+          )
+        }
+      })
+
+      it('retourne le jeune 1j1s sans vérifier la migration', async () => {
+        // Given
+        const jeune = unJeuneQuiDoitMigrer()
+
+        // When
+        const result = await getUtilisateurQueryHandler.handle(
+          queryPour(Authentification.Application.UN_JEUNE_UNE_SOLUTION)
+        )
+
+        // Then
+        expect(result).to.deep.equal(success(queryModelFromUtilisateur(jeune)))
+        expect(
+          migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+        ).not.to.have.been.called()
+      })
+
+      it('ne vérifie pas la migration d’un conseiller', async () => {
+        // Given
+        authentificationRepository.getConseiller
+          .withArgs('test-sub')
+          .returns(unUtilisateurConseiller())
+        migrationService.faitPartieDeLaMigrationEtLaDateEstPassee.resolves(true)
+
+        // When
+        const result = await getUtilisateurQueryHandler.handle({
+          idAuthentification: 'test-sub',
+          typeUtilisateur: Authentification.Type.CONSEILLER,
+          profil: unProfilMilo()
+        })
+
+        // Then
+        expect(result).to.deep.equal(
+          success(queryModelFromUtilisateur(unUtilisateurConseiller()))
+        )
+        expect(
+          migrationService.faitPartieDeLaMigrationEtLaDateEstPassee
+        ).not.to.have.been.called()
+      })
     })
   })
 })

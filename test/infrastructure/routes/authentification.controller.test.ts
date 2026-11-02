@@ -393,7 +393,36 @@ describe('AuthentificationController', () => {
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: qp.typeUtilisateur,
-        profil: unProfilMilo()
+        profil: unProfilMilo(),
+        application: undefined
+      }
+      const utilisateur = unUtilisateurQueryModel({ username: 'test' })
+      getUtilisateurQueryHandler.execute
+        .withArgs(query)
+        .resolves(success(utilisateur))
+
+      // When - Then
+      const result = await request(app.getHttpServer())
+        .get(`/auth/users/${query.idAuthentification}`)
+        .set({ 'X-API-KEY': 'api-key-keycloak' })
+        .query(qp)
+        .expect(HttpStatus.OK)
+
+      expect(result.body).to.deep.equal(utilisateur)
+    })
+
+    it("transmet l'application du login au handler", async () => {
+      // Given
+      const qp: GetUtilisateurQueryParams = {
+        typeUtilisateur: Authentification.Type.JEUNE,
+        structure: Profil.Structure.MILO,
+        application: Authentification.Application.UN_JEUNE_UNE_SOLUTION
+      }
+      const query: GetUtilisateurQuery = {
+        idAuthentification: 'test-sub',
+        typeUtilisateur: qp.typeUtilisateur,
+        profil: unProfilMilo(),
+        application: Authentification.Application.UN_JEUNE_UNE_SOLUTION
       }
       const utilisateur = unUtilisateurQueryModel({ username: 'test' })
       getUtilisateurQueryHandler.execute
@@ -419,7 +448,8 @@ describe('AuthentificationController', () => {
       const query: GetUtilisateurQuery = {
         idAuthentification: 'test-sub',
         typeUtilisateur: qp.typeUtilisateur,
-        profil: unProfilMilo()
+        profil: unProfilMilo(),
+        application: undefined
       }
       getUtilisateurQueryHandler.execute
         .withArgs(query)
