@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as Joi from 'joi'
+import { exigeTls } from '../infrastructure/sequelize/tls'
 import { parse } from 'pg-connection-string'
 import { configurationSchema } from './configuration.schema'
 
@@ -31,6 +32,7 @@ export default () => {
       database,
       user,
       password,
+      tls: exigeTls(databaseUrl),
       acquireConnections: process.env.DATABASE_ACQUIRE_CONNECTIONS || 10000,
       evictConnections: process.env.DATABASE_EVICT_CONNECTIONS || 10000,
       idleConnections: process.env.DATABASE_IDLE_CONNECTIONS || 10000,

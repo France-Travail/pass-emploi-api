@@ -13,6 +13,9 @@
           ]
         }
       }
+    ],
+    "assets": [
+      "infrastructure/sequelize/tls.js"
     ]
   }
 }
