@@ -10,7 +10,7 @@ import {
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import {
-  DISPOSITIFS_ACCOMPAGNES,
+  TOUT_PROFIL_SAUF_INVITE,
   estBeneficiaireFTConnect,
   Profil
 } from '../../domain/profil'
@@ -35,7 +35,7 @@ export class RafraichirSuggestionsCommandHandler extends CommandHandler<
   RafraichirSuggestionsCommand,
   void
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     @Inject(JeuneRepositoryToken)

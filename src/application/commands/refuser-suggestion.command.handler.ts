@@ -9,7 +9,7 @@ import {
   isFailure
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { EvenementService } from '../../domain/evenement'
 import {
   Suggestion,
@@ -27,7 +27,7 @@ export class RefuserSuggestionCommandHandler extends CommandHandler<
   RefuserSuggestionCommand,
   void
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     private suggestionAuthorizer: SuggestionAuthorizer,
