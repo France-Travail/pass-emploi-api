@@ -9,7 +9,10 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { TOUT_PROFIL } from '../../domain/profil'
+import {
+  estDispositifNonAccompagne,
+  PROFILS_FT_CONNECT
+} from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 
 export interface VerifierEmailJeuneQuery extends Query {
@@ -25,7 +28,7 @@ export class VerifierEmailJeuneQueryHandler extends QueryHandler<
   VerifierEmailJeuneQuery,
   Result<EmailJeuneQueryModel>
 > {
-  readonly profilsAutorises = TOUT_PROFIL
+  readonly profilsAutorises = PROFILS_FT_CONNECT
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -39,8 +42,11 @@ export class VerifierEmailJeuneQueryHandler extends QueryHandler<
   ): Promise<Result<EmailJeuneQueryModel>> {
     const beneficiaire = await this.jeuneRepository.getByEmail(query.email)
 
+    const repriseEnAccompagnementPossible =
+      beneficiaire && estDispositifNonAccompagne(beneficiaire.dispositif)
+
     return success({
-      emailExistant: Boolean(beneficiaire)
+      emailExistant: Boolean(beneficiaire) && !repriseEnAccompagnementPossible
     })
   }
 

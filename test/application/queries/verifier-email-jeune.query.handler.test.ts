@@ -17,8 +17,8 @@ import {
   unUtilisateurJeune
 } from '../../fixtures/authentification.fixture'
 import { createSandbox, expect } from '../../utils'
-import { Profil } from '../../../src/domain/profil'
-import { unProfilFT } from '../../fixtures/profil.fixture'
+import { Profil, verifierProfils } from '../../../src/domain/profil'
+import { unProfilFT, unProfilMilo } from '../../fixtures/profil.fixture'
 
 describe('VerifierEmailJeuneQueryHandler', () => {
   let verifierEmailJeuneQueryHandler: VerifierEmailJeuneQueryHandler
@@ -71,6 +71,30 @@ describe('VerifierEmailJeuneQueryHandler', () => {
       expect(result).to.deep.equal(success({ emailExistant: true }))
     })
 
+    for (const dispositif of [
+      Profil.Dispositif.DEMANDEUR_D_EMPLOI,
+      Profil.Dispositif.ESPACE_CANDIDAT
+    ]) {
+      it(`renvoie emailExistant false si le jeune est non accompagné (${dispositif}) : il peut être repris en accompagnement`, async () => {
+        // Given
+        const query: VerifierEmailJeuneQuery = {
+          email: 'existant@test.com'
+        }
+        jeuneRepository.getByEmail.withArgs('existant@test.com').resolves(
+          unJeune({
+            structure: Profil.Structure.FRANCE_TRAVAIL,
+            dispositif
+          })
+        )
+
+        // When
+        const result = await verifierEmailJeuneQueryHandler.handle(query)
+
+        // Then
+        expect(result).to.deep.equal(success({ emailExistant: false }))
+      })
+    }
+
     it('retourne un succès si le bénéficiaire du mail est conseiller départemental', async () => {
       // Given
       const query: VerifierEmailJeuneQuery = {
@@ -91,8 +115,29 @@ describe('VerifierEmailJeuneQueryHandler', () => {
     })
   })
 
+  describe('profilsAutorises', () => {
+    it('autorise les profils France Travail et Conseil départemental', () => {
+      // Then
+      expect(verifierEmailJeuneQueryHandler.profilsAutorises).to.deep.equal([
+        { structure: Profil.Structure.FRANCE_TRAVAIL },
+        { structure: Profil.Structure.CONSEIL_DEPARTEMENTAL }
+      ])
+    })
+
+    it('refuse un conseiller MILO', () => {
+      // When
+      const result = verifierProfils(
+        verifierEmailJeuneQueryHandler.profilsAutorises,
+        unUtilisateurConseiller({ profil: unProfilMilo() })
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+    })
+  })
+
   describe('authorize', () => {
-    it('autorise un conseiller : le profil FT est garanti par profilsAutorises', async () => {
+    it('autorise un conseiller', async () => {
       // When
       const result = await verifierEmailJeuneQueryHandler.authorize(
         { email: 'test@test.fr' },
