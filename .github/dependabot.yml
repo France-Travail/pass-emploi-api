@@ -1,9 +1,6 @@
 version: 2
 
 updates:
-  # ===========================================
-  # NPM Dependencies
-  # ===========================================
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -13,60 +10,127 @@ updates:
     open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps):'
+    # Majeures npm montées hors Dependabot : elles demandent souvent une refacto.
+    # Sans effet sur les security updates, créées quel que soit le type de montée.
+    allow:
+      - dependency-type: direct
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+    # Laisse à la communauté le temps de repérer une version compromise. Ne s'applique pas aux security updates.
+    cooldown:
+      default-days: 3
     groups:
-      # Écosystèmes (prioritaires, couvrent tous les update-types)
       nestjs:
         applies-to: version-updates
         patterns:
-          - "@nestjs/*"
+          - '@nestjs/*'
       aws-sdk:
         applies-to: version-updates
         patterns:
-          - "@aws-sdk/*"
+          - '@aws-sdk/*'
       eslint:
         applies-to: version-updates
         patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@typescript-eslint/*"
-          - "@eslint/*"
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
       sequelize:
         applies-to: version-updates
         patterns:
-          - "sequelize"
-          - "sequelize-cli"
-          - "sequelize-typescript"
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
       testing:
         applies-to: version-updates
         patterns:
-          - "jest*"
-          - "@testing-library/*"
-          - "@types/jest*"
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
       elastic-apm:
         applies-to: version-updates
         patterns:
-          - "@elastic/*"
-          - "elastic-apm-*"
-
-      # Production dependencies - patch and minor (auto-merge côté CI)
+          - '@elastic/*'
+          - 'elastic-apm-*'
+      # Dependabot range une dépendance dans le groupe le plus « spécifique », pas dans le premier déclaré :
+      # sans ces exclusions, un groupe sans `patterns` l'emporte sur un motif à joker comme `@nestjs/*`.
       prod-minor-patch:
         applies-to: version-updates
         dependency-type: production
         update-types:
           - patch
           - minor
-      # Development dependencies - patch and minor (auto-merge côté CI)
+        exclude-patterns:
+          - '@nestjs/*'
+          - '@aws-sdk/*'
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
+          - '@elastic/*'
+          - 'elastic-apm-*'
       dev-minor-patch:
         applies-to: version-updates
         dependency-type: development
         update-types:
           - patch
           - minor
-      # Autres majors : chaque dépendance a sa propre PR
+        exclude-patterns:
+          - '@nestjs/*'
+          - '@aws-sdk/*'
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
+          - '@elastic/*'
+          - 'elastic-apm-*'
 
-  # ===========================================
-  # GitHub Actions
-  # ===========================================
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -75,11 +139,32 @@ updates:
       timezone: Europe/Paris
     commit-message:
       prefix: 'ci(deps):'
+    cooldown:
+      default-days: 3
     groups:
-      # GitHub Actions - patch and minor (auto-merge côté CI)
       actions-minor-patch:
         applies-to: version-updates
         update-types:
           - patch
           - minor
-      # Majors : pas de groupe, chaque action a sa propre PR
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: daily
+      time: '07:00'
+      timezone: Europe/Paris
+    commit-message:
+      prefix: 'chore(docker):'
+    # Images qui doublent les addons Scalingo : leur version suit celle de la prod, pas la dernière publiée
+    ignore:
+      - dependency-name: 'postgis/postgis'
+      - dependency-name: 'redis'
+    cooldown:
+      default-days: 3
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - patch
+          - minor
