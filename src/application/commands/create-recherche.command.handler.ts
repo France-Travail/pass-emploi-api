@@ -4,7 +4,7 @@ import { IdService } from '../../utils/id-service'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Command } from '../../building-blocks/types/command'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import {
   Recherche,
   RecherchesRepositoryToken
@@ -27,7 +27,7 @@ export class CreateRechercheCommandHandler extends CommandHandler<
   CreateRechercheCommand,
   { id: string }
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     @Inject(RecherchesRepositoryToken)

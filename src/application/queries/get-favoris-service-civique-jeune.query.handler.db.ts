@@ -5,7 +5,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { FavoriOffreEngagementSqlModel } from '../../infrastructure/sequelize/models/favori-offre-engagement.sql-model'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { FavoriOffreServiceCiviqueQueryModel } from './query-models/service-civique.query-model'
@@ -19,7 +19,7 @@ export class GetFavorisServiceCiviqueJeuneQueryHandler extends QueryHandler<
   GetFavorisOffresEngagementJeuneQuery,
   FavoriOffreServiceCiviqueQueryModel[]
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetFavorisServiceCiviqueJeuneQueryHandler')

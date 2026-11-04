@@ -206,18 +206,7 @@ describe('AddFavoriOffreEmploiCommandHandler', () => {
       expect(addFavoriOffreEmploiCommandHandler.profilsAutorises).to.deep.equal(
         [
           { structure: Profil.Structure.MILO },
-          {
-            structure: Profil.Structure.FRANCE_TRAVAIL,
-            dispositifs: [
-              Profil.Dispositif.CEJ,
-              Profil.Dispositif.BRSA,
-              Profil.Dispositif.AIJ,
-              Profil.Dispositif.AVENIR_PRO,
-              Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-              Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-              Profil.Dispositif.EQUIP_EMPLOI_RECRUT
-            ]
-          },
+          { structure: Profil.Structure.FRANCE_TRAVAIL },
           TOUT_CONSEIL_DEPARTEMENTAL
         ]
       )

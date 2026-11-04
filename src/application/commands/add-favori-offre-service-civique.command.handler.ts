@@ -10,7 +10,7 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { FavorisOffresServiceCiviqueRepositoryToken } from '../../domain/offre/favori/offre-service-civique'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { Offre } from '../../domain/offre/offre'
@@ -26,7 +26,7 @@ export class AddFavoriOffreServiceCiviqueCommandHandler extends CommandHandler<
   AddFavoriServiceCiviqueCommand,
   void
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     @Inject(FavorisOffresServiceCiviqueRepositoryToken)

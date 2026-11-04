@@ -4,7 +4,7 @@ import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
 import { Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { FavoriOffreImmersionSqlModel } from '../../infrastructure/sequelize/models/favori-offre-immersion.sql-model'
 import { JeuneAuthorizer } from '../authorizers/jeune-authorizer'
 import { FavoriOffreImmersionQueryModel } from './query-models/offres-immersion.query-model'
@@ -18,7 +18,7 @@ export class GetFavorisOffresImmersionJeuneQueryHandler extends QueryHandler<
   GetFavorisOffresImmersionJeuneQuery,
   FavoriOffreImmersionQueryModel[]
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(private jeuneAuthorizer: JeuneAuthorizer) {
     super('GetFavorisOffresImmersionJeuneQueryHandler')

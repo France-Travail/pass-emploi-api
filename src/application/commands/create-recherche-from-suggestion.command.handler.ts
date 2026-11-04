@@ -10,7 +10,7 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES } from '../../domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { EvenementService } from '../../domain/evenement'
 import {
   Recherche,
@@ -34,7 +34,7 @@ export class CreateRechercheFromSuggestionCommandHandler extends CommandHandler<
   CreateRechercheFromSuggestionCommand,
   Recherche
 > {
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     private suggestionAuthorizer: SuggestionAuthorizer,
