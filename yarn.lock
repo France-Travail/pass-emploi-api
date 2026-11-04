@@ -1960,14 +1960,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@salesforce/ts-sinon@npm:^1.4.36":
-  version: 1.4.36
-  resolution: "@salesforce/ts-sinon@npm:1.4.36"
+"@salesforce/ts-sinon@npm:^1.4.39":
+  version: 1.4.39
+  resolution: "@salesforce/ts-sinon@npm:1.4.39"
   dependencies:
     "@salesforce/ts-types": "npm:^2.0.12"
     sinon: "npm:^5.1.1"
     tslib: "npm:^2.8.1"
-  checksum: 10/a1297f6e71f5aea608193e95ee6f3cbc91ee0d03cdb3ec1911d1a678aeaa94325a751b8dcd45aede8f232fc54c2bbcd77be5f248e92cc22bea6e06c8635c97e6
+  checksum: 10/29f30d92b07a92e95d9fb60874430d600689eb6ee289d27b1e0ffd3c1c0dd0b21cff6ed2624d7f34e11834475c8aee133434978caf9c05410f97cc81ae601720
   languageName: node
   linkType: hard
 
@@ -2573,13 +2573,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon-chai@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@types/sinon-chai@npm:4.0.0"
+"@types/sinon-chai@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@types/sinon-chai@npm:4.0.1"
   dependencies:
     "@types/chai": "npm:*"
     "@types/sinon": "npm:*"
-  checksum: 10/b93f81dbb73e6f7319f3077dece80bbfca4fdd2b512b07f81fb3ee2e1a2e517fc497c6f91880118b7dcce1a281d53bca1e75cb53a5dcef9188df92c3a6405475
+  checksum: 10/61e29bb8122f2c07eb8eacc6bf258ee3a6aa05ce45a6ab9c0acb2af913ae65bb481890b159527a12679498563b91f331ca90dd0f8000aa06c586da855f1b74d2
   languageName: node
   linkType: hard
 
@@ -3780,10 +3780,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "chai@npm:6.2.2"
-  checksum: 10/13cda42cc40aa46da04a41cf7e5c61df6b6ae0b4e8a8c8b40e04d6947e4d7951377ea8c14f9fa7fe5aaa9e8bd9ba414f11288dc958d4cee6f5221b9436f2778f
+"chai@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "chai@npm:6.3.0"
+  checksum: 10/8798b98c6df6ad8d880239e8d6a2de8a1472c4dd19430e712bd1d846433679be8217427a2ceb9344af2db108a99030a6eaee689aa19baed7f917fa90354a50fa
   languageName: node
   linkType: hard
 
@@ -7685,7 +7685,7 @@ __metadata:
     "@nestjs/swagger": "npm:11.4.7"
     "@nestjs/terminus": "npm:11.1.1"
     "@nestjs/testing": "npm:^11.2.1"
-    "@salesforce/ts-sinon": "npm:^1.4.36"
+    "@salesforce/ts-sinon": "npm:^1.4.39"
     "@types/chai": "npm:^4.3.20"
     "@types/chai-as-promised": "npm:^8.0.2"
     "@types/compression": "npm:^1.8.1"
@@ -7701,7 +7701,7 @@ __metadata:
     "@types/pg-copy-streams": "npm:^1.2.5"
     "@types/pino-multi-stream": "npm:^5.1.6"
     "@types/sinon": "npm:^17.0.4"
-    "@types/sinon-chai": "npm:^4.0.0"
+    "@types/sinon-chai": "npm:^4.0.1"
     "@types/supertest": "npm:^7.2.1"
     "@types/yargs": "npm:^17.0.35"
     "@typescript-eslint/eslint-plugin": "npm:^8.70.1"
@@ -7709,7 +7709,7 @@ __metadata:
     axios: "npm:^1.20.0"
     bull: "npm:4.16.5"
     bull-repl: "npm:^0.29.1"
-    chai: "npm:^6.2.2"
+    chai: "npm:^6.3.0"
     chai-as-promised: "npm:^8.0.2"
     chai-exclude: "npm:^3.0.1"
     class-transformer: "npm:0.5.1"
@@ -7759,7 +7759,7 @@ __metadata:
     sinon: "npm:21.0.0"
     sinon-chai: "npm:^4.0.1"
     source-map-support: "npm:^0.5.21"
-    supertest: "npm:^7.3.0"
+    supertest: "npm:^7.3.1"
     swagger-ui-express: "npm:5.0.1"
     tokenbucket: "npm:0.3.2"
     ts-loader: "npm:^9.6.2"
@@ -9880,14 +9880,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supertest@npm:^7.3.0":
-  version: 7.3.0
-  resolution: "supertest@npm:7.3.0"
+"supertest@npm:^7.3.1":
+  version: 7.3.1
+  resolution: "supertest@npm:7.3.1"
   dependencies:
     cookie-signature: "npm:^1.2.2"
     methods: "npm:^1.1.2"
     superagent: "npm:^10.3.0"
-  checksum: 10/14f69c5acb497cbb02d681cc1f1b1c8775d42ec063d0c6a794cf12a043d8b5ec7c7c02d239137cb55cdbfadb8b549bb62ea11a6121b93155ce7fcd7776aa9a2c
+  checksum: 10/ea8ea4ec198d97d776d718274e17ec4e7f2ca9b2378215204fcc2f084daf791731553a00eebec96aa579911911aa685a782f948d94c64a96bb28507fb52a54d6
   languageName: node
   linkType: hard
 
