@@ -2424,10 +2424,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:^3.7.5":
-  version: 3.7.5
-  resolution: "@types/luxon@npm:3.7.5"
-  checksum: 10/656e6e5c057f5e9769d2f2c0d84795de3d68d461557dca432dbdf6b98d1e57b15f273d99781c1e8d786f1fd15dcc29eeb48496685aa77fc3f14e186b6230ab0e
+"@types/luxon@npm:^3.7.6":
+  version: 3.7.6
+  resolution: "@types/luxon@npm:3.7.6"
+  checksum: 10/2bc7a58b2cf231455085314821fe9b05a8e97cef2447d8da50be0a8794f0ddfa6d4bbd18eb6259ee881be0da0d08843ce66830a30d5926a25981f91bd5f588a9
   languageName: node
   linkType: hard
 
@@ -2452,12 +2452,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/multer@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@types/multer@npm:2.2.0"
+"@types/multer@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@types/multer@npm:2.3.0"
   dependencies:
     "@types/express": "npm:*"
-  checksum: 10/b12d8c3a77eeb81a2513e7db1404cb89d12b06eab5e92ba82f6f02b775e23e89bb4fcdc9724aa70a025c458aca9e8feb66f27c7062d1db683fd8c5664e14bec8
+  checksum: 10/93ba37a3301e551c2babc1cc11450a8918db54cfec2265441550ea917f62d862ef7b26094926f61ca612e08bfe24d3477bb52b016502172a9e6ab127967a1c25
   languageName: node
   linkType: hard
 
@@ -2470,12 +2470,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^25.9.3":
-  version: 25.9.5
-  resolution: "@types/node@npm:25.9.5"
+"@types/node@npm:^25.9.9":
+  version: 25.9.9
+  resolution: "@types/node@npm:25.9.9"
   dependencies:
     undici-types: "npm:>=7.24.0 <7.24.7"
-  checksum: 10/105f00756e152b06da0b0c122ae9a9d60cce9aa0af7b372b925cf53c5e24ba7eb0acdc97334ef6938ae35fb05b5697849fa1c1b81129148d2ac0cda3223ad141
+  checksum: 10/8accbdd15bc035db3b20bf9353dabce847a5d3dd1f3976c25e67907f4fd287b00b8163f661fe48cd6d644e30a11e1dffd67e2742233209c7b7cbc500d14d394c
   languageName: node
   linkType: hard
 
@@ -4526,9 +4526,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv-cli@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "dotenv-cli@npm:11.0.0"
+"dotenv-cli@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "dotenv-cli@npm:11.1.0"
   dependencies:
     cross-spawn: "npm:^7.0.6"
     dotenv: "npm:^17.1.0"
@@ -4536,7 +4536,8 @@ __metadata:
     minimist: "npm:^1.2.6"
   bin:
     dotenv: cli.js
-  checksum: 10/0dab973aa8d94163f9b17f7452f9c9b567baf67e6551c3d883f3ea1df9edbd69a9ea55cbc8e020026c9e8d8f01056087526d011c1829924483c8c72f9c17c79a
+    dotenv-cli: cli.js
+  checksum: 10/923ad4a6ebe120b3435a3ad31f49b6763a51d038f58ec59a630dbe8eb9a86ddd00dd9424adf65184434078d890e6155a54e3156f28ab813d0f78b2bd72945812
   languageName: node
   linkType: hard
 
@@ -7694,10 +7695,10 @@ __metadata:
     "@types/express": "npm:^5.0.6"
     "@types/geojson": "npm:^7946.0.16"
     "@types/lodash.isequal": "npm:^4.5.8"
-    "@types/luxon": "npm:^3.7.5"
+    "@types/luxon": "npm:^3.7.6"
     "@types/mocha": "npm:^10.0.10"
-    "@types/multer": "npm:^2.2.0"
-    "@types/node": "npm:^25.9.3"
+    "@types/multer": "npm:^2.3.0"
+    "@types/node": "npm:^25.9.9"
     "@types/pg-copy-streams": "npm:^1.2.5"
     "@types/pino-multi-stream": "npm:^5.1.6"
     "@types/sinon": "npm:^17.0.4"
@@ -7718,7 +7719,7 @@ __metadata:
     cron-parser: "npm:5.10.1"
     crypto-js: "npm:4.2.0"
     dirty-chai: "npm:^3.0.0"
-    dotenv-cli: "npm:^11.0.0"
+    dotenv-cli: "npm:^11.1.0"
     dotvault: "npm:^0.0.9"
     elastic-apm-node: "npm:4.18.0"
     eslint: "npm:^10.11.0"
@@ -7747,7 +7748,7 @@ __metadata:
     pg-connection-string: "npm:2.14.0"
     pg-copy-streams: "npm:7.0.0"
     pino-http: "npm:11.0.0"
-    prettier: "npm:^3.9.9"
+    prettier: "npm:^3.9.10"
     redis: "npm:^5.12.1"
     reflect-metadata: "npm:0.2.2"
     remove-accents: "npm:0.5.0"
@@ -8641,12 +8642,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.9.9":
-  version: 3.9.9
-  resolution: "prettier@npm:3.9.9"
+"prettier@npm:^3.9.10":
+  version: 3.9.10
+  resolution: "prettier@npm:3.9.10"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/3d11a8095a7db50f0fbc8086ad96be676401154b63a2e9023e1274893457dccab19a9c211f4fb2cae7244e800bea2d5185d9bb6fc510f48a53017815e47d4e6d
+  checksum: 10/5d0118add4b44eb9d50c114f5c525451cc92be9da300ad0552787472535a3f23884baed3223d9b577bb7d1152eb58aeccfcc2b4541c0cf2274c0b4d328e36834
   languageName: node
   linkType: hard
 
