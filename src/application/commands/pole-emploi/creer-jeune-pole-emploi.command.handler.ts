@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
 import {
@@ -16,13 +15,7 @@ import {
   ConseillerRepositoryToken
 } from '../../../domain/milo/conseiller'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import {
-  estConseilDepartemental,
-  estDispositifNonAccompagne,
-  estFranceTravail,
-  Profil,
-  PROFILS_FT_CONNECT
-} from '../../../domain/profil'
+import { PROFILS_FT_CONNECT } from '../../../domain/profil'
 
 export interface CreateJeuneCommand extends Command {
   idConseiller: string
@@ -64,64 +57,31 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
       )
     }
 
-    const jeune = await this.jeuneRepository.getByEmail(command.email)
-    if (jeune) {
-      if (jeune.conseiller || !estDispositifNonAccompagne(jeune.dispositif)) {
-        return failure(new EmailExisteDejaError(command.email))
-      }
-      return this.reprendreEnAccompagnement(jeune, conseiller)
+    const existant = await this.jeuneRepository.getByEmail(command.email, {
+      includeConseiller: true
+    })
+    if (existant && Jeune.estAccompagne(existant)) {
+      return failure(new EmailExisteDejaError(command.email))
     }
 
-    const jeuneACreer: Jeune.Factory.ACreer = {
-      prenom: command.firstName,
-      nom: command.lastName,
-      email: command.email.toLocaleLowerCase(),
-      conseiller: {
-        id: conseiller.id,
-        lastName: conseiller.lastName,
-        firstName: conseiller.firstName,
-        email: conseiller.email
-      },
-      structure: conseiller.structure,
-      dispositif: dispositifDuJeuneAccompagnePar(conseiller)
-    }
-    const nouveauJeune = this.jeuneFactory.creer(jeuneACreer)
-    await this.jeuneRepository.save(nouveauJeune)
-    await this.chatRepository.initializeChatIfNotExists(
-      nouveauJeune.id,
-      nouveauJeune.conseiller!.id
-    )
-    return success(nouveauJeune)
-  }
-
-  private async reprendreEnAccompagnement(
-    jeune: Jeune,
-    conseiller: Conseiller
-  ): Promise<Result<Jeune>> {
-    const jeuneAccompagne: Jeune = {
-      ...jeune,
-      conseiller: {
-        id: conseiller.id,
-        lastName: conseiller.lastName,
-        firstName: conseiller.firstName,
-        email: conseiller.email
-      },
-      structure: conseiller.structure,
-      dispositif: dispositifDuJeuneAccompagnePar(conseiller),
-      preferences: {
-        ...jeune.preferences,
-        messages: true,
-        creationActionConseiller: true
-      }
-    }
-
-    await this.jeuneRepository.save(jeuneAccompagne)
-    await this.chatRepository.initializeChatIfNotExists(
-      jeuneAccompagne.id,
-      conseiller.id
-    )
-
-    return success(jeuneAccompagne)
+    const jeune = existant
+      ? Jeune.reprendreEnAccompagnement(existant, conseiller)
+      : this.jeuneFactory.creer({
+          prenom: command.firstName,
+          nom: command.lastName,
+          email: command.email.toLocaleLowerCase(),
+          conseiller: {
+            id: conseiller.id,
+            lastName: conseiller.lastName,
+            firstName: conseiller.firstName,
+            email: conseiller.email
+          },
+          structure: conseiller.structure,
+          dispositif: Jeune.dispositifDuJeuneAccompagnePar(conseiller)
+        })
+    await this.jeuneRepository.save(jeune)
+    await this.chatRepository.initializeChatIfNotExists(jeune.id, conseiller.id)
+    return success(jeune)
   }
 
   async authorize(
@@ -137,18 +97,4 @@ export class CreerJeunePoleEmploiCommandHandler extends CommandHandler<
   async monitor(): Promise<void> {
     return
   }
-}
-
-// Le jeune hérite du dispositif de son conseiller FT (null pour le Conseil départemental).
-function dispositifDuJeuneAccompagnePar(
-  conseiller: Conseiller
-): Profil.Dispositif | null {
-  const conseillerFTConnectAccompagnant =
-    (estFranceTravail(conseiller.structure) ||
-      estConseilDepartemental(conseiller.structure)) &&
-    !estDispositifNonAccompagne(conseiller.dispositif)
-  if (!conseillerFTConnectAccompagnant) {
-    throw new RuntimeException()
-  }
-  return conseiller.dispositif
 }

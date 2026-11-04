@@ -33,7 +33,7 @@ import { Core } from 'src/domain/core'
 import { ArchiveJeune } from 'src/domain/archive-jeune'
 import {
   EnvoyerNotificationsPayload,
-  VerifierEmailJeunePayload
+  VerifierAccompagnementBeneficiairePayload
 } from 'src/infrastructure/routes/validation/conseillers.inputs'
 import * as request from 'supertest'
 import { uneAgence } from 'test/fixtures/agence.fixture'
@@ -48,7 +48,7 @@ import { expect, StubbedClass } from 'test/utils'
 import { ensureUserAuthenticationFailsIfInvalid } from 'test/utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from 'test/utils/module-for-testing'
 import { GetDemarchesConseillerQueryHandler } from '../../../src/application/queries/get-demarches-conseiller.query.handler'
-import { VerifierEmailJeuneQueryHandler } from '../../../src/application/queries/verifier-email-jeune.query.handler'
+import { VerifierAccompagnementBeneficiaireQueryHandler } from '../../../src/application/queries/verifier-accompagnement-beneficiaire.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from '../../../src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetCommunicationsConseillerQueryHandler } from '../../../src/application/queries/get-communications-conseiller.query.handler'
 import { GetFonctionnalitesConseillerQueryHandler } from '../../../src/application/queries/get-fonctionnalites-conseiller.query.handler'
@@ -74,7 +74,7 @@ describe('ConseillersController', () => {
   let getComptageJeunesByConseillerQueryHandler: StubbedClass<GetComptageJeunesByConseillerQueryHandler>
   let envoyerEmailActivationCommandHandler: StubbedClass<EnvoyerEmailActivationCommandHandler>
   let changerDispositifJeuneMiloCommandHandler: StubbedClass<ChangerDispositifJeuneMiloCommandHandler>
-  let verifierEmailJeuneQueryHandler: StubbedClass<VerifierEmailJeuneQueryHandler>
+  let verifierAccompagnementBeneficiaireQueryHandler: StubbedClass<VerifierAccompagnementBeneficiaireQueryHandler>
   let getImpactChangementDispositifQueryHandler: StubbedClass<GetImpactChangementDispositifQueryHandler>
   let getCommunicationsConseillerQueryHandler: StubbedClass<GetCommunicationsConseillerQueryHandler>
   let getFonctionnalitesConseillerQueryHandler: StubbedClass<GetFonctionnalitesConseillerQueryHandler>
@@ -116,7 +116,9 @@ describe('ConseillersController', () => {
     changerDispositifJeuneMiloCommandHandler = app.get(
       ChangerDispositifJeuneMiloCommandHandler
     )
-    verifierEmailJeuneQueryHandler = app.get(VerifierEmailJeuneQueryHandler)
+    verifierAccompagnementBeneficiaireQueryHandler = app.get(
+      VerifierAccompagnementBeneficiaireQueryHandler
+    )
     getImpactChangementDispositifQueryHandler = app.get(
       GetImpactChangementDispositifQueryHandler
     )
@@ -1052,31 +1054,33 @@ describe('ConseillersController', () => {
     )
   })
 
-  describe('POST /conseillers/verifier-email-jeune', () => {
-    it('renvoie si l’email existe déjà', async () => {
+  describe('POST /conseillers/verifier-accompagnement-beneficiaire', () => {
+    it('renvoie si le bénéficiaire est déjà accompagné', async () => {
       // Given
-      const payload: VerifierEmailJeunePayload = { email: 'existant@test.com' }
-      verifierEmailJeuneQueryHandler.execute.resolves(
-        success({ emailExistant: true })
+      const payload: VerifierAccompagnementBeneficiairePayload = {
+        email: 'existant@test.com'
+      }
+      verifierAccompagnementBeneficiaireQueryHandler.execute.resolves(
+        success({ dejaAccompagne: true })
       )
 
       // When - Then
       const response = await request(app.getHttpServer())
-        .post('/conseillers/verifier-email-jeune')
+        .post('/conseillers/verifier-accompagnement-beneficiaire')
         .set('authorization', unHeaderAuthorization())
         .send(payload)
         .expect(HttpStatus.OK)
 
-      expect(response.body).to.deep.equal({ emailExistant: true })
+      expect(response.body).to.deep.equal({ dejaAccompagne: true })
       expect(
-        verifierEmailJeuneQueryHandler.execute
+        verifierAccompagnementBeneficiaireQueryHandler.execute
       ).to.have.been.calledWithExactly(payload, unUtilisateurDecode())
     })
 
     it('renvoie une 400 si l’email est invalide', async () => {
       // When - Then
       await request(app.getHttpServer())
-        .post('/conseillers/verifier-email-jeune')
+        .post('/conseillers/verifier-accompagnement-beneficiaire')
         .set('authorization', unHeaderAuthorization())
         .send({ email: 'pas-un-email' })
         .expect(HttpStatus.BAD_REQUEST)
@@ -1084,7 +1088,7 @@ describe('ConseillersController', () => {
 
     ensureUserAuthenticationFailsIfInvalid(
       'post',
-      '/conseillers/verifier-email-jeune'
+      '/conseillers/verifier-accompagnement-beneficiaire'
     )
   })
 })
