@@ -7,30 +7,59 @@ updates:
       interval: daily
       time: '07:00'
       timezone: Europe/Paris
-    open-pull-requests-limit: 15
+    open-pull-requests-limit: 20
     commit-message:
       prefix: 'chore(deps):'
-    # Majeures npm montées hors Dependabot : elles demandent souvent une refacto.
-    # Sans effet sur les security updates, créées quel que soit le type de montée.
-    allow:
-      - dependency-type: direct
-        update-types:
-          - version-update:semver-patch
-          - version-update:semver-minor
-    # Laisse à la communauté le temps de repérer une version compromise. Ne s'applique pas aux security updates.
+    # Laisse à la communauté le temps de repérer une version compromise, plus longtemps pour une majeure.
+    # Ne s'applique pas aux security updates.
     cooldown:
       default-days: 3
+      semver-major-days: 14
+    ignore:
+      # La majeure de @types/node suit celle de Node en prod, montée à la main avec le runtime.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       nestjs:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - '@nestjs/*'
+      nestjs-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - '@nestjs/*'
       aws-sdk:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - '@aws-sdk/*'
+      aws-sdk-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - '@aws-sdk/*'
       eslint:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
+      eslint-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - 'eslint'
           - 'eslint-*'
@@ -38,12 +67,45 @@ updates:
           - '@eslint/*'
       sequelize:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
+      sequelize-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - 'sequelize'
           - 'sequelize-cli'
           - 'sequelize-typescript'
       testing:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
+      testing-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - 'mocha'
           - 'chai'
@@ -61,6 +123,16 @@ updates:
           - '@types/supertest'
       elastic-apm:
         applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+        patterns:
+          - '@elastic/*'
+          - 'elastic-apm-*'
+      elastic-apm-major:
+        applies-to: version-updates
+        update-types:
+          - major
         patterns:
           - '@elastic/*'
           - 'elastic-apm-*'
@@ -98,12 +170,74 @@ updates:
           - '@types/supertest'
           - '@elastic/*'
           - 'elastic-apm-*'
+      prod-major:
+        applies-to: version-updates
+        dependency-type: production
+        update-types:
+          - major
+        exclude-patterns:
+          - '@nestjs/*'
+          - '@aws-sdk/*'
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
+          - '@elastic/*'
+          - 'elastic-apm-*'
       dev-minor-patch:
         applies-to: version-updates
         dependency-type: development
         update-types:
           - patch
           - minor
+        exclude-patterns:
+          - '@nestjs/*'
+          - '@aws-sdk/*'
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+          - '@eslint/*'
+          - 'sequelize'
+          - 'sequelize-cli'
+          - 'sequelize-typescript'
+          - 'mocha'
+          - 'chai'
+          - 'chai-*'
+          - 'dirty-chai'
+          - 'sinon'
+          - 'sinon-chai'
+          - '@salesforce/ts-sinon'
+          - 'supertest'
+          - 'nyc'
+          - '@types/mocha'
+          - '@types/chai*'
+          - '@types/dirty-chai'
+          - '@types/sinon*'
+          - '@types/supertest'
+          - '@elastic/*'
+          - 'elastic-apm-*'
+      dev-major:
+        applies-to: version-updates
+        dependency-type: development
+        update-types:
+          - major
         exclude-patterns:
           - '@nestjs/*'
           - '@aws-sdk/*'
