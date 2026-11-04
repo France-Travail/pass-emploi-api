@@ -43,9 +43,9 @@ import {
 import { GetConseillersQueryHandler } from '../../application/queries/get-conseillers.query.handler.db'
 import { GetDemarchesConseillerQueryHandler } from '../../application/queries/get-demarches-conseiller.query.handler'
 import {
-  EmailJeuneQueryModel,
-  VerifierEmailJeuneQueryHandler
-} from '../../application/queries/verifier-email-jeune.query.handler'
+  AccompagnementBeneficiaireQueryModel,
+  VerifierAccompagnementBeneficiaireQueryHandler
+} from '../../application/queries/verifier-accompagnement-beneficiaire.query.handler'
 import { GetDetailConseillerQueryHandler } from '../../application/queries/get-detail-conseiller.query.handler.db'
 import {
   GetImpactChangementDispositifQueryHandler,
@@ -75,7 +75,7 @@ import {
   CreateListeDeDiffusionPayload,
   DetailConseillerPayload,
   EnvoyerNotificationsPayload,
-  VerifierEmailJeunePayload,
+  VerifierAccompagnementBeneficiairePayload,
   GetConseillersQueryParams,
   GetDemarchesConseillerQueryParams,
   GetIdentitesJeunesQueryParams,
@@ -101,7 +101,7 @@ export class ConseillersController {
     private readonly getIdentitesJeunesQueryHandler: GetJeunesIdentitesQueryHandler,
     private readonly deleteConseillerCommandHandler: DeleteConseillerCommandHandler,
     private readonly getDemarchesConseillerQueryHandler: GetDemarchesConseillerQueryHandler,
-    private readonly verifierEmailJeuneQueryHandler: VerifierEmailJeuneQueryHandler,
+    private readonly verifierAccompagnementBeneficiaireQueryHandler: VerifierAccompagnementBeneficiaireQueryHandler,
     private readonly getImpactChangementDispositifQueryHandler: GetImpactChangementDispositifQueryHandler,
     private readonly getRendezVousJeuneQueryHandler: GetRendezVousJeuneQueryHandler,
     private readonly sendNotificationsNouveauxMessages: SendNotificationsNouveauxMessagesCommandHandler,
@@ -580,20 +580,22 @@ export class ConseillersController {
    * POST plutôt que GET pour éviter de logger l'email (donnée personnelle) dans les URLs.
    */
   @ApiOperation({
-    summary: 'Vérifie si un email de jeune existe déjà',
+    summary:
+      'Vérifie si le bénéficiaire associé à un email est déjà accompagné',
     description: 'Autorisé pour un conseiller'
   })
-  @Post('verifier-email-jeune')
+  @Post('verifier-accompagnement-beneficiaire')
   @HttpCode(HttpStatus.OK)
   @UserJourney('creation_jeune')
-  async verifierEmailJeune(
-    @Body() payload: VerifierEmailJeunePayload,
+  async verifierAccompagnementBeneficiaire(
+    @Body() payload: VerifierAccompagnementBeneficiairePayload,
     @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<EmailJeuneQueryModel> {
-    const result = await this.verifierEmailJeuneQueryHandler.execute(
-      payload,
-      utilisateur
-    )
+  ): Promise<AccompagnementBeneficiaireQueryModel> {
+    const result =
+      await this.verifierAccompagnementBeneficiaireQueryHandler.execute(
+        payload,
+        utilisateur
+      )
 
     return handleResult(result)
   }

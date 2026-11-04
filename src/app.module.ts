@@ -23,7 +23,7 @@ import { GetDetailSessionJeuneMiloQueryHandler } from 'src/application/queries/m
 import { GetSessionsConseillerMiloQueryHandler } from 'src/application/queries/milo/get-sessions-conseiller.milo.query.handler.db'
 import { GetSessionsJeuneMiloQueryHandler } from 'src/application/queries/milo/get-sessions-jeune.milo.query.handler.db'
 import { GetMonSuiviPoleEmploiQueryHandler } from 'src/application/queries/pole-emploi/get-mon-suivi-jeune.pole-emploi.query.handler.db'
-import { VerifierEmailJeuneQueryHandler } from 'src/application/queries/verifier-email-jeune.query.handler'
+import { VerifierAccompagnementBeneficiaireQueryHandler } from 'src/application/queries/verifier-accompagnement-beneficiaire.query.handler'
 import { GetImpactChangementDispositifQueryHandler } from 'src/application/queries/get-impact-changement-dispositif.query.handler.db'
 import { GetCommunicationsConseillerQueryHandler } from './application/queries/get-communications-conseiller.query.handler'
 import { GetCommunicationsJeuneQueryHandler } from './application/queries/get-communications-jeune.query.handler'
@@ -990,7 +990,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetCatalogueDemarchesQueryHandler,
     GetMonSuiviMiloQueryHandler,
     GetMonSuiviPoleEmploiQueryHandler,
-    VerifierEmailJeuneQueryHandler,
+    VerifierAccompagnementBeneficiaireQueryHandler,
     GetImpactChangementDispositifQueryHandler,
     GetCompteursBeneficiaireMiloQueryHandler,
     GetDemarchesConseillerQueryHandler,

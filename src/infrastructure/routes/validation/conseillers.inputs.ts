@@ -64,7 +64,7 @@ export class CreateJeunePoleEmploiPayload {
   idConseiller: string
 }
 
-export class VerifierEmailJeunePayload {
+export class VerifierAccompagnementBeneficiairePayload {
   @ApiProperty()
   @IsEmail()
   @IsNotEmpty()

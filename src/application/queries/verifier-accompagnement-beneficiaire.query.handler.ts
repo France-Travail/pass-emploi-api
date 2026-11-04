@@ -9,24 +9,21 @@ import {
   success
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import {
-  estDispositifNonAccompagne,
-  PROFILS_FT_CONNECT
-} from '../../domain/profil'
+import { PROFILS_FT_CONNECT } from '../../domain/profil'
 import { Jeune, JeuneRepositoryToken } from '../../domain/jeune/jeune'
 
-export interface VerifierEmailJeuneQuery extends Query {
+export interface VerifierAccompagnementBeneficiaireQuery extends Query {
   email: string
 }
 
-export interface EmailJeuneQueryModel {
-  emailExistant: boolean
+export interface AccompagnementBeneficiaireQueryModel {
+  dejaAccompagne: boolean
 }
 
 @Injectable()
-export class VerifierEmailJeuneQueryHandler extends QueryHandler<
-  VerifierEmailJeuneQuery,
-  Result<EmailJeuneQueryModel>
+export class VerifierAccompagnementBeneficiaireQueryHandler extends QueryHandler<
+  VerifierAccompagnementBeneficiaireQuery,
+  Result<AccompagnementBeneficiaireQueryModel>
 > {
   readonly profilsAutorises = PROFILS_FT_CONNECT
 
@@ -34,24 +31,24 @@ export class VerifierEmailJeuneQueryHandler extends QueryHandler<
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository
   ) {
-    super('VerifierEmailJeuneQueryHandler')
+    super('VerifierAccompagnementBeneficiaireQueryHandler')
   }
 
   async handle(
-    query: VerifierEmailJeuneQuery
-  ): Promise<Result<EmailJeuneQueryModel>> {
-    const beneficiaire = await this.jeuneRepository.getByEmail(query.email)
-
-    const repriseEnAccompagnementPossible =
-      beneficiaire && estDispositifNonAccompagne(beneficiaire.dispositif)
+    query: VerifierAccompagnementBeneficiaireQuery
+  ): Promise<Result<AccompagnementBeneficiaireQueryModel>> {
+    const beneficiaire = await this.jeuneRepository.getByEmail(query.email, {
+      includeConseiller: true
+    })
 
     return success({
-      emailExistant: Boolean(beneficiaire) && !repriseEnAccompagnementPossible
+      dejaAccompagne:
+        beneficiaire !== undefined && Jeune.estAccompagne(beneficiaire)
     })
   }
 
   async authorize(
-    _query: VerifierEmailJeuneQuery,
+    _query: VerifierAccompagnementBeneficiaireQuery,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
     if (!Authentification.estConseiller(utilisateur.type)) {

@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
-import { estMilo, Profil } from '../profil'
+import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception'
+import type { Conseiller as ConseillerAccompagnant } from '../milo/conseiller'
+import {
+  estConseilDepartemental,
+  estDispositifNonAccompagne,
+  estFranceTravail,
+  estMilo,
+  Profil
+} from '../profil'
 import * as _ConfigurationApplication from './configuration-application'
 
 export type DispositifNonAccompagne =
@@ -319,6 +327,48 @@ export namespace Jeune {
 
   export function estSuiviTemporairement(jeune: Jeune): boolean {
     return Boolean(jeune.conseillerInitial)
+  }
+
+  export function estAccompagne(jeune: Jeune): boolean {
+    return (
+      Boolean(jeune.conseiller) || !estDispositifNonAccompagne(jeune.dispositif)
+    )
+  }
+
+  export function reprendreEnAccompagnement(
+    jeune: Jeune,
+    conseiller: ConseillerAccompagnant
+  ): Jeune {
+    return {
+      ...jeune,
+      conseiller: {
+        id: conseiller.id,
+        lastName: conseiller.lastName,
+        firstName: conseiller.firstName,
+        email: conseiller.email
+      },
+      structure: conseiller.structure,
+      dispositif: dispositifDuJeuneAccompagnePar(conseiller),
+      preferences: {
+        ...jeune.preferences,
+        messages: true,
+        creationActionConseiller: true
+      }
+    }
+  }
+
+  // Le jeune hérite du dispositif de son conseiller FT (null pour le Conseil départemental).
+  export function dispositifDuJeuneAccompagnePar(
+    conseiller: ConseillerAccompagnant
+  ): Profil.Dispositif | null {
+    const conseillerFTConnectAccompagnant =
+      (estFranceTravail(conseiller.structure) ||
+        estConseilDepartemental(conseiller.structure)) &&
+      !estDispositifNonAccompagne(conseiller.dispositif)
+    if (!conseillerFTConnectAccompagnant) {
+      throw new RuntimeException()
+    }
+    return conseiller.dispositif
   }
 }
 
