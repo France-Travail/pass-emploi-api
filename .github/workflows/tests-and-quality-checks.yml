@@ -21,7 +21,10 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
 
     steps:
-      - uses: France-Travail/pass-emploi-tools/.github/actions/lint-and-typecheck@645baca94d9825a7502bc1b143097cc8a9c6b707
+      - uses: France-Travail/pass-emploi-tools/.github/actions/lint-and-typecheck@fa25f0e00d1a842ac9007d3f0d56cc78911c542e
+        with:
+          # yarn build ne typecheck pas test/
+          build-command: yarn tsc --noEmit
 
   test-unit:
     name: Tests unitaires
@@ -36,7 +39,7 @@ jobs:
           - 6767:6379
 
     steps:
-      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@645baca94d9825a7502bc1b143097cc8a9c6b707
+      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@fa25f0e00d1a842ac9007d3f0d56cc78911c542e
 
       - run: yarn test:ci:unit
 
@@ -71,7 +74,7 @@ jobs:
           - 6767:6379
 
     steps:
-      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@645baca94d9825a7502bc1b143097cc8a9c6b707
+      - uses: France-Travail/pass-emploi-tools/.github/actions/setup-node-yarn@fa25f0e00d1a842ac9007d3f0d56cc78911c542e
 
       - run: yarn test:ci:db
 
@@ -109,6 +112,6 @@ jobs:
       github.event.pull_request.user.id != 49699333
 
     steps:
-      - uses: France-Travail/pass-emploi-tools/.github/actions/sonarqube-scan@645baca94d9825a7502bc1b143097cc8a9c6b707
+      - uses: France-Travail/pass-emploi-tools/.github/actions/sonarqube-scan@fa25f0e00d1a842ac9007d3f0d56cc78911c542e
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
