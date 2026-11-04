@@ -31,7 +31,7 @@ jobs:
     # Le module des tests HTTP instancie le vrai PlanificateurRedisRepository
     services:
       redis:
-        image: redis:8-alpine
+        image: redis:7.2-alpine
         ports:
           - 6767:6379
 
@@ -53,7 +53,7 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:14-3.2-alpine
+        image: postgis/postgis:18-3.6-alpine
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -66,7 +66,7 @@ jobs:
         ports:
           - 5432:5432
       redis:
-        image: redis:8-alpine
+        image: redis:7.2-alpine
         ports:
           - 6767:6379
 

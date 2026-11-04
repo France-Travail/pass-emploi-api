@@ -247,7 +247,8 @@ describe('RechercheSqlRepository', () => {
           expect(recherches.length).to.equal(1)
           expect(recherches[0].id).to.equal(recherche.id)
           expect(recherches[0].type).to.equal(recherche.type)
-          expect(recherches[0].geometrie.coordinates).to.deep.equal(
+          expectCoordonneesProches(
+            recherches[0].geometrie.coordinates,
             geometrieNice
           )
         })
@@ -291,7 +292,8 @@ describe('RechercheSqlRepository', () => {
           expect(recherches.length).to.equal(1)
           expect(recherches[0].id).to.equal(recherche.id)
           expect(recherches[0].type).to.equal(recherche.type)
-          expect(recherches[0].geometrie.coordinates).to.deep.equal(
+          expectCoordonneesProches(
+            recherches[0].geometrie.coordinates,
             geometrieNice
           )
         })
@@ -350,7 +352,8 @@ describe('RechercheSqlRepository', () => {
 
           expect(recherches.length).to.equal(1)
           expect(recherches[0].id).to.equal(recherche.id)
-          expect(recherches[0].geometrie.coordinates).to.deep.equal(
+          expectCoordonneesProches(
+            recherches[0].geometrie.coordinates,
             geometrieColombes
           )
         })
@@ -979,4 +982,17 @@ function creerDesRecherchesPourLaPagination(idJeune: string): Recherche[] {
   }
 
   return recherches
+}
+
+// La géométrie est calculée par PostGIS : ses derniers chiffres significatifs varient d'une version à l'autre.
+function expectCoordonneesProches(
+  coordonnees: number[][][],
+  attendues: number[][][]
+): void {
+  const valeurs = coordonnees.flat(2)
+  const valeursAttendues = attendues.flat(2)
+  expect(valeurs).to.have.lengthOf(valeursAttendues.length)
+  valeurs.forEach((valeur, index) =>
+    expect(valeur).to.be.closeTo(valeursAttendues[index], 1e-9)
+  )
 }
