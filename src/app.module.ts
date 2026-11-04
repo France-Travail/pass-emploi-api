@@ -380,6 +380,7 @@ import { ApiKeyAuthGuard } from './infrastructure/auth/api-key.auth-guard'
 import { JetonJeuneJwtService } from './infrastructure/auth/jeton-jeune.service'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
+import { UserJourneyGuard } from './infrastructure/monitoring/user-journey.guard'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
 import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
@@ -603,6 +604,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: TransactionServiceToken,
       useClass: TransactionSqlService
+    },
+    {
+      provide: APP_GUARD,
+      useClass: UserJourneyGuard
     },
     {
       provide: APP_GUARD,

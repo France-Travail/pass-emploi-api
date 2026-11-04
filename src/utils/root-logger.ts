@@ -3,7 +3,11 @@ import { ContextKey, getContextValue } from '../building-blocks/context'
 import { Authentification } from '../domain/authentification'
 import { getAPMInstance } from '../infrastructure/monitoring/apm.init'
 import { getWorkerTrackingServiceInstance } from '../infrastructure/monitoring/worker.tracking.service'
-import { mixinMergeStrategy, pinoSerializers } from './logger.helpers'
+import {
+  mixinMergeStrategy,
+  pinoSerializers,
+  toEcsUser
+} from './logger.helpers'
 
 // Instance pino partagée : utilisée par pino-http ET par le code applicatif
 // (handlers CQRS via `rootLogger.info(obj, action)`). Garantit la même config
@@ -36,30 +40,13 @@ const pinoOptions = {
     const jobRunId =
       getWorkerTrackingServiceInstance().getCurrentJobTracking().jobRunId
 
-    const userJourney = getContextValue<string>(ContextKey.USER_JOURNEY)
-
-    // labels construit en amont : deux spreads conditionnels du même bloc
-    // s'écraseraient l'un l'autre (mixinMergeStrategy ne fusionne qu'entre
-    // mixin et payload, pas à l'intérieur du mixin).
-    const labels = {
-      ...(jobRunId && { job_run_id: jobRunId }),
-      ...(userJourney && { user_journey: userJourney })
-    }
-
     return {
       ...apmTraceIds,
-      ...(utilisateur && {
-        user: {
-          id: utilisateur.id,
-          type: utilisateur.type,
-          structure: utilisateur.profil.structure,
-          dispositif: utilisateur.profil.dispositif
-        }
-      }),
+      ...(utilisateur && { user: toEcsUser(utilisateur) }),
       ...(httpRequestId && {
         http: { request: { id: httpRequestId } }
       }),
-      ...(Object.keys(labels).length > 0 && { labels })
+      ...(jobRunId && { labels: { job_run_id: jobRunId } })
     }
   },
   formatters: {

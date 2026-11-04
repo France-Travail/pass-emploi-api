@@ -5,8 +5,7 @@ export type ContextData = Map<ContextKey, unknown>
 
 export enum ContextKey {
   UTILISATEUR = 'UTILISATEUR',
-  HTTP_REQUEST_ID = 'HTTP_REQUEST_ID',
-  USER_JOURNEY = 'USER_JOURNEY'
+  HTTP_REQUEST_ID = 'HTTP_REQUEST_ID'
 }
 
 const asyncLocalStorage = new AsyncLocalStorage<ContextData>()

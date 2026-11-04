@@ -36,31 +36,47 @@ export abstract class QueryHandler<Q extends Query | void, R> {
     utilisateur?: Authentification.Utilisateur
   ): Promise<R> {
     const startNs = process.hrtime.bigint()
+    const refus = await this.loguerEnCasDException(startNs, () =>
+      this.refusDAcces(query, utilisateur)
+    )
+    if (refus) {
+      this.logExecution(startNs, refus)
+      throw new ForbiddenException(refus.error.message)
+    }
+
+    const result = await this.loguerEnCasDException(startNs, () =>
+      this.handle(query, utilisateur)
+    )
+
+    this.monitor(utilisateur, query, result).catch(error => {
+      this.apmService.captureError(error)
+      rootLogger.error(
+        { context: this.queryHandlerName, error: toEcsError(error) },
+        'Le monitoring de la query a échoué'
+      )
+    })
+
+    this.logExecution(startNs, result)
+    return result
+  }
+
+  private async refusDAcces(
+    query: Q,
+    utilisateur?: Authentification.Utilisateur
+  ): Promise<Failure | undefined> {
+    const profilsResult = verifierProfils(this.profilsAutorises, utilisateur)
+    if (isFailure(profilsResult)) return profilsResult
+
+    const authorizedResult = await this.authorize(query, utilisateur)
+    return isFailure(authorizedResult) ? authorizedResult : undefined
+  }
+
+  private async loguerEnCasDException<T>(
+    startNs: bigint,
+    operation: () => Promise<T>
+  ): Promise<T> {
     try {
-      const profilsResult = verifierProfils(this.profilsAutorises, utilisateur)
-      if (isFailure(profilsResult)) {
-        this.logExecution(startNs, profilsResult)
-        throw new ForbiddenException(profilsResult.error.message)
-      }
-
-      const authorizedResult = await this.authorize(query, utilisateur)
-      if (isFailure(authorizedResult)) {
-        this.logExecution(startNs, authorizedResult)
-        throw new ForbiddenException(authorizedResult.error.message)
-      }
-
-      const result = await this.handle(query, utilisateur)
-
-      this.monitor(utilisateur, query, result).catch(error => {
-        this.apmService.captureError(error)
-        rootLogger.error(
-          { context: this.queryHandlerName, error: toEcsError(error) },
-          'Le monitoring de la query a échoué'
-        )
-      })
-
-      this.logExecution(startNs, result)
-      return result
+      return await operation()
     } catch (e) {
       this.logExecution(startNs, failure(e))
       throw e
