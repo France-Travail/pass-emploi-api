@@ -78,6 +78,7 @@ import { DeleteFavoriOffreImmersionCommandHandler } from './application/commands
 import { DeleteFavoriOffreServiceCiviqueCommandHandler } from './application/commands/delete-favori-offre-service-civique.command.handler'
 import { DeleteJeuneInactifCommandHandler } from './application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from './application/commands/delete-jeune.command.handler'
+import { SupprimerCompteInviteCommandHandler } from './application/commands/supprimer-compte-invite.command.handler'
 import { DeleteListeDeDiffusionCommandHandler } from './application/commands/delete-liste-de-diffusion.command.handler'
 import { DeleteRechercheCommandHandler } from './application/commands/delete-recherche.command.handler'
 import { DeleteRendezVousCommandHandler } from './application/commands/delete-rendez-vous.command.handler.db'
@@ -885,6 +886,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetFavorisServiceCiviqueJeuneQueryHandler,
     DeleteFavoriOffreServiceCiviqueCommandHandler,
     DeleteJeuneCommandHandler,
+    SupprimerCompteInviteCommandHandler,
     DeleteJeuneInactifCommandHandler,
     GetDetailRendezVousQueryHandler,
     GetDemarchesQueryHandler,

@@ -19,6 +19,10 @@ export namespace JeuneInvite {
     idAuthentification: string
   }
 
+  export interface PourSuppression extends PourPurge {
+    estRepris: boolean
+  }
+
   export interface Repository {
     existe(id: string): Promise<boolean>
     recupererInvitesInactifs(
@@ -31,6 +35,7 @@ export namespace JeuneInvite {
     recupererPourReprise(id: string): Promise<PourReprise | undefined>
     marquerRepris(id: string, dateReprise: DateTime): Promise<boolean>
     recupererInvitesRepris(): Promise<PourPurge[]>
+    recupererPourSuppression(id: string): Promise<PourSuppression | undefined>
   }
 
   // Preuve de possession d'un compte invité : undefined si le jeton est refusé
