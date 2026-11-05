@@ -24,6 +24,7 @@ import {
 } from 'src/application/commands/archiver-jeune.command.handler'
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from 'src/application/commands/delete-jeune.command.handler'
+import { SupprimerCompteInviteCommandHandler } from 'src/application/commands/supprimer-compte-invite.command.handler'
 import {
   GenererPlanActionCommand,
   GenererPlanActionCommandHandler
@@ -73,6 +74,7 @@ import { ResultatsRechercheMessageQueryModel } from 'src/application/queries/que
 import { RechercherMessageQueryHandler } from 'src/application/queries/rechercher-message.query.handler'
 import { Result } from 'src/building-blocks/types/result'
 import { Authentification } from 'src/domain/authentification'
+import { estInvite } from 'src/domain/profil'
 import { RechercherMessagePayload } from 'src/infrastructure/routes/validation/messages.input'
 import { UpdateJeuneCommandHandler } from '../../application/commands/update-jeune.command.handler'
 import {
@@ -109,6 +111,7 @@ export class JeunesController {
     private readonly getJeuneHomeSuiviQueryHandler: GetJeuneHomeAgendaQueryHandler,
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
     private readonly deleteJeuneCommandHandler: DeleteJeuneCommandHandler,
+    private readonly supprimerCompteInviteCommandHandler: SupprimerCompteInviteCommandHandler,
     private readonly archiverJeuneCommandHandler: ArchiverJeuneCommandHandler,
     private readonly deleteJeuneInactifCommandHandler: DeleteJeuneInactifCommandHandler,
     private readonly getConseillersJeuneQueryHandler: GetConseillersJeuneQueryHandler,
@@ -328,12 +331,17 @@ export class JeunesController {
         )
         break
       case Authentification.Type.JEUNE:
-        result = await this.deleteJeuneCommandHandler.execute(
-          {
-            idJeune
-          },
-          utilisateur
-        )
+        result = estInvite(utilisateur.profil.structure)
+          ? await this.supprimerCompteInviteCommandHandler.execute(
+              { idJeune },
+              utilisateur
+            )
+          : await this.deleteJeuneCommandHandler.execute(
+              {
+                idJeune
+              },
+              utilisateur
+            )
         break
       default:
         throw new ForbiddenException(
