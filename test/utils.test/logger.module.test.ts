@@ -1,6 +1,10 @@
 import { expect } from 'chai'
 import { IncomingMessage } from 'node:http'
+import { Authentification } from 'src/domain/authentification'
+import { Profil } from 'src/domain/profil'
 import { pinoHttpOptions, pinoSerializers } from 'src/utils/logger.module'
+import { unUtilisateurJeune } from '../fixtures/authentification.fixture'
+import { unProfilFT } from '../fixtures/profil.fixture'
 
 describe('logger.module — pinoHttpOptions', () => {
   const req = {} as IncomingMessage
@@ -68,6 +72,26 @@ describe('logger.module — pinoHttpOptions', () => {
         event: { action: 'request_completed', outcome: 'failure' }
       })
     })
+    it("401 injecte outcome=success : l'authentification a ses propres SLO", () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: 401 },
+        { foo: 1 }
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'success' }
+      })
+    })
+    it('403 injecte outcome=success tant que les appels refusés des apps ne sont pas corrigés', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        req,
+        { statusCode: 403 },
+        { foo: 1 }
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'success' }
+      })
+    })
     it('aborted (statusCode null) injecte outcome=failure', () => {
       const result = pinoHttpOptions.customSuccessObject(
         req,
@@ -76,6 +100,49 @@ describe('logger.module — pinoHttpOptions', () => {
       )
       expect(result).to.deep.include({
         event: { action: 'request_completed', outcome: 'failure' }
+      })
+    })
+    describe('contexte lu sur la requête', () => {
+      const requeteAuthentifiee = {
+        userJourney: 'accueil_jeune_france_travail',
+        authenticated: {
+          utilisateur: unUtilisateurJeune({ profil: unProfilFT() })
+        }
+      } as unknown as IncomingMessage
+      const contexteAttendu = {
+        labels: { user_journey: 'accueil_jeune_france_travail' },
+        user: {
+          id: 'ABCDE',
+          type: Authentification.Type.JEUNE,
+          structure: Profil.Structure.FRANCE_TRAVAIL,
+          dispositif: Profil.Dispositif.CEJ
+        }
+      }
+
+      it("request_completed porte le parcours et l'utilisateur de la requête", () => {
+        const result = pinoHttpOptions.customSuccessObject(
+          requeteAuthentifiee,
+          { statusCode: 404 },
+          {}
+        )
+        expect(result).to.deep.include(contexteAttendu)
+      })
+      it("request_failed porte le parcours et l'utilisateur de la requête", () => {
+        const result = pinoHttpOptions.customErrorObject(
+          requeteAuthentifiee,
+          {},
+          new Error('boom'),
+          {}
+        )
+        expect(result).to.deep.include(contexteAttendu)
+      })
+      it("ne pose ni parcours ni utilisateur quand la requête n'en porte pas", () => {
+        const result = pinoHttpOptions.customSuccessObject(
+          req,
+          { statusCode: 401 },
+          {}
+        )
+        expect(result).not.to.have.any.keys('labels', 'user')
       })
     })
     it('error injecte event.action=request_failed et outcome=failure', () => {

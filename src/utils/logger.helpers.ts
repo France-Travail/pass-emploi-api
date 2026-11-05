@@ -1,6 +1,8 @@
 import { ValidationError } from '@nestjs/common'
 import { IncomingMessage } from 'node:http'
 import { DatabaseError } from 'sequelize'
+import { Authentification } from '../domain/authentification'
+import { RequeteAvecUserJourney } from '../infrastructure/monitoring/user-journey.guard'
 
 const REQ_HEADERS_WHITELIST = [
   'user-agent',
@@ -232,6 +234,37 @@ export const customLogLevel = (
   return 'info'
 }
 
+// L'outcome d'une requête est le verdict du SLO de son parcours. Le 401 relève
+// des SLO d'authentification.
+// TODO: compter le 403 en échec une fois corrigés les appels refusés des apps
+// et du web.
+const estUnEchecDuParcours = (statusCode: number): boolean =>
+  !statusCode || (statusCode >= 400 && ![401, 403].includes(statusCode))
+
+export const toEcsUser = (
+  utilisateur: Authentification.Utilisateur
+): Record<string, unknown> => ({
+  id: utilisateur.id,
+  type: utilisateur.type,
+  structure: utilisateur.profil.structure,
+  dispositif: utilisateur.profil.dispositif
+})
+
+type RequeteJournalisee = IncomingMessage &
+  RequeteAvecUserJourney & {
+    authenticated?: { utilisateur: Authentification.Utilisateur }
+  }
+
+// Lu sur la requête et non dans le contexte du mixin : ce contexte manque aux
+// réponses en erreur (refus des guards, exceptions).
+const contexteDeLaRequete = (req: IncomingMessage): Record<string, unknown> => {
+  const { userJourney, authenticated } = req as RequeteJournalisee
+  return {
+    ...(userJourney && { labels: { user_journey: userJourney } }),
+    ...(authenticated && { user: toEcsUser(authenticated.utilisateur) })
+  }
+}
+
 export const buildCustomSuccessObject =
   (isDebugEnabled: () => boolean) =>
   (
@@ -239,10 +272,13 @@ export const buildCustomSuccessObject =
     res: { statusCode: number },
     val: Record<string, unknown>
   ): Record<string, unknown> => {
-    const outcome =
-      !res.statusCode || res.statusCode >= 400 ? 'failure' : 'success'
-    const log = { ...val, event: { action: 'request_completed', outcome } }
-    // body sur échec (4xx inclus) ; sur succès seulement si LOG_LEVEL=debug
+    const outcome = estUnEchecDuParcours(res.statusCode) ? 'failure' : 'success'
+    const log = {
+      ...val,
+      ...contexteDeLaRequete(req),
+      event: { action: 'request_completed', outcome }
+    }
+    // body sur échec ; sur succès seulement si LOG_LEVEL=debug
     const includeBody = outcome === 'failure' || isDebugEnabled()
     return includeBody ? { ...log, ...requestBodyFragment(req) } : log
   }
@@ -254,6 +290,7 @@ export const customErrorObject = (
   val: Record<string, unknown>
 ): Record<string, unknown> => ({
   ...val,
+  ...contexteDeLaRequete(req),
   event: { action: 'request_failed', outcome: 'failure' },
   ...requestBodyFragment(req)
 })
