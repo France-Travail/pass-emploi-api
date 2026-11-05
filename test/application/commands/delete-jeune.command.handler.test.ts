@@ -7,11 +7,15 @@ import {
   DeleteJeuneCommand,
   DeleteJeuneCommandHandler
 } from '../../../src/application/commands/delete-jeune.command.handler'
-import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
+import {
+  DroitsInsuffisants,
+  NonTrouveError
+} from '../../../src/building-blocks/types/domain-error'
 import {
   Failure,
   Result,
   emptySuccess,
+  failure,
   isFailure
 } from '../../../src/building-blocks/types/result'
 import { Authentification } from '../../../src/domain/authentification'
@@ -23,6 +27,7 @@ import {
   unUtilisateurSupport
 } from '../../fixtures/authentification.fixture'
 import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
+import { unProfilFT, unProfilInvite } from '../../fixtures/profil.fixture'
 import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 
 describe('DeleteJeuneCommandHandler', () => {
@@ -227,6 +232,57 @@ describe('DeleteJeuneCommandHandler', () => {
     })
   })
 
+  describe('execute', () => {
+    for (const dispositif of [
+      Profil.Dispositif.DEMANDEUR_D_EMPLOI,
+      Profil.Dispositif.ESPACE_CANDIDAT
+    ]) {
+      it(`supprime le compte d'un bénéficiaire FT non accompagné (${dispositif})`, async () => {
+        // Given
+        const utilisateur = unUtilisateurJeune({
+          id: 'ABCDE',
+          profil: unProfilFT(dispositif)
+        })
+        jeuneAuthorizer.autoriserLeJeune
+          .withArgs('ABCDE', utilisateur)
+          .resolves(emptySuccess())
+        jeuneRepository.get
+          .withArgs('ABCDE')
+          .resolves(unJeune({ id: 'ABCDE', conseiller: undefined }))
+
+        // When
+        const result = await deleteJeuneCommandHandler.execute(
+          { idJeune: 'ABCDE' },
+          utilisateur
+        )
+
+        // Then
+        expect(result).to.deep.equal(emptySuccess())
+        expect(jeuneRepository.supprimer).to.have.been.calledOnceWithExactly(
+          'ABCDE'
+        )
+      })
+    }
+
+    it("refuse l'invité", async () => {
+      // Given
+      const utilisateur = unUtilisateurJeune({
+        id: 'ABCDE',
+        profil: unProfilInvite()
+      })
+
+      // When
+      const result = await deleteJeuneCommandHandler.execute(
+        { idJeune: 'ABCDE' },
+        utilisateur
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+      expect(jeuneRepository.supprimer).not.to.have.been.called()
+    })
+  })
+
   describe('monitor', () => {
     const utilisateur = unUtilisateurJeune()
 
@@ -247,18 +303,7 @@ describe('DeleteJeuneCommandHandler', () => {
       // Then
       expect(deleteJeuneCommandHandler.profilsAutorises).to.deep.equal([
         { structure: Profil.Structure.MILO },
-        {
-          structure: Profil.Structure.FRANCE_TRAVAIL,
-          dispositifs: [
-            Profil.Dispositif.CEJ,
-            Profil.Dispositif.BRSA,
-            Profil.Dispositif.AIJ,
-            Profil.Dispositif.AVENIR_PRO,
-            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
-          ]
-        },
+        { structure: Profil.Structure.FRANCE_TRAVAIL },
         TOUT_CONSEIL_DEPARTEMENTAL
       ])
     })
