@@ -3399,15 +3399,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.20.0":
-  version: 1.20.0
-  resolution: "axios@npm:1.20.0"
+"axios@npm:^1.21.0":
+  version: 1.21.0
+  resolution: "axios@npm:1.21.0"
   dependencies:
     follow-redirects: "npm:^1.16.0"
     form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/0376b6178baecbe0f5d36088f5b5f6c21362ce301e0731f77172f9c89be740bdee20d8ae6ab186340d7cb752020c6a4f1381290e5a5cd10f6f9003941615ac77
+  checksum: 10/1d350436e2bcda52ea62607452bbefa17fa04c43192ecb989d5650215306f9aabfd98bbd1690fcf24ee4c9587630af2e7795feab4e7931f80c43ddd6eceeecc9
   languageName: node
   linkType: hard
 
@@ -4291,12 +4291,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:5.10.1":
-  version: 5.10.1
-  resolution: "cron-parser@npm:5.10.1"
+"cron-parser@npm:5.10.3":
+  version: 5.10.3
+  resolution: "cron-parser@npm:5.10.3"
   dependencies:
     luxon: "npm:^3.7.2"
-  checksum: 10/11b330f15001e4905689bcad8091d707d2a4abb17c661f84664967c955aeae53f8cb0677998de90f183f3b8f3136525929ace6843fe93b4b0b7d0c068e1907d6
+  checksum: 10/10ef5a2422a1c7a44c1cbf56c54400b57beac8ec184f9d6bae7a19f3ea4c67a51a777a14df513c91e9fbf87167ba277fc082e23234d6077ed5dc6f96d1c641d5
   languageName: node
   linkType: hard
 
@@ -6214,14 +6214,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ics@npm:3.12.0":
-  version: 3.12.0
-  resolution: "ics@npm:3.12.0"
+"ics@npm:3.12.1":
+  version: 3.12.1
+  resolution: "ics@npm:3.12.1"
   dependencies:
     nanoid: "npm:^3.1.23"
     runes2: "npm:^1.1.2"
     yup: "npm:^1.2.0"
-  checksum: 10/ce78798eed7ed53a2e484bda5519e9888200e4726497610a0cf406433702aba3343b83b61944123f134b9ecf943dc62fddfc212d3e73a0cc76f23aabf614b2fd
+  checksum: 10/04e5f0f54a44127296148a2772f24a3e23cbca69e98c3776e5cf74cd835f64658aafb6ba6be182507c0b3791fa914b40df78d8d298747049dc1c2f31887b632a
   languageName: node
   linkType: hard
 
@@ -6704,10 +6704,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:6.2.12":
-  version: 6.2.12
-  resolution: "jose@npm:6.2.12"
-  checksum: 10/42ef7b598d22fe4ed0a4d0407f9dd9ae9f56dabd31cbad6cb4f67e296953a46b5d63603f8a599a3ee4c5659bf29bb14e846237f0381ea679116520b53e71e4ea
+"jose@npm:6.2.15":
+  version: 6.2.15
+  resolution: "jose@npm:6.2.15"
+  checksum: 10/57ea834a3aae6612b603dc04e5e068dabf1582934ffc759f004a0c654632bec06e6184aee73246157d03fb56179d50ac4e5c56ad02cf939086ef888ae8d8ebec
   languageName: node
   linkType: hard
 
@@ -7698,7 +7698,7 @@ __metadata:
     "@types/yargs": "npm:^17.0.35"
     "@typescript-eslint/eslint-plugin": "npm:^8.72.1"
     "@typescript-eslint/parser": "npm:^8.72.1"
-    axios: "npm:^1.20.0"
+    axios: "npm:^1.21.0"
     bull: "npm:4.16.5"
     bull-repl: "npm:^0.29.1"
     chai: "npm:^6.3.0"
@@ -7707,7 +7707,7 @@ __metadata:
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.15.1"
     compression: "npm:1.8.2"
-    cron-parser: "npm:5.10.1"
+    cron-parser: "npm:5.10.3"
     crypto-js: "npm:4.2.0"
     dirty-chai: "npm:^3.0.0"
     dotenv-cli: "npm:^11.1.0"
@@ -7723,9 +7723,9 @@ __metadata:
     geojson: "npm:0.5.0"
     helmet: "npm:8.3.0"
     husky: "npm:^9.1.7"
-    ics: "npm:3.12.0"
+    ics: "npm:3.12.1"
     joi: "npm:18.3.1"
-    jose: "npm:6.2.12"
+    jose: "npm:6.2.15"
     lint-staged: "npm:^16.3.2"
     lodash.isequal: "npm:4.5.0"
     luxon: "npm:3.7.2"
@@ -7735,8 +7735,8 @@ __metadata:
     npm-check-updates: "npm:^19.6.3"
     nyc: "npm:^18.0.0"
     openid-client: "npm:5.7.1"
-    pg: "npm:8.23.0"
-    pg-connection-string: "npm:2.14.0"
+    pg: "npm:8.23.1"
+    pg-connection-string: "npm:2.14.1"
     pg-copy-streams: "npm:7.0.0"
     pino-http: "npm:11.0.0"
     prettier: "npm:^3.9.10"
@@ -8375,14 +8375,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-cloudflare@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "pg-cloudflare@npm:1.4.0"
-  checksum: 10/7b4ad661a5f73e5ed86ae84b18a82434d38acec00ab47e79896ade7321e9d59aeecf4f88c33323cfa0504fda52c39ccfc7add508c1165a866264fd54ac30191e
+"pg-cloudflare@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "pg-cloudflare@npm:1.4.1"
+  checksum: 10/f6fadda3fe9488867568c9d6e5639f092d480defb55981ef1cc3b1b4d1677f5e6c755e1ac5df9a958e3d3a349882ae5b56ec7cc569dfbf9ae2b0d66879a7e5d1
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:2.14.0, pg-connection-string@npm:^2.14.0, pg-connection-string@npm:^2.6.1":
+"pg-connection-string@npm:2.14.1, pg-connection-string@npm:^2.14.1":
+  version: 2.14.1
+  resolution: "pg-connection-string@npm:2.14.1"
+  checksum: 10/65708bd753b6fa413f57d2966f0fe42bbeac8c21d7f40721ba084c22bf5d67a85ae53c365e7ab8a158fb8a6ac145e79abefe3afb913a9a5f32dbdad3274d452e
+  languageName: node
+  linkType: hard
+
+"pg-connection-string@npm:^2.6.1":
   version: 2.14.0
   resolution: "pg-connection-string@npm:2.14.0"
   checksum: 10/9434e5fbb918b9224a18ad8b739c3da83940ec95c113a0e38371dbd3e8f84c6e3cbaf4dbfaf36d02a1281b0e844af290a1bc240b8d865a98cae6864d89ee11a0
@@ -8419,10 +8426,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:^1.16.0":
-  version: 1.16.0
-  resolution: "pg-protocol@npm:1.16.0"
-  checksum: 10/fe826fccf317460d5f23b289e2d44a00c5fd46765e52c9eb14e3bda6ab44aef8a8906f7e2f07a2a3a9cc6087ebf9fbf2f430ee6bfdd1d24f870a17aa722e53eb
+"pg-protocol@npm:^1.16.1":
+  version: 1.16.1
+  resolution: "pg-protocol@npm:1.16.1"
+  checksum: 10/4fbc86b76c4b1c30d004503ca3f30defb202e37cb3cd71b1c41224681b0d6cf2c3d99bad937eb63b7d7dc4015e29b26ab095de1678770967cd715b10b6fc7569
   languageName: node
   linkType: hard
 
@@ -8439,14 +8446,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:8.23.0":
-  version: 8.23.0
-  resolution: "pg@npm:8.23.0"
+"pg@npm:8.23.1":
+  version: 8.23.1
+  resolution: "pg@npm:8.23.1"
   dependencies:
-    pg-cloudflare: "npm:^1.4.0"
-    pg-connection-string: "npm:^2.14.0"
+    pg-cloudflare: "npm:^1.4.1"
+    pg-connection-string: "npm:^2.14.1"
     pg-pool: "npm:^3.14.0"
-    pg-protocol: "npm:^1.16.0"
+    pg-protocol: "npm:^1.16.1"
     pg-types: "npm:2.2.0"
     pgpass: "npm:1.0.5"
   peerDependencies:
@@ -8457,7 +8464,7 @@ __metadata:
   peerDependenciesMeta:
     pg-native:
       optional: true
-  checksum: 10/eb9be4e664638331cc12bdf5f4d78d94f0ec052a13a609f3c48007905ac9da5c1987affa745225f37f34759c982860b25fcc1477c04d07a099d06b345d455f72
+  checksum: 10/97f78bb97bdb06d4f0d8cd0ca17fda402d0c30e7ddc92ea34e00d63ba4cd8bea999cbe216eeb197bab56fd07ec9defb00742009a50e2a63174a54409a2c89245
   languageName: node
   linkType: hard
 
