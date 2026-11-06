@@ -57,6 +57,7 @@ import { AddFavoriOffreImmersionCommandHandler } from './application/commands/ad
 import { AddFavoriOffreServiceCiviqueCommandHandler } from './application/commands/add-favori-offre-service-civique.command.handler'
 import { AjouterJeuneListeDeDiffusionCommandHandler } from './application/commands/ajouter-jeune-liste-de-diffusion.command.handler'
 import { ArchiverJeuneCommandHandler } from './application/commands/archiver-jeune.command.handler'
+import { DeconnecterJeunesDispositifCommandHandler } from './application/commands/support/deconnecter-jeunes-dispositif.command.handler'
 import { ArchiverJeunesMigrationCommandHandler } from './application/commands/archiver-jeunes-migrations.command.handler'
 import { CreateCampagneCommandHandler } from './application/commands/campagne/create-campagne.command.handler'
 import { CreateEvaluationCommandHandler } from './application/commands/campagne/create-evaluation.command.handler'
@@ -186,6 +187,7 @@ import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
 import { EnvoyerCommunicationsJobHandler } from './application/jobs/envoyer-communications.job.handler.db'
 import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
+import { DeconnecterJeunesDispositifJobHandler } from './application/jobs/deconnecter-jeunes-dispositif.job.handler'
 import { ArchiverJeunesMigrationJobHandler } from './application/jobs/archiver-jeunes-migration.job.handler'
 import { NettoyerArchivesJeunesJobHandler } from './application/jobs/nettoyer-archives-jeunes.job.handler'
 import { NotifierBonneAlternanceJobHandler } from './application/jobs/notifier-bonne-alternance.job.handler.db'
@@ -914,6 +916,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     RecupererJeunesDuConseillerCommandHandler,
     ArchiverJeuneCommandHandler,
     ArchiverJeunesMigrationCommandHandler,
+    DeconnecterJeunesDispositifCommandHandler,
     GetMotifsSuppressionJeuneQueryHandler,
     PlanifierExecutionCronCommandHandler,
     UpdateJeunePreferencesCommandHandler,
@@ -1088,6 +1091,7 @@ export const JobHandlerProviders = [
   ReconcilierAgencesFTJobHandler,
   MajReferentielAgencesFTJobHandler,
   ArchiverJeunesMigrationJobHandler,
+  DeconnecterJeunesDispositifJobHandler,
   NettoyerArchivesJeunesJobHandler
 ]
 

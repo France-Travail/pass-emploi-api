@@ -169,6 +169,12 @@ export namespace Jeune {
       idConseiller: string,
       dispositif: Profil.Dispositif
     ): Promise<string[]>
+
+    recupererIdsAuthentificationDuDispositif(
+      dispositif: Profil.Dispositif,
+      taille: number,
+      apresIdAuthentification?: string
+    ): Promise<string[]>
   }
 
   @Injectable()

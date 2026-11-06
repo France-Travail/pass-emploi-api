@@ -27,6 +27,7 @@ import {
   ApiTags
 } from '@nestjs/swagger'
 import Bull from 'bull'
+import { DeconnecterJeunesDispositifCommandHandler } from '../../application/commands/support/deconnecter-jeunes-dispositif.command.handler'
 import { ArchiverJeunesMigrationCommandHandler } from '../../application/commands/archiver-jeunes-migrations.command.handler'
 import { RebasculerJeunesOrphelinsMigrationCommandHandler } from '../../application/commands/rebasculer-jeunes-orphelins-migration.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../application/commands/support/archiver-jeune-support.command.handler'
@@ -66,6 +67,7 @@ import {
   CreerJeuneSupportPayload,
   DesarchiverJeunePayload,
   FusionnerAgencesPayload,
+  LogoutJeunesPayload,
   ListerJobsQueryParams,
   ModifierAgenceFTConseillerPayload,
   ModifierDispositifFTConseillerPayload,
@@ -141,6 +143,7 @@ export class SupportController {
     private readonly planificateurRepository: Planificateur.Repository,
     private readonly archiverJeunesMigrationCommandHandler: ArchiverJeunesMigrationCommandHandler,
     private readonly rebasculerJeunesOrphelinsMigrationCommandHandler: RebasculerJeunesOrphelinsMigrationCommandHandler,
+    private readonly deconnecterJeunesDispositifCommandHandler: DeconnecterJeunesDispositifCommandHandler,
     private readonly oidcClient: OidcClient
   ) {}
 
@@ -643,8 +646,33 @@ conseiller initial (récupération définitive).
       'Supprime les tokens partenaire du jeune pour forcer une déconnexion',
     description: 'Autorisé pour le support'
   })
-  @Post('logout/:idJeune')
+  @Post('jeunes/logout/:idJeune')
   async logoutJeune(@Param('idJeune') idJeune: string): Promise<void> {
     await this.oidcClient.deleteAccount(idJeune)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Supprime les tokens partenaire des jeunes d’un dispositif pour forcer leur déconnexion',
+    description: `
+Autorisé pour le support.
+Asynchrone : la route planifie le job DECONNECTER_JEUNES_DISPOSITIF, qui traite les jeunes un par un, avec une pause entre chaque appel à connect pour ne pas saturer son Redis.
+
+Le dispositif seul est filtré, toutes structures confondues : CEJ vise à la fois les jeunes Mission Locale et France Travail.
+ `
+  })
+  @Post('jeunes/logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logoutJeunes(@Body() payload: LogoutJeunesPayload): Promise<void> {
+    const result = await this.deconnecterJeunesDispositifCommandHandler.execute(
+      { dispositif: payload.dispositif },
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
   }
 }

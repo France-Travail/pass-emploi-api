@@ -211,6 +211,60 @@ describe('JeuneSqlRepository', () => {
     })
   })
 
+  describe('recupererIdsAuthentificationDuDispositif', () => {
+    async function creerJeune(
+      id: string,
+      idAuthentification: string | null,
+      dispositif: Profil.Dispositif
+    ): Promise<void> {
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id,
+          idConseiller: conseillerDto.id,
+          idAuthentification: idAuthentification as string,
+          dispositif
+        })
+      )
+    }
+    const conseillerDto = unConseillerDto({
+      structure: Core.Structure.POLE_EMPLOI
+    })
+
+    beforeEach(async () => {
+      await ConseillerSqlModel.creer(conseillerDto)
+      await creerJeune('j1', 'auth-c', Profil.Dispositif.AIJ)
+      await creerJeune('j2', 'auth-a', Profil.Dispositif.AIJ)
+      await creerJeune('j3', 'auth-b', Profil.Dispositif.AIJ)
+      await creerJeune('j4', 'auth-d', Profil.Dispositif.AVENIR_PRO)
+      await creerJeune('j5', null, Profil.Dispositif.AIJ)
+    })
+
+    it('renvoie un lot trié du dispositif, sans les jeunes jamais connectés', async () => {
+      // When
+      const ids =
+        await jeuneSqlRepository.recupererIdsAuthentificationDuDispositif(
+          Profil.Dispositif.AIJ,
+          2
+        )
+
+      // Then
+      expect(ids).to.deep.equal(['auth-a', 'auth-b'])
+    })
+
+    it('reprend après le dernier id du lot précédent', async () => {
+      // When
+      const ids =
+        await jeuneSqlRepository.recupererIdsAuthentificationDuDispositif(
+          Profil.Dispositif.AIJ,
+          2,
+          'auth-b'
+        )
+
+      // Then
+      expect(ids).to.deep.equal(['auth-c'])
+    })
+  })
+
   describe('enregistrerPremiereUtilisationInvite', () => {
     const idJeune = 'jeune-ex-invite'
     const dateExistante = DateTime.fromISO('2026-05-01T10:00:00.000Z')
