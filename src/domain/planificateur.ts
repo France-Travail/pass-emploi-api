@@ -6,6 +6,7 @@ import { DateService } from '../utils/date-service'
 import { buildError } from '../utils/logger.module'
 import { Action } from './action/action'
 import { EvenementMilo } from './milo/evenement.milo'
+import { Profil } from './profil'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import { NettoyageJobsStats } from './suivi-job'
 import Bull from 'bull'
@@ -116,7 +117,8 @@ export namespace Planificateur {
     MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
     MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION',
     ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION',
-    NETTOYER_ARCHIVES_JEUNES = 'NETTOYER_ARCHIVES_JEUNES'
+    NETTOYER_ARCHIVES_JEUNES = 'NETTOYER_ARCHIVES_JEUNES',
+    DECONNECTER_JEUNES_DISPOSITIF = 'DECONNECTER_JEUNES_DISPOSITIF'
   }
 
   export interface JobRendezVous {
@@ -162,6 +164,10 @@ export namespace Planificateur {
 
   export interface JobArchiverJeunesMigration extends ContenuJobParLots {
     idPopulation: string
+  }
+
+  export interface JobDeconnecterJeunesDispositif extends ContenuJobParLots {
+    dispositif: Profil.Dispositif
   }
 
   export interface JobNettoyerArchivesJeunes extends ContenuJobParLots {
