@@ -171,6 +171,14 @@ export const PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE: readonly StructureEtDisposit
     }
   ]
 
+export function estAijOuAvenirPro(profil: Profil): boolean {
+  return (
+    estFranceTravail(profil.structure) &&
+    (profil.dispositif === Profil.Dispositif.AIJ ||
+      profil.dispositif === Profil.Dispositif.AVENIR_PRO)
+  )
+}
+
 export const PROFILS_CAMPAGNES: readonly StructureEtDispositifs[] = [
   TOUT_MILO,
   {

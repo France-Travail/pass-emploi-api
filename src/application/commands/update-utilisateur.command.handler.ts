@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -29,6 +30,7 @@ import {
 import { Migration } from '../../domain/migration'
 import { MailServiceToken } from '../../domain/mail'
 import {
+  estAijOuAvenirPro,
   estConseilDepartemental,
   estDispositifNonAccompagne,
   estFranceTravail,
@@ -45,6 +47,13 @@ import {
 } from '../queries/query-models/authentification.query-model'
 import Type = Authentification.Type
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
+
+interface MigrationBloquante {
+  reason:
+    | NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+    | NonTraitableReason.MIGRATION_AIJ_AVENIR_PRO
+  idPopulation?: string
+}
 
 export interface UpdateUtilisateurCommand extends Command {
   idUtilisateurAuth: string
@@ -78,7 +87,8 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
     private readonly archiverJeuneRepository: ArchiveJeune.Repository,
     @Inject(JeuneRepositoryToken)
     private readonly jeuneRepository: Jeune.Repository,
-    private readonly jeuneFactory: Jeune.Factory
+    private readonly jeuneFactory: Jeune.Factory,
+    private readonly configService: ConfigService
   ) {
     super('UpdateUtilisateurCommandHandler')
   }
@@ -126,7 +136,7 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
         new NonTraitableError(
           'Utilisateur',
           commandSanitized.idUtilisateurAuth,
-          NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+          migrationBloquante.reason,
           emailUtilisateur,
           migrationBloquante.idPopulation
         )
@@ -509,10 +519,23 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
   private async recupererMigrationBloquante(
     command: UpdateUtilisateurCommand,
     recuperationUtilisateurResult: Result<UtilisateurQueryModel>
-  ): Promise<{ idPopulation?: string } | undefined> {
+  ): Promise<MigrationBloquante | undefined> {
     const estUnJeune = command.type === Authentification.Type.JEUNE
     const vientDe1j1s =
       command.application === Authentification.Application.UN_JEUNE_UNE_SOLUTION
+
+    const profil = isSuccess(recuperationUtilisateurResult)
+      ? recuperationUtilisateurResult.data.profil
+      : command.profil
+    if (
+      this.configService.get('features').migrationAijAvenirPro &&
+      estAijOuAvenirPro(profil)
+    ) {
+      return estUnJeune && !vientDe1j1s
+        ? { reason: NonTraitableReason.MIGRATION_AIJ_AVENIR_PRO }
+        : undefined
+    }
+
     if (estUnJeune && vientDe1j1s) return undefined
 
     if (isSuccess(recuperationUtilisateurResult)) {
@@ -524,7 +547,9 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
           id: utilisateur.id,
           type: utilisateur.type
         })
-      return idPopulation ? { idPopulation } : undefined
+      return idPopulation
+        ? { reason: NonTraitableReason.MIGRATION_PARCOURS_EMPLOI, idPopulation }
+        : undefined
     }
 
     if (!command.email) return undefined
@@ -533,7 +558,10 @@ export class UpdateUtilisateurCommandHandler extends CommandHandler<
       MotifSuppressionSupport.MIGRATION
     )
     if (!archive) return undefined
-    return { idPopulation: archive.idPopulation ?? undefined }
+    return {
+      reason: NonTraitableReason.MIGRATION_PARCOURS_EMPLOI,
+      idPopulation: archive.idPopulation ?? undefined
+    }
   }
 }
 

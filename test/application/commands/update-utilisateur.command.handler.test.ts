@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config'
 import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox, match, SinonSandbox } from 'sinon'
 import {
@@ -34,6 +35,7 @@ import { Core } from '../../../src/domain/core'
 import { Migration } from '../../../src/domain/migration'
 import { MailBrevoService } from '../../../src/infrastructure/clients/mail-brevo.service.db'
 import { expect, StubbedClass, stubClass } from '../../utils'
+import { testConfig } from '../../utils/test-config'
 import { ArchiveJeune } from '../../../src/domain/archive-jeune'
 import { Jeune } from '../../../src/domain/jeune/jeune'
 import MotifSuppressionSupport = ArchiveJeune.MotifSuppressionSupport
@@ -78,7 +80,8 @@ describe('UpdateUtilisateurCommandHandler', () => {
       migrationService,
       archiverJeuneRepository,
       jeuneRepository,
-      jeuneFactory
+      jeuneFactory,
+      testConfig()
     )
   })
 
@@ -1312,6 +1315,164 @@ describe('UpdateUtilisateurCommandHandler', () => {
                   NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
                 )
               }
+            })
+          })
+          describe('migration AIJ / Avenir Pro', () => {
+            const idAuth = 'nilstavernier'
+            const avecFeature = (active: boolean): void => {
+              updateUtilisateurCommandHandler =
+                new UpdateUtilisateurCommandHandler(
+                  authentificationRepository,
+                  authentificationFactory,
+                  dateService,
+                  mailBrevoService,
+                  migrationService,
+                  archiverJeuneRepository,
+                  jeuneRepository,
+                  jeuneFactory,
+                  new ConfigService({
+                    features: { migrationAijAvenirPro: active }
+                  })
+                )
+            }
+            const jeune = (
+              dispositif: Profil.Dispositif,
+              application?: string
+            ): UpdateUtilisateurCommand => {
+              authentificationRepository.getJeuneByIdAuthentification
+                .withArgs(idAuth)
+                .resolves(
+                  unUtilisateurJeune({ profil: unProfilFT(dispositif) })
+                )
+              migrationService.populationDeMigrationActive.resolves(
+                'POP_MIGRATION'
+              )
+              // Le dispositif d'un jeune FT vient de la base, pas de l'IdP
+              return {
+                idUtilisateurAuth: idAuth,
+                type: Authentification.Type.JEUNE,
+                profil: unProfilFT(null),
+                application
+              }
+            }
+            const raison = (
+              result: Result<UtilisateurQueryModel>
+            ): NonTraitableReason | undefined =>
+              isFailure(result)
+                ? (result.error as NonTraitableError).reason
+                : undefined
+
+            describe('feature active', () => {
+              beforeEach(() => avecFeature(true))
+
+              it('bloque un jeune AIJ sur pass emploi, sans population', async () => {
+                // When
+                const result = await updateUtilisateurCommandHandler.execute(
+                  jeune(
+                    Profil.Dispositif.AIJ,
+                    Authentification.Application.PASS_EMPLOI
+                  )
+                )
+
+                // Then
+                expect(raison(result)).to.equal(
+                  NonTraitableReason.MIGRATION_AIJ_AVENIR_PRO
+                )
+                if (isFailure(result)) {
+                  expect(
+                    (result.error as NonTraitableError).population
+                  ).to.be.undefined()
+                }
+                expect(
+                  migrationService.populationDeMigrationActive
+                ).not.to.have.been.called()
+              })
+
+              it('bloque un jeune Avenir Pro sans application', async () => {
+                // When
+                const result = await updateUtilisateurCommandHandler.execute(
+                  jeune(Profil.Dispositif.AVENIR_PRO)
+                )
+
+                // Then
+                expect(raison(result)).to.equal(
+                  NonTraitableReason.MIGRATION_AIJ_AVENIR_PRO
+                )
+              })
+
+              it('laisse passer un jeune AIJ sur 1j1s', async () => {
+                // When
+                const result = await updateUtilisateurCommandHandler.execute(
+                  jeune(
+                    Profil.Dispositif.AIJ,
+                    Authentification.Application.UN_JEUNE_UNE_SOLUTION
+                  )
+                )
+
+                // Then
+                expect(isSuccess(result)).to.be.true()
+              })
+
+              it("laisse passer un conseiller Avenir Pro malgré sa population de migration, quelle que soit l'application", async () => {
+                // Given : un conseiller FT se connecte sans dispositif, il est en base
+                authentificationRepository.getConseiller
+                  .withArgs(idAuth)
+                  .resolves(
+                    unUtilisateurConseiller({
+                      profil: unProfilFT(Profil.Dispositif.AVENIR_PRO)
+                    })
+                  )
+                migrationService.populationDeMigrationActive.resolves(
+                  'POP_MIGRATION'
+                )
+
+                // When
+                const result = await updateUtilisateurCommandHandler.execute({
+                  idUtilisateurAuth: idAuth,
+                  type: Authentification.Type.CONSEILLER,
+                  profil: unProfilFT(null)
+                })
+
+                // Then
+                expect(isSuccess(result)).to.be.true()
+                expect(
+                  migrationService.populationDeMigrationActive
+                ).not.to.have.been.called()
+              })
+
+              it('ne change rien pour un jeune FT CEJ en migration', async () => {
+                // When
+                const result = await updateUtilisateurCommandHandler.execute(
+                  jeune(
+                    Profil.Dispositif.CEJ,
+                    Authentification.Application.PASS_EMPLOI
+                  )
+                )
+
+                // Then
+                expect(raison(result)).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              })
+            })
+
+            describe('feature inactive', () => {
+              beforeEach(() => avecFeature(false))
+
+              it('applique la migration par population à un jeune AIJ sur pass emploi', async () => {
+                // When
+                const result = await updateUtilisateurCommandHandler.execute(
+                  jeune(
+                    Profil.Dispositif.AIJ,
+                    Authentification.Application.PASS_EMPLOI
+                  )
+                )
+
+                // Then
+                expect(raison(result)).to.equal(
+                  NonTraitableReason.MIGRATION_PARCOURS_EMPLOI
+                )
+              })
             })
           })
           describe('jeune connu par son email (première connexion)', () => {

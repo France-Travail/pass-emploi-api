@@ -134,7 +134,8 @@ export namespace PlanAction {
     }
     if (
       profil.structure === Profil.Structure.FRANCE_TRAVAIL &&
-      profil.dispositif !== Profil.Dispositif.ESPACE_CANDIDAT
+      profil.dispositif !== Profil.Dispositif.ESPACE_CANDIDAT &&
+      profil.dispositif !== Profil.Dispositif.AVENIR_PRO
     ) {
       return ModeDeclaration.DEMARCHE_FT
     }

@@ -1009,11 +1009,14 @@ describe('PlanAction', () => {
       )
     })
 
-    it("ne déclare rien pour l'Espace candidat ni pour l'invité", () => {
+    it("ne déclare rien pour l'Espace candidat, Avenir Pro ni pour l'invité", () => {
       expect(
         PlanAction.modeDeclaration(
           unProfilFT(Profil.Dispositif.ESPACE_CANDIDAT)
         )
+      ).to.equal(PlanAction.ModeDeclaration.AUCUNE)
+      expect(
+        PlanAction.modeDeclaration(unProfilFT(Profil.Dispositif.AVENIR_PRO))
       ).to.equal(PlanAction.ModeDeclaration.AUCUNE)
       expect(PlanAction.modeDeclaration(unProfilInvite())).to.equal(
         PlanAction.ModeDeclaration.AUCUNE

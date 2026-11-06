@@ -302,7 +302,9 @@ export default () => {
       notifierRendezVousMilo: process.env.FEATURE_NOTIFIER_RDV_MILO === 'true',
       recupererStructureMilo:
         process.env.FEATURE_RECUPERER_STRUCTURE_MILO === 'true',
-      activerRecuperationChat: process.env.FEATURE_RECUPERATION_CHAT === 'true'
+      activerRecuperationChat: process.env.FEATURE_RECUPERATION_CHAT === 'true',
+      migrationAijAvenirPro:
+        process.env.FEATURE_MIGRATION_AIJ_AVENIR_PRO === 'true'
     },
     values: {
       maxRechercheConseillers: process.env.MAX_RECHERCHE_CONSEILLERS ?? '10'

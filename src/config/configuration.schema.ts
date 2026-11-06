@@ -240,7 +240,8 @@ export const configurationSchema = Joi.object({
     notifierJobsMattermost: Joi.boolean(),
     notifierRendezVousMilo: Joi.boolean(),
     recupererStructureMilo: Joi.boolean(),
-    activerRecuperationChat: Joi.boolean()
+    activerRecuperationChat: Joi.boolean(),
+    migrationAijAvenirPro: Joi.boolean()
   }),
   values: Joi.object({
     maxRechercheConseillers: Joi.number()
