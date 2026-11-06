@@ -1,5 +1,6 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
+import { DeconnecterJeunesDispositifCommandHandler } from '../../../src/application/commands/support/deconnecter-jeunes-dispositif.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
 import { DesarchiverJeuneCommandHandler } from '../../../src/application/commands/support/desarchiver-jeune.command.handler.db'
 import { CreerJeunePESupportCommandHandler } from '../../../src/application/commands/support/creer-jeune-pe-support-command-handler.service'
@@ -39,6 +40,7 @@ import { unConseillerDuJeune, unJeune } from '../../fixtures/jeune.fixture'
 
 describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
+  let deconnecterJeunesDispositifCommandHandler: StubbedClass<DeconnecterJeunesDispositifCommandHandler>
   let desarchiverJeuneCommandHandler: StubbedClass<DesarchiverJeuneCommandHandler>
   let creerJeuneSupportCommandHandler: StubbedClass<CreerJeunePESupportCommandHandler>
   let supprimerArchiveJeuneCommandHandler: StubbedClass<SupprimerArchiveJeuneCommandHandler>
@@ -72,6 +74,9 @@ describe('SupportController', () => {
     transfererJeunesConseillerCommandHandler = app.get(
       TransfererJeunesConseillerCommandHandler
     )
+    deconnecterJeunesDispositifCommandHandler = app.get(
+      DeconnecterJeunesDispositifCommandHandler
+    )
     oidcClient = app.get(OidcClient)
   })
 
@@ -79,11 +84,50 @@ describe('SupportController', () => {
     sandbox.restore()
   })
 
-  describe('POST /support/logout/:idJeune', () => {
+  describe('POST /support/jeunes/logout', () => {
+    it('planifie la déconnexion des jeunes du dispositif', async () => {
+      // Given
+      deconnecterJeunesDispositifCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/jeunes/logout')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .send({ dispositif: 'AIJ' })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        deconnecterJeunesDispositifCommandHandler.execute
+      ).to.have.been.calledOnceWithExactly(
+        { dispositif: 'AIJ' },
+        Authentification.unUtilisateurSupport()
+      )
+    })
+
+    it('refuse un dispositif inconnu', async () => {
+      // Given
+      deconnecterJeunesDispositifCommandHandler.execute.resetHistory()
+
+      // When
+      await request(app.getHttpServer())
+        .post('/support/jeunes/logout')
+        .set({ 'X-API-KEY': 'api-key-support' })
+        .send({ dispositif: 'INCONNU' })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(
+        deconnecterJeunesDispositifCommandHandler.execute
+      ).not.to.have.been.called()
+    })
+  })
+
+  describe('POST /support/jeunes/logout/:idJeune', () => {
     it('retourne une 200', async () => {
       // When
       await request(app.getHttpServer())
-        .post('/support/logout/test')
+        .post('/support/jeunes/logout/test')
         .set({ 'X-API-KEY': 'api-key-support' })
         // Then
         .expect(HttpStatus.CREATED)
