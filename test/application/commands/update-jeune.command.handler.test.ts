@@ -8,7 +8,7 @@ import {
 } from '../../../src/application/commands/update-jeune.command.handler'
 import { emptySuccess } from '../../../src/building-blocks/types/result'
 import { Jeune } from '../../../src/domain/jeune/jeune'
-import { TOUT_CONSEIL_DEPARTEMENTAL, Profil } from '../../../src/domain/profil'
+import { TOUT_PROFIL_SAUF_INVITE } from '../../../src/domain/profil'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unJeune } from '../../fixtures/jeune.fixture'
 import { expect, StubbedClass, stubClass } from '../../utils'
@@ -70,24 +70,11 @@ describe('UpdateJeuneCommandHandler', () => {
   })
 
   describe('profilsAutorises', () => {
-    it('déclare les profils autorisés', () => {
+    it('autorise tous les jeunes, accompagnés ou non, sauf les invités', () => {
       // Then
-      expect(updateJeuneCommandHandler.profilsAutorises).to.deep.equal([
-        { structure: Profil.Structure.MILO },
-        {
-          structure: Profil.Structure.FRANCE_TRAVAIL,
-          dispositifs: [
-            Profil.Dispositif.CEJ,
-            Profil.Dispositif.BRSA,
-            Profil.Dispositif.AIJ,
-            Profil.Dispositif.AVENIR_PRO,
-            Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF,
-            Profil.Dispositif.ACCOMPAGNEMENT_GLOBAL,
-            Profil.Dispositif.EQUIP_EMPLOI_RECRUT
-          ]
-        },
-        TOUT_CONSEIL_DEPARTEMENTAL
-      ])
+      expect(updateJeuneCommandHandler.profilsAutorises).to.deep.equal(
+        TOUT_PROFIL_SAUF_INVITE
+      )
     })
   })
 })

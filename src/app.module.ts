@@ -256,6 +256,7 @@ import { GetOffresImmersionQueryHandlerV3 } from './application/queries/get-offr
 import { GetOffresServicesCiviqueQueryHandler } from './application/queries/get-offres-services-civique.query.handler'
 import { GetPreferencesJeuneQueryHandler } from './application/queries/get-preferences-jeune.query.handler.db'
 import { GetFonctionnalitesJeuneQueryHandler } from './application/queries/get-fonctionnalites-jeune.query.handler'
+import { GetCGUJeuneQueryHandler } from './application/queries/get-cgu-jeune.query.handler'
 import { GetFonctionnalitesConseillerQueryHandler } from './application/queries/get-fonctionnalites-conseiller.query.handler'
 import { GetRecherchesQueryHandler } from './application/queries/get-recherches.query.handler.db'
 import { GetSuggestionsQueryHandler } from './application/queries/get-suggestions.query.handler.db'
@@ -925,6 +926,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateJeunePreferencesCommandHandler,
     GetPreferencesJeuneQueryHandler,
     GetFonctionnalitesJeuneQueryHandler,
+    GetCGUJeuneQueryHandler,
     GetFonctionnalitesConseillerQueryHandler,
     GetPopulationSupportQueryHandler,
     GetCommunicationSupportQueryHandler,

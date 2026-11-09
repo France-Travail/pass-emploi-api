@@ -11,12 +11,16 @@ import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/u
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
 import { GetFonctionnalitesJeuneQueryHandler } from 'src/application/queries/get-fonctionnalites-jeune.query.handler'
+import { GetCGUJeuneQueryHandler } from 'src/application/queries/get-cgu-jeune.query.handler'
 import { GetCommunicationsJeuneQueryHandler } from 'src/application/queries/get-communications-jeune.query.handler'
 import { GetJeuneHomeActionsQueryHandler } from 'src/application/queries/get-jeune-home-actions.query.handler.db'
 import { GetJeuneHomeAgendaQueryHandler } from 'src/application/queries/get-jeune-home-agenda.query.handler.db'
 import { GetPreferencesJeuneQueryHandler } from 'src/application/queries/get-preferences-jeune.query.handler.db'
 import { JeuneHomeAgendaQueryModel } from 'src/application/queries/query-models/home-jeune-suivi.query-model'
-import { PreferencesJeuneQueryModel } from 'src/application/queries/query-models/jeunes.query-model'
+import {
+  CGUJeuneQueryModel,
+  PreferencesJeuneQueryModel
+} from 'src/application/queries/query-models/jeunes.query-model'
 import { FonctionnalitesJeuneQueryModel } from 'src/application/queries/query-models/fonctionnalites.query-model'
 import { CommunicationsJeuneQueryModel } from 'src/application/queries/query-models/communications.query-model'
 import { ResultatsRechercheMessageQueryModel } from 'src/application/queries/query-models/resultats-recherche-message-query.model'
@@ -84,6 +88,7 @@ describe('JeunesController', () => {
   let getPreferencesJeuneQueryHandler: StubbedClass<GetPreferencesJeuneQueryHandler>
   let getFonctionnalitesJeuneQueryHandler: StubbedClass<GetFonctionnalitesJeuneQueryHandler>
   let getCommunicationsJeuneQueryHandler: StubbedClass<GetCommunicationsJeuneQueryHandler>
+  let getCGUJeuneQueryHandler: StubbedClass<GetCGUJeuneQueryHandler>
   let rechercherMessageQueryHandler: StubbedClass<RechercherMessageQueryHandler>
   let getComptageJeuneQueryHandler: StubbedClass<GetComptageJeuneQueryHandler>
   let changerStatutTachePlanActionCommandHandler: StubbedClass<ChangerStatutTachePlanActionCommandHandler>
@@ -127,6 +132,7 @@ describe('JeunesController', () => {
     getCommunicationsJeuneQueryHandler = app.get(
       GetCommunicationsJeuneQueryHandler
     )
+    getCGUJeuneQueryHandler = app.get(GetCGUJeuneQueryHandler)
     rechercherMessageQueryHandler = app.get(RechercherMessageQueryHandler)
     getComptageJeuneQueryHandler = app.get(GetComptageJeuneQueryHandler)
     changerStatutTachePlanActionCommandHandler = app.get(
@@ -921,6 +927,44 @@ describe('JeunesController', () => {
     })
 
     ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/fonctionnalites')
+  })
+
+  describe('GET /jeunes/:idJeune/cgu', () => {
+    const idJeune = '1'
+
+    it('renvoie la date de signature des CGU du jeune', async () => {
+      // Given
+      const queryModel: CGUJeuneQueryModel = {
+        dateSignatureCGU: '2026-10-10T12:00:00.000Z'
+      }
+      getCGUJeuneQueryHandler.execute
+        .withArgs({ idJeune }, unUtilisateurDecode())
+        .resolves(success(queryModel))
+
+      // When
+      await request(app.getHttpServer())
+        .get(`/jeunes/${idJeune}/cgu`)
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect(queryModel)
+    })
+
+    it("renvoie une 404 quand le jeune n'existe pas", async () => {
+      // Given
+      getCGUJeuneQueryHandler.execute
+        .withArgs({ idJeune }, unUtilisateurDecode())
+        .resolves(failure(new NonTrouveError('Jeune', idJeune)))
+
+      // When
+      await request(app.getHttpServer())
+        .get(`/jeunes/${idJeune}/cgu`)
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NOT_FOUND)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid('get', '/jeunes/1/cgu')
   })
 
   describe('GET /jeunes/:idJeune/communications', () => {
