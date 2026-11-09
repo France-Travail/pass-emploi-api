@@ -151,6 +151,7 @@ import { UpdateRendezVousCommandHandler } from './application/commands/update-re
 import { UpdateUtilisateurCommandHandler } from './application/commands/update-utilisateur.command.handler'
 import { UpdateUtilisateurInviteCommandHandler } from './application/commands/update-utilisateur-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from './application/commands/update-prenom-invite.command.handler.db'
+import { UpdateCGUInviteCommandHandler } from './application/commands/update-cgu-invite.command.handler.db'
 import { GenererPlanActionCommandHandler } from './application/commands/generer-plan-action.command.handler'
 import { RecupererPlanActionQueryHandler } from './application/queries/recuperer-plan-action.query.handler'
 import { RecupererQuestionnaireQueryHandler } from './application/queries/recuperer-questionnaire.query.handler'
@@ -158,6 +159,7 @@ import { ChangerStatutTachePlanActionCommandHandler } from './application/comman
 import { SupprimerTachePlanActionCommandHandler } from './application/commands/supprimer-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from './application/commands/reprendre-compte-invite.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
+import { GetCGUInviteQueryHandler } from './application/queries/get-cgu-invite.query.handler.db'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPopulationsForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-populations-for-analytics.job'
 import { ChargerEvenementsJobHandler } from './application/jobs/analytics/1-charger-les-evenements.job'
@@ -858,6 +860,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     UpdateUtilisateurCommandHandler,
     UpdateUtilisateurInviteCommandHandler,
     UpdatePrenomInviteCommandHandler,
+    UpdateCGUInviteCommandHandler,
     GenererPlanActionCommandHandler,
     RecupererPlanActionQueryHandler,
     RecupererQuestionnaireQueryHandler,
@@ -865,6 +868,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     SupprimerTachePlanActionCommandHandler,
     ReprendreCompteInviteCommandHandler,
     GetPrenomInviteQueryHandler,
+    GetCGUInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,
     CreerJeuneMiloCommandHandler,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator'
+import { IsDateString, IsNotEmpty, IsString, MaxLength } from 'class-validator'
 
 export class PutPrenomInvitePayload {
   @ApiProperty()
@@ -7,4 +7,11 @@ export class PutPrenomInvitePayload {
   @IsNotEmpty()
   @MaxLength(50)
   prenom: string
+}
+
+export class PutCGUInvitePayload {
+  @ApiProperty()
+  @IsDateString()
+  @IsNotEmpty()
+  dateSignatureCGU: string
 }
