@@ -211,13 +211,14 @@ describe('JeuneSqlRepository', () => {
     })
   })
 
-  describe('enregistrerPremiereUtilisationInvite', () => {
+  describe('enregistrerRepriseInvite', () => {
     const idJeune = 'jeune-ex-invite'
-    const dateExistante = DateTime.fromISO('2026-05-01T10:00:00.000Z')
+    const dateInvite = DateTime.fromISO('2026-05-01T10:00:00.000Z')
 
-    async function creerJeune(
-      datePremiereUtilisationInvite: Date | null
-    ): Promise<void> {
+    async function creerJeune(dates: {
+      datePremiereUtilisationInvite?: Date | null
+      dateSignatureCGU?: Date | null
+    }): Promise<void> {
       const conseillerDto = unConseillerDto({
         structure: Core.Structure.POLE_EMPLOI
       })
@@ -226,130 +227,130 @@ describe('JeuneSqlRepository', () => {
         unJeuneDto({
           id: idJeune,
           idConseiller: conseillerDto.id,
-          datePremiereUtilisationInvite
+          datePremiereUtilisationInvite:
+            dates.datePremiereUtilisationInvite ?? null,
+          dateSignatureCGU: dates.dateSignatureCGU ?? null
         })
       )
     }
 
-    it("enregistre la date quand le jeune n'en a pas", async () => {
-      // Given
-      await creerJeune(null)
+    describe('date de première utilisation', () => {
+      it("enregistre la date quand le jeune n'en a pas", async () => {
+        // Given
+        await creerJeune({})
 
-      // When
-      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
-        idJeune,
-        dateExistante
-      )
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite
+        })
 
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
-        dateExistante.toJSDate()
-      )
-    })
-
-    it('conserve la date existante quand elle est plus ancienne', async () => {
-      // Given
-      await creerJeune(dateExistante.toJSDate())
-
-      // When
-      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
-        idJeune,
-        dateExistante.plus({ days: 10 })
-      )
-
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
-        dateExistante.toJSDate()
-      )
-    })
-
-    it('remplace la date existante quand la nouvelle est plus ancienne', async () => {
-      // Given
-      await creerJeune(dateExistante.toJSDate())
-      const plusAncienne = dateExistante.minus({ days: 10 })
-
-      // When
-      await jeuneSqlRepository.enregistrerPremiereUtilisationInvite(
-        idJeune,
-        plusAncienne
-      )
-
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
-        plusAncienne.toJSDate()
-      )
-    })
-  })
-
-  describe('enregistrerSignatureCGUInvite', () => {
-    const idJeune = 'jeune-ex-invite'
-    const dateSignatureCGUInvite = DateTime.fromISO('2026-05-01T10:00:00.000Z')
-
-    async function creerJeune(dateSignatureCGU: Date | null): Promise<void> {
-      const conseillerDto = unConseillerDto({
-        structure: Core.Structure.POLE_EMPLOI
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+          dateInvite.toJSDate()
+        )
       })
-      await ConseillerSqlModel.creer(conseillerDto)
-      await JeuneSqlModel.creer(
-        unJeuneDto({
-          id: idJeune,
-          idConseiller: conseillerDto.id,
-          dateSignatureCGU
+
+      it('conserve la date existante quand elle est plus ancienne', async () => {
+        // Given
+        await creerJeune({
+          datePremiereUtilisationInvite: dateInvite.toJSDate()
         })
-      )
-    }
 
-    it("reprend la date de l'invité quand le jeune n'en a pas", async () => {
-      // Given
-      await creerJeune(null)
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite.plus({ days: 10 })
+        })
 
-      // When
-      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
-        idJeune,
-        dateSignatureCGUInvite
-      )
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+          dateInvite.toJSDate()
+        )
+      })
 
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(
-        dateSignatureCGUInvite.toJSDate()
-      )
+      it('remplace la date existante quand la nouvelle est plus ancienne', async () => {
+        // Given
+        await creerJeune({
+          datePremiereUtilisationInvite: dateInvite.toJSDate()
+        })
+        const plusAncienne = dateInvite.minus({ days: 10 })
+
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: plusAncienne
+        })
+
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.datePremiereUtilisationInvite).to.deep.equal(
+          plusAncienne.toJSDate()
+        )
+      })
     })
 
-    it("reprend la date de l'invité quand elle est plus récente", async () => {
-      // Given
-      await creerJeune(dateSignatureCGUInvite.minus({ days: 10 }).toJSDate())
+    describe('date de signature des CGU', () => {
+      it("ne modifie pas la date du jeune quand l'invité n'en a pas", async () => {
+        // Given
+        await creerJeune({ dateSignatureCGU: dateInvite.toJSDate() })
 
-      // When
-      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
-        idJeune,
-        dateSignatureCGUInvite
-      )
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite
+        })
 
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(
-        dateSignatureCGUInvite.toJSDate()
-      )
-    })
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.dateSignatureCGU).to.deep.equal(dateInvite.toJSDate())
+      })
 
-    it('conserve la date du jeune quand elle est plus récente', async () => {
-      // Given
-      const plusRecente = dateSignatureCGUInvite.plus({ days: 10 })
-      await creerJeune(plusRecente.toJSDate())
+      it("reprend la date de l'invité quand le jeune n'en a pas", async () => {
+        // Given
+        await creerJeune({})
 
-      // When
-      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
-        idJeune,
-        dateSignatureCGUInvite
-      )
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite,
+          dateSignatureCGU: dateInvite
+        })
 
-      // Then
-      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
-      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(plusRecente.toJSDate())
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.dateSignatureCGU).to.deep.equal(dateInvite.toJSDate())
+      })
+
+      it("reprend la date de l'invité quand elle est plus récente", async () => {
+        // Given
+        await creerJeune({
+          dateSignatureCGU: dateInvite.minus({ days: 10 }).toJSDate()
+        })
+
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite,
+          dateSignatureCGU: dateInvite
+        })
+
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.dateSignatureCGU).to.deep.equal(dateInvite.toJSDate())
+      })
+
+      it('conserve la date du jeune quand elle est plus récente', async () => {
+        // Given
+        const plusRecente = dateInvite.plus({ days: 10 })
+        await creerJeune({ dateSignatureCGU: plusRecente.toJSDate() })
+
+        // When
+        await jeuneSqlRepository.enregistrerRepriseInvite(idJeune, {
+          datePremiereUtilisation: dateInvite,
+          dateSignatureCGU: dateInvite
+        })
+
+        // Then
+        const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+        expect(jeuneSql!.dateSignatureCGU).to.deep.equal(plusRecente.toJSDate())
+      })
     })
   })
 

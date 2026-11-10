@@ -176,29 +176,26 @@ export class JeuneSqlRepository implements Jeune.Repository {
 
   // En SQL pour que la date la plus ancienne gagne même si deux reprises
   // d'invités se croisent (la requête rejoint la transaction CLS de l'appelant)
-  async enregistrerPremiereUtilisationInvite(
+  async enregistrerRepriseInvite(
     idJeune: string,
-    dateUtilisation: DateTime
+    reprise: {
+      datePremiereUtilisation: DateTime
+      dateSignatureCGU?: DateTime
+    }
   ): Promise<void> {
     await this.sequelize.query(
       `UPDATE jeune
        SET date_premiere_utilisation_invite =
-         LEAST(COALESCE(date_premiere_utilisation_invite, :date), :date)
+             LEAST(date_premiere_utilisation_invite, :datePremiereUtilisation),
+           date_signature_cgu = GREATEST(date_signature_cgu, :dateSignatureCGU)
        WHERE id = :idJeune`,
-      { replacements: { idJeune, date: dateUtilisation.toJSDate() } }
-    )
-  }
-
-  async enregistrerSignatureCGUInvite(
-    idJeune: string,
-    dateSignatureCGU: DateTime
-  ): Promise<void> {
-    await this.sequelize.query(
-      `UPDATE jeune
-       SET date_signature_cgu =
-         GREATEST(COALESCE(date_signature_cgu, :date), :date)
-       WHERE id = :idJeune`,
-      { replacements: { idJeune, date: dateSignatureCGU.toJSDate() } }
+      {
+        replacements: {
+          idJeune,
+          datePremiereUtilisation: reprise.datePremiereUtilisation.toJSDate(),
+          dateSignatureCGU: reprise.dateSignatureCGU?.toJSDate() ?? null
+        }
+      }
     )
   }
 
