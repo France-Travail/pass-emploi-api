@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { ApiPropertyOptional } from '@nestjs/swagger'
-import { DateTime } from 'luxon'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import { Query } from '../../building-blocks/types/query'
@@ -38,9 +37,7 @@ export class GetCGUInviteQueryHandler extends QueryHandler<
     }
 
     return success({
-      dateSignatureCGU: jeuneInvite.dateSignatureCGU
-        ? DateTime.fromJSDate(jeuneInvite.dateSignatureCGU).toUTC().toISO()!
-        : undefined
+      dateSignatureCGU: jeuneInvite.dateSignatureCGU?.toISOString()
     })
   }
 

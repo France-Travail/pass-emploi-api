@@ -11,7 +11,7 @@ export class PutPrenomInvitePayload {
 
 export class PutCGUInvitePayload {
   @ApiProperty()
-  @IsDateString()
+  @IsDateString({ strict: true })
   @IsNotEmpty()
   dateSignatureCGU: string
 }
