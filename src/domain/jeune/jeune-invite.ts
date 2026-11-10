@@ -12,6 +12,7 @@ export namespace JeuneInvite {
     id: string
     dateCreation: DateTime
     dateReprise?: DateTime
+    dateSignatureCGU?: DateTime
   }
 
   export interface PourPurge {

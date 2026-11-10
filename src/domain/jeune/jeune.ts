@@ -165,6 +165,11 @@ export namespace Jeune {
       dateUtilisation: DateTime
     ): Promise<void>
 
+    enregistrerSignatureCGUInvite(
+      idJeune: string,
+      dateSignatureCGU: DateTime
+    ): Promise<void>
+
     changerDispositifDesJeunesDuConseiller(
       idConseiller: string,
       dispositif: Profil.Dispositif

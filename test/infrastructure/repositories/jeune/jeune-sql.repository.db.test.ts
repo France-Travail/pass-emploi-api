@@ -284,6 +284,75 @@ describe('JeuneSqlRepository', () => {
     })
   })
 
+  describe('enregistrerSignatureCGUInvite', () => {
+    const idJeune = 'jeune-ex-invite'
+    const dateSignatureCGUInvite = DateTime.fromISO('2026-05-01T10:00:00.000Z')
+
+    async function creerJeune(dateSignatureCGU: Date | null): Promise<void> {
+      const conseillerDto = unConseillerDto({
+        structure: Core.Structure.POLE_EMPLOI
+      })
+      await ConseillerSqlModel.creer(conseillerDto)
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id: idJeune,
+          idConseiller: conseillerDto.id,
+          dateSignatureCGU
+        })
+      )
+    }
+
+    it("reprend la date de l'invité quand le jeune n'en a pas", async () => {
+      // Given
+      await creerJeune(null)
+
+      // When
+      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
+        idJeune,
+        dateSignatureCGUInvite
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(
+        dateSignatureCGUInvite.toJSDate()
+      )
+    })
+
+    it("reprend la date de l'invité quand elle est plus récente", async () => {
+      // Given
+      await creerJeune(dateSignatureCGUInvite.minus({ days: 10 }).toJSDate())
+
+      // When
+      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
+        idJeune,
+        dateSignatureCGUInvite
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(
+        dateSignatureCGUInvite.toJSDate()
+      )
+    })
+
+    it('conserve la date du jeune quand elle est plus récente', async () => {
+      // Given
+      const plusRecente = dateSignatureCGUInvite.plus({ days: 10 })
+      await creerJeune(plusRecente.toJSDate())
+
+      // When
+      await jeuneSqlRepository.enregistrerSignatureCGUInvite(
+        idJeune,
+        dateSignatureCGUInvite
+      )
+
+      // Then
+      const jeuneSql = await JeuneSqlModel.findByPk(idJeune)
+      expect(jeuneSql!.dateSignatureCGU).to.deep.equal(plusRecente.toJSDate())
+    })
+  })
+
   describe('changerDispositifDesJeunesDuConseiller', () => {
     it("rattache au dispositif les jeunes du conseiller, dont ceux qu'il a transférés temporairement, mais pas ceux qu'il suit pour un autre", async () => {
       // Given

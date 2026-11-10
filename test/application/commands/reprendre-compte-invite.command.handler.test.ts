@@ -148,6 +148,55 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(
         jeuneInviteRepository.marquerRepris
       ).to.have.been.calledOnceWithExactly(idInvite, maintenant)
+      expect(
+        jeuneRepository.enregistrerSignatureCGUInvite
+      ).not.to.have.been.called()
+    })
+
+    it("reprend la date de signature des CGU de l'invité", async () => {
+      // Given
+      const dateSignatureCGU = maintenant.minus({ days: 11 })
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
+      jeuneInviteRepository.recupererPourReprise.withArgs(idInvite).resolves({
+        id: idInvite,
+        dateCreation: dateCreationInvite,
+        dateSignatureCGU
+      })
+      jeuneInviteRepository.marquerRepris.resolves(true)
+
+      // When
+      const result = await handler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(
+        jeuneRepository.enregistrerSignatureCGUInvite
+      ).to.have.been.calledOnceWithExactly(idJeuneConnecte, dateSignatureCGU)
+    })
+
+    it("ne reprend pas la signature des CGU quand l'invité est déjà repris", async () => {
+      // Given
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
+      jeuneInviteRepository.recupererPourReprise.withArgs(idInvite).resolves({
+        id: idInvite,
+        dateCreation: dateCreationInvite,
+        dateSignatureCGU: maintenant.minus({ days: 11 })
+      })
+      jeuneInviteRepository.marquerRepris.resolves(false)
+
+      // When
+      await handler.handle(command)
+
+      // Then
+      expect(
+        jeuneRepository.enregistrerSignatureCGUInvite
+      ).not.to.have.been.called()
     })
 
     it('refuse un jeton invalide', async () => {

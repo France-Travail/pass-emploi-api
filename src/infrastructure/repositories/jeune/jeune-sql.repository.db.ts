@@ -189,6 +189,19 @@ export class JeuneSqlRepository implements Jeune.Repository {
     )
   }
 
+  async enregistrerSignatureCGUInvite(
+    idJeune: string,
+    dateSignatureCGU: DateTime
+  ): Promise<void> {
+    await this.sequelize.query(
+      `UPDATE jeune
+       SET date_signature_cgu =
+         GREATEST(COALESCE(date_signature_cgu, :date), :date)
+       WHERE id = :idJeune`,
+      { replacements: { idJeune, date: dateSignatureCGU.toJSDate() } }
+    )
+  }
+
   async reinitialiserDatePremiereConnexion(idJeune: string): Promise<void> {
     await JeuneSqlModel.update(
       { datePremiereConnexion: null },

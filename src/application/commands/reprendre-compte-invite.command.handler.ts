@@ -151,6 +151,12 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
       jeuneConnecte.id,
       invite.dateCreation
     )
+    if (invite.dateSignatureCGU) {
+      await this.jeuneRepository.enregistrerSignatureCGUInvite(
+        jeuneConnecte.id,
+        invite.dateSignatureCGU
+      )
+    }
     if (command.plan) {
       await this.enregistrerPlan(
         jeuneConnecte,
