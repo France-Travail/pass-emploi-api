@@ -184,7 +184,7 @@ function toQuestionnaireSql(
 
   return {
     structure: questionnaire.structure,
-    situation: questionnaire.situation,
+    situation: questionnaire.situation ?? null,
     precisionSituation: questionnaire.precisionSituation ?? null,
     besoins: questionnaire.besoins,
     contraintes: questionnaire.contraintes,
@@ -204,18 +204,15 @@ function toQuestionnaireSql(
 function toQuestionnaire(
   planSql: PlanActionSqlModel
 ): Questionnaire | undefined {
-  if (
-    !planSql.structure ||
-    !planSql.situation ||
-    !planSql.besoins ||
-    !planSql.contraintes
-  ) {
+  if (!planSql.structure || !planSql.besoins || !planSql.contraintes) {
     return undefined
   }
 
   return {
     structure: planSql.structure as Profil.Structure,
-    situation: planSql.situation as Questionnaire.Situation,
+    ...(planSql.situation
+      ? { situation: planSql.situation as Questionnaire.Situation }
+      : {}),
     ...(planSql.precisionSituation
       ? { precisionSituation: planSql.precisionSituation }
       : {}),

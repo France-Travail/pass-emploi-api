@@ -347,6 +347,26 @@ describe('PlanActionSqlRepository', () => {
       ])
     })
 
+    it('sauvegarde et relit sans situation le questionnaire où le jeune a passé la situation et les objectifs', async () => {
+      // Given
+      const questionnaireSansSituation = unQuestionnaire({
+        situation: undefined,
+        besoins: []
+      })
+      delete questionnaireSansSituation.situation
+      await planActionSqlRepository.save(
+        unPlan({ questionnaire: questionnaireSansSituation })
+      )
+
+      // When
+      const plan = await planActionSqlRepository.getDernierPlan('jeune-1')
+
+      // Then
+      const planSql = await PlanActionSqlModel.findByPk(unPlan().id)
+      expect(planSql!.situation).to.be.null()
+      expect(plan!.questionnaire).to.deep.equal(questionnaireSansSituation)
+    })
+
     it('rend un plan sans questionnaire quand il a été généré avant sa sauvegarde', async () => {
       // Given
       await planActionSqlRepository.save(unPlan())

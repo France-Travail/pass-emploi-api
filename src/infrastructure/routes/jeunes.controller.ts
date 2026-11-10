@@ -517,7 +517,7 @@ export class JeunesController {
   ): Promise<PlanActionQueryModel> {
     const command: GenererPlanActionCommand = {
       idJeune,
-      situation: payload.situation,
+      situation: payload.situation ?? undefined,
       precisionSituation: payload.precisionAutre,
       besoins: payload.goals,
       contraintes: payload.obstacles ?? [],

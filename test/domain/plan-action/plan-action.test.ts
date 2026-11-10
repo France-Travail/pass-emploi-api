@@ -137,6 +137,30 @@ describe('PlanAction', () => {
       expect(ids).to.deep.equal(['lyceens', 'toutes-situations'])
     })
 
+    it("cible comme « Autre situation » quand le jeune n'a pas donné sa situation", () => {
+      // Given
+      const solutions = [
+        uneSolution({
+          id: 'lyceens',
+          situations: [Questionnaire.Situation.LYCEE]
+        }),
+        uneSolution({
+          id: 'autres-situations',
+          situations: [
+            Questionnaire.Situation.EMPLOI,
+            Questionnaire.Situation.AUTRE
+          ]
+        }),
+        uneSolution({ id: 'toutes-situations', situations: [] })
+      ]
+
+      // When
+      const ids = filtrer(unQuestionnaire({ situation: undefined }), solutions)
+
+      // Then
+      expect(ids).to.deep.equal(['autres-situations', 'toutes-situations'])
+    })
+
     describe('âge', () => {
       const solutions = [
         uneSolution({ id: 'majeurs', ageMin: 18 }),
@@ -573,6 +597,39 @@ describe('PlanAction', () => {
 
       // Then
       expect(plan.objectifs).to.have.length(1)
+    })
+
+    it("construit le plan à partir des seuls freins quand le jeune n'a coché aucun objectif", () => {
+      // Given
+      const referentiel = [
+        uneSolution({ id: 'emploi-1', besoin: Questionnaire.Besoin.EMPLOI }),
+        uneSolution({
+          id: 'permis-1',
+          besoin: undefined,
+          contrainte: Questionnaire.Contrainte.PAS_DE_PERMIS
+        })
+      ]
+
+      // When
+      const plan = factory.creer(
+        'jeune-1',
+        unQuestionnaire({
+          situation: undefined,
+          besoins: [],
+          contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS]
+        }),
+        referentiel
+      )
+
+      // Then
+      expect(
+        plan.objectifs.map(objectif => ({
+          titre: objectif.titre,
+          idsSolutions: objectif.taches.map(tache => tache.idSolution)
+        }))
+      ).to.deep.equal([
+        { titre: 'Passer mon permis', idsSolutions: ['permis-1'] }
+      ])
     })
 
     describe('avec un plan précédent', () => {

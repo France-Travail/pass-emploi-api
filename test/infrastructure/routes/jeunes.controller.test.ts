@@ -1141,6 +1141,37 @@ describe('JeunesController', () => {
       )
     })
 
+    it("reprend le questionnaire d'un invité qui a passé la situation et les objectifs", async () => {
+      // Given
+      reprendreCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-invite/reprise-invite')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: { goals: [], obstacles: ['PAS_DE_PERMIS'] }
+        })
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(
+        reprendreCompteInviteCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          idInvite: 'id-invite',
+          jetonConnecte: 'jeton-connecte',
+          questionnaire: {
+            besoins: [],
+            contraintes: ['PAS_DE_PERMIS'],
+            domaineProfessionnelInconnu: false
+          }
+        },
+        unUtilisateurDecode()
+      )
+    })
+
     it('renvoie 400 si le questionnaire est invalide', async () => {
       // When
       await request(app.getHttpServer())
@@ -1148,7 +1179,7 @@ describe('JeunesController', () => {
         .set('authorization', unHeaderAuthorization())
         .send({
           jetonConnecte: 'jeton-connecte',
-          questionnaire: { situation: 'EMPLOI', goals: [] }
+          questionnaire: { situation: 'EN_RECHERCHE', goals: [] }
         })
         // Then
         .expect(HttpStatus.BAD_REQUEST)
@@ -1448,6 +1479,62 @@ describe('JeunesController', () => {
         commandeSansReponsesOptionnelles,
         unUtilisateurDecode()
       )
+    })
+
+    it('génère le plan quand le jeune a passé la situation et les objectifs mais coché un frein', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: null,
+          goals: [],
+          obstacles: ['PAS_DE_PERMIS'],
+          domaineInconnu: false
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          ...commandeSansReponsesOptionnelles,
+          situation: undefined,
+          besoins: [],
+          contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS]
+        },
+        unUtilisateurDecode()
+      )
+    })
+
+    it("génère le plan quand l'app n'envoie pas de situation", async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({ goals: ['ALTERNANCE'], domaineInconnu: false })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        { ...commandeSansReponsesOptionnelles, situation: undefined },
+        unUtilisateurDecode()
+      )
+    })
+
+    it('renvoie 400 quand la situation est inconnue', async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({ situation: 'EN_RECHERCHE', goals: ['ALTERNANCE'] })
+        // Then
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(genererPlanActionCommandHandler.execute).not.to.have.been.called()
     })
 
     it('transmet la précision de la situation autre', async () => {

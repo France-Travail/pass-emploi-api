@@ -266,7 +266,9 @@ export namespace PlanAction {
   ): boolean {
     return (
       solution.situations.length === 0 ||
-      solution.situations.includes(questionnaire.situation)
+      solution.situations.includes(
+        Questionnaire.situationPourCiblage(questionnaire)
+      )
     )
   }
 
