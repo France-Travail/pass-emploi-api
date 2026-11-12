@@ -49,6 +49,10 @@ import {
 import { UpdateJeuneConfigurationApplicationCommandHandler } from 'src/application/commands/update-jeune-configuration-application.command.handler'
 import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/update-preferences-jeune.command.handler'
 import { GetCommunicationsJeuneQueryHandler } from 'src/application/queries/get-communications-jeune.query.handler'
+import {
+  GetCGUJeuneQuery,
+  GetCGUJeuneQueryHandler
+} from 'src/application/queries/get-cgu-jeune.query.handler'
 import { GetConseillersJeuneQueryHandler } from 'src/application/queries/get-conseillers-jeune.query.handler.db'
 import { GetDetailJeuneQueryHandler } from 'src/application/queries/get-detail-jeune.query.handler.db'
 import {
@@ -66,6 +70,7 @@ import { JeuneHomeActionQueryModel } from 'src/application/queries/query-models/
 import {
   DetailJeuneQueryModel,
   HistoriqueConseillerJeuneQueryModel,
+  CGUJeuneQueryModel,
   PreferencesJeuneQueryModel
 } from 'src/application/queries/query-models/jeunes.query-model'
 import { FonctionnalitesJeuneQueryModel } from 'src/application/queries/query-models/fonctionnalites.query-model'
@@ -119,6 +124,7 @@ export class JeunesController {
     private readonly getPreferencesJeuneQueryHandler: GetPreferencesJeuneQueryHandler,
     private readonly getFonctionnalitesJeuneQueryHandler: GetFonctionnalitesJeuneQueryHandler,
     private readonly getCommunicationsJeuneQueryHandler: GetCommunicationsJeuneQueryHandler,
+    private readonly getCGUJeuneQueryHandler: GetCGUJeuneQueryHandler,
     private rechercherMessageCommandHandler: RechercherMessageQueryHandler,
     private getNotificationsJeuneQueryHandler: GetNotificationsJeuneQueryHandler,
     private getComptageJeuneQueryHandler: GetComptageJeuneQueryHandler,
@@ -422,6 +428,26 @@ export class JeunesController {
     }
     const result = await this.updateJeuneCommandHandler.execute(
       command,
+      utilisateur
+    )
+
+    return handleResult(result)
+  }
+
+  @ApiOperation({
+    summary: 'Récupère la date de signature des CGU du jeune',
+    description:
+      'Autorisé pour un jeune, accompagné ou non. dateSignatureCGU est absente si le jeune ne les a pas encore signées.'
+  })
+  @ApiResponse({ type: CGUJeuneQueryModel })
+  @Get(':idJeune/cgu')
+  async getCGUJeune(
+    @Param('idJeune') idJeune: string,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<CGUJeuneQueryModel> {
+    const query: GetCGUJeuneQuery = { idJeune }
+    const result = await this.getCGUJeuneQueryHandler.execute(
+      query,
       utilisateur
     )
 

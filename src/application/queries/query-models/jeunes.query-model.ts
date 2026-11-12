@@ -245,3 +245,11 @@ export class MotifSuppressionJeuneQueryModel {
   @ApiProperty({ required: false })
   description?: string
 }
+
+export class CGUJeuneQueryModel {
+  @ApiPropertyOptional({
+    description:
+      "Date de signature des CGU par le jeune, absente s'il ne les a pas encore signées"
+  })
+  dateSignatureCGU?: string
+}
