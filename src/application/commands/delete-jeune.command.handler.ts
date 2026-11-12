@@ -10,7 +10,7 @@ import {
   Authentification,
   AuthentificationRepositoryToken
 } from '../../domain/authentification'
-import { DISPOSITIFS_ACCOMPAGNES, Profil } from '../../domain/profil'
+import { Profil, TOUT_PROFIL_SAUF_INVITE } from '../../domain/profil'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Mail, MailServiceToken } from '../../domain/mail'
 
@@ -37,7 +37,7 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
 > {
   // Bi-public : suppression par le jeune lui-même ou déclenchée par le
   // support (cf. authorize()).
-  readonly profilsAutorises = DISPOSITIFS_ACCOMPAGNES
+  readonly profilsAutorises = TOUT_PROFIL_SAUF_INVITE
 
   constructor(
     @Inject(JeuneRepositoryToken)
@@ -89,7 +89,7 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
       const mail = this.mailFactory.creerMailSuppressionJeune(jeune)
       this.mailService.envoyer(mail)
     } else {
-      this.logger.warn(
+      this.logger.log(
         `Email non envoyé au conseiller : ${JSON.stringify(jeune.conseiller)}`
       )
     }

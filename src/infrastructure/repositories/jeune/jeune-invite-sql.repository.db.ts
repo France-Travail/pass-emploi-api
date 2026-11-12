@@ -81,4 +81,17 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
       idAuthentification
     }))
   }
+
+  async recupererPourSuppression(
+    id: string
+  ): Promise<JeuneInvite.PourPurge | undefined> {
+    const invite = await JeuneInviteSqlModel.findByPk(id, {
+      attributes: ['id', 'idAuthentification']
+    })
+    if (!invite) return undefined
+    return {
+      id: invite.id,
+      idAuthentification: invite.idAuthentification
+    }
+  }
 }

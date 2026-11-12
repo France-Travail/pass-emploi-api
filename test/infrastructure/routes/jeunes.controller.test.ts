@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import { ArchiverJeuneCommandHandler } from 'src/application/commands/archiver-jeune.command.handler'
 import { DeleteJeuneInactifCommandHandler } from 'src/application/commands/delete-jeune-inactif.command.handler'
 import { DeleteJeuneCommandHandler } from 'src/application/commands/delete-jeune.command.handler'
+import { SupprimerCompteInviteCommandHandler } from 'src/application/commands/supprimer-compte-invite.command.handler'
 import { TransfererJeunesConseillerCommandHandler } from 'src/application/commands/transferer-jeunes-conseiller.command.handler'
 import { UpdateJeuneConfigurationApplicationCommandHandler } from 'src/application/commands/update-jeune-configuration-application.command.handler'
 import { UpdateJeunePreferencesCommandHandler } from 'src/application/commands/update-preferences-jeune.command.handler'
@@ -50,6 +51,7 @@ import * as request from 'supertest'
 import {
   unHeaderAuthorization,
   unJwtPayloadValide,
+  unJwtPayloadValideInvite,
   unJwtPayloadValideJeunePE,
   unUtilisateurDecode
 } from 'test/fixtures/authentification.fixture'
@@ -73,6 +75,7 @@ describe('JeunesController', () => {
   let transfererJeunesConseillerCommandHandler: StubbedClass<TransfererJeunesConseillerCommandHandler>
   let deleteJeuneInactifCommandHandler: StubbedClass<DeleteJeuneInactifCommandHandler>
   let deleteJeuneCommandHandler: StubbedClass<DeleteJeuneCommandHandler>
+  let supprimerCompteInviteCommandHandler: StubbedClass<SupprimerCompteInviteCommandHandler>
   let getJeuneHomeSuiviQueryHandler: StubbedClass<GetJeuneHomeAgendaQueryHandler>
   let getJeuneHomeActionsQueryHandler: StubbedClass<GetJeuneHomeActionsQueryHandler>
   let updateJeuneConfigurationApplicationCommandHandler: StubbedClass<UpdateJeuneConfigurationApplicationCommandHandler>
@@ -105,6 +108,9 @@ describe('JeunesController', () => {
     )
     deleteJeuneInactifCommandHandler = app.get(DeleteJeuneInactifCommandHandler)
     deleteJeuneCommandHandler = app.get(DeleteJeuneCommandHandler)
+    supprimerCompteInviteCommandHandler = app.get(
+      SupprimerCompteInviteCommandHandler
+    )
     getJeuneHomeSuiviQueryHandler = app.get(GetJeuneHomeAgendaQueryHandler)
     getJeuneHomeActionsQueryHandler = app.get(GetJeuneHomeActionsQueryHandler)
     updateJeuneConfigurationApplicationCommandHandler = app.get(
@@ -361,6 +367,29 @@ describe('JeunesController', () => {
       expect(deleteJeuneCommandHandler.execute).to.have.be.calledWith({
         idJeune: 'id-jeune'
       })
+      expect(
+        supprimerCompteInviteCommandHandler.execute
+      ).not.to.have.been.called()
+    })
+
+    it("supprime le compte invité quand t'es invité", async () => {
+      //Given
+      jwtService.verifyTokenAndGetJwt.resolves(unJwtPayloadValideInvite())
+      supprimerCompteInviteCommandHandler.execute.resolves(emptySuccess())
+
+      //When
+      await request(app.getHttpServer())
+        .delete(`/jeunes/id-jeune`)
+        .set('authorization', unHeaderAuthorization())
+        //Then
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(supprimerCompteInviteCommandHandler.execute).to.have.be.calledWith(
+        {
+          idJeune: 'id-jeune'
+        }
+      )
+      expect(deleteJeuneCommandHandler.execute).not.to.have.been.called()
     })
 
     it("renvoie une 403 si l'utilisateur n'a pas les droits", async () => {
