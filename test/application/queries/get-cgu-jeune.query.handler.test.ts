@@ -45,11 +45,13 @@ describe('GetCGUJeuneQueryHandler', () => {
   })
 
   describe('handle', () => {
-    it('renvoie la date de signature des CGU', async () => {
+    it('renvoie la date de signature des CGU en UTC', async () => {
       // Given
       jeuneRepository.get.withArgs('idDeJohn').resolves(
         unJeune({
-          dateSignatureCGU: DateTime.fromISO('2026-10-10T12:00:00.000Z')
+          dateSignatureCGU: DateTime.fromISO('2026-10-10T14:00:00.000+02:00', {
+            setZone: true
+          })
         })
       )
 
