@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { Command } from '../../building-blocks/types/command'
@@ -9,8 +9,11 @@ import {
   Result
 } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
+import {
+  JeuneInvite,
+  JeuneInviteRepositoryToken
+} from '../../domain/jeune/jeune-invite'
 import { TOUT_INVITE } from '../../domain/profil'
-import { JeuneInviteSqlModel } from '../../infrastructure/sequelize/models/jeune-invite.sql-model'
 import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 
 export interface UpdateCGUInviteCommand extends Command {
@@ -25,19 +28,21 @@ export class UpdateCGUInviteCommandHandler extends CommandHandler<
 > {
   readonly profilsAutorises = TOUT_INVITE
 
-  constructor(private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer) {
+  constructor(
+    @Inject(JeuneInviteRepositoryToken)
+    private readonly jeuneInviteRepository: JeuneInvite.Repository,
+    private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer
+  ) {
     super('UpdateCGUInviteCommandHandler')
   }
 
   async handle(command: UpdateCGUInviteCommand): Promise<Result> {
-    const [nombreDeLignesMisesAJour] = await JeuneInviteSqlModel.update(
-      {
-        dateSignatureCGU: DateTime.fromISO(command.dateSignatureCGU).toJSDate()
-      },
-      { where: { id: command.idJeune } }
+    const signe = await this.jeuneInviteRepository.signerCGU(
+      command.idJeune,
+      DateTime.fromISO(command.dateSignatureCGU)
     )
 
-    if (nombreDeLignesMisesAJour === 0) {
+    if (!signe) {
       return failure(new NonTrouveError('Jeune invité', command.idJeune))
     }
 

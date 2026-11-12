@@ -1,6 +1,6 @@
 import { HttpStatus, INestApplication } from '@nestjs/common'
-import { UpdateCGUInviteCommandHandler } from 'src/application/commands/update-cgu-invite.command.handler.db'
-import { GetCGUInviteQueryHandler } from 'src/application/queries/get-cgu-invite.query.handler.db'
+import { UpdateCGUInviteCommandHandler } from 'src/application/commands/update-cgu-invite.command.handler'
+import { GetCGUInviteQueryHandler } from 'src/application/queries/get-cgu-invite.query.handler'
 import {
   DroitsInsuffisants,
   NonTrouveError

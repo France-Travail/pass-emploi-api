@@ -94,4 +94,22 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
       idAuthentification: invite.idAuthentification
     }
   }
+
+  async recupererCGU(id: string): Promise<JeuneInvite.CGU | undefined> {
+    const invite = await JeuneInviteSqlModel.findByPk(id, {
+      attributes: ['dateSignatureCGU']
+    })
+    if (!invite) return undefined
+    return invite.dateSignatureCGU
+      ? { dateSignature: DateTime.fromJSDate(invite.dateSignatureCGU) }
+      : {}
+  }
+
+  async signerCGU(id: string, dateSignature: DateTime): Promise<boolean> {
+    const [nombreMisAJour] = await JeuneInviteSqlModel.update(
+      { dateSignatureCGU: dateSignature.toJSDate() },
+      { where: { id } }
+    )
+    return nombreMisAJour > 0
+  }
 }

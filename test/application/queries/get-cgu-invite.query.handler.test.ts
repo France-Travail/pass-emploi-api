@@ -1,5 +1,7 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
-import { GetCGUInviteQueryHandler } from '../../../src/application/queries/get-cgu-invite.query.handler.db'
+import { GetCGUInviteQueryHandler } from '../../../src/application/queries/get-cgu-invite.query.handler'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
@@ -7,16 +9,15 @@ import {
   isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
+import { JeuneInvite } from '../../../src/domain/jeune/jeune-invite'
 import { TOUT_INVITE } from '../../../src/domain/profil'
-import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unProfilInvite } from '../../fixtures/profil.fixture'
-import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
-import { StubbedClass, expect, stubClass } from '../../utils'
-import { getDatabase } from '../../utils/database-for-testing'
+import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 
 describe('GetCGUInviteQueryHandler', () => {
   let getCGUInviteQueryHandler: GetCGUInviteQueryHandler
+  let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
 
   const idInvite = 'un-invite'
@@ -25,10 +26,12 @@ describe('GetCGUInviteQueryHandler', () => {
     profil: unProfilInvite()
   })
 
-  beforeEach(async () => {
-    await getDatabase().cleanPG()
+  beforeEach(() => {
+    const sandbox = createSandbox()
+    jeuneInviteRepository = stubInterface(sandbox)
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     getCGUInviteQueryHandler = new GetCGUInviteQueryHandler(
+      jeuneInviteRepository,
       jeuneInviteAuthorizer
     )
   })
@@ -36,12 +39,11 @@ describe('GetCGUInviteQueryHandler', () => {
   describe('handle', () => {
     it("renvoie la date de signature des CGU de l'invité", async () => {
       // Given
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: idInvite,
-          dateSignatureCGU: new Date('2026-10-10T12:00:00.000Z')
+      jeuneInviteRepository.recupererCGU.withArgs(idInvite).resolves({
+        dateSignature: DateTime.fromISO('2026-10-10T14:00:00.000+02:00', {
+          setZone: true
         })
-      )
+      })
 
       // When
       const result = await getCGUInviteQueryHandler.handle({
@@ -56,9 +58,7 @@ describe('GetCGUInviteQueryHandler', () => {
 
     it("ne renvoie pas de date quand l'invité n'a pas signé les CGU", async () => {
       // Given
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({ id: idInvite, dateSignatureCGU: null })
-      )
+      jeuneInviteRepository.recupererCGU.withArgs(idInvite).resolves({})
 
       // When
       const result = await getCGUInviteQueryHandler.handle({
@@ -70,6 +70,9 @@ describe('GetCGUInviteQueryHandler', () => {
     })
 
     it("échoue quand l'invité n'existe pas", async () => {
+      // Given
+      jeuneInviteRepository.recupererCGU.withArgs('inconnu').resolves(undefined)
+
       // When
       const result = await getCGUInviteQueryHandler.handle({
         idJeune: 'inconnu'

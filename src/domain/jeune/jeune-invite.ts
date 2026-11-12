@@ -19,6 +19,10 @@ export namespace JeuneInvite {
     idAuthentification: string
   }
 
+  export interface CGU {
+    dateSignature?: DateTime
+  }
+
   export interface Repository {
     existe(id: string): Promise<boolean>
     recupererInvitesInactifs(
@@ -32,6 +36,8 @@ export namespace JeuneInvite {
     marquerRepris(id: string, dateReprise: DateTime): Promise<boolean>
     recupererInvitesRepris(): Promise<PourPurge[]>
     recupererPourSuppression(id: string): Promise<PourPurge | undefined>
+    recupererCGU(id: string): Promise<CGU | undefined>
+    signerCGU(id: string, dateSignature: DateTime): Promise<boolean>
   }
 
   // Preuve de possession d'un compte invité : undefined si le jeton est refusé

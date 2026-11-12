@@ -9,12 +9,12 @@ import {
   Put
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { UpdateCGUInviteCommandHandler } from '../../application/commands/update-cgu-invite.command.handler.db'
+import { UpdateCGUInviteCommandHandler } from '../../application/commands/update-cgu-invite.command.handler'
 import { UpdatePrenomInviteCommandHandler } from '../../application/commands/update-prenom-invite.command.handler.db'
 import {
   CGUInviteQueryModel,
   GetCGUInviteQueryHandler
-} from '../../application/queries/get-cgu-invite.query.handler.db'
+} from '../../application/queries/get-cgu-invite.query.handler'
 import {
   GetPrenomInviteQueryHandler,
   PrenomInviteQueryModel

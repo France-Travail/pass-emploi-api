@@ -1,21 +1,22 @@
+import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
+import { DateTime } from 'luxon'
 import { JeuneInviteAuthorizer } from '../../../src/application/authorizers/jeune-invite-authorizer'
-import { UpdateCGUInviteCommandHandler } from '../../../src/application/commands/update-cgu-invite.command.handler.db'
+import { UpdateCGUInviteCommandHandler } from '../../../src/application/commands/update-cgu-invite.command.handler'
 import { NonTrouveError } from '../../../src/building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
   isSuccess
 } from '../../../src/building-blocks/types/result'
+import { JeuneInvite } from '../../../src/domain/jeune/jeune-invite'
 import { TOUT_INVITE } from '../../../src/domain/profil'
-import { JeuneInviteSqlModel } from '../../../src/infrastructure/sequelize/models/jeune-invite.sql-model'
 import { unUtilisateurJeune } from '../../fixtures/authentification.fixture'
 import { unProfilInvite } from '../../fixtures/profil.fixture'
-import { unJeuneInviteDto } from '../../fixtures/sql-models/jeune-invite.sql-model'
-import { StubbedClass, expect, stubClass } from '../../utils'
-import { getDatabase } from '../../utils/database-for-testing'
+import { StubbedClass, createSandbox, expect, stubClass } from '../../utils'
 
 describe('UpdateCGUInviteCommandHandler', () => {
   let updateCGUInviteCommandHandler: UpdateCGUInviteCommandHandler
+  let jeuneInviteRepository: StubbedType<JeuneInvite.Repository>
   let jeuneInviteAuthorizer: StubbedClass<JeuneInviteAuthorizer>
 
   const idInvite = 'un-invite'
@@ -24,36 +25,41 @@ describe('UpdateCGUInviteCommandHandler', () => {
     profil: unProfilInvite()
   })
 
-  beforeEach(async () => {
-    await getDatabase().cleanPG()
+  beforeEach(() => {
+    const sandbox = createSandbox()
+    jeuneInviteRepository = stubInterface(sandbox)
     jeuneInviteAuthorizer = stubClass(JeuneInviteAuthorizer)
     updateCGUInviteCommandHandler = new UpdateCGUInviteCommandHandler(
+      jeuneInviteRepository,
       jeuneInviteAuthorizer
     )
   })
 
   describe('handle', () => {
-    it('enregistre la date de signature des CGU en base', async () => {
+    it("signe les CGU à l'instant fourni, quel que soit son fuseau", async () => {
       // Given
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({ id: idInvite, dateSignatureCGU: null })
-      )
+      jeuneInviteRepository.signerCGU.resolves(true)
 
       // When
       const result = await updateCGUInviteCommandHandler.handle({
         idJeune: idInvite,
-        dateSignatureCGU: '2026-10-10T12:00:00.000Z'
+        dateSignatureCGU: '2026-10-10T14:00:00.000+02:00'
       })
 
       // Then
       expect(result).to.deep.equal(emptySuccess())
-      const enBase = await JeuneInviteSqlModel.findByPk(idInvite)
-      expect(enBase!.dateSignatureCGU).to.deep.equal(
-        new Date('2026-10-10T12:00:00.000Z')
+      expect(jeuneInviteRepository.signerCGU).to.have.been.calledOnce()
+      const [id, dateSignature] = jeuneInviteRepository.signerCGU.firstCall.args
+      expect(id).to.equal(idInvite)
+      expect(dateSignature.toMillis()).to.equal(
+        DateTime.fromISO('2026-10-10T12:00:00.000Z').toMillis()
       )
     })
 
     it("échoue quand l'invité n'existe pas", async () => {
+      // Given
+      jeuneInviteRepository.signerCGU.resolves(false)
+
       // When
       const result = await updateCGUInviteCommandHandler.handle({
         idJeune: 'inconnu',
