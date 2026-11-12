@@ -117,6 +117,7 @@ describe('RateLimitRedisStorage', () => {
 
     it('laisse passer quand Redis ne répond pas', async () => {
       // Given
+      sandbox.stub(rootLogger, 'error')
       const failingStorage = new RateLimitRedisStorage('redis://localhost:1')
       const start = Date.now()
 

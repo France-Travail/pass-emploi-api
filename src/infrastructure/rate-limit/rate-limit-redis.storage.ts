@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { createClient, RedisClientType } from 'redis'
-import { ThrottlerStorage, ThrottlerStorageRecord } from '@nestjs/throttler'
+import { ThrottlerStorage } from '@nestjs/throttler'
+import type { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface'
 import { rootLogger, toEcsError } from '../../utils/logger.module'
 
 const TIMEOUT_MS = 200
@@ -10,7 +11,7 @@ const LOG_THROTTLE_MS = 60000
 export class RateLimitRedisStorage implements ThrottlerStorage {
   private client: RedisClientType
   private connexion: Promise<void> | undefined
-  private lastErrorLogTime = 0
+  private dernierLogDePanne = Number.NEGATIVE_INFINITY
 
   constructor(redisUrl: string) {
     this.client = createClient({
@@ -81,19 +82,23 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     key: string,
     ttl: number
   ): Promise<[number, number]> {
-    const multi = this.client.multi()
-    multi.incr(key)
-    multi.pExpire(key, ttl, 'NX')
-    multi.pTTL(key)
-
-    const results = await multi.exec()
+    const results = await this.client
+      .multi()
+      .incr(key)
+      .pExpire(key, ttl, 'NX')
+      .pTTL(key)
+      .exec()
 
     if (!results || results.length < 3) {
       throw new Error('Redis MULTI command failed')
     }
 
-    const totalHits = results[0] as number
-    const ttlResult = results[2] as number
+    const totalHits = results[0]
+    const ttlResult = results[2]
+
+    if (typeof totalHits !== 'number' || typeof ttlResult !== 'number') {
+      throw new Error('Redis MULTI returned unexpected types')
+    }
 
     return [totalHits, ttlResult]
   }
@@ -124,8 +129,8 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
 
   private logErrorThrottled(error: unknown): void {
     const now = Date.now()
-    if (now - this.lastErrorLogTime >= LOG_THROTTLE_MS) {
-      this.lastErrorLogTime = now
+    if (now - this.dernierLogDePanne >= LOG_THROTTLE_MS) {
+      this.dernierLogDePanne = now
       rootLogger.error(
         {
           context: 'RateLimitRedisStorage',
