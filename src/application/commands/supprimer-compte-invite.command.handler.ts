@@ -27,7 +27,7 @@ export interface SupprimerCompteInviteCommand extends Command {
 export class SupprimerCompteInviteCommandHandler extends CommandHandler<
   SupprimerCompteInviteCommand,
   void,
-  JeuneInvite.PourSuppression
+  JeuneInvite.PourPurge
 > {
   readonly profilsAutorises = TOUT_INVITE
 
@@ -44,7 +44,7 @@ export class SupprimerCompteInviteCommandHandler extends CommandHandler<
 
   async getAggregate(
     command: SupprimerCompteInviteCommand
-  ): Promise<JeuneInvite.PourSuppression | undefined> {
+  ): Promise<JeuneInvite.PourPurge | undefined> {
     return this.jeuneInviteRepository.recupererPourSuppression(command.idJeune)
   }
 
@@ -61,13 +61,10 @@ export class SupprimerCompteInviteCommandHandler extends CommandHandler<
   async handle(
     command: SupprimerCompteInviteCommand,
     _utilisateur: Authentification.Utilisateur,
-    invite?: JeuneInvite.PourSuppression
+    invite?: JeuneInvite.PourPurge
   ): Promise<Result> {
     if (!invite) {
       return failure(new NonTrouveError('Jeune invité', command.idJeune))
-    }
-    if (invite.estRepris) {
-      return emptySuccess()
     }
 
     await this.authentificationRepository.supprimerCompteIdp(
@@ -81,9 +78,9 @@ export class SupprimerCompteInviteCommandHandler extends CommandHandler<
   async monitor(
     utilisateur: Authentification.Utilisateur,
     _command: SupprimerCompteInviteCommand,
-    invite?: JeuneInvite.PourSuppression
+    invite?: JeuneInvite.PourPurge
   ): Promise<void> {
-    if (!invite || invite.estRepris) return
+    if (!invite) return
     await this.evenementService.creer(
       Evenement.Code.COMPTE_SUPPRIME,
       utilisateur

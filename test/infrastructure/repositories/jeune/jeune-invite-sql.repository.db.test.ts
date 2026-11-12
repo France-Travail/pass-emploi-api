@@ -226,7 +226,7 @@ describe('JeuneInviteSqlRepository', () => {
   })
 
   describe('recupererPourSuppression', () => {
-    it("retourne l'invité non repris", async () => {
+    it("retourne l'invité", async () => {
       // Given
       await JeuneInviteSqlModel.creer(
         unJeuneInviteDto({ id: 'invite', idAuthentification: 'sub-invite' })
@@ -238,29 +238,7 @@ describe('JeuneInviteSqlRepository', () => {
       // Then
       expect(invite).to.deep.equal({
         id: 'invite',
-        idAuthentification: 'sub-invite',
-        estRepris: false
-      })
-    })
-
-    it("indique que l'invité a été repris", async () => {
-      // Given
-      await JeuneInviteSqlModel.creer(
-        unJeuneInviteDto({
-          id: 'invite',
-          idAuthentification: 'sub-invite',
-          dateReprise: maintenant.toJSDate()
-        })
-      )
-
-      // When
-      const invite = await repository.recupererPourSuppression('invite')
-
-      // Then
-      expect(invite).to.deep.equal({
-        id: 'invite',
-        idAuthentification: 'sub-invite',
-        estRepris: true
+        idAuthentification: 'sub-invite'
       })
     })
 

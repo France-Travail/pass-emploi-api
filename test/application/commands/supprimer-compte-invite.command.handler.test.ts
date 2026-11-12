@@ -83,7 +83,7 @@ describe('SupprimerCompteInviteCommandHandler', () => {
   describe('handle', () => {
     it("supprime le compte côté IDP puis l'invité", async () => {
       // Given
-      const invite = unInviteASupprimer({ estRepris: false })
+      const invite = unInviteASupprimer()
 
       // When
       const result = await handler.handle(command, utilisateur, invite)
@@ -103,7 +103,7 @@ describe('SupprimerCompteInviteCommandHandler', () => {
 
     it("ne supprime pas l'invité si la suppression côté IDP échoue", async () => {
       // Given
-      const invite = unInviteASupprimer({ estRepris: false })
+      const invite = unInviteASupprimer()
       authentificationRepository.supprimerCompteIdp.rejects(
         new Error('connect injoignable')
       )
@@ -113,21 +113,6 @@ describe('SupprimerCompteInviteCommandHandler', () => {
 
       // Then
       await expect(promesse).to.be.rejectedWith('connect injoignable')
-      expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
-    })
-
-    it('laisse à la purge un invité déjà repris', async () => {
-      // Given
-      const invite = unInviteASupprimer({ estRepris: true })
-
-      // When
-      const result = await handler.handle(command, utilisateur, invite)
-
-      // Then
-      expect(result).to.deep.equal(emptySuccess())
-      expect(
-        authentificationRepository.supprimerCompteIdp
-      ).not.to.have.been.called()
       expect(jeuneInviteRepository.supprimerPlusieurs).not.to.have.been.called()
     })
 
@@ -149,11 +134,7 @@ describe('SupprimerCompteInviteCommandHandler', () => {
   describe('monitor', () => {
     it("crée l'événement de suppression quand l'invité a été supprimé", async () => {
       // When
-      await handler.monitor(
-        utilisateur,
-        command,
-        unInviteASupprimer({ estRepris: false })
-      )
+      await handler.monitor(utilisateur, command, unInviteASupprimer())
 
       // Then
       expect(evenementService.creer).to.have.been.calledOnceWithExactly(
@@ -161,24 +142,12 @@ describe('SupprimerCompteInviteCommandHandler', () => {
         utilisateur
       )
     })
-
-    it("ne crée pas d'événement pour un invité déjà repris", async () => {
-      // When
-      await handler.monitor(
-        utilisateur,
-        command,
-        unInviteASupprimer({ estRepris: true })
-      )
-
-      // Then
-      expect(evenementService.creer).not.to.have.been.called()
-    })
   })
 
   describe('getAggregate', () => {
     it("charge l'invité à supprimer", async () => {
       // Given
-      const invite = unInviteASupprimer({ estRepris: false })
+      const invite = unInviteASupprimer()
       jeuneInviteRepository.recupererPourSuppression
         .withArgs(idInvite)
         .resolves(invite)
@@ -191,11 +160,7 @@ describe('SupprimerCompteInviteCommandHandler', () => {
     })
   })
 
-  function unInviteASupprimer({
-    estRepris
-  }: {
-    estRepris: boolean
-  }): JeuneInvite.PourSuppression {
-    return { id: idInvite, idAuthentification: 'sub-invite', estRepris }
+  function unInviteASupprimer(): JeuneInvite.PourPurge {
+    return { id: idInvite, idAuthentification: 'sub-invite' }
   }
 })
