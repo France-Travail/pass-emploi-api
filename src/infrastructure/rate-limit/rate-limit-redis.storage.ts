@@ -9,7 +9,7 @@ const LOG_THROTTLE_MS = 60000
 @Injectable()
 export class RateLimitRedisStorage implements ThrottlerStorage {
   private client: RedisClientType
-  private connectStarted = false
+  private connexion: Promise<void> | undefined
   private lastErrorLogTime = 0
 
   constructor(redisUrl: string) {
@@ -30,39 +30,40 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     _blockDuration: number,
     _throttlerName: string
   ): Promise<ThrottlerStorageRecord> {
-    if (!this.connectStarted) {
-      this.connectStarted = true
-      this.client.connect().catch(() => undefined)
-    }
+    const operation = async (): Promise<[number, number]> => {
+      if (!this.connexion) {
+        this.connexion = this.client
+          .connect()
+          .then(() => undefined)
+          .catch(() => undefined)
+      }
 
-    if (!this.client.isReady) {
-      this.logErrorThrottled(new Error('Redis not ready'))
-      return this.failOpenRecord()
+      if (!this.client.isReady) {
+        await this.connexion
+        if (!this.client.isReady) {
+          throw new Error('Redis not ready')
+        }
+      }
+
+      return await this.executeRedisOperation(key, ttl)
     }
 
     try {
-      const operation = this.executeRedisOperation(key, ttl)
-      const timeoutId = { id: 0 }
-      const timeout = this.createTimeout(timeoutId)
+      const result = await this.avecTimeout(operation())
 
-      operation.catch(() => undefined)
-
-      const result = await Promise.race([operation, timeout])
-
-      if (result) {
-        clearTimeout(timeoutId.id)
-        const [totalHits, ttlResult] = result
-        const timeToExpire = Math.max(0, Math.ceil(ttlResult / 1000))
-
-        return {
-          totalHits,
-          timeToExpire,
-          isBlocked: totalHits > limit,
-          timeToBlockExpire: timeToExpire
-        }
-      } else {
+      if (!result) {
         this.logErrorThrottled(new Error('Redis operation timeout'))
         return this.failOpenRecord()
+      }
+
+      const [totalHits, ttlResult] = result
+      const timeToExpire = Math.max(0, Math.ceil(ttlResult / 1000))
+
+      return {
+        totalHits,
+        timeToExpire,
+        isBlocked: totalHits > limit,
+        timeToBlockExpire: timeToExpire
       }
     } catch (error) {
       this.logErrorThrottled(error)
@@ -97,13 +98,19 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     return [totalHits, ttlResult]
   }
 
-  private createTimeout(timeoutId: { id: number }): Promise<null> {
-    return new Promise(resolve => {
-      timeoutId.id = setTimeout(
-        () => resolve(null),
-        TIMEOUT_MS
-      ) as unknown as number
+  private async avecTimeout<T>(promesse: Promise<T>): Promise<T | undefined> {
+    let timerId: NodeJS.Timeout | undefined
+
+    const timeout = new Promise<undefined>(resolve => {
+      timerId = setTimeout(() => resolve(undefined), TIMEOUT_MS)
     })
+
+    try {
+      promesse.catch(() => undefined)
+      return await Promise.race([promesse, timeout])
+    } finally {
+      if (timerId) clearTimeout(timerId)
+    }
   }
 
   private failOpenRecord(): ThrottlerStorageRecord {
