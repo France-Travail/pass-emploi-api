@@ -118,6 +118,7 @@ describe('RateLimitRedisStorage', () => {
     it('laisse passer quand Redis ne répond pas', async () => {
       // Given
       const failingStorage = new RateLimitRedisStorage('redis://localhost:1')
+      const start = Date.now()
 
       // When
       const result = await failingStorage.increment(
@@ -127,10 +128,12 @@ describe('RateLimitRedisStorage', () => {
         60000,
         'utilisateur'
       )
+      const duration = Date.now() - start
 
       // Then
       expect(result.isBlocked).to.equal(false)
       expect(result.totalHits).to.equal(0)
+      expect(duration).to.be.lessThan(500)
 
       // Cleanup
       await failingStorage.onModuleDestroy()

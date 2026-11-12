@@ -9,9 +9,7 @@ const LOG_THROTTLE_MS = 60000
 @Injectable()
 export class RateLimitRedisStorage implements ThrottlerStorage {
   private client: RedisClientType
-  private connected = false
-  private connecting = false
-  private connectionPromise: Promise<void> | null = null
+  private connectStarted = false
   private lastErrorLogTime = 0
 
   constructor(redisUrl: string) {
@@ -21,7 +19,7 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     })
 
     this.client.on('error', () => {
-      // noop - erreurs traitées dans increment via fail-open
+      // Sans ce listener, node-redis crashe le process sur erreur de connexion
     })
   }
 
@@ -32,26 +30,39 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     _blockDuration: number,
     _throttlerName: string
   ): Promise<ThrottlerStorageRecord> {
-    try {
-      await this.ensureConnected()
+    if (!this.connectStarted) {
+      this.connectStarted = true
+      this.client.connect().catch(() => undefined)
+    }
 
+    if (!this.client.isReady) {
+      this.logErrorThrottled(new Error('Redis not ready'))
+      return this.failOpenRecord()
+    }
+
+    try {
       const operation = this.executeRedisOperation(key, ttl)
-      const timeout = this.createTimeout()
+      const timeoutId = { id: 0 }
+      const timeout = this.createTimeout(timeoutId)
+
+      operation.catch(() => undefined)
 
       const result = await Promise.race([operation, timeout])
 
-      if (!result) {
+      if (result) {
+        clearTimeout(timeoutId.id)
+        const [totalHits, ttlResult] = result
+        const timeToExpire = Math.max(0, Math.ceil(ttlResult / 1000))
+
+        return {
+          totalHits,
+          timeToExpire,
+          isBlocked: totalHits > limit,
+          timeToBlockExpire: timeToExpire
+        }
+      } else {
+        this.logErrorThrottled(new Error('Redis operation timeout'))
         return this.failOpenRecord()
-      }
-
-      const [totalHits, ttlResult] = result
-      const timeToExpire = Math.max(0, Math.ceil(ttlResult / 1000))
-
-      return {
-        totalHits,
-        timeToExpire,
-        isBlocked: totalHits > limit,
-        timeToBlockExpire: timeToExpire
       }
     } catch (error) {
       this.logErrorThrottled(error)
@@ -60,40 +71,9 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.connected) {
-      try {
-        await this.client.disconnect()
-      } catch {
-        // noop - best effort cleanup
-      }
-      this.connected = false
+    if (this.client.isOpen) {
+      this.client.destroy()
     }
-  }
-
-  private async ensureConnected(): Promise<void> {
-    if (this.connected) {
-      return
-    }
-
-    if (this.connecting && this.connectionPromise) {
-      await this.connectionPromise
-      return
-    }
-
-    this.connecting = true
-    this.connectionPromise = this.client
-      .connect()
-      .then(() => {
-        this.connected = true
-        this.connecting = false
-      })
-      .catch(() => {
-        this.connecting = false
-        this.connectionPromise = null
-        throw new Error('Redis connection failed')
-      })
-
-    await this.connectionPromise
   }
 
   private async executeRedisOperation(
@@ -117,9 +97,12 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     return [totalHits, ttlResult]
   }
 
-  private createTimeout(): Promise<null> {
+  private createTimeout(timeoutId: { id: number }): Promise<null> {
     return new Promise(resolve => {
-      setTimeout(() => resolve(null), TIMEOUT_MS)
+      timeoutId.id = setTimeout(
+        () => resolve(null),
+        TIMEOUT_MS
+      ) as unknown as number
     })
   }
 
