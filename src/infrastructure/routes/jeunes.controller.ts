@@ -13,9 +13,17 @@ import {
   Patch,
   Post,
   Put,
-  Query
+  Query,
+  Res
 } from '@nestjs/common'
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import {
+  ApiHeader,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags
+} from '@nestjs/swagger'
+import { Response } from 'express'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import {
@@ -547,16 +555,23 @@ export class JeunesController {
     description: 'Autorisé pour un bénéficiaire connecté'
   })
   @ApiResponse({ type: PlanActionQueryModel })
+  @ApiNoContentResponse({
+    description:
+      "Le bénéficiaire n'a pas de plan, ou plus aucune tâche accessible"
+  })
   async recupererPlanAction(
     @Param('idJeune') idJeune: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<PlanActionQueryModel> {
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<PlanActionQueryModel | null> {
     const result = await this.recupererPlanActionQueryHandler.execute(
       { idJeune },
       utilisateur
     )
 
-    return handleResult(result)
+    const plan = handleResult(result)
+    if (!plan) response.status(HttpStatus.NO_CONTENT)
+    return plan
   }
 
   @Get(':idJeune/questionnaire')

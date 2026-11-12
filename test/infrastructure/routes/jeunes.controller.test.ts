@@ -64,6 +64,7 @@ import { ChangerStatutTachePlanActionCommandHandler } from '../../../src/applica
 import { ReprendreCompteInviteCommandHandler } from '../../../src/application/commands/reprendre-compte-invite.command.handler'
 import { SupprimerTachePlanActionCommandHandler } from '../../../src/application/commands/supprimer-tache-plan-action.command.handler'
 import { RecupererQuestionnaireQueryHandler } from '../../../src/application/queries/recuperer-questionnaire.query.handler'
+import { RecupererPlanActionQueryHandler } from '../../../src/application/queries/recuperer-plan-action.query.handler'
 import { GenererPlanActionCommandHandler } from '../../../src/application/commands/generer-plan-action.command.handler'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 
@@ -87,6 +88,7 @@ describe('JeunesController', () => {
   let reprendreCompteInviteCommandHandler: StubbedClass<ReprendreCompteInviteCommandHandler>
   let supprimerTachePlanActionCommandHandler: StubbedClass<SupprimerTachePlanActionCommandHandler>
   let recupererQuestionnaireQueryHandler: StubbedClass<RecupererQuestionnaireQueryHandler>
+  let recupererPlanActionQueryHandler: StubbedClass<RecupererPlanActionQueryHandler>
   let genererPlanActionCommandHandler: StubbedClass<GenererPlanActionCommandHandler>
 
   let jwtService: StubbedClass<JwtService>
@@ -136,6 +138,7 @@ describe('JeunesController', () => {
       RecupererQuestionnaireQueryHandler
     )
     genererPlanActionCommandHandler = app.get(GenererPlanActionCommandHandler)
+    recupererPlanActionQueryHandler = app.get(RecupererPlanActionQueryHandler)
 
     jwtService = app.get(JwtService)
     dateService = app.get(DateService)
@@ -1535,6 +1538,25 @@ describe('JeunesController', () => {
 
     ensureUserAuthenticationFailsIfInvalid(
       'post',
+      '/jeunes/id-jeune/plan-action'
+    )
+  })
+
+  describe('GET /jeunes/:idJeune/plan-action', () => {
+    it("renvoie 204 quand le jeune n'a pas de plan", async () => {
+      // Given
+      recupererPlanActionQueryHandler.execute.resolves(success(null))
+
+      // When
+      await request(app.getHttpServer())
+        .get('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.NO_CONTENT)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
       '/jeunes/id-jeune/plan-action'
     )
   })
