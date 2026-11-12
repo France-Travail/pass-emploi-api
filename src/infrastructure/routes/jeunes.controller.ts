@@ -13,9 +13,17 @@ import {
   Patch,
   Post,
   Put,
-  Query
+  Query,
+  Res
 } from '@nestjs/common'
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import {
+  ApiHeader,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags
+} from '@nestjs/swagger'
+import { Response } from 'express'
 import { DateTime } from 'luxon'
 import { DateService } from '../../utils/date-service'
 import {
@@ -566,16 +574,22 @@ export class JeunesController {
     description: 'Autorisé pour un bénéficiaire connecté'
   })
   @ApiResponse({ type: QuestionnaireQueryModel })
+  @ApiNoContentResponse({
+    description: "Le bénéficiaire n'a pas de questionnaire"
+  })
   async recupererQuestionnaire(
     @Param('idJeune') idJeune: string,
-    @Utilisateur() utilisateur: Authentification.Utilisateur
-  ): Promise<QuestionnaireQueryModel> {
+    @Utilisateur() utilisateur: Authentification.Utilisateur,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<QuestionnaireQueryModel | null> {
     const result = await this.recupererQuestionnaireQueryHandler.execute(
       { idJeune },
       utilisateur
     )
 
-    return handleResult(result)
+    const questionnaire = handleResult(result)
+    if (!questionnaire) response.status(HttpStatus.NO_CONTENT)
+    return questionnaire
   }
 
   @Post(':idInvite/reprise-invite')

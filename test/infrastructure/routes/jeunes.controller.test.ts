@@ -1561,18 +1561,16 @@ describe('JeunesController', () => {
         .expect(questionnaire)
     })
 
-    it("renvoie 404 quand le jeune n'a pas de questionnaire", async () => {
+    it("renvoie 204 quand le jeune n'a pas de questionnaire", async () => {
       // Given
-      recupererQuestionnaireQueryHandler.execute.resolves(
-        failure(new NonTrouveError('Questionnaire', 'id-jeune'))
-      )
+      recupererQuestionnaireQueryHandler.execute.resolves(success(null))
 
       // When
       await request(app.getHttpServer())
         .get('/jeunes/id-jeune/questionnaire')
         .set('authorization', unHeaderAuthorization())
         // Then
-        .expect(HttpStatus.NOT_FOUND)
+        .expect(HttpStatus.NO_CONTENT)
     })
 
     ensureUserAuthenticationFailsIfInvalid(
