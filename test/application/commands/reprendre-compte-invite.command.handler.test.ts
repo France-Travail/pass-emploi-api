@@ -143,11 +143,41 @@ describe('ReprendreCompteInviteCommandHandler', () => {
       expect(result).to.deep.equal(emptySuccess())
       expect(transactionService.executer).to.have.been.calledOnce()
       expect(
-        jeuneRepository.enregistrerPremiereUtilisationInvite
-      ).to.have.been.calledOnceWithExactly(idJeuneConnecte, dateCreationInvite)
+        jeuneRepository.enregistrerRepriseInvite
+      ).to.have.been.calledOnceWithExactly(idJeuneConnecte, {
+        datePremiereUtilisation: dateCreationInvite,
+        dateSignatureCGU: undefined
+      })
       expect(
         jeuneInviteRepository.marquerRepris
       ).to.have.been.calledOnceWithExactly(idInvite, maintenant)
+    })
+
+    it("reprend la date de signature des CGU de l'invité", async () => {
+      // Given
+      const dateSignatureCGU = maintenant.minus({ days: 11 })
+      jetonService.jeuneDuJeton
+        .withArgs('jeton-connecte')
+        .resolves(jeuneConnecte)
+      jeuneRepository.existe.withArgs(idJeuneConnecte).resolves(true)
+      jeuneInviteRepository.recupererPourReprise.withArgs(idInvite).resolves({
+        id: idInvite,
+        dateCreation: dateCreationInvite,
+        dateSignatureCGU
+      })
+      jeuneInviteRepository.marquerRepris.resolves(true)
+
+      // When
+      const result = await handler.handle(command)
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+      expect(
+        jeuneRepository.enregistrerRepriseInvite
+      ).to.have.been.calledOnceWithExactly(idJeuneConnecte, {
+        datePremiereUtilisation: dateCreationInvite,
+        dateSignatureCGU
+      })
     })
 
     it('refuse un jeton invalide', async () => {
@@ -256,7 +286,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         // Then
         expect(result).to.deep.equal(emptySuccess())
         expect(
-          jeuneRepository.enregistrerPremiereUtilisationInvite
+          jeuneRepository.enregistrerRepriseInvite
         ).not.to.have.been.called()
       })
 
@@ -428,7 +458,7 @@ describe('ReprendreCompteInviteCommandHandler', () => {
         expect(result).to.deep.equal(emptySuccess())
         expect(planActionRepository.save).not.to.have.been.called()
         expect(
-          jeuneRepository.enregistrerPremiereUtilisationInvite
+          jeuneRepository.enregistrerRepriseInvite
         ).to.have.been.calledOnce()
       })
 

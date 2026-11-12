@@ -49,7 +49,7 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
     id: string
   ): Promise<JeuneInvite.PourReprise | undefined> {
     const invite = await JeuneInviteSqlModel.findByPk(id, {
-      attributes: ['id', 'dateCreation', 'dateReprise']
+      attributes: ['id', 'dateCreation', 'dateReprise', 'dateSignatureCGU']
     })
     if (!invite) return undefined
     return {
@@ -57,6 +57,9 @@ export class JeuneInviteSqlRepository implements JeuneInvite.Repository {
       dateCreation: DateTime.fromJSDate(invite.dateCreation),
       ...(invite.dateReprise
         ? { dateReprise: DateTime.fromJSDate(invite.dateReprise) }
+        : {}),
+      ...(invite.dateSignatureCGU
+        ? { dateSignatureCGU: DateTime.fromJSDate(invite.dateSignatureCGU) }
         : {})
     }
   }

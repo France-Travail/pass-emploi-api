@@ -157,6 +157,29 @@ describe('JeuneInviteSqlRepository', () => {
       })
     })
 
+    it("retourne la date de signature des CGU quand l'invité les a signées", async () => {
+      // Given
+      const dateCreation = maintenant.minus({ days: 3 })
+      const dateSignatureCGU = maintenant.minus({ days: 2 })
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'invite',
+          dateCreation: dateCreation.toJSDate(),
+          dateSignatureCGU: dateSignatureCGU.toJSDate()
+        })
+      )
+
+      // When
+      const invite = await repository.recupererPourReprise('invite')
+
+      // Then
+      expect(invite).to.deep.equal({
+        id: 'invite',
+        dateCreation,
+        dateSignatureCGU
+      })
+    })
+
     it('retourne undefined pour un invité inconnu', async () => {
       // When
       const invite = await repository.recupererPourReprise('inconnu')

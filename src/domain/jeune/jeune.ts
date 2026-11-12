@@ -160,9 +160,12 @@ export namespace Jeune {
 
     reinitialiserDatePremiereConnexion(idJeune: string): Promise<void>
 
-    enregistrerPremiereUtilisationInvite(
+    enregistrerRepriseInvite(
       idJeune: string,
-      dateUtilisation: DateTime
+      reprise: {
+        datePremiereUtilisation: DateTime
+        dateSignatureCGU?: DateTime
+      }
     ): Promise<void>
 
     changerDispositifDesJeunesDuConseiller(

@@ -147,10 +147,10 @@ export class ReprendreCompteInviteCommandHandler extends CommandHandler<
     )
     if (!marque) return success(false)
 
-    await this.jeuneRepository.enregistrerPremiereUtilisationInvite(
-      jeuneConnecte.id,
-      invite.dateCreation
-    )
+    await this.jeuneRepository.enregistrerRepriseInvite(jeuneConnecte.id, {
+      datePremiereUtilisation: invite.dateCreation,
+      dateSignatureCGU: invite.dateSignatureCGU
+    })
     if (command.plan) {
       await this.enregistrerPlan(
         jeuneConnecte,
