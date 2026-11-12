@@ -6,21 +6,35 @@ import { rootLogger, toEcsError } from '../../utils/logger.module'
 
 const TIMEOUT_MS = 200
 const LOG_THROTTLE_MS = 60000
+const COMMANDES_PAR_INCREMENT = 5
+const INCREMENTS_EN_ATTENTE_MAX = 100
+
+interface Appel {
+  abandonne: boolean
+}
 
 @Injectable()
 export class RateLimitRedisStorage implements ThrottlerStorage {
   private client: RedisClientType
   private connexion: Promise<void> | undefined
+  private attenteDeConnexionExpiree = false
   private dernierLogDePanne = Number.NEGATIVE_INFINITY
 
   constructor(redisUrl: string) {
     this.client = createClient({
       url: redisUrl,
-      disableOfflineQueue: true
+      disableOfflineQueue: true,
+      // Multiple du nombre de commandes d'un incrément : une file pleine refuse
+      // un MULTI entier, jamais son EXEC seul.
+      commandsQueueMaxLength:
+        INCREMENTS_EN_ATTENTE_MAX * COMMANDES_PAR_INCREMENT
     })
 
     this.client.on('error', () => {
       // Sans ce listener, node-redis crashe le process sur erreur de connexion
+    })
+    this.client.on('ready', () => {
+      this.attenteDeConnexionExpiree = false
     })
   }
 
@@ -31,28 +45,16 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     _blockDuration: number,
     _throttlerName: string
   ): Promise<ThrottlerStorageRecord> {
-    const operation = async (): Promise<[number, number]> => {
-      if (!this.connexion) {
-        this.connexion = this.client
-          .connect()
-          .then(() => undefined)
-          .catch(() => undefined)
-      }
-
-      if (!this.client.isReady) {
-        await this.connexion
-        if (!this.client.isReady) {
-          throw new Error('Redis not ready')
-        }
-      }
-
-      return await this.executeRedisOperation(key, ttl)
-    }
+    const appel: Appel = { abandonne: false }
 
     try {
-      const result = await this.avecTimeout(operation())
+      const result = await this.avecTimeout(this.incrementer(key, ttl, appel))
 
       if (!result) {
+        appel.abandonne = true
+        if (!this.client.isReady) {
+          this.attenteDeConnexionExpiree = true
+        }
         this.logErrorThrottled(new Error('Redis operation timeout'))
         return this.failOpenRecord()
       }
@@ -76,6 +78,32 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     if (this.client.isOpen) {
       this.client.destroy()
     }
+  }
+
+  private async incrementer(
+    key: string,
+    ttl: number,
+    appel: Appel
+  ): Promise<[number, number]> {
+    if (!this.client.isReady) {
+      if (this.attenteDeConnexionExpiree) {
+        throw new Error('Redis not ready')
+      }
+      await this.connecter()
+      if (appel.abandonne || !this.client.isReady) {
+        throw new Error('Redis not ready')
+      }
+    }
+
+    return await this.executeRedisOperation(key, ttl)
+  }
+
+  private connecter(): Promise<void> {
+    this.connexion ??= this.client
+      .connect()
+      .then(() => undefined)
+      .catch(() => undefined)
+    return this.connexion
   }
 
   private async executeRedisOperation(

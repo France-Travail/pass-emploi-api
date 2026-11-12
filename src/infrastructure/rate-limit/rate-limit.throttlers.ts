@@ -1,5 +1,6 @@
 import { ExecutionContext } from '@nestjs/common'
-import { ThrottlerOptions } from '@nestjs/throttler'
+import { normalizeIp, ThrottlerOptions } from '@nestjs/throttler'
+import { IncomingMessage } from 'node:http'
 import { Authentification } from '../../domain/authentification'
 import { Profil } from '../../domain/profil'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
@@ -31,8 +32,7 @@ export function creerThrottlers(config: RateLimitConfig): ThrottlerOptions[] {
       ttl: config.ip.fenetreMs,
       limit: config.ip.limite,
       skipIf: (context): boolean => !estPublique(context),
-      getTracker: (req): string =>
-        req.headers['x-real-ip'] ?? req.socket.remoteAddress,
+      getTracker: (_req, context): string => normalizeIp(ipDuClient(context)),
       generateKey: (_context, tracker, nom): string =>
         `${PREFIXE_CLE}:${nom}:${tracker}`
     },
@@ -47,6 +47,14 @@ export function creerThrottlers(config: RateLimitConfig): ThrottlerOptions[] {
         `${PREFIXE_CLE}:${nom}:${context.getClass().name}.${context.getHandler().name}:${tracker}`
     }
   ]
+}
+
+export function ipDuClient(context: ExecutionContext): string {
+  const req = context.switchToHttp().getRequest<IncomingMessage>()
+  return (
+    (req.headers['x-real-ip'] as string | undefined) ??
+    req.socket.remoteAddress!
+  )
 }
 
 export function nomDuThrottler(cle: string): string {

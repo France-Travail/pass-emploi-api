@@ -5,6 +5,7 @@ import { TerminusModule } from '@nestjs/terminus'
 import { Test } from '@nestjs/testing'
 import { getStorageToken, ThrottlerStorage } from '@nestjs/throttler'
 import type { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface'
+import { IncomingMessage } from 'http'
 import { JWTPayload } from 'jose'
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon'
 import * as request from 'supertest'
@@ -17,6 +18,7 @@ import {
 } from '../../../src/infrastructure/rate-limit/rate-limit.guard'
 import { RateLimitModule } from '../../../src/infrastructure/rate-limit/rate-limit.module'
 import { HealthController } from '../../../src/infrastructure/routes/health.controller'
+import { customLogLevel } from '../../../src/utils/logger.helpers'
 import { rootLogger } from '../../../src/utils/logger.module'
 import {
   unHeaderAuthorization,
@@ -82,6 +84,7 @@ describe('RateLimitGuard', () => {
   let app: INestApplication
   let sandbox: SinonSandbox
   let logInfo: SinonStub
+  let derniereRequete: IncomingMessage
 
   beforeEach(() => {
     sandbox = createSandbox()
@@ -124,12 +127,30 @@ describe('RateLimitGuard', () => {
       .compile()
 
     app = testingModule.createNestApplication()
+    app.use(
+      (
+        req: IncomingMessage & { id: string },
+        _res: unknown,
+        next: () => void
+      ) => {
+        req.id = 'id-requete'
+        derniereRequete = req
+        next()
+      }
+    )
     await app.init()
     return request(app.getHttpServer())
   }
 
   const logsRateLimitExceeded = (): unknown[][] =>
     logInfo.args.filter(([log]) => log?.event?.action === 'rate_limit_exceeded')
+
+  const userJeunePE = {
+    id: 'bcd60403-5f10-4a16-a660-2099d79ebd66',
+    type: 'JEUNE',
+    structure: 'FRANCE_TRAVAIL',
+    dispositif: 'CEJ'
+  }
 
   it('renvoie 429 et Retry-After au-delà de la limite utilisateur', async () => {
     // Given
@@ -244,6 +265,7 @@ describe('RateLimitGuard', () => {
           event: { action: 'rate_limit_exceeded', outcome: 'failure' },
           labels: { rate_limit: 'ip', rate_limit_palier: '1' },
           url: { path: '/rate-limit/public' },
+          http: { request: { id: 'id-requete' } },
           client: { ip: '1.1.1.1' }
         },
         'rate_limit_exceeded'
@@ -304,7 +326,9 @@ describe('RateLimitGuard', () => {
           context: 'RateLimitGuard',
           event: { action: 'rate_limit_exceeded', outcome: 'failure' },
           labels: { rate_limit: 'route-couteuse', rate_limit_palier: '1' },
-          url: { path: '/rate-limit/couteuse' }
+          url: { path: '/rate-limit/couteuse' },
+          http: { request: { id: 'id-requete' } },
+          user: userJeunePE
         },
         'rate_limit_exceeded'
       ]
@@ -367,7 +391,9 @@ describe('RateLimitGuard', () => {
           context: 'RateLimitGuard',
           event: { action: 'rate_limit_exceeded', outcome: 'failure' },
           labels: { rate_limit: 'utilisateur', rate_limit_palier: '1' },
-          url: { path: '/rate-limit/a' }
+          url: { path: '/rate-limit/a' },
+          http: { request: { id: 'id-requete' } },
+          user: userJeunePE
         },
         'rate_limit_exceeded'
       ],
@@ -376,11 +402,127 @@ describe('RateLimitGuard', () => {
           context: 'RateLimitGuard',
           event: { action: 'rate_limit_exceeded', outcome: 'failure' },
           labels: { rate_limit: 'utilisateur', rate_limit_palier: '10' },
-          url: { path: '/rate-limit/a' }
+          url: { path: '/rate-limit/a' },
+          http: { request: { id: 'id-requete' } },
+          user: userJeunePE
         },
         'rate_limit_exceeded'
       ]
     ])
+  })
+
+  it('ne pose pas les headers X-RateLimit de la lib, seulement Retry-After', async () => {
+    // Given
+    const api = await demarrerApp()
+
+    // When
+    const reponses = []
+    for (let i = 0; i < 3; i++) {
+      reponses.push(
+        await api
+          .get('/rate-limit/a')
+          .set('authorization', unHeaderAuthorization())
+      )
+    }
+
+    // Then
+    const [reponseAcceptee, , reponseRefusee] = reponses
+    const headersRateLimit = (reponse: request.Response): string[] =>
+      Object.keys(reponse.headers).filter(header =>
+        header.startsWith('x-ratelimit')
+      )
+    expect(reponseAcceptee.status).to.equal(200)
+    expect(headersRateLimit(reponseAcceptee)).to.deep.equal([])
+    expect(reponseAcceptee.headers['retry-after']).to.be.undefined()
+    expect(reponseRefusee.status).to.equal(429)
+    expect(headersRateLimit(reponseRefusee)).to.deep.equal([])
+    expect(Object.keys(reponseRefusee.headers)).not.to.include(
+      'retry-after-utilisateur'
+    )
+    expect(Number(reponseRefusee.headers['retry-after'])).to.be.greaterThan(0)
+  })
+
+  it('marque la requête refusée pour que sa ligne de log soit muette', async () => {
+    // Given
+    const api = await demarrerApp({
+      rateLimit: uneConfigRateLimit({ JEUNE: 1 })
+    })
+
+    // When
+    await api.get('/rate-limit/a').set('authorization', unHeaderAuthorization())
+    const requeteAcceptee = derniereRequete
+    await api.get('/rate-limit/a').set('authorization', unHeaderAuthorization())
+
+    // Then
+    expect(customLogLevel(derniereRequete, { statusCode: 429 })).to.equal(
+      'silent'
+    )
+    expect(customLogLevel(requeteAcceptee, { statusCode: 429 })).to.equal(
+      'info'
+    )
+  })
+
+  describe('limite ip en IPv6', () => {
+    const statutsPour = async (ips: string[]): Promise<number[]> => {
+      const api = await demarrerApp()
+      const statuts = []
+      for (const ip of ips) {
+        const reponse = await api.get('/rate-limit/public').set('x-real-ip', ip)
+        statuts.push(reponse.status)
+      }
+      return statuts
+    }
+
+    it('partage le compteur entre deux adresses du même /64', async () => {
+      // When
+      const statuts = await statutsPour([
+        '2001:db8:1:2::1',
+        '2001:db8:1:2:aaaa:bbbb:cccc:dddd',
+        '2001:db8:1:2::ffff'
+      ])
+
+      // Then
+      expect(statuts).to.deep.equal([200, 200, 429])
+    })
+
+    it("ne partage pas le compteur avec une adresse d'un autre /64", async () => {
+      // When
+      const statuts = await statutsPour([
+        '2001:db8:1:2::1',
+        '2001:db8:1:2::2',
+        '2001:db8:1:3::1'
+      ])
+
+      // Then
+      expect(statuts).to.deep.equal([200, 200, 200])
+    })
+
+    it('compte une IPv4 mappée en IPv6 comme son IPv4', async () => {
+      // When
+      const statuts = await statutsPour([
+        '1.2.3.4',
+        '::ffff:1.2.3.4',
+        '1.2.3.4'
+      ])
+
+      // Then
+      expect(statuts).to.deep.equal([200, 200, 429])
+    })
+
+    it("logue l'adresse brute du header, pas le sous-réseau", async () => {
+      // When
+      await statutsPour([
+        '2001:db8:1:2::1',
+        '2001:db8:1:2::1',
+        '2001:db8:1:2::abcd'
+      ])
+
+      // Then
+      const [[log]] = logsRateLimitExceeded() as Array<
+        [{ client: { ip: string } }]
+      >
+      expect(log.client).to.deep.equal({ ip: '2001:db8:1:2::abcd' })
+    })
   })
 })
 

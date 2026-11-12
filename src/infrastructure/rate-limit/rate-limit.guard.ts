@@ -9,10 +9,20 @@ import {
   ThrottlerModuleOptions,
   ThrottlerStorage
 } from '@nestjs/throttler'
+import { Authentification } from '../../domain/authentification'
+import { toEcsUser } from '../../utils/logger.helpers'
 import { rootLogger, toEcsError } from '../../utils/logger.module'
 import { RateLimitConfig } from './rate-limit.config'
 import { RATE_LIMIT_CONFIG } from './rate-limit.module'
-import { NomThrottler, nomDuThrottler } from './rate-limit.throttlers'
+import {
+  ipDuClient,
+  NomThrottler,
+  nomDuThrottler
+} from './rate-limit.throttlers'
+
+export interface RequeteRefuseeParLeRateLimit {
+  refuseeParLeRateLimit?: boolean
+}
 
 const INTERVALLE_LOG_ECHEC_MS = 60000
 
@@ -68,6 +78,8 @@ export class RateLimitGuard extends ThrottlerGuard {
     detail: ThrottlerLimitDetail
   ): Promise<void> {
     const { req, res } = this.getRequestResponse(context)
+    const utilisateur: Authentification.Utilisateur | undefined =
+      req.authenticated?.utilisateur
     const nomThrottler = nomDuThrottler(detail.key)
     const refus = detail.totalHits - detail.limit
 
@@ -81,14 +93,18 @@ export class RateLimitGuard extends ThrottlerGuard {
             rate_limit_palier: String(refus)
           },
           url: { path: req.path },
+          http: { request: { id: req.id } },
+          ...(utilisateur && { user: toEcsUser(utilisateur) }),
           ...(nomThrottler === NomThrottler.IP && {
-            client: { ip: detail.tracker }
+            client: { ip: ipDuClient(context) }
           })
         },
         'rate_limit_exceeded'
       )
     }
 
+    const requeteRefusee: RequeteRefuseeParLeRateLimit = req
+    requeteRefusee.refuseeParLeRateLimit = true
     this.setResponseHeader(res, 'Retry-After', detail.timeToBlockExpire)
     throw new ThrottlerException()
   }

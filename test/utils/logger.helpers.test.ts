@@ -199,9 +199,17 @@ describe('logger.helpers', () => {
       expect(level).to.equal('error')
     })
 
-    it('ne logue pas une réponse 429', () => {
-      const level = customLogLevel({} as IncomingMessage, { statusCode: 429 })
+    it('ne logue pas un 429 refusé par le rate limit', () => {
+      const requete = { refuseeParLeRateLimit: true } as IncomingMessage & {
+        refuseeParLeRateLimit: boolean
+      }
+      const level = customLogLevel(requete, { statusCode: 429 })
       expect(level).to.equal('silent')
+    })
+
+    it('logue en info un 429 qui ne vient pas du rate limit (partenaire relayé)', () => {
+      const level = customLogLevel({} as IncomingMessage, { statusCode: 429 })
+      expect(level).to.equal('info')
     })
   })
 })

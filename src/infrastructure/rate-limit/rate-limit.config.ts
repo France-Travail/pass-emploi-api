@@ -19,33 +19,33 @@ export function lireRateLimitConfig(
     return undefined
   }
 
-  const utilisateurFenetreSecondes =
-    rateLimitConfig.utilisateur?.fenetreSecondes
-  const limiteJeune = rateLimitConfig.utilisateur?.limites?.JEUNE
-  const limiteInvite = rateLimitConfig.utilisateur?.limites?.INVITE
-  const limiteConseiller = rateLimitConfig.utilisateur?.limites?.CONSEILLER
-  const limiteSupport = rateLimitConfig.utilisateur?.limites?.SUPPORT
-  const ipFenetreSecondes = rateLimitConfig.ip?.fenetreSecondes
-  const ipLimite = rateLimitConfig.ip?.limite
-  const routeCouteuseFenetreSecondes =
-    rateLimitConfig.routeCouteuse?.fenetreSecondes
-  const routeCouteuseLimite = rateLimitConfig.routeCouteuse?.limite
+  const variables = {
+    RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES:
+      rateLimitConfig.utilisateur?.fenetreSecondes,
+    RATE_LIMIT_UTILISATEUR_LIMITE_JEUNE:
+      rateLimitConfig.utilisateur?.limites?.JEUNE,
+    RATE_LIMIT_UTILISATEUR_LIMITE_INVITE:
+      rateLimitConfig.utilisateur?.limites?.INVITE,
+    RATE_LIMIT_UTILISATEUR_LIMITE_CONSEILLER:
+      rateLimitConfig.utilisateur?.limites?.CONSEILLER,
+    RATE_LIMIT_UTILISATEUR_LIMITE_SUPPORT:
+      rateLimitConfig.utilisateur?.limites?.SUPPORT,
+    RATE_LIMIT_IP_FENETRE_SECONDES: rateLimitConfig.ip?.fenetreSecondes,
+    RATE_LIMIT_IP_LIMITE: rateLimitConfig.ip?.limite,
+    RATE_LIMIT_ROUTE_COUTEUSE_FENETRE_SECONDES:
+      rateLimitConfig.routeCouteuse?.fenetreSecondes,
+    RATE_LIMIT_ROUTE_COUTEUSE_LIMITE: rateLimitConfig.routeCouteuse?.limite
+  }
+  const variablesInvalides = Object.entries(variables)
+    .filter(([_nom, valeur]) => !valeur)
+    .map(([nom]) => nom)
 
-  if (
-    !utilisateurFenetreSecondes ||
-    !limiteJeune ||
-    !limiteInvite ||
-    !limiteConseiller ||
-    !limiteSupport ||
-    !ipFenetreSecondes ||
-    !ipLimite ||
-    !routeCouteuseFenetreSecondes ||
-    !routeCouteuseLimite
-  ) {
+  if (variablesInvalides.length > 0) {
     rootLogger.error(
       {
         context: 'RateLimitConfig',
-        event: { action: 'rate_limit_config_invalide', outcome: 'failure' }
+        event: { action: 'rate_limit_config_invalide', outcome: 'failure' },
+        labels: { rate_limit_variables_invalides: variablesInvalides.join(',') }
       },
       'rate_limit_config_invalide'
     )
@@ -54,21 +54,21 @@ export function lireRateLimitConfig(
 
   return {
     utilisateur: {
-      fenetreMs: utilisateurFenetreSecondes * 1000,
+      fenetreMs: variables.RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES * 1000,
       limites: {
-        JEUNE: limiteJeune,
-        INVITE: limiteInvite,
-        CONSEILLER: limiteConseiller,
-        SUPPORT: limiteSupport
+        JEUNE: variables.RATE_LIMIT_UTILISATEUR_LIMITE_JEUNE,
+        INVITE: variables.RATE_LIMIT_UTILISATEUR_LIMITE_INVITE,
+        CONSEILLER: variables.RATE_LIMIT_UTILISATEUR_LIMITE_CONSEILLER,
+        SUPPORT: variables.RATE_LIMIT_UTILISATEUR_LIMITE_SUPPORT
       }
     },
     ip: {
-      fenetreMs: ipFenetreSecondes * 1000,
-      limite: ipLimite
+      fenetreMs: variables.RATE_LIMIT_IP_FENETRE_SECONDES * 1000,
+      limite: variables.RATE_LIMIT_IP_LIMITE
     },
     routeCouteuse: {
-      fenetreMs: routeCouteuseFenetreSecondes * 1000,
-      limite: routeCouteuseLimite
+      fenetreMs: variables.RATE_LIMIT_ROUTE_COUTEUSE_FENETRE_SECONDES * 1000,
+      limite: variables.RATE_LIMIT_ROUTE_COUTEUSE_LIMITE
     }
   }
 }

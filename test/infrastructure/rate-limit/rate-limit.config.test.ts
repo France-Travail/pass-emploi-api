@@ -86,9 +86,17 @@ describe('lireRateLimitConfig', () => {
     // Then
     expect(result).to.be.undefined()
     expect(logError).to.have.been.calledOnce()
-    const logArgs = logError.getCall(0).args[0]
-    expect(logArgs.event.action).to.equal('rate_limit_config_invalide')
-    expect(logArgs.event.outcome).to.equal('failure')
+    expect(logError).to.have.been.calledWithExactly(
+      {
+        context: 'RateLimitConfig',
+        event: { action: 'rate_limit_config_invalide', outcome: 'failure' },
+        labels: {
+          rate_limit_variables_invalides:
+            'RATE_LIMIT_UTILISATEUR_LIMITE_SUPPORT'
+        }
+      },
+      'rate_limit_config_invalide'
+    )
   })
 
   it("renvoie undefined si une limite vaut 0 ou n'est pas numérique", () => {
@@ -113,7 +121,7 @@ describe('lireRateLimitConfig', () => {
     expect(logError).to.have.been.calledOnce()
   })
 
-  it('renvoie undefined si une fenêtre est invalide', () => {
+  it('nomme dans le log toutes les variables absentes ou invalides', () => {
     // Given
     const configService = new ConfigService({
       rateLimit: {
@@ -123,7 +131,7 @@ describe('lireRateLimitConfig', () => {
           limites: { JEUNE: 100, INVITE: 50, CONSEILLER: 200, SUPPORT: 300 }
         },
         ip: { fenetreSecondes: 60, limite: 500 },
-        routeCouteuse: { fenetreSecondes: 3600, limite: 10 }
+        routeCouteuse: { fenetreSecondes: 3600 }
       }
     })
 
@@ -133,5 +141,10 @@ describe('lireRateLimitConfig', () => {
     // Then
     expect(result).to.be.undefined()
     expect(logError).to.have.been.calledOnce()
+    expect(
+      logError.getCall(0).args[0].labels.rate_limit_variables_invalides
+    ).to.equal(
+      'RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES,RATE_LIMIT_ROUTE_COUTEUSE_LIMITE'
+    )
   })
 })

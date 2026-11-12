@@ -33,6 +33,7 @@ class RateLimitConfigModule {}
         config
           ? {
               throttlers: creerThrottlers(config),
+              setHeaders: false,
               storage: new RateLimitRedisStorage(configService.get('redis').url)
             }
           : { throttlers: [] }
