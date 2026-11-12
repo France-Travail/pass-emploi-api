@@ -1,12 +1,11 @@
-const tseslint = require('@typescript-eslint/eslint-plugin')
-const tsParser = require('@typescript-eslint/parser')
-const chaiFriendly = require('eslint-plugin-chai-friendly')
-const mochaPluginModule = require('eslint-plugin-mocha')
-const mochaPlugin = mochaPluginModule.default || mochaPluginModule
-const prettierRecommended = require('eslint-plugin-prettier/recommended')
-const globals = require('globals')
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import chaiFriendly from 'eslint-plugin-chai-friendly'
+import mochaPlugin from 'eslint-plugin-mocha'
+import prettierRecommended from 'eslint-plugin-prettier/recommended'
+import globals from 'globals'
 
-module.exports = [
+export default [
   // Ignores (remplace --ignore-path .gitignore + ignorePatterns)
   // Seuls les .ts sont lintés (comportement identique à l'ancienne config --ext ".ts")
   {
@@ -45,11 +44,10 @@ module.exports = [
 
       // Règles mocha désactivées : le codebase utilise des patterns incompatibles
       // (setup dans describe, exports de helpers de test, hooks globaux, etc.)
-      'mocha/no-setup-in-describe': 'off',
-      'mocha/no-top-level-hooks': 'off',
+      'mocha/no-setup-in-suite': 'off',
+      'mocha/no-root-hooks': 'off',
       'mocha/no-exports': 'off',
       'mocha/no-identical-title': 'off',
-      'mocha/no-sibling-hooks': 'off',
       'mocha/no-nested-tests': 'off',
       'mocha/no-pending-tests': 'off',
       'mocha/consistent-spacing-between-blocks': 'off',
