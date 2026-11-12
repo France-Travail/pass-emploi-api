@@ -106,6 +106,7 @@
     "@nestjs/platform-express": "11.2.1",
     "@nestjs/swagger": "11.4.7",
     "@nestjs/terminus": "11.1.1",
+    "@nestjs/throttler": "6.7.1",
     "axios": "^1.21.0",
     "bull": "4.16.5",
     "class-transformer": "0.5.1",
