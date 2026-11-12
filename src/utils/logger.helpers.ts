@@ -238,8 +238,28 @@ export const customLogLevel = (
 // des SLO d'authentification.
 // TODO: compter le 403 en échec une fois corrigés les appels refusés des apps
 // et du web.
-const estUnEchecDuParcours = (statusCode: number): boolean =>
-  !statusCode || (statusCode >= 400 && ![401, 403].includes(statusCode))
+const estUnEchecDuParcours = (
+  req: IncomingMessage,
+  statusCode: number
+): boolean =>
+  !statusCode ||
+  (statusCode >= 400 &&
+    ![401, 403].includes(statusCode) &&
+    !estUneAbsenceNormale(req, statusCode))
+
+// Ces GET répondent 404 quand le jeune n'a pas de plan ou de questionnaire :
+// un état normal, pas une panne.
+// TODO: retirer une fois ces routes passées en 204 (pass-emploi-api #538 et
+// #539, cette dernière attendant la diffusion de pass_emploi_app #87).
+const estUneAbsenceNormale = (
+  req: IncomingMessage,
+  statusCode: number
+): boolean =>
+  statusCode === 404 &&
+  req.method === 'GET' &&
+  ['plan_action', 'questionnaire'].includes(
+    (req as RequeteAvecUserJourney).userJourney ?? ''
+  )
 
 export const toEcsUser = (
   utilisateur: Authentification.Utilisateur
@@ -272,7 +292,9 @@ export const buildCustomSuccessObject =
     res: { statusCode: number },
     val: Record<string, unknown>
   ): Record<string, unknown> => {
-    const outcome = estUnEchecDuParcours(res.statusCode) ? 'failure' : 'success'
+    const outcome = estUnEchecDuParcours(req, res.statusCode)
+      ? 'failure'
+      : 'success'
     const log = {
       ...val,
       ...contexteDeLaRequete(req),

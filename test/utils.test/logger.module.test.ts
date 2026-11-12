@@ -92,6 +92,41 @@ describe('logger.module — pinoHttpOptions', () => {
         event: { action: 'request_completed', outcome: 'success' }
       })
     })
+    describe("404 d'un plan d'action ou d'un questionnaire absent", () => {
+      const requete = (method: string, userJourney: string): IncomingMessage =>
+        ({ method, userJourney }) as unknown as IncomingMessage
+
+      it("GET du plan d'action injecte outcome=success", () => {
+        const result = pinoHttpOptions.customSuccessObject(
+          requete('GET', 'plan_action'),
+          { statusCode: 404 },
+          {}
+        )
+        expect(result).to.deep.include({
+          event: { action: 'request_completed', outcome: 'success' }
+        })
+      })
+      it('GET du questionnaire injecte outcome=success', () => {
+        const result = pinoHttpOptions.customSuccessObject(
+          requete('GET', 'questionnaire'),
+          { statusCode: 404 },
+          {}
+        )
+        expect(result).to.deep.include({
+          event: { action: 'request_completed', outcome: 'success' }
+        })
+      })
+      it("génération du plan d'action (POST) injecte outcome=failure", () => {
+        const result = pinoHttpOptions.customSuccessObject(
+          requete('POST', 'plan_action'),
+          { statusCode: 404 },
+          {}
+        )
+        expect(result).to.deep.include({
+          event: { action: 'request_completed', outcome: 'failure' }
+        })
+      })
+    })
     it('aborted (statusCode null) injecte outcome=failure', () => {
       const result = pinoHttpOptions.customSuccessObject(
         req,
