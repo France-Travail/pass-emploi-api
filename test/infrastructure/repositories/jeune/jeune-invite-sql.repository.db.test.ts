@@ -250,4 +250,88 @@ describe('JeuneInviteSqlRepository', () => {
       expect(invite).to.be.undefined()
     })
   })
+
+  describe('recupererCGU', () => {
+    it('retourne la date de signature des CGU', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({
+          id: 'invite',
+          dateSignatureCGU: maintenant.toJSDate()
+        })
+      )
+
+      // When
+      const cgu = await repository.recupererCGU('invite')
+
+      // Then
+      expect(cgu).to.deep.equal({ dateSignature: maintenant })
+    })
+
+    it("retourne des CGU sans date quand l'invité ne les a pas signées", async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ id: 'invite', dateSignatureCGU: null })
+      )
+
+      // When
+      const cgu = await repository.recupererCGU('invite')
+
+      // Then
+      expect(cgu).to.deep.equal({})
+    })
+
+    it('retourne undefined pour un invité inconnu', async () => {
+      // When
+      const cgu = await repository.recupererCGU('inconnu')
+
+      // Then
+      expect(cgu).to.be.undefined()
+    })
+  })
+
+  describe('signerCGU', () => {
+    it('enregistre la date de signature des CGU', async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ id: 'invite', dateSignatureCGU: null })
+      )
+
+      // When
+      const signe = await repository.signerCGU('invite', maintenant)
+
+      // Then
+      expect(signe).to.equal(true)
+      const invite = await JeuneInviteSqlModel.findByPk('invite')
+      expect(invite!.dateSignatureCGU).to.deep.equal(maintenant.toJSDate())
+    })
+
+    it("enregistre l'instant de signature quel que soit son fuseau", async () => {
+      // Given
+      await JeuneInviteSqlModel.creer(
+        unJeuneInviteDto({ id: 'invite', dateSignatureCGU: null })
+      )
+      const dateSignatureParis = DateTime.fromISO(
+        '2026-10-10T14:00:00.000+02:00',
+        { setZone: true }
+      )
+
+      // When
+      await repository.signerCGU('invite', dateSignatureParis)
+
+      // Then
+      const invite = await JeuneInviteSqlModel.findByPk('invite')
+      expect(invite!.dateSignatureCGU).to.deep.equal(
+        new Date('2026-10-10T12:00:00.000Z')
+      )
+    })
+
+    it('retourne false pour un invité inconnu', async () => {
+      // When
+      const signe = await repository.signerCGU('inconnu', maintenant)
+
+      // Then
+      expect(signe).to.equal(false)
+    })
+  })
 })
