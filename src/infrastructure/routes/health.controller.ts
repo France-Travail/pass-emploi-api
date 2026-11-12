@@ -1,11 +1,13 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
+import { SkipThrottle } from '@nestjs/throttler'
 import { HealthCheckResult } from '@nestjs/terminus/dist/health-check/health-check-result.interface'
 import { Public } from '../decorators/public.decorator'
 import { ConfigService } from '@nestjs/config'
 
 @Public()
+@SkipThrottle({ ip: true })
 @Controller()
 @ApiTags('Metrics')
 export class HealthController {
