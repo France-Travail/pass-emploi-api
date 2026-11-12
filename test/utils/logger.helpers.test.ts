@@ -1,4 +1,5 @@
 import { ValidationError } from '@nestjs/common'
+import { IncomingMessage } from 'http'
 import { ForeignKeyConstraintError } from 'sequelize'
 import {
   NonTraitableError,
@@ -7,6 +8,7 @@ import {
 } from '../../src/building-blocks/types/domain-error'
 import {
   aplatirErreursDeValidation,
+  customLogLevel,
   serializeBodyForLog,
   toEcsError
 } from '../../src/utils/logger.helpers'
@@ -174,6 +176,32 @@ describe('logger.helpers', () => {
           constraints: { isUuid: 'id must be a UUID' }
         }
       ])
+    })
+  })
+
+  describe('customLogLevel', () => {
+    it('logue une réponse 200 en info', () => {
+      const level = customLogLevel({} as IncomingMessage, { statusCode: 200 })
+      expect(level).to.equal('info')
+    })
+
+    it('logue une réponse 500 en error', () => {
+      const level = customLogLevel({} as IncomingMessage, { statusCode: 500 })
+      expect(level).to.equal('error')
+    })
+
+    it('logue une erreur en error', () => {
+      const level = customLogLevel(
+        {} as IncomingMessage,
+        { statusCode: 200 },
+        new Error()
+      )
+      expect(level).to.equal('error')
+    })
+
+    it('ne logue pas une réponse 429', () => {
+      const level = customLogLevel({} as IncomingMessage, { statusCode: 429 })
+      expect(level).to.equal('silent')
     })
   })
 })

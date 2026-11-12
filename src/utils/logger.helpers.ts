@@ -229,7 +229,8 @@ export const customLogLevel = (
   _req: IncomingMessage,
   res: { statusCode: number },
   err?: Error
-): 'info' | 'error' => {
+): 'info' | 'error' | 'silent' => {
+  if (res.statusCode === 429) return 'silent'
   if (err || !res.statusCode || res.statusCode >= 500) return 'error'
   return 'info'
 }
