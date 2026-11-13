@@ -5,6 +5,11 @@ import { configurationSchema } from './configuration.schema'
 
 export const TIME_ZONE_EUROPE_PARIS = 'Europe/Paris'
 
+function entierOuUndefined(valeur?: string): number | undefined {
+  const nombre = Number(valeur)
+  return Number.isInteger(nombre) && nombre > 0 ? nombre : undefined
+}
+
 export default () => {
   const scalingoApp = process.env.APP
   let baseUrl: string
@@ -148,6 +153,40 @@ export default () => {
     },
     redis: {
       url: process.env.REDIS_URL
+    },
+    rateLimit: {
+      actif: process.env.RATE_LIMIT_ACTIF === 'true',
+      utilisateur: {
+        fenetreSecondes: entierOuUndefined(
+          process.env.RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES
+        ),
+        limites: {
+          JEUNE: entierOuUndefined(
+            process.env.RATE_LIMIT_UTILISATEUR_LIMITE_JEUNE
+          ),
+          INVITE: entierOuUndefined(
+            process.env.RATE_LIMIT_UTILISATEUR_LIMITE_INVITE
+          ),
+          CONSEILLER: entierOuUndefined(
+            process.env.RATE_LIMIT_UTILISATEUR_LIMITE_CONSEILLER
+          ),
+          SUPPORT: entierOuUndefined(
+            process.env.RATE_LIMIT_UTILISATEUR_LIMITE_SUPPORT
+          )
+        }
+      },
+      ip: {
+        fenetreSecondes: entierOuUndefined(
+          process.env.RATE_LIMIT_IP_FENETRE_SECONDES
+        ),
+        limite: entierOuUndefined(process.env.RATE_LIMIT_IP_LIMITE)
+      },
+      routeCouteuse: {
+        fenetreSecondes: entierOuUndefined(
+          process.env.RATE_LIMIT_ROUTE_COUTEUSE_FENETRE_SECONDES
+        ),
+        limite: entierOuUndefined(process.env.RATE_LIMIT_ROUTE_COUTEUSE_LIMITE)
+      }
     },
     brevo: {
       url: process.env.SENDINBLUE_API_URL ?? 'https://api.sendinblue.com',

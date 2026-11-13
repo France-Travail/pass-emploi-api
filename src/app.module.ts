@@ -385,6 +385,8 @@ import { JetonJeuneJwtService } from './infrastructure/auth/jeton-jeune.service'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
 import { UserJourneyGuard } from './infrastructure/monitoring/user-journey.guard'
+import { RateLimitGuard } from './infrastructure/rate-limit/rate-limit.guard'
+import { RateLimitModule } from './infrastructure/rate-limit/rate-limit.module'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
 import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
@@ -500,7 +502,8 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
       load: [configuration]
     }),
     configureLoggerModule(),
-    TerminusModule
+    TerminusModule,
+    RateLimitModule
   ],
   controllers: [
     // De base
@@ -616,6 +619,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: APP_GUARD,
       useClass: OidcAuthGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RateLimitGuard
     },
     {
       provide: ActionRepositoryToken,
