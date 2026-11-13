@@ -7,6 +7,7 @@ import {
   RequeteAvecUserJourney,
   UserJourneyGuard
 } from '../../../src/infrastructure/monitoring/user-journey.guard'
+import { RateLimitGuard } from '../../../src/infrastructure/rate-limit/rate-limit.guard'
 import { expect } from '../../utils'
 
 describe('UserJourneyGuard', () => {
@@ -94,6 +95,10 @@ describe('UserJourneyGuard', () => {
       .map(provider => provider.useClass)
 
     // Then
-    expect(guardsGlobaux).to.deep.equal([UserJourneyGuard, OidcAuthGuard])
+    expect(guardsGlobaux).to.deep.equal([
+      UserJourneyGuard,
+      OidcAuthGuard,
+      RateLimitGuard
+    ])
   })
 })
