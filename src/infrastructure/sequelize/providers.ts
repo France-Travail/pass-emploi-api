@@ -13,7 +13,7 @@ export const databaseProviders = [
     inject: [ConfigService],
     useFactory: async (configService: ConfigService): Promise<Sequelize> => {
       let otherOptions = {}
-      if (configService.get('environment') === 'staging') {
+      if (configService.get<boolean>('database.tls')) {
         otherOptions = {
           dialectOptions: {
             ssl: {

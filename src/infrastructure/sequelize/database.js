@@ -1,5 +1,6 @@
 /* eslint-disable no-process-env */
 const { parse } = require('pg-connection-string')
+const { exigeTls } = require('./tls')
 
 const defaults = {
   username: 'passemploi',
@@ -12,7 +13,7 @@ const DATABASE_URL = process.env.DATABASE_URL || defaultUrl
 const { host, port, database, user, password } = parse(DATABASE_URL)
 
 let otherOptions = {}
-if (process.env.ENVIRONMENT === 'staging') {
+if (exigeTls(DATABASE_URL)) {
   otherOptions = {
     dialectOptions: {
       ssl: {
