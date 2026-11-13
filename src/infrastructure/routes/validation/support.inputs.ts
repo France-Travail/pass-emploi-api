@@ -86,6 +86,12 @@ export class ModifierDispositifFTConseillerPayload {
   dispositif: Profil.Dispositif
 }
 
+export class LogoutJeunesPayload {
+  @ApiProperty({ enum: Profil.Dispositif })
+  @IsEnum(Profil.Dispositif)
+  dispositif: Profil.Dispositif
+}
+
 export class FusionnerAgencesPayload {
   @ApiProperty()
   @IsString()
