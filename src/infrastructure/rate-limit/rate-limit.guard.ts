@@ -69,11 +69,11 @@ export class RateLimitGuard extends ThrottlerGuard {
     }
   }
 
-  protected async shouldSkip(_context: ExecutionContext): Promise<boolean> {
-    return !this.rateLimitConfig
+  protected shouldSkip(_context: ExecutionContext): Promise<boolean> {
+    return Promise.resolve(!this.rateLimitConfig)
   }
 
-  protected async throwThrottlingException(
+  protected throwThrottlingException(
     context: ExecutionContext,
     detail: ThrottlerLimitDetail
   ): Promise<void> {
