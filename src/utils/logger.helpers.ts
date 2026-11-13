@@ -3,7 +3,6 @@ import { IncomingMessage } from 'node:http'
 import { DatabaseError } from 'sequelize'
 import { Authentification } from '../domain/authentification'
 import { RequeteAvecUserJourney } from '../infrastructure/monitoring/user-journey.guard'
-import type { RequeteRefuseeParLeRateLimit } from '../infrastructure/rate-limit/rate-limit.guard'
 
 const REQ_HEADERS_WHITELIST = [
   'user-agent',
@@ -227,11 +226,10 @@ export const requestBodyFragment = (
 }
 
 export const customLogLevel = (
-  req: IncomingMessage & RequeteRefuseeParLeRateLimit,
+  _req: IncomingMessage,
   res: { statusCode: number },
   err?: Error
-): 'info' | 'error' | 'silent' => {
-  if (res.statusCode === 429 && req.refuseeParLeRateLimit) return 'silent'
+): 'info' | 'error' => {
   if (err || !res.statusCode || res.statusCode >= 500) return 'error'
   return 'info'
 }

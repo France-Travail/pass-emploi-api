@@ -1,7 +1,6 @@
 import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Query } from '@nestjs/common'
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { SkipThrottle } from '@nestjs/throttler'
 import { GetCatalogueDemarchesQueryHandler } from 'src/application/queries/get-catalogue-demarches.query.handler'
 import { ThematiqueQueryModel } from 'src/application/queries/query-models/catalogue.query-model'
 import { GetActionsPredefiniesQueryHandler } from '../../application/queries/action/get-actions-predefinies.query.handler'
@@ -79,9 +78,6 @@ export class ReferentielsController {
 
   @Get('types-rendezvous')
   @Public()
-  // Appelée côté serveur par pass-emploi-web : tous les conseillers partagent son
-  // IP de sortie. Liste constante en mémoire, un flood ne coûte presque rien.
-  @SkipThrottle({ ip: true })
   @ApiResponse({
     type: TypeRendezVousQueryModel,
     isArray: true

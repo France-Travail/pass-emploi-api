@@ -91,7 +91,6 @@ import {
   NotificationJeuneQueryModel
 } from '../../application/queries/get-notifications-jeune.query.handler.db'
 import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
-import { RouteCouteuse } from '../decorators/route-couteuse.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import {
@@ -539,7 +538,6 @@ export class JeunesController {
   }
 
   @Post(':idJeune/plan-action')
-  @RouteCouteuse()
   @UserJourney('plan_action')
   @ApiOperation({
     summary: "Génère une suggestion de plan d'action",

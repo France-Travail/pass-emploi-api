@@ -28,7 +28,6 @@ import { stubClass, stubClassSandbox } from './types'
 import { PlanificateurRepositoryToken } from '../../src/domain/planificateur'
 import { PlanificateurRedisRepository } from '../../src/infrastructure/repositories/planificateur-redis.repository.db'
 import { OidcClient } from '../../src/infrastructure/clients/oidc-client.db'
-import { RateLimitModule } from '../../src/infrastructure/rate-limit/rate-limit.module'
 
 export function buildTestingModuleForHttpTesting(
   sandbox: SinonSandbox = createSandbox()
@@ -43,12 +42,7 @@ export function buildTestingModuleForHttpTesting(
 export function buildTestingModuleForEndToEndTesting(): TestingModuleBuilder {
   const moduleMetadata = buildModuleMetadata()
   return Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot(),
-      TerminusModule,
-      configureLoggerModule(),
-      RateLimitModule
-    ],
+    imports: [ConfigModule.forRoot(), TerminusModule, configureLoggerModule()],
     providers: [...moduleMetadata.providers!],
     controllers: [...moduleMetadata.controllers!, FakeController]
   })
