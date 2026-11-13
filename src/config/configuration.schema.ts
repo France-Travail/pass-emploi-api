@@ -117,6 +117,26 @@ export const configurationSchema = Joi.object({
   redis: Joi.object({
     url: Joi.string().uri()
   }),
+  rateLimit: Joi.object({
+    actif: Joi.boolean(),
+    utilisateur: Joi.object({
+      fenetreSecondes: Joi.number().integer().positive().optional(),
+      limites: Joi.object({
+        JEUNE: Joi.number().integer().positive().optional(),
+        INVITE: Joi.number().integer().positive().optional(),
+        CONSEILLER: Joi.number().integer().positive().optional(),
+        SUPPORT: Joi.number().integer().positive().optional()
+      })
+    }),
+    ip: Joi.object({
+      fenetreSecondes: Joi.number().integer().positive().optional(),
+      limite: Joi.number().integer().positive().optional()
+    }),
+    routeCouteuse: Joi.object({
+      fenetreSecondes: Joi.number().integer().positive().optional(),
+      limite: Joi.number().integer().positive().optional()
+    })
+  }),
   brevo: Joi.object({
     url: Joi.string().uri().required(),
     apiKey: Joi.string().required(),
