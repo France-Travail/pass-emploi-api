@@ -243,6 +243,27 @@ describe('GenererPlanActionCommandHandler', () => {
       ).to.deep.equal([Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE])
     })
 
+    it("construit le plan sans situation ni objectif quand le jeune n'a coché qu'un frein", async () => {
+      // When
+      await handler.handle(
+        {
+          idJeune: utilisateur.id,
+          besoins: [],
+          contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS],
+          domaineProfessionnelInconnu: false
+        },
+        utilisateur
+      )
+
+      // Then
+      expect(planActionFactory.creer.firstCall.args[1]).to.deep.equal({
+        structure: Profil.Structure.INVITE,
+        besoins: [],
+        contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS],
+        domaineProfessionnelInconnu: false
+      })
+    })
+
     it('sauvegarde le plan pour un bénéficiaire accompagné', async () => {
       // Given
       const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
@@ -407,6 +428,19 @@ describe('GenererPlanActionCommandHandler', () => {
           plan_action_unknown_domain: 'false'
         }
       })
+    })
+
+    it('ne trace pas de situation quand le jeune a passé la question', async () => {
+      // When
+      await handler.execute({ ...command, situation: undefined }, utilisateur)
+
+      // Then
+      const labels = logInfo
+        .getCalls()
+        .map(appel => appel.args[0])
+        .find(log => log?.event?.action === 'handler_executed')?.labels
+      expect(labels).to.include({ plan_action_unknown_domain: 'false' })
+      expect(labels).not.to.have.property('plan_action_situation')
     })
   })
 

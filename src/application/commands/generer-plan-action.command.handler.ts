@@ -33,7 +33,7 @@ import { PlanActionQueryModel } from '../queries/query-models/plan-action.query-
 
 export interface GenererPlanActionCommand extends Command {
   idJeune: string
-  situation: Questionnaire.Situation
+  situation?: Questionnaire.Situation
   precisionSituation?: string | null
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
@@ -132,7 +132,9 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
     if (!command) return undefined
 
     return {
-      plan_action_situation: command.situation,
+      ...(command.situation
+        ? { plan_action_situation: command.situation }
+        : {}),
       plan_action_goals: command.besoins,
       ...(command.domaineProfessionnelVise
         ? { plan_action_domain: command.domaineProfessionnelVise }
@@ -151,7 +153,7 @@ function toQuestionnaire(
 ): Questionnaire {
   return {
     structure,
-    situation: command.situation,
+    ...(command.situation ? { situation: command.situation } : {}),
     ...(command.precisionSituation
       ? { precisionSituation: command.precisionSituation }
       : {}),

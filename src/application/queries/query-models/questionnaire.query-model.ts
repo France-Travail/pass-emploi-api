@@ -10,8 +10,11 @@ export class CommuneQuestionnaireQueryModel {
 }
 
 export class QuestionnaireQueryModel {
-  @ApiProperty({ enum: Questionnaire.Situation })
-  situation: Questionnaire.Situation
+  @ApiPropertyOptional({
+    enum: Questionnaire.Situation,
+    description: 'Absente quand le jeune a passé la question'
+  })
+  situation?: Questionnaire.Situation
 
   @ApiPropertyOptional()
   precisionAutre?: string

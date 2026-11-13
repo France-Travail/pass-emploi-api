@@ -3,7 +3,6 @@ import { Type } from 'class-transformer'
 import { DateTime } from 'luxon'
 import {
   ArrayMaxSize,
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -38,18 +37,27 @@ export class GenererPlanActionPayload {
   @IsOptional()
   dateNaissance?: string
 
-  @ApiProperty({ enum: Questionnaire.Situation })
+  @ApiPropertyOptional({
+    enum: Questionnaire.Situation,
+    nullable: true,
+    description:
+      'Absente quand le jeune a passé la question : le plan est alors ciblé comme pour AUTRE'
+  })
   @IsEnum(Questionnaire.Situation)
-  situation: Questionnaire.Situation
+  @IsOptional()
+  situation?: Questionnaire.Situation | null
 
   @ApiPropertyOptional({ nullable: true })
   @IsString()
   @IsOptional()
   precisionAutre?: string | null
 
-  @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
+  @ApiProperty({
+    enum: Questionnaire.Besoin,
+    isArray: true,
+    description: 'Vide quand le jeune a passé les objectifs'
+  })
   @IsArray()
-  @ArrayMinSize(1)
   @IsEnum(Questionnaire.Besoin, { each: true })
   goals: Questionnaire.Besoin[]
 
@@ -190,7 +198,7 @@ export function toReponsesQuestionnaire(
   payload: GenererPlanActionPayload
 ): Questionnaire.Reponses {
   return {
-    situation: payload.situation,
+    ...(payload.situation ? { situation: payload.situation } : {}),
     ...(payload.precisionAutre
       ? { precisionSituation: payload.precisionAutre }
       : {}),

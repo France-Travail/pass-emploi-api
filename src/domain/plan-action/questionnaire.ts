@@ -3,7 +3,7 @@ import { Profil } from '../profil'
 
 export interface Questionnaire {
   structure: Profil.Structure
-  situation: Questionnaire.Situation
+  situation?: Questionnaire.Situation
   precisionSituation?: string
   besoins: Questionnaire.Besoin[]
   contraintes: Questionnaire.Contrainte[]
@@ -71,6 +71,15 @@ export namespace Questionnaire {
     }
 
     return Array.from(new Set(contraintes))
+  }
+
+  // Une situation passée cible les solutions comme « Autre situation », mais
+  // reste absente du questionnaire enregistré pour que les statistiques
+  // distinguent les deux
+  export function situationPourCiblage(
+    questionnaire: Questionnaire
+  ): Situation {
+    return questionnaire.situation ?? Situation.AUTRE
   }
 
   export function calculerAge(

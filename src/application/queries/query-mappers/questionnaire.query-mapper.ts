@@ -7,7 +7,7 @@ export function toQuestionnaireQueryModel(
   const dateNaissance = questionnaire.dateNaissance?.toISODate()
 
   return {
-    situation: questionnaire.situation,
+    ...(questionnaire.situation ? { situation: questionnaire.situation } : {}),
     ...(questionnaire.precisionSituation
       ? { precisionAutre: questionnaire.precisionSituation }
       : {}),

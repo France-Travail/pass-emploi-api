@@ -43,6 +43,26 @@ describe('Questionnaire', () => {
     })
   })
 
+  describe('situationPourCiblage', () => {
+    it('reprend la situation donnée par le jeune', () => {
+      // When
+      const situation = Questionnaire.situationPourCiblage(unQuestionnaire())
+
+      // Then
+      expect(situation).to.equal(Questionnaire.Situation.LYCEE)
+    })
+
+    it('cible comme AUTRE une situation passée', () => {
+      // When
+      const situation = Questionnaire.situationPourCiblage(
+        unQuestionnaire({ situation: undefined })
+      )
+
+      // Then
+      expect(situation).to.equal(Questionnaire.Situation.AUTRE)
+    })
+  })
+
   describe('calculerAge', () => {
     const maintenant = DateTime.fromISO('2026-08-27T10:00:00.000Z', {
       zone: 'utc'

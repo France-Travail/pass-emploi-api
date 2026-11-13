@@ -45,6 +45,22 @@ describe('toQuestionnaireQueryModel', () => {
     })
   })
 
+  it('omet la situation passée par le jeune', () => {
+    // When
+    const queryModel = toQuestionnaireQueryModel({
+      ...unQuestionnaire(),
+      situation: undefined,
+      besoins: []
+    })
+
+    // Then
+    expect(queryModel).to.deep.equal({
+      goals: [],
+      obstacles: [Questionnaire.Contrainte.PAS_DE_PERMIS],
+      domaineInconnu: false
+    })
+  })
+
   it('omet les réponses vides', () => {
     // When
     const queryModel = toQuestionnaireQueryModel(unQuestionnaire())
