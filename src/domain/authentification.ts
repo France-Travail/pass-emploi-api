@@ -123,6 +123,8 @@ export namespace Authentification {
 
     supprimerCompteIdp(idAuthentification: string): Promise<void>
 
+    revoquerTokensIdp(idsAuthentification: string[]): Promise<void>
+
     estConseillerSuperviseur(
       profil: Profil,
       email?: string | null

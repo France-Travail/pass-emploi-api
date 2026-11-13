@@ -2,7 +2,6 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { createSandbox, SinonSandbox } from 'sinon'
 import {
   DeconnecterJeunesDispositifJobHandler,
-  PAUSE_ENTRE_DECONNEXIONS_MS,
   TAILLE_LOT_DECONNEXION_DISPOSITIF
 } from '../../../src/application/jobs/deconnecter-jeunes-dispositif.job.handler'
 import { Authentification } from '../../../src/domain/authentification'
@@ -64,7 +63,7 @@ describe('DeconnecterJeunesDispositifJobHandler', () => {
     )
   }
 
-  it('déconnecte les jeunes un par un, avec une pause après chaque appel', async () => {
+  it('déconnecte le lot en un seul appel', async () => {
     // Given
     jeuneRepository.recupererIdsAuthentificationDuDispositif
       .withArgs(
@@ -78,19 +77,9 @@ describe('DeconnecterJeunesDispositifJobHandler', () => {
     const suiviJob = await handler.handle(unJob())
 
     // Then
-    const supprimer = authentificationRepository.supprimerCompteIdp
-    expect(supprimer.firstCall).to.have.been.calledWithExactly('auth-1')
-    expect(supprimer.secondCall).to.have.been.calledWithExactly('auth-2')
-    expect(dateService.attendre).to.have.been.calledTwice()
-    expect(dateService.attendre).to.have.been.calledWithExactly(
-      PAUSE_ENTRE_DECONNEXIONS_MS
-    )
     expect(
-      supprimer.firstCall.calledBefore(dateService.attendre.firstCall)
-    ).to.be.true()
-    expect(
-      dateService.attendre.firstCall.calledBefore(supprimer.secondCall)
-    ).to.be.true()
+      authentificationRepository.revoquerTokensIdp
+    ).to.have.been.calledOnceWithExactly(['auth-1', 'auth-2'])
     expect(planificateurRepository.ajouterJob).not.to.have.been.called()
     expect(suiviJob.succes).to.be.true()
     expect(suiviJob.resultat).to.deep.equal({
@@ -138,31 +127,25 @@ describe('DeconnecterJeunesDispositifJobHandler', () => {
     )
   })
 
-  it('continue après un échec et le compte dans le bilan, sans perdre la pause', async () => {
+  it('compte tout le lot en échec si connect échoue, et passe au lot suivant', async () => {
     // Given
-    jeuneRepository.recupererIdsAuthentificationDuDispositif.resolves([
-      'auth-ko',
-      'auth-ok'
-    ])
-    authentificationRepository.supprimerCompteIdp
-      .withArgs('auth-ko')
-      .rejects(new Error('connect injoignable'))
-    authentificationRepository.supprimerCompteIdp.withArgs('auth-ok').resolves()
+    const ids = desIds(TAILLE_LOT_DECONNEXION_DISPOSITIF)
+    jeuneRepository.recupererIdsAuthentificationDuDispositif.resolves(ids)
+    authentificationRepository.revoquerTokensIdp.rejects(
+      new Error('connect injoignable')
+    )
 
     // When
     const suiviJob = await handler.handle(unJob())
 
     // Then
-    expect(
-      authentificationRepository.supprimerCompteIdp
-    ).to.have.been.calledWithExactly('auth-ok')
-    expect(dateService.attendre).to.have.been.calledTwice()
     expect(suiviJob.succes).to.be.false()
-    expect(suiviJob.nbErreurs).to.equal(1)
+    expect(suiviJob.nbErreurs).to.equal(ids.length)
+    expect(planificateurRepository.ajouterJob).to.have.been.calledOnce()
     expect(suiviJob.resultat).to.deep.equal({
-      nbTraites: 1,
-      nbEchecs: 1,
-      termine: true
+      nbTraites: 0,
+      nbEchecs: ids.length,
+      termine: false
     })
   })
 })

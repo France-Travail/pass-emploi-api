@@ -19,10 +19,6 @@ import { rootLogger, toEcsError } from '../../utils/logger.module'
 
 export const TAILLE_LOT_DECONNEXION_DISPOSITIF = 100
 
-// Chaque déconnexion parcourt tout le Redis de connect (KEYS, bloquant) : un
-// appel à la fois, avec une pause, pour lui laisser servir les autres requêtes.
-export const PAUSE_ENTRE_DECONNEXIONS_MS = 100
-
 @Injectable()
 @ProcessJobType(Planificateur.JobType.DECONNECTER_JEUNES_DISPOSITIF)
 export class DeconnecterJeunesDispositifJobHandler extends JobParLotsHandler<Planificateur.JobDeconnecterJeunesDispositif> {
@@ -62,25 +58,21 @@ export class DeconnecterJeunesDispositifJobHandler extends JobParLotsHandler<Pla
     contenu: Planificateur.JobDeconnecterJeunesDispositif,
     idsAuthentification: string[]
   ): Promise<BilanLot> {
-    let nbEchecs = 0
-    for (const idAuthentification of idsAuthentification) {
-      try {
-        await this.authentificationRepository.supprimerCompteIdp(
-          idAuthentification
-        )
-      } catch (e) {
-        nbEchecs++
-        rootLogger.error(
-          {
-            context: this.jobType,
-            labels: { dispositif: contenu.dispositif },
-            error: toEcsError(e)
-          },
-          "Échec de la déconnexion d'un jeune du dispositif"
-        )
-      }
-      await this.dateService.attendre(PAUSE_ENTRE_DECONNEXIONS_MS)
+    try {
+      await this.authentificationRepository.revoquerTokensIdp(
+        idsAuthentification
+      )
+      return { nbTraites: idsAuthentification.length, nbEchecs: 0 }
+    } catch (e) {
+      rootLogger.error(
+        {
+          context: this.jobType,
+          labels: { dispositif: contenu.dispositif },
+          error: toEcsError(e)
+        },
+        "Échec de la déconnexion d'un lot de jeunes du dispositif"
+      )
+      return { nbTraites: 0, nbEchecs: idsAuthentification.length }
     }
-    return { nbTraites: idsAuthentification.length - nbEchecs, nbEchecs }
   }
 }

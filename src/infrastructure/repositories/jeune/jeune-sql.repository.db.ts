@@ -226,8 +226,6 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSql.map(({ id }) => id)
   }
 
-  // Pagination sur id_authentification : deux jeunes qui partagent un id
-  // d'authentification n'ont qu'un compte à déconnecter
   async recupererIdsAuthentificationDuDispositif(
     dispositif: Profil.Dispositif,
     taille: number,
