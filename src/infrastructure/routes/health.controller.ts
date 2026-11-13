@@ -7,6 +7,7 @@ import { Public } from '../decorators/public.decorator'
 import { ConfigService } from '@nestjs/config'
 
 @Public()
+// Healthchecks Scalingo : un 429 ferait passer le conteneur pour mort.
 @SkipThrottle({ ip: true })
 @Controller()
 @ApiTags('Metrics')

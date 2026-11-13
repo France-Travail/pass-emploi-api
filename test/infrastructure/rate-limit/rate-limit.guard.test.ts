@@ -1,4 +1,9 @@
-import { ClassProvider, INestApplication } from '@nestjs/common'
+import {
+  ClassProvider,
+  INestApplication,
+  Type,
+  ValueProvider
+} from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { TerminusModule } from '@nestjs/terminus'
@@ -18,6 +23,7 @@ import {
 } from '../../../src/infrastructure/rate-limit/rate-limit.guard'
 import { RateLimitModule } from '../../../src/infrastructure/rate-limit/rate-limit.module'
 import { HealthController } from '../../../src/infrastructure/routes/health.controller'
+import { ReferentielsController } from '../../../src/infrastructure/routes/referentiels.controller'
 import { customLogLevel } from '../../../src/utils/logger.helpers'
 import { rootLogger } from '../../../src/utils/logger.module'
 import {
@@ -28,6 +34,14 @@ import {
 import { expect } from '../../utils'
 import { FakeJwtService } from '../../utils/module-for-testing'
 import { FakeRateLimitController } from './fake-rate-limit.controller'
+
+function handlersBouchonnes(controller: object): ValueProvider[] {
+  const handlers: Type[] = Reflect.getMetadata('design:paramtypes', controller)
+  return handlers.map(handler => ({
+    provide: handler,
+    useValue: { execute: (): Promise<unknown[]> => Promise.resolve([]) }
+  }))
+}
 
 class StockageEnFenetreFixe implements ThrottlerStorage {
   private readonly compteurs = new Map<string, number>()
@@ -108,8 +122,13 @@ describe('RateLimitGuard', () => {
   } = {}): Promise<request.Agent> {
     const testingModule = await Test.createTestingModule({
       imports: [ConfigModule, TerminusModule, RateLimitModule],
-      controllers: [FakeRateLimitController, HealthController],
+      controllers: [
+        FakeRateLimitController,
+        HealthController,
+        ReferentielsController
+      ],
       providers: [
+        ...handlersBouchonnes(ReferentielsController),
         { provide: JwtService, useValue: new FakeJwtService(true, payload) },
         { provide: APP_GUARD, useClass: OidcAuthGuard },
         { provide: APP_GUARD, useClass: RateLimitGuard }
@@ -303,6 +322,40 @@ describe('RateLimitGuard', () => {
 
     // Then
     expect(statuts).to.deep.equal([200, 200, 200, 200, 200])
+  })
+
+  it('ne limite jamais /referentiels/types-rendezvous par IP', async () => {
+    // Given
+    const api = await demarrerApp()
+
+    // When
+    const statuts = []
+    for (let i = 0; i < 5; i++) {
+      const reponse = await api
+        .get('/referentiels/types-rendezvous')
+        .set('x-real-ip', '1.1.1.1')
+      statuts.push(reponse.status)
+    }
+
+    // Then
+    expect(statuts).to.deep.equal([200, 200, 200, 200, 200])
+  })
+
+  it('limite par IP les autres référentiels publics', async () => {
+    // Given
+    const api = await demarrerApp()
+
+    // When
+    const statuts = []
+    for (let i = 0; i < 3; i++) {
+      const reponse = await api
+        .get('/referentiels/metiers?recherche=boulanger')
+        .set('x-real-ip', '1.1.1.1')
+      statuts.push(reponse.status)
+    }
+
+    // Then
+    expect(statuts).to.deep.equal([200, 200, 429])
   })
 
   it('applique la limite route-couteuse en plus de la limite utilisateur', async () => {
