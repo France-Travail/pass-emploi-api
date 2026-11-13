@@ -73,6 +73,17 @@ export namespace Questionnaire {
     return Array.from(new Set(contraintes))
   }
 
+  export function aUnObjectifOuUnFrein(
+    reponses: Pick<Reponses, 'besoins' | 'contraintes'>
+  ): boolean {
+    return (
+      reponses.besoins.length > 0 ||
+      reponses.contraintes.some(
+        contrainte => contrainte !== Contrainte.RIEN_NE_ME_BLOQUE
+      )
+    )
+  }
+
   export function calculerAge(
     questionnaire: Questionnaire,
     maintenant: DateTime

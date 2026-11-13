@@ -3,7 +3,6 @@ import { Type } from 'class-transformer'
 import { DateTime } from 'luxon'
 import {
   ArrayMaxSize,
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -15,6 +14,7 @@ import {
   IsUUID,
   Matches,
   MaxLength,
+  ValidateBy,
   ValidateNested
 } from 'class-validator'
 import { PlanAction } from '../../../domain/plan-action/plan-action'
@@ -32,6 +32,26 @@ export class CommunePayload {
   nom: string
 }
 
+function AuMoinsUnObjectifOuUnFrein(): PropertyDecorator {
+  return ValidateBy({
+    name: 'auMoinsUnObjectifOuUnFrein',
+    validator: {
+      validate: (goals, args): boolean => {
+        const obstacles = (args?.object as GenererPlanActionPayload).obstacles
+        return (
+          !Array.isArray(goals) ||
+          Questionnaire.aUnObjectifOuUnFrein({
+            besoins: goals,
+            contraintes: Array.isArray(obstacles) ? obstacles : []
+          })
+        )
+      },
+      defaultMessage: () =>
+        'goals ou obstacles doit contenir au moins un objectif ou un frein'
+    }
+  })
+}
+
 export class GenererPlanActionPayload {
   @ApiPropertyOptional()
   @IsDateString()
@@ -47,9 +67,14 @@ export class GenererPlanActionPayload {
   @IsOptional()
   precisionAutre?: string | null
 
-  @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
+  @ApiProperty({
+    enum: Questionnaire.Besoin,
+    isArray: true,
+    description:
+      'Peut être vide si obstacles contient un frein autre que RIEN_NE_ME_BLOQUE'
+  })
   @IsArray()
-  @ArrayMinSize(1)
+  @AuMoinsUnObjectifOuUnFrein()
   @IsEnum(Questionnaire.Besoin, { each: true })
   goals: Questionnaire.Besoin[]
 
