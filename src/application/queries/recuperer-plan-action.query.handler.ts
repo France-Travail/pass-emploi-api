@@ -2,10 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
-import {
-  DroitsInsuffisants,
-  NonTrouveError
-} from '../../building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import { Evenement, EvenementService } from '../../domain/evenement'
@@ -29,7 +26,7 @@ export interface RecupererPlanActionQuery extends Query {
 @Injectable()
 export class RecupererPlanActionQueryHandler extends QueryHandler<
   RecupererPlanActionQuery,
-  Result<PlanActionQueryModel>
+  Result<PlanActionQueryModel | null>
 > {
   readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
 
@@ -59,11 +56,11 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
   async handle(
     query: RecupererPlanActionQuery,
     utilisateur: Authentification.Utilisateur
-  ): Promise<Result<PlanActionQueryModel>> {
+  ): Promise<Result<PlanActionQueryModel | null>> {
     const plan = await this.planActionRepository.getDernierPlan(query.idJeune)
 
     if (!plan) {
-      return failure(new NonTrouveError('PlanAction', query.idJeune))
+      return success(null)
     }
 
     const idsSolutions = plan.objectifs.flatMap(objectif =>
@@ -82,7 +79,7 @@ export class RecupererPlanActionQueryHandler extends QueryHandler<
       utilisateur.profil
     )
     if (!queryModel.objectives.length) {
-      return failure(new NonTrouveError('PlanAction', query.idJeune))
+      return success(null)
     }
 
     return success(queryModel)

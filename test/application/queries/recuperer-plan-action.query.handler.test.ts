@@ -9,10 +9,7 @@ import {
   isSuccess,
   success
 } from '../../../src/building-blocks/types/result'
-import {
-  DroitsInsuffisants,
-  NonTrouveError
-} from '../../../src/building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from 'src/domain/plan-action/questionnaire'
@@ -206,7 +203,9 @@ describe('RecupererPlanActionQueryHandler', () => {
       const result = await handler.handle(query, utilisateur)
 
       // Then
-      const objectives = isSuccess(result) ? result.data.objectives : []
+      const objectives = isSuccess(result)
+        ? (result.data?.objectives ?? [])
+        : []
       expect(objectives.map(objectif => objectif.id)).to.deep.equal([
         'objectif-alternance',
         'objectif-permis'
@@ -217,7 +216,7 @@ describe('RecupererPlanActionQueryHandler', () => {
       ])
     })
 
-    it("renvoie une NonTrouveError quand le jeune n'a pas de plan sauvegardé", async () => {
+    it("renvoie null quand le jeune n'a pas de plan sauvegardé", async () => {
       // Given
       planActionRepository.getDernierPlan
         .withArgs(query.idJeune)
@@ -227,13 +226,11 @@ describe('RecupererPlanActionQueryHandler', () => {
       const result = await handler.handle(query, utilisateur)
 
       // Then
-      expect(result).to.deep.equal(
-        failure(new NonTrouveError('PlanAction', query.idJeune))
-      )
+      expect(result).to.deep.equal(success(null))
       expect(referentielRepository.trouverSolutions).not.to.have.been.called()
     })
 
-    it('renvoie une NonTrouveError quand toutes les solutions du plan ont disparu du référentiel', async () => {
+    it('renvoie null quand toutes les solutions du plan ont disparu du référentiel', async () => {
       // Given
       planActionRepository.getDernierPlan
         .withArgs(query.idJeune)
@@ -244,9 +241,7 @@ describe('RecupererPlanActionQueryHandler', () => {
       const result = await handler.handle(query, utilisateur)
 
       // Then
-      expect(result).to.deep.equal(
-        failure(new NonTrouveError('PlanAction', query.idJeune))
-      )
+      expect(result).to.deep.equal(success(null))
     })
 
     it("écarte l'objectif dont l'unique solution a disparu du référentiel, en conservant les autres", async () => {
@@ -381,7 +376,7 @@ describe('RecupererPlanActionQueryHandler', () => {
       )
     })
 
-    it("renvoie une NonTrouveError quand aucune solution du plan n'est accessible à la structure actuelle du jeune", async () => {
+    it("renvoie null quand aucune solution du plan n'est accessible à la structure actuelle du jeune", async () => {
       // Given
       planActionRepository.getDernierPlan
         .withArgs(query.idJeune)
@@ -396,9 +391,7 @@ describe('RecupererPlanActionQueryHandler', () => {
       const result = await handler.handle(query, utilisateur)
 
       // Then
-      expect(result).to.deep.equal(
-        failure(new NonTrouveError('PlanAction', query.idJeune))
-      )
+      expect(result).to.deep.equal(success(null))
     })
   })
 
