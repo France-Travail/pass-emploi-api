@@ -253,6 +253,41 @@ describe('QualifierActionsMiloCommandHandler', () => {
             })
           )
         })
+        it("continue les autres actions quand la création d'une SNP lève une erreur technique", async () => {
+          // Given
+          const actionEnErreur = uneActionTerminee({ id: 'action-timeout' })
+          const actionSuivante = uneActionTerminee({ id: 'action-suivante' })
+          jeuneRepository.get.resolves(unJeune())
+          actionMiloRepository.creerSituationNonProfessionnelle
+            .onFirstCall()
+            .rejects(new Error('timeout of 5000ms exceeded'))
+            .onSecondCall()
+            .resolves(emptySuccess())
+          const command: QualifierActionsMiloCommand = {
+            estSNP: true,
+            accessToken: 'accessToken',
+            qualifications: [actionEnErreur, actionSuivante].map(action => ({
+              idAction: action.id,
+              codeQualification: Action.Qualification.Code.SANTE
+            }))
+          }
+
+          // When
+          const result = await qualifierActionsMiloCommandHandler.handle(
+            command,
+            utilisateur,
+            [actionEnErreur, actionSuivante]
+          )
+
+          // Then
+          expect(actionRepository.save).to.have.been.calledOnce()
+          expect(actionRepository.save.firstCall.args[0].id).to.equal(
+            'action-suivante'
+          )
+          expect(result).to.deep.equal(
+            success({ idsActionsEnErreur: ['action-timeout'] })
+          )
+        })
       })
       describe("quand ce n'est pas une SNP", () => {
         it('qualifie, sauvegarde une action terminée', async () => {
