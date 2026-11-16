@@ -612,6 +612,43 @@ describe('ConseillersMiloController', () => {
       ).to.have.been.calledOnceWithExactly(command, unUtilisateurDecode())
     })
 
+    it('accepte les jeunes déjà émargés renvoyés au statut PRESENT', async () => {
+      // Given
+      const listeInscrits = [
+        {
+          idJeune: 'jeune-1',
+          statut: SessionMilo.Modification.StatutInscription.PRESENT
+        },
+        {
+          idJeune: 'jeune-2',
+          statut: SessionMilo.Modification.StatutInscription.INSCRIT
+        }
+      ]
+      const command: UpdateSessionMiloCommand = {
+        idConseiller: 'id-conseiller',
+        idSession: '123',
+        accessToken: 'coucou',
+        inscriptions: listeInscrits,
+        estVisible: undefined,
+        autoinscription: undefined,
+        autodesinscription: undefined
+      }
+      updateSessionCommandHandler.execute
+        .withArgs(command, unUtilisateurDecode())
+        .resolves(emptySuccess())
+
+      // When - Then
+      await request(app.getHttpServer())
+        .patch('/conseillers/milo/id-conseiller/sessions/123')
+        .send({ inscriptions: listeInscrits })
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.OK)
+
+      expect(
+        updateSessionCommandHandler.execute
+      ).to.have.been.calledOnceWithExactly(command, unUtilisateurDecode())
+    })
+
     ensureUserAuthenticationFailsIfInvalid(
       'patch',
       '/conseillers/milo/1/sessions/id-session'
