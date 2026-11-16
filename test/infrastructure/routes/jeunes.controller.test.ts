@@ -1221,7 +1221,7 @@ describe('JeunesController', () => {
         .set('authorization', unHeaderAuthorization())
         .send({
           jetonConnecte: 'jeton-connecte',
-          questionnaire: { situation: 'EMPLOI', goals: [] }
+          questionnaire: { situation: 'EN_RECHERCHE', goals: [] }
         })
         // Then
         .expect(HttpStatus.BAD_REQUEST)
@@ -1614,34 +1614,6 @@ describe('JeunesController', () => {
         },
         unUtilisateurDecode()
       )
-    })
-
-    it("renvoie 400 quand le jeune n'a coché ni objectif ni frein", async () => {
-      // When
-      await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/plan-action')
-        .set('authorization', unHeaderAuthorization())
-        .send({ situation: 'LYCEE', goals: [], obstacles: [] })
-        // Then
-        .expect(HttpStatus.BAD_REQUEST)
-
-      expect(genererPlanActionCommandHandler.execute).not.to.have.been.called()
-    })
-
-    it("renvoie 400 quand le jeune n'a coché aucun objectif et déclare n'avoir aucun frein", async () => {
-      // When
-      await request(app.getHttpServer())
-        .post('/jeunes/id-jeune/plan-action')
-        .set('authorization', unHeaderAuthorization())
-        .send({
-          situation: 'LYCEE',
-          goals: [],
-          obstacles: ['RIEN_NE_ME_BLOQUE']
-        })
-        // Then
-        .expect(HttpStatus.BAD_REQUEST)
-
-      expect(genererPlanActionCommandHandler.execute).not.to.have.been.called()
     })
 
     it("renvoie 400 quand domaineInconnu n'est pas un booléen", async () => {

@@ -11,6 +11,7 @@ import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import {
   emptySuccess,
   failure,
+  isFailure,
   Result,
   success
 } from '../../building-blocks/types/result'
@@ -99,12 +100,14 @@ export class GenererPlanActionCommandHandler extends CommandHandler<
       ? await this.planActionRepository.getDernierPlan(command.idJeune)
       : undefined
 
-    const plan = this.planActionFactory.creer(
+    const result = this.planActionFactory.creer(
       command.idJeune,
       questionnaire,
       referentiel,
       planPrecedent
     )
+    if (isFailure(result)) return result
+    const plan = result.data
 
     if (planPersiste) {
       await this.transactionService.executer(async () => {
