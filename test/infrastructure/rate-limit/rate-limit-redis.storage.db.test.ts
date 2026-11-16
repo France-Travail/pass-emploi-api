@@ -209,9 +209,10 @@ describe('RateLimitRedisStorage', () => {
       await failingStorage.increment('key', 60000, 10, 60000, 'utilisateur')
 
       // Then
-      expect(loggerStub.firstCall.args[0].error.message).to.contain(
-        'ECONNREFUSED'
-      )
+      const premierLog = loggerStub.firstCall.args[0] as unknown as {
+        error: { message: string }
+      }
+      expect(premierLog.error.message).to.contain('ECONNREFUSED')
 
       // Cleanup
       await failingStorage.onModuleDestroy()
