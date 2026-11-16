@@ -25,6 +25,7 @@ export interface RequeteRefuseeParLeRateLimit {
 }
 
 const INTERVALLE_LOG_ECHEC_MS = 60000
+const MESSAGE_REFUS = 'Trop de requêtes, réessayez dans quelques instants.'
 
 export function estUnPalierDeRefus(refus: number): boolean {
   if (!Number.isInteger(refus) || refus < 1) {
@@ -106,7 +107,7 @@ export class RateLimitGuard extends ThrottlerGuard {
     const requeteRefusee: RequeteRefuseeParLeRateLimit = req
     requeteRefusee.refuseeParLeRateLimit = true
     this.setResponseHeader(res, 'Retry-After', detail.timeToBlockExpire)
-    throw new ThrottlerException()
+    throw new ThrottlerException(MESSAGE_REFUS)
   }
 
   private loguerEchec(erreur: unknown): void {

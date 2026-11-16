@@ -190,6 +190,27 @@ describe('RateLimitGuard', () => {
     expect(Number(derniereReponse!.headers['retry-after'])).to.be.greaterThan(0)
   })
 
+  it('renvoie un message en français, affiché tel quel par le web', async () => {
+    // Given
+    const api = await demarrerApp()
+    for (let i = 0; i < 2; i++) {
+      await api
+        .get('/rate-limit/a')
+        .set('authorization', unHeaderAuthorization())
+    }
+
+    // When
+    const reponse = await api
+      .get('/rate-limit/a')
+      .set('authorization', unHeaderAuthorization())
+
+    // Then
+    expect(reponse.status).to.equal(429)
+    expect(reponse.body.message).to.equal(
+      'Trop de requêtes, réessayez dans quelques instants.'
+    )
+  })
+
   it('partage le compteur utilisateur entre deux routes', async () => {
     // Given
     const api = await demarrerApp()
