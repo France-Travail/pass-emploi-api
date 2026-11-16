@@ -343,6 +343,68 @@ describe('QualifierActionsMiloCommandHandler', () => {
           )
         })
       })
+      it('ne remonte pas en erreur une action déjà qualifiée avec le même code, sans rappeler Milo', async () => {
+        // Given
+        const actionDejaQualifiee = uneActionTerminee({
+          id: idAction,
+          qualification: {
+            code: Action.Qualification.Code.SANTE,
+            heures: 2
+          }
+        })
+        const command: QualifierActionsMiloCommand = {
+          estSNP: true,
+          accessToken: 'accessToken',
+          qualifications: [
+            { idAction, codeQualification: Action.Qualification.Code.SANTE }
+          ]
+        }
+
+        // When
+        const result = await qualifierActionsMiloCommandHandler.handle(
+          command,
+          utilisateur,
+          [actionDejaQualifiee]
+        )
+
+        // Then
+        expect(
+          actionMiloRepository.creerSituationNonProfessionnelle
+        ).not.to.have.been.called()
+        expect(actionRepository.save).not.to.have.been.called()
+        expect(result).to.deep.equal(success({ idsActionsEnErreur: [] }))
+      })
+
+      it('remonte en erreur une action déjà qualifiée avec un autre code', async () => {
+        // Given
+        const actionDejaQualifiee = uneActionTerminee({
+          id: idAction,
+          qualification: {
+            code: Action.Qualification.Code.EMPLOI,
+            heures: 3
+          }
+        })
+        const command: QualifierActionsMiloCommand = {
+          estSNP: true,
+          accessToken: 'accessToken',
+          qualifications: [
+            { idAction, codeQualification: Action.Qualification.Code.SANTE }
+          ]
+        }
+
+        // When
+        const result = await qualifierActionsMiloCommandHandler.handle(
+          command,
+          utilisateur,
+          [actionDejaQualifiee]
+        )
+
+        // Then
+        expect(result).to.deep.equal(
+          success({ idsActionsEnErreur: [idAction] })
+        )
+      })
+
       it("rejette quand la qualification n'est pas possible", async () => {
         // Given
         const actionEnCours = uneAction({
