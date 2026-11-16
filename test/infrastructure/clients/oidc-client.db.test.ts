@@ -317,4 +317,46 @@ describe('OidcClient', () => {
       expect(erreur).to.be.instanceOf(NotFoundException)
     })
   })
+
+  describe('revoquerTokensIdp', () => {
+    const apiUrl = configService.get('oidc').issuerApiUrl
+
+    it('envoie le lot en un seul appel', async () => {
+      // Given
+      const scope = nock(apiUrl)
+        .post('/accounts/revoquer-tokens-idp', { subs: ['sub-1', 'sub-2'] })
+        .reply(204)
+
+      // When
+      await oidcClient.revoquerTokensIdp(['sub-1', 'sub-2'])
+
+      // Then
+      expect(scope.isDone()).to.be.true()
+    })
+
+    it("n'appelle pas connect pour un lot vide", async () => {
+      // Given
+      const scope = nock(apiUrl)
+        .post('/accounts/revoquer-tokens-idp')
+        .reply(204)
+
+      // When
+      await oidcClient.revoquerTokensIdp([])
+
+      // Then
+      expect(scope.isDone()).to.be.false()
+      nock.cleanAll()
+    })
+
+    it("echoue lorsque l'appel d'api est ko", async () => {
+      // Given
+      nock(apiUrl).post('/accounts/revoquer-tokens-idp').reply(500)
+
+      // When
+      const promesse = oidcClient.revoquerTokensIdp(['sub-1'])
+
+      // Then
+      await expect(promesse).to.be.rejectedWith(Error)
+    })
+  })
 })

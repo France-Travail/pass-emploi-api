@@ -260,6 +260,10 @@ export class AuthentificationSqlOidcRepository
     await this.oidcClient.deleteAccountByIdAuth(idAuthentification)
   }
 
+  async revoquerTokensIdp(idsAuthentification: string[]): Promise<void> {
+    await this.oidcClient.revoquerTokensIdp(idsAuthentification)
+  }
+
   async estConseillerSuperviseur(
     profil: Profil,
     email?: string | null

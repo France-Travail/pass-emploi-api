@@ -141,6 +141,16 @@ export class OidcClient extends ExternalApiClient {
     await this.supprimerCompteAuth(idAuthentification, true)
   }
 
+  public async revoquerTokensIdp(idsAuthentification: string[]): Promise<void> {
+    if (idsAuthentification.length === 0) return
+
+    await this.axios.post(
+      `${this.configService.get('oidc').issuerApiUrl}/accounts/revoquer-tokens-idp`,
+      { subs: idsAuthentification },
+      { headers: { 'X-API-KEY': this.configService.get('oidc.apiKey') } }
+    )
+  }
+
   private async supprimerCompteAuth(
     idAuthentification: string,
     tolererNotFound: boolean

@@ -226,6 +226,25 @@ export class JeuneSqlRepository implements Jeune.Repository {
     return jeunesSql.map(({ id }) => id)
   }
 
+  async recupererIdsAuthentificationDuDispositif(
+    dispositif: Profil.Dispositif,
+    taille: number,
+    apresIdAuthentification?: string
+  ): Promise<string[]> {
+    const jeunesSql = await JeuneSqlModel.findAll({
+      attributes: ['idAuthentification'],
+      where: {
+        dispositif,
+        idAuthentification: apresIdAuthentification
+          ? { [Op.gt]: apresIdAuthentification }
+          : { [Op.ne]: null }
+      },
+      order: [['idAuthentification', 'ASC']],
+      limit: taille
+    })
+    return jeunesSql.map(({ idAuthentification }) => idAuthentification)
+  }
+
   async supprimer(idJeune: string): Promise<void> {
     await this.sequelize.transaction(async () => {
       await this.supprimerEnMasse([idJeune])
