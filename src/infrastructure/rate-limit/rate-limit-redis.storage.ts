@@ -31,9 +31,8 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
       commandsQueueMaxLength: INCREMENTS_EN_ATTENTE_MAX
     })
 
-    this.client.on('error', () => {
-      // Sans ce listener, node-redis crashe le process sur erreur de connexion
-    })
+    // Sans ce listener, node-redis crashe le process sur erreur de connexion.
+    this.client.on('error', error => this.logErrorThrottled(error))
     this.client.on('ready', () => {
       this.attenteDeConnexionExpiree = false
     })

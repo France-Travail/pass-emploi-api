@@ -200,6 +200,23 @@ describe('RateLimitRedisStorage', () => {
       await failingStorage.onModuleDestroy()
     })
 
+    it("logue la cause d'un échec de connexion plutôt qu'un timeout", async () => {
+      // Given
+      const loggerStub = sandbox.stub(rootLogger, 'error')
+      const failingStorage = new RateLimitRedisStorage('redis://127.0.0.1:1')
+
+      // When
+      await failingStorage.increment('key', 60000, 10, 60000, 'utilisateur')
+
+      // Then
+      expect(loggerStub.firstCall.args[0].error.message).to.contain(
+        'ECONNREFUSED'
+      )
+
+      // Cleanup
+      await failingStorage.onModuleDestroy()
+    })
+
     it("n'attend plus la connexion une fois une première attente expirée", async () => {
       // Given
       sandbox.stub(rootLogger, 'error')
