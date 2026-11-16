@@ -179,6 +179,16 @@ export function estAijOuAvenirPro(profil: Profil): boolean {
   )
 }
 
+export function estDispositifFT1j1s(
+  dispositif: Profil.Dispositif | null | undefined
+): boolean {
+  return (
+    dispositif === Profil.Dispositif.CEJ ||
+    dispositif === Profil.Dispositif.AIJ ||
+    dispositif === Profil.Dispositif.AVENIR_PRO
+  )
+}
+
 export const PROFILS_CAMPAGNES: readonly StructureEtDispositifs[] = [
   TOUT_MILO,
   {
@@ -203,12 +213,13 @@ export function aAccesAuxAlternancesEtServicesCiviques(
   return profilEstAutorise(profil, PROFILS_ALTERNANCE_ET_SERVICE_CIVIQUE)
 }
 
-// Marque « Pass Emploi » (vs CEJ) : FT hors CEJ, et Conseil départemental.
+// Marque « Pass Emploi » (vs 1jeune1solution) : FT hors CEJ, AIJ et Avenir Pro,
+// et Conseil départemental.
 export function estPassEmploi(profil: Profil): boolean {
   return (
     estConseilDepartemental(profil.structure) ||
     (estFranceTravail(profil.structure) &&
-      profil.dispositif !== Profil.Dispositif.CEJ)
+      !estDispositifFT1j1s(profil.dispositif))
   )
 }
 

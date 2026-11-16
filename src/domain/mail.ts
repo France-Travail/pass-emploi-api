@@ -5,6 +5,7 @@ import { Jeune } from './jeune/jeune'
 import { Conseiller } from './milo/conseiller'
 import { RendezVous } from './rendez-vous/rendez-vous'
 import {
+  estDispositifFT1j1s,
   estDispositifNonAccompagne,
   Profil,
   StructureEtDispositifs
@@ -80,7 +81,7 @@ export namespace Mail {
       nouveauRendezvous: string
       rendezVousSupprime: string
       suppressionJeuneMilo: string
-      suppressionJeuneFT: string
+      suppressionJeuneFT1j1s: string
       suppressionBeneficiairePassEmploi: string
     }
 
@@ -103,8 +104,8 @@ export namespace Mail {
             )
           case Profil.Structure.FRANCE_TRAVAIL:
             if (estDispositifNonAccompagne(jeune.dispositif)) break
-            return jeune.dispositif === Profil.Dispositif.CEJ
-              ? Number.parseInt(this.templates.suppressionJeuneFT)
+            return estDispositifFT1j1s(jeune.dispositif)
+              ? Number.parseInt(this.templates.suppressionJeuneFT1j1s)
               : Number.parseInt(
                   this.templates.suppressionBeneficiairePassEmploi
                 )

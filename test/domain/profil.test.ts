@@ -4,6 +4,7 @@ import {
   DISPOSITIFS_ATTRIBUABLES,
   DISPOSITIFS_FT_HORS_AVENIR_PRO,
   estBeneficiaireFTConnect,
+  estDispositifFT1j1s,
   estPassEmploi,
   memeProfil,
   Profil,
@@ -236,11 +237,28 @@ describe('Règles de profil', () => {
   })
 
   describe('estPassEmploi', () => {
-    it('vaut pour FT hors CEJ et pour le Conseil départemental', () => {
+    it('vaut pour FT hors CEJ, AIJ et Avenir Pro, et pour le Conseil départemental', () => {
       expect(estPassEmploi(unProfilFT())).to.equal(false)
+      expect(estPassEmploi(unProfilFT(Profil.Dispositif.AIJ))).to.equal(false)
+      expect(estPassEmploi(unProfilFT(Profil.Dispositif.AVENIR_PRO))).to.equal(
+        false
+      )
       expect(estPassEmploi(unProfilFT(Profil.Dispositif.BRSA))).to.equal(true)
       expect(estPassEmploi(unProfilCD())).to.equal(true)
       expect(estPassEmploi(unProfilMilo())).to.equal(false)
+    })
+  })
+
+  describe('estDispositifFT1j1s', () => {
+    it('vaut pour CEJ, AIJ et Avenir Pro uniquement', () => {
+      expect(estDispositifFT1j1s(Profil.Dispositif.CEJ)).to.equal(true)
+      expect(estDispositifFT1j1s(Profil.Dispositif.AIJ)).to.equal(true)
+      expect(estDispositifFT1j1s(Profil.Dispositif.AVENIR_PRO)).to.equal(true)
+      expect(estDispositifFT1j1s(Profil.Dispositif.BRSA)).to.equal(false)
+      expect(
+        estDispositifFT1j1s(Profil.Dispositif.ACCOMPAGNEMENT_INTENSIF)
+      ).to.equal(false)
+      expect(estDispositifFT1j1s(null)).to.equal(false)
     })
   })
 

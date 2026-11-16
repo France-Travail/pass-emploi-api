@@ -20,7 +20,7 @@ describe('Mail', () => {
           nouveauRendezvous: '11',
           suppressionJeuneMilo: '12',
           suppressionBeneficiairePassEmploi: '469',
-          suppressionJeuneFT: '13'
+          suppressionJeuneFT1j1s: '13'
         }
       })
       mailFactory = new Mail.Factory(configService)
@@ -60,6 +60,27 @@ describe('Mail', () => {
             nom: jeune.lastName
           })
           expect(actual.templateId).to.equal(469)
+        })
+      })
+      ;[
+        Profil.Dispositif.CEJ,
+        Profil.Dispositif.AIJ,
+        Profil.Dispositif.AVENIR_PRO
+      ].forEach(dispositif => {
+        describe(`Quand c'est un bénéficiaire France Travail ${dispositif}`, () => {
+          it('utilise le template 1jeune1solution', async () => {
+            // Given
+            const jeune = unJeune({
+              structure: Profil.Structure.FRANCE_TRAVAIL,
+              dispositif
+            })
+
+            // When
+            const actual = mailFactory.creerMailSuppressionJeune(jeune)
+
+            // Then
+            expect(actual.templateId).to.equal(13)
+          })
         })
       })
     })

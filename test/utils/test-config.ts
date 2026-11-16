@@ -63,7 +63,7 @@ export const testConfig = (): ConfigService => {
         nouveauRendezvous: '300',
         rappelRendezvous: '400',
         compteJeuneArchiveMILO: '500',
-        compteJeuneArchiveFTCEJ: '501',
+        compteJeuneArchiveFT1j1s: '501',
         compteJeuneArchiveFTNonCEJ: '502'
       }
     },

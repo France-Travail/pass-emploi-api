@@ -14,6 +14,7 @@ import { ExternalApiLoggerService } from '../../utils/external-api-logger.servic
 import { ExternalApiClient } from './external-api-client'
 import { InvitationIcsClient } from './invitation-ics.client'
 import {
+  estDispositifFT1j1s,
   estDispositifNonAccompagne,
   estPassEmploi,
   Profil
@@ -35,7 +36,7 @@ export class MailBrevoService
     rappelRendezvous: string
     rendezVousSupprime: string
     compteJeuneArchiveMILO: string
-    compteJeuneArchiveFTCEJ: string
+    compteJeuneArchiveFT1j1s: string
     compteJeuneArchiveFTNonCEJ: string
     creationConseillerMilo: string
     compteJeuneArchiveMigration: string
@@ -168,8 +169,8 @@ export class MailBrevoService
             return Number.parseInt(this.templates.compteJeuneArchiveFTNonCEJ)
           case Profil.Structure.FRANCE_TRAVAIL:
             if (estDispositifNonAccompagne(jeune.dispositif)) break
-            return jeune.dispositif === Profil.Dispositif.CEJ
-              ? Number.parseInt(this.templates.compteJeuneArchiveFTCEJ)
+            return estDispositifFT1j1s(jeune.dispositif)
+              ? Number.parseInt(this.templates.compteJeuneArchiveFT1j1s)
               : Number.parseInt(this.templates.compteJeuneArchiveFTNonCEJ)
           case Profil.Structure.INVITE:
             break
