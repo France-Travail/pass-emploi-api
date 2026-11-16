@@ -2,13 +2,11 @@ import { StubbedType, stubInterface } from '@salesforce/ts-sinon'
 import { DateTime } from 'luxon'
 import { createSandbox, SinonStub, stub } from 'sinon'
 import { ConseillerAuthorizer } from '../../../../src/application/authorizers/conseiller-authorizer'
-import { FonctionnaliteAuthorizer } from '../../../../src/application/authorizers/fonctionnalite-authorizer'
 import {
   ChangerDispositifJeuneMiloCommand,
   ChangerDispositifJeuneMiloCommandHandler
 } from '../../../../src/application/commands/milo/changer-dispositif-jeune-milo.command.handler'
 import {
-  DroitsInsuffisants,
   MauvaiseCommandeError,
   NonTrouveError
 } from '../../../../src/building-blocks/types/domain-error'
@@ -34,7 +32,6 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
   let evenementService: StubbedClass<EvenementService>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
   let dateService: StubbedClass<DateService>
-  let fonctionnaliteAuthorizer: StubbedClass<FonctionnaliteAuthorizer>
 
   const dateFinAccompagnement = uneAutreDate()
   const utilisateur = unUtilisateurConseiller()
@@ -55,10 +52,6 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
     evenementService = stubClass(EvenementService)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
     dateService = stubClass(DateService)
-    fonctionnaliteAuthorizer = stubClass(FonctionnaliteAuthorizer)
-    fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller.resolves(
-      emptySuccess()
-    )
 
     dateService.nowJs.returns(uneDate())
 
@@ -67,8 +60,7 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
       archiveJeuneRepository,
       evenementService,
       conseillerAuthorizer,
-      dateService,
-      fonctionnaliteAuthorizer
+      dateService
     )
   })
 
@@ -88,14 +80,11 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
       ).to.have.been.calledOnceWithExactly(command.idJeune, utilisateur)
     })
 
-    it('refuse le dispositif Autre quand la fonctionnalité est inactive pour le conseiller', async () => {
+    it('autorise le dispositif Autre pour le conseiller du jeune', async () => {
       // Given
       conseillerAuthorizer.autoriserConseillerPourSonJeune.resolves(
         emptySuccess()
       )
-      fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller
-        .withArgs(utilisateur.id, Profil.Dispositif.AUTRE)
-        .resolves(failure(new DroitsInsuffisants()))
 
       // When
       const result = await handler.authorize(
@@ -105,7 +94,7 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
       )
 
       // Then
-      expect(result).to.deep.equal(failure(new DroitsInsuffisants()))
+      expect(result).to.deep.equal(emptySuccess())
     })
 
     it("retourne une erreur quand le jeune n'existe pas", async () => {

@@ -35,7 +35,6 @@ import { OidcClient } from 'src/infrastructure/clients/oidc-client.db'
 import { CacheControlMiddleware } from 'src/infrastructure/middlewares/cache-control.middleware'
 import { ActionAuthorizer } from './application/authorizers/action-authorizer'
 import { ConseillerAuthorizer } from './application/authorizers/conseiller-authorizer'
-import { FonctionnaliteAuthorizer } from './application/authorizers/fonctionnalite-authorizer'
 import { ConseillerInterAgenceAuthorizer } from './application/authorizers/conseiller-inter-agence-authorizer'
 import { ConseillerInterStructureMiloAuthorizer } from './application/authorizers/conseiller-inter-structure-milo-authorizer'
 import { FavoriOffresEmploiAuthorizer } from './application/authorizers/favori-offres-emploi-authorizer'
@@ -818,7 +817,6 @@ export function buildQueryCommandsProviders(): Provider[] {
   return [
     ActionAuthorizer,
     ConseillerAuthorizer,
-    FonctionnaliteAuthorizer,
     FavoriOffresEmploiAuthorizer,
     FavoriOffresImmersionAuthorizer,
     RechercherMessageQueryHandler,

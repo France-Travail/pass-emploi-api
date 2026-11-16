@@ -30,7 +30,6 @@ import {
   JeuneMiloRepositoryToken
 } from '../../../domain/milo/jeune.milo'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import { FonctionnaliteAuthorizer } from '../../authorizers/fonctionnalite-authorizer'
 import { IdentiteJeuneQueryModel } from '../../queries/query-models/jeunes.query-model'
 import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
 
@@ -66,8 +65,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     @Inject(ChatRepositoryToken)
     private readonly chatRepository: Chat.Repository,
     private readonly jeuneFactory: Jeune.Factory,
-    private readonly oidcClient: OidcClient,
-    private readonly fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
+    private readonly oidcClient: OidcClient
   ) {
     super('CreerJeuneMiloCommandHandler')
   }
@@ -166,16 +164,9 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
     command: CreerJeuneMiloCommand,
     utilisateur: Authentification.Utilisateur
   ): Promise<Result> {
-    const resultConseiller =
-      await this.conseillerAuthorizer.autoriserLeConseiller(
-        command.idConseiller,
-        utilisateur
-      )
-    if (isFailure(resultConseiller)) return resultConseiller
-
-    return this.fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller(
+    return this.conseillerAuthorizer.autoriserLeConseiller(
       command.idConseiller,
-      command.dispositif
+      utilisateur
     )
   }
 

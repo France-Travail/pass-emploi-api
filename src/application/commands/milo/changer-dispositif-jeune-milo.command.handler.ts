@@ -20,7 +20,6 @@ import { JeuneMilo } from '../../../domain/milo/jeune.milo'
 import { Profil, TOUT_MILO } from '../../../domain/profil'
 import { DateService } from '../../../utils/date-service'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
-import { FonctionnaliteAuthorizer } from '../../authorizers/fonctionnalite-authorizer'
 
 export interface ChangerDispositifJeuneMiloCommand extends Command {
   idJeune: string
@@ -44,8 +43,7 @@ export class ChangerDispositifJeuneMiloCommandHandler extends CommandHandler<
     private readonly archiveJeuneRepository: ArchiveJeune.Repository,
     private readonly evenementService: EvenementService,
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
-    private readonly dateService: DateService,
-    private readonly fonctionnaliteAuthorizer: FonctionnaliteAuthorizer
+    private readonly dateService: DateService
   ) {
     super('ChangerDispositifJeuneMiloCommandHandler')
   }
@@ -64,16 +62,9 @@ export class ChangerDispositifJeuneMiloCommandHandler extends CommandHandler<
     if (!jeune) {
       return failure(new NonTrouveError('Jeune', command.idJeune))
     }
-    const resultConseiller =
-      await this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
-        command.idJeune,
-        utilisateur
-      )
-    if (isFailure(resultConseiller)) return resultConseiller
-
-    return this.fonctionnaliteAuthorizer.autoriserLeDispositifPourLeConseiller(
-      utilisateur.id,
-      command.dispositif
+    return this.conseillerAuthorizer.autoriserConseillerPourSonJeune(
+      command.idJeune,
+      utilisateur
     )
   }
 

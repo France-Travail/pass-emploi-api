@@ -16,7 +16,7 @@ export class FonctionnalitesConseillerQueryModel {
     isArray: true,
     description:
       "Ids des fonctionnalités actives pour le conseiller. Une fonctionnalité dont la date d'activation n'est pas atteinte n'y figure pas.",
-    example: ['DISPOSITIF_AUTRE']
+    example: ['PLAN_ACTION']
   })
   fonctionnalites: string[]
 }
