@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common'
 import { createClient, RedisClientType } from 'redis'
 import { ThrottlerStorage } from '@nestjs/throttler'
 import type { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface'
@@ -19,7 +18,6 @@ interface Appel {
   abandonne: boolean
 }
 
-@Injectable()
 export class RateLimitRedisStorage implements ThrottlerStorage {
   private readonly client: RedisClientType
   private connexion: Promise<void> | undefined
