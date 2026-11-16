@@ -302,7 +302,8 @@ describe('RateLimitRedisStorage', () => {
         await new Promise(resolve => setImmediate(resolve))
 
         // Then
-        expect(await verificateur.get('cle-abandonnee')).to.be.null()
+        expect(await verificateur.get('api:cle-sonde')).not.to.be.null()
+        expect(await verificateur.get('api:cle-abandonnee')).to.be.null()
       } finally {
         // Cleanup
         await storageSansRedis.onModuleDestroy()

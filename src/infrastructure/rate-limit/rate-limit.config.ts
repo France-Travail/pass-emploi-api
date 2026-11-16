@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { rootLogger } from '../../utils/root-logger'
 
 export interface RateLimitConfig {
+  redisUrl: string
   utilisateur: {
     fenetreMs: number
     limites: Record<'JEUNE' | 'INVITE' | 'CONSEILLER' | 'SUPPORT', number>
@@ -36,7 +37,10 @@ export function lireRateLimitConfig(
       rateLimitConfig.routeCouteuse?.fenetreSecondes,
     RATE_LIMIT_ROUTE_COUTEUSE_LIMITE: rateLimitConfig.routeCouteuse?.limite
   }
-  const variablesInvalides = Object.entries(variables)
+  const variablesInvalides = Object.entries({
+    ...variables,
+    RATE_LIMIT_REDIS_URL: rateLimitConfig.redisUrl
+  })
     .filter(([_nom, valeur]) => !valeur)
     .map(([nom]) => nom)
 
@@ -66,6 +70,7 @@ export function lireRateLimitConfig(
   )
 
   return {
+    redisUrl: rateLimitConfig.redisUrl,
     utilisateur: {
       fenetreMs: variables.RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES * 1000,
       limites: {

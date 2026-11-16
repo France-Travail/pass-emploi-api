@@ -80,6 +80,7 @@ const uneConfigRateLimit = (
   limitesUtilisateur: Partial<LimitesUtilisateur> = {}
 ): object => ({
   actif: true,
+  redisUrl: 'redis://inutilise-stockage-remplace-par-le-test',
   utilisateur: {
     fenetreSecondes: 60,
     limites: {

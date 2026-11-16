@@ -25,16 +25,15 @@ class RateLimitConfigModule {}
     RateLimitConfigModule,
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule, RateLimitConfigModule],
-      inject: [RATE_LIMIT_CONFIG, ConfigService],
+      inject: [RATE_LIMIT_CONFIG],
       useFactory: (
-        config: RateLimitConfig | undefined,
-        configService: ConfigService
+        config: RateLimitConfig | undefined
       ): ThrottlerModuleOptions =>
         config
           ? {
               throttlers: creerThrottlers(config),
               setHeaders: false,
-              storage: new RateLimitRedisStorage(configService.get('redis').url)
+              storage: new RateLimitRedisStorage(config.redisUrl)
             }
           : { throttlers: [] }
     })

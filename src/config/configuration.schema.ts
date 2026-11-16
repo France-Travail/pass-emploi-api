@@ -119,6 +119,7 @@ export const configurationSchema = Joi.object({
   }),
   rateLimit: Joi.object({
     actif: Joi.boolean(),
+    redisUrl: Joi.string().optional(),
     utilisateur: Joi.object({
       fenetreSecondes: Joi.number().integer().positive().optional(),
       limites: Joi.object({

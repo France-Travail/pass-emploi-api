@@ -156,6 +156,7 @@ export default () => {
     },
     rateLimit: {
       actif: process.env.RATE_LIMIT_ACTIF === 'true',
+      redisUrl: process.env.RATE_LIMIT_REDIS_URL || undefined,
       utilisateur: {
         fenetreSecondes: entierOuUndefined(
           process.env.RATE_LIMIT_UTILISATEUR_FENETRE_SECONDES

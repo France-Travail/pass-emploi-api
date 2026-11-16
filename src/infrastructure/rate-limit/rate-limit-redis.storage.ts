@@ -4,6 +4,8 @@ import { ThrottlerStorage } from '@nestjs/throttler'
 import type { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface'
 import { rootLogger, toEcsError } from '../../utils/logger.module'
 
+// Le Redis des quotas est partagé avec pass-emploi-connect.
+const PREFIXE_CLE = 'api:'
 const TIMEOUT_MS = 200
 const LOG_THROTTLE_MS = 60000
 const INCREMENTS_EN_ATTENTE_MAX = 100
@@ -113,7 +115,7 @@ export class RateLimitRedisStorage implements ThrottlerStorage {
     ttl: number
   ): Promise<[number, number]> {
     const results = await this.client.eval(SCRIPT_INCREMENT, {
-      keys: [key],
+      keys: [`${PREFIXE_CLE}${key}`],
       arguments: [String(ttl)]
     })
 
