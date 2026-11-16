@@ -14,7 +14,6 @@ import {
   IsUUID,
   Matches,
   MaxLength,
-  ValidateBy,
   ValidateNested
 } from 'class-validator'
 import { PlanAction } from '../../../domain/plan-action/plan-action'
@@ -30,26 +29,6 @@ export class CommunePayload {
   @IsString()
   @IsNotEmpty()
   nom: string
-}
-
-function AuMoinsUnObjectifOuUnFrein(): PropertyDecorator {
-  return ValidateBy({
-    name: 'auMoinsUnObjectifOuUnFrein',
-    validator: {
-      validate: (goals, args): boolean => {
-        const obstacles = (args?.object as GenererPlanActionPayload).obstacles
-        return (
-          !Array.isArray(goals) ||
-          Questionnaire.aUnObjectifOuUnFrein({
-            besoins: goals,
-            contraintes: Array.isArray(obstacles) ? obstacles : []
-          })
-        )
-      },
-      defaultMessage: () =>
-        'goals ou obstacles doit contenir au moins un objectif ou un frein'
-    }
-  })
 }
 
 export class GenererPlanActionPayload {
@@ -74,7 +53,6 @@ export class GenererPlanActionPayload {
       'Peut être vide si obstacles contient un frein autre que RIEN_NE_ME_BLOQUE'
   })
   @IsArray()
-  @AuMoinsUnObjectifOuUnFrein()
   @IsEnum(Questionnaire.Besoin, { each: true })
   goals: Questionnaire.Besoin[]
 

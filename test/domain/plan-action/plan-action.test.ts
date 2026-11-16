@@ -1,4 +1,6 @@
 import { DateTime } from 'luxon'
+import { MauvaiseCommandeError } from 'src/building-blocks/types/domain-error'
+import { failure, Success } from 'src/building-blocks/types/result'
 import { PlanAction } from 'src/domain/plan-action/plan-action'
 import { Questionnaire } from 'src/domain/plan-action/questionnaire'
 import { ReferentielPlanAction } from 'src/domain/plan-action/referentiel-plan-action'
@@ -391,6 +393,51 @@ describe('PlanAction', () => {
       factory = new PlanAction.Factory(idService, dateService)
     })
 
+    function creer(
+      ...args: Parameters<PlanAction.Factory['creer']>
+    ): PlanAction {
+      return (factory.creer(...args) as Success<PlanAction>).data
+    }
+
+    it('refuse un questionnaire sans objectif ni frein', () => {
+      // When
+      const result = factory.creer(
+        'jeune-1',
+        unQuestionnaire({ besoins: [], contraintes: [] }),
+        [uneSolution()]
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Le questionnaire doit contenir au moins un objectif ou un frein'
+          )
+        )
+      )
+    })
+
+    it("refuse un questionnaire sans objectif où le jeune déclare n'avoir aucun frein", () => {
+      // When
+      const result = factory.creer(
+        'jeune-1',
+        unQuestionnaire({
+          besoins: [],
+          contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE]
+        }),
+        [uneSolution()]
+      )
+
+      // Then
+      expect(result).to.deep.equal(
+        failure(
+          new MauvaiseCommandeError(
+            'Le questionnaire doit contenir au moins un objectif ou un frein'
+          )
+        )
+      )
+    })
+
     it("construit un objectif par besoin puis par contrainte, dans l'ordre du questionnaire, avec les titres fixes et les solutions dans l'ordre du référentiel", () => {
       // Given
       const referentiel = [
@@ -411,7 +458,7 @@ describe('PlanAction', () => {
       ]
 
       // When
-      const plan = factory.creer(
+      const plan = creer(
         'jeune-1',
         unQuestionnaire({
           besoins: [
@@ -467,7 +514,7 @@ describe('PlanAction', () => {
       ]
 
       // When : coché dans le désordre
-      const plan = factory.creer(
+      const plan = creer(
         'jeune-1',
         unQuestionnaire({
           besoins: [Questionnaire.Besoin.EMPLOI, Questionnaire.Besoin.ORIENTER],
@@ -490,7 +537,7 @@ describe('PlanAction', () => {
 
     it('attribue nos propres identifiants au plan, aux objectifs et aux tâches', () => {
       // When
-      const plan = factory.creer('jeune-1', unQuestionnaire(), [
+      const plan = creer('jeune-1', unQuestionnaire(), [
         uneSolution({ id: 'p-2' })
       ])
 
@@ -506,7 +553,7 @@ describe('PlanAction', () => {
       const questionnaire = unQuestionnaire()
 
       // When
-      const plan = factory.creer('jeune-1', questionnaire, [uneSolution()])
+      const plan = creer('jeune-1', questionnaire, [uneSolution()])
 
       // Then
       expect(plan.questionnaire).to.deep.equal(questionnaire)
@@ -514,7 +561,7 @@ describe('PlanAction', () => {
 
     it('pose le jeune, la date de création et des tâches non terminées', () => {
       // When
-      const plan = factory.creer('jeune-1', unQuestionnaire(), [uneSolution()])
+      const plan = creer('jeune-1', unQuestionnaire(), [uneSolution()])
 
       // Then
       expect(plan.idJeune).to.equal('jeune-1')
@@ -525,7 +572,7 @@ describe('PlanAction', () => {
 
     it('ne retient que les solutions éligibles à la date du jour', () => {
       // When
-      const plan = factory.creer(
+      const plan = creer(
         'jeune-1',
         unQuestionnaire({ dateNaissance: DateTime.fromISO('2010-01-01') }),
         [
@@ -545,7 +592,7 @@ describe('PlanAction', () => {
 
     it('saute les thèmes sans solution éligible', () => {
       // When
-      const plan = factory.creer(
+      const plan = creer(
         'jeune-1',
         unQuestionnaire({
           besoins: [Questionnaire.Besoin.FORMER],
@@ -560,7 +607,7 @@ describe('PlanAction', () => {
 
     it("ne construit qu'un objectif par thème quand le questionnaire répète un besoin", () => {
       // When
-      const plan = factory.creer(
+      const plan = creer(
         'jeune-1',
         unQuestionnaire({
           besoins: [
@@ -618,7 +665,7 @@ describe('PlanAction', () => {
         ])
 
         // When
-        const plan = factory.creer(
+        const plan = creer(
           'jeune-1',
           unQuestionnaire(),
           [uneSolution({ id: 'alternance-1' })],
@@ -653,7 +700,7 @@ describe('PlanAction', () => {
         ])
 
         // When
-        const plan = factory.creer(
+        const plan = creer(
           'jeune-1',
           unQuestionnaire(),
           [
@@ -699,7 +746,7 @@ describe('PlanAction', () => {
         ])
 
         // When
-        const plan = factory.creer(
+        const plan = creer(
           'jeune-1',
           unQuestionnaire(),
           [uneSolution({ id: 'alternance-1' })],

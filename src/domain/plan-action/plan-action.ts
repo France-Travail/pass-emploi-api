@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { DateTime } from 'luxon'
+import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import { failure, Result, success } from '../../building-blocks/types/result'
 import { DateService } from '../../utils/date-service'
 import { IdService } from '../../utils/id-service'
 import { Profil } from '../profil'
@@ -314,7 +316,15 @@ export namespace PlanAction {
       questionnaire: Questionnaire,
       referentiel: ReferentielPlanAction.Solution[],
       planPrecedent?: PlanAction
-    ): PlanAction {
+    ): Result<PlanAction> {
+      if (!Questionnaire.aUnObjectifOuUnFrein(questionnaire)) {
+        return failure(
+          new MauvaiseCommandeError(
+            'Le questionnaire doit contenir au moins un objectif ou un frein'
+          )
+        )
+      }
+
       const maintenant = this.dateService.now()
       // L'identifiant du plan est tiré avant ceux des objectifs et des tâches
       const id = this.idService.uuid()
@@ -368,7 +378,13 @@ export namespace PlanAction {
           }
         })
 
-      return { id, idJeune, dateCreation: maintenant, objectifs, questionnaire }
+      return success({
+        id,
+        idJeune,
+        dateCreation: maintenant,
+        objectifs,
+        questionnaire
+      })
     }
   }
 }
