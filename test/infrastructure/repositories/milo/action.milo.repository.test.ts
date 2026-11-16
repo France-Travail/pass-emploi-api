@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import { ActionMiloHttpRepository } from '../../../../src/infrastructure/repositories/milo/action.milo.repository'
 import { expect, StubbedClass, stubClass } from '../../../utils'
 import { uneActionMilo } from '../../../fixtures/action.fixture'
@@ -52,6 +53,39 @@ describe('ActionMiloHttpRepository', () => {
 
       // Then
       expect(result).to.deep.equal(erreur)
+    })
+
+    it('considère la SNP créée quand Milo ne répond pas avant le timeout', async () => {
+      // Given
+      const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
+      miloClient.creerSituationDossier.rejects(
+        new AxiosError('timeout of 5000ms exceeded', 'ECONNABORTED')
+      )
+
+      // When
+      const result = await repository.creerSituationNonProfessionnelle(
+        action,
+        async () => 'idpToken'
+      )
+
+      // Then
+      expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it('relance les autres erreurs techniques', async () => {
+      // Given
+      const action = uneActionMilo({ idJeune: 'id-jeune-avec-id-dossier' })
+      const erreur = new AxiosError('Request failed with status code 500')
+      miloClient.creerSituationDossier.rejects(erreur)
+
+      // When
+      const promesse = repository.creerSituationNonProfessionnelle(
+        action,
+        async () => 'idpToken'
+      )
+
+      // Then
+      await expect(promesse).to.be.rejectedWith(erreur)
     })
   })
 })

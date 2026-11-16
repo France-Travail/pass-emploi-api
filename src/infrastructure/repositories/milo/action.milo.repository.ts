@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { isFailure, Result } from '../../../building-blocks/types/result'
+import { isAxiosError } from 'axios'
+import {
+  emptySuccess,
+  isFailure,
+  Result
+} from '../../../building-blocks/types/result'
 import { ActionMilo } from '../../../domain/milo/action.milo'
 import { MiloClient } from '../../clients/milo/milo-client'
 
@@ -23,11 +28,20 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
       loginConseiller: action.loginConseiller
     }
 
-    const result = await this.miloClient.creerSituationDossier(
-      action.idDossier,
-      body,
-      getIdpToken
-    )
+    let result: Result
+    try {
+      result = await this.miloClient.creerSituationDossier(
+        action.idDossier,
+        body,
+        getIdpToken
+      )
+    } catch (e) {
+      if (!estUnTimeout(e)) throw e
+      this.logger.warn(
+        `SNP considérée créée malgré le timeout pour le dossier ${action.idDossier}`
+      )
+      return emptySuccess()
+    }
     if (isFailure(result)) {
       return result
     }
@@ -38,4 +52,11 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
 
     return result
   }
+}
+
+function estUnTimeout(erreur: unknown): boolean {
+  return (
+    isAxiosError(erreur) &&
+    (erreur.code === 'ECONNABORTED' || erreur.code === 'ETIMEDOUT')
+  )
 }
