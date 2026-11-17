@@ -92,6 +92,32 @@ describe('logger.module — pinoHttpOptions', () => {
         event: { action: 'request_completed', outcome: 'success' }
       })
     })
+    it('422 du parcours authentification injecte outcome=success : refus de connexion métier', () => {
+      const requeteAuthentification = {
+        userJourney: 'authentification'
+      } as unknown as IncomingMessage
+      const result = pinoHttpOptions.customSuccessObject(
+        requeteAuthentification,
+        { statusCode: 422 },
+        {}
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'success' }
+      })
+    })
+    it("422 d'un autre parcours injecte outcome=failure", () => {
+      const requeteAutreParcours = {
+        userJourney: 'sessions_milo'
+      } as unknown as IncomingMessage
+      const result = pinoHttpOptions.customSuccessObject(
+        requeteAutreParcours,
+        { statusCode: 422 },
+        {}
+      )
+      expect(result).to.deep.include({
+        event: { action: 'request_completed', outcome: 'failure' }
+      })
+    })
     it('aborted (statusCode null) injecte outcome=failure', () => {
       const result = pinoHttpOptions.customSuccessObject(
         req,

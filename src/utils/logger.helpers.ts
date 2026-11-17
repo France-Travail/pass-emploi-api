@@ -240,8 +240,18 @@ export const customLogLevel = (
 // des SLO d'authentification.
 // TODO: compter le 403 en échec une fois corrigés les appels refusés des apps
 // et du web.
-const estUnEchecDuParcours = (statusCode: number): boolean =>
-  !statusCode || (statusCode >= 400 && ![401, 403].includes(statusCode))
+// Le 422 du parcours authentification est un refus de connexion métier
+// (utilisateur inconnu, autre structure, migration) : il se suit sur le
+// login_failed de connect, pas sur la disponibilité.
+const estUnEchecDuParcours = (
+  req: IncomingMessage,
+  statusCode: number
+): boolean => {
+  if (!statusCode) return true
+  if (statusCode < 400 || [401, 403].includes(statusCode)) return false
+  const { userJourney } = req as RequeteAvecUserJourney
+  return !(statusCode === 422 && userJourney === 'authentification')
+}
 
 export const toEcsUser = (
   utilisateur: Authentification.Utilisateur
@@ -274,7 +284,9 @@ export const buildCustomSuccessObject =
     res: { statusCode: number },
     val: Record<string, unknown>
   ): Record<string, unknown> => {
-    const outcome = estUnEchecDuParcours(res.statusCode) ? 'failure' : 'success'
+    const outcome = estUnEchecDuParcours(req, res.statusCode)
+      ? 'failure'
+      : 'success'
     const log = {
       ...val,
       ...contexteDeLaRequete(req),
