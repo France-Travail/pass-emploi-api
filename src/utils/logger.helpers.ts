@@ -238,11 +238,11 @@ export const customLogLevel = (
 
 // L'outcome d'une requête est le verdict du SLO de son parcours. Le 401 relève
 // des SLO d'authentification.
-// TODO: compter le 403 en échec une fois corrigés les appels refusés des apps
-// et du web.
 // Le 422 du parcours authentification est un refus de connexion métier
 // (utilisateur inconnu, autre structure, migration) : il se suit sur le
 // login_failed de connect, pas sur la disponibilité.
+// TODO: compter le 403 en échec une fois corrigés les appels refusés des apps
+// et du web.
 const estUnEchecDuParcours = (
   req: IncomingMessage,
   statusCode: number
