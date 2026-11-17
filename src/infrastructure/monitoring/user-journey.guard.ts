@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { USER_JOURNEY_METADATA } from './user-journey.decorator'
+import { Parcours, USER_JOURNEY_METADATA } from './user-journey.decorator'
 
 export interface RequeteAvecUserJourney {
-  userJourney?: string
+  userJourney?: Parcours
 }
 
 @Injectable()
@@ -12,10 +12,9 @@ export class UserJourneyGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const requete = context.switchToHttp().getRequest<RequeteAvecUserJourney>()
-    requete.userJourney = this.reflector.getAllAndOverride<string | undefined>(
-      USER_JOURNEY_METADATA,
-      [context.getHandler(), context.getClass()]
-    )
+    requete.userJourney = this.reflector.getAllAndOverride<
+      Parcours | undefined
+    >(USER_JOURNEY_METADATA, [context.getHandler(), context.getClass()])
     return true
   }
 }
