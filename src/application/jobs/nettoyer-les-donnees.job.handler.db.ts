@@ -77,12 +77,12 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
 
     try {
       const jeunes = await JeuneSqlModel.findAll({
-        where: inactifDepuisPlusDeDeuxAns(maintenant),
+        where: sansConnexionDepuisPlusDeDeuxAns(maintenant),
         attributes: ['id']
       })
       this.nettoyerJeunes(jeunes)
       nombreJeunesSupprimes = await JeuneSqlModel.destroy({
-        where: inactifDepuisPlusDeDeuxAns(maintenant)
+        where: sansConnexionDepuisPlusDeDeuxAns(maintenant)
       })
     } catch (e) {
       this.logger.warn(e)
@@ -92,7 +92,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     try {
       const idsConseillers = (
         await ConseillerSqlModel.findAll({
-          where: inactifDepuisPlusDeDeuxAns(maintenant),
+          where: dateDerniereConnexionSuperieureADeuxAns(maintenant),
           attributes: ['id']
         })
       ).map(conseiller => conseiller.id)
@@ -121,7 +121,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         await this.authentificationRepository.deleteUtilisateurIdp(idConseiller)
       }
       nombreConseillersSupprimes = await ConseillerSqlModel.destroy({
-        where: inactifDepuisPlusDeDeuxAns(maintenant)
+        where: dateDerniereConnexionSuperieureADeuxAns(maintenant)
       })
     } catch (e) {
       this.logger.warn(e)
@@ -406,7 +406,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
   }
 }
 
-function inactifDepuisPlusDeDeuxAns(maintenant: DateTime): WhereOptions {
+function sansConnexionDepuisPlusDeDeuxAns(maintenant: DateTime): WhereOptions {
   const ilYaDeuxAns = maintenant.minus({ years: 2 }).toJSDate()
   return {
     [Op.or]: [
@@ -416,6 +416,16 @@ function inactifDepuisPlusDeDeuxAns(maintenant: DateTime): WhereOptions {
         dateCreation: { [Op.lt]: ilYaDeuxAns }
       }
     ]
+  }
+}
+
+function dateDerniereConnexionSuperieureADeuxAns(
+  maintenant: DateTime
+): WhereOptions {
+  return {
+    dateDerniereConnexion: {
+      [Op.lt]: maintenant.minus({ years: 2 }).toJSDate()
+    }
   }
 }
 

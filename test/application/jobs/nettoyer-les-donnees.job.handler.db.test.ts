@@ -107,16 +107,6 @@ describe('NettoyerLesDonneesJobHandler', () => {
       unConseillerDto({
         id: 'con2',
         dateDerniereConnexion: maintenant.minus({ days: 10 }).toJSDate()
-      }),
-      unConseillerDto({
-        id: 'conJamaisConnecteAncien',
-        dateCreation: maintenant.minus({ years: 2, day: 2 }).toJSDate(),
-        dateDerniereConnexion: null
-      }),
-      unConseillerDto({
-        id: 'conJamaisConnecteRecent',
-        dateCreation: maintenant.minus({ days: 10 }).toJSDate(),
-        dateDerniereConnexion: null
       })
     ])
     // Given - Jeunes
@@ -151,7 +141,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
       }),
       unJeuneDto({
         id: 'idJeuneJamaisConnecteAncien',
-        dateCreation: maintenant.minus({ years: 2, day: 2 }).toJSDate(),
+        dateCreation: maintenant.minus({ years: 2, days: 2 }).toJSDate(),
         dateDerniereConnexion: null,
         idConseiller: undefined
       }),
@@ -543,7 +533,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
   })
 
   describe('conseillers', () => {
-    it('supprime les conseillers inactifs depuis plus de 2 ans, y compris jamais connectés', async () => {
+    it('supprime les conseillers de plus de 2 ans', async () => {
       // Then
       const conseillers = await ConseillerSqlModel.findAll()
       const jeune = await JeuneSqlModel.findByPk(
@@ -555,7 +545,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
             nombreConseillersSupprimes: number
           }
         ).nombreConseillersSupprimes
-      ).to.equal(2)
+      ).to.equal(1)
       expect(
         (
           stats.resultat as {
@@ -563,10 +553,8 @@ describe('NettoyerLesDonneesJobHandler', () => {
           }
         ).nombreJeunesSupprimesConseillerInactif
       ).to.equal(1)
-      expect(conseillers.map(conseiller => conseiller.id)).to.have.members([
-        'con2',
-        'conJamaisConnecteRecent'
-      ])
+      expect(conseillers.length).to.equal(1)
+      expect(conseillers[0].id).to.equal('con2')
       expect(jeune?.idConseillerInitial).to.be.null()
     })
   })
