@@ -631,7 +631,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
       const jeuneInactifDepuis62Jours = await JeuneSqlModel.findByPk(idJeune3)
       expect(jeuneActif?.pushNotificationToken).to.equal('token')
       expect(jeuneActifDepuis59Jours?.pushNotificationToken).to.equal('token')
-      expect(jeuneInactifDepuis62Jours?.pushNotificationToken).to.equal(null)
+      expect(jeuneInactifDepuis62Jours?.pushNotificationToken).to.be.null()
     })
   })
 
