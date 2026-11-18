@@ -636,14 +636,14 @@ describe('NettoyerLesDonneesJobHandler', () => {
   describe('jeune', () => {
     it('met à null pushToken pour jeunes sans activité depuis plus de 60 jours', async () => {
       // Then
-      const jeunes = await JeuneSqlModel.findAll()
-      expect(jeunes).to.have.length(3)
-      expect(jeunes[1].id).to.equal(idJeuneAUpdateSonConseillerInitial)
-      expect(jeunes[1].pushNotificationToken).to.equal('token')
-      expect(jeunes[0].id).to.equal(idJeune2)
-      expect(jeunes[0].pushNotificationToken).to.equal('token')
-      expect(jeunes[2].id).to.equal(idJeune3)
-      expect(jeunes[2].pushNotificationToken).to.equal(null)
+      const jeuneActif = await JeuneSqlModel.findByPk(
+        idJeuneAUpdateSonConseillerInitial
+      )
+      const jeuneActifDepuis59Jours = await JeuneSqlModel.findByPk(idJeune2)
+      const jeuneInactifDepuis62Jours = await JeuneSqlModel.findByPk(idJeune3)
+      expect(jeuneActif?.pushNotificationToken).to.equal('token')
+      expect(jeuneActifDepuis59Jours?.pushNotificationToken).to.equal('token')
+      expect(jeuneInactifDepuis62Jours?.pushNotificationToken).to.equal(null)
     })
   })
 
