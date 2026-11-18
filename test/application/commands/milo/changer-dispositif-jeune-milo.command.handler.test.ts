@@ -141,6 +141,7 @@ describe('ChangerDispositifJeuneMiloCommandHandler', () => {
           idPartenaire: jeune.idPartenaire,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+          dateDerniereConnexion: jeune.dateDerniereConnexion?.toJSDate(),
           motif: command.motif,
           dateArchivage: uneDate(),
           dateFinAccompagnement: command.dateFinAccompagnement

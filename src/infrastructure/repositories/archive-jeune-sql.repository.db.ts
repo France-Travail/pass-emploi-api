@@ -410,6 +410,7 @@ function versLigneArchive({
     idPartenaire: metadonnees.idPartenaire ?? null,
     dateCreation: metadonnees.dateCreation,
     datePremiereConnexion: metadonnees.datePremiereConnexion ?? null,
+    dateDerniereConnexion: metadonnees.dateDerniereConnexion ?? null,
     dateFinAccompagnement: metadonnees.dateFinAccompagnement ?? null,
     motif: metadonnees.motif,
     commentaire: metadonnees.commentaire ?? null,
