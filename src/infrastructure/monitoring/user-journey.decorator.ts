@@ -5,6 +5,7 @@ export const USER_JOURNEY_METADATA = 'user_journey'
 // Les valeurs sont filtrées telles quelles par les SLO Kibana
 // (labels.user_journey) : renommer un parcours casse son SLO.
 export type Parcours =
+  | 'external_access_milo_fiche_jeune'
   | 'accueil_jeune_france_travail'
   | 'accueil_jeune_milo'
   | 'actualites'
@@ -19,6 +20,7 @@ export type Parcours =
   | 'creation_jeune'
   | 'creation_jeune_france_travail'
   | 'creation_jeune_milo'
+  | 'creation_jeune_milo_recherche_dossier'
   | 'creation_rendez_vous'
   | 'delete_plan_action_tache'
   | 'diagoriente'
