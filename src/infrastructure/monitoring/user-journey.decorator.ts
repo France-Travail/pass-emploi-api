@@ -42,6 +42,7 @@ export type Parcours =
   | 'rendez_vous'
   | 'reprise_invite'
   | 'sessions_milo'
+  | 'structures_accompagnement'
   | 'suivi_actions'
   | 'suivi_demarches'
   | 'support'
