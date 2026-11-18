@@ -77,12 +77,12 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
 
     try {
       const jeunes = await JeuneSqlModel.findAll({
-        where: dateDerniereConnexionSuperieureADeuxAns(maintenant),
+        where: inactifDepuisPlusDeDeuxAns(maintenant),
         attributes: ['id']
       })
       this.nettoyerJeunes(jeunes)
       nombreJeunesSupprimes = await JeuneSqlModel.destroy({
-        where: dateDerniereConnexionSuperieureADeuxAns(maintenant)
+        where: inactifDepuisPlusDeDeuxAns(maintenant)
       })
     } catch (e) {
       this.logger.warn(e)
@@ -92,7 +92,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
     try {
       const idsConseillers = (
         await ConseillerSqlModel.findAll({
-          where: dateDerniereConnexionSuperieureADeuxAns(maintenant),
+          where: inactifDepuisPlusDeDeuxAns(maintenant),
           attributes: ['id']
         })
       ).map(conseiller => conseiller.id)
@@ -121,7 +121,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         await this.authentificationRepository.deleteUtilisateurIdp(idConseiller)
       }
       nombreConseillersSupprimes = await ConseillerSqlModel.destroy({
-        where: dateDerniereConnexionSuperieureADeuxAns(maintenant)
+        where: inactifDepuisPlusDeDeuxAns(maintenant)
       })
     } catch (e) {
       this.logger.warn(e)
@@ -406,13 +406,16 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
   }
 }
 
-function dateDerniereConnexionSuperieureADeuxAns(
-  maintenant: DateTime
-): WhereOptions {
+function inactifDepuisPlusDeDeuxAns(maintenant: DateTime): WhereOptions {
+  const ilYaDeuxAns = maintenant.minus({ years: 2 }).toJSDate()
   return {
-    dateDerniereConnexion: {
-      [Op.lt]: maintenant.minus({ years: 2 }).toJSDate()
-    }
+    [Op.or]: [
+      { dateDerniereConnexion: { [Op.lt]: ilYaDeuxAns } },
+      {
+        dateDerniereConnexion: { [Op.is]: null },
+        dateCreation: { [Op.lt]: ilYaDeuxAns }
+      }
+    ]
   }
 }
 

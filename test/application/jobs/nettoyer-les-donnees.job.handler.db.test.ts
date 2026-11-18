@@ -60,6 +60,7 @@ let stats: SuiviJob
 const idJeuneAUpdateSonConseillerInitial = 'push1'
 const idJeune2 = 'push2'
 const idJeune3 = 'push3'
+const idJeuneJamaisConnecteRecent = 'jamais-connecte-recent'
 const maintenant = uneDatetime()
 
 describe('NettoyerLesDonneesJobHandler', () => {
@@ -106,6 +107,16 @@ describe('NettoyerLesDonneesJobHandler', () => {
       unConseillerDto({
         id: 'con2',
         dateDerniereConnexion: maintenant.minus({ days: 10 }).toJSDate()
+      }),
+      unConseillerDto({
+        id: 'conJamaisConnecteAncien',
+        dateCreation: maintenant.minus({ years: 2, day: 2 }).toJSDate(),
+        dateDerniereConnexion: null
+      }),
+      unConseillerDto({
+        id: 'conJamaisConnecteRecent',
+        dateCreation: maintenant.minus({ days: 10 }).toJSDate(),
+        dateDerniereConnexion: null
       })
     ])
     // Given - Jeunes
@@ -136,6 +147,18 @@ describe('NettoyerLesDonneesJobHandler', () => {
         id: idJeune3,
         dateDerniereConnexion: maintenant.minus({ days: 62 }).toJSDate(),
         dateDerniereActivite: maintenant.minus({ days: 62 }).toJSDate(),
+        idConseiller: undefined
+      }),
+      unJeuneDto({
+        id: 'idJeuneJamaisConnecteAncien',
+        dateCreation: maintenant.minus({ years: 2, day: 2 }).toJSDate(),
+        dateDerniereConnexion: null,
+        idConseiller: undefined
+      }),
+      unJeuneDto({
+        id: idJeuneJamaisConnecteRecent,
+        dateCreation: maintenant.minus({ days: 10 }).toJSDate(),
+        dateDerniereConnexion: null,
         idConseiller: undefined
       })
     ])
@@ -503,22 +526,24 @@ describe('NettoyerLesDonneesJobHandler', () => {
   })
 
   describe('jeunes', () => {
-    it('supprime les jeunes de plus de 2 ans', async () => {
+    it('supprime les jeunes inactifs depuis plus de 2 ans, y compris jamais connectés', async () => {
       // Then
       const jeunes = await JeuneSqlModel.findAll()
       expect(
         (stats.resultat as { nombreJeunesSupprimes: number })
           .nombreJeunesSupprimes
-      ).to.equal(1)
-      expect(jeunes).to.have.length(3)
-      expect(jeunes[1].id).to.equal(idJeuneAUpdateSonConseillerInitial)
-      expect(jeunes[0].id).to.equal(idJeune2)
-      expect(jeunes[2].id).to.equal(idJeune3)
+      ).to.equal(2)
+      expect(jeunes.map(jeune => jeune.id)).to.have.members([
+        idJeuneAUpdateSonConseillerInitial,
+        idJeune2,
+        idJeune3,
+        idJeuneJamaisConnecteRecent
+      ])
     })
   })
 
   describe('conseillers', () => {
-    it('supprime les conseillers de plus de 2 ans', async () => {
+    it('supprime les conseillers inactifs depuis plus de 2 ans, y compris jamais connectés', async () => {
       // Then
       const conseillers = await ConseillerSqlModel.findAll()
       const jeune = await JeuneSqlModel.findByPk(
@@ -530,7 +555,7 @@ describe('NettoyerLesDonneesJobHandler', () => {
             nombreConseillersSupprimes: number
           }
         ).nombreConseillersSupprimes
-      ).to.equal(1)
+      ).to.equal(2)
       expect(
         (
           stats.resultat as {
@@ -538,8 +563,10 @@ describe('NettoyerLesDonneesJobHandler', () => {
           }
         ).nombreJeunesSupprimesConseillerInactif
       ).to.equal(1)
-      expect(conseillers.length).to.equal(1)
-      expect(conseillers[0].id).to.equal('con2')
+      expect(conseillers.map(conseiller => conseiller.id)).to.have.members([
+        'con2',
+        'conJamaisConnecteRecent'
+      ])
       expect(jeune?.idConseillerInitial).to.be.null()
     })
   })
