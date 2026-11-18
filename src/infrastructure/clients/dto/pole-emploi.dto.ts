@@ -276,6 +276,18 @@ export interface DocumentPoleEmploiDto {
   }
 }
 
+export interface HoraireAgenceFTDto {
+  jour: number
+  ouvertureMatin?: string
+  fermetureMatin?: string
+  horaireFerme?: string
+  ouvertureApresMidi?: string
+  fermetureApresMidi?: string
+  ouvertureApresMidiRDV?: string
+  fermetureApresMidiRDV?: string
+  horaireFermeRDV?: string
+}
+
 export interface AgenceFTDto {
   code: string
   codeSafir: string
@@ -283,7 +295,13 @@ export interface AgenceFTDto {
   libelleEtendu: string
   type: string
   codeRegionINSEE?: string
+  contact?: { telephonePublic?: string }
   adressePrincipale: {
     communeImplantation: string
+    ligne4?: string
+    ligne5?: string
+    ligne6?: string
+    bureauDistributeur?: string
   }
+  horaires?: HoraireAgenceFTDto[]
 }
