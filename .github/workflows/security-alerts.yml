@@ -7,7 +7,7 @@ on:
 
 jobs:
   security-alerts:
-    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@163b51ad27729bb9d40def32fbd14aacae169445
+    uses: France-Travail/pass-emploi-tools/.github/workflows/security-alerts.yml@846ee871af6e1bababa23a3b187e97ddf02534aa
     with:
       repo-name: 'pass-emploi-api'
       elastic-url: ${{ vars.ELASTIC_URL }}
