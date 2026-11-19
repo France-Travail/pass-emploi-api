@@ -24,6 +24,7 @@ import {
   ActionMiloRepositoryToken
 } from '../../../domain/milo/action.milo'
 import { OidcClient } from '../../../infrastructure/clients/oidc-client.db'
+import { buildError } from '../../../utils/logger.helpers'
 import { ConseillerAuthorizer } from '../../authorizers/conseiller-authorizer'
 
 export class QualificationActionsMiloQueryModel {
@@ -115,13 +116,22 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
         actionQualifiee.qualification.code !== Qualification.Code.NON_SNP
 
       if (estSNP) {
-        const resultQualificationEnSNP = await qualifierEnSNP(
-          actionQualifiee,
-          utilisateur,
-          this.actionMiloRepository,
-          this.jeuneRepository,
-          getIdpToken
-        )
+        let resultQualificationEnSNP: Result
+        try {
+          resultQualificationEnSNP = await qualifierEnSNP(
+            actionQualifiee,
+            utilisateur,
+            this.actionMiloRepository,
+            this.jeuneRepository,
+            getIdpToken
+          )
+        } catch (e) {
+          idsActionsEnErreur.push(qualification.idAction)
+          this.logger.error(
+            buildError(`Erreur création SNP pour l'action ${action.id}`, e)
+          )
+          continue
+        }
         if (isFailure(resultQualificationEnSNP)) {
           idsActionsEnErreur.push(qualification.idAction)
           this.logger.warn(resultQualificationEnSNP.error.message)
