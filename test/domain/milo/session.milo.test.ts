@@ -9,7 +9,8 @@ import {
   Failure,
   failure,
   isFailure,
-  isSuccess
+  isSuccess,
+  success
 } from 'src/building-blocks/types/result'
 import { SessionMilo } from 'src/domain/milo/session.milo'
 import { expect } from 'test/utils'
@@ -451,6 +452,44 @@ describe('SessionMilo', () => {
 
     it('retourne false si le début est égal à maintenant', () => {
       expect(SessionMilo.estAVenir(maintenant, maintenant)).to.be.false()
+    })
+  })
+
+  describe('extraireInscriptionsATraiter', () => {
+    it('ignore les jeunes renvoyés au statut PRESENT et traite les autres', () => {
+      // Given
+      const session = uneSessionMilo({
+        inscriptions: [
+          {
+            idJeune: 'id-hermione',
+            idInscription: 'id-inscription-hermione',
+            nom: 'Granger',
+            prenom: 'Hermione',
+            statut: SessionMilo.Inscription.Statut.PRESENT
+          }
+        ]
+      })
+
+      // When
+      const result = SessionMilo.extraireInscriptionsATraiter(session, [
+        {
+          idJeune: 'id-hermione',
+          statut: SessionMilo.Modification.StatutInscription.PRESENT
+        },
+        {
+          idJeune: 'id-neville',
+          statut: SessionMilo.Modification.StatutInscription.INSCRIT
+        }
+      ])
+
+      // Then
+      expect(result).to.deep.equal(
+        success({
+          idsJeunesAInscrire: ['id-neville'],
+          inscriptionsASupprimer: [],
+          inscriptionsAModifier: []
+        })
+      )
     })
   })
 

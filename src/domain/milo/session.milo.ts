@@ -375,7 +375,8 @@ export namespace SessionMilo {
       INSCRIT = 'INSCRIT',
       REFUS_JEUNE = 'REFUS_JEUNE',
       REFUS_TIERS = 'REFUS_TIERS',
-      DESINSCRIT = 'DESINSCRIT'
+      DESINSCRIT = 'DESINSCRIT',
+      PRESENT = 'PRESENT'
     }
   }
 }
@@ -438,6 +439,9 @@ function trierInscriptionsATraiter(
             statut: SessionMilo.Inscription.Statut.REFUS_TIERS,
             idInscription: inscriptionExistante.idInscription
           })
+        break
+
+      case SessionMilo.Modification.StatutInscription.PRESENT:
         break
     }
   }
