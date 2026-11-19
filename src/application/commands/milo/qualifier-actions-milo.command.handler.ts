@@ -96,6 +96,9 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
         idsActionsEnErreur.push(qualification.idAction)
         continue
       }
+      if (action.qualification?.code === qualification.codeQualification) {
+        continue
+      }
       const qualifierResult = Action.qualifier(
         action,
         qualification.codeQualification
