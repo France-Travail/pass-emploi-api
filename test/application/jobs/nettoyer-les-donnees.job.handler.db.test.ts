@@ -530,6 +530,21 @@ describe('NettoyerLesDonneesJobHandler', () => {
         idJeuneJamaisConnecteRecent
       ])
     })
+
+    it('supprime le compte IdP et le chat de chaque jeune supprimé avant la fin du job', () => {
+      // Then
+      const idsJeunesSupprimes = [
+        'idJeuneASupprimer',
+        'idJeuneJamaisConnecteAncien',
+        'idJeuneASupprimerConseillerEstInactif'
+      ]
+      for (const idJeune of idsJeunesSupprimes) {
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledWith(idJeune)
+        expect(chatRepository.supprimerChat).to.have.been.calledWith(idJeune)
+      }
+    })
   })
 
   describe('conseillers', () => {
@@ -786,8 +801,19 @@ describe('NettoyerLesDonneesJobHandler', () => {
   describe('gestion des erreurs', () => {
     let statsAvecErreurs: SuiviJob
     let sandbox2: SinonSandbox
+    const idJeuneDontLeChatEchoue = 'jeune-chat-en-echec'
 
     before(async () => {
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id: idJeuneDontLeChatEchoue,
+          dateDerniereConnexion: maintenant
+            .minus({ years: 2, days: 2 })
+            .toJSDate(),
+          idConseiller: undefined
+        })
+      )
+      chatRepository.supprimerChat.rejects(new Error('Firebase erreur'))
       sandbox2 = createSandbox()
       sandbox2
         .stub(ActualiteMiloSqlModel, 'destroy')
@@ -821,7 +847,14 @@ describe('NettoyerLesDonneesJobHandler', () => {
       statsAvecErreurs = await handlerAvecErreurs.handle()
     })
 
-    after(() => sandbox2.restore())
+    after(() => {
+      sandbox2.restore()
+      chatRepository.supprimerChat.resolves()
+    })
+
+    it('supprime le jeune même si la suppression de son chat échoue', async () => {
+      expect(await JeuneSqlModel.findByPk(idJeuneDontLeChatEchoue)).to.be.null()
+    })
 
     it('continue les opérations suivantes et comptabilise les erreurs', () => {
       expect(statsAvecErreurs.succes).to.equal(true)

@@ -30,6 +30,7 @@ import { RechercheSqlModel } from '../../infrastructure/sequelize/models/recherc
 import { RendezVousSqlModel } from '../../infrastructure/sequelize/models/rendez-vous.sql-model'
 import { SuiviJobSqlModel } from '../../infrastructure/sequelize/models/suivi-job.sql-model'
 import { DateService } from '../../utils/date-service'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 import Source = RendezVous.Source
 import { ComptageJeuneSqlModel } from '../../infrastructure/sequelize/models/comptage-jeune.sql-model'
 import { Communication } from '../../domain/communication'
@@ -80,7 +81,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         where: sansConnexionDepuisPlusDeDeuxAns(maintenant),
         attributes: ['id']
       })
-      this.nettoyerJeunes(jeunes)
+      await this.nettoyerJeunes(jeunes)
       nombreJeunesSupprimes = await JeuneSqlModel.destroy({
         where: sansConnexionDepuisPlusDeDeuxAns(maintenant)
       })
@@ -103,7 +104,7 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
         },
         attributes: ['id']
       })
-      this.nettoyerJeunes(jeunesDuConseiller)
+      await this.nettoyerJeunes(jeunesDuConseiller)
       nombreJeunesSupprimesConseillerInactif = await JeuneSqlModel.destroy({
         where: { id: { [Op.in]: jeunesDuConseiller.map(jeune => jeune.id) } }
       })
@@ -401,7 +402,18 @@ export class NettoyerLesDonneesJobHandler extends JobHandler {
   ): Promise<void> {
     for (const jeune of jeunes) {
       await this.authentificationRepository.deleteUtilisateurIdp(jeune.id)
-      this.chatRepository.supprimerChat(jeune.id)
+      try {
+        await this.chatRepository.supprimerChat(jeune.id)
+      } catch (e) {
+        rootLogger.error(
+          {
+            context: 'NettoyerLesDonneesJobHandler',
+            labels: { jeune_id: jeune.id },
+            error: toEcsError(e)
+          },
+          'Échec de la suppression du chat'
+        )
+      }
     }
   }
 }
