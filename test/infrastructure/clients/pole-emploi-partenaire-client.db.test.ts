@@ -30,7 +30,7 @@ import { uneDatetime } from '../../fixtures/date.fixture'
 import { uneDemarcheDto } from '../../fixtures/demarches-dto.fixtures'
 import { unePrestationDto } from '../../fixtures/pole-emploi-partenaire.fixture'
 import { DateService } from 'src/utils/date-service'
-import { expect, StubbedClass, stubClass, waitFor } from '../../utils'
+import { expect, sinon, StubbedClass, stubClass, waitFor } from '../../utils'
 import {
   DatabaseForTesting,
   getDatabase
@@ -45,6 +45,7 @@ describe('PoleEmploiPartenaireClient', () => {
   const tokenJeune = 'token'
   let context: StubbedClass<Context>
   let databaseForTesting: DatabaseForTesting
+  let sauvegardesCache: sinon.SinonSpy
   const utilisateurJeunePE = unUtilisateurJeune({
     id: 'hermione',
     profil: unProfilFT()
@@ -63,6 +64,7 @@ describe('PoleEmploiPartenaireClient', () => {
       databaseForTesting.sequelize,
       context
     )
+    sauvegardesCache = sinon.spy(cacheApiPartenaire, 'sauvegarder')
     poleEmploiPartenaireClient = new PoleEmploiPartenaireClient(
       configService,
       cacheApiPartenaire,
@@ -70,6 +72,12 @@ describe('PoleEmploiPartenaireClient', () => {
       stubClass(DateService)
     )
   })
+
+  // Le client met en cache sans attendre l'écriture : une écriture tardive
+  // arriverait après le cleanPG du test suivant et lui servirait ce cache.
+  afterEach(() =>
+    Promise.all(sauvegardesCache.getCalls().map(appel => appel.returnValue))
+  )
 
   describe('getPrestations', () => {
     describe("quand l'api est up", () => {
