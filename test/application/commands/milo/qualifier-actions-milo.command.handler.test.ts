@@ -375,6 +375,39 @@ describe('QualifierActionsMiloCommandHandler', () => {
         expect(result).to.deep.equal(success({ idsActionsEnErreur: [] }))
       })
 
+      it('qualifie une action à qualifier dont la catégorie est le code demandé', async () => {
+        // Given
+        const actionAQualifier = uneActionTerminee({
+          id: idAction,
+          qualification: { code: Action.Qualification.Code.SANTE }
+        })
+        jeuneRepository.get.resolves(unJeune())
+        actionMiloRepository.creerSituationNonProfessionnelle.resolves(
+          emptySuccess()
+        )
+        const command: QualifierActionsMiloCommand = {
+          estSNP: true,
+          accessToken: 'accessToken',
+          qualifications: [
+            { idAction, codeQualification: Action.Qualification.Code.SANTE }
+          ]
+        }
+
+        // When
+        const result = await qualifierActionsMiloCommandHandler.handle(
+          command,
+          utilisateur,
+          [actionAQualifier]
+        )
+
+        // Then
+        expect(
+          actionMiloRepository.creerSituationNonProfessionnelle
+        ).to.have.been.calledOnce()
+        expect(actionRepository.save).to.have.been.calledOnce()
+        expect(result).to.deep.equal(success({ idsActionsEnErreur: [] }))
+      })
+
       it('remonte en erreur une action déjà qualifiée avec un autre code', async () => {
         // Given
         const actionDejaQualifiee = uneActionTerminee({
