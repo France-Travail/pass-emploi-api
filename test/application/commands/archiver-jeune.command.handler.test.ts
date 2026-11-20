@@ -114,6 +114,7 @@ describe('ArchiverJeuneCommandHandler', () => {
           idPartenaire: jeune.idPartenaire,
           dateCreation: jeune.creationDate.toJSDate(),
           datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),
+          dateDerniereConnexion: jeune.dateDerniereConnexion?.toJSDate(),
           dateFinAccompagnement: new Date('2020-04-06T12:00:00.000Z'),
           motif: command.motif,
           commentaire: command.commentaire,

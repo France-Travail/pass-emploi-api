@@ -60,6 +60,7 @@ let stats: SuiviJob
 const idJeuneAUpdateSonConseillerInitial = 'push1'
 const idJeune2 = 'push2'
 const idJeune3 = 'push3'
+const idJeuneJamaisConnecteRecent = 'jamais-connecte-recent'
 const maintenant = uneDatetime()
 
 describe('NettoyerLesDonneesJobHandler', () => {
@@ -136,6 +137,18 @@ describe('NettoyerLesDonneesJobHandler', () => {
         id: idJeune3,
         dateDerniereConnexion: maintenant.minus({ days: 62 }).toJSDate(),
         dateDerniereActivite: maintenant.minus({ days: 62 }).toJSDate(),
+        idConseiller: undefined
+      }),
+      unJeuneDto({
+        id: 'idJeuneJamaisConnecteAncien',
+        dateCreation: maintenant.minus({ years: 2, days: 2 }).toJSDate(),
+        dateDerniereConnexion: null,
+        idConseiller: undefined
+      }),
+      unJeuneDto({
+        id: idJeuneJamaisConnecteRecent,
+        dateCreation: maintenant.minus({ days: 10 }).toJSDate(),
+        dateDerniereConnexion: null,
         idConseiller: undefined
       })
     ])
@@ -503,17 +516,34 @@ describe('NettoyerLesDonneesJobHandler', () => {
   })
 
   describe('jeunes', () => {
-    it('supprime les jeunes de plus de 2 ans', async () => {
+    it('supprime les jeunes inactifs depuis plus de 2 ans, y compris jamais connectés', async () => {
       // Then
       const jeunes = await JeuneSqlModel.findAll()
       expect(
         (stats.resultat as { nombreJeunesSupprimes: number })
           .nombreJeunesSupprimes
-      ).to.equal(1)
-      expect(jeunes).to.have.length(3)
-      expect(jeunes[1].id).to.equal(idJeuneAUpdateSonConseillerInitial)
-      expect(jeunes[0].id).to.equal(idJeune2)
-      expect(jeunes[2].id).to.equal(idJeune3)
+      ).to.equal(2)
+      expect(jeunes.map(jeune => jeune.id)).to.have.members([
+        idJeuneAUpdateSonConseillerInitial,
+        idJeune2,
+        idJeune3,
+        idJeuneJamaisConnecteRecent
+      ])
+    })
+
+    it('supprime le compte IdP et le chat de chaque jeune supprimé avant la fin du job', () => {
+      // Then
+      const idsJeunesSupprimes = [
+        'idJeuneASupprimer',
+        'idJeuneJamaisConnecteAncien',
+        'idJeuneASupprimerConseillerEstInactif'
+      ]
+      for (const idJeune of idsJeunesSupprimes) {
+        expect(
+          authentificationRepository.deleteUtilisateurIdp
+        ).to.have.been.calledWith(idJeune)
+        expect(chatRepository.supprimerChat).to.have.been.calledWith(idJeune)
+      }
     })
   })
 
@@ -609,14 +639,14 @@ describe('NettoyerLesDonneesJobHandler', () => {
   describe('jeune', () => {
     it('met à null pushToken pour jeunes sans activité depuis plus de 60 jours', async () => {
       // Then
-      const jeunes = await JeuneSqlModel.findAll()
-      expect(jeunes).to.have.length(3)
-      expect(jeunes[1].id).to.equal(idJeuneAUpdateSonConseillerInitial)
-      expect(jeunes[1].pushNotificationToken).to.equal('token')
-      expect(jeunes[0].id).to.equal(idJeune2)
-      expect(jeunes[0].pushNotificationToken).to.equal('token')
-      expect(jeunes[2].id).to.equal(idJeune3)
-      expect(jeunes[2].pushNotificationToken).to.equal(null)
+      const jeuneActif = await JeuneSqlModel.findByPk(
+        idJeuneAUpdateSonConseillerInitial
+      )
+      const jeuneActifDepuis59Jours = await JeuneSqlModel.findByPk(idJeune2)
+      const jeuneInactifDepuis62Jours = await JeuneSqlModel.findByPk(idJeune3)
+      expect(jeuneActif?.pushNotificationToken).to.equal('token')
+      expect(jeuneActifDepuis59Jours?.pushNotificationToken).to.equal('token')
+      expect(jeuneInactifDepuis62Jours?.pushNotificationToken).to.be.null()
     })
   })
 
@@ -771,8 +801,19 @@ describe('NettoyerLesDonneesJobHandler', () => {
   describe('gestion des erreurs', () => {
     let statsAvecErreurs: SuiviJob
     let sandbox2: SinonSandbox
+    const idJeuneDontLeChatEchoue = 'jeune-chat-en-echec'
 
     before(async () => {
+      await JeuneSqlModel.creer(
+        unJeuneDto({
+          id: idJeuneDontLeChatEchoue,
+          dateDerniereConnexion: maintenant
+            .minus({ years: 2, days: 2 })
+            .toJSDate(),
+          idConseiller: undefined
+        })
+      )
+      chatRepository.supprimerChat.rejects(new Error('Firebase erreur'))
       sandbox2 = createSandbox()
       sandbox2
         .stub(ActualiteMiloSqlModel, 'destroy')
@@ -806,7 +847,14 @@ describe('NettoyerLesDonneesJobHandler', () => {
       statsAvecErreurs = await handlerAvecErreurs.handle()
     })
 
-    after(() => sandbox2.restore())
+    after(() => {
+      sandbox2.restore()
+      chatRepository.supprimerChat.resolves()
+    })
+
+    it('supprime le jeune même si la suppression de son chat échoue', async () => {
+      expect(await JeuneSqlModel.findByPk(idJeuneDontLeChatEchoue)).to.be.null()
+    })
 
     it('continue les opérations suivantes et comptabilise les erreurs', () => {
       expect(statsAvecErreurs.succes).to.equal(true)

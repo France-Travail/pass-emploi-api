@@ -517,7 +517,7 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       dateCreation: archive.dateCreation ?? archive.dateArchivage,
       datePremiereConnexion: archive.datePremiereConnexion,
       datePremiereUtilisationInvite: null,
-      dateDerniereConnexion: null,
+      dateDerniereConnexion: archive.dateDerniereConnexion,
       dateFinCEJ: null,
       dateSignatureCGU: null,
       // Compte IDP pas encore révoqué : on le reprend. Sinon null, réassocié par email à la prochaine connexion

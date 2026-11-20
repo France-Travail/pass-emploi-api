@@ -91,6 +91,7 @@ export class ChangerDispositifJeuneMiloCommandHandler extends CommandHandler<
         idPartenaire: jeune.idPartenaire,
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+        dateDerniereConnexion: jeune.dateDerniereConnexion?.toJSDate(),
         motif: command.motif,
         dateArchivage: this.dateService.nowJs(),
         dateFinAccompagnement: command.dateFinAccompagnement

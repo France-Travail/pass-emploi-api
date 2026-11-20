@@ -168,6 +168,7 @@ describe('DesarchiverJeuneCommandHandler', () => {
       idPartenaire: '12345',
       dateCreation: new Date('2022-01-01T08:00:00.000Z'),
       datePremiereConnexion: new Date('2022-01-02T08:00:00.000Z'),
+      dateDerniereConnexion: new Date('2023-05-15T08:00:00.000Z'),
       dateFinAccompagnement: null,
       email: args.email !== undefined ? args.email : 'john.doe@plop.io',
       dateArchivage: new Date('2023-06-01T08:00:00.000Z'),
@@ -651,6 +652,9 @@ describe('DesarchiverJeuneCommandHandler', () => {
         expect(jeune?.structure).to.equal(Core.Structure.MILO)
         expect(jeune?.dispositif).to.equal(Profil.Dispositif.CEJ)
         expect(jeune?.idPartenaire).to.equal('12345')
+        expect(jeune?.dateDerniereConnexion).to.deep.equal(
+          new Date('2023-05-15T08:00:00.000Z')
+        )
         expect(jeune?.idAuthentification).to.be.null()
       })
 

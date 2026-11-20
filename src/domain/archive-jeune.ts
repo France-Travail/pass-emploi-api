@@ -284,6 +284,7 @@ export namespace ArchiveJeune {
     idPartenaire?: string
     dateCreation: Date
     datePremiereConnexion?: Date
+    dateDerniereConnexion?: Date
     dateFinAccompagnement?: Date
     motif: MotifSuppression | MotifSuppressionSupport
     commentaire?: string
@@ -621,6 +622,7 @@ export namespace ArchiveJeune {
         structure: jeune.structure,
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.datePremiereConnexion?.toJSDate(),
+        dateDerniereConnexion: jeune.dateDerniereConnexion?.toJSDate(),
         motif: motifSuppression,
         commentaire: commentaireSuppressionSupport,
         dateArchivage: this.dateService.nowJs(),

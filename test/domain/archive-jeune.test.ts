@@ -142,6 +142,7 @@ describe('ArchiveJeuneService', () => {
         dispositif: Profil.Dispositif.CEJ,
         dateCreation: jeune.creationDate.toJSDate(),
         datePremiereConnexion: jeune.creationDate.plus({ day: 1 }).toJSDate(),
+        dateDerniereConnexion: jeune.dateDerniereConnexion?.toJSDate(),
         motif,
         commentaire,
         dateArchivage: maintenant,

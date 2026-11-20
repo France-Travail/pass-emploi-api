@@ -88,6 +88,12 @@ export class ArchiveJeuneDto extends Model {
   datePremiereConnexion: Date | null
 
   @Column({
+    field: 'date_derniere_connexion',
+    type: DataType.DATE
+  })
+  dateDerniereConnexion: Date | null
+
+  @Column({
     field: 'date_fin_accompagnement',
     type: DataType.DATE
   })

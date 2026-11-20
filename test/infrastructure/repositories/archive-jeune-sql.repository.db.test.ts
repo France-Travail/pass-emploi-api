@@ -179,6 +179,7 @@ describe('ArchiveJeuneSqlRepository', () => {
         email: jeuneDto.email!,
         dateCreation: new Date('2022-01-05T09:23:00Z'),
         datePremiereConnexion: new Date('2022-01-06T09:23:00Z'),
+        dateDerniereConnexion: new Date('2022-06-20T09:23:00Z'),
         dateFinAccompagnement: new Date('2022-07-01T09:23:00Z'),
         dateArchivage: new Date('2022-07-05T09:23:00Z')
       }
@@ -229,6 +230,9 @@ describe('ArchiveJeuneSqlRepository', () => {
       )
       expect(archiveJeuneSql!.datePremiereConnexion).to.deep.equal(
         metadonnees.datePremiereConnexion
+      )
+      expect(archiveJeuneSql!.dateDerniereConnexion).to.deep.equal(
+        metadonnees.dateDerniereConnexion
       )
       expect(archiveJeuneSql!.motif).to.equal(metadonnees.motif)
       expect(archiveJeuneSql!.commentaire).to.equal(metadonnees.commentaire)
