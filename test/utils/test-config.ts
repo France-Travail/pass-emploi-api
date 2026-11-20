@@ -76,6 +76,10 @@ export const testConfig = (): ConfigService => {
       apiKey: 'apiKey',
       apiKeyV3: 'apiKeyV3'
     },
+    apprentissage: {
+      url: 'https://api.apprentissage.test',
+      apiKey: 'apprentissage-api-key'
+    },
     diagoriente: {
       url: 'https://api-dev.diagoriente.fr',
       clientId: 'diagoriente-client-id',

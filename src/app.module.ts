@@ -159,6 +159,7 @@ import { ChangerStatutTachePlanActionCommandHandler } from './application/comman
 import { SupprimerTachePlanActionCommandHandler } from './application/commands/supprimer-tache-plan-action.command.handler'
 import { ReprendreCompteInviteCommandHandler } from './application/commands/reprendre-compte-invite.command.handler'
 import { GetPrenomInviteQueryHandler } from './application/queries/get-prenom-invite.query.handler.db'
+import { GetStructuresAccompagnementQueryHandler } from './application/queries/get-structures-accompagnement.query.handler'
 import { GetCGUInviteQueryHandler } from './application/queries/get-cgu-invite.query.handler'
 import { DumpForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-for-analytics.job'
 import { DumpPopulationsForAnalyticsJobHandler } from './application/jobs/analytics/0-dump-populations-for-analytics.job'
@@ -393,6 +394,7 @@ import { EngagementClient } from './infrastructure/clients/engagement-client'
 import { FirebaseClient } from './infrastructure/clients/firebase-client'
 import { GristClient } from './infrastructure/clients/grist-client'
 import { ImmersionClient } from './infrastructure/clients/immersion-client'
+import { ApprentissageClient } from './infrastructure/clients/apprentissage-client'
 import { InvitationIcsClient } from './infrastructure/clients/invitation-ics.client'
 import { MailBrevoService } from './infrastructure/clients/mail-brevo.service.db'
 import { MatomoClient } from './infrastructure/clients/matomo-client'
@@ -465,6 +467,7 @@ import { FilesController } from './infrastructure/routes/fichiers.controller'
 import { HealthController } from './infrastructure/routes/health.controller'
 import { JeunesController } from './infrastructure/routes/jeunes.controller'
 import { JeunesInviteController } from './infrastructure/routes/jeunes.invite.controller'
+import { StructuresAccompagnementController } from './infrastructure/routes/structures-accompagnement.controller'
 import { JeunesMiloController } from './infrastructure/routes/jeunes.milo.controller'
 import { JeunesPoleEmploiController } from './infrastructure/routes/jeunes.pole-emploi.controller'
 import { ListesDeDiffusionController } from './infrastructure/routes/listes-de-diffusion.controller'
@@ -511,6 +514,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     JeunesController,
     JeunesMiloController,
     JeunesInviteController,
+    StructuresAccompagnementController,
     JeunesPoleEmploiController,
     ConseillersController,
     ConseillersMiloController,
@@ -566,6 +570,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     MiloClientV2,
     MiloClientUtils,
     ImmersionClient,
+    ApprentissageClient,
     EngagementClient,
     MatomoClient,
     ObjectStorageClient,
@@ -876,6 +881,7 @@ export function buildQueryCommandsProviders(): Provider[] {
     SupprimerTachePlanActionCommandHandler,
     ReprendreCompteInviteCommandHandler,
     GetPrenomInviteQueryHandler,
+    GetStructuresAccompagnementQueryHandler,
     GetCGUInviteQueryHandler,
     GetCommunesEtDepartementsQueryHandler,
     GetDossierMiloJeuneQueryHandler,

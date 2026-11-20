@@ -239,6 +239,28 @@ export class PoleEmploiClient extends ExternalApiClient {
     }
   }
 
+  async getAgencesFTParCommune(
+    codeCommune: string
+  ): Promise<Result<AgenceFTDto[]>> {
+    try {
+      const result = await this.getWithRetry<AgenceFTDto[]>(
+        'referentielagences/v1/agences',
+        new URLSearchParams({
+          commune: codeCommune,
+          zonecompetence: 'true',
+          horaire: 'true'
+        })
+      )
+      if (isFailure(result)) return result
+      return success(Array.isArray(result.data.data) ? result.data.data : [])
+    } catch (e) {
+      return handleAxiosError(
+        e,
+        'La récupération des agences FT de la commune a échoué'
+      )
+    }
+  }
+
   async generateDemarchesIA(contenu: string): Promise<Result<DemarcheIADto[]>> {
     const token = await this.getToken()
     const body = { content: contenu }

@@ -516,6 +516,98 @@ describe('PoleEmploiClient', () => {
     })
   })
 
+  describe('getAgencesFTParCommune', () => {
+    const agenceStMichel = {
+      code: 'OCC0075',
+      codeSafir: '31037',
+      libelle: 'TOULOUSE ST-MICHEL',
+      libelleEtendu: 'Agence France Travail TOULOUSE ST-MICHEL',
+      type: 'APE',
+      contact: { telephonePublic: '39-49' },
+      adressePrincipale: {
+        ligne4: "2 AVENUE DE L'URSS",
+        ligne5: '',
+        ligne6: '31400 TOULOUSE',
+        communeImplantation: '31555',
+        bureauDistributeur: '31400'
+      },
+      horaires: [
+        {
+          jour: 1,
+          ouvertureMatin: '08:30',
+          fermetureMatin: '12:30',
+          horaireFerme: 'N',
+          ouvertureApresMidiRDV: '12:30',
+          fermetureApresMidiRDV: '16:30',
+          horaireFermeRDV: 'N'
+        }
+      ]
+    }
+
+    beforeEach(() => {
+      poleEmploiClient.inMemoryToken = {
+        token: 'test-token',
+        tokenDate: uneDatetimeDeMaintenant.minus({ minutes: 20 })
+      }
+    })
+
+    it('appelle le référentiel avec la commune, la zone de compétence et les horaires', async () => {
+      // Given
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .query({ commune: '31555', zonecompetence: 'true', horaire: 'true' })
+        .reply(200, [agenceStMichel])
+
+      // When
+      const result = await poleEmploiClient.getAgencesFTParCommune('31555')
+
+      // Then
+      expect(result).to.deep.equal(success([agenceStMichel]))
+    })
+
+    it('renvoie une liste vide quand le référentiel répond 204', async () => {
+      // Given
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .query({ commune: '75056', zonecompetence: 'true', horaire: 'true' })
+        .reply(204)
+
+      // When
+      const result = await poleEmploiClient.getAgencesFTParCommune('75056')
+
+      // Then
+      expect(result).to.deep.equal(success([]))
+    })
+
+    it('remonte un échec quand le référentiel refuse la requête', async () => {
+      // Given
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .query({ commune: '31555', zonecompetence: 'true', horaire: 'true' })
+        .reply(403)
+
+      // When
+      const result = await poleEmploiClient.getAgencesFTParCommune('31555')
+
+      // Then
+      expect(isFailure(result)).to.equal(true)
+    })
+
+    it('lève une erreur quand le référentiel est en panne', async () => {
+      // Given
+      nock('https://api.peio.pe-qvr.fr/partenaire')
+        .get('/referentielagences/v1/agences')
+        .query({ commune: '31555', zonecompetence: 'true', horaire: 'true' })
+        .reply(500)
+
+      // When
+      const promise = poleEmploiClient.getAgencesFTParCommune('31555')
+
+      // Then
+      await expect(promise).to.be.rejectedWith(Error)
+    })
+  })
+
   describe('getMetiersRomeApi', () => {
     it('retourne la liste des métiers avec leurs appellations', async () => {
       // Given
