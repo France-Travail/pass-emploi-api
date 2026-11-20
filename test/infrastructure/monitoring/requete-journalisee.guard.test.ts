@@ -4,17 +4,17 @@ import { buildModuleMetadata } from '../../../src/app.module'
 import { OidcAuthGuard } from '../../../src/infrastructure/auth/oidc.auth-guard'
 import { USER_JOURNEY_METADATA } from '../../../src/infrastructure/monitoring/user-journey.decorator'
 import {
-  RequeteAvecUserJourney,
-  UserJourneyGuard
-} from '../../../src/infrastructure/monitoring/user-journey.guard'
+  RequeteJournalisee,
+  RequeteJournaliseeGuard
+} from '../../../src/infrastructure/monitoring/requete-journalisee.guard'
 import { RateLimitGuard } from '../../../src/infrastructure/rate-limit/rate-limit.guard'
 import { expect } from '../../utils'
 
-describe('UserJourneyGuard', () => {
+describe('RequeteJournaliseeGuard', () => {
   const handler = (): void => undefined
   class UnController {}
-  let requete: RequeteAvecUserJourney
-  let guard: UserJourneyGuard
+  let requete: RequeteJournalisee & { route?: { path: string } }
+  let guard: RequeteJournaliseeGuard
 
   const unExecutionContext = (): ExecutionContext =>
     ({
@@ -25,7 +25,7 @@ describe('UserJourneyGuard', () => {
 
   beforeEach(() => {
     requete = {}
-    guard = new UserJourneyGuard(new Reflector())
+    guard = new RequeteJournaliseeGuard(new Reflector())
   })
 
   afterEach(() => {
@@ -75,6 +75,17 @@ describe('UserJourneyGuard', () => {
     expect(requete.userJourney).to.be.undefined()
   })
 
+  it('pose la route du handler sur la requête', () => {
+    // Given
+    requete.route = { path: '/jeunes/:idJeune/actions' }
+
+    // When
+    guard.canActivate(unExecutionContext())
+
+    // Then
+    expect(requete.httpRoute).to.equal('/jeunes/:idJeune/actions')
+  })
+
   it('laisse toujours passer la requête', () => {
     // When
     const resultat = guard.canActivate(unExecutionContext())
@@ -83,7 +94,7 @@ describe('UserJourneyGuard', () => {
     expect(resultat).to.be.true()
   })
 
-  it("passe avant OidcAuthGuard, pour que les refus d'authentification portent leur parcours", () => {
+  it("passe avant OidcAuthGuard, pour que les refus d'authentification portent leur parcours et leur route", () => {
     // When
     const guardsGlobaux = buildModuleMetadata()
       .providers!.filter(
@@ -96,7 +107,7 @@ describe('UserJourneyGuard', () => {
 
     // Then
     expect(guardsGlobaux).to.deep.equal([
-      UserJourneyGuard,
+      RequeteJournaliseeGuard,
       OidcAuthGuard,
       RateLimitGuard
     ])

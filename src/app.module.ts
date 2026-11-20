@@ -385,7 +385,7 @@ import { ApiKeyAuthGuard } from './infrastructure/auth/api-key.auth-guard'
 import { JetonJeuneJwtService } from './infrastructure/auth/jeton-jeune.service'
 import { JwtService } from './infrastructure/auth/jwt.service'
 import { OidcAuthGuard } from './infrastructure/auth/oidc.auth-guard'
-import { UserJourneyGuard } from './infrastructure/monitoring/user-journey.guard'
+import { RequeteJournaliseeGuard } from './infrastructure/monitoring/requete-journalisee.guard'
 import { RateLimitGuard } from './infrastructure/rate-limit/rate-limit.guard'
 import { RateLimitModule } from './infrastructure/rate-limit/rate-limit.module'
 import { DiagorienteClient } from './infrastructure/clients/diagoriente-client'
@@ -615,7 +615,7 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     },
     {
       provide: APP_GUARD,
-      useClass: UserJourneyGuard
+      useClass: RequeteJournaliseeGuard
     },
     {
       provide: APP_GUARD,
