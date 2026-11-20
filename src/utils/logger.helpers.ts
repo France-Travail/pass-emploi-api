@@ -2,7 +2,7 @@ import { ValidationError } from '@nestjs/common'
 import { IncomingMessage } from 'node:http'
 import { DatabaseError } from 'sequelize'
 import { Authentification } from '../domain/authentification'
-import { RequeteAvecUserJourney } from '../infrastructure/monitoring/user-journey.guard'
+import { RequeteJournalisee } from '../infrastructure/monitoring/requete-journalisee.guard'
 import type { RequeteRefuseeParLeRateLimit } from '../infrastructure/rate-limit/rate-limit.guard'
 
 const REQ_HEADERS_WHITELIST = [
@@ -218,12 +218,21 @@ export function aplatirErreursDeValidation(
   })
 }
 
-// Fragment ECS http.request.body.content, undefined si pas de body.
-export const requestBodyFragment = (
-  req: IncomingMessage
+const requestHttpFragment = (
+  req: IncomingMessage,
+  includeBody: boolean
 ): Record<string, unknown> | undefined => {
-  const content = serializeBodyForLog((req as { body?: unknown }).body)
-  return content ? { http: { request: { body: { content } } } } : undefined
+  const route = (req as RequeteJournalisee).httpRoute
+  const content = includeBody
+    ? serializeBodyForLog((req as { body?: unknown }).body)
+    : undefined
+  if (!route && !content) return undefined
+  return {
+    http: {
+      ...(route && { route }),
+      ...(content && { request: { body: { content } } })
+    }
+  }
 }
 
 export const customLogLevel = (
@@ -249,7 +258,7 @@ const estUnEchecDuParcours = (
 ): boolean => {
   if (!statusCode) return true
   if (statusCode < 400 || [401, 403].includes(statusCode)) return false
-  const { userJourney } = req as RequeteAvecUserJourney
+  const { userJourney } = req as RequeteJournalisee
   return !(statusCode === 422 && userJourney === 'authentification')
 }
 
@@ -262,15 +271,15 @@ export const toEcsUser = (
   dispositif: utilisateur.profil.dispositif
 })
 
-type RequeteJournalisee = IncomingMessage &
-  RequeteAvecUserJourney & {
+type RequeteAuthentifiee = IncomingMessage &
+  RequeteJournalisee & {
     authenticated?: { utilisateur: Authentification.Utilisateur }
   }
 
 // Lu sur la requête et non dans le contexte du mixin : ce contexte manque aux
 // réponses en erreur (refus des guards, exceptions).
 const contexteDeLaRequete = (req: IncomingMessage): Record<string, unknown> => {
-  const { userJourney, authenticated } = req as RequeteJournalisee
+  const { userJourney, authenticated } = req as RequeteAuthentifiee
   return {
     ...(userJourney && { labels: { user_journey: userJourney } }),
     ...(authenticated && { user: toEcsUser(authenticated.utilisateur) })
@@ -287,14 +296,13 @@ export const buildCustomSuccessObject =
     const outcome = estUnEchecDuParcours(req, res.statusCode)
       ? 'failure'
       : 'success'
-    const log = {
+    const includeBody = outcome === 'failure' || isDebugEnabled()
+    return {
       ...val,
       ...contexteDeLaRequete(req),
-      event: { action: 'request_completed', outcome }
+      event: { action: 'request_completed', outcome },
+      ...requestHttpFragment(req, includeBody)
     }
-    // body sur échec ; sur succès seulement si LOG_LEVEL=debug
-    const includeBody = outcome === 'failure' || isDebugEnabled()
-    return includeBody ? { ...log, ...requestBodyFragment(req) } : log
   }
 
 export const customErrorObject = (
@@ -306,7 +314,7 @@ export const customErrorObject = (
   ...val,
   ...contexteDeLaRequete(req),
   event: { action: 'request_failed', outcome: 'failure' },
-  ...requestBodyFragment(req)
+  ...requestHttpFragment(req, true)
 })
 
 export interface LogError {

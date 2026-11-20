@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { IncomingMessage } from 'node:http'
 import { Authentification } from 'src/domain/authentification'
 import { Profil } from 'src/domain/profil'
+import { buildCustomSuccessObject } from 'src/utils/logger.helpers'
 import { pinoHttpOptions, pinoSerializers } from 'src/utils/logger.module'
 import { unUtilisateurJeune } from '../fixtures/authentification.fixture'
 import { unProfilFT } from '../fixtures/profil.fixture'
@@ -181,6 +182,74 @@ describe('logger.module — pinoHttpOptions', () => {
       expect(result).to.deep.include({
         foo: 1,
         event: { action: 'request_failed', outcome: 'failure' }
+      })
+    })
+  })
+
+  describe('http.route', () => {
+    const reqAvecRoute = (body?: unknown): IncomingMessage =>
+      ({
+        httpRoute: '/jeunes/:idJeune/actions',
+        body
+      }) as unknown as IncomingMessage
+
+    it('request_completed porte la route du handler', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        reqAvecRoute(),
+        { statusCode: 200 },
+        {}
+      )
+      expect(result.http).to.deep.equal({ route: '/jeunes/:idJeune/actions' })
+    })
+    it("request_completed n'a pas de http.route quand aucun handler n'a répondu", () => {
+      const reqTraverseeParUnMiddleware = {
+        route: { path: '/{*path}' }
+      } as unknown as IncomingMessage
+      const result = pinoHttpOptions.customSuccessObject(
+        reqTraverseeParUnMiddleware,
+        { statusCode: 404 },
+        {}
+      )
+      expect(result.http).to.equal(undefined)
+    })
+    it('request_completed en succès hors debug porte la route sans le body', () => {
+      const result = buildCustomSuccessObject(() => false)(
+        reqAvecRoute({ titre: 'x' }),
+        { statusCode: 200 },
+        {}
+      )
+      expect(result.http).to.deep.equal({ route: '/jeunes/:idJeune/actions' })
+    })
+    it('request_completed en échec garde la route et le body sous http', () => {
+      const result = pinoHttpOptions.customSuccessObject(
+        reqAvecRoute({ titre: 'x' }),
+        { statusCode: 400 },
+        {}
+      )
+      expect(result.http).to.deep.equal({
+        route: '/jeunes/:idJeune/actions',
+        request: { body: { content: '{"titre":"x"}' } }
+      })
+    })
+    it('request_failed porte la route du handler', () => {
+      const result = pinoHttpOptions.customErrorObject(
+        reqAvecRoute(),
+        {},
+        new Error('boom'),
+        {}
+      )
+      expect(result.http).to.deep.equal({ route: '/jeunes/:idJeune/actions' })
+    })
+    it('request_failed garde la route et le body sous http', () => {
+      const result = pinoHttpOptions.customErrorObject(
+        reqAvecRoute({ titre: 'x' }),
+        {},
+        new Error('boom'),
+        {}
+      )
+      expect(result.http).to.deep.equal({
+        route: '/jeunes/:idJeune/actions',
+        request: { body: { content: '{"titre":"x"}' } }
       })
     })
   })
