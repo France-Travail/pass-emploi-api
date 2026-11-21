@@ -2,10 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
 import { Query } from '../../building-blocks/types/query'
-import {
-  DroitsInsuffisants,
-  NonTrouveError
-} from '../../building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../building-blocks/types/domain-error'
 import { failure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
 import {
@@ -24,7 +21,7 @@ export interface RecupererQuestionnaireQuery extends Query {
 @Injectable()
 export class RecupererQuestionnaireQueryHandler extends QueryHandler<
   RecupererQuestionnaireQuery,
-  Result<QuestionnaireQueryModel>
+  Result<QuestionnaireQueryModel | null>
 > {
   readonly profilsAutorises = [...TOUT_PROFIL_SAUF_INVITE]
 
@@ -50,17 +47,15 @@ export class RecupererQuestionnaireQueryHandler extends QueryHandler<
 
   async handle(
     query: RecupererQuestionnaireQuery
-  ): Promise<Result<QuestionnaireQueryModel>> {
+  ): Promise<Result<QuestionnaireQueryModel | null>> {
     const questionnaire =
       await this.planActionRepository.getQuestionnaireDuDernierPlan(
         query.idJeune
       )
 
-    if (!questionnaire) {
-      return failure(new NonTrouveError('Questionnaire', query.idJeune))
-    }
-
-    return success(toQuestionnaireQueryModel(questionnaire))
+    return success(
+      questionnaire ? toQuestionnaireQueryModel(questionnaire) : null
+    )
   }
 
   async monitor(): Promise<void> {

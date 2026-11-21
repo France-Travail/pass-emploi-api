@@ -8,10 +8,7 @@ import {
   failure,
   success
 } from '../../../src/building-blocks/types/result'
-import {
-  DroitsInsuffisants,
-  NonTrouveError
-} from '../../../src/building-blocks/types/domain-error'
+import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
 import { TOUT_PROFIL_SAUF_INVITE, Profil } from '../../../src/domain/profil'
@@ -160,7 +157,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
       )
     })
 
-    it("renvoie une erreur NonTrouve quand le jeune n'a pas de questionnaire", async () => {
+    it("renvoie null quand le jeune n'a pas de questionnaire", async () => {
       // Given
       planActionRepository.getQuestionnaireDuDernierPlan.resolves(undefined)
 
@@ -168,9 +165,7 @@ describe('RecupererQuestionnaireQueryHandler', () => {
       const result = await handler.handle(query)
 
       // Then
-      expect(result).to.deep.equal(
-        failure(new NonTrouveError('Questionnaire', query.idJeune))
-      )
+      expect(result).to.deep.equal(success(null))
     })
   })
 
