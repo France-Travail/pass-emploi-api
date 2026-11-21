@@ -1221,7 +1221,7 @@ describe('JeunesController', () => {
         .set('authorization', unHeaderAuthorization())
         .send({
           jetonConnecte: 'jeton-connecte',
-          questionnaire: { situation: 'EMPLOI', goals: [] }
+          questionnaire: { situation: 'EN_RECHERCHE', goals: [] }
         })
         // Then
         .expect(HttpStatus.BAD_REQUEST)
@@ -1586,6 +1586,32 @@ describe('JeunesController', () => {
         genererPlanActionCommandHandler.execute
       ).to.have.been.calledWithExactly(
         commandeSansReponsesOptionnelles,
+        unUtilisateurDecode()
+      )
+    })
+
+    it("génère le plan quand le jeune n'a coché qu'un frein", async () => {
+      // When
+      await request(app.getHttpServer())
+        .post('/jeunes/id-jeune/plan-action')
+        .set('authorization', unHeaderAuthorization())
+        .send({
+          situation: 'LYCEE',
+          goals: [],
+          obstacles: ['PAS_DE_PERMIS'],
+          domaineInconnu: false
+        })
+        // Then
+        .expect(HttpStatus.CREATED)
+
+      expect(
+        genererPlanActionCommandHandler.execute
+      ).to.have.been.calledWithExactly(
+        {
+          ...commandeSansReponsesOptionnelles,
+          besoins: [],
+          contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS]
+        },
         unUtilisateurDecode()
       )
     })

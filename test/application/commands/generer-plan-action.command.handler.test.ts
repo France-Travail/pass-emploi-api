@@ -14,7 +14,10 @@ import {
   Result,
   success
 } from '../../../src/building-blocks/types/result'
-import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
+import {
+  DroitsInsuffisants,
+  MauvaiseCommandeError
+} from '../../../src/building-blocks/types/domain-error'
 import { Evenement, EvenementService } from '../../../src/domain/evenement'
 import { PlanAction } from '../../../src/domain/plan-action/plan-action'
 import { Questionnaire } from '../../../src/domain/plan-action/questionnaire'
@@ -121,7 +124,7 @@ describe('GenererPlanActionCommandHandler', () => {
     }
 
     referentielRepository.trouverSolutionsActives.resolves([uneSolution()])
-    planActionFactory.creer.returns(unPlan())
+    planActionFactory.creer.returns(success(unPlan()))
 
     handler = construireHandler(testConfig())
   })
@@ -252,6 +255,25 @@ describe('GenererPlanActionCommandHandler', () => {
 
       // Then
       expect(planActionRepository.save).to.have.been.calledWithExactly(unPlan())
+    })
+
+    it('ne sauvegarde pas de plan quand la factory refuse le questionnaire', async () => {
+      // Given
+      const jeuneMilo = unUtilisateurJeune({ profil: unProfilMilo() })
+      const erreur = new MauvaiseCommandeError(
+        'Le questionnaire doit contenir au moins un objectif ou un frein'
+      )
+      planActionFactory.creer.returns(failure(erreur))
+
+      // When
+      const result = await handler.handle(
+        { ...command, besoins: [], contraintes: [] },
+        jeuneMilo
+      )
+
+      // Then
+      expect(result).to.deep.equal(failure(erreur))
+      expect(planActionRepository.save).not.to.have.been.called()
     })
 
     it('construit le plan avec toutes les réponses du questionnaire', async () => {

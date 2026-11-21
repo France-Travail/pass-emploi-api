@@ -3,7 +3,6 @@ import { Type } from 'class-transformer'
 import { DateTime } from 'luxon'
 import {
   ArrayMaxSize,
-  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -47,9 +46,13 @@ export class GenererPlanActionPayload {
   @IsOptional()
   precisionAutre?: string | null
 
-  @ApiProperty({ enum: Questionnaire.Besoin, isArray: true })
+  @ApiProperty({
+    enum: Questionnaire.Besoin,
+    isArray: true,
+    description:
+      'Peut être vide si obstacles contient un frein autre que RIEN_NE_ME_BLOQUE'
+  })
   @IsArray()
-  @ArrayMinSize(1)
   @IsEnum(Questionnaire.Besoin, { each: true })
   goals: Questionnaire.Besoin[]
 
