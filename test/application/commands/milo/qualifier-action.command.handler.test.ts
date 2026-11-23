@@ -90,7 +90,8 @@ describe('QualifierActionCommandHandler', () => {
             const actionMilo: ActionMilo = {
               ...actionQualifiee,
               idDossier: 'idDossier',
-              loginConseiller: 'j.doe'
+              loginConseiller: 'j.doe',
+              fuseauHoraire: 'Europe/Paris'
             }
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
             actionMiloRepository.creerSituationNonProfessionnelle.resolves(

@@ -121,7 +121,8 @@ describe('QualifierActionsMiloCommandHandler', () => {
           const actionMilo: ActionMilo = {
             ...actionQualifiee,
             idDossier: '1234',
-            loginConseiller: 'j.doe'
+            loginConseiller: 'j.doe',
+            fuseauHoraire: 'Europe/Paris'
           }
 
           actionMiloRepository.creerSituationNonProfessionnelle

@@ -16,8 +16,12 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
     getIdpToken: () => Promise<string>
   ): Promise<Result> {
     const body = {
-      dateDebut: action.dateDebut.toFormat('yyyy-MM-dd'),
-      dateFinReelle: action.dateFinReelle.toFormat('yyyy-MM-dd'),
+      dateDebut: action.dateDebut
+        .setZone(action.fuseauHoraire)
+        .toFormat('yyyy-MM-dd'),
+      dateFinReelle: action.dateFinReelle
+        .setZone(action.fuseauHoraire)
+        .toFormat('yyyy-MM-dd'),
       commentaire: action.qualification.commentaire,
       mesure: action.qualification.code,
       loginConseiller: action.loginConseiller

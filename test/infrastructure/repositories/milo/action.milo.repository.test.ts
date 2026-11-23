@@ -7,6 +7,8 @@ import {
 } from '../../../../src/building-blocks/types/result'
 import { ErreurHttp } from '../../../../src/building-blocks/types/domain-error'
 import { MiloClient } from '../../../../src/infrastructure/clients/milo/milo-client'
+import { ActionMilo } from '../../../../src/domain/milo/action.milo'
+import { DateTime } from 'luxon'
 
 describe('ActionMiloHttpRepository', () => {
   let repository: ActionMiloHttpRepository
@@ -36,6 +38,32 @@ describe('ActionMiloHttpRepository', () => {
         getIdpToken
       )
       expect(result).to.deep.equal(emptySuccess())
+    })
+
+    it('envoie les jours de début et de fin dans le fuseau horaire du jeune', async () => {
+      // Given
+      const action: ActionMilo = {
+        ...uneActionMilo(),
+        dateDebut: DateTime.fromISO('2026-09-01T22:00:00.000Z', {
+          zone: 'utc'
+        }),
+        dateFinReelle: DateTime.fromISO('2026-09-16T22:00:00.000Z', {
+          zone: 'utc'
+        }),
+        fuseauHoraire: 'Europe/Paris'
+      }
+      miloClient.creerSituationDossier.resolves(emptySuccess())
+
+      // When
+      await repository.creerSituationNonProfessionnelle(
+        action,
+        async () => 'idpToken'
+      )
+
+      // Then
+      const body = miloClient.creerSituationDossier.firstCall.args[1]
+      expect(body.dateDebut).to.equal('2026-09-02')
+      expect(body.dateFinReelle).to.equal('2026-09-17')
     })
 
     it('retourne le résultat de MiloClient en cas de failure', async () => {

@@ -9,6 +9,7 @@ export const ActionMiloRepositoryToken = 'ActionMiloRepositoryToken'
 export interface ActionMilo extends Action.Qualifiee {
   idDossier: string
   loginConseiller: string
+  fuseauHoraire: string
 }
 
 export namespace ActionMilo {
@@ -39,7 +40,8 @@ export namespace ActionMilo {
     const data: ActionMilo = {
       ...action,
       idDossier: jeune.idPartenaire,
-      loginConseiller: utilisateur.username
+      loginConseiller: utilisateur.username,
+      fuseauHoraire: jeune.configuration.fuseauHoraire
     }
     return success(data)
   }
