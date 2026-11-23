@@ -1,25 +1,14 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Query } from '../../building-blocks/types/query'
 import { QueryHandler } from '../../building-blocks/types/query-handler'
-import { ErreurHttp } from '../../building-blocks/types/domain-error'
-import {
-  Failure,
-  failure,
-  isFailure,
-  Result,
-  success
-} from '../../building-blocks/types/result'
+import { isFailure, Result, success } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
-import { Commune } from '../../domain/commune'
 import { TOUT_INVITE } from '../../domain/profil'
-import { ApprentissageClient } from '../../infrastructure/clients/apprentissage-client'
-import { PoleEmploiClient } from '../../infrastructure/clients/pole-emploi-client'
-import { isDefined } from '../../utils/is-defined'
-import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import {
-  toStructureAccompagnementFT,
-  toStructureAccompagnementMilo
-} from './query-mappers/structures-accompagnement.mappers'
+  StructureAccompagnement,
+  StructureAccompagnementRepositoryToken
+} from '../../domain/structure-accompagnement'
+import { JeuneInviteAuthorizer } from '../authorizers/jeune-invite-authorizer'
 import {
   StructureAccompagnementQueryModel,
   TypeStructureAccompagnement
@@ -39,8 +28,8 @@ export class GetStructuresAccompagnementQueryHandler extends QueryHandler<
   readonly profilsAutorises = TOUT_INVITE
 
   constructor(
-    private readonly apprentissageClient: ApprentissageClient,
-    private readonly poleEmploiClient: PoleEmploiClient,
+    @Inject(StructureAccompagnementRepositoryToken)
+    private readonly structureAccompagnementRepository: StructureAccompagnement.Repository,
     private readonly jeuneInviteAuthorizer: JeuneInviteAuthorizer
   ) {
     super('GetStructuresAccompagnementQueryHandler')
@@ -71,48 +60,22 @@ export class GetStructuresAccompagnementQueryHandler extends QueryHandler<
   private async recupererAgencesFT(
     query: GetStructuresAccompagnementQuery
   ): Promise<Result<StructureAccompagnementQueryModel[]>> {
-    const codeCommune = Commune.codeInseeArrondissement(
+    return this.structureAccompagnementRepository.findAllAgencesFranceTravail(
       query.codeInsee,
       query.codePostal
-    )
-    if (!codeCommune) return success([])
-
-    const result =
-      await this.poleEmploiClient.getAgencesFTParCommune(codeCommune)
-    if (isFailure(result)) return masquerRefusPartenaire(result)
-
-    return success(
-      result.data.map(toStructureAccompagnementFT).filter(isDefined)
     )
   }
 
   private async recupererMissionLocale(
     query: GetStructuresAccompagnementQuery
   ): Promise<Result<StructureAccompagnementQueryModel[]>> {
-    const result = await this.apprentissageClient.rechercherCommunes(
-      query.codePostal
-    )
-    if (isFailure(result)) return masquerRefusPartenaire(result)
+    const result =
+      await this.structureAccompagnementRepository.findMissionLocale(
+        query.codeInsee,
+        query.codePostal
+      )
+    if (isFailure(result)) return result
 
-    const missionLocale = result.data.find(
-      commune => commune.code.insee === query.codeInsee
-    )?.mission_locale
-    if (!missionLocale) return success([])
-
-    const structure = toStructureAccompagnementMilo(missionLocale)
-    return success(structure ? [structure] : [])
+    return success(result.data ? [result.data] : [])
   }
-}
-
-const STATUTS_REFUS_PARTENAIRE = new Set([401, 403])
-
-function masquerRefusPartenaire(echec: Failure): Failure {
-  const erreur = echec.error
-  if (
-    erreur instanceof ErreurHttp &&
-    STATUTS_REFUS_PARTENAIRE.has(erreur.statusCode)
-  ) {
-    return failure(new ErreurHttp(erreur.message, 502))
-  }
-  return echec
 }

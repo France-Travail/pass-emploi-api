@@ -341,6 +341,7 @@ import {
 import { Conseiller, ConseillerRepositoryToken } from './domain/milo/conseiller'
 import { ConseillerMiloRepositoryToken } from './domain/milo/conseiller.milo.db'
 import { EvenementMiloRepositoryToken } from './domain/milo/evenement.milo'
+import { StructureAccompagnementRepositoryToken } from './domain/structure-accompagnement'
 import { JeuneMiloRepositoryToken } from './domain/milo/jeune.milo'
 import { ListeDeDiffusionRepositoryToken } from './domain/milo/liste-de-diffusion'
 import {
@@ -435,6 +436,7 @@ import { MailSqlRepository } from './infrastructure/repositories/mail-sql.reposi
 import { ActionMiloHttpRepository } from './infrastructure/repositories/milo/action.milo.repository'
 import { ConseillerMiloSqlRepository } from './infrastructure/repositories/milo/conseiller.milo.repository.db'
 import { EvenementMiloHttpRepository } from './infrastructure/repositories/milo/evenement-milo-http.repository'
+import { StructureAccompagnementHttpRepository } from './infrastructure/repositories/structure-accompagnement-http.repository'
 import { MiloJeuneHttpSqlRepository } from './infrastructure/repositories/milo/jeune-milo-http-sql.repository.db'
 import { ActualiteMiloSqlRepository } from './infrastructure/repositories/milo/actualite-milo-sql.repository.db'
 import { RendezVousMiloHttpRepository } from './infrastructure/repositories/milo/rendez-vous-milo-http.repository'
@@ -467,7 +469,6 @@ import { FilesController } from './infrastructure/routes/fichiers.controller'
 import { HealthController } from './infrastructure/routes/health.controller'
 import { JeunesController } from './infrastructure/routes/jeunes.controller'
 import { JeunesInviteController } from './infrastructure/routes/jeunes.invite.controller'
-import { StructuresAccompagnementController } from './infrastructure/routes/structures-accompagnement.controller'
 import { JeunesMiloController } from './infrastructure/routes/jeunes.milo.controller'
 import { JeunesPoleEmploiController } from './infrastructure/routes/jeunes.pole-emploi.controller'
 import { ListesDeDiffusionController } from './infrastructure/routes/listes-de-diffusion.controller'
@@ -514,7 +515,6 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     JeunesController,
     JeunesMiloController,
     JeunesInviteController,
-    StructuresAccompagnementController,
     JeunesPoleEmploiController,
     ConseillersController,
     ConseillersMiloController,
@@ -801,6 +801,10 @@ export const buildModuleMetadata = (): ModuleMetadata => ({
     {
       provide: EvenementMiloRepositoryToken,
       useClass: EvenementMiloHttpRepository
+    },
+    {
+      provide: StructureAccompagnementRepositoryToken,
+      useClass: StructureAccompagnementHttpRepository
     },
     {
       provide: ActualiteMiloRepositoryToken,

@@ -1,5 +1,5 @@
-import { Commune } from '../../src/domain/commune'
-import { expect } from '../utils'
+import { Commune } from '../../../../src/infrastructure/repositories/mappers/commune.mappers'
+import { expect } from '../../../utils'
 
 describe('Commune', () => {
   describe('codeInseeArrondissement', () => {

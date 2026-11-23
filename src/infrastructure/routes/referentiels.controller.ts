@@ -1,6 +1,6 @@
 import { UserJourney } from '../monitoring/user-journey.decorator'
 import { Controller, Get, Query } from '@nestjs/common'
-import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { SkipThrottle } from '@nestjs/throttler'
 import { GetCatalogueDemarchesQueryHandler } from 'src/application/queries/get-catalogue-demarches.query.handler'
 import { ThematiqueQueryModel } from 'src/application/queries/query-models/catalogue.query-model'
@@ -16,6 +16,7 @@ import {
   GetMetiersRomeQueryHandler
 } from '../../application/queries/get-metiers-rome.query.handler.db'
 import { GetMotifsSuppressionJeuneQueryHandler } from '../../application/queries/get-motifs-suppression-jeune.query.handler'
+import { GetStructuresAccompagnementQueryHandler } from '../../application/queries/get-structures-accompagnement.query.handler'
 import {
   ActionPredefinieQueryModel,
   TypeQualificationQueryModel
@@ -25,6 +26,7 @@ import { CommunesEtDepartementsQueryModel } from '../../application/queries/quer
 import { MotifSuppressionJeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
 import { MetiersRomeQueryModel } from '../../application/queries/query-models/metiers-rome.query-model'
 import { TypeRendezVousQueryModel } from '../../application/queries/query-models/rendez-vous.query-model'
+import { StructureAccompagnementQueryModel } from '../../application/queries/query-models/structures-accompagnement.query-model'
 import { GetTypesRendezVousQueryHandler } from '../../application/queries/rendez-vous/get-types-rendez-vous.query.handler'
 import { Authentification } from '../../domain/authentification'
 import { AccessToken, Utilisateur } from '../decorators/authenticated.decorator'
@@ -32,6 +34,7 @@ import { Public } from '../decorators/public.decorator'
 import { CustomSwaggerApiOAuth2 } from '../decorators/swagger.decorator'
 import { handleResult } from './result.handler'
 import { GetAgencesQueryParams } from './validation/agences.inputs'
+import { GetStructuresAccompagnementQueryParams } from './validation/structures-accompagnement.inputs'
 
 @Controller('referentiels')
 @UserJourney('referentiels')
@@ -45,7 +48,8 @@ export class ReferentielsController {
     private readonly getAgencesQueryHandler: GetAgencesQueryHandler,
     private readonly getMotifsSuppressionJeuneQueryHandler: GetMotifsSuppressionJeuneQueryHandler,
     private readonly getTypesQualificationsQueryHandler: GetTypesQualificationsQueryHandler,
-    private readonly getActionsPredefiniesQueryHandler: GetActionsPredefiniesQueryHandler
+    private readonly getActionsPredefiniesQueryHandler: GetActionsPredefiniesQueryHandler,
+    private readonly getStructuresAccompagnementQueryHandler: GetStructuresAccompagnementQueryHandler
   ) {}
 
   @Get('communes-et-departements')
@@ -151,5 +155,30 @@ export class ReferentielsController {
   })
   async getActionsPredefinies(): Promise<ActionPredefinieQueryModel[]> {
     return this.getActionsPredefiniesQueryHandler.execute({})
+  }
+
+  @Get('structures-accompagnement')
+  @UserJourney('structures_accompagnement')
+  @CustomSwaggerApiOAuth2()
+  @ApiOperation({
+    summary:
+      "Récupère la Mission Locale ou les agences France Travail de la commune de l'invité",
+    description: 'Réservé au mode invité'
+  })
+  @ApiResponse({ type: StructureAccompagnementQueryModel, isArray: true })
+  async getStructuresAccompagnement(
+    @Query() params: GetStructuresAccompagnementQueryParams,
+    @Utilisateur() utilisateur: Authentification.Utilisateur
+  ): Promise<StructureAccompagnementQueryModel[]> {
+    const result = await this.getStructuresAccompagnementQueryHandler.execute(
+      {
+        type: params.type,
+        codeInsee: params.codeInsee,
+        codePostal: params.codePostal
+      },
+      utilisateur
+    )
+
+    return handleResult(result)
   }
 }

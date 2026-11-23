@@ -1,44 +1,48 @@
-import { MissionLocaleApprentissageDto } from '../../../infrastructure/clients/dto/apprentissage.dto'
+import { MissionLocaleApprentissageDto } from '../../clients/dto/apprentissage.dto'
 import {
   AgenceFTDto,
   HoraireAgenceFTDto
-} from '../../../infrastructure/clients/dto/pole-emploi.dto'
+} from '../../clients/dto/pole-emploi.dto'
 import { isDefined } from '../../../utils/is-defined'
-import { StructureAccompagnementQueryModel } from '../query-models/structures-accompagnement.query-model'
+import { StructureAccompagnement } from '../../../domain/structure-accompagnement'
 
 const LIBELLES_JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 const FERME = 'O'
 
-interface Amplitude {
-  jour: number
+interface Creneau {
   ouverture: number
   fermeture: number
+  surRdv: boolean
+}
+
+interface HorairesDuJour {
+  jour: number
+  libelle: string
 }
 
 export function resumerHorairesFT(
   horaires: HoraireAgenceFTDto[] | undefined
 ): string[] {
-  const amplitudes = (horaires ?? [])
+  const horairesParJour = (horaires ?? [])
     .filter(horaire => estJourDeLaSemaine(horaire.jour))
     .sort((a, b) => a.jour - b.jour)
-    .map(calculerAmplitude)
+    .map(resumerJour)
     .filter(isDefined)
 
-  const groupes: Amplitude[][] = []
-  for (const amplitude of amplitudes) {
+  const groupes: HorairesDuJour[][] = []
+  for (const horairesDuJour of horairesParJour) {
     const groupeCourant = groupes.at(-1)
     const dernier = groupeCourant?.at(-1)
     if (
       groupeCourant &&
       dernier &&
-      dernier.jour + 1 === amplitude.jour &&
-      dernier.ouverture === amplitude.ouverture &&
-      dernier.fermeture === amplitude.fermeture
+      dernier.jour + 1 === horairesDuJour.jour &&
+      dernier.libelle === horairesDuJour.libelle
     ) {
-      groupeCourant.push(amplitude)
+      groupeCourant.push(horairesDuJour)
     } else {
-      groupes.push([amplitude])
+      groupes.push([horairesDuJour])
     }
   }
 
@@ -49,46 +53,53 @@ export function resumerHorairesFT(
       groupe.length === 1
         ? libelleJour(premier.jour)
         : `${libelleJour(premier.jour)}–${libelleJour(dernier.jour).toLowerCase()}`
-    return `${jours} · ${formaterHeure(premier.ouverture)} – ${formaterHeure(
-      premier.fermeture
-    )}`
+    return `${jours} · ${premier.libelle}`
   })
 }
 
-function calculerAmplitude(horaire: HoraireAgenceFTDto): Amplitude | undefined {
+function resumerJour(horaire: HoraireAgenceFTDto): HorairesDuJour | undefined {
   const accueilOuvert = horaire.horaireFerme !== FERME
   const rdvOuvert = horaire.horaireFermeRDV !== FERME
   const creneaux = [
-    accueilOuvert && creneau(horaire.ouvertureMatin, horaire.fermetureMatin),
     accueilOuvert &&
-      creneau(horaire.ouvertureApresMidi, horaire.fermetureApresMidi),
+      creneau(horaire.ouvertureMatin, horaire.fermetureMatin, false),
+    accueilOuvert &&
+      creneau(horaire.ouvertureApresMidi, horaire.fermetureApresMidi, false),
     rdvOuvert &&
-      creneau(horaire.ouvertureApresMidiRDV, horaire.fermetureApresMidiRDV)
-  ].filter((c): c is Creneau => Boolean(c))
+      creneau(
+        horaire.ouvertureApresMidiRDV,
+        horaire.fermetureApresMidiRDV,
+        true
+      )
+  ]
+    .filter((c): c is Creneau => Boolean(c))
+    .sort((a, b) => a.ouverture - b.ouverture)
   if (creneaux.length === 0) return undefined
 
   return {
     jour: horaire.jour,
-    ouverture: Math.min(...creneaux.map(c => c.ouverture)),
-    fermeture: Math.max(...creneaux.map(c => c.fermeture))
+    libelle: creneaux.map(formaterCreneau).join(', ')
   }
-}
-
-interface Creneau {
-  ouverture: number
-  fermeture: number
 }
 
 function creneau(
   ouverture: string | undefined,
-  fermeture: string | undefined
+  fermeture: string | undefined,
+  surRdv: boolean
 ): Creneau | undefined {
   const minutesOuverture = minutesDepuisMinuit(ouverture)
   const minutesFermeture = minutesDepuisMinuit(fermeture)
   if (minutesOuverture === undefined || minutesFermeture === undefined) {
     return undefined
   }
-  return { ouverture: minutesOuverture, fermeture: minutesFermeture }
+  return { ouverture: minutesOuverture, fermeture: minutesFermeture, surRdv }
+}
+
+function formaterCreneau(creneau: Creneau): string {
+  const plage = `${formaterHeure(creneau.ouverture)} – ${formaterHeure(
+    creneau.fermeture
+  )}`
+  return creneau.surRdv ? `${plage} sur RDV` : plage
 }
 
 function minutesDepuisMinuit(heure: string | undefined): number | undefined {
@@ -115,7 +126,7 @@ function formaterHeure(minutesDepuisMinuit: number): string {
 
 export function toStructureAccompagnementFT(
   agence: AgenceFTDto
-): StructureAccompagnementQueryModel | undefined {
+): StructureAccompagnement | undefined {
   const nom = ouNull(agence.libelleEtendu)
   if (!nom) return undefined
 
@@ -134,7 +145,7 @@ export function toStructureAccompagnementFT(
 
 export function toStructureAccompagnementMilo(
   missionLocale: MissionLocaleApprentissageDto
-): StructureAccompagnementQueryModel | undefined {
+): StructureAccompagnement | undefined {
   const nom = ouNull(missionLocale.nom)
   if (!nom) return undefined
 

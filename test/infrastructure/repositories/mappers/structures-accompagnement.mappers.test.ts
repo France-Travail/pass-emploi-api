@@ -2,7 +2,7 @@ import {
   resumerHorairesFT,
   toStructureAccompagnementFT,
   toStructureAccompagnementMilo
-} from '../../../../src/application/queries/query-mappers/structures-accompagnement.mappers'
+} from '../../../../src/infrastructure/repositories/mappers/structures-accompagnement.mappers'
 import { MissionLocaleApprentissageDto } from '../../../../src/infrastructure/clients/dto/apprentissage.dto'
 import {
   AgenceFTDto,
@@ -62,11 +62,11 @@ function uneAgenceStMichel(surcharge: Partial<AgenceFTDto> = {}): AgenceFTDto {
 
 describe('structures-accompagnement.mappers', () => {
   describe('resumerHorairesFT', () => {
-    it('regroupe les jours consécutifs de même amplitude', () => {
+    it('regroupe les jours consécutifs aux mêmes créneaux', () => {
       expect(resumerHorairesFT(horairesStMichel)).to.deep.equal([
-        'Lun–mer · 8h30 – 16h30',
+        'Lun–mer · 8h30 – 12h30, 12h30 – 16h30 sur RDV',
         'Jeu · 8h30 – 12h30',
-        'Ven · 8h30 – 15h30'
+        'Ven · 8h30 – 12h30, 12h30 – 15h30 sur RDV'
       ])
     })
 
@@ -89,7 +89,7 @@ describe('structures-accompagnement.mappers', () => {
         })
 
       expect(resumerHorairesFT(horairesParis11)).to.deep.equal([
-        'Lun–jeu · 9h – 17h',
+        'Lun–jeu · 9h – 13h15, 13h15 – 17h sur RDV',
         'Ven · 9h – 12h'
       ])
     })
@@ -103,16 +103,19 @@ describe('structures-accompagnement.mappers', () => {
           unJour(8),
           unJour(0)
         ])
-      ).to.deep.equal(['Lun–mar · 8h30 – 16h30', 'Dim · 8h30 – 16h30'])
+      ).to.deep.equal([
+        'Lun–mar · 8h30 – 12h30, 12h30 – 16h30 sur RDV',
+        'Dim · 8h30 – 12h30, 12h30 – 16h30 sur RDV'
+      ])
     })
 
     it('renvoie une seule ligne pour une semaine régulière', () => {
       expect(
         resumerHorairesFT([1, 2, 3, 4, 5].map(j => unJour(j)))
-      ).to.deep.equal(['Lun–ven · 8h30 – 16h30'])
+      ).to.deep.equal(['Lun–ven · 8h30 – 12h30, 12h30 – 16h30 sur RDV'])
     })
 
-    it('ignore la pause de midi', () => {
+    it('garde la pause de midi', () => {
       const horaires: HoraireAgenceFTDto[] = [
         {
           jour: 1,
@@ -125,7 +128,9 @@ describe('structures-accompagnement.mappers', () => {
         }
       ]
 
-      expect(resumerHorairesFT(horaires)).to.deep.equal(['Lun · 8h30 – 17h'])
+      expect(resumerHorairesFT(horaires)).to.deep.equal([
+        'Lun · 8h30 – 12h, 14h – 17h'
+      ])
     })
 
     it('compare les heures par leur valeur, avec ou sans zéro initial', () => {
@@ -140,7 +145,7 @@ describe('structures-accompagnement.mappers', () => {
       }))
 
       expect(resumerHorairesFT(horaires)).to.deep.equal([
-        'Lun–mar · 8h30 – 12h'
+        'Lun–mar · 8h30 – 9h30, 10h – 12h sur RDV'
       ])
     })
 
@@ -153,12 +158,12 @@ describe('structures-accompagnement.mappers', () => {
       )
 
       expect(resumerHorairesFT(horaires)).to.deep.equal([
-        'Lun · 9h – 17h',
-        'Mer · 9h – 17h'
+        'Lun · 9h – 12h30, 12h30 – 17h sur RDV',
+        'Mer · 9h – 12h30, 12h30 – 17h sur RDV'
       ])
     })
 
-    it("ne compte pas le matin quand l'accueil est fermé", () => {
+    it("n'affiche pas l'accueil quand il est fermé", () => {
       const horaires: HoraireAgenceFTDto[] = [
         {
           jour: 1,
@@ -171,12 +176,14 @@ describe('structures-accompagnement.mappers', () => {
         }
       ]
 
-      expect(resumerHorairesFT(horaires)).to.deep.equal(['Lun · 13h – 16h'])
+      expect(resumerHorairesFT(horaires)).to.deep.equal([
+        'Lun · 13h – 16h sur RDV'
+      ])
     })
 
     it('trie les jours avant de les regrouper', () => {
       expect(resumerHorairesFT([3, 1, 2].map(j => unJour(j)))).to.deep.equal([
-        'Lun–mer · 8h30 – 16h30'
+        'Lun–mer · 8h30 – 12h30, 12h30 – 16h30 sur RDV'
       ])
     })
 
@@ -204,9 +211,9 @@ describe('structures-accompagnement.mappers', () => {
         },
         telephone: '39-49',
         horaires: [
-          'Lun–mer · 8h30 – 16h30',
+          'Lun–mer · 8h30 – 12h30, 12h30 – 16h30 sur RDV',
           'Jeu · 8h30 – 12h30',
-          'Ven · 8h30 – 15h30'
+          'Ven · 8h30 – 12h30, 12h30 – 15h30 sur RDV'
         ]
       })
     })
