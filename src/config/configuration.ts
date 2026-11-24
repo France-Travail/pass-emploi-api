@@ -23,10 +23,11 @@ export default () => {
   const { host, port, database, user, password } = parse(databaseUrl)
 
   const isWorker = process.env.IS_WORKER === 'true'
+  const isWeb = process.env.IS_WEB !== 'false'
   const configuration = {
     environment: process.env.ENVIRONMENT,
     appJeuneActif: process.env.APP_JEUNE_ACTIF === 'true',
-    isWeb: process.env.IS_WEB !== 'false',
+    isWeb,
     isWorker,
     isInMemory: process.env.IS_IN_MEMORY === 'true',
     port: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
@@ -42,7 +43,10 @@ export default () => {
       maxConnections: isWorker
         ? process.env.DATABASE_MAX_CONNECTIONS_WORKER
         : process.env.DATABASE_MAX_CONNECTIONS_WEB,
-      minConnections: process.env.DATABASE_MIN_CONNECTIONS || 1
+      minConnections: process.env.DATABASE_MIN_CONNECTIONS || 1,
+      statementTimeoutMs: isWeb
+        ? entierOuUndefined(process.env.DATABASE_STATEMENT_TIMEOUT_MS_WEB)
+        : undefined
     },
     debug: process.env.DEBUG,
     logLevel: process.env.LOG_LEVEL,
