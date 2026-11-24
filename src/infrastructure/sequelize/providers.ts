@@ -18,9 +18,9 @@ export function construireDialectOptions(
   // statement_timeout fait annuler la requête par Postgres ; query_timeout
   // ne fait que l'abandonner côté Node, elle continue alors de tourner en base.
   const statementTimeoutMs = configService.get<number>(
-    'database.statementTimeoutMs'
+    'database.statementTimeoutMsWeb'
   )
-  if (statementTimeoutMs) {
+  if (configService.get<boolean>('isWeb') && statementTimeoutMs) {
     dialectOptions.statement_timeout = statementTimeoutMs
   }
   return dialectOptions

@@ -18,7 +18,7 @@ export const configurationSchema = Joi.object({
     idleConnections: Joi.number().required(),
     maxConnections: Joi.number().required(),
     minConnections: Joi.number().required(),
-    statementTimeoutMs: Joi.number().integer().positive()
+    statementTimeoutMsWeb: Joi.number().integer().positive()
   }),
   debug: Joi.boolean().default(false),
   logLevel: Joi.string().default('INFO'),

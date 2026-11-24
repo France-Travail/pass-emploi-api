@@ -3,11 +3,12 @@ import { construireDialectOptions } from '../../../src/infrastructure/sequelize/
 import { expect } from '../../utils'
 
 describe('construireDialectOptions', () => {
-  it('transmet le statement_timeout à Postgres quand il est configuré', () => {
+  it('transmet le statement_timeout à Postgres pour le process web', () => {
     // Given
     const configService = new ConfigService({
       environment: 'prod',
-      database: { statementTimeoutMs: 30000 }
+      isWeb: true,
+      database: { statementTimeoutMsWeb: 30000 }
     })
 
     // When
@@ -17,10 +18,26 @@ describe('construireDialectOptions', () => {
     expect(dialectOptions).to.deep.equal({ statement_timeout: 30000 })
   })
 
+  it("n'impose aucun statement_timeout au worker ni aux tasks", () => {
+    // Given
+    const configService = new ConfigService({
+      environment: 'prod',
+      isWeb: false,
+      database: { statementTimeoutMsWeb: 30000 }
+    })
+
+    // When
+    const dialectOptions = construireDialectOptions(configService)
+
+    // Then
+    expect(dialectOptions).to.deep.equal({})
+  })
+
   it("n'impose aucun statement_timeout quand il n'est pas configuré", () => {
     // Given
     const configService = new ConfigService({
       environment: 'prod',
+      isWeb: true,
       database: {}
     })
 
@@ -35,7 +52,8 @@ describe('construireDialectOptions', () => {
     // Given
     const configService = new ConfigService({
       environment: 'staging',
-      database: { statementTimeoutMs: 30000 }
+      isWeb: true,
+      database: { statementTimeoutMsWeb: 30000 }
     })
 
     // When
