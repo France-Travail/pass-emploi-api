@@ -7,6 +7,7 @@ import {
 } from '../../../../src/application/commands/milo/qualifier-action.command.handler'
 import {
   ErreurHttp,
+  JeuneMiloSansStructure,
   NonTrouveError
 } from '../../../../src/building-blocks/types/domain-error'
 import {
@@ -22,7 +23,7 @@ import {
   unUtilisateurJeune
 } from '../../../fixtures/authentification.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../../utils'
-import { Jeune } from '../../../../src/domain/jeune/jeune'
+import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { unJeune } from '../../../fixtures/jeune.fixture'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
 import { uneDatetime } from '../../../fixtures/date.fixture'
@@ -34,12 +35,16 @@ describe('QualifierActionCommandHandler', () => {
   let actionRepository: StubbedType<Action.Repository>
   let actionMiloRepository: StubbedType<ActionMilo.Repository>
   let actionAuthorizer: StubbedClass<ActionAuthorizer>
-  let jeuneRepository: StubbedType<Jeune.Repository>
+  let jeuneMiloRepository: StubbedType<JeuneMilo.Repository>
   let evenementService: StubbedClass<EvenementService>
   let oidcClient: StubbedClass<OidcClient>
   let qualifierActionCommandHandler: QualifierActionCommandHandler
 
   const idAction = '35399853-f224-4910-8d02-44fb1ac85606'
+  const jeuneMilo: JeuneMilo = {
+    ...unJeune(),
+    structureMilo: { id: 'id-structure-milo', timezone: 'Indian/Reunion' }
+  }
   const utilisateurConseiller = unUtilisateurConseiller({ username: 'j.doe' })
 
   beforeEach(() => {
@@ -47,22 +52,22 @@ describe('QualifierActionCommandHandler', () => {
     actionRepository = stubInterface(sandbox)
     actionMiloRepository = stubInterface(sandbox)
     actionAuthorizer = stubClass(ActionAuthorizer)
-    jeuneRepository = stubInterface(sandbox)
+    jeuneMiloRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     oidcClient = stubClass(OidcClient)
     oidcClient.exchangeToken
       .withArgs('accessToken', Profil.Structure.MILO)
       .resolves('idpToken')
 
-    jeuneRepository.get
+    jeuneMiloRepository.get
       .withArgs('ABCDE')
-      .resolves(unJeune({ idPartenaire: 'idDossier' }))
+      .resolves(success({ ...jeuneMilo, idPartenaire: 'idDossier' }))
 
     qualifierActionCommandHandler = new QualifierActionCommandHandler(
       actionRepository,
       actionMiloRepository,
       actionAuthorizer,
-      jeuneRepository,
+      jeuneMiloRepository,
       evenementService,
       oidcClient
     )
@@ -91,7 +96,7 @@ describe('QualifierActionCommandHandler', () => {
               ...actionQualifiee,
               idDossier: 'idDossier',
               loginConseiller: 'j.doe',
-              fuseauHoraire: 'Europe/Paris'
+              timezoneStructure: 'Indian/Reunion'
             }
             actionRepository.get.withArgs(idAction).resolves(actionTerminee)
             actionMiloRepository.creerSituationNonProfessionnelle.resolves(
@@ -126,6 +131,34 @@ describe('QualifierActionCommandHandler', () => {
                 libelle: 'Santé',
                 commentaireQualification
               })
+            )
+          })
+        })
+        describe("quand le jeune n'a pas de structure Milo", () => {
+          it("ne crée pas la SNP, ne sauvegarde pas l'action et rejette", async () => {
+            // Given
+            actionRepository.get
+              .withArgs(idAction)
+              .resolves(uneActionTerminee({ id: idAction }))
+            jeuneMiloRepository.get
+              .withArgs('ABCDE')
+              .resolves(success({ ...jeuneMilo, structureMilo: undefined }))
+
+            // When
+            const result = await qualifierActionCommandHandler.handle({
+              idAction,
+              utilisateur: utilisateurConseiller,
+              accessToken: 'accessToken',
+              codeQualification: Action.Qualification.Code.SANTE
+            })
+
+            // Then
+            expect(
+              actionMiloRepository.creerSituationNonProfessionnelle
+            ).not.to.have.been.called()
+            expect(actionRepository.save).not.to.have.been.called()
+            expect(result).to.deep.equal(
+              failure(new JeuneMiloSansStructure(jeuneMilo.id))
             )
           })
         })

@@ -40,17 +40,17 @@ describe('ActionMiloHttpRepository', () => {
       expect(result).to.deep.equal(emptySuccess())
     })
 
-    it('envoie les jours de début et de fin dans le fuseau horaire du jeune', async () => {
+    it('envoie les jours de début et de fin dans le fuseau horaire de la structure', async () => {
       // Given
       const action: ActionMilo = {
         ...uneActionMilo(),
-        dateDebut: DateTime.fromISO('2026-09-01T22:00:00.000Z', {
+        dateDebut: DateTime.fromISO('2026-09-16T20:00:00.000Z', {
           zone: 'utc'
         }),
-        dateFinReelle: DateTime.fromISO('2026-09-16T22:00:00.000Z', {
-          zone: 'utc'
+        dateFinReelle: DateTime.fromISO('2026-09-17T00:00:00.000+04:00', {
+          setZone: true
         }),
-        fuseauHoraire: 'Europe/Paris'
+        timezoneStructure: 'Indian/Reunion'
       }
       miloClient.creerSituationDossier.resolves(emptySuccess())
 
@@ -62,7 +62,7 @@ describe('ActionMiloHttpRepository', () => {
 
       // Then
       const body = miloClient.creerSituationDossier.firstCall.args[1]
-      expect(body.dateDebut).to.equal('2026-09-02')
+      expect(body.dateDebut).to.equal('2026-09-17')
       expect(body.dateFinReelle).to.equal('2026-09-17')
     })
 

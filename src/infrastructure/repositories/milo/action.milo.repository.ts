@@ -17,10 +17,10 @@ export class ActionMiloHttpRepository implements ActionMilo.Repository {
   ): Promise<Result> {
     const body = {
       dateDebut: action.dateDebut
-        .setZone(action.fuseauHoraire)
+        .setZone(action.timezoneStructure)
         .toFormat('yyyy-MM-dd'),
       dateFinReelle: action.dateFinReelle
-        .setZone(action.fuseauHoraire)
+        .setZone(action.timezoneStructure)
         .toFormat('yyyy-MM-dd'),
       commentaire: action.qualification.commentaire,
       mesure: action.qualification.code,

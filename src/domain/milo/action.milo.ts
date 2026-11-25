@@ -1,15 +1,18 @@
 import { Action } from '../action/action'
 import { failure, Result, success } from '../../building-blocks/types/result'
-import { Jeune } from '../jeune/jeune'
 import { Authentification } from '../authentification'
-import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
+import {
+  JeuneMiloSansStructure,
+  MauvaiseCommandeError
+} from '../../building-blocks/types/domain-error'
+import { JeuneMilo } from './jeune.milo'
 
 export const ActionMiloRepositoryToken = 'ActionMiloRepositoryToken'
 
 export interface ActionMilo extends Action.Qualifiee {
   idDossier: string
   loginConseiller: string
-  fuseauHoraire: string
+  timezoneStructure: string
 }
 
 export namespace ActionMilo {
@@ -22,13 +25,17 @@ export namespace ActionMilo {
 
   export function creer(
     action: Action.Qualifiee,
-    jeune: Jeune,
+    jeune: JeuneMilo,
     utilisateur: Authentification.Utilisateur
   ): Result<ActionMilo> {
     if (!jeune.idPartenaire) {
       return failure(
         new MauvaiseCommandeError(`Le jeune ${jeune.id} n'a pas d'id dossier`)
       )
+    }
+
+    if (!jeune.structureMilo) {
+      return failure(new JeuneMiloSansStructure(jeune.id))
     }
 
     if (!utilisateur.username) {
@@ -41,7 +48,7 @@ export namespace ActionMilo {
       ...action,
       idDossier: jeune.idPartenaire,
       loginConseiller: utilisateur.username,
-      fuseauHoraire: jeune.configuration.fuseauHoraire
+      timezoneStructure: jeune.structureMilo.timezone
     }
     return success(data)
   }
