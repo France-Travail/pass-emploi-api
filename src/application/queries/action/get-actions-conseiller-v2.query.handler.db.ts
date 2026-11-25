@@ -14,6 +14,9 @@ import { JeuneSqlModel } from 'src/infrastructure/sequelize/models/jeune.sql-mod
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 10
+const REALISATIONS_RECENTES_D_ABORD: OrderItem[] = [
+  ['date_fin_reelle', 'DESC NULLS LAST']
+]
 
 export enum TriActionsConseillerV2 {
   BENEFICIAIRE_ALPHABETIQUE = 'BENEFICIAIRE_ALPHABETIQUE',
@@ -89,14 +92,16 @@ export class GetActionsConseillerV2QueryHandler extends QueryHandler<
         order = [
           ['jeune', 'nom', 'ASC'],
           ['jeune', 'prenom', 'ASC'],
-          ...(order ?? [])
+          ...(order ?? REALISATIONS_RECENTES_D_ABORD),
+          ['id', 'ASC']
         ]
         break
       case TriActionsConseillerV2.BENEFICIAIRE_INVERSE:
         order = [
           ['jeune', 'nom', 'DESC'],
           ['jeune', 'prenom', 'DESC'],
-          ...(order ?? [])
+          ...(order ?? REALISATIONS_RECENTES_D_ABORD),
+          ['id', 'ASC']
         ]
         break
       case TriActionsConseillerV2.REALISATION_CHRONOLOGIQUE:

@@ -576,18 +576,6 @@ describe('GetActionsDuConseillerAQualifierQueryHandler', () => {
           pagination: { page: query.page!, limit: query.limit!, total: 5 },
           resultats: [
             {
-              id: actionAQualifier3Dto.id,
-              titre: actionAQualifier3Dto.contenu,
-              description: actionAQualifier3Dto.description,
-              jeune: {
-                id: idJeune2,
-                nom: jeune2Dto.nom,
-                prenom: jeune2Dto.prenom
-              },
-              dateFinReelle: actionAQualifier3Dto.dateFinReelle!.toISOString(),
-              categorie: undefined
-            },
-            {
               id: actionQualifieeDto.id,
               titre: actionQualifieeDto.contenu,
               description: actionQualifieeDto.description,
@@ -601,6 +589,18 @@ describe('GetActionsDuConseillerAQualifierQueryHandler', () => {
                 code: Action.Qualification.Code.SANTE,
                 libelle: 'Santé'
               }
+            },
+            {
+              id: actionAQualifier3Dto.id,
+              titre: actionAQualifier3Dto.contenu,
+              description: actionAQualifier3Dto.description,
+              jeune: {
+                id: idJeune2,
+                nom: jeune2Dto.nom,
+                prenom: jeune2Dto.prenom
+              },
+              dateFinReelle: actionAQualifier3Dto.dateFinReelle!.toISOString(),
+              categorie: undefined
             }
           ]
         }
