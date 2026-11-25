@@ -1,3 +1,5 @@
+import { QueryTypes } from 'sequelize'
+import { v4 as uuidV4 } from 'uuid'
 import { Context, ContextKey } from 'src/building-blocks/context'
 import {
   CacheApiPartenaireDto,
@@ -183,6 +185,62 @@ describe('CacheApiPartenaireService', () => {
         type: StatutResultatCache.ERREUR,
         erreur
       })
+    })
+  })
+
+  describe('sauvegarder', () => {
+    // Des UUID aléatoires restent au-delà de 2 ko une fois compressés : PostgreSQL range alors le JSON hors de la ligne, en TOAST
+    const unResultatVolumineux = (): string[] =>
+      Array.from({ length: 300 }, () => uuidV4())
+
+    const lireCacheEnBase = async (): Promise<{
+      chunkToast: number | null
+      date: Date
+    }> => {
+      const [ligne] = await databaseForTesting.sequelize.query<{
+        chunk_toast: number | null
+        date: Date
+      }>(
+        `SELECT pg_column_toast_chunk_id(resultat_partenaire) AS chunk_toast, date
+         FROM cache_api_partenaire
+         WHERE path_partenaire = :path`,
+        { replacements: { path: PATH }, type: QueryTypes.SELECT }
+      )
+      return { chunkToast: ligne.chunk_toast, date: ligne.date }
+    }
+
+    it("ne réécrit pas le résultat quand il n'a pas changé, mais rafraîchit sa date", async () => {
+      // Given
+      const resultat = unResultatVolumineux()
+      await seedCache(resultat)
+      const avant = await lireCacheEnBase()
+
+      // When
+      await service.sauvegarder(PATH, resultat)
+
+      // Then
+      const apres = await lireCacheEnBase()
+      expect(avant.chunkToast).not.to.be.null()
+      expect(apres.chunkToast).to.equal(avant.chunkToast)
+      expect(apres.date.getTime()).to.be.greaterThan(avant.date.getTime())
+    })
+
+    it('réécrit le résultat quand il a changé', async () => {
+      // Given
+      await seedCache(unResultatVolumineux())
+      const avant = await lireCacheEnBase()
+      const nouveauResultat = unResultatVolumineux()
+
+      // When
+      await service.sauvegarder(PATH, nouveauResultat)
+
+      // Then
+      const apres = await lireCacheEnBase()
+      expect(apres.chunkToast).not.to.equal(avant.chunkToast)
+      const enBase = await CacheApiPartenaireSqlModel.findOne({
+        where: { pathPartenaire: PATH }
+      })
+      expect(enBase?.resultatPartenaire).to.deep.equal(nouveauResultat)
     })
   })
 

@@ -124,7 +124,16 @@ export class CacheApiPartenaireService {
       INSERT INTO cache_api_partenaire (id, id_utilisateur, type_utilisateur, date, path_partenaire, resultat_partenaire, transaction_id)
       VALUES (:id, :idUtilisateur, :typeUtilisateur, :date, :cleCache, :resultatPartenaire, :transactionId)
       ON CONFLICT (id_utilisateur, path_partenaire)
-      DO UPDATE SET date = :date, resultat_partenaire = :resultatPartenaire, transaction_id = :transactionId;
+      DO UPDATE SET
+        date = EXCLUDED.date,
+        transaction_id = EXCLUDED.transaction_id,
+        -- Garder l'ancienne valeur quand le JSON n'a pas changé évite de réécrire sa TOAST : sinon chaque appel
+        -- crée de nouveaux chunks, et l'autovacuum qui nettoie les anciens relit toute la table et sature le disque.
+        resultat_partenaire = CASE
+          WHEN cache_api_partenaire.resultat_partenaire IS DISTINCT FROM EXCLUDED.resultat_partenaire
+          THEN EXCLUDED.resultat_partenaire
+          ELSE cache_api_partenaire.resultat_partenaire
+        END;
       `,
         {
           replacements: {
