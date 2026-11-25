@@ -79,7 +79,8 @@ describe('StructureAccompagnementHttpRepository', () => {
               ville: 'TOULOUSE'
             },
             telephone: '39-49',
-            horaires: []
+            horaires: [],
+            horairesAlt: null
           },
           {
             nom: 'Agence B',
@@ -89,7 +90,8 @@ describe('StructureAccompagnementHttpRepository', () => {
               ville: 'TOULOUSE'
             },
             telephone: '39-49',
-            horaires: []
+            horaires: [],
+            horairesAlt: null
           }
         ])
       )
@@ -191,7 +193,8 @@ describe('StructureAccompagnementHttpRepository', () => {
           nom: 'Mission Locale DE LYON',
           adresse: { ligne: '1 rue', codePostal: '69003', ville: 'LYON' },
           telephone: '04 00 00 00 00',
-          horaires: null
+          horaires: null,
+          horairesAlt: null
         })
       )
     })

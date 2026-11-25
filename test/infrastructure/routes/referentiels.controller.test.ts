@@ -387,7 +387,9 @@ describe('ReferentielsController', () => {
         ville: 'TOULOUSE'
       },
       telephone: '39-49',
-      horaires: ['Lun–ven · 8h30 – 12h30, 12h30 – 16h30 sur RDV']
+      horaires: ['Lun–ven · 8h30 – 12h30, 12h30 – 16h30 sur RDV'],
+      horairesAlt:
+        'Lundi à vendredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 16h30 sur rendez-vous.'
     }
 
     beforeEach(() => {

@@ -20,7 +20,8 @@ function uneStructure(nom: string): StructureAccompagnement {
     nom,
     adresse: { ligne: '1 rue', codePostal: '69003', ville: 'LYON' },
     telephone: '04 00 00 00 00',
-    horaires: null
+    horaires: null,
+    horairesAlt: null
   }
 }
 

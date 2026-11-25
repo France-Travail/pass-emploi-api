@@ -1,4 +1,5 @@
 import {
+  decrireHorairesFT,
   resumerHorairesFT,
   toStructureAccompagnementFT,
   toStructureAccompagnementMilo
@@ -200,6 +201,82 @@ describe('structures-accompagnement.mappers', () => {
     })
   })
 
+  describe('decrireHorairesFT', () => {
+    it('décrit les jours en entier, regroupés, en distinguant accès libre et rendez-vous', () => {
+      const horaires: HoraireAgenceFTDto[] = [1, 2, 3, 4]
+        .map(jour =>
+          unJour(jour, {
+            ouvertureMatin: '09:30',
+            fermetureMatin: '12:30',
+            ouvertureApresMidiRDV: '12:30',
+            fermetureApresMidiRDV: '17:00'
+          })
+        )
+        .concat({
+          jour: 5,
+          ouvertureMatin: '09:00',
+          fermetureMatin: '12:30',
+          horaireFerme: 'N',
+          horaireFermeRDV: 'O'
+        })
+
+      expect(decrireHorairesFT(horaires)).to.equal(
+        'Lundi à jeudi ouvert de 9h30 à 12h30 en accès libre et de 12h30 à 17h sur rendez-vous, et vendredi ouvert de 9h à 12h30.'
+      )
+    })
+
+    it('sépare les groupes par des virgules et le dernier par « et »', () => {
+      expect(decrireHorairesFT(horairesStMichel)).to.equal(
+        'Lundi à mercredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 16h30 sur rendez-vous, jeudi ouvert de 8h30 à 12h30, et vendredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 15h30 sur rendez-vous.'
+      )
+    })
+
+    it("ne qualifie qu'une fois plusieurs créneaux en accès libre qui se suivent", () => {
+      const horaires: HoraireAgenceFTDto[] = [
+        {
+          jour: 1,
+          ouvertureMatin: '08:30',
+          fermetureMatin: '12:00',
+          horaireFerme: 'N',
+          ouvertureApresMidi: '14:00',
+          fermetureApresMidi: '16:00',
+          ouvertureApresMidiRDV: '16:00',
+          fermetureApresMidiRDV: '17:00',
+          horaireFermeRDV: 'N'
+        }
+      ]
+
+      expect(decrireHorairesFT(horaires)).to.equal(
+        'Lundi ouvert de 8h30 à 12h et de 14h à 16h en accès libre et de 16h à 17h sur rendez-vous.'
+      )
+    })
+
+    it("précise « sur rendez-vous » quand l'accueil libre est fermé", () => {
+      const horaires: HoraireAgenceFTDto[] = [
+        {
+          jour: 2,
+          horaireFerme: 'O',
+          ouvertureApresMidiRDV: '13:00',
+          fermetureApresMidiRDV: '16:00',
+          horaireFermeRDV: 'N'
+        }
+      ]
+
+      expect(decrireHorairesFT(horaires)).to.equal(
+        'Mardi ouvert de 13h à 16h sur rendez-vous.'
+      )
+    })
+
+    it("renvoie null quand l'agence n'a pas d'horaires", () => {
+      expect(decrireHorairesFT(undefined)).to.be.null()
+      expect(
+        decrireHorairesFT([
+          { jour: 1, horaireFerme: 'O', horaireFermeRDV: 'O' }
+        ])
+      ).to.be.null()
+    })
+  })
+
   describe('toStructureAccompagnementFT', () => {
     it("construit la structure d'une agence France Travail", () => {
       expect(toStructureAccompagnementFT(uneAgenceStMichel())).to.deep.equal({
@@ -214,7 +291,9 @@ describe('structures-accompagnement.mappers', () => {
           'Lun–mer · 8h30 – 12h30, 12h30 – 16h30 sur RDV',
           'Jeu · 8h30 – 12h30',
           'Ven · 8h30 – 12h30, 12h30 – 15h30 sur RDV'
-        ]
+        ],
+        horairesAlt:
+          'Lundi à mercredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 16h30 sur rendez-vous, jeudi ouvert de 8h30 à 12h30, et vendredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 15h30 sur rendez-vous.'
       })
     })
 
@@ -285,7 +364,8 @@ describe('structures-accompagnement.mappers', () => {
           ville: 'TOULOUSE'
         },
         telephone: '05 62 73 38 80',
-        horaires: null
+        horaires: null,
+        horairesAlt: null
       })
     })
 
@@ -296,7 +376,8 @@ describe('structures-accompagnement.mappers', () => {
         nom: 'Mission Locale DE TOULOUSE',
         adresse: { ligne: null, codePostal: null, ville: null },
         telephone: null,
-        horaires: null
+        horaires: null,
+        horairesAlt: null
       })
     })
 

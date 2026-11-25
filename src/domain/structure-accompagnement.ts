@@ -12,6 +12,7 @@ export interface StructureAccompagnement {
   }
   telephone: string | null
   horaires: string[] | null
+  horairesAlt: string | null
 }
 
 export namespace StructureAccompagnement {

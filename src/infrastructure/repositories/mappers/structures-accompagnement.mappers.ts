@@ -8,6 +8,16 @@ import { StructureAccompagnement } from '../../../domain/structure-accompagnemen
 
 const LIBELLES_JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
+const NOMS_JOURS = [
+  'lundi',
+  'mardi',
+  'mercredi',
+  'jeudi',
+  'vendredi',
+  'samedi',
+  'dimanche'
+]
+
 const FERME = 'O'
 
 interface Creneau {
@@ -18,43 +28,113 @@ interface Creneau {
 
 interface HorairesDuJour {
   jour: number
+  creneaux: Creneau[]
+  libelle: string
+}
+
+interface GroupeDeJours {
+  premierJour: number
+  dernierJour: number
+  creneaux: Creneau[]
   libelle: string
 }
 
 export function resumerHorairesFT(
   horaires: HoraireAgenceFTDto[] | undefined
 ): string[] {
+  return grouperJoursConsecutifs(horaires).map(groupe => {
+    const jours =
+      groupe.premierJour === groupe.dernierJour
+        ? libelleJour(groupe.premierJour)
+        : `${libelleJour(groupe.premierJour)}–${libelleJour(
+            groupe.dernierJour
+          ).toLowerCase()}`
+    return `${jours} · ${groupe.libelle}`
+  })
+}
+
+export function decrireHorairesFT(
+  horaires: HoraireAgenceFTDto[] | undefined
+): string | null {
+  const descriptions = grouperJoursConsecutifs(horaires).map(groupe => {
+    const jours =
+      groupe.premierJour === groupe.dernierJour
+        ? nomJour(groupe.premierJour)
+        : `${nomJour(groupe.premierJour)} à ${nomJour(groupe.dernierJour)}`
+    return `${jours} ouvert ${decrireCreneaux(groupe.creneaux)}`
+  })
+  if (descriptions.length === 0) return null
+
+  const phrase = joindreEnFrancais(descriptions, ', et ')
+  return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`
+}
+
+function grouperJoursConsecutifs(
+  horaires: HoraireAgenceFTDto[] | undefined
+): GroupeDeJours[] {
   const horairesParJour = (horaires ?? [])
     .filter(horaire => estJourDeLaSemaine(horaire.jour))
     .sort((a, b) => a.jour - b.jour)
     .map(resumerJour)
     .filter(isDefined)
 
-  const groupes: HorairesDuJour[][] = []
+  const groupes: GroupeDeJours[] = []
   for (const horairesDuJour of horairesParJour) {
     const groupeCourant = groupes.at(-1)
-    const dernier = groupeCourant?.at(-1)
     if (
       groupeCourant &&
-      dernier &&
-      dernier.jour + 1 === horairesDuJour.jour &&
-      dernier.libelle === horairesDuJour.libelle
+      groupeCourant.dernierJour + 1 === horairesDuJour.jour &&
+      groupeCourant.libelle === horairesDuJour.libelle
     ) {
-      groupeCourant.push(horairesDuJour)
+      groupeCourant.dernierJour = horairesDuJour.jour
     } else {
-      groupes.push([horairesDuJour])
+      groupes.push({
+        premierJour: horairesDuJour.jour,
+        dernierJour: horairesDuJour.jour,
+        creneaux: horairesDuJour.creneaux,
+        libelle: horairesDuJour.libelle
+      })
+    }
+  }
+  return groupes
+}
+
+function decrireCreneaux(creneaux: Creneau[]): string {
+  const melangeLibreEtRdv =
+    creneaux.some(c => c.surRdv) && creneaux.some(c => !c.surRdv)
+
+  const series: Creneau[][] = []
+  for (const creneau of creneaux) {
+    const serieCourante = series.at(-1)
+    if (serieCourante && serieCourante[0].surRdv === creneau.surRdv) {
+      serieCourante.push(creneau)
+    } else {
+      series.push([creneau])
     }
   }
 
-  return groupes.map(groupe => {
-    const premier = groupe[0]
-    const dernier = groupe.at(-1) ?? premier
-    const jours =
-      groupe.length === 1
-        ? libelleJour(premier.jour)
-        : `${libelleJour(premier.jour)}–${libelleJour(dernier.jour).toLowerCase()}`
-    return `${jours} · ${premier.libelle}`
-  })
+  return series
+    .map(serie => {
+      const plages = serie
+        .map(
+          c =>
+            `de ${formaterHeure(c.ouverture)} à ${formaterHeure(c.fermeture)}`
+        )
+        .join(' et ')
+      if (serie[0].surRdv) return `${plages} sur rendez-vous`
+      return melangeLibreEtRdv ? `${plages} en accès libre` : plages
+    })
+    .join(' et ')
+}
+
+function joindreEnFrancais(
+  elements: string[],
+  dernierSeparateur: string
+): string {
+  if (elements.length <= 1) return elements.join('')
+  return `${elements.slice(0, -1).join(', ')}${dernierSeparateur}${elements.at(
+    -1
+  )}`
 }
 
 function resumerJour(horaire: HoraireAgenceFTDto): HorairesDuJour | undefined {
@@ -78,6 +158,7 @@ function resumerJour(horaire: HoraireAgenceFTDto): HorairesDuJour | undefined {
 
   return {
     jour: horaire.jour,
+    creneaux,
     libelle: creneaux.map(formaterCreneau).join(', ')
   }
 }
@@ -116,6 +197,10 @@ function libelleJour(jour: number): string {
   return LIBELLES_JOURS[jour - 1]
 }
 
+function nomJour(jour: number): string {
+  return NOMS_JOURS[jour - 1]
+}
+
 function formaterHeure(minutesDepuisMinuit: number): string {
   const heures = Math.floor(minutesDepuisMinuit / 60)
   const minutes = minutesDepuisMinuit % 60
@@ -139,7 +224,8 @@ export function toStructureAccompagnementFT(
       ville: ouNull(adresse.ligne6?.replace(/^\d{5}\s+/, ''))
     },
     telephone: ouNull(agence.contact?.telephonePublic),
-    horaires: resumerHorairesFT(agence.horaires)
+    horaires: resumerHorairesFT(agence.horaires),
+    horairesAlt: decrireHorairesFT(agence.horaires)
   }
 }
 
@@ -157,7 +243,8 @@ export function toStructureAccompagnementMilo(
       ville: ouNull(missionLocale.localisation?.ville)
     },
     telephone: ouNull(missionLocale.contact?.telephone),
-    horaires: null
+    horaires: null,
+    horairesAlt: null
   }
 }
 
