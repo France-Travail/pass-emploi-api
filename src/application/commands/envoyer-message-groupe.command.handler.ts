@@ -22,6 +22,7 @@ import { Notification } from '../../domain/notification/notification'
 import { ListeDeDiffusionAuthorizer } from '../authorizers/liste-de-diffusion-authorizer'
 import Code = Evenement.Code
 import { ConseillerAuthorizer } from '../authorizers/conseiller-authorizer'
+import { isDefined } from '../../utils/is-defined'
 
 export interface EnvoyerMessageGroupeCommand extends Command {
   idsBeneficiaires?: string[]
@@ -179,10 +180,6 @@ export class EnvoyerMessageGroupeCommandHandler extends CommandHandler<
   ): Promise<void> {
     await this.evenementService.creer(getCodeEvenement(command), utilisateur)
   }
-}
-
-function isDefined<T>(argument: T | undefined): argument is T {
-  return argument !== undefined
 }
 
 function isUnique(value: string, index: number, self: string[]): boolean {

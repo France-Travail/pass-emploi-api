@@ -13,12 +13,21 @@ import { GetCommunesEtDepartementsQueryHandler } from '../../../src/application/
 import { GetMetiersRomeQueryHandler } from '../../../src/application/queries/get-metiers-rome.query.handler.db'
 import { GetMotifsSuppressionJeuneQueryHandler } from '../../../src/application/queries/get-motifs-suppression-jeune.query.handler'
 import { CommuneOuDepartementType } from '../../../src/application/queries/query-models/communes-et-departements.query-model'
-import { success } from '../../../src/building-blocks/types/result'
-import { unHeaderAuthorization } from '../../fixtures/authentification.fixture'
+import { failure, success } from '../../../src/building-blocks/types/result'
+import {
+  unHeaderAuthorization,
+  unUtilisateurDecode
+} from '../../fixtures/authentification.fixture'
 import { StubbedClass, stubClass } from '../../utils'
 import { ensureUserAuthenticationFailsIfInvalid } from '../../utils/ensure-user-authentication-fails-if-invalid'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
 import { Profil } from '../../../src/domain/profil'
+import { GetStructuresAccompagnementQueryHandler } from '../../../src/application/queries/get-structures-accompagnement.query.handler'
+import {
+  StructureAccompagnementQueryModel,
+  TypeStructureAccompagnement
+} from '../../../src/application/queries/query-models/structures-accompagnement.query-model'
+import { DroitsInsuffisants } from '../../../src/building-blocks/types/domain-error'
 
 let getCommunesEtDepartementsQueryHandler: StubbedClass<GetCommunesEtDepartementsQueryHandler>
 let getAgencesQueryHandler: StubbedClass<GetAgencesQueryHandler>
@@ -27,6 +36,7 @@ let getTypesQualificationsQueryHandler: StubbedClass<GetTypesQualificationsQuery
 let getActionsPredefiniesQueryHandler: StubbedClass<GetActionsPredefiniesQueryHandler>
 let getMetiersRomeQueryHandler: StubbedClass<GetMetiersRomeQueryHandler>
 let getCatalogueDemarchesQueryHandler: StubbedClass<GetCatalogueDemarchesQueryHandler>
+let getStructuresAccompagnementQueryHandler: StubbedClass<GetStructuresAccompagnementQueryHandler>
 
 describe('ReferentielsController', () => {
   getCommunesEtDepartementsQueryHandler = stubClass(
@@ -68,6 +78,9 @@ describe('ReferentielsController', () => {
     )
     getCatalogueDemarchesQueryHandler = app.get(
       GetCatalogueDemarchesQueryHandler
+    )
+    getStructuresAccompagnementQueryHandler = app.get(
+      GetStructuresAccompagnementQueryHandler
     )
   })
 
@@ -362,6 +375,112 @@ describe('ReferentielsController', () => {
     ensureUserAuthenticationFailsIfInvalid(
       'get',
       '/referentiels/actions-predefinies'
+    )
+  })
+
+  describe('GET /referentiels/structures-accompagnement', () => {
+    const structure: StructureAccompagnementQueryModel = {
+      nom: 'Agence France Travail TOULOUSE ST-MICHEL',
+      adresse: {
+        ligne: "2 AVENUE DE L'URSS",
+        codePostal: '31400',
+        ville: 'TOULOUSE'
+      },
+      telephone: '39-49',
+      horaires: ['Lun–ven · 8h30 – 12h30, 12h30 – 16h30 sur RDV'],
+      horairesAlt:
+        'Lundi à vendredi ouvert de 8h30 à 12h30 en accès libre et de 12h30 à 16h30 sur rendez-vous.'
+    }
+
+    beforeEach(() => {
+      getStructuresAccompagnementQueryHandler.execute.reset()
+    })
+
+    it('renvoie les structures', async () => {
+      // Given
+      getStructuresAccompagnementQueryHandler.execute
+        .withArgs(
+          {
+            type: TypeStructureAccompagnement.FRANCE_TRAVAIL,
+            codeInsee: '31555',
+            codePostal: '31000'
+          },
+          unUtilisateurDecode()
+        )
+        .resolves(success([structure]))
+
+      // When
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=FRANCE_TRAVAIL&codeInsee=31555&codePostal=31000'
+        )
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect([structure])
+    })
+
+    it('accepte un code INSEE corse', async () => {
+      // Given
+      getStructuresAccompagnementQueryHandler.execute.resolves(success([]))
+
+      // When
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=MILO&codeInsee=2A004&codePostal=20000'
+        )
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.OK)
+        .expect([])
+    })
+
+    it('renvoie 400 quand le type est inconnu', async () => {
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=CAF&codeInsee=31555&codePostal=31000'
+        )
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 quand un paramètre manque', async () => {
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=MILO&codeInsee=31555'
+        )
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it('renvoie 400 quand le code postal est mal formé', async () => {
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=MILO&codeInsee=31555&codePostal=3100'
+        )
+        .set('authorization', unHeaderAuthorization())
+        .expect(HttpStatus.BAD_REQUEST)
+    })
+
+    it("renvoie 403 quand l'utilisateur n'est pas invité", async () => {
+      // Given
+      getStructuresAccompagnementQueryHandler.execute.resolves(
+        failure(new DroitsInsuffisants())
+      )
+
+      // When
+      await request(app.getHttpServer())
+        .get(
+          '/referentiels/structures-accompagnement?type=MILO&codeInsee=31555&codePostal=31000'
+        )
+        .set('authorization', unHeaderAuthorization())
+        // Then
+        .expect(HttpStatus.FORBIDDEN)
+    })
+
+    ensureUserAuthenticationFailsIfInvalid(
+      'get',
+      '/referentiels/structures-accompagnement?type=MILO&codeInsee=31555&codePostal=31000'
     )
   })
 })

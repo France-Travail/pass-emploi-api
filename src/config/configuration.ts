@@ -103,6 +103,12 @@ export default () => {
         'https://immersion-facile.beta.gouv.fr/api',
       apiKey: process.env.IMMERSION_API_KEY ?? ''
     },
+    apprentissage: {
+      url:
+        process.env.APPRENTISSAGE_API_URL ??
+        'https://api.apprentissage.beta.gouv.fr/api',
+      apiKey: process.env.APPRENTISSAGE_API_KEY ?? ''
+    },
     diagoriente: {
       url:
         process.env.DIAGORIENTE_API_URL ??
