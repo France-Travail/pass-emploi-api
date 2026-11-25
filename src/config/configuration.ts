@@ -4,6 +4,7 @@ import { parse } from 'pg-connection-string'
 import { configurationSchema } from './configuration.schema'
 
 export const TIME_ZONE_EUROPE_PARIS = 'Europe/Paris'
+export const TIMEOUT_REQUETE_HTTP_MS = 10000
 
 function entierOuUndefined(valeur?: string): number | undefined {
   const nombre = Number(valeur)

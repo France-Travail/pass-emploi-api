@@ -1,29 +1,42 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Sequelize } from 'sequelize-typescript'
+import { TIMEOUT_REQUETE_HTTP_MS } from '../../config/configuration'
 import { buildError } from '../../utils/logger.module'
 import { sqlModels } from './models'
 import { activerTransactionsImplicites } from './transactions-implicites'
 
 export const SequelizeInjectionToken = 'SEQUELIZE'
 
+export function construireDialectOptions(
+  configService: ConfigService
+): Record<string, unknown> {
+  const dialectOptions: Record<string, unknown> = {}
+  if (configService.get('environment') === 'staging') {
+    dialectOptions.ssl = { require: true, rejectUnauthorized: false }
+  }
+
+  // statement_timeout fait annuler la requête par Postgres ; query_timeout
+  // ne fait que l'abandonner côté Node, elle continue alors de tourner en base.
+  if (estUnProcessWeb(configService)) {
+    dialectOptions.statement_timeout = TIMEOUT_REQUETE_HTTP_MS
+  }
+  return dialectOptions
+}
+
+function estUnProcessWeb(configService: ConfigService): boolean {
+  return (
+    configService.get<boolean>('isWeb') === true &&
+    !configService.get<boolean>('isWorker') &&
+    !configService.get<string>('task.name')
+  )
+}
+
 export const databaseProviders = [
   {
     provide: SequelizeInjectionToken,
     inject: [ConfigService],
     useFactory: async (configService: ConfigService): Promise<Sequelize> => {
-      let otherOptions = {}
-      if (configService.get('environment') === 'staging') {
-        otherOptions = {
-          dialectOptions: {
-            ssl: {
-              require: true,
-              rejectUnauthorized: false
-            }
-          }
-        }
-      }
-
       activerTransactionsImplicites()
       const sequelize = new Sequelize({
         host: configService.get<string>('database.host'),
@@ -41,7 +54,7 @@ export const databaseProviders = [
           idle: configService.get<number>('database.idleConnections'),
           evict: configService.get<number>('database.evictConnections')
         },
-        ...otherOptions
+        dialectOptions: construireDialectOptions(configService)
       })
       sequelize.addModels(sqlModels)
       const logger = new Logger('Sequelize')

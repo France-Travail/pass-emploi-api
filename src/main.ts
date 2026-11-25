@@ -18,6 +18,7 @@ import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module'
 import { TaskService } from './application/task.service'
 import { WorkerService } from './application/worker.service.db'
+import { TIMEOUT_REQUETE_HTTP_MS } from './config/configuration'
 import { useSwagger } from './infrastructure/middlewares/swagger.middleware'
 import { aplatirErreursDeValidation } from './utils/logger.helpers'
 import { rootLogger } from './utils/root-logger'
@@ -66,8 +67,7 @@ async function bootstrap(): Promise<void> {
     )
     app.disable('x-powered-by')
     await app.listen(port).then(server => {
-      const timeoutOf10Seconds = 10000
-      server.setTimeout(timeoutOf10Seconds)
+      server.setTimeout(TIMEOUT_REQUETE_HTTP_MS)
     })
   }
   app.flushLogs()

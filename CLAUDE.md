@@ -102,3 +102,5 @@ obligatoire : `staging` force le SSL Sequelize (`providers.ts`) que le postgres 
 3. **`resolutions` (sécurité)** : toujours `">=<version>"`, jamais `"^<version>"` ni version exacte. Le `^`
    plafonne le major (`^7.5.6` = `>=7.5.6 <8.0.0`) et recrée la CVE le jour où le correctif passe au major
    suivant ; `>=` laisse l'arbre se résoudre vers n'importe quelle version sûre plus récente.
+4. **Durée des traitements web** : aucune requête SQL du process web ne survit à la requête HTTP qui l'a
+   lancée (Postgres l'annule). Un traitement qui peut durer plus longtemps passe par un job worker.
