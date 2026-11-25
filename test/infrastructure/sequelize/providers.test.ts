@@ -1,29 +1,34 @@
 import { ConfigService } from '@nestjs/config'
+import { TIMEOUT_REQUETE_HTTP_MS } from '../../../src/config/configuration'
 import { construireDialectOptions } from '../../../src/infrastructure/sequelize/providers'
 import { expect } from '../../utils'
 
 describe('construireDialectOptions', () => {
-  it('transmet le statement_timeout à Postgres pour le process web', () => {
+  it('aligne le statement_timeout du process web sur le timeout HTTP', () => {
     // Given
     const configService = new ConfigService({
       environment: 'prod',
       isWeb: true,
-      database: { statementTimeoutMsWeb: 30000 }
+      isWorker: false,
+      task: {}
     })
 
     // When
     const dialectOptions = construireDialectOptions(configService)
 
     // Then
-    expect(dialectOptions).to.deep.equal({ statement_timeout: 30000 })
+    expect(dialectOptions).to.deep.equal({
+      statement_timeout: TIMEOUT_REQUETE_HTTP_MS
+    })
   })
 
-  it("n'impose aucun statement_timeout au worker ni aux tasks", () => {
+  it("n'impose aucun statement_timeout au worker, même sans IS_WEB=false", () => {
     // Given
     const configService = new ConfigService({
       environment: 'prod',
-      isWeb: false,
-      database: { statementTimeoutMsWeb: 30000 }
+      isWeb: true,
+      isWorker: true,
+      task: {}
     })
 
     // When
@@ -33,12 +38,13 @@ describe('construireDialectOptions', () => {
     expect(dialectOptions).to.deep.equal({})
   })
 
-  it("n'impose aucun statement_timeout quand il n'est pas configuré", () => {
+  it("n'impose aucun statement_timeout à une task, même sans IS_WEB=false", () => {
     // Given
     const configService = new ConfigService({
       environment: 'prod',
       isWeb: true,
-      database: {}
+      isWorker: false,
+      task: { name: 'INIT_CRONS' }
     })
 
     // When
@@ -53,7 +59,8 @@ describe('construireDialectOptions', () => {
     const configService = new ConfigService({
       environment: 'staging',
       isWeb: true,
-      database: { statementTimeoutMsWeb: 30000 }
+      isWorker: false,
+      task: {}
     })
 
     // When
@@ -62,7 +69,7 @@ describe('construireDialectOptions', () => {
     // Then
     expect(dialectOptions).to.deep.equal({
       ssl: { require: true, rejectUnauthorized: false },
-      statement_timeout: 30000
+      statement_timeout: TIMEOUT_REQUETE_HTTP_MS
     })
   })
 })

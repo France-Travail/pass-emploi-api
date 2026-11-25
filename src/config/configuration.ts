@@ -4,6 +4,7 @@ import { parse } from 'pg-connection-string'
 import { configurationSchema } from './configuration.schema'
 
 export const TIME_ZONE_EUROPE_PARIS = 'Europe/Paris'
+export const TIMEOUT_REQUETE_HTTP_MS = 10000
 
 function entierOuUndefined(valeur?: string): number | undefined {
   const nombre = Number(valeur)
@@ -42,10 +43,7 @@ export default () => {
       maxConnections: isWorker
         ? process.env.DATABASE_MAX_CONNECTIONS_WORKER
         : process.env.DATABASE_MAX_CONNECTIONS_WEB,
-      minConnections: process.env.DATABASE_MIN_CONNECTIONS || 1,
-      statementTimeoutMsWeb: entierOuUndefined(
-        process.env.DATABASE_STATEMENT_TIMEOUT_MS_WEB
-      )
+      minConnections: process.env.DATABASE_MIN_CONNECTIONS || 1
     },
     debug: process.env.DEBUG,
     logLevel: process.env.LOG_LEVEL,

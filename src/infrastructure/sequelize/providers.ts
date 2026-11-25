@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Sequelize } from 'sequelize-typescript'
+import { TIMEOUT_REQUETE_HTTP_MS } from '../../config/configuration'
 import { buildError } from '../../utils/logger.module'
 import { sqlModels } from './models'
 import { activerTransactionsImplicites } from './transactions-implicites'
@@ -17,13 +18,18 @@ export function construireDialectOptions(
 
   // statement_timeout fait annuler la requête par Postgres ; query_timeout
   // ne fait que l'abandonner côté Node, elle continue alors de tourner en base.
-  const statementTimeoutMs = configService.get<number>(
-    'database.statementTimeoutMsWeb'
-  )
-  if (configService.get<boolean>('isWeb') && statementTimeoutMs) {
-    dialectOptions.statement_timeout = statementTimeoutMs
+  if (estUnProcessWeb(configService)) {
+    dialectOptions.statement_timeout = TIMEOUT_REQUETE_HTTP_MS
   }
   return dialectOptions
+}
+
+function estUnProcessWeb(configService: ConfigService): boolean {
+  return (
+    configService.get<boolean>('isWeb') === true &&
+    !configService.get<boolean>('isWorker') &&
+    !configService.get<string>('task.name')
+  )
 }
 
 export const databaseProviders = [
