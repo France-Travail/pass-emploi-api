@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
@@ -196,9 +197,13 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
       RendezVous.estUnTypeAnimationCollective(rendezVous.type) &&
       jeunesAjoutes.length
     ) {
-      this.evenementService.creer(
-        Evenement.Code.ANIMATION_COLLECTIVE_INSCRIPTION,
-        utilisateur
+      lancerSansAttendre(
+        this.evenementService.creer(
+          Evenement.Code.ANIMATION_COLLECTIVE_INSCRIPTION,
+          utilisateur
+        ),
+        this.logger,
+        "L'enregistrement de l'événement d'engagement a échoué"
       )
     }
     if (this.doitNotifierDUneMiseAJour(rendezVous, rendezVousUpdated)) {
@@ -206,11 +211,15 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
         rdvMisAJour,
         Notification.Type.UPDATED_RENDEZVOUS
       )
-      this.evenementService.creer(
-        RendezVous.estUnTypeAnimationCollective(rendezVous.type)
-          ? Evenement.Code.ANIMATION_COLLECTIVE_MODIFICATION
-          : Evenement.Code.RDV_MODIFIE,
-        utilisateur
+      lancerSansAttendre(
+        this.evenementService.creer(
+          RendezVous.estUnTypeAnimationCollective(rendezVous.type)
+            ? Evenement.Code.ANIMATION_COLLECTIVE_MODIFICATION
+            : Evenement.Code.RDV_MODIFIE,
+          utilisateur
+        ),
+        this.logger,
+        "L'enregistrement de l'événement d'engagement a échoué"
       )
     }
   }
