@@ -177,7 +177,7 @@ function creneau(
 }
 
 function formaterCreneau(creneau: Creneau): string {
-  const plage = `${formaterHeure(creneau.ouverture)} – ${formaterHeure(
+  const plage = `${formaterHeure(creneau.ouverture)}-${formaterHeure(
     creneau.fermeture
   )}`
   return creneau.surRdv ? `${plage} sur RDV` : plage
