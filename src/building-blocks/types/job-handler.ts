@@ -3,7 +3,11 @@ import * as APM from 'elastic-apm-node'
 import { Planificateur } from '../../domain/planificateur'
 import { estJobSuivi, estNotifiable, SuiviJob } from '../../domain/suivi-job'
 import { getAPMInstance } from '../../infrastructure/monitoring/apm.init'
-import { logHandlerExecuted } from '../../utils/logger.module'
+import {
+  logHandlerExecuted,
+  rootLogger,
+  toEcsError
+} from '../../utils/logger.module'
 import JobType = Planificateur.JobType
 
 /**
@@ -34,10 +38,16 @@ export abstract class JobHandler<TContenu = void> {
       const suiviJob = await this.handle(job)
 
       if (!suiviJob.intermediaire && estJobSuivi(suiviJob.jobType)) {
-        this.suiviJobService.save(suiviJob)
+        void this.lancerSansAttendre(
+          () => this.suiviJobService.save(suiviJob),
+          "L'enregistrement du suivi du job a échoué"
+        )
       }
       if (!suiviJob.intermediaire && estNotifiable(suiviJob)) {
-        this.suiviJobService.notifierResultatJob(suiviJob)
+        void this.lancerSansAttendre(
+          () => this.suiviJobService.notifierResultatJob(suiviJob),
+          'La notification du résultat du job a échoué'
+        )
       }
 
       if (!suiviJob.silencieux) {
@@ -52,6 +62,21 @@ export abstract class JobHandler<TContenu = void> {
   }
 
   abstract handle(job: Planificateur.Job<TContenu>): Promise<SuiviJob>
+
+  private async lancerSansAttendre(
+    tache: () => Promise<void>,
+    messageEchec: string
+  ): Promise<void> {
+    try {
+      await tache()
+    } catch (error) {
+      this.apmService.captureError(error)
+      rootLogger.error(
+        { context: this.jobType, error: toEcsError(error) },
+        messageEchec
+      )
+    }
+  }
 
   protected labelsDuLog(
     _job: Planificateur.Job<TContenu>
