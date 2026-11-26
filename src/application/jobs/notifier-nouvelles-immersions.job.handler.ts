@@ -10,6 +10,7 @@ import {
 import { Planificateur, ProcessJobType } from '../../domain/planificateur'
 import { SuiviJob, SuiviJobServiceToken } from '../../domain/suivi-job'
 import { DateService } from '../../utils/date-service'
+import { rootLogger, toEcsError } from '../../utils/logger.module'
 
 const LIMITE_PAGINATION = 100
 
@@ -72,7 +73,10 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
             promises.forEach(promise => {
               if (promise.status === 'rejected') {
                 stats.erreurs++
-                this.logger.error(promise.reason)
+                rootLogger.error(
+                  { context: this.jobType, error: toEcsError(promise.reason) },
+                  "Échec de la notification d'une recherche d'immersion"
+                )
               }
             })
           }

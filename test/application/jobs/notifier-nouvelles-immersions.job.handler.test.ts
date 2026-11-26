@@ -105,6 +105,25 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
           erreurs: 0
         })
       })
+
+      it("compte l'échec d'une notification sans mettre le job en échec", async () => {
+        // Given
+        jeuneRepository.get
+          .withArgs(recherche.idJeune)
+          .rejects(new Error('erreur'))
+
+        // When
+        const resultat = await notifierNouvellesImmersionsJobHandler.handle(job)
+
+        // Then
+        expect(resultat.succes).to.be.true()
+        expect(resultat.nbErreurs).to.equal(1)
+        expect(resultat.resultat).to.deep.equal({
+          nombreDeNouvellesOffres: 1,
+          recherchesCorrespondantes: 1,
+          erreurs: 1
+        })
+      })
     })
 
     describe('quand il y a plusieurs pages qui correspondent', () => {
