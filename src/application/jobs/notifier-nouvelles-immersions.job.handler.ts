@@ -86,7 +86,7 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
       jobType: this.jobType,
       dateExecution: debut,
       nbErreurs: stats.erreurs,
-      succes: stats.erreurs === 0,
+      succes: true,
       resultat: stats,
       tempsExecution: DateService.calculerTempsExecution(debut)
     }
