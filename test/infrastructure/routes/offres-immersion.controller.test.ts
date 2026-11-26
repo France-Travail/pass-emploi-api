@@ -37,11 +37,7 @@ describe('OffresImmersionController', () => {
       it('appelle la commande et répond 202', async () => {
         // Given
         notifierNouvellesImmersionsCommandHandler.execute.resolves(
-          success({
-            nombreDeNouvellesOffres: 1,
-            erreurs: 0,
-            recherchesCorrespondantes: 0
-          })
+          success(undefined)
         )
 
         // When
@@ -57,8 +53,8 @@ describe('OffresImmersionController', () => {
         ).to.have.been.calledWithExactly(uneNouvelleImmersion)
       })
     })
-    describe('quand la commande échoue', () => {
-      it('répond quand même 202 sans rejet non intercepté', async () => {
+    describe('quand la planification du job échoue', () => {
+      it('répond 500 sans rejet non intercepté', async () => {
         // Given
         notifierNouvellesImmersionsCommandHandler.execute.rejects(
           new Error('canceling statement due to statement timeout')
@@ -78,7 +74,7 @@ describe('OffresImmersionController', () => {
         process.off('unhandledRejection', surRejetNonGere)
 
         // Then
-        expect(response.status).to.equal(HttpStatus.ACCEPTED)
+        expect(response.status).to.equal(HttpStatus.INTERNAL_SERVER_ERROR)
         expect(rejetsNonGeres).to.be.empty()
       })
     })

@@ -207,11 +207,7 @@ describe('OffresImmersionController', () => {
       it('appelle la commande et répond 202', async () => {
         // Given
         notifierNouvellesImmersionsCommandHandler.execute.resolves(
-          success({
-            nombreDeNouvellesOffres: 1,
-            erreurs: 0,
-            recherchesCorrespondantes: 0
-          })
+          success(undefined)
         )
 
         // When

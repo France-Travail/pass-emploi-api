@@ -111,10 +111,9 @@ export class OffresImmersionController {
   async notifierNouvellesImmersions(
     @Body() nouvellesImmersions: NouvellesOffresImmersions
   ): Promise<void> {
-    // L'échec est déjà logué par CommandHandler.execute ; sans ce catch, il arrête le process.
-    this.notifierNouvellesImmersionsCommandHandler
-      .execute({ immersions: nouvellesImmersions.immersions })
-      .catch(() => undefined)
+    await this.notifierNouvellesImmersionsCommandHandler.execute({
+      immersions: nouvellesImmersions.immersions
+    })
   }
 
   @Post('jeunes/:idJeune/offres-immersion/v3/contact')
