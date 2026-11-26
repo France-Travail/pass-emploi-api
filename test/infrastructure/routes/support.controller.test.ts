@@ -2,7 +2,8 @@ import { HttpStatus, INestApplication } from '@nestjs/common'
 import * as request from 'supertest'
 import { DeconnecterJeunesDispositifCommandHandler } from '../../../src/application/commands/support/deconnecter-jeunes-dispositif.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from '../../../src/application/commands/support/archiver-jeune-support.command.handler'
-import { DesarchiverJeuneCommandHandler } from '../../../src/application/commands/support/desarchiver-jeune.command.handler.db'
+import { DesarchiverJeuneCommandHandler } from '../../../src/application/commands/support/desarchiver-jeune.command.handler'
+import { DesarchiverJeunesConseillerCommandHandler } from '../../../src/application/commands/support/desarchiver-jeunes-conseiller.command.handler'
 import { CreerJeunePESupportCommandHandler } from '../../../src/application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from '../../../src/application/commands/support/supprimer-archive-jeune.command.handler'
 import {
@@ -42,6 +43,7 @@ describe('SupportController', () => {
   let archiverJeuneSupportCommandHandler: StubbedClass<ArchiverJeuneSupportCommandHandler>
   let deconnecterJeunesDispositifCommandHandler: StubbedClass<DeconnecterJeunesDispositifCommandHandler>
   let desarchiverJeuneCommandHandler: StubbedClass<DesarchiverJeuneCommandHandler>
+  let desarchiverJeunesConseillerCommandHandler: StubbedClass<DesarchiverJeunesConseillerCommandHandler>
   let creerJeuneSupportCommandHandler: StubbedClass<CreerJeunePESupportCommandHandler>
   let supprimerArchiveJeuneCommandHandler: StubbedClass<SupprimerArchiveJeuneCommandHandler>
   let updateAgenceCommandHandler: StubbedClass<UpdateAgenceConseillerCommandHandler>
@@ -63,6 +65,9 @@ describe('SupportController', () => {
       ArchiverJeuneSupportCommandHandler
     )
     desarchiverJeuneCommandHandler = app.get(DesarchiverJeuneCommandHandler)
+    desarchiverJeunesConseillerCommandHandler = app.get(
+      DesarchiverJeunesConseillerCommandHandler
+    )
     creerJeuneSupportCommandHandler = app.get(CreerJeunePESupportCommandHandler)
     supprimerArchiveJeuneCommandHandler = app.get(
       SupprimerArchiveJeuneCommandHandler
@@ -289,7 +294,7 @@ describe('SupportController', () => {
         const resume = {
           idJeune: 'id-jeune',
           fusionAvecCompteRecree: false,
-          emailRestaure: true,
+          rattacheAuConseiller: false,
           actionsRestaurees: 2,
           rendezVousRestaures: 1,
           actionsIgnoreesDoublon: 0,
@@ -305,7 +310,7 @@ describe('SupportController', () => {
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({ idConseiller: 'id-conseiller' })
+          .send({ emailConseiller: 'conseiller@example.com' })
           // Then
           .expect(HttpStatus.CREATED)
           .expect(resume)
@@ -315,8 +320,7 @@ describe('SupportController', () => {
         ).to.have.been.calledOnceWithExactly(
           {
             idArchive: 42,
-            idConseiller: 'id-conseiller',
-            idJeuneRecree: undefined
+            emailConseiller: 'conseiller@example.com'
           },
           Authentification.unUtilisateurSupport()
         )
@@ -333,55 +337,27 @@ describe('SupportController', () => {
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({ idConseiller: 'id-conseiller' })
+          .send({ emailConseiller: 'conseiller@example.com' })
           // Then
           .expect(HttpStatus.NOT_FOUND)
       })
     })
     describe('validation', () => {
-      it('transmet idJeuneRecree pour une fusion avec un compte existant', async () => {
-        // Given
-        desarchiverJeuneCommandHandler.execute.resolves(
-          success({
-            idJeune: 'id-jeune-recree',
-            fusionAvecCompteRecree: true,
-            emailRestaure: true,
-            actionsRestaurees: 0,
-            rendezVousRestaures: 0,
-            actionsIgnoreesDoublon: 2,
-            rendezVousIgnoresDoublon: 1,
-            animationsCollectivesNonRestaurees: 0,
-            favorisRestaures: 0,
-            recherchesRestaurees: 0,
-            messagesRestaures: 0
-          })
-        )
-
+      it('rejette un emailConseiller vide', async () => {
         // When
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({ idJeuneRecree: 'id-jeune-recree' })
+          .send({ emailConseiller: '' })
           // Then
-          .expect(HttpStatus.CREATED)
-
-        expect(
-          desarchiverJeuneCommandHandler.execute
-        ).to.have.been.calledOnceWithExactly(
-          {
-            idArchive: 42,
-            idConseiller: undefined,
-            idJeuneRecree: 'id-jeune-recree'
-          },
-          Authentification.unUtilisateurSupport()
-        )
+          .expect(HttpStatus.BAD_REQUEST)
       })
-      it('rejette un idConseiller vide', async () => {
+      it('rejette un body sans emailConseiller', async () => {
         // When
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({ idConseiller: '' })
+          .send({})
           // Then
           .expect(HttpStatus.BAD_REQUEST)
       })
@@ -390,7 +366,7 @@ describe('SupportController', () => {
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/abc')
           .set({ 'X-API-KEY': 'api-key-support' })
-          .send({ idConseiller: 'id-conseiller' })
+          .send({ emailConseiller: 'conseiller@example.com' })
           // Then
           .expect(HttpStatus.BAD_REQUEST)
       })
@@ -401,7 +377,85 @@ describe('SupportController', () => {
         await request(app.getHttpServer())
           .post('/support/desarchiver-jeune/42')
           .set({ 'X-API-KEY': 'api-key-inconnue' })
-          .send({ idConseiller: 'id-conseiller' })
+          .send({ emailConseiller: 'conseiller@example.com' })
+          // Then
+          .expect(HttpStatus.UNAUTHORIZED)
+      })
+    })
+  })
+
+  describe('POST /support/desarchiver-jeunes-conseiller', () => {
+    describe('quand la commande est en succes', () => {
+      it("planifie le désarchivage et retourne l'idConseiller", async () => {
+        // Given
+        desarchiverJeunesConseillerCommandHandler.execute.resolves(
+          success({ idConseiller: 'conseiller-id' })
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeunes-conseiller')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ emailConseiller: 'conseiller@example.com' })
+          // Then
+          .expect(HttpStatus.CREATED)
+          .expect({ idConseiller: 'conseiller-id' })
+
+        expect(
+          desarchiverJeunesConseillerCommandHandler.execute
+        ).to.have.been.calledOnceWithExactly(
+          {
+            emailConseiller: 'conseiller@example.com'
+          },
+          Authentification.unUtilisateurSupport()
+        )
+      })
+    })
+    describe('quand la commande est en echec', () => {
+      it('throw une erreur', async () => {
+        // Given
+        desarchiverJeunesConseillerCommandHandler.execute.resolves(
+          failure(
+            new NonTrouveError("Conseiller avec l'email", 'inconnu@example.com')
+          )
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeunes-conseiller')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ emailConseiller: 'inconnu@example.com' })
+          // Then
+          .expect(HttpStatus.NOT_FOUND)
+      })
+    })
+    describe('validation', () => {
+      it('rejette un emailConseiller vide', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeunes-conseiller')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({ emailConseiller: '' })
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+      it('rejette un body sans emailConseiller', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeunes-conseiller')
+          .set({ 'X-API-KEY': 'api-key-support' })
+          .send({})
+          // Then
+          .expect(HttpStatus.BAD_REQUEST)
+      })
+    })
+    describe('auth', () => {
+      it('fail avec mauvaise api key', async () => {
+        // When
+        await request(app.getHttpServer())
+          .post('/support/desarchiver-jeunes-conseiller')
+          .set({ 'X-API-KEY': 'api-key-inconnue' })
+          .send({ emailConseiller: 'conseiller@example.com' })
           // Then
           .expect(HttpStatus.UNAUTHORIZED)
       })

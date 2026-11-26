@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
-import { Sequelize } from 'sequelize'
-import { Command } from '../../../building-blocks/types/command'
-import { CommandHandler } from '../../../building-blocks/types/command-handler'
+import { Op, Sequelize, Transaction } from 'sequelize'
 import {
   MauvaiseCommandeError,
   NonTrouveError
@@ -16,7 +14,15 @@ import {
 } from '../../../building-blocks/types/result'
 import { Action } from '../../../domain/action/action'
 import { ArchiveJeune } from '../../../domain/archive-jeune'
+import { Authentification } from '../../../domain/authentification'
 import { Chat, ChatRepositoryToken } from '../../../domain/chat'
+import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import { Migration } from '../../../domain/migration'
+import {
+  Conseiller,
+  ConseillerRepositoryToken
+} from '../../../domain/milo/conseiller'
+import { DesarchivageJeune } from '../../../domain/desarchivage-jeune'
 import {
   RendezVous,
   TYPES_ANIMATIONS_COLLECTIVES
@@ -45,19 +51,8 @@ import { StructureMiloSqlModel } from '../../../infrastructure/sequelize/models/
 import { SequelizeInjectionToken } from '../../../infrastructure/sequelize/providers'
 import { AsSql } from '../../../infrastructure/sequelize/types'
 import { IdService } from '../../../utils/id-service'
+import { rootLogger, toEcsError } from '../../../utils/logger.module'
 import { Profil } from '../../../domain/profil'
-
-export interface DesarchiverJeuneCommand extends Command {
-  idArchive: number
-  idConseiller?: string
-  idJeuneRecree?: string
-}
-
-interface CibleDesarchivage {
-  idJeune: string
-  conseiller: ConseillerSqlModel
-  jeuneACreer?: AsSql<JeuneDto>
-}
 
 export class DesarchivageJeuneQueryModel {
   @ApiProperty({
@@ -68,15 +63,15 @@ export class DesarchivageJeuneQueryModel {
 
   @ApiProperty({
     description:
-      'true quand les données ont été rattachées à un compte recréé au lieu de recréer le jeune archivé'
+      'true quand les données ont été versées sur un compte existant (compte recréé par le jeune, ou jeune déjà restauré par un précédent désarchivage) au lieu de recréer le jeune archivé'
   })
   fusionAvecCompteRecree: boolean
 
   @ApiProperty({
     description:
-      "false si l'archive ne contenait pas d'email : le jeune ne pourra pas être réassocié à son compte à la prochaine connexion. Attention : la réassociation se fait sur l'email transmis par l'IDP partenaire au login — si l'email du compte partenaire (ex. dossier i-milo) a changé depuis l'archivage, elle échouera malgré emailRestaure=true (corriger alors l'email du jeune en base)."
+      'true quand le compte existant était sans conseiller (non accompagné) : il a été repris en accompagnement par le conseiller (dispositif du conseiller, notifications des messages et des actions réactivées)'
   })
-  emailRestaure: boolean
+  rattacheAuConseiller: boolean
 
   @ApiProperty()
   actionsRestaurees: number
@@ -116,35 +111,67 @@ export class DesarchivageJeuneQueryModel {
 }
 
 @Injectable()
-export class DesarchiverJeuneCommandHandler extends CommandHandler<
-  DesarchiverJeuneCommand,
-  DesarchivageJeuneQueryModel
-> {
+export class DesarchivageJeuneService {
   constructor(
     @Inject(SequelizeInjectionToken) private readonly sequelize: Sequelize,
     @Inject(ChatRepositoryToken)
     private readonly chatRepository: Chat.Repository,
-    private readonly idService: IdService
-  ) {
-    super('DesarchiverJeuneCommandHandler')
-  }
+    private readonly idService: IdService,
+    private readonly migrationService: Migration.Service,
+    @Inject(JeuneRepositoryToken)
+    private readonly jeuneRepository: Jeune.Repository,
+    @Inject(ConseillerRepositoryToken)
+    private readonly conseillerRepository: Conseiller.Repository
+  ) {}
 
-  async authorize(): Promise<Result> {
-    return emptySuccess()
-  }
-
-  async monitor(): Promise<void> {
-    return
-  }
-
-  async handle(
-    command: DesarchiverJeuneCommand
-  ): Promise<Result<DesarchivageJeuneQueryModel>> {
-    const archive = await ArchiveJeuneSqlModel.findByPk(command.idArchive)
-    if (!archive) {
-      return failure(
-        new NonTrouveError('ArchiveJeune', String(command.idArchive))
+  async trouverLeConseiller(email: string): Promise<Result<string>> {
+    const conseillers = await ConseillerSqlModel.findAll({
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('email')),
+        email.trim().toLowerCase()
       )
+    })
+    if (!conseillers.length) {
+      return failure(new NonTrouveError("Conseiller avec l'email", email))
+    }
+    if (conseillers.length > 1) {
+      const liste = conseillers
+        .map(({ id, structure }) => `${id} (${structure})`)
+        .join(', ')
+      return failure(
+        new MauvaiseCommandeError(
+          `Plusieurs conseillers ont l'email ${email} : ${liste}`
+        )
+      )
+    }
+    const [{ id }] = conseillers
+
+    const migration =
+      await this.migrationService.recupererMigrationDeLUtilisateur({
+        id,
+        type: Authentification.Type.CONSEILLER
+      })
+    if (migration) {
+      return failure(
+        new MauvaiseCommandeError(
+          `Le conseiller ${id} fait partie de la population de migration ${migration.idPopulation} : le retirer de la population avant de désarchiver, sinon ses jeunes resteront bloqués à la connexion`
+        )
+      )
+    }
+    return success(id)
+  }
+
+  async desarchiver(
+    idArchive: number,
+    idConseiller: string
+  ): Promise<Result<DesarchivageJeuneQueryModel>> {
+    const conseiller = await ConseillerSqlModel.findByPk(idConseiller)
+    if (!conseiller) {
+      return failure(new NonTrouveError('Conseiller', idConseiller))
+    }
+    const archive = await ArchiveJeuneSqlModel.findByPk(idArchive)
+    if (!archive) {
+      return failure(new NonTrouveError('ArchiveJeune', String(idArchive)))
     }
     if (!archive.structure) {
       return failure(
@@ -153,14 +180,73 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         )
       )
     }
-    const cibleResult = command.idJeuneRecree
-      ? await this.cibleFusion(command.idJeuneRecree, archive)
-      : await this.cibleRecreation(command, archive)
-    if (isFailure(cibleResult)) {
-      return cibleResult
-    }
-    const { idJeune, conseiller, jeuneACreer } = cibleResult.data
 
+    const cible = DesarchivageJeune.choisirLaCible(
+      {
+        email: archive.email,
+        structure: archive.structure as Profil.Structure
+      },
+      await this.comptesExistants(archive),
+      { id: conseiller.id, structure: conseiller.structure }
+    )
+    switch (cible.type) {
+      case 'IGNOREE':
+        return failure(new MauvaiseCommandeError(cible.message))
+      case 'RECREATION':
+        return this.restaurer(archive, conseiller, {
+          idJeune: archive.idJeune,
+          jeuneACreer: await this.preparerLaRecreation(archive, conseiller.id)
+        })
+      case 'FUSION': {
+        if (cible.rattacherAuConseiller) {
+          const repriseResult = await this.reprendreEnAccompagnement(
+            cible.idJeune,
+            conseiller.id
+          )
+          if (isFailure(repriseResult)) {
+            return repriseResult
+          }
+        }
+        return this.restaurer(archive, conseiller, {
+          idJeune: cible.idJeune,
+          rattacheAuConseiller: cible.rattacherAuConseiller
+        })
+      }
+    }
+  }
+
+  private async reprendreEnAccompagnement(
+    idJeune: string,
+    idConseiller: string
+  ): Promise<Result> {
+    const conseiller = (await this.conseillerRepository.get(idConseiller))!
+    if (Conseiller.doitChoisirSonDispositif(conseiller)) {
+      return failure(
+        new MauvaiseCommandeError(
+          `Le conseiller ${idConseiller} doit choisir son dispositif avant de reprendre le jeune ${idJeune} en accompagnement`
+        )
+      )
+    }
+    const jeune = (await this.jeuneRepository.get(idJeune))!
+    await this.jeuneRepository.save(
+      Jeune.reprendreEnAccompagnement(jeune, conseiller)
+    )
+    return emptySuccess()
+  }
+
+  private async restaurer(
+    archive: ArchiveJeuneSqlModel,
+    conseiller: ConseillerSqlModel,
+    {
+      idJeune,
+      jeuneACreer,
+      rattacheAuConseiller = false
+    }: {
+      idJeune: string
+      jeuneACreer?: AsSql<JeuneDto>
+      rattacheAuConseiller?: boolean
+    }
+  ): Promise<Result<DesarchivageJeuneQueryModel>> {
     const donnees = archive.donnees
     const rendezVousHorsAnimations =
       donnees?.rendezVous.filter(
@@ -190,6 +276,13 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         await ArchiveJeuneSqlModel.update(
           { nettoyageIdp: null, nettoyageChat: null },
           { where: { id: archive.id }, transaction }
+        )
+      }
+      if (!jeuneACreer && archive.nettoyageIdp) {
+        await this.sortirDuNettoyageIdpSiMemeCompte(
+          archive,
+          idJeune,
+          transaction
         )
       }
 
@@ -311,16 +404,21 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
         Boolean(jeuneACreer)
       )
     } catch (e) {
-      this.logger.warn(
-        `Echec de la restauration du chat du jeune ${idJeune}`,
-        e
+      rootLogger.error(
+        {
+          context: 'DesarchivageJeuneService',
+          event: { action: 'restauration_chat_echouee', outcome: 'failure' },
+          labels: { jeune_id: idJeune, archive_id: String(archive.id) },
+          error: toEcsError(e)
+        },
+        'restauration_chat_echouee'
       )
     }
 
     return success({
       idJeune,
       fusionAvecCompteRecree: !jeuneACreer,
-      emailRestaure: Boolean(archive.email),
+      rattacheAuConseiller,
       actionsRestaurees: actionsARestaurer.length,
       rendezVousRestaures: rendezVousARestaurer.length,
       actionsIgnoreesDoublon: doublons.actions.size,
@@ -331,6 +429,76 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
       recherchesRestaurees: donnees?.recherches.length ?? 0,
       messagesRestaures
     })
+  }
+
+  private async comptesExistants(
+    archive: ArchiveJeuneSqlModel
+  ): Promise<DesarchivageJeune.CompteExistant[]> {
+    const emailNormalise = archive.email?.trim().toLowerCase()
+    const memeEmail = emailNormalise
+      ? [
+          Sequelize.where(
+            Sequelize.fn('lower', Sequelize.fn('trim', Sequelize.col('email'))),
+            emailNormalise
+          )
+        ]
+      : []
+    const comptes = await JeuneSqlModel.findAll({
+      attributes: ['id', 'idConseiller', 'structure'],
+      where: { [Op.or]: [{ id: archive.idJeune }, ...memeEmail] }
+    })
+    return comptes.map(({ id, idConseiller, structure }) => ({
+      id,
+      idConseiller: idConseiller ?? null,
+      structure
+    }))
+  }
+
+  // Le compte existant peut porter la même authentification que l'archive : le nettoyage la supprimerait
+  private async sortirDuNettoyageIdpSiMemeCompte(
+    archive: ArchiveJeuneSqlModel,
+    idJeune: string,
+    transaction: Transaction
+  ): Promise<void> {
+    const compte = await JeuneSqlModel.findByPk(idJeune, {
+      attributes: ['idAuthentification'],
+      transaction
+    })
+    if (compte?.idAuthentification === archive.idAuthentification) {
+      await ArchiveJeuneSqlModel.update(
+        { nettoyageIdp: null },
+        { where: { id: archive.id }, transaction }
+      )
+    }
+  }
+
+  private async preparerLaRecreation(
+    archive: ArchiveJeuneSqlModel,
+    idConseiller: string
+  ): Promise<AsSql<JeuneDto>> {
+    const structureMiloExistante = archive.idStructureMilo
+      ? await StructureMiloSqlModel.findByPk(archive.idStructureMilo, {
+          attributes: ['id']
+        })
+      : null
+    if (!structureMiloExistante && archive.idStructureMilo) {
+      rootLogger.info(
+        {
+          context: 'DesarchivageJeuneService',
+          event: { action: 'structure_milo_non_restauree', outcome: 'failure' },
+          labels: {
+            jeune_id: archive.idJeune,
+            structure_milo_id: archive.idStructureMilo
+          }
+        },
+        'structure_milo_non_restauree'
+      )
+    }
+    return this.construireJeune(
+      archive,
+      idConseiller,
+      structureMiloExistante ? archive.idStructureMilo : null
+    )
   }
 
   private async restaurerLeChat(
@@ -411,87 +579,6 @@ export class DesarchiverJeuneCommandHandler extends CommandHandler<
     }
 
     return doublons
-  }
-
-  // Fusion : le jeune s'est recréé un compte (nouvel id, nouvelle authentification), on ne restaure que ses données sur ce compte
-  private async cibleFusion(
-    idJeuneRecree: string,
-    archive: ArchiveJeuneSqlModel
-  ): Promise<Result<CibleDesarchivage>> {
-    const jeuneRecree = await JeuneSqlModel.findByPk(idJeuneRecree, {
-      include: [ConseillerSqlModel]
-    })
-    if (!jeuneRecree) {
-      return failure(new NonTrouveError('Jeune', idJeuneRecree))
-    }
-    if (jeuneRecree.structure !== archive.structure) {
-      return failure(
-        new MauvaiseCommandeError(
-          `Le jeune ${idJeuneRecree} est de structure ${jeuneRecree.structure}, incompatible avec l'archive (${archive.structure})`
-        )
-      )
-    }
-    if (!jeuneRecree.conseiller) {
-      return failure(
-        new MauvaiseCommandeError(
-          `Le jeune ${idJeuneRecree} n'a pas de conseiller`
-        )
-      )
-    }
-    return success({
-      idJeune: jeuneRecree.id,
-      conseiller: jeuneRecree.conseiller
-    })
-  }
-
-  private async cibleRecreation(
-    command: DesarchiverJeuneCommand,
-    archive: ArchiveJeuneSqlModel
-  ): Promise<Result<CibleDesarchivage>> {
-    if (!command.idConseiller) {
-      return failure(
-        new MauvaiseCommandeError(
-          'Renseigner idConseiller pour recréer le jeune, ou idJeuneRecree pour fusionner avec un compte existant'
-        )
-      )
-    }
-
-    const jeuneExistant = await JeuneSqlModel.findByPk(archive.idJeune, {
-      attributes: ['id']
-    })
-    if (jeuneExistant) {
-      return failure(
-        new MauvaiseCommandeError(
-          `Le jeune ${archive.idJeune} existe déjà en base`
-        )
-      )
-    }
-
-    const conseiller = await ConseillerSqlModel.findByPk(command.idConseiller)
-    if (!conseiller) {
-      return failure(new NonTrouveError('Conseiller', command.idConseiller))
-    }
-
-    const structureMiloExistante = archive.idStructureMilo
-      ? await StructureMiloSqlModel.findByPk(archive.idStructureMilo, {
-          attributes: ['id']
-        })
-      : null
-    if (!structureMiloExistante && archive.idStructureMilo) {
-      this.logger.warn(
-        `La structure Milo ${archive.idStructureMilo} n'existe plus : non restaurée pour le jeune ${archive.idJeune}`
-      )
-    }
-
-    return success({
-      idJeune: archive.idJeune,
-      conseiller,
-      jeuneACreer: this.construireJeune(
-        archive,
-        conseiller.id,
-        structureMiloExistante ? archive.idStructureMilo : null
-      )
-    })
   }
 
   private construireJeune(

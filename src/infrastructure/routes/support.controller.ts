@@ -35,10 +35,12 @@ import {
   CreerJeunePESupportCommand,
   CreerJeunePESupportCommandHandler
 } from '../../application/commands/support/creer-jeune-pe-support-command-handler.service'
+import { DesarchivageJeuneQueryModel } from '../../application/commands/support/desarchivage-jeune.service.db'
+import { DesarchiverJeuneCommandHandler } from '../../application/commands/support/desarchiver-jeune.command.handler'
 import {
-  DesarchivageJeuneQueryModel,
-  DesarchiverJeuneCommandHandler
-} from '../../application/commands/support/desarchiver-jeune.command.handler.db'
+  DesarchivageJeunesConseillerQueryModel,
+  DesarchiverJeunesConseillerCommandHandler
+} from '../../application/commands/support/desarchiver-jeunes-conseiller.command.handler'
 import { SupprimerArchiveJeuneCommandHandler } from '../../application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from '../../application/commands/support/creer-superviseurs.command.handler'
 import { DeleteSuperviseursCommandHandler } from '../../application/commands/support/delete-superviseurs.command.handler'
@@ -65,7 +67,7 @@ import { handleResult } from './result.handler'
 import {
   ChangerAgenceConseillerPayload,
   CreerJeuneSupportPayload,
-  DesarchiverJeunePayload,
+  DesarchivageConseillerPayload,
   FusionnerAgencesPayload,
   LogoutJeunesPayload,
   ListerJobsQueryParams,
@@ -76,6 +78,19 @@ import {
   TransfererJeunesPayload
 } from './validation/support.inputs'
 import { JeuneQueryModel } from '../../application/queries/query-models/jeunes.query-model'
+
+const REGLES_DESARCHIVAGE = `Le conseiller doit être de la même structure que l'archive, et ne plus faire partie d'une population de migration (sinon ses jeunes restaurés resteraient bloqués à la connexion).
+
+Le compte que le jeune a pu se recréer entre-temps est cherché par l'email de l'archive (casse et espaces ignorés) :
+- aucun compte : le jeune est recréé (identité, structure, dispositif, dates) et retrouvera son compte par email à sa prochaine connexion ;
+- un compte chez ce conseiller : les données de l'archive sont versées sur ce compte (fusion) ;
+- un compte sans conseiller (demandeur d'emploi ou espace candidat non accompagné) : il est repris en accompagnement par le conseiller, comme quand un conseiller FT crée un jeune déjà inscrit (dispositif du conseiller, notifications des messages et des actions réactivées), puis fusion ;
+- ignoré : compte chez un autre conseiller, dans une autre structure, plusieurs comptes, ou archive sans email.
+
+En fusion, le compte garde son identité, sa connexion, ses préférences, son plan d'action et son questionnaire. Les actions et rendez-vous déjà présents ne sont pas dupliqués, ni les favoris et recherches.
+
+Restaurés : actions et commentaires, rendez-vous individuels, favoris, recherches sauvegardées, messages du chat (texte et historique d'édition).
+Perdus : pièces jointes, offres liées et statuts de lecture des messages, inscriptions aux animations collectives, présence aux rendez-vous, qualification et rappels des actions, dates de candidature des favoris.`
 
 export class JobSummaryQueryModel {
   @ApiProperty()
@@ -134,6 +149,7 @@ export class SupportController {
     private readonly fusionnerAgencesCommandHandler: FusionnerAgencesCommandHandler,
     private readonly archiverJeuneSupportCommandHandler: ArchiverJeuneSupportCommandHandler,
     private readonly desarchiverJeuneCommandHandler: DesarchiverJeuneCommandHandler,
+    private readonly desarchiverJeunesConseillerCommandHandler: DesarchiverJeunesConseillerCommandHandler,
     private readonly creerJeuneSupportCommandHandler: CreerJeunePESupportCommandHandler,
     private readonly supprimerArchiveJeuneCommandHandler: SupprimerArchiveJeuneCommandHandler,
     private readonly transfererJeunesConseillerCommandHandler: TransfererJeunesConseillerCommandHandler,
@@ -349,31 +365,48 @@ export class SupportController {
   @ApiOperation({
     summary:
       'Désarchive un jeune archivé par erreur, via l’identifiant en base de son archive',
-    description:
-      'Autorisé uniquement pour le support. Restaure un maximum de données depuis l’archive :\n' +
-      '- Recréation du jeune (identité, email, structure, dispositif, dates), rattaché au conseiller fourni dans le payload\n' +
-      '- Restauration des actions (et commentaires), des rendez-vous individuels, des favoris et des recherches sauvegardées\n' +
-      '- Réinitialisation du chat Firebase avec réinjection des messages archivés (texte et historique d’édition)\n\n' +
-      'Mode fusion (payload `idJeuneRecree`) : quand le jeune s’est déjà recréé un compte, le jeune archivé n’est pas recréé et les données sont rattachées à ce compte, qui garde son identité, son authentification et son conseiller (`idConseiller` devient alors inutile). Les actions et rendez-vous déjà re-saisis sur ce compte ne sont pas dupliqués (voir `actionsIgnoreesDoublon` / `rendezVousIgnoresDoublon`), et les favoris/recherches déjà présents sont ignorés.\n\n' +
-      'Limites (données définitivement perdues) :\n' +
-      '- Les pièces jointes, offres liées aux messages et statuts de lecture ne sont pas restaurés (contenu texte uniquement)\n' +
-      '- Les inscriptions aux animations collectives ne sont pas restaurées\n' +
-      '- Les préférences, tokens de notification et l’historique de transferts sont réinitialisés\n' +
-      '- Le compte de l’IDP ayant été supprimé, le jeune sera réassocié par email à sa prochaine connexion\n\n' +
-      'L’archive existante n’est pas supprimée, si vous voulez la supprimer, utiliser DELETE /support/archives-jeune/:idArchive une fois la restauration vérifiée.'
+    description: `Autorisé uniquement pour le support. Le jeune est rattaché au conseiller dont l'email est fourni.
+
+${REGLES_DESARCHIVAGE}
+
+Un cas « ignoré » renvoie une erreur 400 qui en donne la raison.`
   })
   @Post('desarchiver-jeune/:idArchive')
   @ApiResponse({ type: DesarchivageJeuneQueryModel })
   async desarchiverJeune(
     @Param('idArchive', ParseIntPipe) idArchive: number,
-    @Body() payload: DesarchiverJeunePayload
+    @Body() payload: DesarchivageConseillerPayload
   ): Promise<DesarchivageJeuneQueryModel> {
     const result = await this.desarchiverJeuneCommandHandler.execute(
-      {
-        idArchive,
-        idConseiller: payload.idConseiller,
-        idJeuneRecree: payload.idJeuneRecree
-      },
+      { idArchive, emailConseiller: payload.emailConseiller },
+      Authentification.unUtilisateurSupport()
+    )
+
+    return handleResult(result)
+  }
+
+  @SetMetadata(
+    Authentification.METADATA_IDENTIFIER_API_KEY_PARTENAIRE,
+    Authentification.Partenaire.SUPPORT
+  )
+  @ApiOperation({
+    summary:
+      'Désarchive tous les jeunes archivés par une migration qui étaient suivis par un conseiller',
+    description: `Autorisé uniquement pour le support. Pour un conseiller archivé à tort avec une population migrée : restaure ses jeunes archivés au motif Migration et les rattache à ce conseiller.
+
+Asynchrone : la route planifie le job DESARCHIVER_JEUNES_CONSEILLER, qui traite les archives par lots. Bilan dans le suivi du job (nbTraites, nbIgnores, nbEchecs) ; chaque archive ignorée est tracée par une ligne de log \`archive_non_desarchivee\` qui en donne la raison. Relancer est sans risque : une archive déjà restaurée retombe en fusion sans doublon.
+
+Erreur si aucun ou plusieurs conseillers ont cet email, si le conseiller n'a aucune archive au motif Migration, ou si un désarchivage en masse est déjà en cours.
+
+${REGLES_DESARCHIVAGE}`
+  })
+  @Post('desarchiver-jeunes-conseiller')
+  @ApiResponse({ type: DesarchivageJeunesConseillerQueryModel })
+  async desarchiverJeunesConseiller(
+    @Body() payload: DesarchivageConseillerPayload
+  ): Promise<DesarchivageJeunesConseillerQueryModel> {
+    const result = await this.desarchiverJeunesConseillerCommandHandler.execute(
+      { emailConseiller: payload.emailConseiller },
       Authentification.unUtilisateurSupport()
     )
 

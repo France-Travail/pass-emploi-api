@@ -382,6 +382,11 @@ export namespace ArchiveJeune {
       apresId?: number
       idPopulation?: string
     }): Promise<number[]>
+    idsArchivesMigrationDuConseiller(criteres: {
+      idConseiller: string
+      taille: number
+      apresId?: number
+    }): Promise<number[]>
     recupererArchivesANettoyer(
       idsArchives: number[]
     ): Promise<ArchiveANettoyer[]>
