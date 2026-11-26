@@ -58,19 +58,28 @@ describe('OffresImmersionController', () => {
       })
     })
     describe('quand la commande échoue', () => {
-      it('répond quand même 202', async () => {
+      it('répond quand même 202 sans rejet non intercepté', async () => {
         // Given
         notifierNouvellesImmersionsCommandHandler.execute.rejects(
           new Error('canceling statement due to statement timeout')
         )
+        const rejetsNonGeres: unknown[] = []
+        const surRejetNonGere = (raison: unknown): void => {
+          rejetsNonGeres.push(raison)
+        }
+        process.on('unhandledRejection', surRejetNonGere)
 
         // When
-        await request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post('/offres-immersion')
           .send(uneNouvelleImmersion)
           .set({ 'X-API-KEY': 'api-key-immersion' })
-          // Then
-          .expect(HttpStatus.ACCEPTED)
+        await new Promise(resolve => setImmediate(resolve))
+        process.off('unhandledRejection', surRejetNonGere)
+
+        // Then
+        expect(response.status).to.equal(HttpStatus.ACCEPTED)
+        expect(rejetsNonGeres).to.be.empty()
       })
     })
     describe('quand le payload est pas bon', () => {

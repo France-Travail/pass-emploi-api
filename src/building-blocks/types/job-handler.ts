@@ -38,13 +38,13 @@ export abstract class JobHandler<TContenu = void> {
       const suiviJob = await this.handle(job)
 
       if (!suiviJob.intermediaire && estJobSuivi(suiviJob.jobType)) {
-        this.lancerSansAttendre(
+        void this.lancerSansAttendre(
           () => this.suiviJobService.save(suiviJob),
           "L'enregistrement du suivi du job a échoué"
         )
       }
       if (!suiviJob.intermediaire && estNotifiable(suiviJob)) {
-        this.lancerSansAttendre(
+        void this.lancerSansAttendre(
           () => this.suiviJobService.notifierResultatJob(suiviJob),
           'La notification du résultat du job a échoué'
         )
