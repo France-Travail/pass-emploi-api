@@ -60,4 +60,28 @@ describe('JobHandler', () => {
       "L'enregistrement du suivi du job a échoué"
     )
   })
+
+  it("termine le job et logue l'échec quand la notification du résultat échoue", async () => {
+    // Given
+    const suiviJobService: SuiviJob.Service = {
+      save: sinon.stub().resolves(),
+      notifierResultatJob: sinon.stub().rejects(new Error('Mattermost KO')),
+      envoyerRapport: sinon.stub().resolves()
+    }
+    const handler = new UnJobHandler(suiviJobService)
+
+    // When
+    const suiviJob = await handler.execute({
+      type: Planificateur.JobType.NETTOYER_LES_DONNEES,
+      dateExecution: new Date('2026-11-24T10:11:06Z')
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
+    // Then
+    expect(suiviJob?.succes).to.be.true()
+    expect(logError).to.have.been.calledWithMatch(
+      { context: Planificateur.JobType.NETTOYER_LES_DONNEES },
+      'La notification du résultat du job a échoué'
+    )
+  })
 })
