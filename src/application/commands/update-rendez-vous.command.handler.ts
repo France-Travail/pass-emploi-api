@@ -100,18 +100,26 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
     const rendezVousUpdated = result.data
     await this.rendezVousRepository.save(rendezVousUpdated)
 
-    replanifierLesRappelsDeRendezVous(
+    void replanifierLesRappelsDeRendezVous(
       rendezVousUpdated,
       rendezVous,
       this.planificateurService,
       this.logger,
       this.apmService
     )
-    this.notifierLesJeunes(rendezVous, rendezVousUpdated, utilisateur)
+    lancerSansAttendre(
+      this.notifierLesJeunes(rendezVous, rendezVousUpdated, utilisateur),
+      this.logger,
+      'La notification des jeunes du rendez-vous a échoué'
+    )
     if (rendezVousUpdated.invitation) {
-      this.envoyerLesInvitationsCalendaires(
-        rendezVousUpdated,
-        RendezVous.Operation.MODIFICATION
+      lancerSansAttendre(
+        this.envoyerLesInvitationsCalendaires(
+          rendezVousUpdated,
+          RendezVous.Operation.MODIFICATION
+        ),
+        this.logger,
+        "L'envoi de l'invitation calendaire de modification a échoué"
       )
     }
     return success({ id: rendezVousUpdated.id })
@@ -184,13 +192,21 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
       jeunes: jeunesAjoutes
     }
 
-    this.notificationService.notifierLesJeunesDuRdv(
-      rdvSupprime,
-      Notification.Type.DELETED_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        rdvSupprime,
+        Notification.Type.DELETED_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes retirés du rendez-vous a échoué'
     )
-    this.notificationService.notifierLesJeunesDuRdv(
-      nouveauRdv,
-      Notification.Type.NEW_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        nouveauRdv,
+        Notification.Type.NEW_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes ajoutés au rendez-vous a échoué'
     )
 
     if (
@@ -207,9 +223,13 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
       )
     }
     if (this.doitNotifierDUneMiseAJour(rendezVous, rendezVousUpdated)) {
-      this.notificationService.notifierLesJeunesDuRdv(
-        rdvMisAJour,
-        Notification.Type.UPDATED_RENDEZVOUS
+      lancerSansAttendre(
+        this.notificationService.notifierLesJeunesDuRdv(
+          rdvMisAJour,
+          Notification.Type.UPDATED_RENDEZVOUS
+        ),
+        this.logger,
+        'La notification de modification du rendez-vous a échoué'
       )
       lancerSansAttendre(
         this.evenementService.creer(

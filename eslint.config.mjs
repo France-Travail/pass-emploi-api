@@ -79,6 +79,21 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'off'
     }
   },
+  // Un rejet non intercepté arrête le process : une promesse est soit attendue, soit lancée
+  // volontairement avec `void` (l'appelé gère ses erreurs) ou lancerSansAttendre (qui les logue).
+  // TODO: étendre à test/ une fois ses 59 promesses non attendues traitées.
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error'
+    }
+  },
   // Prettier en dernier (désactive les règles de formatage conflictuelles)
   prettierRecommended
 ]

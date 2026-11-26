@@ -85,4 +85,4 @@ async function bootstrap(): Promise<void> {
   }
 }
 
-bootstrap()
+void bootstrap()

@@ -141,7 +141,7 @@ export class NotificationFirebaseSqlRepository
     let resultatPushNotif = Notification.ResultatEnvoi.ENVOYEE
     if (pushNotification) {
       resultatPushNotif = await this.firebaseClient.send(messageFirebase)
-      this.matomoClient.trackEventPushNotificationEnvoyee(messageFirebase)
+      void this.matomoClient.trackEventPushNotificationEnvoyee(messageFirebase)
     }
     if (idJeune && notificationInApp) {
       const notifSql: AsSql<NotificationJeuneDto> = {

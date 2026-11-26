@@ -126,11 +126,15 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
     ])
 
     if (jeunesANotifierInscription.length) {
-      this.notificationService.notifierInscriptionSession(
-        session.id,
-        session.nom,
-        session.debut,
-        jeunesANotifierInscription
+      lancerSansAttendre(
+        this.notificationService.notifierInscriptionSession(
+          session.id,
+          session.nom,
+          session.debut,
+          jeunesANotifierInscription
+        ),
+        this.logger,
+        "La notification d'inscription à la session a échoué"
       )
       lancerSansAttendre(
         this.evenementService.creer(
@@ -147,11 +151,15 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
         jeunesSupprimesANotifierDesinscription
       )
     if (jeunesANotifierDesinscription.length) {
-      this.notificationService.notifierDesinscriptionSession(
-        session.id,
-        session.nom,
-        session.debut,
-        jeunesANotifierDesinscription
+      lancerSansAttendre(
+        this.notificationService.notifierDesinscriptionSession(
+          session.id,
+          session.nom,
+          session.debut,
+          jeunesANotifierDesinscription
+        ),
+        this.logger,
+        'La notification de désinscription de la session a échoué'
       )
     }
 

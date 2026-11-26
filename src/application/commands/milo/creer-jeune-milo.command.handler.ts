@@ -146,7 +146,7 @@ export class CreerJeuneMiloCommandHandler extends CommandHandler<
       id: nouveauJeune.id,
       idAuthentification: result.data.idAuthentification
     }
-    this.recupererStructure(nouveauJeune, idpToken)
+    void this.recupererStructure(nouveauJeune, idpToken)
     await this.authentificationRepository.updateJeune(utilisateur)
     await this.chatRepository.initializeChatIfNotExists(
       nouveauJeune.id,

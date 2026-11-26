@@ -171,7 +171,7 @@ export class GetSessionsConseillerMiloQueryHandler extends QueryHandler<
     })
 
     if (idsSessionsAClore.length) {
-      this.planificateurService.ajouterJobClotureSessions(
+      void this.planificateurService.ajouterJobClotureSessions(
         idsSessionsAClore,
         conseiller.structure.id,
         this.dateService.now(),

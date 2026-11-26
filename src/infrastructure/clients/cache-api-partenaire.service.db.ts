@@ -56,7 +56,7 @@ export class CacheApiPartenaireService {
   }): Promise<ResultatAppelAvecCache<T>> {
     const appelInstrumente: Promise<ResultatAppelAvecCache<T>> = appel()
       .then(data => {
-        this.sauvegarder(cleCache, data)
+        void this.sauvegarder(cleCache, data)
         return { type: StatutResultatCache.FRAIS as const, data }
       })
       .catch(erreur => ({ type: StatutResultatCache.ERREUR as const, erreur }))

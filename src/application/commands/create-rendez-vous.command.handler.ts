@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
@@ -93,18 +94,22 @@ export class CreateRendezVousCommandHandler extends CommandHandler<
 
     await this.rendezVousRepository.save(rendezVous)
 
-    this.notificationService.notifierLesJeunesDuRdv(
-      rendezVous,
-      Notification.Type.NEW_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        rendezVous,
+        Notification.Type.NEW_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes du rendez-vous a échoué'
     )
-    planifierLesRappelsDeRendezVous(
+    void planifierLesRappelsDeRendezVous(
       rendezVous,
       this.planificateurService,
       this.logger,
       this.apmService
     )
     if (rendezVous.invitation) {
-      this.envoyerLesInvitationsCalendaires(
+      void this.envoyerLesInvitationsCalendaires(
         conseiller,
         rendezVous,
         RendezVous.Operation.CREATION

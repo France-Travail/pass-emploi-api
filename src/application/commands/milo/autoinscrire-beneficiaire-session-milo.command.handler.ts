@@ -1,4 +1,5 @@
 import { Inject } from '@nestjs/common'
+import { lancerSansAttendre } from 'src/building-blocks/lancer-sans-attendre'
 import { CommandHandler } from 'src/building-blocks/types/command-handler'
 import {
   DroitsInsuffisants,
@@ -96,14 +97,22 @@ export default class AutoinscrireBeneficiaireSessionMiloCommandHandler extends C
     if (isFailure(resultatInscription)) return resultatInscription
     const session = resultatInscription.data
 
-    this.envoyerMessageConseiller(
-      beneficiaire.id,
-      beneficiaire.conseiller.id,
-      session
+    lancerSansAttendre(
+      this.envoyerMessageConseiller(
+        beneficiaire.id,
+        beneficiaire.conseiller.id,
+        session
+      ),
+      this.logger,
+      "L'envoi du message d'autoinscription au conseiller a échoué"
     )
-    this.notificationService.notifierAutoinscriptionSession(
-      session,
-      beneficiaire
+    lancerSansAttendre(
+      this.notificationService.notifierAutoinscriptionSession(
+        session,
+        beneficiaire
+      ),
+      this.logger,
+      "La notification d'autoinscription du bénéficiaire a échoué"
     )
 
     return emptySuccess()

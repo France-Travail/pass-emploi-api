@@ -8,6 +8,7 @@ import {
 } from 'src/domain/planificateur'
 import { DateService } from 'src/utils/date-service'
 import { Command } from '../../building-blocks/types/command'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import {
@@ -128,7 +129,7 @@ export class TeleverserFichierCommandHandler extends CommandHandler<
     await this.fichierRepository.save(resultCreationFichier.data)
 
     if (estJeune(utilisateur.type)) {
-      this.declencherAnalyseAsynchrone(
+      void this.declencherAnalyseAsynchrone(
         resultCreationFichier.data,
         utilisateur.id,
         command.idMessage!
@@ -162,21 +163,19 @@ export class TeleverserFichierCommandHandler extends CommandHandler<
       } while (isFailure(declenchementAnalyse) && tryCount < MAX_TRY)
 
       if (isFailure(declenchementAnalyse)) {
-        this.fichierRepository.softDelete(fichier.id)
-        this.chatRepository.envoyerStatutAnalysePJ(
-          idJeune,
-          idMessage,
-          Chat.StatutPJ.ERREUR_ANALYSE,
-          { attendreLeMessage: true }
-        )
+        this.abandonnerLeFichier(fichier, idJeune, idMessage)
         return
       }
 
-      this.chatRepository.envoyerStatutAnalysePJ(
-        idJeune,
-        idMessage,
-        Chat.StatutPJ.ANALYSE_EN_COURS,
-        { attendreLeMessage: true }
+      lancerSansAttendre(
+        this.chatRepository.envoyerStatutAnalysePJ(
+          idJeune,
+          idMessage,
+          Chat.StatutPJ.ANALYSE_EN_COURS,
+          { attendreLeMessage: true }
+        ),
+        this.logger,
+        "L'envoi du statut d'analyse en cours de la PJ a échoué"
       )
       const intervalleRecuperationResultat = this.configService.get<number>(
         'jecliqueoupas.intervalleAnalyse'
@@ -192,14 +191,30 @@ export class TeleverserFichierCommandHandler extends CommandHandler<
       })
     } catch (e) {
       this.logger.error(buildError('Erreur Analyse PJ', e))
-      this.fichierRepository.softDelete(fichier.id)
+      this.abandonnerLeFichier(fichier, idJeune, idMessage)
+    }
+  }
+
+  private abandonnerLeFichier(
+    fichier: Fichier,
+    idJeune: string,
+    idMessage: string
+  ): void {
+    lancerSansAttendre(
+      this.fichierRepository.softDelete(fichier.id),
+      this.logger,
+      'La suppression du fichier non analysé a échoué'
+    )
+    lancerSansAttendre(
       this.chatRepository.envoyerStatutAnalysePJ(
         idJeune,
         idMessage,
         Chat.StatutPJ.ERREUR_ANALYSE,
         { attendreLeMessage: true }
-      )
-    }
+      ),
+      this.logger,
+      "L'envoi du statut d'erreur d'analyse de la PJ a échoué"
+    )
   }
 }
 
