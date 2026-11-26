@@ -4,6 +4,7 @@ import {
   NotifierNouvellesImmersionsCommand,
   NotifierNouvellesImmersionsCommandHandler
 } from '../../../src/application/commands/notifier-nouvelles-immersions.command.handler'
+import { success } from '../../../src/building-blocks/types/result'
 import { StubbedClass, expect } from '../../utils'
 import { getApplicationWithStubbedDependencies } from '../../utils/module-for-testing'
 
@@ -34,6 +35,15 @@ describe('OffresImmersionController', () => {
     }
     describe('quand le payload est bon', () => {
       it('appelle la commande et répond 202', async () => {
+        // Given
+        notifierNouvellesImmersionsCommandHandler.execute.resolves(
+          success({
+            nombreDeNouvellesOffres: 1,
+            erreurs: 0,
+            recherchesCorrespondantes: 0
+          })
+        )
+
         // When
         await request(app.getHttpServer())
           .post('/offres-immersion')
@@ -45,6 +55,22 @@ describe('OffresImmersionController', () => {
         expect(
           notifierNouvellesImmersionsCommandHandler.execute
         ).to.have.been.calledWithExactly(uneNouvelleImmersion)
+      })
+    })
+    describe('quand la commande échoue', () => {
+      it('répond quand même 202', async () => {
+        // Given
+        notifierNouvellesImmersionsCommandHandler.execute.rejects(
+          new Error('canceling statement due to statement timeout')
+        )
+
+        // When
+        await request(app.getHttpServer())
+          .post('/offres-immersion')
+          .send(uneNouvelleImmersion)
+          .set({ 'X-API-KEY': 'api-key-immersion' })
+          // Then
+          .expect(HttpStatus.ACCEPTED)
       })
     })
     describe('quand le payload est pas bon', () => {
