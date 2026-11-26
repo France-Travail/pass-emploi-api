@@ -63,8 +63,11 @@ Clean Architecture + CQRS :
 
 Prettier et ESLint font foi (`.prettierrc`, config ESLint). Points non évidents :
 
-- **Guillemets** : `singleQuote` sauf si la string contient une apostrophe → doubles guillemets
-  (`"Votre bénéficiaire s'est inscrit"`). Vaut aussi pour les `it()` / `describe()`.
+- **Guillemets** : écrire toutes les chaînes entre doubles guillemets, `it()` / `describe()` compris ;
+  `prettier --write` remet des simples quand il n'y a pas d'apostrophe. Ne jamais choisir le guillemet
+  à la main : une apostrophe dans des simples guillemets casse la syntaxe, et prettier ne peut plus
+  rien corriger. Le hook `.claude/hooks/prettier-apres-edition.sh` formate chaque `.ts` édité par
+  Claude et lui renvoie aussitôt une erreur de syntaxe.
 - `no-console` → logger NestJS ; `no-process-env` → `ConfigService` ; variables inutilisées préfixées `_`.
 - Commentaires : voir **Conventions partagées → Commentaires** dans `CONTEXTE-TRANSVERSE.md`.
 
