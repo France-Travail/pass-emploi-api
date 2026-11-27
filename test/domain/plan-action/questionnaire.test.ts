@@ -43,6 +43,52 @@ describe('Questionnaire', () => {
     })
   })
 
+  describe('aUnObjectifOuUnFrein', () => {
+    it('accepte un objectif sans frein', () => {
+      // When
+      const resultat = Questionnaire.aUnObjectifOuUnFrein({
+        besoins: [Questionnaire.Besoin.ALTERNANCE],
+        contraintes: []
+      })
+
+      // Then
+      expect(resultat).to.be.true()
+    })
+
+    it('accepte un frein sans objectif', () => {
+      // When
+      const resultat = Questionnaire.aUnObjectifOuUnFrein({
+        besoins: [],
+        contraintes: [Questionnaire.Contrainte.PAS_DE_PERMIS]
+      })
+
+      // Then
+      expect(resultat).to.be.true()
+    })
+
+    it('refuse un questionnaire sans objectif ni frein', () => {
+      // When
+      const resultat = Questionnaire.aUnObjectifOuUnFrein({
+        besoins: [],
+        contraintes: []
+      })
+
+      // Then
+      expect(resultat).to.be.false()
+    })
+
+    it('refuse un questionnaire sans objectif où le jeune ne déclare aucun frein', () => {
+      // When
+      const resultat = Questionnaire.aUnObjectifOuUnFrein({
+        besoins: [],
+        contraintes: [Questionnaire.Contrainte.RIEN_NE_ME_BLOQUE]
+      })
+
+      // Then
+      expect(resultat).to.be.false()
+    })
+  })
+
   describe('calculerAge', () => {
     const maintenant = DateTime.fromISO('2026-08-27T10:00:00.000Z', {
       zone: 'utc'
