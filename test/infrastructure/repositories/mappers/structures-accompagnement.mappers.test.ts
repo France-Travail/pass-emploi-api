@@ -65,7 +65,7 @@ describe('structures-accompagnement.mappers', () => {
   describe('resumerHorairesFT', () => {
     it('regroupe les jours consécutifs aux mêmes créneaux', () => {
       expect(resumerHorairesFT(horairesStMichel)).to.deep.equal([
-        'Lun–mer · 8h30-12h30, 12h30-16h30 sur RDV',
+        'Lun-mer · 8h30-12h30, 12h30-16h30 sur RDV',
         'Jeu · 8h30-12h30',
         'Ven · 8h30-12h30, 12h30-15h30 sur RDV'
       ])
@@ -90,7 +90,7 @@ describe('structures-accompagnement.mappers', () => {
         })
 
       expect(resumerHorairesFT(horairesParis11)).to.deep.equal([
-        'Lun–jeu · 9h-13h15, 13h15-17h sur RDV',
+        'Lun-jeu · 9h-13h15, 13h15-17h sur RDV',
         'Ven · 9h-12h'
       ])
     })
@@ -105,7 +105,7 @@ describe('structures-accompagnement.mappers', () => {
           unJour(0)
         ])
       ).to.deep.equal([
-        'Lun–mar · 8h30-12h30, 12h30-16h30 sur RDV',
+        'Lun-mar · 8h30-12h30, 12h30-16h30 sur RDV',
         'Dim · 8h30-12h30, 12h30-16h30 sur RDV'
       ])
     })
@@ -113,7 +113,7 @@ describe('structures-accompagnement.mappers', () => {
     it('renvoie une seule ligne pour une semaine régulière', () => {
       expect(
         resumerHorairesFT([1, 2, 3, 4, 5].map(j => unJour(j)))
-      ).to.deep.equal(['Lun–ven · 8h30-12h30, 12h30-16h30 sur RDV'])
+      ).to.deep.equal(['Lun-ven · 8h30-12h30, 12h30-16h30 sur RDV'])
     })
 
     it('garde la pause de midi', () => {
@@ -146,7 +146,7 @@ describe('structures-accompagnement.mappers', () => {
       }))
 
       expect(resumerHorairesFT(horaires)).to.deep.equal([
-        'Lun–mar · 8h30-9h30, 10h-12h sur RDV'
+        'Lun-mar · 8h30-9h30, 10h-12h sur RDV'
       ])
     })
 
@@ -184,7 +184,7 @@ describe('structures-accompagnement.mappers', () => {
 
     it('trie les jours avant de les regrouper', () => {
       expect(resumerHorairesFT([3, 1, 2].map(j => unJour(j)))).to.deep.equal([
-        'Lun–mer · 8h30-12h30, 12h30-16h30 sur RDV'
+        'Lun-mer · 8h30-12h30, 12h30-16h30 sur RDV'
       ])
     })
 
@@ -288,7 +288,7 @@ describe('structures-accompagnement.mappers', () => {
         },
         telephone: '39-49',
         horaires: [
-          'Lun–mer · 8h30-12h30, 12h30-16h30 sur RDV',
+          'Lun-mer · 8h30-12h30, 12h30-16h30 sur RDV',
           'Jeu · 8h30-12h30',
           'Ven · 8h30-12h30, 12h30-15h30 sur RDV'
         ],

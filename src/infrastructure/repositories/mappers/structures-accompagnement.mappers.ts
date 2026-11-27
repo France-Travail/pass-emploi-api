@@ -46,7 +46,7 @@ export function resumerHorairesFT(
     const jours =
       groupe.premierJour === groupe.dernierJour
         ? libelleJour(groupe.premierJour)
-        : `${libelleJour(groupe.premierJour)}–${libelleJour(
+        : `${libelleJour(groupe.premierJour)}-${libelleJour(
             groupe.dernierJour
           ).toLowerCase()}`
     return `${jours} · ${groupe.libelle}`
