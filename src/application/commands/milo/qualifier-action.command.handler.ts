@@ -16,7 +16,10 @@ import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
-import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import {
+  JeuneMilo,
+  JeuneMiloRepositoryToken
+} from '../../../domain/milo/jeune.milo'
 import { Profil, TOUT_PROFIL } from '../../../domain/profil'
 import {
   ActionMilo,
@@ -49,8 +52,8 @@ export class QualifierActionCommandHandler extends CommandHandler<
     @Inject(ActionMiloRepositoryToken)
     private readonly actionMiloRepository: ActionMilo.Repository,
     private readonly actionAuthorizer: ActionAuthorizer,
-    @Inject(JeuneRepositoryToken)
-    private readonly jeuneRepository: Jeune.Repository,
+    @Inject(JeuneMiloRepositoryToken)
+    private readonly jeuneMiloRepository: JeuneMilo.Repository,
     private readonly evenementService: EvenementService,
     private readonly oidcClient: OidcClient
   ) {
@@ -84,14 +87,16 @@ export class QualifierActionCommandHandler extends CommandHandler<
       actionQualifiee.qualification.code !== Qualification.Code.NON_SNP
 
     if (estSNP) {
-      const jeune = await this.jeuneRepository.get(actionQualifiee.idJeune)
-      if (!jeune) {
-        return failure(new NonTrouveError('Jeune', actionQualifiee.idJeune))
+      const jeuneResult = await this.jeuneMiloRepository.get(
+        actionQualifiee.idJeune
+      )
+      if (isFailure(jeuneResult)) {
+        return jeuneResult
       }
 
       const actionMiloResult = ActionMilo.creer(
         actionQualifiee,
-        jeune,
+        jeuneResult.data,
         command.utilisateur
       )
 

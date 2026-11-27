@@ -16,7 +16,7 @@ import {
 } from '../../../../src/building-blocks/types/result'
 import { Action } from '../../../../src/domain/action/action'
 import { Evenement, EvenementService } from '../../../../src/domain/evenement'
-import { Jeune } from '../../../../src/domain/jeune/jeune'
+import { JeuneMilo } from '../../../../src/domain/milo/jeune.milo'
 import { ActionMilo } from '../../../../src/domain/milo/action.milo'
 import { Profil } from '../../../../src/domain/profil'
 import { OidcClient } from '../../../../src/infrastructure/clients/oidc-client.db'
@@ -33,12 +33,16 @@ describe('QualifierActionsMiloCommandHandler', () => {
   let actionRepository: StubbedType<Action.Repository>
   let actionMiloRepository: StubbedType<ActionMilo.Repository>
   let conseillerAuthorizer: StubbedClass<ConseillerAuthorizer>
-  let jeuneRepository: StubbedType<Jeune.Repository>
+  let jeuneMiloRepository: StubbedType<JeuneMilo.Repository>
   let evenementService: StubbedClass<EvenementService>
   let oidcClient: StubbedClass<OidcClient>
   let qualifierActionsMiloCommandHandler: QualifierActionsMiloCommandHandler
 
   const idAction = '35399853-f224-4910-8d02-44fb1ac85606'
+  const jeuneMilo: JeuneMilo = {
+    ...unJeune(),
+    structureMilo: { id: 'id-structure-milo', timezone: 'Indian/Reunion' }
+  }
   const utilisateur = unUtilisateurConseiller({ username: 'j.doe' })
 
   beforeEach(() => {
@@ -46,22 +50,22 @@ describe('QualifierActionsMiloCommandHandler', () => {
     actionRepository = stubInterface(sandbox)
     actionMiloRepository = stubInterface(sandbox)
     conseillerAuthorizer = stubClass(ConseillerAuthorizer)
-    jeuneRepository = stubInterface(sandbox)
+    jeuneMiloRepository = stubInterface(sandbox)
     evenementService = stubClass(EvenementService)
     oidcClient = stubClass(OidcClient)
     oidcClient.exchangeToken
       .withArgs('accessToken', Profil.Structure.MILO)
       .resolves('idpToken')
 
-    jeuneRepository.get
+    jeuneMiloRepository.get
       .withArgs('ABCDE')
-      .resolves(unJeune({ idPartenaire: 'idDossier' }))
+      .resolves(success({ ...jeuneMilo, idPartenaire: 'idDossier' }))
 
     qualifierActionsMiloCommandHandler = new QualifierActionsMiloCommandHandler(
       actionRepository,
       actionMiloRepository,
       conseillerAuthorizer,
-      jeuneRepository,
+      jeuneMiloRepository,
       evenementService,
       oidcClient
     )
@@ -115,13 +119,14 @@ describe('QualifierActionsMiloCommandHandler', () => {
               commentaire: "Contenu de l'action - Commentaire de l'action"
             }
           }
-          jeuneRepository.get
+          jeuneMiloRepository.get
             .withArgs(actionQualifiee.idJeune)
-            .resolves(unJeune())
+            .resolves(success(jeuneMilo))
           const actionMilo: ActionMilo = {
             ...actionQualifiee,
             idDossier: '1234',
-            loginConseiller: 'j.doe'
+            loginConseiller: 'j.doe',
+            timezoneStructure: 'Indian/Reunion'
           }
 
           actionMiloRepository.creerSituationNonProfessionnelle
@@ -169,7 +174,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
             uneActionTerminee({ id: 'action-1' }),
             uneActionTerminee({ id: 'action-2' })
           ]
-          jeuneRepository.get.resolves(unJeune())
+          jeuneMiloRepository.get.resolves(success(jeuneMilo))
           actionMiloRepository.creerSituationNonProfessionnelle.resolves(
             emptySuccess()
           )
@@ -215,9 +220,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
               heures: 3
             }
           }
-          jeuneRepository.get
+          jeuneMiloRepository.get
             .withArgs(actionQualifieeEchoue.idJeune)
-            .resolves(unJeune())
+            .resolves(success(jeuneMilo))
 
           actionMiloRepository.creerSituationNonProfessionnelle.resolves(
             failure(new ErreurHttp('KO', 500))
@@ -257,7 +262,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
           // Given
           const actionEnErreur = uneActionTerminee({ id: 'action-timeout' })
           const actionSuivante = uneActionTerminee({ id: 'action-suivante' })
-          jeuneRepository.get.resolves(unJeune())
+          jeuneMiloRepository.get.resolves(success(jeuneMilo))
           actionMiloRepository.creerSituationNonProfessionnelle
             .onFirstCall()
             .rejects(new Error('timeout of 5000ms exceeded'))
@@ -307,9 +312,9 @@ describe('QualifierActionsMiloCommandHandler', () => {
               commentaire: undefined
             }
           }
-          jeuneRepository.get
+          jeuneMiloRepository.get
             .withArgs(actionQualifiee.idJeune)
-            .resolves(unJeune())
+            .resolves(success(jeuneMilo))
           actionRepository.get.withArgs(idAction).resolves(actionTerminee)
 
           // When
@@ -381,7 +386,7 @@ describe('QualifierActionsMiloCommandHandler', () => {
           id: idAction,
           qualification: { code: Action.Qualification.Code.SANTE }
         })
-        jeuneRepository.get.resolves(unJeune())
+        jeuneMiloRepository.get.resolves(success(jeuneMilo))
         actionMiloRepository.creerSituationNonProfessionnelle.resolves(
           emptySuccess()
         )

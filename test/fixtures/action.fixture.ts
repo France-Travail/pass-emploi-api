@@ -62,7 +62,8 @@ export const uneActionMilo = (args: Partial<Action> = {}): ActionMilo => {
   const defaults: ActionMilo = {
     ...uneActionQualifiee(),
     idDossier: 'idDossier',
-    loginConseiller: 'loginConseiller'
+    loginConseiller: 'loginConseiller',
+    timezoneStructure: 'Europe/Paris'
   }
 
   return { ...defaults, ...args }

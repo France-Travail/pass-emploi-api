@@ -2,10 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger'
 import { Command } from '../../../building-blocks/types/command'
 import { CommandHandler } from '../../../building-blocks/types/command-handler'
-import {
-  MauvaiseCommandeError,
-  NonTrouveError
-} from '../../../building-blocks/types/domain-error'
+import { MauvaiseCommandeError } from '../../../building-blocks/types/domain-error'
 import {
   Result,
   emptySuccess,
@@ -18,7 +15,10 @@ import { Action, ActionRepositoryToken } from '../../../domain/action/action'
 import { Qualification } from '../../../domain/action/qualification'
 import { Authentification } from '../../../domain/authentification'
 import { Evenement, EvenementService } from '../../../domain/evenement'
-import { Jeune, JeuneRepositoryToken } from '../../../domain/jeune/jeune'
+import {
+  JeuneMilo,
+  JeuneMiloRepositoryToken
+} from '../../../domain/milo/jeune.milo'
 import {
   ActionMilo,
   ActionMiloRepositoryToken
@@ -55,8 +55,8 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
     @Inject(ActionMiloRepositoryToken)
     private readonly actionMiloRepository: ActionMilo.Repository,
     private readonly conseillerAuthorizer: ConseillerAuthorizer,
-    @Inject(JeuneRepositoryToken)
-    private readonly jeuneRepository: Jeune.Repository,
+    @Inject(JeuneMiloRepositoryToken)
+    private readonly jeuneMiloRepository: JeuneMilo.Repository,
     private readonly evenementService: EvenementService,
     private readonly oidcClient: OidcClient
   ) {
@@ -125,7 +125,7 @@ export class QualifierActionsMiloCommandHandler extends CommandHandler<
             actionQualifiee,
             utilisateur,
             this.actionMiloRepository,
-            this.jeuneRepository,
+            this.jeuneMiloRepository,
             getIdpToken
           )
         } catch (e) {
@@ -184,15 +184,19 @@ async function qualifierEnSNP(
   actionQualifiee: Action.Qualifiee,
   utilisateur: Authentification.Utilisateur,
   actionMiloRepository: ActionMilo.Repository,
-  jeuneRepository: Jeune.Repository,
+  jeuneMiloRepository: JeuneMilo.Repository,
   getIdpToken: () => Promise<string>
 ): Promise<Result> {
-  const jeune = await jeuneRepository.get(actionQualifiee.idJeune)
-  if (!jeune) {
-    return failure(new NonTrouveError('Jeune non trouvé'))
+  const jeuneResult = await jeuneMiloRepository.get(actionQualifiee.idJeune)
+  if (isFailure(jeuneResult)) {
+    return jeuneResult
   }
 
-  const actionMiloResult = ActionMilo.creer(actionQualifiee, jeune, utilisateur)
+  const actionMiloResult = ActionMilo.creer(
+    actionQualifiee,
+    jeuneResult.data,
+    utilisateur
+  )
 
   if (isFailure(actionMiloResult)) {
     return actionMiloResult
