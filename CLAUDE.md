@@ -105,5 +105,10 @@ obligatoire : `staging` force le SSL Sequelize (`providers.ts`) que le postgres 
 3. **`resolutions` (sécurité)** : toujours `">=<version>"`, jamais `"^<version>"` ni version exacte. Le `^`
    plafonne le major (`^7.5.6` = `>=7.5.6 <8.0.0`) et recrée la CVE le jour où le correctif passe au major
    suivant ; `>=` laisse l'arbre se résoudre vers n'importe quelle version sûre plus récente.
-4. **Durée des traitements web** : aucune requête SQL du process web ne survit à la requête HTTP qui l'a
+4. **Routes jeune / invité** : une fonctionnalité commune au jeune et à l'invité passe par **la même route**
+   (`/jeunes/:idJeune/...`), pas par une route `/invite/` dupliquée. L'aiguillage se fait côté API selon la
+   structure du token (ex. `DELETE /jeunes/:idJeune`). Écart assumé, à ne pas reproduire : l'authentification
+   (`PUT /users/invite/:idAuthentification`) et les CGU (`/jeunes/:idJeune/invite/cgu`) ont des routes dédiées,
+   conservées pour la compatibilité avec l'app mobile déjà publiée.
+5. **Durée des traitements web** : aucune requête SQL du process web ne survit à la requête HTTP qui l'a
    lancée (Postgres l'annule). Un traitement qui peut durer plus longtemps passe par un job worker.
