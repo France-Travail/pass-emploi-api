@@ -9,16 +9,8 @@ import {
 import { TOUT_PROFIL } from '../../domain/profil'
 import { DateService } from '../../utils/date-service'
 
-export interface NotifierNouvellesImmersionsCommand extends Command {
-  immersions: Array<{
-    location?: {
-      lat: number
-      lon: number
-    }
-    rome: string
-    siret: string
-  }>
-}
+export type NotifierNouvellesImmersionsCommand = Command &
+  Planificateur.JobNotifierNouvellesImmersions
 
 @Injectable()
 export class NotifierNouvellesImmersionsCommandHandler extends CommandHandler<

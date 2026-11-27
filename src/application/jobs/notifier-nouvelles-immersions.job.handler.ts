@@ -21,11 +21,11 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
     @Inject(SuiviJobServiceToken)
     suiviJobService: SuiviJob.Service,
     @Inject(RecherchesRepositoryToken)
-    private recherchesRepository: Recherche.Repository,
+    private readonly recherchesRepository: Recherche.Repository,
     @Inject(JeuneConfigurationApplicationRepositoryToken)
-    private jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
-    private notificationService: Notification.Service,
-    private dateService: DateService
+    private readonly jeuneConfigurationApplicationRepository: ConfigurationApplication.Repository,
+    private readonly notificationService: Notification.Service,
+    private readonly dateService: DateService
   ) {
     super(Planificateur.JobType.NOTIFIER_NOUVELLES_IMMERSIONS, suiviJobService)
   }
@@ -34,13 +34,12 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
     job: Planificateur.Job<Planificateur.JobNotifierNouvellesImmersions>
   ): Promise<SuiviJob> {
     const debut = this.dateService.now()
-    const stats: Stats = {
-      nombreDeNouvellesOffres: job.contenu!.immersions.length,
-      erreurs: 0,
-      recherchesCorrespondantes: 0
-    }
+    const { immersions } = job.contenu!
+    let recherchesCorrespondantes = 0
+    let nbEchecs = 0
+    let premiereCauseDEchec: unknown
 
-    for (const immersion of job.contenu!.immersions) {
+    for (const immersion of immersions) {
       if (immersion.location) {
         const query: Recherche.Immersion = {
           rome: immersion.rome,
@@ -64,19 +63,15 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
           }
 
           if (recherches.length) {
-            stats.recherchesCorrespondantes =
-              stats.recherchesCorrespondantes + recherches.length
+            recherchesCorrespondantes += recherches.length
             const promises = await Promise.allSettled(
               recherches.map(this.notifier.bind(this))
             )
 
             promises.forEach(promise => {
               if (promise.status === 'rejected') {
-                stats.erreurs++
-                rootLogger.error(
-                  { context: this.jobType, error: toEcsError(promise.reason) },
-                  "Échec de la notification d'une recherche d'immersion"
-                )
+                nbEchecs++
+                premiereCauseDEchec ??= promise.reason
               }
             })
           }
@@ -86,12 +81,22 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
       }
     }
 
+    if (nbEchecs) {
+      rootLogger.error(
+        { context: this.jobType, error: toEcsError(premiereCauseDEchec) },
+        "Échec de notifications de recherches d'immersion, première cause jointe"
+      )
+    }
+
     return {
       jobType: this.jobType,
       dateExecution: debut,
-      nbErreurs: stats.erreurs,
+      nbErreurs: nbEchecs,
       succes: true,
-      resultat: stats,
+      resultat: {
+        nombreDeNouvellesOffres: immersions.length,
+        recherchesCorrespondantes
+      },
       tempsExecution: DateService.calculerTempsExecution(debut)
     }
   }
@@ -104,10 +109,4 @@ export class NotifierNouvellesImmersionsJobHandler extends JobHandler<Planificat
       configuration
     )
   }
-}
-
-interface Stats {
-  nombreDeNouvellesOffres: number
-  recherchesCorrespondantes: number
-  erreurs: number
 }

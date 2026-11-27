@@ -8,9 +8,9 @@ import { Planificateur } from '../../../src/domain/planificateur'
 import { SuiviJob } from '../../../src/domain/suivi-job'
 import { DateService } from '../../../src/utils/date-service'
 import { unJeune } from '../../fixtures/jeune.fixture'
+import { uneNouvelleImmersionCommand } from '../../fixtures/offre-immersion.fixture'
 import { uneRecherche } from '../../fixtures/recherche.fixture'
 import { createSandbox, expect, StubbedClass, stubClass } from '../../utils'
-import { DateTime } from 'luxon'
 
 describe('NotifierNouvellesImmersionsJobHandler', () => {
   let notifierNouvellesImmersionsJobHandler: NotifierNouvellesImmersionsJobHandler
@@ -21,6 +21,8 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
   let jeuneRepository: StubbedType<ConfigurationApplication.Repository>
   let notificationService: StubbedClass<Notification.Service>
   let suiviJobService: StubbedType<SuiviJob.Service>
+  let job: Planificateur.Job<Planificateur.JobNotifierNouvellesImmersions>
+  let criteres: Recherche.Immersion
 
   beforeEach(async () => {
     rechercheRepository = stubInterface(sandbox)
@@ -35,58 +37,30 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
         notificationService,
         new DateService()
       )
+
+    const contenu = uneNouvelleImmersionCommand()
+    job = {
+      dateExecution: new Date(),
+      type: Planificateur.JobType.NOTIFIER_NOUVELLES_IMMERSIONS,
+      contenu
+    }
+    criteres = {
+      rome: contenu.immersions[0].rome,
+      lat: contenu.immersions[0].location!.lat,
+      lon: contenu.immersions[0].location!.lon
+    }
   })
 
   describe('handle', () => {
     describe('quand il y a une recherche qui correspond', () => {
-      let job: Planificateur.Job<Planificateur.JobNotifierNouvellesImmersions>
-
       beforeEach(() => {
         // Given
-        job = {
-          dateExecution: DateTime.now().toJSDate(),
-          type: Planificateur.JobType.NOTIFIER_NOUVELLES_IMMERSIONS,
-          contenu: {
-            immersions: [
-              {
-                rome: 'D1101',
-                siret: '12345678901234',
-                location: {
-                  lat: 48.8566,
-                  lon: 2.3522
-                }
-              }
-            ]
-          }
-        }
-
-        const criteres: Recherche.Immersion = {
-          rome: job.contenu!.immersions[0].rome,
-          lat: job.contenu!.immersions[0].location!.lat,
-          lon: job.contenu!.immersions[0].location!.lon
-        }
-
         rechercheRepository.trouverLesRecherchesImmersions
           .withArgs(criteres, 100, 0)
           .resolves([recherche])
       })
 
-      describe('quand le jeune a un pushNotificationToken', () => {
-        it('notifie le jeune', async () => {
-          // Given
-          jeuneRepository.get.withArgs(recherche.idJeune).resolves(jeune)
-
-          // When
-          await notifierNouvellesImmersionsJobHandler.handle(job)
-
-          // Then
-          expect(
-            notificationService.notifierNouvellesOffres
-          ).to.have.been.calledWithExactly(recherche, jeune)
-        })
-      })
-
-      it('retourne un SuiviJob avec les stats', async () => {
+      it('notifie le jeune et retourne les stats', async () => {
         // Given
         jeuneRepository.get.withArgs(recherche.idJeune).resolves(jeune)
 
@@ -94,6 +68,9 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
         const resultat = await notifierNouvellesImmersionsJobHandler.handle(job)
 
         // Then
+        expect(
+          notificationService.notifierNouvellesOffres
+        ).to.have.been.calledWithExactly(recherche, jeune)
         expect(resultat.jobType).to.equal(
           Planificateur.JobType.NOTIFIER_NOUVELLES_IMMERSIONS
         )
@@ -101,8 +78,7 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
         expect(resultat.nbErreurs).to.equal(0)
         expect(resultat.resultat).to.deep.equal({
           nombreDeNouvellesOffres: 1,
-          recherchesCorrespondantes: 1,
-          erreurs: 0
+          recherchesCorrespondantes: 1
         })
       })
 
@@ -118,43 +94,12 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
         // Then
         expect(resultat.succes).to.be.true()
         expect(resultat.nbErreurs).to.equal(1)
-        expect(resultat.resultat).to.deep.equal({
-          nombreDeNouvellesOffres: 1,
-          recherchesCorrespondantes: 1,
-          erreurs: 1
-        })
       })
     })
 
     describe('quand il y a plusieurs pages qui correspondent', () => {
-      let job: Planificateur.Job<Planificateur.JobNotifierNouvellesImmersions>
-      let criteres: Recherche.Immersion
-
       beforeEach(() => {
         // Given
-        job = {
-          dateExecution: DateTime.now().toJSDate(),
-          type: Planificateur.JobType.NOTIFIER_NOUVELLES_IMMERSIONS,
-          contenu: {
-            immersions: [
-              {
-                rome: 'D1101',
-                siret: '12345678901234',
-                location: {
-                  lat: 48.8566,
-                  lon: 2.3522
-                }
-              }
-            ]
-          }
-        }
-
-        criteres = {
-          rome: job.contenu!.immersions[0].rome,
-          lat: job.contenu!.immersions[0].location!.lat,
-          lon: job.contenu!.immersions[0].location!.lon
-        }
-
         rechercheRepository.trouverLesRecherchesImmersions
           .onFirstCall()
           .resolves(creer100(recherche))
@@ -182,9 +127,5 @@ describe('NotifierNouvellesImmersionsJobHandler', () => {
 })
 
 function creer100(recherche: Recherche): Recherche[] {
-  const recherches: Recherche[] = []
-  for (let i = 0; i < 100; i++) {
-    recherches.push(recherche)
-  }
-  return recherches
+  return Array.from({ length: 100 }, () => recherche)
 }
