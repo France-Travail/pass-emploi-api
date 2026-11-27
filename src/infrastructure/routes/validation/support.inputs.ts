@@ -30,24 +30,14 @@ export class TeleverserCsvPayload {
   fichier: Express.Multer.File
 }
 
-export class DesarchiverJeunePayload {
-  @ApiPropertyOptional({
+export class DesarchivageConseillerPayload {
+  @ApiProperty({
     description:
-      'ID (en base) du conseiller auquel rattacher le jeune restauré. Requis sauf si idJeuneRecree est fourni.'
+      'Email du conseiller auquel rattacher les jeunes restaurés (insensible à la casse). Erreur si aucun ou plusieurs conseillers ont cet email.'
   })
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  idConseiller?: string
-
-  @ApiPropertyOptional({
-    description:
-      'ID (en base) du compte que le jeune s’est recréé entre-temps. Sa présence bascule en mode fusion : le jeune archivé n’est pas recréé, ses données sont rattachées à ce compte (qui garde son identité, son authentification et son conseiller).'
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  idJeuneRecree?: string
+  emailConseiller: string
 }
 
 export class ChangerAgenceConseillerPayload {

@@ -107,7 +107,10 @@ import { RecupererJeunesDuConseillerCommandHandler } from './application/command
 import { RefuserSuggestionCommandHandler } from './application/commands/refuser-suggestion.command.handler'
 import { SendNotificationsNouveauxMessagesCommandHandler } from './application/commands/send-notifications-nouveaux-messages.command.handler'
 import { ArchiverJeuneSupportCommandHandler } from './application/commands/support/archiver-jeune-support.command.handler'
-import { DesarchiverJeuneCommandHandler } from './application/commands/support/desarchiver-jeune.command.handler.db'
+import { DesarchiverJeuneCommandHandler } from './application/commands/support/desarchiver-jeune.command.handler'
+import { DesarchivageJeuneService } from './application/commands/support/desarchivage-jeune.service.db'
+import { DesarchiverJeunesConseillerCommandHandler } from './application/commands/support/desarchiver-jeunes-conseiller.command.handler'
+import { DesarchiverJeunesConseillerJobHandler } from './application/jobs/desarchiver-jeunes-conseiller.job.handler'
 import { CreerJeunePESupportCommandHandler } from './application/commands/support/creer-jeune-pe-support-command-handler.service'
 import { SupprimerArchiveJeuneCommandHandler } from './application/commands/support/supprimer-archive-jeune.command.handler'
 import { CreerSuperviseursCommandHandler } from './application/commands/support/creer-superviseurs.command.handler'
@@ -997,6 +1000,8 @@ export function buildQueryCommandsProviders(): Provider[] {
     GetDiagorienteUrlsQueryHandler,
     ArchiverJeuneSupportCommandHandler,
     DesarchiverJeuneCommandHandler,
+    DesarchivageJeuneService,
+    DesarchiverJeunesConseillerCommandHandler,
     CreerJeunePESupportCommandHandler,
     SupprimerArchiveJeuneCommandHandler,
     GetDiagorienteMetiersFavorisQueryHandler,
@@ -1115,7 +1120,8 @@ export const JobHandlerProviders = [
   MajReferentielAgencesFTJobHandler,
   ArchiverJeunesMigrationJobHandler,
   DeconnecterJeunesDispositifJobHandler,
-  NettoyerArchivesJeunesJobHandler
+  NettoyerArchivesJeunesJobHandler,
+  DesarchiverJeunesConseillerJobHandler
 ]
 
 @Module(buildModuleMetadata())

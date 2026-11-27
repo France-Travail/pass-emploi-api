@@ -811,13 +811,16 @@ describe('ArchiveJeuneSqlRepository', () => {
         nettoyageIdp?: ArchiveJeune.EtapeNettoyageIdp | null
         nettoyageChat?: ArchiveJeune.EtapeNettoyageChat | null
         idPopulation?: string | null
+        idConseiller?: string
+        motif?: string
       }
     ): Promise<number> {
       const archive = await ArchiveJeuneSqlModel.create({
         idJeune,
+        idConseiller: etapes.idConseiller ?? null,
         prenom: 'John',
         nom: 'Doe',
-        motif: MotifSuppressionSupport.MIGRATION,
+        motif: etapes.motif ?? MotifSuppressionSupport.MIGRATION,
         dateArchivage: new Date('2026-10-20T09:00:00Z'),
         idAuthentification: `sub-${idJeune}`,
         idPopulation: etapes.idPopulation ?? null,
@@ -895,6 +898,46 @@ describe('ArchiveJeuneSqlRepository', () => {
 
         // Then
         expect(ids).to.deep.equal([id1])
+      })
+    })
+
+    describe('idsArchivesMigrationDuConseiller', () => {
+      const idConseiller = 'conseiller-archive'
+
+      it('ne renvoie que les archives au motif Migration du conseiller, triées par id', async () => {
+        // Given
+        const id1 = await creerArchive('j1', { idConseiller })
+        await creerArchive('j2', { idConseiller: 'autre-conseiller' })
+        await creerArchive('j3', { idConseiller, motif: 'Support' })
+        const id4 = await creerArchive('j4', { idConseiller })
+
+        // When
+        const ids =
+          await archiveJeuneSqlRepository.idsArchivesMigrationDuConseiller({
+            idConseiller,
+            taille: 10
+          })
+
+        // Then
+        expect(ids).to.deep.equal([id1, id4])
+      })
+
+      it('ne prend que les ids strictement supérieurs à apresId, dans la limite de la taille', async () => {
+        // Given
+        const id1 = await creerArchive('j1', { idConseiller })
+        const id2 = await creerArchive('j2', { idConseiller })
+        await creerArchive('j3', { idConseiller })
+
+        // When
+        const ids =
+          await archiveJeuneSqlRepository.idsArchivesMigrationDuConseiller({
+            idConseiller,
+            taille: 1,
+            apresId: id1
+          })
+
+        // Then
+        expect(ids).to.deep.equal([id2])
       })
     })
 

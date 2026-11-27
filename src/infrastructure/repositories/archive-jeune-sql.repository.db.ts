@@ -193,6 +193,28 @@ export class ArchiveJeuneSqlRepository implements ArchiveJeune.Repository {
     }))
   }
 
+  async idsArchivesMigrationDuConseiller({
+    idConseiller,
+    taille,
+    apresId
+  }: {
+    idConseiller: string
+    taille: number
+    apresId?: number
+  }): Promise<number[]> {
+    const archivesSql = await ArchiveJeuneSqlModel.findAll({
+      attributes: ['id'],
+      where: {
+        idConseiller,
+        motif: ArchiveJeune.MotifSuppressionSupport.MIGRATION,
+        ...(apresId !== undefined && { id: { [Op.gt]: apresId } })
+      },
+      order: [['id', 'ASC']],
+      limit: taille
+    })
+    return archivesSql.map(({ id }) => id)
+  }
+
   async marquerIdpRevoque(idArchive: number): Promise<void> {
     await ArchiveJeuneSqlModel.update(
       { nettoyageIdp: null },

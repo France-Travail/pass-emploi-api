@@ -118,7 +118,8 @@ export namespace Planificateur {
     MAJ_REFERENTIEL_PLAN_ACTION = 'MAJ_REFERENTIEL_PLAN_ACTION',
     ARCHIVER_JEUNES_MIGRATION = 'ARCHIVER_JEUNES_MIGRATION',
     NETTOYER_ARCHIVES_JEUNES = 'NETTOYER_ARCHIVES_JEUNES',
-    DECONNECTER_JEUNES_DISPOSITIF = 'DECONNECTER_JEUNES_DISPOSITIF'
+    DECONNECTER_JEUNES_DISPOSITIF = 'DECONNECTER_JEUNES_DISPOSITIF',
+    DESARCHIVER_JEUNES_CONSEILLER = 'DESARCHIVER_JEUNES_CONSEILLER'
   }
 
   export interface JobRendezVous {
@@ -172,6 +173,10 @@ export namespace Planificateur {
 
   export interface JobNettoyerArchivesJeunes extends ContenuJobParLots {
     idPopulation?: string
+  }
+
+  export interface JobDesarchiverJeunesConseiller extends ContenuJobParLots {
+    idConseiller: string
   }
 
   export interface JobNotifierNouvelleActualiteMilo {
