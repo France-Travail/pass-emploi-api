@@ -112,6 +112,7 @@ export namespace Planificateur {
     CLORE_SESSIONS = 'CLORE_SESSIONS',
     ENVOYER_COMMUNICATIONS = 'ENVOYER_COMMUNICATIONS',
     NOTIFIER_NOUVELLE_ACTUALITE_MILO = 'NOTIFIER_NOUVELLE_ACTUALITE_MILO',
+    NOTIFIER_NOUVELLES_IMMERSIONS = 'NOTIFIER_NOUVELLES_IMMERSIONS',
     MAJ_REFERENTIEL_ROME = 'MAJ_REFERENTIEL_ROME',
     RECONCILIER_AGENCES_FT = 'RECONCILIER_AGENCES_FT',
     MAJ_REFERENTIEL_AGENCES_FT = 'MAJ_REFERENTIEL_AGENCES_FT',
@@ -179,6 +180,17 @@ export namespace Planificateur {
     idActualite: string
     offset?: number
     nbEnvoyees?: number
+  }
+
+  export interface JobNotifierNouvellesImmersions {
+    immersions: Array<{
+      location?: {
+        lat: number
+        lon: number
+      }
+      rome: string
+      siret: string
+    }>
   }
 
   export interface JobFake {

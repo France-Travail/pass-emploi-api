@@ -190,6 +190,7 @@ import { Notifier0HeuresDeclareesJobHandler } from './application/jobs/notifier-
 import { NotifierActualisationJobHandler } from './application/jobs/notifier-actualisation.job.handler.db'
 import { EnvoyerCommunicationsJobHandler } from './application/jobs/envoyer-communications.job.handler.db'
 import { NotifierNouvelleActualiteMiloJobHandler } from './application/jobs/notifier-nouvelle-actualite-milo.job.handler.db'
+import { NotifierNouvellesImmersionsJobHandler } from './application/jobs/notifier-nouvelles-immersions.job.handler'
 import { DeconnecterJeunesDispositifJobHandler } from './application/jobs/deconnecter-jeunes-dispositif.job.handler'
 import { ArchiverJeunesMigrationJobHandler } from './application/jobs/archiver-jeunes-migration.job.handler'
 import { NettoyerArchivesJeunesJobHandler } from './application/jobs/nettoyer-archives-jeunes.job.handler'
@@ -1110,6 +1111,7 @@ export const JobHandlerProviders = [
   Notifier0HeuresDeclareesJobHandler,
   EnvoyerCommunicationsJobHandler,
   NotifierNouvelleActualiteMiloJobHandler,
+  NotifierNouvellesImmersionsJobHandler,
   MajReferentielRomeJobHandler,
   ReconcilierAgencesFTJobHandler,
   MajReferentielAgencesFTJobHandler,
