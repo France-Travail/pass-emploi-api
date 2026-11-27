@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import {
@@ -74,12 +75,16 @@ export class DeleteRendezVousCommandHandler extends CommandHandler<
       )
     await this.rendezVousRepository.delete(command.idRendezVous)
 
-    this.notificationService.notifierLesJeunesDuRdv(
-      rendezVous,
-      Notification.Type.DELETED_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        rendezVous,
+        Notification.Type.DELETED_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes du rendez-vous a échoué'
     )
 
-    supprimerLesRappelsDeRendezVous(
+    void supprimerLesRappelsDeRendezVous(
       rendezVous.id,
       this.planificateurService,
       this.logger,
@@ -98,11 +103,15 @@ export class DeleteRendezVousCommandHandler extends CommandHandler<
           )
         )
       }
-      this.mailService.envoyerMailRendezVous(
-        createur,
-        rendezVous,
-        RendezVous.Operation.SUPPRESSION,
-        icsSequence
+      lancerSansAttendre(
+        this.mailService.envoyerMailRendezVous(
+          createur,
+          rendezVous,
+          RendezVous.Operation.SUPPRESSION,
+          icsSequence
+        ),
+        this.logger,
+        "L'envoi de l'invitation calendaire de suppression a échoué"
       )
     }
     return emptySuccess()

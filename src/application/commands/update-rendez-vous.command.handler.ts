@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { Evenement, EvenementService } from '../../domain/evenement'
 import { Command } from '../../building-blocks/types/command'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
@@ -99,18 +100,26 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
     const rendezVousUpdated = result.data
     await this.rendezVousRepository.save(rendezVousUpdated)
 
-    replanifierLesRappelsDeRendezVous(
+    void replanifierLesRappelsDeRendezVous(
       rendezVousUpdated,
       rendezVous,
       this.planificateurService,
       this.logger,
       this.apmService
     )
-    this.notifierLesJeunes(rendezVous, rendezVousUpdated, utilisateur)
+    lancerSansAttendre(
+      this.notifierLesJeunes(rendezVous, rendezVousUpdated, utilisateur),
+      this.logger,
+      'La notification des jeunes du rendez-vous a échoué'
+    )
     if (rendezVousUpdated.invitation) {
-      this.envoyerLesInvitationsCalendaires(
-        rendezVousUpdated,
-        RendezVous.Operation.MODIFICATION
+      lancerSansAttendre(
+        this.envoyerLesInvitationsCalendaires(
+          rendezVousUpdated,
+          RendezVous.Operation.MODIFICATION
+        ),
+        this.logger,
+        "L'envoi de l'invitation calendaire de modification a échoué"
       )
     }
     return success({ id: rendezVousUpdated.id })
@@ -183,34 +192,54 @@ export class UpdateRendezVousCommandHandler extends CommandHandler<
       jeunes: jeunesAjoutes
     }
 
-    this.notificationService.notifierLesJeunesDuRdv(
-      rdvSupprime,
-      Notification.Type.DELETED_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        rdvSupprime,
+        Notification.Type.DELETED_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes retirés du rendez-vous a échoué'
     )
-    this.notificationService.notifierLesJeunesDuRdv(
-      nouveauRdv,
-      Notification.Type.NEW_RENDEZVOUS
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuRdv(
+        nouveauRdv,
+        Notification.Type.NEW_RENDEZVOUS
+      ),
+      this.logger,
+      'La notification des jeunes ajoutés au rendez-vous a échoué'
     )
 
     if (
       RendezVous.estUnTypeAnimationCollective(rendezVous.type) &&
       jeunesAjoutes.length
     ) {
-      this.evenementService.creer(
-        Evenement.Code.ANIMATION_COLLECTIVE_INSCRIPTION,
-        utilisateur
+      lancerSansAttendre(
+        this.evenementService.creer(
+          Evenement.Code.ANIMATION_COLLECTIVE_INSCRIPTION,
+          utilisateur
+        ),
+        this.logger,
+        "L'enregistrement de l'événement d'engagement a échoué"
       )
     }
     if (this.doitNotifierDUneMiseAJour(rendezVous, rendezVousUpdated)) {
-      this.notificationService.notifierLesJeunesDuRdv(
-        rdvMisAJour,
-        Notification.Type.UPDATED_RENDEZVOUS
+      lancerSansAttendre(
+        this.notificationService.notifierLesJeunesDuRdv(
+          rdvMisAJour,
+          Notification.Type.UPDATED_RENDEZVOUS
+        ),
+        this.logger,
+        'La notification de modification du rendez-vous a échoué'
       )
-      this.evenementService.creer(
-        RendezVous.estUnTypeAnimationCollective(rendezVous.type)
-          ? Evenement.Code.ANIMATION_COLLECTIVE_MODIFICATION
-          : Evenement.Code.RDV_MODIFIE,
-        utilisateur
+      lancerSansAttendre(
+        this.evenementService.creer(
+          RendezVous.estUnTypeAnimationCollective(rendezVous.type)
+            ? Evenement.Code.ANIMATION_COLLECTIVE_MODIFICATION
+            : Evenement.Code.RDV_MODIFIE,
+          utilisateur
+        ),
+        this.logger,
+        "L'enregistrement de l'événement d'engagement a échoué"
       )
     }
   }

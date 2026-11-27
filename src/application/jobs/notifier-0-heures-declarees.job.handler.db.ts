@@ -81,7 +81,7 @@ export class Notifier0HeuresDeclareesJobHandler extends JobHandler<Planificateur
 
       stats.nbJeunesNotifies += idsJeunesAvecComptage.length
       for (const jeune of idsJeunesAvecComptage) {
-        this.notificationService.notifier0Heures(
+        void this.notificationService.notifier0Heures(
           jeune.id_jeune_a_notifier,
           jeune.push_notification_token
         )

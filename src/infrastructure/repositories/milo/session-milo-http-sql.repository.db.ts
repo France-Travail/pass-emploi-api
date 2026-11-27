@@ -243,7 +243,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
 
     const idInstanceSession = inscrit.idInstanceSession.toString()
 
-    supprimerRappelsInstanceSessionMilo(
+    void supprimerRappelsInstanceSessionMilo(
       idInstanceSession,
       this.planificateurService,
       this.logger,
@@ -294,7 +294,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
       return resultInscriptions
     }
     resultInscriptions.data.forEach(inscription => {
-      planifierRappelsInstanceSessionMilo(
+      void planifierRappelsInstanceSessionMilo(
         {
           idInstance: inscription.id.toString(),
           idDossier: inscription.idDossier.toString(),
@@ -328,7 +328,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     }))
     for (const modification of modifications) {
       if (modification.statut === MILO_INSCRIT) {
-        planifierRappelsInstanceSessionMilo(
+        void planifierRappelsInstanceSessionMilo(
           {
             idInstance: modification.idInstanceSession,
             idDossier: modification.idDossier,
@@ -340,7 +340,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
           this.apmService
         )
       } else {
-        supprimerRappelsInstanceSessionMilo(
+        void supprimerRappelsInstanceSessionMilo(
           modification.idInstanceSession,
           this.planificateurService,
           this.logger,
@@ -361,7 +361,7 @@ export class SessionMiloHttpSqlRepository implements SessionMilo.Repository {
     tokenMilo: string
   ): Promise<Result> {
     const desinscriptions = inscriptionsASupprimer.map(desinscription => {
-      supprimerRappelsInstanceSessionMilo(
+      void supprimerRappelsInstanceSessionMilo(
         desinscription.idInscription,
         this.planificateurService,
         this.logger,

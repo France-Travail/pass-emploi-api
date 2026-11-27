@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { DateTime } from 'luxon'
 import { JeuneMiloSansStructure } from '../../building-blocks/types/domain-error'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { JobHandler } from '../../building-blocks/types/job-handler'
 import { isFailure } from '../../building-blocks/types/result'
 import { EvenementMilo } from '../../domain/milo/evenement.milo'
@@ -200,7 +201,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     )
     await this.rendezVousRepository.save(newRendezVousCEJ)
 
-    planifierLesRappelsDeRendezVous(
+    void planifierLesRappelsDeRendezVous(
       newRendezVousCEJ,
       this.planificateurService,
       this.logger,
@@ -271,7 +272,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     await this.rendezVousRepository.save(rendezVousCEJUpdated)
 
     if (RendezVousMilo.estAnnule(rendezVousMilo)) {
-      supprimerLesRappelsDeRendezVous(
+      void supprimerLesRappelsDeRendezVous(
         rendezVousCEJExistant.id,
         this.planificateurService,
         this.logger,
@@ -291,7 +292,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       )
     }
 
-    replanifierLesRappelsDeRendezVous(
+    void replanifierLesRappelsDeRendezVous(
       rendezVousCEJUpdated,
       rendezVousCEJExistant,
       this.planificateurService,
@@ -327,7 +328,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     }
     await this.rendezVousRepository.delete(rendezVousCEJExistant.id)
 
-    supprimerLesRappelsDeRendezVous(
+    void supprimerLesRappelsDeRendezVous(
       rendezVousCEJExistant.id,
       this.planificateurService,
       this.logger,
@@ -399,7 +400,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
           notifierRdvMilo
         )
       }
-      supprimerRappelsInstanceSessionMilo(
+      void supprimerRappelsInstanceSessionMilo(
         instanceSessionMilo.id,
         this.planificateurService,
         this.logger,
@@ -433,7 +434,7 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
     instanceSessionMilo?: InstanceSessionMilo,
     notifierRdvMilo?: boolean
   ): Promise<SuiviJob> {
-    supprimerRappelsInstanceSessionMilo(
+    void supprimerRappelsInstanceSessionMilo(
       idInstanceSessionMilo,
       this.planificateurService,
       this.logger,
@@ -475,9 +476,13 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
       )
 
       if (estRDVFutur) {
-        this.notificationService.notifierLesJeunesDuRdv(
-          rendezVousCEJ,
-          typeNotification
+        lancerSansAttendre(
+          this.notificationService.notifierLesJeunesDuRdv(
+            rendezVousCEJ,
+            typeNotification
+          ),
+          this.logger,
+          'La notification du jeune du rendez-vous Milo a échoué'
         )
       }
     }
@@ -507,13 +512,17 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
 
         switch (typeNotification) {
           case 'create':
-            this.notificationService.notifierInscriptionSession(
-              instanceSessionMilo.idSession,
-              instanceSessionMilo.nom,
-              dateSession,
-              [jeune]
+            lancerSansAttendre(
+              this.notificationService.notifierInscriptionSession(
+                instanceSessionMilo.idSession,
+                instanceSessionMilo.nom,
+                dateSession,
+                [jeune]
+              ),
+              this.logger,
+              "La notification d'inscription à la session Milo a échoué"
             )
-            planifierRappelsInstanceSessionMilo(
+            void planifierRappelsInstanceSessionMilo(
               rappel,
               this.planificateurService,
               this.logger,
@@ -521,13 +530,17 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             )
             break
           case 'update':
-            this.notificationService.notifierModificationSession(
-              instanceSessionMilo.idSession,
-              instanceSessionMilo.nom,
-              dateSession,
-              [jeune]
+            lancerSansAttendre(
+              this.notificationService.notifierModificationSession(
+                instanceSessionMilo.idSession,
+                instanceSessionMilo.nom,
+                dateSession,
+                [jeune]
+              ),
+              this.logger,
+              'La notification de modification de la session Milo a échoué'
             )
-            planifierRappelsInstanceSessionMilo(
+            void planifierRappelsInstanceSessionMilo(
               rappel,
               this.planificateurService,
               this.logger,
@@ -535,11 +548,15 @@ export class TraiterEvenementMiloJobHandler extends JobHandler<Planificateur.Job
             )
             break
           case 'delete':
-            this.notificationService.notifierDesinscriptionSession(
-              instanceSessionMilo.idSession,
-              instanceSessionMilo.nom,
-              dateSession,
-              [jeune]
+            lancerSansAttendre(
+              this.notificationService.notifierDesinscriptionSession(
+                instanceSessionMilo.idSession,
+                instanceSessionMilo.nom,
+                dateSession,
+                [jeune]
+              ),
+              this.logger,
+              'La notification de désinscription de la session Milo a échoué'
             )
             break
         }

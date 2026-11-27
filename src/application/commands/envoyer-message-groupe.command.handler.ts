@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../building-blocks/types/command'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { MauvaiseCommandeError } from '../../building-blocks/types/domain-error'
 import {
@@ -104,7 +105,11 @@ export class EnvoyerMessageGroupeCommandHandler extends CommandHandler<
 
     const jeunes = await this.jeuneRepository.findAll(idsBeneficiairesUniques)
 
-    this.notificationService.notifierLesJeunesDuNouveauMessage(jeunes)
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuNouveauMessage(jeunes),
+      this.logger,
+      'La notification des jeunes du nouveau message a échoué'
+    )
 
     return emptySuccess()
   }

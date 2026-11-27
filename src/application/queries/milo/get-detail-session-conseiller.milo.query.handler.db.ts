@@ -95,7 +95,7 @@ export class GetDetailSessionConseillerMiloQueryHandler extends QueryHandler<
   }
 
   private planifierClotureSession(session: SessionMilo): void {
-    this.planificateurService.ajouterJobClotureSessions(
+    void this.planificateurService.ajouterJobClotureSessions(
       [session.id],
       session.idStructureMilo,
       this.dateService.now(),

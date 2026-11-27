@@ -51,7 +51,7 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
         }
       }
     )
-    this.queue.isReady().then(() => {
+    void this.queue.isReady().then(() => {
       this.isReady = true
     })
   }
@@ -85,7 +85,7 @@ export class PlanificateurRedisRepository implements Planificateur.Repository {
   }
 
   async subscribe(handle: Planificateur.Handler<unknown>): Promise<void> {
-    this.queue.process(async jobRedis => {
+    void this.queue.process(async jobRedis => {
       const job: Planificateur.Job<unknown> = {
         dateExecution: jobRedis.data.date,
         type: jobRedis.data.type,

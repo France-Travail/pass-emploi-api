@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { NonTrouveError } from '../../building-blocks/types/domain-error'
 import {
@@ -83,11 +84,19 @@ export class DeleteJeuneCommandHandler extends CommandHandler<
 
     await this.authentificationRepository.deleteUtilisateurIdp(idJeune)
     await this.jeuneRepository.supprimer(idJeune)
-    this.chatRepository.supprimerChat(idJeune)
+    lancerSansAttendre(
+      this.chatRepository.supprimerChat(idJeune),
+      this.logger,
+      'La suppression du chat du jeune a échoué'
+    )
 
     if (jeune.conseiller?.email) {
       const mail = this.mailFactory.creerMailSuppressionJeune(jeune)
-      this.mailService.envoyer(mail)
+      lancerSansAttendre(
+        this.mailService.envoyer(mail),
+        this.logger,
+        "L'envoi du mail de suppression du jeune au conseiller a échoué"
+      )
     } else {
       this.logger.log(
         `Email non envoyé au conseiller : ${JSON.stringify(jeune.conseiller)}`

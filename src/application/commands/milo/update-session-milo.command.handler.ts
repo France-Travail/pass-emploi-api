@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { lancerSansAttendre } from 'src/building-blocks/lancer-sans-attendre'
 import { Command } from 'src/building-blocks/types/command'
 import { CommandHandler } from 'src/building-blocks/types/command-handler'
 import {
@@ -125,15 +126,23 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
     ])
 
     if (jeunesANotifierInscription.length) {
-      this.notificationService.notifierInscriptionSession(
-        session.id,
-        session.nom,
-        session.debut,
-        jeunesANotifierInscription
+      lancerSansAttendre(
+        this.notificationService.notifierInscriptionSession(
+          session.id,
+          session.nom,
+          session.debut,
+          jeunesANotifierInscription
+        ),
+        this.logger,
+        "La notification d'inscription à la session a échoué"
       )
-      this.evenementService.creer(
-        Evenement.Code.SESSION_INSCRIPTION,
-        utilisateur
+      lancerSansAttendre(
+        this.evenementService.creer(
+          Evenement.Code.SESSION_INSCRIPTION,
+          utilisateur
+        ),
+        this.logger,
+        "L'enregistrement de l'événement d'engagement a échoué"
       )
     }
 
@@ -142,11 +151,15 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
         jeunesSupprimesANotifierDesinscription
       )
     if (jeunesANotifierDesinscription.length) {
-      this.notificationService.notifierDesinscriptionSession(
-        session.id,
-        session.nom,
-        session.debut,
-        jeunesANotifierDesinscription
+      lancerSansAttendre(
+        this.notificationService.notifierDesinscriptionSession(
+          session.id,
+          session.nom,
+          session.debut,
+          jeunesANotifierDesinscription
+        ),
+        this.logger,
+        'La notification de désinscription de la session a échoué'
       )
     }
 
@@ -169,7 +182,7 @@ export class UpdateSessionMiloCommandHandler extends CommandHandler<
   ): Promise<void> {
     if (Authentification.estConseiller(utilisateur.type)) {
       if (command.estVisible !== undefined) {
-        this.evenementService.creer(
+        await this.evenementService.creer(
           Evenement.Code.SESSION_MODIFICATION,
           utilisateur
         )

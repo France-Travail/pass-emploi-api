@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Command } from '../../building-blocks/types/command'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { CommandHandler } from '../../building-blocks/types/command-handler'
 import { emptySuccess, Result } from '../../building-blocks/types/result'
 import { Authentification } from '../../domain/authentification'
@@ -37,7 +38,11 @@ export class SendNotificationsNouveauxMessagesCommandHandler extends CommandHand
       command.idConseiller
     )
 
-    this.notificationService.notifierLesJeunesDuNouveauMessage(jeunes)
+    lancerSansAttendre(
+      this.notificationService.notifierLesJeunesDuNouveauMessage(jeunes),
+      this.logger,
+      'La notification des jeunes du nouveau message a échoué'
+    )
 
     return emptySuccess()
   }

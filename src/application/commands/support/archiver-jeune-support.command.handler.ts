@@ -24,7 +24,7 @@ export class ArchiverJeuneSupportCommandHandler extends CommandHandler<
   }
 
   async handle(command: ArchiverJeuneSupportCommand): Promise<Result> {
-    this.archiverJeuneService.archiver(
+    void this.archiverJeuneService.archiver(
       command.idJeune,
       COMMENTAIRE_SUPPRESSION_SUPPORT,
       ArchiveJeune.MotifSuppressionSupport.SUPPORT

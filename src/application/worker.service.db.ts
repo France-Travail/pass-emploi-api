@@ -32,7 +32,7 @@ export class WorkerService {
   }
 
   subscribe(): void {
-    this.planificateurRepository.subscribe(this.handler.bind(this))
+    void this.planificateurRepository.subscribe(this.handler.bind(this))
   }
 
   async handler(job: Planificateur.Job<unknown>): Promise<void> {

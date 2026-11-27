@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { DateTime } from 'luxon'
+import { lancerSansAttendre } from '../../building-blocks/lancer-sans-attendre'
 import { SessionMiloBeneficiaire } from 'src/domain/milo/session.milo'
 import { DateService } from '../../utils/date-service'
 import { Action } from '../action/action'
@@ -304,7 +305,11 @@ export namespace Notification {
       }
 
       if (notification) {
-        this.notificationRepository.send(notification, idJeune)
+        lancerSansAttendre(
+          this.notificationRepository.send(notification, idJeune),
+          this.logger,
+          'La notification du rendez-vous France Travail a échoué'
+        )
       }
     }
 

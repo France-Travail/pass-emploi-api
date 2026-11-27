@@ -116,7 +116,7 @@ export class NotifierRappelCreationActionsDemarchesJobHandler extends JobHandler
 
       stats.nbJeunesNotifies += idsJeunesANotifier.length
       for (const jeune of idsJeunesANotifier) {
-        this.notificationService.notifierRappelCreationActionDemarche(
+        void this.notificationService.notifierRappelCreationActionDemarche(
           jeune.id,
           jeune.structure,
           jeune.token,
